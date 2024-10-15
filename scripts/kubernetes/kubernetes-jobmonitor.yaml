@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jobmonitor
+  namespace: ort-server
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: ort-server
+  name: jobmonitor-watcher
+rules:
+  - apiGroups: ["core"]
+    resources: ["pods"]
+    verbs: ["list", "get", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["list", "watch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jobmonitor-watcher-binding
+  namespace: ort-server
+subjects:
+  - kind: ServiceAccount
+    name: jobmonitor
+    namespace: ort-server
+roleRef:
+  kind: Role
+  name: jobmonitor-watcher
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubernetes-jobmonitor
+  namespace: ort-server
+  labels:
+    app: ort-server
+    component: kubernetes-jobmonitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ort-server
+      component: kubernetes-jobmonitor
+  template:
+    metadata:
+      labels:
+        app: ort-server
+        component: kubernetes-jobmonitor
+    spec:
+      serviceAccountName: jobmonitor
+      volumes:
+        - name: ort-jobmonitor-config-volume
+          configMap: 
+            name: ort-jobmonitor-config
+        - name: ort-secrets
+          secret: 
+            secretName: ort-secrets
+      containers:
+        - name: kubernetes-jobmonitor
+          image: "kubernetes-jobmonitor-image"
+          volumeMounts:
+            - name: ort-jobmonitor-config-volume
+              mountPath: /app/resources/application.conf
+              subPath: application.conf
+              readOnly: true
+            - name: ort-secrets
+              mountPath: /app/resources/secrets.properties
+              subPath: secrets.properties
+              readOnly: true
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"

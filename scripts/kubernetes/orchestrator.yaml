@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: orchestrator
+  namespace: ort-server
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: ort-server
+  name: orchestrator-job-creator
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ort-server-secret-configmap
+  namespace: ort-server
+data:
+  secrets: |
+    rabbitMqUser=admin
+    rabbitMqPassword=admin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: orchestrator-job-creator-binding
+  namespace: ort-server
+subjects:
+  - kind: ServiceAccount
+    name: orchestrator
+    namespace: ort-server
+roleRef:
+  kind: Role
+  name: orchestrator-job-creator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ort-server-orchestrator
+  namespace: ort-server
+  labels:
+    app: ort-server
+    component: orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ort-server
+      component: orchestrator
+  template:
+    metadata:
+      labels:
+        app: ort-server
+        component: orchestrator
+    spec:
+      serviceAccountName: orchestrator
+      volumes:
+        - name: ort-orchestrator-config-volume
+          configMap: 
+            name: ort-orchestrator-config
+        - name: ort-orchestrator-config-secrets
+          secret: 
+            secretName: ort-secrets
+      containers:
+        - name: ort-server
+          image: "ort-server-orchestrator"
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: ort-orchestrator-config-volume
+              mountPath: /app/resources/application.conf
+              subPath: application.conf
+              readOnly: true
+            - name: ort-orchestrator-config-secrets
+              mountPath: /app/resources/secrets.properties
+              subPath: secrets.properties
+              readOnly: true
+          env:
+            - name: DB_HOST
+              value: "postgresql"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: ort
+            - name: DB_SCHEMA
+              value: ort_server
+            - name: DB_USERNAME
+              value: postgres
+            - name: DB_PASSWORD
+              value: postgres
+            - name: DB_SSL_MODE
+              value: disable
+            # This is the queue configuration for communicating back from the workers to the orchestrator.
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
+              value: "rabbitMQ"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
+              value: "amqp://rabbitmq-headless.ort-server.svc.cluster.local:5672"
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
+              value: orchestrator_queue
+
+            - name: ANALYZER_MOUNT_SECRETS
+              value: "ort-secrets->/mnt/secrets|secrets.properties"
+            - name: ANALYZER_ANALYZER_SECRET_PROVIDER
+              value: secret-file
+            - name: ANALYZER_ANALYZER_SECRET_FILES
+              value: /mnt/secrets/secrets.properties
+            
+            - name: REPORTER_MOUNT_SECRETS
+              value: "ort-secrets->/mnt/secrets|secrets.properties"
+            - name: REPORTER_REPORTER_SECRET_PROVIDER
+              value: secret-file
+            - name: REPORTER_REPORTER_SECRET_FILES
+              value: /mnt/secrets/secrets.properties
+            
+            - name: ANALYZER_SENDER_TRANSPORT_IMAGE_NAME
+              value: "analyzer-worker-image"
+            - name: ADVISOR_SENDER_TRANSPORT_IMAGE_NAME
+              value: "advisor-worker-image"
+            - name: CONFIG_SENDER_TRANSPORT_IMAGE_NAME
+              value: "config-worker-image"
+            - name: EVALUATOR_SENDER_TRANSPORT_IMAGE_NAME
+              value: "evaluator-worker-image"
+            - name: NOTIFIER_SENDER_TRANSPORT_IMAGE_NAME
+              value: "notifier-worker-image"
+            - name: REPORTER_SENDER_TRANSPORT_IMAGE_NAME
+              value: "reporter-worker-image"
+            - name: SCANNER_SENDER_TRANSPORT_IMAGE_NAME
+              value: "scanner-worker-image"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"

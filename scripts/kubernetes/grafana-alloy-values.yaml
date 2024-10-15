@@ -1,0 +1,9 @@
+controller:
+  type: deployment
+  replicas: 1
+
+alloy:
+  configMap:
+    create: false
+    name: alloy-config
+    key: config.alloy

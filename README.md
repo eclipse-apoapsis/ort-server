@@ -191,6 +191,43 @@ migrated by following these steps:
    docker compose up -d
    ```
 
+### Local Kubernetes with Tilt
+
+#### Setup
+
+1. Install Tilt
+2. Install OpenTofu
+3. Install Minikube
+4. Install ctlptl
+
+Create the Minikube cluster with ctlptl:
+
+```console
+ctlptl create cluster minikube --registry=ctlptl-registry --minikube-start-flags "--memory=6g" --minikube-start-flags "--cpus=4"
+```
+
+Start ORT Server:
+
+```console
+tilt up
+```
+
+Destroy the cluster:
+
+```console
+ctlptl delete cluster minikube
+```
+
+To get the UI working, create file `/ui/.env.local` with the following content:
+
+```env
+VITE_CLIENT_ID=ort-server
+VITE_AUTHORITY=http://localhost:8081/realms/ort-server
+```
+
+and run it with `pnpm -C ui dev`.
+
+
 ### Accessing the services
 
 | Service        | URL                              | Credentials                                             |
