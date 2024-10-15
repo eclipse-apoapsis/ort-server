@@ -44,6 +44,10 @@ Files: README.md
 Copyright: 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 License: Apache-2.0
 
+Files: renovate.json
+Copyright: 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+License: Apache-2.0
+
 Files: */package.json
 Copyright: 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
 License: Apache-2.0
