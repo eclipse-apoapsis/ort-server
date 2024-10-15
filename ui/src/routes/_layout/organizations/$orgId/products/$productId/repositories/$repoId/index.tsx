@@ -125,7 +125,7 @@ const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
     cell: ({ row }) => (
       <RunDuration
         createdAt={row.original.createdAt}
-        finishedAt={row.original.finishedAt}
+        finishedAt={row.original.finishedAt ?? undefined}
         pollInterval={pollInterval}
       />
     ),

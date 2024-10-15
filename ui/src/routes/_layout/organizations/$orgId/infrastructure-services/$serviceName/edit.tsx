@@ -117,7 +117,7 @@ const EditInfrastructureServicePage = () => {
     defaultValues: {
       name: service?.name,
       url: service?.url,
-      description: service?.description,
+      description: service?.description ?? undefined,
       usernameSecretRef: service?.usernameSecretRef,
       passwordSecretRef: service?.passwordSecretRef,
       credentialsTypes: service?.credentialsTypes,
