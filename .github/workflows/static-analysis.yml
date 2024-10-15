@@ -124,9 +124,6 @@ jobs:
     - name: Validate Repository Renovate Config
       run: npx -y --package renovate -- renovate-config-validator .github/renovate.json
 
-    - name: Validate Global Renovate Config
-      run: npx -y --package renovate -- renovate-config-validator .github/renovate-global.json
-
   reuse-tool:
     runs-on: ubuntu-24.04
     steps:

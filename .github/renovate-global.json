@@ -1,8 +1,0 @@
-{
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "branchPrefix": "renovate-action/",
-  "gitAuthor": "eclipse-apoapsis-bot <159786767+eclipse-apoapsis-bot@users.noreply.github.com>",
-  "repositories": [
-    "eclipse-apoapsis/ort-server"
-  ]
-}
