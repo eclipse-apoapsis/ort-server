@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# ORT Server
+# Introduction
 
 The [Eclipse Apoapsis](https://projects.eclipse.org/projects/technology.apoapsis) ORT Server is a standalone application for the automation of software compliance checks.
 
