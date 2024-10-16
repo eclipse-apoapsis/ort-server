@@ -47,7 +47,7 @@ class RuleViolationService(private val db: Database) {
                 val join = RuleViolationsTable innerJoin
                     EvaluatorRunsRuleViolationsTable innerJoin
                     EvaluatorRunsTable innerJoin
-                    EvaluatorJobsTable innerJoin
+                    EvaluatorJobsTable leftJoin
                     IdentifiersTable
 
                 join.select(
