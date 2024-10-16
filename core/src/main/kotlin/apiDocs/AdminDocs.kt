@@ -44,6 +44,21 @@ val runPermissionsSync: OpenApiRoute.() -> Unit = {
     }
 }
 
+val getUsers: OpenApiRoute.() -> Unit = {
+    operationId = "getUsers"
+    summary = "Get all users of the server."
+    tags = listOf("Admin")
+
+    request {
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Successfully retrieved the users."
+        }
+    }
+}
+
 val postUsers: OpenApiRoute.() -> Unit = {
     operationId = "postUsers"
     summary = "Create a user, possibly with a password. This is enabled for server administrators only."
@@ -67,6 +82,28 @@ val postUsers: OpenApiRoute.() -> Unit = {
         // Note: Keycloak doesn't distinguish technical from logical errors; it just returns 500 for both.
         HttpStatusCode.InternalServerError to {
             description = "A user with the same username already exists."
+        }
+    }
+}
+
+val deleteUserByUsername: OpenApiRoute.() -> Unit = {
+    operationId = "deleteUserByUsername"
+    summary = "Delete a user from the server."
+    tags = listOf("Admin")
+
+    request {
+        queryParameter<String>("username") {
+            description = "The username of the user to delete."
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Successfully deleted the user."
+        }
+
+        HttpStatusCode.InternalServerError to {
+            description = "The user does not exist."
         }
     }
 }
