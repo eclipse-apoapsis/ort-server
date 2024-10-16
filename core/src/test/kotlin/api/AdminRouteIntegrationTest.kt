@@ -20,13 +20,32 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.nulls.shouldNotBeNull
 
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 
+import kotlinx.serialization.json.Json
+
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.core.SUPERUSER
+import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class AdminRouteIntegrationTest : AbstractIntegrationTest({
+    tags(Integration)
+
+    val testUsername = "test123"
+    val testPassword = "password123"
+    val testTemporary = true
 
     "GET /admin/sync-roles" should {
         "start sync process for permissions and roles" {
@@ -39,6 +58,100 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
         "require superuser role" {
             requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Accepted) {
                 get("/api/v1/admin/sync-roles")
+            }
+        }
+    }
+
+    "GET /admin/users" should {
+        "return a list of users" {
+            integrationTestApplication {
+                val response = superuserClient.get("/api/v1/admin/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val users = Json.decodeFromString<Set<User>>(response.bodyAsText())
+                users.shouldNotBeNull()
+                users shouldContain User(
+                    username = SUPERUSER.username.value,
+                    firstName = SUPERUSER.firstName,
+                    lastName = SUPERUSER.lastName,
+                    email = SUPERUSER.email
+                )
+            }
+        }
+
+        "require superuser role" {
+            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.OK) {
+                get("/api/v1/admin/users")
+            }
+        }
+    }
+
+    "POST /admin/users" should {
+        "create a new user" {
+            integrationTestApplication {
+                val user = CreateUser(testUsername, testPassword, testTemporary)
+
+                val response = superuserClient.post("/api/v1/admin/users") {
+                    setBody(user)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Created
+            }
+        }
+
+        "respond with an internal error if the user already exists" {
+            integrationTestApplication {
+                val user = CreateUser(testUsername, testPassword, testTemporary)
+
+                superuserClient.post("/api/v1/admin/users") {
+                    setBody(user)
+                }
+                val response = superuserClient.post("/api/v1/admin/users") {
+                    setBody(user)
+                }
+
+                response shouldHaveStatus HttpStatusCode.InternalServerError
+            }
+        }
+
+        "require superuser role" {
+            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Created) {
+                post("/api/v1/admin/users") {
+                    setBody(CreateUser(testUsername, testPassword, testTemporary))
+                }
+            }
+        }
+    }
+
+    "DELETE /admin/users" should {
+        "delete a user" {
+            integrationTestApplication {
+                val response = superuserClient.delete("/api/v1/admin/users") {
+                    parameter("username", TEST_USER.username.value)
+                }
+
+                response shouldHaveStatus HttpStatusCode.NoContent
+            }
+        }
+
+        "respond with an internal error if the user doesn't exist" {
+            integrationTestApplication {
+                superuserClient.delete("/api/v1/admin/users") {
+                    parameter("username", TEST_USER.username.value)
+                }
+                val response = superuserClient.delete("/api/v1/admin/users") {
+                    parameter("username", TEST_USER.username.value)
+                }
+
+                response shouldHaveStatus HttpStatusCode.InternalServerError
+            }
+        }
+
+        "require superuser role" {
+            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.NoContent) {
+                delete("/api/v1/admin/users") {
+                    parameter("username", TEST_USER.username.value)
+                }
             }
         }
     }

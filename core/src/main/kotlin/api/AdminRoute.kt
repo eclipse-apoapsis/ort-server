@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
+import io.github.smiley4.ktorswaggerui.dsl.routing.delete
 import io.github.smiley4.ktorswaggerui.dsl.routing.get
 import io.github.smiley4.ktorswaggerui.dsl.routing.post
 
@@ -33,10 +34,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserByUsername
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.runPermissionsSync
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.UserService
 
@@ -64,6 +69,13 @@ fun Route.admin() = route("admin") {
     route("users") {
         val userService by inject<UserService>()
 
+        get(getUsers) {
+            requireSuperuser()
+
+            val users = userService.getUsers().map { user -> user.mapToApi() }
+            call.respond(users)
+        }
+
         post(postUsers) {
             requireSuperuser()
 
@@ -71,6 +83,15 @@ fun Route.admin() = route("admin") {
             userService.createUser(createUser.username, createUser.password, createUser.temporary)
 
             call.respond(HttpStatusCode.Created)
+        }
+
+        delete(deleteUserByUsername) {
+            requireSuperuser()
+
+            val username = call.requireParameter("username")
+            userService.deleteUser(username)
+
+            call.respond(HttpStatusCode.NoContent)
         }
     }
 }

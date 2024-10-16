@@ -1,3 +1,7 @@
+### Get all Users
+GET {{host}}/admin/users
+Authorization: Bearer {{$auth.token("keycloak")}}
+
 ### Create a User
 POST {{host}}/admin/users
 Authorization: Bearer {{$auth.token("keycloak")}}
@@ -8,3 +12,4 @@ Content-Type: application/json
   "password": "password",
   "temporary": "false",
 }
+
