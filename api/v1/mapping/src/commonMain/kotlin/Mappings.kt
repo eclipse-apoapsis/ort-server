@@ -77,6 +77,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection as ApiSortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty as ApiSortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
@@ -119,6 +120,7 @@ import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -759,3 +761,5 @@ fun ApiSourceCodeOrigin.mapToModel() =
         ApiSourceCodeOrigin.ARTIFACT -> SourceCodeOrigin.ARTIFACT
         ApiSourceCodeOrigin.VCS -> SourceCodeOrigin.VCS
     }
+
+fun User.mapToApi() = ApiUser(username, firstName, lastName, email)

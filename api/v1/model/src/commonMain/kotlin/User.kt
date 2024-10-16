@@ -26,8 +26,17 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class User(
-    val id: String,
+    /** The username of the user. */
     val username: String,
+
+    /** The first name of the user. */
+    val firstName: String? = null,
+
+    /** The last name of the user. */
+    val lastName: String? = null,
+
+    /** The mail address of the user. */
+    val email: String? = null,
 )
 
 @Serializable
