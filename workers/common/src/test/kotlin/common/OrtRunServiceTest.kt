@@ -23,12 +23,16 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
+
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -163,6 +167,8 @@ class OrtRunServiceTest : WordSpec({
 
     "finalizeScannerRun" should {
         "update the run correctly" {
+            val identifier1 = Identifier("type-1", "namespace-1", "name-1", "version-1")
+            val identifier2 = Identifier("type-2", "namespace-2", "name-2", "version-2")
             val scannerRun = ScannerRun(
                 id = 1L,
                 scannerJobId = fixtures.scannerJob.id,
@@ -187,15 +193,35 @@ class OrtRunServiceTest : WordSpec({
                 provenances = emptySet(),
                 scanResults = emptySet(),
                 scanners = mapOf(
-                    Identifier("type-1", "namespace-1", "name-1", "version-1") to setOf("scanner-1"),
-                    Identifier("type-2", "namespace-2", "name-2", "version-2") to setOf("scanner-2")
+                    identifier1 to setOf("scanner-1"),
+                    identifier2 to setOf("scanner-2")
+                )
+            )
+
+            val issues = listOf(
+                Issue(
+                    timestamp = Clock.System.now().minus(2.minutes).toDatabasePrecision(),
+                    source = "TestScanner",
+                    message = "some error message",
+                    severity = Severity.WARNING,
+                    identifier = identifier1,
+                    worker = "scanner"
+                    ),
+                Issue(
+                    timestamp = Clock.System.now().minus(50.seconds).toDatabasePrecision(),
+                    source = "TestScanner2",
+                    message = "another error message",
+                    severity = Severity.ERROR,
+                    identifier = identifier2
                 )
             )
 
             service.createScannerRun(scannerRun.scannerJobId)
-            service.finalizeScannerRun(scannerRun)
+            service.finalizeScannerRun(scannerRun, issues)
 
             fixtures.scannerRunRepository.getByJobId(fixtures.scannerJob.id) shouldBe scannerRun
+
+            fixtures.ortRunRepository.get(fixtures.scannerJob.ortRunId)?.issues shouldContainExactlyInAnyOrder issues
         }
     }
 

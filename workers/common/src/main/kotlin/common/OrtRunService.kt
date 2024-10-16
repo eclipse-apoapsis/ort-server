@@ -101,10 +101,11 @@ class OrtRunService(
 
     /**
      * Finalize the provided scanner run by storing the [ScannerRun.startTime], [ScannerRun.endTime],
-     * [ScannerRun.environment], and [ScannerRun.config]. This function can be called only once for a scanner run and
-     * throws an exception if it is called multiple times for the same scanner run.
+     * [ScannerRun.environment], and [ScannerRun.config]. If the scanner run caused [issues], they are stored as well.
+     * This function can be called only once for a scanner run and throws an exception if it is called multiple times
+     * for the same scanner run.
      */
-    fun finalizeScannerRun(scannerRun: ScannerRun) {
+    fun finalizeScannerRun(scannerRun: ScannerRun, issues: Collection<Issue>) {
         val startTime = requireNotNull(scannerRun.startTime)
         val endTime = requireNotNull(scannerRun.endTime)
         val environment = requireNotNull(scannerRun.environment)
@@ -118,6 +119,10 @@ class OrtRunService(
             config = config,
             scanners = scannerRun.scanners
         )
+
+        getScannerJob(scannerRun.scannerJobId)?.also { job ->
+            ortRunRepository.update(job.ortRunId, issues = issues.asPresent())
+        }
     }
 
     /**

@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -33,7 +34,10 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
 
+import java.time.Instant
+
 import kotlinx.datetime.Clock
+import kotlinx.datetime.toKotlinInstant
 
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
@@ -43,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -52,8 +57,12 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.Identifier
+import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.ScanResult
+import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerRun
+import org.ossreviewtoolkit.model.Severity
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.workers.common.OrtServerMappingsKt"
 
@@ -96,7 +105,7 @@ class ScannerWorkerTest : StringSpec({
             every { getOrtRun(any()) } returns ortRun
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { getScannerJob(any()) } returns scannerJob
-            every { finalizeScannerRun(any()) } returns mockk()
+            every { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
         }
 
@@ -134,8 +143,108 @@ class ScannerWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             val slotScannerRun = slot<org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun>()
-            verify(exactly = 1) { ortRunService.finalizeScannerRun(capture(slotScannerRun)) }
+            verify(exactly = 1) { ortRunService.finalizeScannerRun(capture(slotScannerRun), any()) }
             slotScannerRun.captured.scanners shouldBe mapOf(mappedIdentifier to setOf("scanner1", "scanner2"))
+
+            coVerify { environmentService.generateNetRcFileForCurrentRun(context) }
+        }
+    }
+
+    "Issues should be stored correctly" {
+        val analyzerRun = mockk<AnalyzerRun>()
+        val hierarchy = mockk<Hierarchy>()
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { revision } returns "main"
+        }
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { analyzerRun.mapToOrt() } returns mockk()
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
+
+        val ortRunService = mockk<OrtRunService> {
+            every { createScannerRun(any()) } returns mockk {
+                every { id } returns scannerJob.id
+            }
+            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getOrtRun(any()) } returns ortRun
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { getScannerJob(any()) } returns scannerJob
+            every { finalizeScannerRun(any(), any()) } returns mockk()
+            every { startScannerJob(any()) } returns scannerJob
+        }
+
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockk<WorkerContextFactory> {
+            every { createContext(ORT_RUN_ID) } returns context
+        }
+
+        val ortIdentifier = Identifier("type", "namespace", "name", "version")
+        val mappedIdentifier = org.eclipse.apoapsis.ortserver.model.runs.Identifier(
+            ortIdentifier.type,
+            ortIdentifier.namespace,
+            ortIdentifier.name,
+            ortIdentifier.version
+        )
+        val ortIssue = OrtIssue(
+            timestamp = Instant.now(),
+            source = "TestScanner",
+            message = "Test message",
+            severity = Severity.WARNING,
+            affectedPath = "test/path"
+        )
+        val scanResult = ScanResult(
+            provenance = mockk(relaxed = true),
+            scanner = mockk(relaxed = true),
+            summary = ScanSummary(
+                startTime = Instant.now(),
+                endTime = Instant.now(),
+                issues = listOf(ortIssue)
+            )
+        )
+        val ortScannerRun = mockk<ScannerRun>(relaxed = true) {
+            every { scanners } returns mapOf(ortIdentifier to setOf("scanner1", "scanner2"))
+            every { scanResults } returns setOf(scanResult)
+            every { getAllIssues() } returns mapOf(ortIdentifier to setOf(ortIssue))
+        }
+
+        val runner = mockk<ScannerRunner> {
+            coEvery { run(context, any(), any(), any()) } returns mockk {
+                every { scanner } returns ortScannerRun
+            }
+        }
+
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { generateNetRcFileForCurrentRun(context) } just runs
+        }
+
+        val worker = ScannerWorker(mockk(), runner, ortRunService, contextFactory, environmentService)
+
+        mockkTransaction {
+            val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.FinishedWithIssues
+
+            val slotScannerRun = slot<org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun>()
+            val slotIssues = slot<Collection<org.eclipse.apoapsis.ortserver.model.runs.Issue>>()
+            verify(exactly = 1) {
+                ortRunService.finalizeScannerRun(capture(slotScannerRun), capture(slotIssues))
+            }
+            slotScannerRun.captured.scanners shouldBe mapOf(mappedIdentifier to setOf("scanner1", "scanner2"))
+
+            val expectedIssue = Issue(
+                timestamp = ortIssue.timestamp.toKotlinInstant(),
+                source = ortIssue.source,
+                message = ortIssue.message,
+                severity = org.eclipse.apoapsis.ortserver.model.Severity.WARNING,
+                affectedPath = ortIssue.affectedPath,
+                identifier = mappedIdentifier,
+                worker = "scanner"
+            )
+            slotIssues.captured shouldContainExactlyInAnyOrder listOf(expectedIssue)
 
             coVerify { environmentService.generateNetRcFileForCurrentRun(context) }
         }
@@ -180,7 +289,7 @@ class ScannerWorkerTest : StringSpec({
             every { getOrtRun(any()) } returns ortRun
             every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
             every { getScannerJob(any()) } returns scannerJob
-            every { finalizeScannerRun(any()) } returns mockk()
+            every { finalizeScannerRun(any(), any()) } returns mockk()
             every { startScannerJob(any()) } returns scannerJob
         }
 
