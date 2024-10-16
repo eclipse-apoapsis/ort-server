@@ -45,8 +45,6 @@ import org.jetbrains.exposed.sql.innerJoin
 
 /**
  * A service to manage and get information about issues.
- *
- * TODO: Add a query to collect the issues during a scanner run and add it to the combined query.
  */
 class IssueService(private val db: Database) {
     suspend fun listForOrtRunId(
