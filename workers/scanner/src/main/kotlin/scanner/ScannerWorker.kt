@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -32,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.Severity
 
 import org.slf4j.LoggerFactory
@@ -84,7 +86,10 @@ class ScannerWorker(
 
         db.dbQuery {
             getValidScannerJob(scannerJob.id)
-            ortRunService.finalizeScannerRun(scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId))
+            ortRunService.finalizeScannerRun(
+                scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId),
+                scannerRun.extractIssues()
+            )
         }
 
         if (scannerRun.scanResults.flatMap { it.summary.issues }.any { it.severity >= Severity.WARNING }) {
@@ -118,3 +123,13 @@ class ScannerWorker(
 }
 
 private class ScannerException(message: String) : Exception(message)
+
+/**
+ * Extract all [Issue]s from this [ScannerRun] and convert it to the ORT Server model.
+ */
+private fun ScannerRun.extractIssues(): List<Issue> =
+    getAllIssues().flatMap { (id, issues) ->
+        issues.map { issue ->
+            issue.mapToModel(identifier = id.mapToModel(), worker = "scanner")
+        }
+    }
