@@ -1240,15 +1240,10 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         "Message-3",
                         "How_to_fix-3"
                     ),
-                    // 2nd record after sort by "rule"
+                    // 2nd record after sort by "rule", without package identifier
                     OrtRuleViolation(
                         "a-Rule-4",
-                        Identifier(
-                            "Maven",
-                            "org.apache.test",
-                            "adv-loggger",
-                            "0.0.1-alpha"
-                        ),
+                        null,
                         "License-4",
                         "CONCLUDED",
                         Severity.WARNING,
@@ -1301,12 +1296,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ),
                     OrtRuleViolation(
                         "Rule-2-obsolete",
-                        Identifier(
-                            "Maven",
-                            "com.fasterxml.jackson.core.obsolete",
-                            "jackson-databind",
-                            "2.9.6"
-                        ),
+                        null,
                         "License-2-obsolete",
                         "DETECTED",
                         Severity.ERROR,

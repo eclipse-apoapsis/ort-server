@@ -29,5 +29,5 @@ data class RuleViolation(
     val severity: Severity,
     val message: String,
     val howToFix: String,
-    val packageId: Identifier?
+    val packageId: Identifier? = null
 )
