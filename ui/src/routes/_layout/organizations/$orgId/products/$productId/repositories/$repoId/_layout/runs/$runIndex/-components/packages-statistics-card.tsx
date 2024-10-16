@@ -99,7 +99,7 @@ export const PackagesStatisticsCard = ({
       icon={() => (
         <ListTree className={`h-4 w-4 ${getStatusFontColor(status)}`} />
       )}
-      value={status ? packagesTotal : 'N/A'}
+      value={status ? packagesTotal : 'Unavailable'}
       description={
         ecoSystems.length
           ? ecoSystems.length > 1

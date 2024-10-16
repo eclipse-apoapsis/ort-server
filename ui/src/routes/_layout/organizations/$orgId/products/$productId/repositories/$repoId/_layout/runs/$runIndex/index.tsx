@@ -248,7 +248,7 @@ const RunComponent = () => {
             <StatisticsCard
               title='Issues'
               icon={() => <Bug className={`h-4 w-4 text-gray-300`} />}
-              value='N/A'
+              value='Unavailable'
               className='h-full hover:bg-muted/50'
             />
           </Link>
@@ -282,7 +282,7 @@ const RunComponent = () => {
                   className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.advisor?.status)}`}
                 />
               )}
-              value={ortRun.jobs.advisor ? vulnTotal : 'N/A'}
+              value={ortRun.jobs.advisor ? vulnTotal : 'Unavailable'}
               className='h-full hover:bg-muted/50'
             />
           </Link>
