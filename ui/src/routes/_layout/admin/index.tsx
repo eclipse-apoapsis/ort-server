@@ -33,7 +33,6 @@ import {
   ChevronUpIcon,
 } from 'lucide-react';
 import { useState } from 'react';
-import { z } from 'zod';
 
 import { useOrganizationsServiceGetOrganizationsSuspense } from '@/api/queries/suspense';
 import { Organization } from '@/api/requests';
@@ -48,7 +47,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
 
 const columns: ColumnDef<Organization>[] = [
   {
@@ -210,7 +208,7 @@ const OverviewContent = () => {
   });
 
   return (
-    <>
+    <div className='space-y-4'>
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
@@ -234,53 +232,10 @@ const OverviewContent = () => {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 };
-
-const AdminDashboard = () => {
-  const navigate = Route.useNavigate();
-  const search = Route.useSearch();
-
-  return (
-    <>
-      <div className='flex flex-col'>
-        <div className='flex-1 space-y-4'>
-          <div className='flex items-center justify-between space-y-2'>
-            <h2 className='text-3xl font-bold tracking-tight'>Dashboard</h2>
-          </div>
-          <div className='space-y-4'>
-            <div className='inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground'>
-              <Button
-                variant='ghost'
-                className={cn(
-                  search.tab === undefined || search.tab === 'overview'
-                    ? 'bg-background text-foreground shadow hover:bg-background'
-                    : undefined,
-                  'h-7 px-3 font-semibold'
-                )}
-                onClick={() => navigate({ search: { tab: 'overview' } })}
-              >
-                Overview
-              </Button>
-            </div>
-            <div className='mt-2 space-y-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'>
-              {(search.tab === 'overview' || !search.tab) && (
-                <OverviewContent />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-const adminSearchSchema = z.object({
-  tab: z.string().optional(),
-});
 
 export const Route = createFileRoute('/_layout/admin/')({
-  validateSearch: adminSearchSchema,
-  component: AdminDashboard,
+  component: OverviewContent,
 });
