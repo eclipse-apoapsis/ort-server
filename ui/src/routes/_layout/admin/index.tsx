@@ -31,7 +31,6 @@ import {
   ChevronDownIcon,
   ChevronsUpDownIcon,
   ChevronUpIcon,
-  ExternalLink,
 } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
@@ -239,63 +238,6 @@ const OverviewContent = () => {
   );
 };
 
-const UserMgmtContent = () => {
-  return (
-    <>
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm'>Authorization</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              More information on{' '}
-              <a
-                href={
-                  'https://github.com/eclipse-apoapsis/ort-server/blob/main/docs/authorization/authorization.adoc'
-                }
-                target='_blank'
-                className='gap-1 text-blue-400 hover:underline'
-              >
-                <span>how authorization is implemented on ORT Server</span>
-                <ExternalLink className='mb-1 ml-1 inline' size={16} />
-              </a>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
-        <Card className='col-span-7'>
-          <CardHeader>
-            <CardTitle>Managing users permissions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <p>
-                When an organization, a product, or a repository is created,
-                groups for admins, writers and readers for that entity are
-                automatically added to Keycloak.
-              </p>
-              <p className='mt-2'>
-                For example, these groups will be created for an organization:
-              </p>
-              <ul className='ml-6 list-disc'>
-                <li>ORGANIZATION_$id_ADMINS</li>
-                <li>ORGANIZATION_$id_WRITERS</li>
-                <li>ORGANIZATION_$id_READERS</li>
-              </ul>
-              <p className='mt-2'>
-                To give user access to an entity, assign the corresponding group
-                to the user in Keycloak.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </>
-  );
-};
-
 const AdminDashboard = () => {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
@@ -321,24 +263,11 @@ const AdminDashboard = () => {
               >
                 Overview
               </Button>
-              <Button
-                variant='ghost'
-                className={cn(
-                  search.tab === 'user_mgmt'
-                    ? 'bg-background text-foreground shadow hover:bg-background'
-                    : undefined,
-                  'h-7 px-3 font-semibold'
-                )}
-                onClick={() => navigate({ search: { tab: 'user_mgmt' } })}
-              >
-                User management
-              </Button>
             </div>
             <div className='mt-2 space-y-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'>
               {(search.tab === 'overview' || !search.tab) && (
                 <OverviewContent />
               )}
-              {search.tab === 'user_mgmt' && <UserMgmtContent />}
             </div>
           </div>
         </div>
