@@ -47,6 +47,10 @@ export interface SidebarNavProps {
 }
 
 export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
+  // Helper function to determine if there are any visible sections after the given index.
+  const visibleRemainingSections = (index: number) =>
+    sections.slice(index + 1).some((section) => section.visible !== false);
+
   return (
     <nav className={cn('w-full', className)} {...props}>
       <div className='flex flex-col items-start'>
@@ -108,9 +112,11 @@ export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
                   </Link>
                 ) : null;
               })}
-              {sections.length > 1 && index < sections.length - 1 && (
-                <Separator className='my-2' />
-              )}
+              {sections.length > 1 &&
+                index < sections.length - 1 &&
+                visibleRemainingSections(index) && (
+                  <Separator className='my-2' />
+                )}
             </div>
           );
         })}
