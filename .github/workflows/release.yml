@@ -46,7 +46,12 @@ jobs:
       run: ./gradlew --stacktrace --no-configuration-cache publishAndReleaseToMavenCentral
 
     - name: Generate Release Notes
-      run: ./gradlew -q printChangeLog > RELEASE_NOTES.md
+      # Temporarily disable the generation of release notes until the first non-release candidate tag was created.
+      # This is required because otherwise the release notes contain the full commit history and would therefore exceed
+      # the size limit for GitHub releases.
+      # See also: https://github.com/jmongard/Git.SemVersioning.Gradle/issues/61
+      run: echo "# $ORT_SERVER_VERSION" > RELEASE_NOTES.md
+      #run: ./gradlew -q printChangeLog > RELEASE_NOTES.md
 
     - name: Create GitHub Release
       env:
