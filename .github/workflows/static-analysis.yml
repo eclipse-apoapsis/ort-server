@@ -132,5 +132,5 @@ jobs:
 
     - name: Check REUSE Compliance
       run: |
-        pipx install reuse==3.0.2
+        pipx install reuse
         reuse lint
