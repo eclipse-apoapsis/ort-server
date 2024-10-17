@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
-import { Eye, KeyRound, UserPlus } from 'lucide-react';
+import { Eye, KeyRound, ListVideo, UserPlus } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 
@@ -45,6 +45,16 @@ const Layout = () => {
           title: 'Authorization',
           to: '/admin/users/authorization',
           icon: () => <KeyRound className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'Status',
+      items: [
+        {
+          title: 'Runs',
+          to: '/admin/runs',
+          icon: () => <ListVideo className='h-4 w-4' />,
         },
       ],
     },

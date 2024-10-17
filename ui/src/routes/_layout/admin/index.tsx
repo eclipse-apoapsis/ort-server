@@ -27,6 +27,7 @@ import {
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
 import { toast } from '@/lib/toast';
+import { ortRunStatus } from '@/schemas';
 
 const OverviewContent = () => {
   const {
@@ -91,40 +92,51 @@ const OverviewContent = () => {
             className='h-full hover:bg-muted/50'
           />
         </Link>
-        <StatisticsCard
-          title='ORT runs'
-          icon={() => <ListVideo className='h-4 w-4' />}
-          value={
-            runsIsLoading ? (
-              <>
-                <span className='sr-only'>Loading...</span>
-                <Loader2 size={16} className='animate-spin' />
-              </>
-            ) : runsIsError ? (
-              <span className='text-sm text-red-500'>Error fetching data</span>
-            ) : (
-              runs?.pagination.totalCount
-            )
-          }
-          className='h-full'
-        />
-        <StatisticsCard
-          title='Active runs'
-          icon={() => <AudioWaveform className='h-4 w-4' />}
-          value={
-            activeRunsIsLoading ? (
-              <>
-                <span className='sr-only'>Loading...</span>
-                <Loader2 size={16} className='animate-spin' />
-              </>
-            ) : activeRunsIsError ? (
-              <span className='text-sm text-red-500'>Error fetching data</span>
-            ) : (
-              activeRuns?.pagination.totalCount
-            )
-          }
-          className='h-full'
-        />
+        <Link to='/admin/runs'>
+          <StatisticsCard
+            title='ORT runs'
+            icon={() => <ListVideo className='h-4 w-4' />}
+            value={
+              runsIsLoading ? (
+                <>
+                  <span className='sr-only'>Loading...</span>
+                  <Loader2 size={16} className='animate-spin' />
+                </>
+              ) : runsIsError ? (
+                <span className='text-sm text-red-500'>
+                  Error fetching data
+                </span>
+              ) : (
+                runs?.pagination.totalCount
+              )
+            }
+            className='h-full'
+          />
+        </Link>
+        <Link
+          to='/admin/runs'
+          search={{ status: [ortRunStatus.Values.ACTIVE] }}
+        >
+          <StatisticsCard
+            title='Active runs'
+            icon={() => <AudioWaveform className='h-4 w-4' />}
+            value={
+              activeRunsIsLoading ? (
+                <>
+                  <span className='sr-only'>Loading...</span>
+                  <Loader2 size={16} className='animate-spin' />
+                </>
+              ) : activeRunsIsError ? (
+                <span className='text-sm text-red-500'>
+                  Error fetching data
+                </span>
+              ) : (
+                activeRuns?.pagination.totalCount
+              )
+            }
+            className='h-full'
+          />
+        </Link>
       </div>
     </div>
   );
