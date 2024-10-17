@@ -31,12 +31,15 @@ import {
 import { PageLayout } from '@/components/page-layout';
 
 const Layout = () => {
+  const params = Route.useParams();
+
   const sections = [
     {
       items: [
         {
           title: 'Overview',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
+          params,
           icon: () => <Eye className='h-4 w-4' />,
         },
       ],
@@ -47,26 +50,31 @@ const Layout = () => {
         {
           title: 'Packages',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages',
+          params,
           icon: () => <Boxes className='h-4 w-4' />,
         },
         {
           title: 'Dependencies',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies',
+          params,
           icon: () => <ListTree className='h-4 w-4' />,
         },
         {
           title: 'Vulnerabilities',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
+          params,
           icon: () => <ShieldQuestion className='h-4 w-4' />,
         },
         {
           title: 'License Findings',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings',
+          params,
           icon: () => <FileText className='h-4 w-4' />,
         },
         {
           title: 'Rule Violations',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations',
+          params,
           icon: () => <Scale className='h-4 w-4' />,
         },
       ],
@@ -77,19 +85,23 @@ const Layout = () => {
         {
           title: 'Issues',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues',
+          params,
           icon: () => <Bug className='h-4 w-4' />,
         },
         {
           title: 'Reports',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports',
+          params,
         },
         {
           title: 'Logs',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/logs',
+          params,
         },
         {
           title: 'Job Configurations',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config',
+          params,
         },
       ],
     },
