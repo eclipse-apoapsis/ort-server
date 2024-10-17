@@ -19,6 +19,8 @@
 
 import z from 'zod';
 
+import { OrtRunStatus } from '@/api/requests';
+
 // Pagination schema that is used for search parameter validation
 export const paginationSchema = z.object({
   page: z.number().optional(),
@@ -32,3 +34,12 @@ export const tableGroupingSchema = z.object({
 
 // Enum schema for the groupId parameter of the Groups endpoints
 export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
+
+// Enum schema for the possible values of the status parameter of the ORT run
+export const ortRunStatus: z.ZodEnum<[OrtRunStatus, ...OrtRunStatus[]]> =
+  z.enum(['CREATED', 'ACTIVE', 'FAILED', 'FINISHED', 'FINISHED_WITH_ISSUES']);
+
+// Status schema that is used for search parameter validation
+export const statusSchema = z.object({
+  status: z.array(ortRunStatus).optional(),
+});
