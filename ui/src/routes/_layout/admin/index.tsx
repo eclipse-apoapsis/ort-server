@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   ColumnDef,
@@ -32,35 +31,13 @@ import {
   ChevronDownIcon,
   ChevronsUpDownIcon,
   ChevronUpIcon,
-  ExternalLink,
-  Loader2,
 } from 'lucide-react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
-import { useAdminServicePostUsers } from '@/api/queries';
 import { useOrganizationsServiceGetOrganizationsSuspense } from '@/api/queries/suspense';
-import { ApiError, Organization } from '@/api/requests';
-import { ToastError } from '@/components/toast-error';
+import { Organization } from '@/api/requests';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
   Table,
@@ -70,14 +47,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { toast } from '@/lib/toast';
-import { cn } from '@/lib/utils';
-
-const formSchema = z.object({
-  username: z.string(),
-  password: z.string().optional(),
-  temporary: z.boolean(),
-});
 
 const columns: ColumnDef<Organization>[] = [
   {
@@ -239,7 +208,7 @@ const OverviewContent = () => {
   });
 
   return (
-    <>
+    <div className='space-y-4'>
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
@@ -263,230 +232,10 @@ const OverviewContent = () => {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 };
-
-const UserMgmtContent = () => {
-  const { mutateAsync, isPending } = useAdminServicePostUsers({
-    onSuccess() {
-      toast.info('Add User', {
-        description: `User "${form.getValues().username}" added successfully to the server.`,
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      temporary: true,
-    },
-  });
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    await mutateAsync({
-      requestBody: {
-        username: values.username,
-        password: values.password,
-        temporary: values.temporary,
-      },
-    });
-  }
-
-  return (
-    <>
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        <Card className='col-span-2 w-full'>
-          <CardHeader>
-            <CardTitle className='text-sm'>Create User</CardTitle>
-          </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className='space-y-4'>
-                <FormField
-                  control={form.control}
-                  name='username'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input {...field} autoFocus />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='password'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='password'
-                          {...field}
-                          placeholder='(optional)'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='temporary'
-                  render={({ field }) => (
-                    <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4'>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className='space-y-1 leading-none'>
-                        <FormLabel>
-                          Password change required on first login
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter>
-                <Button type='submit' disabled={isPending}>
-                  {isPending ? (
-                    <>
-                      <span className='sr-only'>Creating user...</span>
-                      <Loader2 size={16} className='mx-3 animate-spin' />
-                    </>
-                  ) : (
-                    'Create'
-                  )}
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-        </Card>
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm'>Authorization</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              More information on{' '}
-              <a
-                href={
-                  'https://github.com/eclipse-apoapsis/ort-server/blob/main/docs/authorization/authorization.adoc'
-                }
-                target='_blank'
-                className='gap-1 text-blue-400 hover:underline'
-              >
-                <span>how authorization is implemented on ORT Server</span>
-                <ExternalLink className='mb-1 ml-1 inline' size={16} />
-              </a>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
-        <Card className='col-span-7'>
-          <CardHeader>
-            <CardTitle>Managing users permissions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <p>
-                When an organization, a product, or a repository is created,
-                groups for admins, writers and readers for that entity are
-                automatically added to Keycloak.
-              </p>
-              <p className='mt-2'>
-                For example, these groups will be created for an organization:
-              </p>
-              <ul className='ml-6 list-disc'>
-                <li>ORGANIZATION_$id_ADMINS</li>
-                <li>ORGANIZATION_$id_WRITERS</li>
-                <li>ORGANIZATION_$id_READERS</li>
-              </ul>
-              <p className='mt-2'>
-                To give user access to an entity, assign the corresponding group
-                to the user in Keycloak.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </>
-  );
-};
-
-const AdminDashboard = () => {
-  const navigate = Route.useNavigate();
-  const search = Route.useSearch();
-
-  return (
-    <>
-      <div className='flex flex-col'>
-        <div className='flex-1 space-y-4'>
-          <div className='flex items-center justify-between space-y-2'>
-            <h2 className='text-3xl font-bold tracking-tight'>Dashboard</h2>
-          </div>
-          <div className='space-y-4'>
-            <div className='inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground'>
-              <Button
-                variant='ghost'
-                className={cn(
-                  search.tab === undefined || search.tab === 'overview'
-                    ? 'bg-background text-foreground shadow hover:bg-background'
-                    : undefined,
-                  'h-7 px-3 font-semibold'
-                )}
-                onClick={() => navigate({ search: { tab: 'overview' } })}
-              >
-                Overview
-              </Button>
-              <Button
-                variant='ghost'
-                className={cn(
-                  search.tab === 'user_mgmt'
-                    ? 'bg-background text-foreground shadow hover:bg-background'
-                    : undefined,
-                  'h-7 px-3 font-semibold'
-                )}
-                onClick={() => navigate({ search: { tab: 'user_mgmt' } })}
-              >
-                User management
-              </Button>
-            </div>
-            <div className='mt-2 space-y-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'>
-              {(search.tab === 'overview' || !search.tab) && (
-                <OverviewContent />
-              )}
-              {search.tab === 'user_mgmt' && <UserMgmtContent />}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-const adminSearchSchema = z.object({
-  tab: z.string().optional(),
-});
 
 export const Route = createFileRoute('/_layout/admin/')({
-  validateSearch: adminSearchSchema,
-  component: AdminDashboard,
+  component: OverviewContent,
 });

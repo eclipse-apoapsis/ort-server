@@ -18,9 +18,46 @@
  */
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { Eye, KeyRound, UserPlus } from 'lucide-react';
+
+import { PageLayout } from '@/components/page-layout';
+
+const Layout = () => {
+  const sections = [
+    {
+      items: [
+        {
+          title: 'Overview',
+          to: '/admin/',
+          icon: () => <Eye className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'User Management',
+      items: [
+        {
+          title: 'Create User',
+          to: '/admin/users/create-user',
+          icon: () => <UserPlus className='h-4 w-4' />,
+        },
+        {
+          title: 'Authorization',
+          to: '/admin/users/authorization',
+          icon: () => <KeyRound className='h-4 w-4' />,
+        },
+      ],
+    },
+  ];
+  return (
+    <PageLayout sections={sections}>
+      <Outlet />
+    </PageLayout>
+  );
+};
 
 export const Route = createFileRoute('/_layout/admin')({
-  component: () => <Outlet />,
+  component: Layout,
   beforeLoad: ({ context }) => {
     if (!context.auth.hasRole(['superuser'])) {
       throw redirect({
