@@ -46,7 +46,9 @@ export const StatisticsCard = ({
       </CardHeader>
       <CardContent className='text-sm'>
         <div className='flex flex-col'>
-          <div className='text-2xl font-bold'>{value ? value : 'Failed'}</div>
+          <div className='text-2xl font-bold'>
+            {value !== undefined ? value : 'Failed'}
+          </div>
           <div className='text-xs'>{description}</div>
         </div>
       </CardContent>
