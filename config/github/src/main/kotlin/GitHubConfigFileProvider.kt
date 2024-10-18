@@ -190,9 +190,9 @@ class GitHubConfigFileProvider(
          */
         private fun createClient(secretProvider: ConfigSecretProvider): HttpClient {
             return HttpClient(OkHttp) {
-                defaultRequest {
-                    header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
-                }
+//                defaultRequest {
+//                    header("Authorization", "Bearer ${secretProvider.getSecret(TOKEN)}")
+//                }
             }
         }
 
