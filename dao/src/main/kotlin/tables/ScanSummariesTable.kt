@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanSummary
 
@@ -45,7 +44,7 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     val licenseFindings by LicenseFindingDao referrersOn LicenseFindingsTable.scanSummaryId
     val copyrightFindings by CopyrightFindingDao referrersOn CopyrightFindingsTable.scanSummaryId
     val snippetFindings by SnippetFindingDao referrersOn SnippetFindingsTable.scanSummaryId
-    var issues by IssueDao via ScanSummariesIssuesTable
+    val issues by ScanSummariesIssuesDao referrersOn ScanSummariesIssuesTable.scanSummaryId
 
     fun mapToModel() = ScanSummary(
         startTime = startTime,
@@ -53,6 +52,6 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFindingDao::mapToModel),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFindingDao::mapToModel),
         snippetFindings = snippetFindings.mapTo(mutableSetOf(), SnippetFindingDao::mapToModel),
-        issues = issues.map(IssueDao::mapToModel)
+        issues = issues.map(ScanSummariesIssuesDao::mapToModel)
     )
 }

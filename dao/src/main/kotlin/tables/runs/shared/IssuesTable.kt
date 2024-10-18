@@ -23,20 +23,17 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
-import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 /**
  * A table to represent an ort issue.
  */
 object IssuesTable : SortableTable("issues") {
-    val timestamp = timestamp("timestamp").sortable()
     val issueSource = text("source")
     val message = text("message")
     val severity = enumerationByName<Severity>("severity", 128)
@@ -47,7 +44,6 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<IssueDao>(IssuesTable) {
         fun createByIssue(issue: Issue): IssueDao =
             new {
-                timestamp = issue.timestamp
                 source = issue.source
                 message = issue.message
                 severity = issue.severity
@@ -55,13 +51,10 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
             }
     }
 
-    var timestamp by IssuesTable.timestamp.transformToDatabasePrecision()
     var source by IssuesTable.issueSource
     var message by IssuesTable.message
     var severity by IssuesTable.severity
     var affectedPath by IssuesTable.affectedPath
-
-    fun mapToModel() = mapToModel(timestamp, null, null)
 
     /**
      * Return a model representation of this [IssueDao] with the given additional properties.
