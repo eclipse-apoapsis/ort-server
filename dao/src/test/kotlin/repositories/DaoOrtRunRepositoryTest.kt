@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldBeNull
@@ -31,6 +32,7 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
@@ -515,6 +517,79 @@ class DaoOrtRunRepositoryTest : StringSpec({
         )
         updateResult shouldBe expectedResult
         ortRunRepository.get(ortRun.id) shouldBe expectedResult
+    }
+
+    "issues added to a run should be deduplicated" {
+        val identifier1 = dbExtension.db.dbQuery {
+            IdentifierDao.getOrPut(Identifier("test", "ns", "name", "1.0"))
+        }
+        val identifier2 = dbExtension.db.dbQuery {
+            IdentifierDao.getOrPut(Identifier("test", "ns", "name2", "2.0"))
+        }
+
+        val issue1 = Issue(
+            Instant.parse("2024-10-18T09:35:41Z"),
+            "test",
+            "A test issue",
+            Severity.WARNING,
+            "test/path",
+            identifier1.mapToModel(),
+            "Analyzer"
+        )
+        val issue2 = Issue(
+            Instant.parse("2024-10-18T09:36:02Z"),
+            "test",
+            "One more test issue",
+            Severity.HINT,
+            identifier = identifier1.mapToModel(),
+            worker = "Analyzer"
+        )
+        val issue3 = issue1.copy(
+            timestamp = Instant.parse("2024-10-18T09:36:22Z"),
+            identifier = identifier2.mapToModel(),
+            worker = "Test worker"
+        )
+
+        val ortRun1 = ortRunRepository.create(
+            repositoryId,
+            "revision",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            "theTraceId",
+            null
+        )
+        val ortRun2 = ortRunRepository.create(
+            repositoryId,
+            "other_revision",
+            null,
+            jobConfigurations,
+            null,
+            emptyMap(),
+            "otherTraceId",
+            null
+        )
+
+        ortRunRepository.update(
+            ortRun1.id,
+            issues = listOf(issue1, issue2).asPresent()
+        )
+        ortRunRepository.update(
+            ortRun2.id,
+            issues = listOf(issue3).asPresent()
+        )
+
+        dbExtension.db.dbQuery {
+            val issueTime = Instant.parse("2024-10-18T09:42:31Z")
+            val expectedIssues = listOf(
+                issue1.copy(timestamp = issueTime, worker = null, identifier = null),
+                issue2.copy(timestamp = issueTime, worker = null, identifier = null)
+            )
+
+            val issues = IssueDao.all().map { it.mapToModel(issueTime, null, null) }
+            issues shouldContainExactlyInAnyOrder expectedIssues
+        }
     }
 
     "update should mark a finished run as completed" {
