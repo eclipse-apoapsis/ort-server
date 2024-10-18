@@ -29,6 +29,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -62,6 +63,41 @@ class ScanSummariesIssuesTableTest : WordSpec() {
                         worker = null
                     )
                     newEntity.mapToModel() shouldBe expectedIssue
+                }
+            }
+
+            "deduplicate issues" {
+                val summary = createScanSummary()
+                val issueTime = Instant.parse("2024-10-18T07:32:48Z")
+                val issue1 = Issue(
+                    timestamp = issueTime,
+                    source = "test",
+                    message = "Some test issue",
+                    severity = Severity.WARNING,
+                    affectedPath = "test/path",
+                    identifier = null,
+                    worker = null
+                )
+                val issue2 = Issue(
+                    timestamp = issueTime,
+                    source = "test",
+                    message = "Another test issue",
+                    severity = Severity.WARNING,
+                    affectedPath = "test/path",
+                    identifier = null,
+                    worker = null
+                )
+                val issue3 = issue1.copy(timestamp = Instant.parse("2024-10-18T07:34:44Z"))
+
+                dbExtension.db.blockingQuery {
+                    listOf(issue1, issue2, issue3).forEach {
+                        ScanSummariesIssuesDao.createByIssue(summary.id.value, it)
+                    }
+
+                    val allIssues = IssueDao.all().map {
+                        it.mapToModel(issueTime, null, null)
+                    }
+                    allIssues shouldContainExactlyInAnyOrder listOf(issue1, issue2)
                 }
             }
         }

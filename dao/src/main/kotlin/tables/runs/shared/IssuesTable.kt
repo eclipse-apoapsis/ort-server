@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.and
 
 /**
  * A table to represent an ort issue.
@@ -42,8 +43,19 @@ object IssuesTable : SortableTable("issues") {
 
 class IssueDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<IssueDao>(IssuesTable) {
+        fun findByIssue(issue: Issue): IssueDao? = find {
+            IssuesTable.issueSource eq issue.source and
+                    (IssuesTable.message eq issue.message) and
+                    (IssuesTable.severity eq issue.severity) and
+                    (IssuesTable.affectedPath eq issue.affectedPath)
+        }.firstOrNull()
+
+        /**
+         * Return an [IssueDao] to represent the given [issue]. If the properties of the [issue] can be matched,
+         * an existing [IssueDao] is returned, otherwise a new one is created.
+         */
         fun createByIssue(issue: Issue): IssueDao =
-            new {
+            findByIssue(issue) ?: new {
                 source = issue.source
                 message = issue.message
                 severity = issue.severity
