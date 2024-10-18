@@ -22,16 +22,15 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import kotlinx.datetime.toKotlinInstant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.AdditionalScanResultData
 import org.eclipse.apoapsis.ortserver.dao.tables.CopyrightFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesIssuesDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanResultsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
@@ -39,7 +38,6 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SizedCollection
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
-import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.KnownProvenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.ScanResult
@@ -109,6 +107,15 @@ class OrtServerScanResultStorage(
         }
 
         db.blockingQuery {
+            val summaryDao = ScanSummaryDao.new {
+                this.startTime = scanResult.summary.startTime.toKotlinInstant()
+                this.endTime = scanResult.summary.endTime.toKotlinInstant()
+            }
+
+            scanResult.summary.issues.forEach {
+                ScanSummariesIssuesDao.createByIssue(summaryDao.id.value, it.mapToModel())
+            }
+
             ScanResultDao.new {
                 when (provenance) {
                     is ArtifactProvenance -> {
@@ -124,20 +131,11 @@ class OrtServerScanResultStorage(
                     }
                 }
 
-                val issues = mapAndDeduplicate(
-                    scanResult.summary.issues.map(OrtIssue::mapToModel),
-                    IssueDao::createByIssue
-                )
-
                 this.scannerName = scanResult.scanner.name
                 this.scannerVersion = scanResult.scanner.version
                 this.scannerConfiguration = scanResult.scanner.configuration
                 this.additionalScanResultData = AdditionalScanResultData(scanResult.additionalData)
-                this.scanSummary = ScanSummaryDao.new {
-                    this.startTime = scanResult.summary.startTime.toKotlinInstant()
-                    this.endTime = scanResult.summary.endTime.toKotlinInstant()
-                    this.issues = issues
-                }
+                this.scanSummary = summaryDao
 
                 val summary = this.scanSummary
                 scanResult.summary.licenseFindings.forEach {
