@@ -44,12 +44,12 @@ import {
   getStatusFontColor,
 } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
+import { getOrtDateTimeString } from '@/lib/utils.ts';
 import { PackagesStatisticsCard } from './-components/packages-statistics-card';
 import { RuleViolationsStatisticsCard } from './-components/rule-violations-statistics-card';
 
 const RunComponent = () => {
   const params = Route.useParams();
-  const locale = navigator.language;
   const pollInterval = config.pollInterval;
 
   const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense(
@@ -154,13 +154,13 @@ const RunComponent = () => {
               </div>
               <div className='text-sm'>
                 <Label className='font-semibold'>Created at:</Label>{' '}
-                {new Date(ortRun.createdAt).toLocaleString(locale)}
+                {getOrtDateTimeString(ortRun.createdAt)}
               </div>
               {ortRun.finishedAt && (
                 <div>
                   <div className='text-sm'>
                     <Label className='font-semibold'>Finished at:</Label>{' '}
-                    {new Date(ortRun.finishedAt).toLocaleString(locale)}
+                    {getOrtDateTimeString(ortRun.finishedAt)}
                   </div>
                   <div className='text-sm'>
                     <Label className='font-semibold'>Duration:</Label>{' '}

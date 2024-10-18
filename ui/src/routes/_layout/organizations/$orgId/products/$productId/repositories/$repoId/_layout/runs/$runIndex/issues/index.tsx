@@ -30,10 +30,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { getOrtDateTimeString } from '@/lib/utils.ts';
 
 const IssuesComponent = () => {
   const params = Route.useParams();
-  const locale = navigator.language;
 
   const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
     repositoryId: Number.parseInt(params.repoId),
@@ -57,7 +57,7 @@ const IssuesComponent = () => {
                 <CardTitle>
                   <div className='text-sm'>
                     <Label className='font-semibold'>Created at:</Label>{' '}
-                    {new Date(issue.timestamp).toLocaleString(locale)}
+                    {getOrtDateTimeString(issue.timestamp)}
                   </div>
                 </CardTitle>
                 <CardDescription>

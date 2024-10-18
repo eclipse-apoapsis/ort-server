@@ -58,6 +58,7 @@ import {
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
+import { getOrtDateTimeString } from '@/lib/utils.ts';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -89,9 +90,7 @@ const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
     accessorKey: 'createdAt',
     header: () => <div>Created At</div>,
     cell: ({ row }) => (
-      <div>
-        {new Date(row.original.createdAt).toLocaleString(navigator.language)}
-      </div>
+      <div>{getOrtDateTimeString(row.original.createdAt)}</div>
     ),
   },
   {
