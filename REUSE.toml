@@ -36,7 +36,7 @@ SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = ".idea/icon**.png"
+path = ".idea/icon*.png"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
@@ -48,7 +48,7 @@ SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = ".run/**.xml"
+path = ".run/*.xml"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
@@ -96,7 +96,7 @@ SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "**/tsconfig.**json"
+path = "**/tsconfig.*json"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
@@ -108,7 +108,7 @@ SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "config/**.txt"
+path = "**/config/**/*.txt"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
@@ -126,43 +126,43 @@ SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "**/resources/**.rules.kts"
+path = "**/resources/**/*.rules.kts"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "**/resources/**.sql"
+path = "**/resources/**/*.sql"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "**/resources/**.template"
+path = "**/resources/**/*.template"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "**/resources/**.yml"
+path = "**/resources/**/*.yml"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "**/resources/**config**"
+path = "**/resources/*config*"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "**/resources/META-INF/services/**"
+path = "**/resources/META-INF/services/*"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "ui/.prettier**"
+path = "ui/.prettier*"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
@@ -204,7 +204,7 @@ SPDX-FileCopyrightText = "2017 The ORT Project Authors (see <https://github.com/
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "gradlew**"
+path = "gradlew*"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2007-2021 The original author or authors <info@gradle.com>"
 SPDX-License-Identifier = "Apache-2.0"
