@@ -91,6 +91,41 @@ export const createRunFormSchema = z.object({
 export type CreateRunFormValues = z.infer<typeof createRunFormSchema>;
 
 /**
+ * Converts the package manager options object map from the back-end to an array of key-value pairs.
+ * This is useful for form handling where an array of objects is required.
+ *
+ * @param optionsMap - The package manager options object map from the back-end.
+ * @returns An array of key-value pairs.
+ */
+const convertOptionsToArray = (optionsMap: {
+  [key: string]: string;
+}): { key: string; value: string }[] => {
+  return Object.entries(optionsMap).map(([key, value]) => ({
+    key,
+    value,
+  }));
+};
+
+/**
+ * Converts an array of key-value pairs back to the package manager options object map.
+ * This is useful for converting form data back to the format expected by the back-end.
+ *
+ * @param optionsArray - An array of key-value pairs.
+ * @returns The package manager options object map.
+ */
+const convertArrayToOptions = (
+  optionsArray: { key: string; value: string }[]
+): { [key: string]: string } => {
+  return optionsArray.reduce(
+    (acc, { key, value }) => {
+      acc[key] = value;
+      return acc;
+    },
+    {} as { [key: string]: string }
+  );
+};
+
+/**
  * Get the default values for the create run form. The form can be provided with a previously run
  * ORT run, in which case the values from it are used as defaults. Otherwise uses base defaults.
  */
