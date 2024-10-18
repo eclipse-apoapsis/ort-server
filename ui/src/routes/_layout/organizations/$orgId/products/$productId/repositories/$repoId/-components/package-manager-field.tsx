@@ -18,8 +18,8 @@
  */
 
 import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
-import { string } from 'zod';
 
 import {
   Accordion,
@@ -53,6 +53,16 @@ export const PackageManagerField = ({
   form,
   className,
 }: PackageManagerFieldProps) => {
+  useEffect(() => {
+    console.log(
+      JSON.stringify(
+        form.getValues('jobConfigs.analyzer.enabledPackageManagers'),
+        null,
+        2
+      )
+    );
+  }, [form.getValues()]);
+
   return (
     <FormField
       control={form.control}
@@ -80,6 +90,7 @@ export const PackageManagerField = ({
                 packageManagers.every((option) =>
                   form
                     .getValues('jobConfigs.analyzer.enabledPackageManagers')
+                    .map((pm) => pm.id)
                     .includes(option.id)
                 )
                   ? true
@@ -88,6 +99,7 @@ export const PackageManagerField = ({
                           .getValues(
                             'jobConfigs.analyzer.enabledPackageManagers'
                           )
+                          .map((pm) => pm.id)
                           .includes(option.id)
                       )
                     ? 'indeterminate'
@@ -95,7 +107,7 @@ export const PackageManagerField = ({
               }
               onCheckedChange={(checked) => {
                 const enabledItems = checked
-                  ? packageManagers.map((option) => option.id)
+                  ? packageManagers.map((option) => ({ id: option.id }))
                   : [];
                 form.setValue(
                   'jobConfigs.analyzer.enabledPackageManagers',
@@ -108,31 +120,135 @@ export const PackageManagerField = ({
             </Label>
           </div>
           <Separator />
-          {packageManagers.map((option) => (
-            <FormItem
-              key={option.id}
-              className='flex flex-row items-start space-x-3 space-y-0'
-            >
-              <FormControl>
-                <Checkbox
-                  checked={field.value?.includes(option.id)}
-                  onCheckedChange={(checked) => {
-                    return checked
-                      ? field.onChange([...field.value, option.id])
-                      : field.onChange(
-                          field.value?.filter(
-                            (value: string) => value !== option.id
-                          )
-                        );
-                  }}
-                />
-              </FormControl>
-              <FormLabel className='font-normal'>{option.label}</FormLabel>
-            </FormItem>
+          {packageManagers.map((pm, index) => (
+            <FieldWithOptions
+              form={form}
+              key={pm.id}
+              pmIndex={index}
+              field={field}
+            />
           ))}
           <FormMessage />
         </FormItem>
       )}
     />
+  );
+};
+
+type FieldWithOptionsProps = {
+  form: UseFormReturn<CreateRunFormValues>;
+  field: {
+    value: {
+      id: string;
+    }[];
+    onChange: (value: { id: string }[]) => void;
+  };
+  pmIndex: number;
+};
+
+const FieldWithOptions = ({ form, field, pmIndex }: FieldWithOptionsProps) => {
+  const {
+    fields: optionsFields,
+    append,
+    remove,
+  } = useFieldArray({
+    name: `jobConfigs.analyzer.enabledPackageManagers.${pmIndex}.options`,
+    control: form.control,
+  });
+
+  const pm = packageManagers[pmIndex];
+
+  return (
+    <FormItem
+      key={pm.id}
+      className='flex flex-row items-center space-x-3 space-y-0'
+    >
+      <FormControl>
+        <Checkbox
+          checked={field.value?.some((value) => value.id === pm.id)}
+          onCheckedChange={(checked) => {
+            return checked
+              ? field.onChange([...field.value, { id: pm.id }])
+              : field.onChange(
+                  field.value?.filter((value) => value.id !== pm.id)
+                );
+          }}
+        />
+      </FormControl>
+
+      {field.value.some((value) => value.id === pm.id) ? (
+        <Accordion type='single' collapsible className='w-full'>
+          <AccordionItem value='item' className='border-none'>
+            <AccordionTrigger className='py-0 hover:no-underline'>
+              <FormLabel className='font-normal'>{pm.label}</FormLabel>
+            </AccordionTrigger>
+            <AccordionContent>
+              <h4 className='mt-2'>Options:</h4>
+              {optionsFields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className='my-2 flex flex-row items-end space-x-2'
+                >
+                  <div className='flex-auto'>
+                    {index === 0 && <FormLabel>Key</FormLabel>}
+                    <FormField
+                      control={form.control}
+                      name={`jobConfigs.analyzer.enabledPackageManagers.${pmIndex}.options.${index}.key`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className='flex-auto'>
+                    {index === 0 && <FormLabel>Value</FormLabel>}
+                    <FormField
+                      control={form.control}
+                      name={`jobConfigs.analyzer.enabledPackageManagers.${pmIndex}.options.${index}.value`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={() => {
+                      remove(index);
+                    }}
+                  >
+                    <TrashIcon className='h-4 w-4' />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                size='sm'
+                className='mt-2'
+                variant='outline'
+                type='button'
+                onClick={() => {
+                  append({ key: '', value: '' });
+                }}
+              >
+                Add parameter
+                <PlusIcon className='ml-1 h-4 w-4' />
+              </Button>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      ) : (
+        <FormLabel className='font-normal'>{pm.label}</FormLabel>
+      )}
+    </FormItem>
   );
 };

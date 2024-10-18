@@ -114,10 +114,11 @@ const CreateRunPage = () => {
   });
 
   async function onSubmit(values: CreateRunFormValues) {
-    await mutateAsync({
+    /*await mutateAsync({
       repositoryId: Number.parseInt(params.repoId),
       requestBody: formValuesToPayload(values),
-    });
+    });*/
+    console.log(JSON.stringify(formValuesToPayload(values), null, 2));
   }
 
   return (

@@ -19,7 +19,7 @@
 
 import { z } from 'zod';
 
-import { CreateOrtRun, OrtRun } from '@/api/requests';
+import { AnalyzerJobConfiguration, CreateOrtRun, OrtRun } from '@/api/requests';
 import { packageManagers } from './-types';
 
 const keyValueSchema = z.object({
@@ -36,7 +36,12 @@ export const createRunFormSchema = z.object({
       repositoryConfigPath: z.string().optional(),
       allowDynamicVersions: z.boolean(),
       skipExcluded: z.boolean(),
-      enabledPackageManagers: z.array(z.string()),
+      enabledPackageManagers: z.array(
+        z.object({
+          id: z.string(),
+          options: z.array(keyValueSchema).optional(),
+        })
+      ),
     }),
     advisor: z.object({
       enabled: z.boolean(),
@@ -143,8 +148,10 @@ export function defaultValues(
         allowDynamicVersions: true,
         skipExcluded: true,
         enabledPackageManagers: [
-          ...packageManagers.map((pm) => pm.id),
-          'Unmanaged',
+          ...packageManagers.map((pm) => ({
+            id: pm.id,
+          })),
+          { id: 'Unmanaged' },
         ],
       },
       advisor: {
@@ -216,8 +223,19 @@ export function defaultValues(
               ortRun.jobConfigs.analyzer?.skipExcluded ||
               baseDefaults.jobConfigs.analyzer.skipExcluded,
             enabledPackageManagers:
-              ortRun.jobConfigs.analyzer?.enabledPackageManagers ||
-              baseDefaults.jobConfigs.analyzer.enabledPackageManagers,
+              // Convert both the enabled package managers and their options coming from back-end
+              // to the structure expected by the useFieldArray hook that requires an array of objects.
+              ortRun.jobConfigs.analyzer?.enabledPackageManagers
+                ? ortRun.jobConfigs.analyzer.enabledPackageManagers.map(
+                    (pm) => ({
+                      id: pm,
+                      options: convertOptionsToArray(
+                        ortRun.jobConfigs.analyzer?.packageManagerOptions?.[pm]
+                          ?.options || {}
+                      ),
+                    })
+                  )
+                : baseDefaults.jobConfigs.analyzer.enabledPackageManagers,
           },
           advisor: {
             enabled:
@@ -372,12 +390,21 @@ export function formValuesToPayload(
   // in the request body. If a job is disabled in the UI, we pass "undefined"
   // as the configuration for that job in the request body, in effect leaving
   // it empty, and thus disabling the job.
-  const analyzerConfig = {
+  const analyzerConfig: AnalyzerJobConfiguration = {
     allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
     repositoryConfigPath:
       values.jobConfigs.analyzer.repositoryConfigPath || undefined,
     skipExcluded: values.jobConfigs.analyzer.skipExcluded,
-    enabledPackageManagers: values.jobConfigs.analyzer.enabledPackageManagers,
+    // Convert the relevant part of form schema back to the format expected by the back-end.
+    enabledPackageManagers:
+      values.jobConfigs.analyzer.enabledPackageManagers.map((pm) => pm.id),
+    packageManagerOptions: values.jobConfigs.analyzer.enabledPackageManagers
+      .map((pm) => ({
+        [pm.id]: {
+          options: convertArrayToOptions(pm.options || []),
+        },
+      }))
+      .reduce((acc, pm) => ({ ...acc, ...pm }), {}),
   };
 
   const advisorConfig = values.jobConfigs.advisor.enabled
