@@ -282,7 +282,10 @@ const RunComponent = () => {
                   className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.advisor?.status)}`}
                 />
               )}
-              value={ortRun.jobs.advisor ? vulnTotal : 'Unavailable'}
+              value={ortRun.jobs.advisor ? vulnTotal : 'Skipped'}
+              description={
+                ortRun.jobs.advisor ? '' : 'Enable the job for results'
+              }
               className='h-full hover:bg-muted/50'
             />
           </Link>

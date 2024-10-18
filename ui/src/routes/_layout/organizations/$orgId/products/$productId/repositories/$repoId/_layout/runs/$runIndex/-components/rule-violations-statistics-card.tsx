@@ -79,7 +79,8 @@ export const RuleViolationsStatisticsCard = ({
       icon={() => (
         <ListTree className={`h-4 w-4 ${getStatusFontColor(status)}`} />
       )}
-      value={status ? ruleViolationsTotal : 'Unavailable'}
+      value={status ? ruleViolationsTotal : 'Skipped'}
+      description={status ? '' : 'Enable the job for results'}
       className='h-full hover:bg-muted/50'
     />
   );
