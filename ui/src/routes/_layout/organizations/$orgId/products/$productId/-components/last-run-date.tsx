@@ -20,6 +20,7 @@
 import { Loader2 } from 'lucide-react';
 
 import { useRepositoriesServiceGetOrtRunsByRepositoryId } from '@/api/queries';
+import { getOrtDateTimeString } from '@/lib/utils.ts';
 
 export const LastRunDate = ({ repoId }: { repoId: number }) => {
   const {
@@ -50,11 +51,9 @@ export const LastRunDate = ({ repoId }: { repoId: number }) => {
   return (
     <>
       {run.finishedAt ? (
-        <div>{new Date(run.finishedAt).toLocaleString(navigator.language)}</div>
+        <div>{getOrtDateTimeString(run.finishedAt)}</div>
       ) : (
-        <div className='italic'>
-          {new Date(run.createdAt).toLocaleString(navigator.language)}
-        </div>
+        <div className='italic'>{getOrtDateTimeString(run.createdAt)}</div>
       )}
     </>
   );
