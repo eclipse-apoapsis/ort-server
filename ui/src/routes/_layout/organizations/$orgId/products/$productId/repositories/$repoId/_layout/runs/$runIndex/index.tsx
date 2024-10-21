@@ -139,7 +139,6 @@ const RunComponent = () => {
                     productId={params.productId}
                     repoId={params.repoId}
                     runIndex={params.runIndex}
-                    pollInterval={pollInterval}
                   />
                 </div>
               </CardTitle>
