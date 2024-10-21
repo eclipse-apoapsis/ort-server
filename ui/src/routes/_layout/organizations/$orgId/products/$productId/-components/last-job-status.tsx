@@ -21,17 +21,30 @@ import { Loader2 } from 'lucide-react';
 
 import { useRepositoriesServiceGetOrtRunsByRepositoryId } from '@/api/queries';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
+import { config } from '@/config';
 
 export const LastJobStatus = ({ repoId }: { repoId: number }) => {
   const {
     data: runs,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetOrtRunsByRepositoryId({
-    repositoryId: repoId,
-    limit: 1,
-    sort: '-index',
-  });
+  } = useRepositoriesServiceGetOrtRunsByRepositoryId(
+    {
+      repositoryId: repoId,
+      limit: 1,
+      sort: '-index',
+    },
+    undefined,
+    {
+      refetchInterval: (query) => {
+        const curData = query.state.data?.data;
+        if (curData && curData.length > 0 && curData[0].finishedAt) {
+          return undefined;
+        }
+        return config.pollInterval;
+      },
+    }
+  );
 
   if (runsIsPending) {
     return (

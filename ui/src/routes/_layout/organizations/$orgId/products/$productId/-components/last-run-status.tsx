@@ -21,6 +21,7 @@ import { Loader2 } from 'lucide-react';
 
 import { useRepositoriesServiceGetOrtRunsByRepositoryId } from '@/api/queries';
 import { Badge } from '@/components/ui/badge';
+import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 
 export const LastRunStatus = ({ repoId }: { repoId: number }) => {
@@ -28,11 +29,23 @@ export const LastRunStatus = ({ repoId }: { repoId: number }) => {
     data: runs,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetOrtRunsByRepositoryId({
-    repositoryId: repoId,
-    limit: 1,
-    sort: '-index',
-  });
+  } = useRepositoriesServiceGetOrtRunsByRepositoryId(
+    {
+      repositoryId: repoId,
+      limit: 1,
+      sort: '-index',
+    },
+    undefined,
+    {
+      refetchInterval: (query) => {
+        const curData = query.state.data?.data;
+        if (curData && curData.length > 0 && curData[0].finishedAt) {
+          return undefined;
+        }
+        return config.pollInterval;
+      },
+    }
+  );
 
   if (runsIsPending) {
     return (

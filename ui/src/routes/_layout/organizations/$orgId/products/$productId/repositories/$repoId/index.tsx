@@ -202,12 +202,18 @@ const RepoComponent = () => {
     error: runsError,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetOrtRunsByRepositoryId({
-    repositoryId: Number.parseInt(params.repoId),
-    limit: pageSize,
-    offset: pageIndex * pageSize,
-    sort: '-index',
-  });
+  } = useRepositoriesServiceGetOrtRunsByRepositoryId(
+    {
+      repositoryId: Number.parseInt(params.repoId),
+      limit: pageSize,
+      offset: pageIndex * pageSize,
+      sort: '-index',
+    },
+    undefined,
+    {
+      refetchInterval: pollInterval,
+    }
+  );
 
   const { mutateAsync: deleteRepository, isPending } =
     useRepositoriesServiceDeleteRepositoryById({
