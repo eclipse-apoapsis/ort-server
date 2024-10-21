@@ -19,12 +19,17 @@
 
 import { z } from 'zod';
 
-import { CreateOrtRun, OrtRun } from '@/api/requests';
+import { AnalyzerJobConfiguration, CreateOrtRun, OrtRun } from '@/api/requests';
 import { packageManagers } from './-types';
 
 const keyValueSchema = z.object({
   key: z.string().min(1),
   value: z.string(), // Allow empty values for now
+});
+
+const packageManagerOptionsSchema = z.object({
+  enabled: z.boolean(),
+  options: z.array(keyValueSchema).optional(),
 });
 
 export const createRunFormSchema = z.object({
@@ -36,7 +41,23 @@ export const createRunFormSchema = z.object({
       repositoryConfigPath: z.string().optional(),
       allowDynamicVersions: z.boolean(),
       skipExcluded: z.boolean(),
-      enabledPackageManagers: z.array(z.string()),
+      packageManagers: z.object({
+        Bazel: packageManagerOptionsSchema,
+        Bundler: packageManagerOptionsSchema,
+        Cargo: packageManagerOptionsSchema,
+        Composer: packageManagerOptionsSchema,
+        GoMod: packageManagerOptionsSchema,
+        GradleInspector: packageManagerOptionsSchema,
+        Maven: packageManagerOptionsSchema,
+        NPM: packageManagerOptionsSchema,
+        NuGet: packageManagerOptionsSchema,
+        PIP: packageManagerOptionsSchema,
+        Pipenv: packageManagerOptionsSchema,
+        PNPM: packageManagerOptionsSchema,
+        Poetry: packageManagerOptionsSchema,
+        Yarn: packageManagerOptionsSchema,
+        Yarn2: packageManagerOptionsSchema,
+      }),
     }),
     advisor: z.object({
       enabled: z.boolean(),
@@ -91,12 +112,79 @@ export const createRunFormSchema = z.object({
 export type CreateRunFormValues = z.infer<typeof createRunFormSchema>;
 
 /**
+ * Converts an object map coming from the back-end to an array of key-value pairs.
+ * This is useful for form handling where an array of objects is required.
+ *
+ * @param objectMap - The object map from the back-end.
+ * @returns An array of key-value pairs.
+ */
+const convertMapToArray = (objectMap: {
+  [key: string]: string;
+}): { key: string; value: string }[] => {
+  return Object.entries(objectMap).map(([key, value]) => ({
+    key,
+    value,
+  }));
+};
+
+/**
+ * Converts an array of key-value pairs to an object map.
+ * This is useful for converting form data back to the format expected by the back-end.
+ *
+ * @param keyValueArray - An array of key-value pairs.
+ * @returns The object map.
+ */
+const convertArrayToMap = (
+  keyValueArray: { key: string; value: string }[]
+): { [key: string]: string } => {
+  return keyValueArray.reduce(
+    (acc, { key, value }) => {
+      acc[key] = value;
+      return acc;
+    },
+    {} as { [key: string]: string }
+  );
+};
+
+// Derive the type of packageManagerId from the ids of packageManagers
+export type PackageManagerId = (typeof packageManagers)[number]['id'];
+
+/**
  * Get the default values for the create run form. The form can be provided with a previously run
  * ORT run, in which case the values from it are used as defaults. Otherwise uses base defaults.
  */
 export function defaultValues(
   ortRun: OrtRun | null
 ): z.infer<typeof createRunFormSchema> {
+  /**
+   * Constructs the default options for a package manager, either as a blank set of options
+   * or from an earlier ORT run if rerun functionality is used.
+   *
+   * @param packageManagerId The ID of the package manager.
+   * @returns The default options.
+   */
+  const defaultPackageManagerOptions = (
+    packageManagerId?: PackageManagerId
+  ) => {
+    if (packageManagerId) {
+      return {
+        enabled:
+          ortRun?.jobConfigs.analyzer?.enabledPackageManagers?.includes(
+            packageManagerId
+          ) || true,
+        options: convertMapToArray(
+          ortRun?.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
+            ?.options || {}
+        ),
+      };
+    } else {
+      return {
+        enabled: true,
+        options: [{ key: '', value: '' }],
+      };
+    }
+  };
+
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults = {
     revision: 'main',
@@ -107,10 +195,23 @@ export function defaultValues(
         repositoryConfigPath: '',
         allowDynamicVersions: true,
         skipExcluded: true,
-        enabledPackageManagers: [
-          ...packageManagers.map((pm) => pm.id),
-          'Unmanaged',
-        ],
+        packageManagers: {
+          Bazel: defaultPackageManagerOptions(),
+          Bundler: defaultPackageManagerOptions(),
+          Cargo: defaultPackageManagerOptions(),
+          Composer: defaultPackageManagerOptions(),
+          GoMod: defaultPackageManagerOptions(),
+          GradleInspector: defaultPackageManagerOptions(),
+          Maven: defaultPackageManagerOptions(),
+          NPM: defaultPackageManagerOptions(),
+          NuGet: defaultPackageManagerOptions(),
+          PIP: defaultPackageManagerOptions(),
+          Pipenv: defaultPackageManagerOptions(),
+          PNPM: defaultPackageManagerOptions(),
+          Poetry: defaultPackageManagerOptions(),
+          Yarn: defaultPackageManagerOptions(),
+          Yarn2: defaultPackageManagerOptions(),
+        },
       },
       advisor: {
         enabled: true,
@@ -180,9 +281,23 @@ export function defaultValues(
             skipExcluded:
               ortRun.jobConfigs.analyzer?.skipExcluded ||
               baseDefaults.jobConfigs.analyzer.skipExcluded,
-            enabledPackageManagers:
-              ortRun.jobConfigs.analyzer?.enabledPackageManagers ||
-              baseDefaults.jobConfigs.analyzer.enabledPackageManagers,
+            packageManagers: {
+              Bazel: defaultPackageManagerOptions('Bazel'),
+              Bundler: defaultPackageManagerOptions('Bundler'),
+              Cargo: defaultPackageManagerOptions('Cargo'),
+              Composer: defaultPackageManagerOptions('Composer'),
+              GoMod: defaultPackageManagerOptions('GoMod'),
+              GradleInspector: defaultPackageManagerOptions('GradleInspector'),
+              Maven: defaultPackageManagerOptions('Maven'),
+              NPM: defaultPackageManagerOptions('NPM'),
+              NuGet: defaultPackageManagerOptions('NuGet'),
+              PIP: defaultPackageManagerOptions('PIP'),
+              Pipenv: defaultPackageManagerOptions('Pipenv'),
+              PNPM: defaultPackageManagerOptions('PNPM'),
+              Poetry: defaultPackageManagerOptions('Poetry'),
+              Yarn: defaultPackageManagerOptions('Yarn'),
+              Yarn2: defaultPackageManagerOptions('Yarn2'),
+            },
           },
           advisor: {
             enabled:
@@ -303,20 +418,10 @@ export function defaultValues(
           },
           // Convert the parameters object map coming from the back-end to an array of key-value pairs.
           // This needs to be done because the useFieldArray hook requires an array of objects.
-          parameters: ortRun.jobConfigs.parameters
-            ? Object.entries(ortRun.jobConfigs.parameters).map(([k, v]) => ({
-                key: k,
-                value: v,
-              }))
-            : [],
+          parameters: convertMapToArray(ortRun.jobConfigs.parameters || {}),
         },
         // Convert the labels object map coming from the back-end to an array of key-value pairs.
-        labels: ortRun.labels
-          ? Object.entries(ortRun.labels).map(([k, v]) => ({
-              key: k,
-              value: v,
-            }))
-          : [],
+        labels: convertMapToArray(ortRun.labels || {}),
         jobConfigContext:
           ortRun.jobConfigContext || baseDefaults.jobConfigContext,
       }
@@ -332,17 +437,71 @@ export function defaultValues(
 export function formValuesToPayload(
   values: z.infer<typeof createRunFormSchema>
 ): CreateOrtRun {
+  /**
+   * A helper function to get the enabled package managers from the form values.
+   *
+   * @param packageManagers Package managers object from the form values.
+   * @returns Array of enabled package manager IDs.
+   */
+  const getEnabledPackageManagers = (
+    packageManagers: typeof values.jobConfigs.analyzer.packageManagers
+  ) => {
+    return Object.keys(packageManagers).filter(
+      (pm) =>
+        packageManagers[
+          // Ensure that TypeScript infers the correct type for the key.
+          // This is safe because the key is always a valid package manager ID.
+          pm as keyof typeof values.jobConfigs.analyzer.packageManagers
+        ].enabled
+    );
+  };
+
+  /**
+   * A helper function to get the package manager options for the enabled package managers.
+   * This is done by converting the packageManagers object into an array of key-value pairs,
+   * filtering out the disabled package managers, mapping the filtered array to an array of
+   * objects with the package manager ID as the key and the options as the value, and then
+   * reducing this array to a single object.
+   *
+   * @param packageManagers Package managers object from the form values.
+   * @returns Single object with package manager IDs as keys and options as values.
+   */
+  const getPackageManagerOptions = (
+    packageManagers: typeof values.jobConfigs.analyzer.packageManagers
+  ) => {
+    const options = Object.entries(packageManagers)
+      .filter(([, pm]) => pm.enabled && pm.options && pm.options.length > 0)
+      .map(([pmId, pm]) => ({
+        [pmId]: {
+          options: convertArrayToMap(pm.options || []),
+        },
+      }))
+      .reduce((acc, pm) => ({ ...acc, ...pm }), {});
+    // If no options are set, return undefined.
+    return Object.keys(options).length > 0 ? options : undefined;
+  };
+
   // In ORT Server, running or not running a job for and ORT Run is decided
   // based on the presence or absence of the corresponding job configuration
   // in the request body. If a job is disabled in the UI, we pass "undefined"
   // as the configuration for that job in the request body, in effect leaving
   // it empty, and thus disabling the job.
-  const analyzerConfig = {
+  const analyzerConfig: AnalyzerJobConfiguration = {
     allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
     repositoryConfigPath:
       values.jobConfigs.analyzer.repositoryConfigPath || undefined,
     skipExcluded: values.jobConfigs.analyzer.skipExcluded,
-    enabledPackageManagers: values.jobConfigs.analyzer.enabledPackageManagers,
+    // Determine the enabled package managers by filtering the packageManagers object
+    // and finding those for which 'enabled' is true.
+    enabledPackageManagers: [
+      ...getEnabledPackageManagers(values.jobConfigs.analyzer.packageManagers),
+      'Unmanaged', // Add "Unmanaged" package manager to all runs
+    ],
+    // Construct packageManagerOptions by including options for enabled package managers
+    // that have options set in the form.
+    packageManagerOptions: getPackageManagerOptions(
+      values.jobConfigs.analyzer.packageManagers
+    ),
   };
 
   const advisorConfig = values.jobConfigs.advisor.enabled
@@ -427,23 +586,9 @@ export function formValuesToPayload(
 
   // Convert the parameters and labels arrays back to objects, as expected by the back-end.
   const parameters = values.jobConfigs.parameters
-    ? values.jobConfigs.parameters.reduce(
-        (acc, param) => {
-          acc[param.key] = param.value;
-          return acc;
-        },
-        {} as { [key: string]: string }
-      )
+    ? convertArrayToMap(values.jobConfigs.parameters)
     : undefined;
-  const labels = values.labels
-    ? values.labels.reduce(
-        (acc, label) => {
-          acc[label.key] = label.value;
-          return acc;
-        },
-        {} as { [key: string]: string }
-      )
-    : undefined;
+  const labels = values.labels ? convertArrayToMap(values.labels) : undefined;
 
   const requestBody = {
     revision: values.revision,
