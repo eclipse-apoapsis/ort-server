@@ -57,7 +57,7 @@ import {
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
-import { getOrtDateTimeString } from '@/lib/utils';
+import { formatTimestamp } from '@/lib/utils';
 import { ortRunStatus, paginationSchema, statusSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -124,14 +124,14 @@ const columns = [
   }),
   columnHelper.accessor('createdAt', {
     header: 'Created At',
-    cell: ({ row }) => <>{getOrtDateTimeString(row.original.createdAt)}</>,
+    cell: ({ row }) => <>{formatTimestamp(row.original.createdAt)}</>,
     size: 95,
   }),
   columnHelper.accessor('finishedAt', {
     header: 'Finished At',
     cell: ({ row }) =>
       row.original.finishedAt ? (
-        <>{getOrtDateTimeString(row.original.finishedAt)}</>
+        <>{formatTimestamp(row.original.finishedAt)}</>
       ) : (
         <span className='italic'>Not finished yet</span>
       ),

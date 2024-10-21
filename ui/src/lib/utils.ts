@@ -24,7 +24,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getOrtDateTimeString(timestamp: string) {
+export function formatTimestamp(timestamp: string) {
   return new Date(timestamp).toLocaleString(navigator.language, {
     day: '2-digit',
     month: '2-digit',

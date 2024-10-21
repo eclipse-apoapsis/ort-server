@@ -44,7 +44,7 @@ import {
   getStatusFontColor,
 } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
-import { getOrtDateTimeString } from '@/lib/utils.ts';
+import { formatTimestamp } from '@/lib/utils.ts';
 import { PackagesStatisticsCard } from './-components/packages-statistics-card';
 import { RuleViolationsStatisticsCard } from './-components/rule-violations-statistics-card';
 
@@ -154,13 +154,13 @@ const RunComponent = () => {
               </div>
               <div className='text-sm'>
                 <Label className='font-semibold'>Created at:</Label>{' '}
-                {getOrtDateTimeString(ortRun.createdAt)}
+                {formatTimestamp(ortRun.createdAt)}
               </div>
               {ortRun.finishedAt && (
                 <div>
                   <div className='text-sm'>
                     <Label className='font-semibold'>Finished at:</Label>{' '}
-                    {getOrtDateTimeString(ortRun.finishedAt)}
+                    {formatTimestamp(ortRun.finishedAt)}
                   </div>
                   <div className='text-sm'>
                     <Label className='font-semibold'>Duration:</Label>{' '}
