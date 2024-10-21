@@ -66,7 +66,6 @@ export const LastJobStatus = ({ repoId }: { repoId: number }) => {
   return (
     <OrtRunJobStatus
       jobs={run.jobs}
-      pollInterval={30000}
       orgId={run.organizationId.toString()}
       productId={run.productId.toString()}
       repoId={run.repositoryId.toString()}

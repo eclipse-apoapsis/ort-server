@@ -33,7 +33,6 @@ import { RunDuration } from './run-duration';
 
 type OrtRunJobStatusProps = {
   jobs: PagedResponse_OrtRunSummary['data'][0]['jobs'];
-  pollInterval: number;
   orgId: string;
   productId: string;
   repoId: string;
@@ -42,7 +41,6 @@ type OrtRunJobStatusProps = {
 
 export const OrtRunJobStatus = ({
   jobs,
-  pollInterval,
   orgId,
   productId,
   repoId,
@@ -80,7 +78,6 @@ export const OrtRunJobStatus = ({
                   <RunDuration
                     createdAt={jobs.analyzer?.startedAt}
                     finishedAt={jobs.analyzer.finishedAt ?? undefined}
-                    pollInterval={pollInterval}
                   />
                 </div>
               )}
@@ -118,7 +115,6 @@ export const OrtRunJobStatus = ({
                   <RunDuration
                     createdAt={jobs.advisor?.startedAt}
                     finishedAt={jobs.advisor.finishedAt ?? undefined}
-                    pollInterval={pollInterval}
                   />
                 </div>
               )}
@@ -156,7 +152,6 @@ export const OrtRunJobStatus = ({
                   <RunDuration
                     createdAt={jobs.scanner?.startedAt}
                     finishedAt={jobs.scanner.finishedAt ?? undefined}
-                    pollInterval={pollInterval}
                   />
                 </div>
               )}
@@ -194,7 +189,6 @@ export const OrtRunJobStatus = ({
                   <RunDuration
                     createdAt={jobs.evaluator?.startedAt}
                     finishedAt={jobs.evaluator.finishedAt ?? undefined}
-                    pollInterval={pollInterval}
                   />
                 </div>
               )}
@@ -232,7 +226,6 @@ export const OrtRunJobStatus = ({
                   <RunDuration
                     createdAt={jobs.reporter?.startedAt}
                     finishedAt={jobs.reporter.finishedAt ?? undefined}
-                    pollInterval={pollInterval}
                   />
                 </div>
               )}

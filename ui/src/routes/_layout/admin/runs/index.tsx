@@ -153,7 +153,6 @@ const columns = [
     cell: ({ row }) => (
       <OrtRunJobStatus
         jobs={row.original.jobs}
-        pollInterval={pollInterval}
         orgId={row.original.organizationId.toString()}
         productId={row.original.productId.toString()}
         repoId={row.original.repositoryId.toString()}
@@ -169,7 +168,6 @@ const columns = [
       <RunDuration
         createdAt={row.original.createdAt}
         finishedAt={row.original.finishedAt ?? undefined}
-        pollInterval={pollInterval}
       />
     ),
     size: 100,

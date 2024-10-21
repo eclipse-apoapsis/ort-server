@@ -24,14 +24,9 @@ import { calculateDuration } from '@/helpers/get-run-duration';
 type RunDurationProps = {
   createdAt: string;
   finishedAt?: string;
-  pollInterval: number;
 };
 
-export const RunDuration = ({
-  createdAt,
-  finishedAt,
-  pollInterval,
-}: RunDurationProps) => {
+export const RunDuration = ({ createdAt, finishedAt }: RunDurationProps) => {
   const [currentTime, setCurrentTime] = useState<string>(
     new Date().toISOString()
   );
@@ -40,12 +35,12 @@ export const RunDuration = ({
     if (!finishedAt) {
       const intervalId = setInterval(() => {
         setCurrentTime(new Date().toISOString());
-      }, pollInterval); // Update every pollInterval
+      }, 1000); // Update every second
 
       // Cleanup interval on component unmount
       return () => clearInterval(intervalId);
     }
-  }, [finishedAt, pollInterval]);
+  }, [finishedAt]);
 
   return (
     <div>

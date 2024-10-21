@@ -108,7 +108,6 @@ const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
     cell: ({ row }) => (
       <OrtRunJobStatus
         jobs={row.original.jobs}
-        pollInterval={pollInterval}
         orgId={row.original.organizationId.toString()}
         productId={row.original.productId.toString()}
         repoId={row.original.repositoryId.toString()}
@@ -123,7 +122,6 @@ const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
       <RunDuration
         createdAt={row.original.createdAt}
         finishedAt={row.original.finishedAt ?? undefined}
-        pollInterval={pollInterval}
       />
     ),
   },
