@@ -24,13 +24,36 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatTimestamp(timestamp: string) {
-  return new Date(timestamp).toLocaleString(navigator.language, {
+export function formatTimestamp(
+  timestamp: string,
+  timeZone: string | undefined = undefined,
+  locales: Intl.LocalesArgument = undefined
+) {
+  return new Date(timestamp).toLocaleString(locales, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
+    timeZone: timeZone,
+  });
+}
+
+if (import.meta.vitest) {
+  const { it, expect } = import.meta.vitest;
+
+  it('formatTimestamp', () => {
+    expect(formatTimestamp('2024-06-11T13:07:45Z', 'UTC', 'en-US')).toBe(
+      '06/11/2024, 01:07:45 PM'
+    );
+
+    expect(formatTimestamp('2024-06-11T13:07:45Z', 'UTC', 'de-DE')).toBe(
+      '11.06.2024, 13:07:45'
+    );
+
+    expect(formatTimestamp('2024-06-11T13:07:45Z', 'UTC', 'fi-FI')).toBe(
+      '11.06.2024 klo 13.07.45'
+    );
   });
 }
