@@ -56,20 +56,19 @@ class RuleViolationServiceTest : WordSpec() {
                 val ortRun = createRuleViolationEntries()
                 val results = service.listForOrtRunId(ortRun.id).data
 
-                results shouldHaveSize 2
+                results shouldHaveSize 3
 
                 with(results[0]) {
-                    with(ruleViolation) {
-                        rule shouldBe "Rule-1"
-                        license shouldBe "License-1"
-                        licenseSource shouldBe "CONCLUDED"
-                        severity shouldBe Severity.WARNING
-                        message shouldBe "Message-1"
-                        howToFix shouldBe "How_to_fix-1"
-                    }
 
-                    with(identifier) {
-                        type shouldBe "Maven"
+                    rule shouldBe "Rule-1"
+                    license shouldBe "License-1"
+                    licenseSource shouldBe "CONCLUDED"
+                    severity shouldBe Severity.WARNING
+                    message shouldBe "Message-1"
+                    howToFix shouldBe "How_to_fix-1"
+
+                    with(packageId) {
+                        this!!.type shouldBe "Maven"
                         namespace shouldBe "org.apache.logging.log4j"
                         name shouldBe "log4j-core"
                         version shouldBe "2.14.0"
@@ -77,21 +76,29 @@ class RuleViolationServiceTest : WordSpec() {
                 }
 
                 with(results[1]) {
-                    with(ruleViolation) {
-                        rule shouldBe "Rule-2"
-                        license shouldBe "License-2"
-                        licenseSource shouldBe "DETECTED"
-                        severity shouldBe Severity.ERROR
-                        message shouldBe "Message-2"
-                        howToFix shouldBe "How_to_fix-2"
-                    }
+                    rule shouldBe "Rule-2"
+                    license shouldBe "License-2"
+                    licenseSource shouldBe "DETECTED"
+                    severity shouldBe Severity.ERROR
+                    message shouldBe "Message-2"
+                    howToFix shouldBe "How_to_fix-2"
 
-                    with(identifier) {
-                        type shouldBe "Maven"
+                    with(packageId) {
+                        this!!.type shouldBe "Maven"
                         namespace shouldBe "com.fasterxml.jackson.core"
                         name shouldBe "jackson-databind"
                         version shouldBe "2.9.6"
                     }
+                }
+
+                with(results[2]) {
+                    rule shouldBe "Rule-3-no-id"
+                    license shouldBe "License-3"
+                    licenseSource shouldBe "DETECTED"
+                    severity shouldBe Severity.HINT
+                    message shouldBe "Message-3"
+                    howToFix shouldBe "How_to_fix-3"
+                    packageId shouldBe null
                 }
             }
         }
@@ -126,6 +133,15 @@ class RuleViolationServiceTest : WordSpec() {
                 Severity.ERROR,
                 "Message-2",
                 "How_to_fix-2"
+            ),
+            OrtRuleViolation(
+                "Rule-3-no-id",
+                null,
+                "License-3",
+                "DETECTED",
+                Severity.HINT,
+                "Message-3",
+                "How_to_fix-3"
             )
         )
 
