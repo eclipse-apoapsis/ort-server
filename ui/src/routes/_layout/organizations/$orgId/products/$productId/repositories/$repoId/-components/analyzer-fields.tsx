@@ -19,7 +19,6 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
-import { MultiSelectField } from '@/components/form/multi-select-field';
 import {
   AccordionContent,
   AccordionItem,
@@ -35,8 +34,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { packageManagers } from '@/routes/_layout/organizations/$orgId/products/$productId/repositories/$repoId/-types';
 import { CreateRunFormValues } from '../-create-run-utils';
+import { PackageManagerField } from './package-manager-field';
 
 type AnalyzerFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
@@ -122,18 +121,7 @@ export const AnalyzerFields = ({ form }: AnalyzerFieldsProps) => {
               </FormItem>
             )}
           />
-          <MultiSelectField
-            form={form}
-            name='jobConfigs.analyzer.enabledPackageManagers'
-            label='Enabled package managers'
-            description={
-              <>
-                Select the package managers enabled for this ORT Run. Note that
-                the 'Unmanaged' package manager is always enabled.
-              </>
-            }
-            options={packageManagers}
-          />
+          <PackageManagerField form={form} />
         </AccordionContent>
       </AccordionItem>
     </div>
