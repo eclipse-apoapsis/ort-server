@@ -63,7 +63,8 @@ class DatabaseTest : WordSpec({
                 sslMode = "myTestSSLMode",
                 sslCert = "myTestSSLCert",
                 sslKey = "myTestSSLKey",
-                sslRootCert = "myTestSSLRootCert"
+                sslRootCert = "myTestSSLRootCert",
+                initSqlStatement = "SET search_path TO test,public;"
             )
 
             val secretsMap = mapOf(
@@ -90,6 +91,7 @@ class DatabaseTest : WordSpec({
                     "database.sslCert" to dbConfig.sslCert,
                     "database.sslKey" to dbConfig.sslKey,
                     "database.sslRootCert" to dbConfig.sslRootCert,
+                    "database.initSqlStatement" to dbConfig.initSqlStatement,
                     ConfigManager.CONFIG_MANAGER_SECTION to secretConfigMap
                 )
             )
