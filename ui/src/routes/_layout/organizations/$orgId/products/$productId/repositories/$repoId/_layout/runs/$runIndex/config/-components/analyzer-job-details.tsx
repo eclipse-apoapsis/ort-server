@@ -86,6 +86,34 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                     {jobConfigs.enabledPackageManagers.join(', ')}
                   </div>
                 )}
+                {jobConfigs?.packageManagerOptions && (
+                  <div className='space-y-2'>
+                    <Label className='font-semibold'>
+                      Package manager options:
+                    </Label>{' '}
+                    {Object.keys(jobConfigs.packageManagerOptions).map((pm) => (
+                      <div className='ml-2' key={pm}>
+                        <Label className='font-semibold'>{pm}:</Label>
+                        {jobConfigs.packageManagerOptions?.[pm].options && (
+                          <div className='ml-2'>
+                            <div className='ml-2'>
+                              {Object.entries(
+                                jobConfigs.packageManagerOptions[pm].options
+                              ).map(([key, value]) => (
+                                <div key={key}>
+                                  <Label className='font-semibold'>
+                                    {key}:
+                                  </Label>{' '}
+                                  {value}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
