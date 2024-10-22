@@ -51,7 +51,6 @@ jobs:
           context: workers/analyzer/docker
           dockerfile: Analyzer.Dockerfile
           jibImage: analyzer-worker
-          imageVariant: jdk17
           task: :workers:analyzer:jibDockerBuild
           freeDiskSpace: true
         - image: config-worker-base-image
