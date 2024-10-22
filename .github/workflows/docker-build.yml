@@ -48,24 +48,6 @@ jobs:
         - jibImage: advisor-worker
           task: :workers:advisor:jibDockerBuild
         - image: analyzer-worker-base-image
-          buildArgs: TEMURIN_VERSION=21
-          context: workers/analyzer/docker
-          dockerfile: Analyzer.Dockerfile
-          jibImage: analyzer-worker
-          imageVariant: jdk21
-          task: :workers:analyzer:jibDockerBuild
-          freeDiskSpace: true
-        - image: analyzer-worker-base-image
-          buildArgs: |
-            TEMURIN_VERSION=11
-            ANDROID_CMD_VERSION=9862592
-          context: workers/analyzer/docker
-          dockerfile: Analyzer.Dockerfile
-          jibImage: analyzer-worker
-          imageVariant: jdk11
-          task: :workers:analyzer:jibDockerBuild
-          freeDiskSpace: true
-        - image: analyzer-worker-base-image
           context: workers/analyzer/docker
           dockerfile: Analyzer.Dockerfile
           jibImage: analyzer-worker
