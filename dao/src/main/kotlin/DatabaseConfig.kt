@@ -107,6 +107,12 @@ data class DatabaseConfig(
      * [PostgreSQL documentation](https://www.postgresql.org/docs/current/libpq-ssl.html#LIBQ-SSL-CERTIFICATES).
      */
     val sslRootCert: String?,
+
+    /**
+     * An optional SQL statement that is executed when a new database connection is created. This can be used to
+     * set some defaults, for instance the schema search path.
+     */
+    val initSqlStatement: String?
 ) {
     companion object {
         /**
@@ -130,7 +136,8 @@ data class DatabaseConfig(
             sslMode = config.getString("database.sslMode"),
             sslCert = config.getStringOrNull("database.sslCert"),
             sslKey = config.getStringOrNull("database.sslKey"),
-            sslRootCert = config.getStringOrNull("database.sslRootCert")
+            sslRootCert = config.getStringOrNull("database.sslRootCert"),
+            initSqlStatement = config.getStringOrNull("database.initSqlStatement")
         )
     }
 }

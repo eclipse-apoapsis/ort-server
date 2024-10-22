@@ -91,6 +91,11 @@ fun createDataSource(config: DatabaseConfig): DataSource {
         config.sslCert?.let { addDataSourceProperty("sslcert", it) }
         config.sslKey?.let { addDataSourceProperty("sslkey", it) }
         config.sslRootCert?.let { addDataSourceProperty("sslrootcert", it) }
+
+        config.initSqlStatement?.let {
+            logger.info("Setting connection initialization statement to '{}'.", it)
+            connectionInitSql = it
+        }
     }
 
     dataSourceConfig.validate()
