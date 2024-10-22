@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables.runs.shared
 
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.dao.utils.DigestFunction
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -30,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.stringLiteral
 
 /**
  * A table to represent an ort issue.
@@ -45,7 +47,7 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<IssueDao>(IssuesTable) {
         fun findByIssue(issue: Issue): IssueDao? = find {
             IssuesTable.issueSource eq issue.source and
-                    (IssuesTable.message eq issue.message) and
+                    (DigestFunction(IssuesTable.message) eq DigestFunction(stringLiteral(issue.message))) and
                     (IssuesTable.severity eq issue.severity) and
                     (IssuesTable.affectedPath eq issue.affectedPath)
         }.firstOrNull()
