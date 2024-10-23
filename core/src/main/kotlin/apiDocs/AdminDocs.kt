@@ -80,13 +80,20 @@ val getUsers: OpenApiRoute.() -> Unit = {
 
 val postUsers: OpenApiRoute.() -> Unit = {
     operationId = "postUsers"
-    summary = "Create a user, possibly with a password. This is enabled for server administrators only."
+    summary = "Create a user, possibly with a password."
     tags = listOf("Admin")
 
     request {
         jsonBody<CreateUser> {
             example("Create User") {
-                value = CreateUser(username = "newUser", password = "password", temporary = true)
+                value = CreateUser(
+                    username = "newUser",
+                    firstName = "First",
+                    lastName = "Last",
+                    email = "first.last@mail.com",
+                    password = "password",
+                    temporary = true
+                )
                 description = "temporary=true means the password is for one-time use only and needs to be changed " +
                         "on first login. If password is not set, temporary is ignored."
             }

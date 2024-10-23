@@ -80,7 +80,14 @@ fun Route.admin() = route("admin") {
             requireSuperuser()
 
             val createUser = call.receive<CreateUser>()
-            userService.createUser(createUser.username, createUser.password, createUser.temporary)
+            userService.createUser(
+                username = createUser.username,
+                firstName = createUser.firstName,
+                lastName = createUser.lastName,
+                email = createUser.email,
+                password = createUser.password,
+                temporary = createUser.temporary
+            )
 
             call.respond(HttpStatusCode.Created)
         }
