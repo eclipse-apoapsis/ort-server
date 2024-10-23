@@ -91,12 +91,6 @@ jobs:
       if: ${{ matrix.docker.freeDiskSpace }}
       uses: ./.github/actions/free-disk-space
 
-    - name: Setup Java 11
-      uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73 # v4
-      with:
-        distribution: 'temurin'
-        java-version: '11'
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3
 

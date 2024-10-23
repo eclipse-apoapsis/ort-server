@@ -20,13 +20,6 @@ jobs:
         ref: ${{ env.ORT_VERSION }}
         fetch-depth: 0
 
-    - name: Setup Java
-      uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73 # v4
-      with:
-        distribution: temurin
-        java-version: 17
-        cache: gradle
-
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@d156388eb19639ec20ade50009f3d199ce1e2808 # v4
 
