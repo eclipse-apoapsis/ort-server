@@ -44,6 +44,9 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
     val testUsername = "test123"
+    val testFirstName = "FirstName"
+    val testLastName = "LastName"
+    val testEmail = "test@test.com"
     val testPassword = "password123"
     val testTemporary = true
 
@@ -89,7 +92,14 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
     "POST /admin/users" should {
         "create a new user" {
             integrationTestApplication {
-                val user = CreateUser(testUsername, testPassword, testTemporary)
+                val user = CreateUser(
+                    username = testUsername,
+                    firstName = testFirstName,
+                    lastName = testLastName,
+                    email = testEmail,
+                    password = testPassword,
+                    temporary = testTemporary
+                )
 
                 val response = superuserClient.post("/api/v1/admin/users") {
                     setBody(user)
@@ -101,7 +111,14 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
 
         "respond with an internal error if the user already exists" {
             integrationTestApplication {
-                val user = CreateUser(testUsername, testPassword, testTemporary)
+                val user = CreateUser(
+                    username = testUsername,
+                    firstName = testFirstName,
+                    lastName = testLastName,
+                    email = testEmail,
+                    password = testPassword,
+                    temporary = testTemporary
+                )
 
                 superuserClient.post("/api/v1/admin/users") {
                     setBody(user)
@@ -117,7 +134,16 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
         "require superuser role" {
             requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Created) {
                 post("/api/v1/admin/users") {
-                    setBody(CreateUser(testUsername, testPassword, testTemporary))
+                    setBody(
+                        CreateUser(
+                            username = testUsername,
+                            firstName = testFirstName,
+                            lastName = testLastName,
+                            email = testEmail,
+                            password = testPassword,
+                            temporary = testTemporary
+                        )
+                    )
                 }
             }
         }

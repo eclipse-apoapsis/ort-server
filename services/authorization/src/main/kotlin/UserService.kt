@@ -32,8 +32,22 @@ class UserService(
     /**
      * Create a user. If "password" is null, then "temporary" is ignored.
      */
-    suspend fun createUser(username: String, password: String?, temporary: Boolean) = run {
-        keycloakClient.createUser(username = UserName(username), password = password, temporary = temporary)
+    suspend fun createUser(
+        username: String,
+        firstName: String?,
+        lastName: String?,
+        email: String?,
+        password: String?,
+        temporary: Boolean
+    ) = run {
+        keycloakClient.createUser(
+            username = UserName(username),
+            firstName = firstName,
+            lastName = lastName,
+            email = email,
+            password = password,
+            temporary = temporary
+        )
     }
 
     /**

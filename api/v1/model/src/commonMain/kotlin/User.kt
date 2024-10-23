@@ -42,6 +42,9 @@ data class User(
 @Serializable
 data class CreateUser(
     val username: String,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val email: String? = null,
     val password: String? = null,
 
     /** Specifies whether the password is for one-time use only */
