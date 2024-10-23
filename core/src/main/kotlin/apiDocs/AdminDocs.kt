@@ -24,6 +24,7 @@ import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
 
 val runPermissionsSync: OpenApiRoute.() -> Unit = {
     operationId = "runPermissionsSync"
@@ -55,6 +56,24 @@ val getUsers: OpenApiRoute.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Successfully retrieved the users."
+            jsonBody<List<User>> {
+                example("Get all users of the server") {
+                    value = listOf(
+                        User(
+                            username = "user1",
+                            firstName = "First1",
+                            lastName = "Last1",
+                            email = "user1@mail.com"
+                        ),
+                        User(
+                            username = "user2",
+                            firstName = "First2",
+                            lastName = "Last2",
+                            email = "user2@mail.com"
+                        )
+                    )
+                }
+            }
         }
     }
 }
