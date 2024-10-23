@@ -54,6 +54,12 @@ SPDX-FileCopyrightText = "2022 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "gradle/gradle-daemon-jvm.properties"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = "CONTRIBUTING.md"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"

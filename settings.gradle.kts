@@ -80,3 +80,8 @@ project(":services:secret").name = "secret-service"
 project(":storage:spi").name = "storage-spi"
 project(":transport:spi").name = "transport-spi"
 project(":workers:config").name = "config-worker"
+
+plugins {
+    // Gradle cannot access the version catalog from here, so hard-code the dependency.
+    id("org.gradle.toolchains.foojay-resolver-convention").version("0.8.0")
+}
