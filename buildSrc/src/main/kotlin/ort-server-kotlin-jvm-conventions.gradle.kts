@@ -22,6 +22,8 @@ import org.gradle.accessors.dm.LibrariesForLibs
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val javaLanguageVersion: String by project
+
 private val Project.libs: LibrariesForLibs
     get() = extensions.getByType()
 
@@ -33,15 +35,21 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
 }
 
-val javaVersion = JavaVersion.current()
-val maxKotlinJvmTarget = runCatching { JvmTarget.fromTarget(javaVersion.majorVersion) }
-    .getOrDefault(enumValues<JvmTarget>().max())
-
-tasks.withType<JavaCompile>().configureEach {
-    // Align this with Kotlin to avoid errors, see https://youtrack.jetbrains.com/issue/KT-48745.
-    sourceCompatibility = maxKotlinJvmTarget.target
-    targetCompatibility = maxKotlinJvmTarget.target
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(javaLanguageVersion)
+        vendor = JvmVendorSpec.ADOPTIUM
+    }
 }
+
+tasks.withType<Jar>().configureEach {
+    manifest {
+        attributes["Build-Jdk"] = javaToolchains.compilerFor(java.toolchain).map { it.metadata.jvmVersion }
+    }
+}
+
+val maxKotlinJvmTarget = runCatching { JvmTarget.fromTarget(javaLanguageVersion) }
+    .getOrDefault(enumValues<JvmTarget>().max())
 
 tasks.named<KotlinCompile>("compileKotlin") {
     val hasSerializationPlugin = plugins.hasPlugin(libs.plugins.kotlinSerialization.get().pluginId)
@@ -62,7 +70,7 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 
     // Required since Java 17, see: https://kotest.io/docs/next/extensions/system_extensions.html#system-environment
-    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+    if (javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
         jvmArgs("--add-opens=java.base/java.util=ALL-UNNAMED")
     }
 

@@ -19,9 +19,6 @@
 
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 val dockerBaseBuildArgs: String by project
 val dockerBaseImageTag: String by project
 val dockerImageTag: String by project
