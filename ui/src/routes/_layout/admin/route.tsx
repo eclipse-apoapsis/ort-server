@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
-import { Eye, KeyRound, ListVideo, UserPlus } from 'lucide-react';
+import { Eye, KeyRound, ListVideo, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 
@@ -37,9 +37,9 @@ const Layout = () => {
       label: 'User Management',
       items: [
         {
-          title: 'Create User',
-          to: '/admin/users/create-user',
-          icon: () => <UserPlus className='h-4 w-4' />,
+          title: 'Users',
+          to: '/admin/users',
+          icon: () => <User className='h-4 w-4' />,
         },
         {
           title: 'Authorization',
