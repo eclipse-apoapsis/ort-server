@@ -18,6 +18,7 @@
  */
 
 import { Loader2, OctagonAlert, TrashIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import {
   AlertDialog,
@@ -30,6 +31,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
@@ -47,6 +49,7 @@ interface DeleteDialogProps {
   onDelete: () => void;
   isPending: boolean;
   className?: string;
+  textConfirmation?: boolean;
 }
 
 export const DeleteDialog = ({
@@ -56,7 +59,18 @@ export const DeleteDialog = ({
   onDelete,
   isPending,
   className,
+  textConfirmation = false,
 }: DeleteDialogProps) => {
+  const [input, setInput] = useState('');
+  const isDeleteDisabled = textConfirmation && input !== item.name;
+
+  // Reset the input field whenever the dialog is opened/closed
+  useEffect(() => {
+    if (open) {
+      setInput('');
+    }
+  }, [open]);
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <Tooltip delayDuration={300}>
@@ -82,13 +96,39 @@ export const DeleteDialog = ({
             <AlertDialogTitle>Delete {item.descriptor}</AlertDialogTitle>
           </div>
         </AlertDialogHeader>
-        <AlertDialogDescription>
-          Are you sure you want to delete this {item.descriptor}:{' '}
-          <span className='font-bold'>{item.name}</span>?
-        </AlertDialogDescription>
+        {textConfirmation ? (
+          <AlertDialogDescription>
+            <div className='flex flex-col gap-2'>
+              <div>
+                Are you sure you want to delete this {item.descriptor}:{' '}
+                <span className='font-bold'>{item.name}</span>?
+              </div>
+              <div>
+                Deleting might have unwanted results and side effects, and the
+                deletion is irreversible. Please type{' '}
+                <span className='font-bold'>{item.name}</span> below to confirm
+                deletion.
+              </div>
+              <Input
+                autoFocus
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
+            </div>
+          </AlertDialogDescription>
+        ) : (
+          <AlertDialogDescription>
+            Are you sure you want to delete this {item.descriptor}:{' '}
+            <span className='font-bold'>{item.name}</span>?
+          </AlertDialogDescription>
+        )}
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <Button onClick={onDelete} className='bg-red-500'>
+          <Button
+            disabled={isDeleteDisabled}
+            onClick={onDelete}
+            className='bg-red-500'
+          >
             {isPending ? (
               <>
                 <span className='sr-only'>Deleting {item.descriptor}...</span>
