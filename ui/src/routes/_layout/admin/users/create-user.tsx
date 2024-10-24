@@ -18,7 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -48,15 +48,23 @@ import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   username: z.string(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  email: z.string().email().optional(),
   password: z.string().optional(),
   temporary: z.boolean(),
 });
 
 const CreateUser = () => {
+  const navigate = useNavigate();
+
   const { mutateAsync, isPending } = useAdminServicePostUsers({
     onSuccess() {
       toast.info('Add User', {
         description: `User "${form.getValues().username}" added successfully to the server.`,
+      });
+      navigate({
+        to: '/admin/users',
       });
     },
     onError(error: ApiError) {
@@ -82,6 +90,9 @@ const CreateUser = () => {
     await mutateAsync({
       requestBody: {
         username: values.username,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
         password: values.password,
         temporary: values.temporary,
       },
@@ -104,6 +115,45 @@ const CreateUser = () => {
                   <FormLabel>Username</FormLabel>
                   <FormControl>
                     <Input {...field} autoFocus />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='firstName'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='(optional)' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='lastName'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='(optional)' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='email'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address</FormLabel>
+                  <FormControl>
+                    <Input type='email' {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
