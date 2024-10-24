@@ -23,7 +23,7 @@ import { AnalyzerJobConfiguration, CreateOrtRun, OrtRun } from '@/api/requests';
 import { packageManagers } from './-types';
 
 const keyValueSchema = z.object({
-  key: z.string().min(1),
+  key: z.string(),
   value: z.string(), // Allow empty values for now
 });
 
@@ -180,7 +180,7 @@ export function defaultValues(
     } else {
       return {
         enabled: true,
-        options: [{ key: '', value: '' }],
+        options: [],
       };
     }
   };
