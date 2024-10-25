@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-import { Scale } from 'lucide-react';
+import { Bug } from 'lucide-react';
 
-import { useRuleViolationsServiceGetRuleViolationsByRunId } from '@/api/queries';
+import { useIssuesServiceGetIssuesByRunId } from '@/api/queries';
 import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
@@ -27,41 +27,39 @@ import { ToastError } from '@/components/toast-error';
 import { getStatusFontColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
 
-type RuleViolationsStatisticsCardProps = {
+type IssuesStatisticsCardProps = {
   status: JobStatus | undefined;
   runId: number;
 };
 
-export const RuleViolationsStatisticsCard = ({
+export const IssuesStatisticsCard = ({
   status,
   runId,
-}: RuleViolationsStatisticsCardProps) => {
+}: IssuesStatisticsCardProps) => {
   const {
-    data: ruleViolations,
-    isPending: ruleViolationsIsPending,
-    isError: ruleViolationsIsError,
-    error: ruleViolationsError,
-  } = useRuleViolationsServiceGetRuleViolationsByRunId({
+    data: issues,
+    isPending: issuesIsPending,
+    isError: issuesIsError,
+    error: issuesError,
+  } = useIssuesServiceGetIssuesByRunId({
     runId: runId,
     limit: 1,
   });
 
-  if (ruleViolationsIsPending) {
+  if (issuesIsPending) {
     return (
       <StatisticsCard
-        title='Rule Violations'
-        icon={() => (
-          <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />
-        )}
+        title='Issues'
+        icon={() => <Bug className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
         value={<LoadingIndicator />}
         className='h-full hover:bg-muted/50'
       />
     );
   }
 
-  if (ruleViolationsIsError) {
+  if (issuesIsError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={ruleViolationsError} />,
+      description: <ToastError error={issuesError} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -71,13 +69,13 @@ export const RuleViolationsStatisticsCard = ({
     return;
   }
 
-  const ruleViolationsTotal = ruleViolations.pagination.totalCount;
+  const issuesTotal = issues.pagination.totalCount;
 
   return (
     <StatisticsCard
-      title='Rule Violations'
-      icon={() => <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
-      value={status ? ruleViolationsTotal : 'Skipped'}
+      title='Issues'
+      icon={() => <Bug className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
+      value={status ? issuesTotal : 'Skipped'}
       description={status ? '' : 'Enable the job for results'}
       className='h-full hover:bg-muted/50'
     />

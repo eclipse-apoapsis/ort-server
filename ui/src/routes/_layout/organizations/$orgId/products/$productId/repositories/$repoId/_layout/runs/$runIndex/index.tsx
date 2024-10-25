@@ -18,15 +18,12 @@
  */
 
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Bug, Repeat, ShieldQuestion } from 'lucide-react';
+import { Repeat } from 'lucide-react';
 
-import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
-import { StatisticsCard } from '@/components/statistics-card';
-import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,14 +36,12 @@ import {
 import { Label } from '@/components/ui/label';
 import { config } from '@/config';
 import { calculateDuration } from '@/helpers/get-run-duration';
-import {
-  getStatusBackgroundColor,
-  getStatusFontColor,
-} from '@/helpers/get-status-class';
-import { toast } from '@/lib/toast';
+import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { formatTimestamp } from '@/lib/utils.ts';
+import { IssuesStatisticsCard } from './-components/issues-statistics-card';
 import { PackagesStatisticsCard } from './-components/packages-statistics-card';
 import { RuleViolationsStatisticsCard } from './-components/rule-violations-statistics-card';
+import { VulnerabilitiesStatisticsCard } from './-components/vulnerabilities-statistics-card';
 
 const RunComponent = () => {
   const params = Route.useParams();
@@ -70,37 +65,6 @@ const RunComponent = () => {
       },
     }
   );
-
-  // Note that this is very inefficient as it fetches all data from the endpoints,
-  // while for this purpose we only need the total counts, so this is a temporary solution.
-  // The queries will be replaced with the ORT Run statistics query once it is implemented.
-
-  const {
-    data: vulnerabilities,
-    isPending: vulnIsPending,
-    isError: vulnIsError,
-    error: vulnError,
-  } = useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
-    runId: ortRun.id,
-  });
-
-  if (vulnIsPending) {
-    return <LoadingIndicator />;
-  }
-
-  if (vulnIsError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={vulnError} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
-    return;
-  }
-
-  const vulnTotal = vulnerabilities.pagination.totalCount;
 
   return (
     <>
@@ -244,11 +208,9 @@ const RunComponent = () => {
               runIndex: params.runIndex,
             }}
           >
-            <StatisticsCard
-              title='Issues'
-              icon={() => <Bug className={`h-4 w-4 text-gray-300`} />}
-              value='Unavailable'
-              className='h-full hover:bg-muted/50'
+            <IssuesStatisticsCard
+              runId={ortRun.id}
+              status={ortRun.jobs.analyzer?.status}
             />
           </Link>
           <Link
@@ -274,18 +236,9 @@ const RunComponent = () => {
               runIndex: params.runIndex,
             }}
           >
-            <StatisticsCard
-              title='Vulnerabilities'
-              icon={() => (
-                <ShieldQuestion
-                  className={`h-4 w-4 ${getStatusFontColor(ortRun.jobs.advisor?.status)}`}
-                />
-              )}
-              value={ortRun.jobs.advisor ? vulnTotal : 'Skipped'}
-              description={
-                ortRun.jobs.advisor ? '' : 'Enable the job for results'
-              }
-              className='h-full hover:bg-muted/50'
+            <VulnerabilitiesStatisticsCard
+              runId={ortRun.id}
+              status={ortRun.jobs.advisor?.status}
             />
           </Link>
           <Link
