@@ -37,21 +37,17 @@ export const PackagesStatisticsCard = ({
   status,
   runId,
 }: PackagesStatisticsCardProps) => {
-  const {
-    data: packages,
-    isPending: packagesIsPending,
-    isError: packagesIsError,
-    error: packagesError,
-  } = usePackagesServiceGetPackagesByRunId({
-    runId: runId,
-    // Use a large page size for packages request to try to use all packages
-    // for finding de-duplicated package types.
-    // Another option would be to do two packages queries: first to find the
-    // total number of packages, second to fetch using the total as the page
-    // size.
-    // This can be simplified once the ORT Run statistics query is implemented.
-    limit: 100000,
-  });
+  const { data, isPending, isError, error } =
+    usePackagesServiceGetPackagesByRunId({
+      runId: runId,
+      // Use a large page size for packages request to try to use all packages
+      // for finding de-duplicated package types.
+      // Another option would be to do two packages queries: first to find the
+      // total number of packages, second to fetch using the total as the page
+      // size.
+      // This can be simplified once the ORT Run statistics query is implemented.
+      limit: 100000,
+    });
 
   // Find de-duplicated package types in packages data and sort alphabetically.
   // Packages data can be quite large, so use memoization to avoid unnecessary
@@ -60,13 +56,13 @@ export const PackagesStatisticsCard = ({
     () =>
       [
         ...new Set(
-          packages?.data.map((item) => item.identifier?.type).filter(Boolean)
+          data?.data.map((item) => item.identifier?.type).filter(Boolean)
         ),
       ].sort(),
-    [packages?.data]
+    [data?.data]
   );
 
-  if (packagesIsPending) {
+  if (isPending) {
     return (
       <StatisticsCard
         title='Packages'
@@ -79,9 +75,9 @@ export const PackagesStatisticsCard = ({
     );
   }
 
-  if (packagesIsError) {
+  if (isError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={packagesError} />,
+      description: <ToastError error={error} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -91,7 +87,7 @@ export const PackagesStatisticsCard = ({
     return;
   }
 
-  const packagesTotal = packages.pagination.totalCount;
+  const packagesTotal = data.pagination.totalCount;
 
   return (
     <StatisticsCard
