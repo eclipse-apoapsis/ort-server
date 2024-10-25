@@ -17,27 +17,18 @@
  * License-Filename: LICENSE
  */
 
-// Status types
+import { JobStatus, OrtRunStatus, Severity } from '@/api/requests';
 
-// Statuses reported either by ORT Runs or the individual jobs within them
-type Status =
-  | 'CREATED'
-  | 'SCHEDULED'
-  | 'RUNNING'
-  | 'ACTIVE'
-  | 'FAILED'
-  | 'FINISHED'
-  | 'FINISHED_WITH_ISSUES'
-  | undefined;
+// Combine statuses reported either by ORT Runs or the individual jobs within them.
+export type Status = JobStatus | OrtRunStatus | undefined;
 
+// There is no vulnerability rating in the OpenApi spec, so define it here.
 export type VulnerabilityRating =
   | 'CRITICAL'
   | 'HIGH'
   | 'MEDIUM'
   | 'LOW'
   | 'NONE';
-
-type RuleViolationSeverity = 'ERROR' | 'WARNING' | 'HINT';
 
 // TailwindCSS classes matching to statuses
 //
@@ -89,10 +80,18 @@ const VULNERABILITY_RATING_BG_COLOR: {
 } as const;
 
 const RULE_VIOLATION_SEVERITY_BG_COLOR: {
-  [K in RuleViolationSeverity]: string;
+  [K in Severity]: string;
 } = {
   ERROR: 'bg-red-600',
-  WARNING: 'bg-orange-600',
+  WARNING: 'bg-amber-500',
+  HINT: 'bg-neutral-300',
+} as const;
+
+const ISSUE_SEVERITY_BG_COLOR: {
+  [K in Severity]: string;
+} = {
+  ERROR: 'bg-red-600',
+  WARNING: 'bg-amber-500',
   HINT: 'bg-neutral-300',
 } as const;
 
@@ -136,7 +135,12 @@ export function getVulnerabilityRatingBackgroundColor(
 
 // Get the color class for coloring the background of rule violation severities
 export function getRuleViolationSeverityBackgroundColor(
-  rating: RuleViolationSeverity
+  severity: Severity
 ): string {
-  return RULE_VIOLATION_SEVERITY_BG_COLOR[rating];
+  return RULE_VIOLATION_SEVERITY_BG_COLOR[severity];
+}
+
+// Get the color class for coloring the background of issue severities
+export function getIssueSeverityBackgroundColor(severity: Severity): string {
+  return ISSUE_SEVERITY_BG_COLOR[severity];
 }
