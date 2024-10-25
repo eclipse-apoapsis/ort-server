@@ -17,21 +17,14 @@
  * License-Filename: LICENSE
  */
 
-import { createContext, useContext } from 'react';
+import { Theme } from '@/components/theme-provider';
 
-import {
-  initialState,
-  ThemeProviderState,
-} from '@/components/theme-provider-state';
+export type ThemeProviderState = {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+};
 
-export const ThemeProviderContext =
-  createContext<ThemeProviderState>(initialState);
-
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext);
-
-  if (context === undefined)
-    throw new Error('useTheme must be used within a ThemeProvider');
-
-  return context;
+export const initialState: ThemeProviderState = {
+  theme: 'light',
+  setTheme: () => null,
 };
