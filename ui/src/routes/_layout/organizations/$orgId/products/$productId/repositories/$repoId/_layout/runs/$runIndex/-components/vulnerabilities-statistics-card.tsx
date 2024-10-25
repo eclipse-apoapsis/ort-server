@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-import { Scale } from 'lucide-react';
+import { ShieldQuestion } from 'lucide-react';
 
-import { useRuleViolationsServiceGetRuleViolationsByRunId } from '@/api/queries';
+import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
 import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
@@ -27,31 +27,31 @@ import { ToastError } from '@/components/toast-error';
 import { getStatusFontColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
 
-type RuleViolationsStatisticsCardProps = {
+type VulnerabilitiesStatisticsCardProps = {
   status: JobStatus | undefined;
   runId: number;
 };
 
-export const RuleViolationsStatisticsCard = ({
+export const VulnerabilitiesStatisticsCard = ({
   status,
   runId,
-}: RuleViolationsStatisticsCardProps) => {
+}: VulnerabilitiesStatisticsCardProps) => {
   const {
-    data: ruleViolations,
-    isPending: ruleViolationsIsPending,
-    isError: ruleViolationsIsError,
-    error: ruleViolationsError,
-  } = useRuleViolationsServiceGetRuleViolationsByRunId({
+    data: vulnerabilities,
+    isPending: vulnerabilitiesIsPending,
+    isError: vulnerabilitiesIsError,
+    error: VulnerabilitiesError,
+  } = useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
     runId: runId,
     limit: 1,
   });
 
-  if (ruleViolationsIsPending) {
+  if (vulnerabilitiesIsPending) {
     return (
       <StatisticsCard
-        title='Rule Violations'
+        title='Vulnerabilities'
         icon={() => (
-          <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />
+          <ShieldQuestion className={`h-4 w-4 ${getStatusFontColor(status)}`} />
         )}
         value={<LoadingIndicator />}
         className='h-full hover:bg-muted/50'
@@ -59,9 +59,9 @@ export const RuleViolationsStatisticsCard = ({
     );
   }
 
-  if (ruleViolationsIsError) {
+  if (vulnerabilitiesIsError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={ruleViolationsError} />,
+      description: <ToastError error={VulnerabilitiesError} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -71,13 +71,15 @@ export const RuleViolationsStatisticsCard = ({
     return;
   }
 
-  const ruleViolationsTotal = ruleViolations.pagination.totalCount;
+  const vulnerabilitiesTotal = vulnerabilities.pagination.totalCount;
 
   return (
     <StatisticsCard
-      title='Rule Violations'
-      icon={() => <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
-      value={status ? ruleViolationsTotal : 'Skipped'}
+      title='Vulnerabilities'
+      icon={() => (
+        <ShieldQuestion className={`h-4 w-4 ${getStatusFontColor(status)}`} />
+      )}
+      value={status ? vulnerabilitiesTotal : 'Skipped'}
       description={status ? '' : 'Enable the job for results'}
       className='h-full hover:bg-muted/50'
     />
