@@ -36,17 +36,13 @@ export const VulnerabilitiesStatisticsCard = ({
   status,
   runId,
 }: VulnerabilitiesStatisticsCardProps) => {
-  const {
-    data: vulnerabilities,
-    isPending: vulnerabilitiesIsPending,
-    isError: vulnerabilitiesIsError,
-    error: VulnerabilitiesError,
-  } = useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
-    runId: runId,
-    limit: 1,
-  });
+  const { data, isPending, isError, error } =
+    useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
+      runId: runId,
+      limit: 1,
+    });
 
-  if (vulnerabilitiesIsPending) {
+  if (isPending) {
     return (
       <StatisticsCard
         title='Vulnerabilities'
@@ -59,9 +55,9 @@ export const VulnerabilitiesStatisticsCard = ({
     );
   }
 
-  if (vulnerabilitiesIsError) {
+  if (isError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={VulnerabilitiesError} />,
+      description: <ToastError error={error} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -71,7 +67,7 @@ export const VulnerabilitiesStatisticsCard = ({
     return;
   }
 
-  const vulnerabilitiesTotal = vulnerabilities.pagination.totalCount;
+  const vulnerabilitiesTotal = data.pagination.totalCount;
 
   return (
     <StatisticsCard

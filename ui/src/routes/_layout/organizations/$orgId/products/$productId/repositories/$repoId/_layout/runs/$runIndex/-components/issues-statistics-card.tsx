@@ -36,17 +36,12 @@ export const IssuesStatisticsCard = ({
   status,
   runId,
 }: IssuesStatisticsCardProps) => {
-  const {
-    data: issues,
-    isPending: issuesIsPending,
-    isError: issuesIsError,
-    error: issuesError,
-  } = useIssuesServiceGetIssuesByRunId({
+  const { data, isPending, isError, error } = useIssuesServiceGetIssuesByRunId({
     runId: runId,
     limit: 1,
   });
 
-  if (issuesIsPending) {
+  if (isPending) {
     return (
       <StatisticsCard
         title='Issues'
@@ -57,9 +52,9 @@ export const IssuesStatisticsCard = ({
     );
   }
 
-  if (issuesIsError) {
+  if (isError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={issuesError} />,
+      description: <ToastError error={error} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -69,7 +64,7 @@ export const IssuesStatisticsCard = ({
     return;
   }
 
-  const issuesTotal = issues.pagination.totalCount;
+  const issuesTotal = data.pagination.totalCount;
 
   return (
     <StatisticsCard

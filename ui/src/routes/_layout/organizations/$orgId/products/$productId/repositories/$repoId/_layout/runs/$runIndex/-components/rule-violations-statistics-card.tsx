@@ -36,17 +36,13 @@ export const RuleViolationsStatisticsCard = ({
   status,
   runId,
 }: RuleViolationsStatisticsCardProps) => {
-  const {
-    data: ruleViolations,
-    isPending: ruleViolationsIsPending,
-    isError: ruleViolationsIsError,
-    error: ruleViolationsError,
-  } = useRuleViolationsServiceGetRuleViolationsByRunId({
-    runId: runId,
-    limit: 1,
-  });
+  const { data, isPending, isError, error } =
+    useRuleViolationsServiceGetRuleViolationsByRunId({
+      runId: runId,
+      limit: 1,
+    });
 
-  if (ruleViolationsIsPending) {
+  if (isPending) {
     return (
       <StatisticsCard
         title='Rule Violations'
@@ -59,9 +55,9 @@ export const RuleViolationsStatisticsCard = ({
     );
   }
 
-  if (ruleViolationsIsError) {
+  if (isError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={ruleViolationsError} />,
+      description: <ToastError error={error} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -71,7 +67,7 @@ export const RuleViolationsStatisticsCard = ({
     return;
   }
 
-  const ruleViolationsTotal = ruleViolations.pagination.totalCount;
+  const ruleViolationsTotal = data.pagination.totalCount;
 
   return (
     <StatisticsCard
