@@ -51,6 +51,8 @@ This project requires that commit messages for the [conventional commits](https:
 This means that each commit message should follow the format `<type>(<scope>): <description>`.
 The description should start with a capital letter and not end with a period.
 
+> The length of the description line shall not exceed 75 characters.
+
 #### Types
 
 The valid types are defined in the [Commitlint configuration file](.commitlintrc.yml).
@@ -104,6 +106,8 @@ BREAKING CHANGE: The API now uses a different format.
 The body of the commit message should contain a more detailed description of the change.
 Especially, it should explain **why** the change was made and how it affects the application.
 
+> The length of each line in the body shall not exceed 75 characters.
+
 #### Linking GitHub issues
 
 If a commit is related to a GitHub issue, it should be linked in the commit message footer, for example:
@@ -122,6 +126,14 @@ In addition to the commit message, the link can optionally be added to the PR de
 For the full list of supported keywords see the [GitHub documentation](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword).
 
 If the commit is related to an issue without fixing it, it should still be referenced, for example, with `Relates to #123.`
+
+#### Sign-off
+
+Commit body shall end with a sign-off line specifying the real name and email 
+of the committer. Example:
+```
+Signed-off-by: Firstname Lastname <first.last@example.com>
+```
 
 #### Validation
 
