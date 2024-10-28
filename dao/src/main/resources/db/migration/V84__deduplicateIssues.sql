@@ -136,7 +136,7 @@ INNER JOIN issues_with_hashes ih ON ssi.issue_hash = ih.hash;
 
 INSERT INTO identifiers_issues
 ("identifier_id", "issue_id")
-SELECT
+SELECT DISTINCT
   iih.identifier_id,
   ih.id
 FROM
