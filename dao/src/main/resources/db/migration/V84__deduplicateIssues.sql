@@ -84,11 +84,25 @@ SELECT
 FROM scan_summaries_issues ssi
 INNER JOIN issues_with_hashes ih on ssi.issue_id = ih.id;
 
+CREATE TABLE identifiers_issues_hashes
+(
+    identifier_id   bigint REFERENCES identifiers   NOT NULL,
+    issue_hash      text                            NOT NULL
+);
+
+INSERT INTO identifiers_issues_hashes
+SELECT
+  ii.identifier_id, ih.hash
+FROM identifiers_issues ii
+INNER JOIN issues_with_hashes ih on ii.issue_id = ih.id;
+
 -- Remove duplicates
 
 DELETE FROM ort_runs_issues;
 
 DELETE FROM scan_summaries_issues;
+
+DELETE FROM identifiers_issues;
 
 DELETE FROM issues i
 WHERE NOT EXISTS (
@@ -119,6 +133,15 @@ SELECT
 FROM
   scan_summaries_issues_hashes ssi
 INNER JOIN issues_with_hashes ih ON ssi.issue_hash = ih.hash;
+
+INSERT INTO identifiers_issues
+("identifier_id", "issue_id")
+SELECT
+  iih.identifier_id,
+  ih.id
+FROM
+  identifiers_issues_hashes iih
+INNER JOIN issues_with_hashes ih ON iih.issue_hash = ih.hash;
 
 -- Cleanup
 
