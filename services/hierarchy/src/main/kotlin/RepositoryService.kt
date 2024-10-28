@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
@@ -95,13 +96,14 @@ class RepositoryService(
     }
 
     /**
-     * Get the runs executed on the given [repository][repositoryId] according to the given [parameters].
+     * Get the summaries of the runs executed on the given [repository][repositoryId] according
+     * to the given [parameters].
      */
-    suspend fun getOrtRuns(
+    suspend fun getOrtRunSummaries(
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): ListQueryResult<OrtRun> = db.dbQuery {
-        ortRunRepository.listForRepository(repositoryId, parameters)
+    ): ListQueryResult<OrtRunSummary> = db.dbQuery {
+        ortRunRepository.listSummariesForRepository(repositoryId, parameters)
     }
 
     /**

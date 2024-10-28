@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.JobSummary
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 
@@ -65,5 +66,13 @@ class ScannerJobDao(id: EntityID<Long>) : LongEntity(id) {
         finishedAt = finishedAt,
         configuration = configuration,
         status = status,
+    )
+
+    fun mapToJobSummaryModel() = JobSummary(
+        id = id.value,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        status = status
     )
 }

@@ -27,8 +27,10 @@ import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
@@ -114,4 +116,36 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         traceId = traceId,
         environmentConfigPath = environmentConfigPath
     )
+
+    /**
+     * Map this [OrtRunDao] to an [OrtRunSummary] which is a reduced representation of an [OrtRun].
+     * This prevents unnecessary loading of related data from the database.
+     */
+    fun mapToSummaryModel(): OrtRunSummary {
+        val jobSummaries = JobSummaries(
+            advisor = advisorJob?.let { it.mapToJobSummaryModel() },
+            analyzer = analyzerJob?.let { it.mapToJobSummaryModel() },
+            evaluator = evaluatorJob?.let { it.mapToJobSummaryModel() },
+            scanner = scannerJob?.let { it.mapToJobSummaryModel() },
+            reporter = reporterJob?.let { it.mapToJobSummaryModel() }
+        )
+
+        return OrtRunSummary(
+            id = id.value,
+            index = index,
+            organizationId = repository.product.organization.id.value,
+            productId = repository.product.id.value,
+            repositoryId = repository.id.value,
+            revision = revision,
+            path = path,
+            createdAt = createdAt,
+            finishedAt = finishedAt,
+            jobs = jobSummaries,
+            status = status,
+            labels = labels.associate { it.mapToModel() },
+            jobConfigContext = jobConfigContext,
+            resolvedJobConfigContext = resolvedJobConfigContext,
+            environmentConfigPath = environmentConfigPath
+        )
+    }
 }

@@ -24,6 +24,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.reporter.ReporterRunsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.JobSummary
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 
@@ -67,5 +68,13 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
         configuration = configuration,
         status = status,
         filenames = reporterRun?.reports?.map { it.filename }?.sorted().orEmpty()
+    )
+
+    fun mapToJobSummaryModel() = JobSummary(
+        id = id.value,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        status = status
     )
 }

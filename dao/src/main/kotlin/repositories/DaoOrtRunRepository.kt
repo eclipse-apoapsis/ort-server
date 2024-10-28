@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -117,6 +118,17 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): ListQueryResult<OrtRun> =
         db.blockingQueryCatching {
             OrtRunDao.listQuery(parameters, OrtRunDao::mapToModel) { OrtRunsTable.repositoryId eq repositoryId }
+        }.getOrElse {
+            logger.error("Cannot list ORT runs for repository $repositoryId.", it)
+            ListQueryResult(emptyList(), parameters, 0L)
+        }
+
+    override fun listSummariesForRepository(
+        repositoryId: Long,
+        parameters: ListQueryParameters
+    ): ListQueryResult<OrtRunSummary> =
+        db.blockingQueryCatching {
+            OrtRunDao.listQuery(parameters, OrtRunDao::mapToSummaryModel) { OrtRunsTable.repositoryId eq repositoryId }
         }.getOrElse {
             logger.error("Cannot list ORT runs for repository $repositoryId.", it)
             ListQueryResult(emptyList(), parameters, 0L)
