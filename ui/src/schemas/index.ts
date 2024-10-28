@@ -19,7 +19,7 @@
 
 import z from 'zod';
 
-import { OrtRunStatus } from '@/api/requests';
+import { OrtRunStatus, Severity } from '@/api/requests';
 
 // Pagination schema that is used for search parameter validation
 export const paginationSchema = z.object({
@@ -42,4 +42,16 @@ export const ortRunStatus: z.ZodEnum<[OrtRunStatus, ...OrtRunStatus[]]> =
 // Status schema that is used for search parameter validation
 export const statusSchema = z.object({
   status: z.array(ortRunStatus).optional(),
+});
+
+// Enum schema for the possible values of the issue severities
+export const issueSeverity: z.ZodEnum<[Severity, ...Severity[]]> = z.enum([
+  'HINT',
+  'WARNING',
+  'ERROR',
+]);
+
+// Issue severity schema that is used for search parameter validation
+export const issueSeveritySchema = z.object({
+  severity: z.array(issueSeverity).optional(),
 });
