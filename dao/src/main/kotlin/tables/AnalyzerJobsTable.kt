@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.JobSummary
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -66,6 +67,14 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
         startedAt = startedAt,
         finishedAt = finishedAt,
         configuration = configuration,
+        status = status
+    )
+
+    fun mapToJobSummaryModel() = JobSummary(
+        id = id.value,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
         status = status
     )
 }

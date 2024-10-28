@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -71,6 +72,15 @@ interface OrtRunRepository {
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<OrtRun>
+
+    /**
+     * List all ORT runs for a [repository][repositoryId] according to the given [parameters],
+     * but only return a summary of each run.
+     */
+    fun listSummariesForRepository(
+        repositoryId: Long,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+    ): ListQueryResult<OrtRunSummary>
 
     /**
      * Update an ORT run by [id] with the [present][OptionalValue.Present] values. If [issues] or [labels] are

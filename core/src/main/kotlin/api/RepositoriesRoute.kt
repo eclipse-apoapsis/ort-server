@@ -33,11 +33,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
-import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
@@ -115,14 +113,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             val repositoryId = call.requireIdParameter("repositoryId")
             val pagingOptions = call.pagingOptions(SortProperty("index", SortDirection.ASCENDING))
 
-            val jobsForOrtRuns = repositoryService.getOrtRuns(repositoryId, pagingOptions.mapToModel()).mapData {
-                    val jobSummaries = repositoryService.getJobs(repositoryId, it.index)?.mapToApiSummary()
-                        ?: JobSummaries()
-                    it.mapToApiSummary(jobSummaries)
-            }
-
-            val pagedResponse = jobsForOrtRuns.mapToApi { it }
-
+            val ortRunSummaries = repositoryService.getOrtRunSummaries(repositoryId, pagingOptions.mapToModel())
+            val pagedResponse = ortRunSummaries.mapToApi { it }
             call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
