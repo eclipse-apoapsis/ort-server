@@ -79,7 +79,7 @@ const columns: ColumnDef<VulnerabilityWithIdentifier>[] = [
     accessorKey: 'externalId',
     header: 'External ID',
     cell: ({ row }) => (
-      <Badge className='whitespace-nowrap bg-gray-400'>
+      <Badge className='whitespace-nowrap bg-blue-300'>
         {row.original.vulnerability.externalId}
       </Badge>
     ),
