@@ -25,6 +25,7 @@ rootProject.name = "ort-server"
 
 include(":api:v1:mapping")
 include(":api:v1:model")
+include(":cli")
 include(":clients:keycloak")
 include(":config:git")
 include(":config:github")
