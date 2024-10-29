@@ -60,7 +60,7 @@ class ReportStorage(
      * Store the given [files] in the associated [Storage] for the given [ORT run ID][runId]. The map with files has
      * the names to be used as keys and the corresponding report files as values.
      */
-    suspend fun storeReportFiles(runId: Long, files: Map<String, File>) {
+    fun storeReportFiles(runId: Long, files: Map<String, File>) {
         files.forEach { (name, file) ->
             val key = generateKey(runId, name)
             logger.info("Storing '{}' under key '{}'.", file.name, key.key)

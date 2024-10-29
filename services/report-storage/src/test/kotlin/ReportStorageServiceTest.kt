@@ -26,7 +26,6 @@ import io.kotest.matchers.string.shouldContain
 
 import io.ktor.http.ContentType
 
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
@@ -51,8 +50,8 @@ class ReportStorageServiceTest : WordSpec({
             val key = Key("$runId|$fileName")
 
             val storage = mockk<Storage>()
-            coEvery { storage.containsKey(key) } returns true
-            coEvery { storage.read(key) } returns StorageEntry.create(
+            every { storage.containsKey(key) } returns true
+            every { storage.read(key) } returns StorageEntry.create(
                 ByteArrayInputStream(reportData),
                 contentType,
                 reportData.size.toLong()
@@ -73,7 +72,7 @@ class ReportStorageServiceTest : WordSpec({
             val fileName = "nonExistingReport.dat"
 
             val storage = mockk<Storage>()
-            coEvery { storage.containsKey(any()) } returns false
+            every { storage.containsKey(any()) } returns false
 
             val service = ReportStorageService(storage, mockk())
             val exception = shouldThrow<ReportNotFoundException> {
@@ -91,8 +90,8 @@ class ReportStorageServiceTest : WordSpec({
             val key = Key("$runId|$fileName")
 
             val storage = mockk<Storage>()
-            coEvery { storage.containsKey(key) } returns true
-            coEvery { storage.read(key) } returns StorageEntry.create(
+            every { storage.containsKey(key) } returns true
+            every { storage.read(key) } returns StorageEntry.create(
                 ByteArrayInputStream(reportData),
                 null,
                 reportData.size.toLong()
@@ -115,8 +114,8 @@ class ReportStorageServiceTest : WordSpec({
             val token = "test-report-token"
 
             val storage = mockk<Storage> {
-                coEvery { containsKey(key) } returns true
-                coEvery { read(key) } returns StorageEntry.create(
+                every { containsKey(key) } returns true
+                every { read(key) } returns StorageEntry.create(
                     ByteArrayInputStream(reportData),
                     contentType,
                     reportData.size.toLong()

@@ -32,8 +32,6 @@ dependencies {
     api(projects.config.configSpi)
 
     implementation(projects.utils.config)
-    implementation(libs.kotlinxCoroutines)
-    implementation(libs.kotlinxCoroutinesSlf4j)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)

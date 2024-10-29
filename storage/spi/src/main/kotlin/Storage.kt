@@ -23,9 +23,6 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.ServiceLoader
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
@@ -87,16 +84,17 @@ class Storage(
     /**
      * Return the [StorageEntry] associated with the given [key]. Throw a [StorageEntry] if this operation fails.
      */
-    suspend fun read(key: Key): StorageEntry = wrapException {
-        read(key)
-    }
+    fun read(key: Key): StorageEntry =
+        wrapException {
+            read(key)
+        }
 
     /**
      * Write the given [data] with the given [length] and optional [contentType] into this storage and associate it
      * with the given [key].  Throw a [StorageException] if this operation fails. Note that the caller is responsible
      * for closing the provided [InputStream].
      */
-    suspend fun write(key: Key, data: InputStream, length: Long, contentType: String? = null) {
+    fun write(key: Key, data: InputStream, length: Long, contentType: String? = null) {
         wrapException {
             write(key, data, length, contentType)
         }
@@ -106,7 +104,7 @@ class Storage(
      * Write the given [array][data] into this storage and associate it with the given [key]. Set the optional
      * [contentType]. Throw a [StorageException] if this operation fails.
      */
-    suspend fun write(key: Key, data: ByteArray, contentType: String? = null) {
+    fun write(key: Key, data: ByteArray, contentType: String? = null) {
         ByteArrayInputStream(data).use { stream ->
             write(key, stream, data.size.toLong(), contentType)
         }
@@ -116,7 +114,7 @@ class Storage(
      * Write the given [string][data] into this storage and associate it with the given [key]. Set the optional
      * [contentType]. Throw a [StorageException] if this operation fails.
      */
-    suspend fun write(key: Key, data: String, contentType: String? = null) {
+    fun write(key: Key, data: String, contentType: String? = null) {
         write(key, data.toByteArray(), contentType)
     }
 
@@ -124,25 +122,21 @@ class Storage(
      * Return a flag whether the given [key] is contained in this storage. Throw a [StorageException] if this
      * operation fails.
      */
-    suspend fun containsKey(key: Key): Boolean = wrapException { contains(key) }
+    fun containsKey(key: Key): Boolean = wrapException { contains(key) }
 
     /**
      * Delete the given [key] from this storage and return a flag whether it existed before. Throw a
      * [StorageException] if this operation fails.
      */
-    suspend fun delete(key: Key): Boolean = wrapException { provider.delete(key) }
+    fun delete(key: Key): Boolean = wrapException { provider.delete(key) }
 
     /**
      * Execute [block] on the wrapped [StorageProvider] and map occurring exceptions to [StorageException]s.
      */
-    private suspend fun <T> wrapException(block: suspend StorageProvider.() -> T): T =
+    private fun <T> wrapException(block: StorageProvider.() -> T): T =
         @Suppress("TooGenericExceptionCaught")
         try {
-            // To prevent the StorageException being suppressed by the coroutine exception handler, a new context is
-            // created here.
-            withContext(Dispatchers.IO) {
-                provider.block()
-            }
+            provider.block()
         } catch (e: Exception) {
             throw StorageException("Exception from StorageProvider.", e)
         }

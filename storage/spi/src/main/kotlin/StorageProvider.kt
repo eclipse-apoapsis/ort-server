@@ -36,7 +36,7 @@ interface StorageProvider {
      * Return a [StorageEntry] that represents the data associated with the given [key]. Throw an exception if the
      * [key] does not exist.
      */
-    suspend fun read(key: Key): StorageEntry
+    fun read(key: Key): StorageEntry
 
     /**
      * Write the given [data] with the given [length] and optional [contentType] into this storage and associate it
@@ -47,16 +47,16 @@ interface StorageProvider {
      * expected by a *Content-Type* header. This function does not close the [InputStream][data]; this needs to be
      * done by the caller. Throw an exception if the write operation fails.
      */
-    suspend fun write(key: Key, data: InputStream, length: Long, contentType: String? = null)
+    fun write(key: Key, data: InputStream, length: Long, contentType: String? = null)
 
     /**
      * Return a flag whether an entry with the given [key] exists in this storage.
      */
-    suspend fun contains(key: Key): Boolean
+    fun contains(key: Key): Boolean
 
     /**
      * Delete the entry with the given [key] from this storage. Return *true* if such an entry existed and was deleted;
      * return *false* if the entry did not exist. Throw an exception if the delete operation fails.
      */
-    suspend fun delete(key: Key): Boolean
+    fun delete(key: Key): Boolean
 }

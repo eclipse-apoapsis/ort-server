@@ -89,7 +89,7 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
         val errorKey = if (config.hasPath(ERROR_KEY_PROPERTY)) config.getString(ERROR_KEY_PROPERTY) else "<undefined>"
 
         return object : StorageProvider {
-            override suspend fun read(key: Key): StorageEntry =
+            override fun read(key: Key): StorageEntry =
                 getEntry(key)?.let { entry ->
                     StorageEntry.create(
                         data = ByteArrayInputStream(entry.data),
@@ -98,7 +98,7 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
                     )
                 } ?: throw IOException("Could not resolve key '${key.key}'.")
 
-            override suspend fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
+            override fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
                 getEntry(key)
 
                 data.use {
@@ -106,9 +106,9 @@ class StorageProviderFactoryForTesting : StorageProviderFactory {
                 }
             }
 
-            override suspend fun contains(key: Key): Boolean = getEntry(key) != null
+            override fun contains(key: Key): Boolean = getEntry(key) != null
 
-            override suspend fun delete(key: Key): Boolean {
+            override fun delete(key: Key): Boolean {
                 val entry = getEntry(key)
 
                 storage -= key
