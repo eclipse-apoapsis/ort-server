@@ -23,8 +23,7 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.ServiceLoader
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.supervisorScope
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -138,9 +137,9 @@ class Storage(
     private suspend fun <T> wrapException(block: suspend StorageProvider.() -> T): T =
         @Suppress("TooGenericExceptionCaught")
         try {
-            // To prevent the StorageException being suppressed by the coroutine exception handler, a new context is
+            // To prevent the StorageException being suppressed by the coroutine exception handler, a new scope is
             // created here.
-            withContext(Dispatchers.IO) {
+            supervisorScope {
                 provider.block()
             }
         } catch (e: Exception) {
