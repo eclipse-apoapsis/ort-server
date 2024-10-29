@@ -66,7 +66,7 @@ const columns = [
     header: 'Severity',
     cell: ({ row }) => (
       <Badge
-        className={`border ${getIssueSeverityBackgroundColor(row.original.severity)} hover:bg-${getIssueSeverityBackgroundColor(row.original.severity)}`}
+        className={`border ${getIssueSeverityBackgroundColor(row.original.severity)}`}
       >
         {row.original.severity}
       </Badge>

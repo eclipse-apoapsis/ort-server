@@ -141,7 +141,7 @@ const columns = [
     header: 'Run Status',
     cell: ({ row }) => (
       <Badge
-        className={`border ${getStatusBackgroundColor(row.original.status)} hover:bg-${getStatusBackgroundColor(row.original.status)}`}
+        className={`border ${getStatusBackgroundColor(row.original.status)}`}
       >
         {row.original.status}
       </Badge>

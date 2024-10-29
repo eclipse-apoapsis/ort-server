@@ -65,9 +65,7 @@ export const LastRunStatus = ({ repoId }: { repoId: number }) => {
   const run = runs.data[0];
 
   return (
-    <Badge
-      className={`border ${getStatusBackgroundColor(run.status)} hover:bg-${getStatusBackgroundColor(run.status)}`}
-    >
+    <Badge className={`border ${getStatusBackgroundColor(run.status)}`}>
       {run.status}
     </Badge>
   );
