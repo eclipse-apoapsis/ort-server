@@ -316,7 +316,7 @@ const InfrastructureServices = () => {
           setPageSizeOptions={(size) => {
             return {
               to: Route.to,
-              search: { ...search, pageSize: size },
+              search: { ...search, page: 1, pageSize: size },
             };
           }}
         />

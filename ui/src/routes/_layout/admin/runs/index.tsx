@@ -271,6 +271,7 @@ const RunsComponent = () => {
                 navigate({
                   search: {
                     ...search,
+                    page: 1,
                     status: statuses.length === 0 ? undefined : statuses,
                   },
                 });
@@ -279,7 +280,7 @@ const RunsComponent = () => {
           }
           resetFilters={() => {
             navigate({
-              search: { ...search, status: undefined },
+              search: { ...search, page: 1, status: undefined },
             });
           }}
           resetBtnVisible={status !== undefined}
@@ -296,7 +297,7 @@ const RunsComponent = () => {
           setPageSizeOptions={(size) => {
             return {
               to: Route.to,
-              search: { ...search, pageSize: size },
+              search: { ...search, page: 1, pageSize: size },
             };
           }}
         />
