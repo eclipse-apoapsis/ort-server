@@ -1,0 +1,121 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {
+          "app": "analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz",
+          "container": "analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz",
+          "filename": "/var/log/pods/some_namespace_analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz/0.log",
+          "job": "some_namespace/analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz",
+          "namespace": "some_namespace",
+          "node_name": "someNode-12345-worker-1-0-5z246",
+          "pod": "analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz-jtm9s",
+          "run_id": "276",
+          "stream": "stdout",
+          "trace_id": "bf2f8d68-2c5f-4d0f-a3fe-xyz",
+          "detected_level": "INFO"
+        },
+        "values": [
+          <<log_values_info>>
+        ]
+      },
+      {
+        "stream": {
+          "app": "analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz",
+          "container": "analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz",
+          "filename": "/var/log/pods/some_namespace_analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz/0.log",
+          "job": "some_namespace/analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz",
+          "namespace": "some_namespace",
+          "node_name": "someNode-12345-worker-1-0-5z246",
+          "pod": "analyzer-bf2f8d68-2c5f-4d0f-a3fe-xyz-jtm9s",
+          "run_id": "276",
+          "stream": "stdout",
+          "trace_id": "bf2f8d68-2c5f-4d0f-a3fe-xyz",
+          "detected_level": "DEBUG"
+        },
+        "values": [
+          <<log_values_debug>>
+        ]
+      }
+    ],
+    "stats": {
+      "summary": {
+        "bytesProcessedPerSecond": 20815,
+        "linesProcessedPerSecond": 62,
+        "totalBytesProcessed": 67298,
+        "totalLinesProcessed": 202,
+        "execTime": 3.233054,
+        "queueTime": 0.043395,
+        "subqueries": 0,
+        "totalEntriesReturned": 200,
+        "splits": 0,
+        "shards": 16
+      },
+      "querier": {
+        "store": {
+          "totalChunksRef": 1,
+          "totalChunksDownloaded": 1,
+          "chunksDownloadTime": 3219614988,
+          "chunk": {
+            "headChunkBytes": 0,
+            "headChunkLines": 0,
+            "decompressedBytes": 67298,
+            "decompressedLines": 202,
+            "compressedBytes": 21721,
+            "totalDuplicates": 0
+          }
+        }
+      },
+      "ingester": {
+        "totalReached": 48,
+        "totalChunksMatched": 0,
+        "totalBatches": 0,
+        "totalLinesSent": 0,
+        "store": {
+          "totalChunksRef": 0,
+          "totalChunksDownloaded": 0,
+          "chunksDownloadTime": 0,
+          "chunk": {
+            "headChunkBytes": 0,
+            "headChunkLines": 0,
+            "decompressedBytes": 0,
+            "decompressedLines": 0,
+            "compressedBytes": 0,
+            "totalDuplicates": 0
+          }
+        }
+      },
+      "cache": {
+        "chunk": {
+          "entriesFound": 0,
+          "entriesRequested": 1,
+          "entriesStored": 1,
+          "bytesReceived": 0,
+          "bytesSent": 29171,
+          "requests": 1,
+          "downloadTime": 7306
+        },
+        "index": {
+          "entriesFound": 0,
+          "entriesRequested": 0,
+          "entriesStored": 0,
+          "bytesReceived": 0,
+          "bytesSent": 0,
+          "requests": 0,
+          "downloadTime": 0
+        },
+        "result": {
+          "entriesFound": 0,
+          "entriesRequested": 0,
+          "entriesStored": 0,
+          "bytesReceived": 0,
+          "bytesSent": 0,
+          "requests": 0,
+          "downloadTime": 0
+        }
+      }
+    }
+  }
+}
