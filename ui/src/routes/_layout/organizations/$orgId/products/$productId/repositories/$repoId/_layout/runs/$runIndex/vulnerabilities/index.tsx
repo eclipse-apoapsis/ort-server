@@ -252,18 +252,15 @@ const VulnerabilitiesComponent = () => {
       <CardHeader>
         <CardTitle>Vulnerabilities (ORT run global ID: {ortRun.id})</CardTitle>
         <CardDescription>
-          <p>
-            These are the vulnerabilities found currently in the project. Please
-            note that the vulnerability status may change over time, as your
-            project dependencies change. Therefore, your project should be
-            scanned for vulnerabilities regularly.
-          </p>
-          <br />
-          <p>
-            By clicking on "References" you can see more information about the
-            vulnerability. The overall severity rating is calculated based on
-            the highest severity rating found in the references.
-          </p>
+          These are the vulnerabilities found currently in the project. Please
+          note that the vulnerability status may change over time, as your
+          project dependencies change. Therefore, your project should be scanned
+          for vulnerabilities regularly.
+        </CardDescription>
+        <CardDescription>
+          By clicking on "References" you can see more information about the
+          vulnerability. The overall severity rating is calculated based on the
+          highest severity rating found in the references.
         </CardDescription>
       </CardHeader>
       <CardContent>
