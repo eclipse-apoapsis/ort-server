@@ -23,12 +23,13 @@ import { JobStatus, OrtRunStatus, Severity } from '@/api/requests';
 export type Status = JobStatus | OrtRunStatus | undefined;
 
 // There is no vulnerability rating in the OpenApi spec, so define it here.
-export type VulnerabilityRating =
-  | 'CRITICAL'
-  | 'HIGH'
-  | 'MEDIUM'
-  | 'LOW'
-  | 'NONE';
+export const VulnerabilityRatings = {
+  CRITICAL: 4,
+  HIGH: 3,
+  MEDIUM: 2,
+  LOW: 1,
+  NONE: 0,
+} as const;
 
 // TailwindCSS classes matching to statuses
 //
@@ -67,16 +68,6 @@ const STATUS_CLASS: {
   FAILED: 'w-3 h-3 rounded-full',
   FINISHED: 'w-3 h-3 rounded-full',
   FINISHED_WITH_ISSUES: 'w-3 h-3 rounded-full',
-} as const;
-
-const VULNERABILITY_RATING_BG_COLOR: {
-  [K in VulnerabilityRating]: string;
-} = {
-  CRITICAL: 'bg-red-600',
-  HIGH: 'bg-orange-600',
-  MEDIUM: 'bg-amber-500',
-  LOW: 'bg-yellow-400',
-  NONE: 'bg-neutral-300',
 } as const;
 
 const RULE_VIOLATION_SEVERITY_BG_COLOR: {
@@ -128,9 +119,21 @@ export function getStatusClass(status: Status): string {
 
 // Get the color class for coloring the background of vulnerability ratings
 export function getVulnerabilityRatingBackgroundColor(
-  rating: VulnerabilityRating
+  rating: keyof typeof VulnerabilityRatings
 ): string {
-  return VULNERABILITY_RATING_BG_COLOR[rating];
+  switch (rating) {
+    case 'CRITICAL':
+      return 'bg-red-600';
+    case 'HIGH':
+      return 'bg-orange-600';
+    case 'MEDIUM':
+      return 'bg-amber-500';
+    case 'LOW':
+      return 'bg-yellow-400';
+    case 'NONE':
+    default:
+      return 'bg-neutral-300';
+  }
 }
 
 // Get the color class for coloring the background of rule violation severities

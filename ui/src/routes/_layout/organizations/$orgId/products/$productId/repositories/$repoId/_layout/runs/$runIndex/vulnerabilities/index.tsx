@@ -90,7 +90,7 @@ const columns: ColumnDef<VulnerabilityWithIdentifier>[] = [
     cell: ({ row }) => {
       // Calculate the overall vulnerability rating based on the individual ratings
       const ratings = row.original.vulnerability.references.map(
-        (reference) => reference.score
+        (reference) => reference.severity
       );
       const overallRating = calcOverallVulnerability(ratings);
 
