@@ -47,6 +47,10 @@ import org.slf4j.LoggerFactory
 /**
  * An implementation of the [LogFileProvider] interface that interacts with a Grafana Loki server.
  *
+ * This implementation assumes that Loki is configured to return only a single stream of log entries for a given
+ * range query. Otherwise, it cannot be guaranteed that the log entries are order correctly, and no entries are
+ * missed, since fetching is done over multiple chunks.
+ *
  * See https://grafana.com/oss/loki/.
  */
 class LokiLogFileProvider(
@@ -58,6 +62,27 @@ class LokiLogFileProvider(
         private const val TENANT_HEADER = "X-Scope-OrgID"
 
         private val logger = LoggerFactory.getLogger(LokiLogFileProvider::class.java)
+
+        /**
+         * Extract the log statements from the given [response]. If the response contains multiple streams, the
+         * statements need to be ordered manually. This typically indicates a wrong configuration of Loki, since
+         * with multiple streams, a defined order of log entries over multiple chunks cannot be guaranteed.
+         * Therefore, log a warning in this case.
+         */
+        private fun extractOrderedLogStatements(response: LokiResponse): List<LogStatement> {
+            val statements = response.logStatements()
+
+            return if (response.data.result.size > 1) {
+                logger.warn(
+                    "Received multiple streams in Loki response. Please check the configuration in Loki. " +
+                            "The order of log entries may be incorrect over multiple chunks."
+                )
+
+                statements.sortedBy { it.timestamp }
+            } else {
+                statements
+            }
+        }
     }
 
     /** The HTTP client for sending requests to the Loki instance. */
@@ -94,7 +119,7 @@ class LokiLogFileProvider(
                     url("/loki/api/v1/query_range")
                 }
 
-                val statements = httpResponse.body<LokiResponse>().logStatements()
+                val statements = extractOrderedLogStatements(httpResponse.body<LokiResponse>())
                 val deDuplicatedStatements = statements.takeIf { lastChunk.isEmpty() }
                     ?: deDuplicateStatements(statements, lastChunk)
 

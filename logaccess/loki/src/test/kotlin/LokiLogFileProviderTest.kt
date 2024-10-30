@@ -132,6 +132,34 @@ class LokiLogFileProviderTest : StringSpec() {
             logData.checkLogFile(logFile)
         }
 
+        "Multiple streams in the response should be handled" {
+            val debugStartTime = startTime - 2.seconds + 17.milliseconds
+            val logDataInfo = generateLogData(20, logLineGenerator = ::generateUniqueLogLine)
+            val logDataDebug = generateLogData(44, debugStartTime, ::generateUniqueLogLine)
+            val sortedData = logDataDebug.take(20) + buildList {
+                logDataDebug.drop(20).zip(logDataInfo).forEach { (debug, info) ->
+                    add(info)
+                    add(debug)
+                }
+            } + logDataDebug.takeLast(4)
+
+            val template = readResponseTemplate("loki-response-multi-streams.json.template")
+            val infoResponse = logDataInfo.generateResponse(template, "<<log_values_info>>")
+            val response = logDataDebug.generateResponse(infoResponse, "<<log_values_debug>>")
+            server.stubFor(
+                get(urlPathEqualTo("/loki/api/v1/query_range"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(response)
+                    )
+            )
+
+            val logFile = sendTestRequest(LogSource.ANALYZER, EnumSet.of(LogLevel.ERROR))
+
+            sortedData.checkLogFile(logFile)
+        }
+
         "The log level should correctly be evaluated" {
             val logData = generateLogData(8)
             val levelCriterion = """level="INFO" or level="WARN""""
@@ -258,8 +286,11 @@ private const val START_TIME_STR = "1700468897"
 private const val END_TIME_STR = "1700469046"
 private const val NAMESPACE = "ort_server_ns"
 private const val FILE_NAME = "result.log"
-private const val LIMIT = 42
+private const val LIMIT = 100
 private const val RUN_ID = 20231120152344L
+
+private const val LOG_VALUES_PLACEHOLDER = "<<log_values>>"
+private const val DEFAULT_RESPONSE_TEMPLATE = "loki-response.json.template"
 
 /**
  * A template to generate responses of the Loki server. The template contains the overall JSON structure of the
@@ -312,11 +343,11 @@ private fun WireMockServer.stubLogRequest(
 }
 
 /**
- * Read the file with the template to generate Loki responses with log statements.
+ * Read a file with the given [name] containing a template to generate Loki responses with log statements.
  */
-private fun readResponseTemplate(): String =
-    LokiLogFileProviderTest::class.java.getResource("/loki-response.json.template")?.readText()
-        ?: fail("Could not load response template.")
+private fun readResponseTemplate(name: String = DEFAULT_RESPONSE_TEMPLATE): String =
+    LokiLogFileProviderTest::class.java.getResource("/$name")?.readText()
+        ?: fail("Could not load response template '$name'.")
 
 /**
  * Generate a log line for the given [timestamp].
@@ -333,13 +364,18 @@ private fun generateUniqueLogLine(timestamp: Instant): String =
 
 /**
  * Generate log values for a Loki query response based on the given parameters. Generate [count] values starting at
- * [from] with a delta of 100ms between two values. The resulting pairs contain the timestamp as string as first
- * element and the generated log line as second element.
+ * [from] with a delta of 100ms between two values. Use the given [logLineGenerator] function to generate the log
+ * lines at the single points in time. The resulting pairs contain the timestamp as string as first element and the
+ * generated log line as second element.
  */
-private fun generateLogData(count: Int, from: Instant = startTime): LogData =
+private fun generateLogData(
+    count: Int,
+    from: Instant = startTime,
+    logLineGenerator: (Instant) -> String = ::generateLogLine
+): LogData =
     (1..count).map { index ->
         val timestamp = logDataTimestamp(from, index)
-        timestamp.toNanoStr() to generateLogLine(timestamp)
+        timestamp.toNanoStr() to logLineGenerator(timestamp)
     }
 
 /**
@@ -363,9 +399,12 @@ private fun Instant.toNanoStr(): String =
     String.format(Locale.ROOT, "%d%09d", epochSeconds, nanosecondsOfSecond)
 
 /**
- * Generate a response for the Loki server that contains this [LogData].
+ * Generate a response for the Loki server that contains this [LogData] using the given [template] and [placeholder].
  */
-private fun LogData.generateResponse(): String {
+private fun LogData.generateResponse(
+    template: String = responseTemplate,
+    placeholder: String = LOG_VALUES_PLACEHOLDER
+): String {
     val logDataJson = joinToString(",") { data ->
         """
             |[
@@ -375,7 +414,7 @@ private fun LogData.generateResponse(): String {
             """.trimMargin()
     }
 
-    return responseTemplate.replace("<<log_values>>", logDataJson)
+    return template.replace(placeholder, logDataJson)
 }
 
 /**
