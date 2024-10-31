@@ -37,6 +37,7 @@ import {
 import { RuleViolation } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -145,9 +146,7 @@ const RuleViolationDetailsComponent = ({ details }: Props) => {
         <div className='col-span-6'>{details.licenseSource}</div>
         <div className='col-span-2 font-semibold'>How to fix:</div>
       </div>
-      <div className='flex whitespace-pre-line break-all text-sm'>
-        {details.howToFix}
-      </div>
+      <MarkdownRenderer markdown={details.howToFix} />
       <DialogFooter>
         <DialogClose asChild>
           <Button type='button' variant='secondary'>

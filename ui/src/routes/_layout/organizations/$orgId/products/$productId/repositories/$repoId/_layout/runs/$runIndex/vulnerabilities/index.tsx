@@ -33,6 +33,7 @@ import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/su
 import { VulnerabilityWithIdentifier } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -150,11 +151,13 @@ const renderSubComponent = ({
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='font-semibold'>Description</div>
-      <div className='whitespace-pre-line italic text-muted-foreground'>
-        {vulnerability.description || 'No description.'}
+      <div className='text-lg font-semibold'>Description</div>
+      <MarkdownRenderer
+        markdown={vulnerability.description || 'No description.'}
+      />
+      <div className='mt-2 text-lg font-semibold'>
+        Links to vulnerability references
       </div>
-      <div className='font-semibold'>References</div>
       <Table>
         <TableHeader>
           <TableRow>
