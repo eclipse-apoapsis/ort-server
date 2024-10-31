@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.logaccess.loki
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BasicAuthCredentials
 import io.ktor.client.plugins.auth.providers.basic
@@ -192,6 +193,12 @@ class LokiLogFileProvider(
                         }
                         sendWithoutRequest { true }
                     }
+                }
+            }
+
+            config.timeoutSec?.also { timeout ->
+                install(HttpTimeout) {
+                    requestTimeoutMillis = timeout * 1000L
                 }
             }
 

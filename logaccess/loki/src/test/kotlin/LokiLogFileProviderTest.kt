@@ -45,6 +45,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
 
 import java.io.File
+import java.io.IOException
 import java.util.EnumSet
 import java.util.Locale
 import java.util.UUID
@@ -218,6 +219,26 @@ class LokiLogFileProviderTest : StringSpec() {
                 getRequestedFor(urlPathEqualTo("/loki/api/v1/query_range"))
                     .withHeader("X-Scope-OrgID", equalTo(tenant))
             )
+        }
+
+        "The timeout setting is evaluated" {
+            val response = generateLogData(16).generateResponse()
+            server.stubFor(
+                get(urlPathEqualTo("/loki/api/v1/query_range"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(response)
+                            .withFixedDelay(2000)
+                    )
+            )
+
+            val config = server.lokiConfig().copy(timeoutSec = 1)
+            val provider = LokiLogFileProvider(config)
+
+            shouldThrow<IOException> {
+                provider.testRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
+            }
         }
 
         "The integration with LogFileService should work" {
