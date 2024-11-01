@@ -99,7 +99,7 @@ export const PackagesStatisticsCard = ({
       description={
         ecoSystems.length
           ? ecoSystems.length > 1
-            ? `from ${ecoSystems.length} ecosystems (${ecoSystems.join(`,`)})`
+            ? `from ${ecoSystems.length} ecosystems (${ecoSystems.join(', ')})`
             : `from 1 ecosystem (${ecoSystems})`
           : status
             ? ''
