@@ -19,7 +19,7 @@
 
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
-  ColumnDef,
+  createColumnHelper,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
@@ -57,47 +57,67 @@ import { paginationSchema } from '@/schemas';
 import { LastJobStatus } from './-components/last-job-status';
 import { LastRunDate } from './-components/last-run-date';
 import { LastRunStatus } from './-components/last-run-status';
+import { TotalRuns } from './-components/total-runs';
 
 const defaultPageSize = 10;
 
-const columns: ColumnDef<Repository>[] = [
-  {
-    accessorKey: 'repository',
-    header: () => <div>Repositories</div>,
-    cell: ({ row }) => (
-      <>
-        <Link
-          className='block font-semibold text-blue-400 hover:underline'
-          to={'/organizations/$orgId/products/$productId/repositories/$repoId'}
-          params={{
-            orgId: row.original.organizationId.toString(),
-            productId: row.original.productId.toString(),
-            repoId: row.original.id.toString(),
-          }}
-        >
-          {row.original.url}
-        </Link>
-        <div className='text-sm text-muted-foreground md:inline'>
-          {row.original.type}
-        </div>
-      </>
-    ),
-  },
-  {
-    accessorKey: 'runStatus',
-    header: () => <div>Last Run Status</div>,
+const columnHelper = createColumnHelper<Repository>();
+
+// In anticipation of these column definitions to be changed later, when the corresponding
+// endpoint is implemented, columnHelper.accessor() is only used when the data being
+// shown contains data from the column helper type.
+
+const columns = [
+  columnHelper.accessor(
+    ({ url, type }) => {
+      return url + type;
+    },
+    {
+      id: 'repository',
+      header: 'Repositories',
+      cell: ({ row }) => (
+        <>
+          <Link
+            className='block font-semibold text-blue-400 hover:underline'
+            to={
+              '/organizations/$orgId/products/$productId/repositories/$repoId'
+            }
+            params={{
+              orgId: row.original.organizationId.toString(),
+              productId: row.original.productId.toString(),
+              repoId: row.original.id.toString(),
+            }}
+          >
+            {row.original.url}
+          </Link>
+          <div className='text-sm text-muted-foreground md:inline'>
+            {row.original.type}
+          </div>
+        </>
+      ),
+    }
+  ),
+  columnHelper.display({
+    id: 'runs',
+    header: 'Runs',
+    size: 60,
+    cell: ({ row }) => <TotalRuns repoId={row.original.id} />,
+  }),
+  columnHelper.display({
+    id: 'runStatus',
+    header: 'Last Run Status',
     cell: ({ row }) => <LastRunStatus repoId={row.original.id} />,
-  },
-  {
-    accessorKey: 'lastRunDate',
-    header: () => <div>Last Run Date</div>,
+  }),
+  columnHelper.display({
+    id: 'lastRunDate',
+    header: 'Last Run Date',
     cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
-  },
-  {
-    accessorKey: 'jobStatus',
-    header: () => <div>Last Job Status</div>,
+  }),
+  columnHelper.display({
+    id: 'jobStatus',
+    header: 'Last Job Status',
     cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
-  },
+  }),
 ];
 
 const ProductComponent = () => {
