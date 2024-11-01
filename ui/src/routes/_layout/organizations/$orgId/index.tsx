@@ -19,7 +19,7 @@
 
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
-  ColumnDef,
+  createColumnHelper,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
@@ -58,34 +58,71 @@ import { paginationSchema } from '@/schemas';
 import { LastJobStatus } from './products/$productId/-components/last-job-status';
 import { LastRunDate } from './products/$productId/-components/last-run-date';
 import { LastRunStatus } from './products/$productId/-components/last-run-status';
+import { TotalRuns } from './products/$productId/-components/total-runs';
 
 const defaultPageSize = 10;
 
-const columns: ColumnDef<Product>[] = [
-  {
-    accessorKey: 'product',
-    header: () => <div>Products</div>,
-    cell: ({ row }) => (
-      <>
-        <Link
-          className='block font-semibold text-blue-400 hover:underline'
-          to={`/organizations/$orgId/products/$productId`}
-          params={{
-            orgId: row.original.organizationId.toString(),
-            productId: row.original.id.toString(),
-          }}
-        >
-          {row.original.name}
-        </Link>
-        <div className='text-sm text-muted-foreground md:inline'>
-          {row.original.description}
-        </div>
-      </>
-    ),
-  },
-  {
-    accessorKey: 'runStatus',
-    header: () => <div>Last Run Status</div>,
+const columnHelper = createColumnHelper<Product>();
+
+// In anticipation of these column definitions to be changed later, when the corresponding
+// endpoint is implemented, columnHelper.accessor() is only used when the data being
+// shown contains data from the column helper type.
+
+const columns = [
+  columnHelper.accessor(
+    ({ name, description }) => {
+      return name + description;
+    },
+    {
+      header: 'Products',
+      cell: ({ row }) => (
+        <>
+          <Link
+            className='block font-semibold text-blue-400 hover:underline'
+            to={`/organizations/$orgId/products/$productId`}
+            params={{
+              orgId: row.original.organizationId.toString(),
+              productId: row.original.id.toString(),
+            }}
+          >
+            {row.original.name}
+          </Link>
+          <div className='text-sm text-muted-foreground md:inline'>
+            {row.original.description}
+          </div>
+        </>
+      ),
+    }
+  ),
+  columnHelper.display({
+    id: 'runs',
+    header: 'Runs',
+    size: 60,
+    cell: function CellComponent({ row }) {
+      const { data, isPending, isError } =
+        useRepositoriesServiceGetRepositoriesByProductId({
+          productId: row.original.id,
+          limit: 1,
+        });
+
+      if (isPending)
+        return (
+          <>
+            <span className='sr-only'>Loading...</span>
+            <Loader2 size={16} className='mx-3 animate-spin' />
+          </>
+        );
+
+      if (isError) return <span>Error loading data.</span>;
+
+      if (data.pagination.totalCount === 1)
+        return <TotalRuns repoId={data.data[0].id} />;
+      else return <span>-</span>;
+    },
+  }),
+  columnHelper.display({
+    id: 'runStatus',
+    header: 'Last Run Status',
     cell: function CellComponent({ row }) {
       const { data, isPending, isError } =
         useRepositoriesServiceGetRepositoriesByProductId({
@@ -108,10 +145,10 @@ const columns: ColumnDef<Product>[] = [
       else
         return <span>Contains {data.pagination.totalCount} repositories</span>;
     },
-  },
-  {
-    accessorKey: 'lastRunDate',
-    header: () => <div>Last Run Date</div>,
+  }),
+  columnHelper.display({
+    id: 'lastRunDate',
+    header: 'Last Run Date',
     cell: function CellComponent({ row }) {
       const { data, isPending, isError } =
         useRepositoriesServiceGetRepositoriesByProductId({
@@ -133,10 +170,10 @@ const columns: ColumnDef<Product>[] = [
         return <LastRunDate repoId={data.data[0].id} />;
       else return null;
     },
-  },
-  {
-    accessorKey: 'jobStatus',
-    header: () => <div>Last Job Status</div>,
+  }),
+  columnHelper.display({
+    id: 'jobStatus',
+    header: 'Last Job Status',
     cell: function CellComponent({ row }) {
       const { data, isPending, isError } =
         useRepositoriesServiceGetRepositoriesByProductId({
@@ -158,7 +195,7 @@ const columns: ColumnDef<Product>[] = [
         return <LastJobStatus repoId={data.data[0].id} />;
       else return null;
     },
-  },
+  }),
 ];
 
 const OrganizationComponent = () => {
