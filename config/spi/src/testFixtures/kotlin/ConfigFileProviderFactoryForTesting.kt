@@ -69,7 +69,7 @@ class ConfigFileProviderFactoryForTesting : ConfigFileProviderFactory {
         checkConfigManagerSecretAccess(config, secretProvider)
 
         fun configRoot(context: Context): File =
-            if (context == ConfigManager.DEFAULT_CONTEXT) {
+            if (context == ConfigManager.EMPTY_CONTEXT) {
                 File("src/testFixtures/resources/config-files")
             } else {
                 File(context.name)

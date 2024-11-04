@@ -70,7 +70,7 @@ class GitHubConfigFileProvider(
      */
     private val baseUrl: String,
 
-    /** The default branch to be used if the default context is provided. */
+    /** The default branch to be used if no context is provided. */
     private val defaultBranch: String,
 
     /** The cache for storing already fetched configuration data. */
@@ -93,7 +93,7 @@ class GitHubConfigFileProvider(
         const val REPOSITORY_NAME = "gitHubRepositoryName"
 
         /**
-         * Configuration property that defines the default branch to be used if the user provides the default context.
+         * Configuration property that defines the default branch.
          */
         const val DEFAULT_BRANCH = "gitHubDefaultBranch"
 
@@ -224,7 +224,7 @@ class GitHubConfigFileProvider(
     }
 
     override fun resolveContext(context: Context): Context {
-        val branchName = if (context == ConfigManager.DEFAULT_CONTEXT) defaultBranch else context.name
+        val branchName = if (context == ConfigManager.EMPTY_CONTEXT) defaultBranch else context.name
         val response = sendHttpRequest("/branches/$branchName", JSON_CONTENT_TYPE_HEADER)
 
         if (!response.isPresent()) {

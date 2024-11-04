@@ -146,13 +146,13 @@ class ConfigManagerTest : WordSpec({
             resolvedContext.name shouldBe ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX + context
         }
 
-        "use the default context" {
+        "use the empty context" {
             val manager = createConfigManager()
 
             val resolvedContext = manager.resolveContext(null)
 
             resolvedContext.name shouldBe ConfigFileProviderFactoryForTesting.RESOLVED_PREFIX +
-                    ConfigManager.DEFAULT_CONTEXT.name
+                    ConfigManager.EMPTY_CONTEXT.name
         }
 
         "handle exceptions from the provider" {
