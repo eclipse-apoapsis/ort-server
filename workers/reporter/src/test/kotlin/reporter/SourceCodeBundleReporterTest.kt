@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.file.exist
 import io.kotest.matchers.file.shouldContainFile
 import io.kotest.matchers.file.shouldContainNFiles
 import io.kotest.matchers.maps.containAnyKeys
@@ -30,6 +31,7 @@ import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.sequences.beEmpty
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beInstanceOf
 
 import io.mockk.every
@@ -150,7 +152,7 @@ class SourceCodeBundleReporterTest : WordSpec({
                 it.shouldBeFailure<DownloadException>()
             }
 
-            bundleTmpOutputDir.exists() shouldBe false
+            bundleTmpOutputDir shouldNot exist()
             outputDir.walk().maxDepth(1).filter { it.isFile } should beEmpty()
         }
 

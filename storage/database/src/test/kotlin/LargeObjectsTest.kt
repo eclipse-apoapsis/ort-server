@@ -22,7 +22,9 @@ package org.eclipse.apoapsis.ortserver.storage.database
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.matchers.file.exist
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 import io.mockk.every
@@ -80,7 +82,7 @@ class LargeObjectsTest : WordSpec({
             val stream = TempFileInputStream(file)
             stream.close()
 
-            file.exists() shouldBe false
+            file shouldNot exist()
         }
     }
 

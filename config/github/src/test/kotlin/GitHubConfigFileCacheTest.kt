@@ -22,7 +22,10 @@ package org.eclipse.apoapsis.ortserver.config.github
 import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.matchers.file.aDirectory
+import io.kotest.matchers.file.exist
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import io.ktor.utils.io.ByteReadChannel
 
@@ -162,8 +165,8 @@ class GitHubConfigFileCacheTest : WordSpec({
             val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 1, 3.days)
             cache.cleanup("current")
 
-            outdatedRevision.exists() shouldBe false
-            activeRevision.isDirectory shouldBe true
+            outdatedRevision shouldNot exist()
+            activeRevision shouldBe aDirectory()
         }
 
         "remove complete revision directories" {
@@ -185,7 +188,7 @@ class GitHubConfigFileCacheTest : WordSpec({
             val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 1, 1.days)
             cache.cleanup("current")
 
-            revisionDir.exists() shouldBe false
+            revisionDir shouldNot exist()
         }
 
         "not remove the current revision" {
@@ -197,7 +200,7 @@ class GitHubConfigFileCacheTest : WordSpec({
             val cache = GitHubConfigFileCache(cacheDir, lockCheckInterval, 1, 1.days)
             cache.cleanup(revision)
 
-            currentRevision.exists() shouldBe true
+            currentRevision shouldBe aDirectory()
         }
 
         "remove outdated revisions with the configured ratio" {
@@ -210,11 +213,11 @@ class GitHubConfigFileCacheTest : WordSpec({
 
             repeat(ratio - 1) {
                 cache.cleanup("current")
-                revisionDir.exists() shouldBe true
+                revisionDir shouldBe aDirectory()
             }
 
             cache.cleanup("current")
-            revisionDir.exists() shouldBe false
+            revisionDir shouldNot exist()
         }
     }
 })

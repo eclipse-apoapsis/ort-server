@@ -28,6 +28,7 @@ import io.kotest.engine.spec.tempdir
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.file.aFile
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.maps.shouldHaveSize
@@ -1352,7 +1353,7 @@ private fun logFileContent(source: LogSource): String =
  * Check whether the given [archiveFile] contains the correct logs for the given [sources].
  */
 private fun checkLogArchive(archiveFile: File, sources: Set<LogSource>) {
-    archiveFile.isFile shouldBe true
+    archiveFile shouldBe aFile()
     val currentDir = archiveFile.parentFile
 
     try {
