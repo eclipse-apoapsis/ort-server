@@ -366,15 +366,11 @@ class GitHubConfigFileProvider(
     }
 
     private fun getJsonBody(response: HttpResponse): JsonElement {
-        validateResponseIsPresent(response)
-
-        return runBlocking { Json.parseToJsonElement(response.body<String>()) }
-    }
-
-    private fun validateResponseIsPresent(response: HttpResponse) {
         if (!response.isPresent()) {
             throw ConfigException("The requested path doesn't exist in the specified branch.", null)
         }
+
+        return runBlocking { Json.parseToJsonElement(response.body<String>()) }
     }
 
     private fun JsonElement.isFile() = this.jsonObject["type"]?.jsonPrimitive?.content == "file"
