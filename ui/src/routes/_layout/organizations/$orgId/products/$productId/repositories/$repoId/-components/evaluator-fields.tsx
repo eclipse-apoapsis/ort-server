@@ -74,9 +74,7 @@ export const EvaluatorFields = ({ form }: EvaluatorFieldsProps) => {
                 </FormControl>
                 <FormDescription>
                   The path to the rules file to get from the configuration
-                  provider. Note: In case this field is left empty, the default
-                  path of the config file provider has to include a rules file,
-                  otherwise the Evaluator job will fail.
+                  provider.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
