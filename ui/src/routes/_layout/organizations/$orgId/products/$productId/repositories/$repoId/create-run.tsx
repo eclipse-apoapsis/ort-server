@@ -146,6 +146,23 @@ const CreateRunPage = () => {
             />
             <FormField
               control={form.control}
+              name='path'
+              render={({ field }) => (
+                <FormItem className='pt-4'>
+                  <FormLabel>Path</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='(optional)' />
+                  </FormControl>
+                  <FormDescription>
+                    The path to limit the analysis to, for example
+                    'path/to/source'.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name='jobConfigContext'
               render={({ field }) => (
                 <FormItem className='pt-4'>
@@ -157,23 +174,6 @@ const CreateRunPage = () => {
                     The context to use when obtaining configuration for this
                     run. The meaning of the context is up for interpretation by
                     the implementation of the configuration provider.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='path'
-              render={({ field }) => (
-                <FormItem className='pt-4'>
-                  <FormLabel>Path</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder='(optional)' />
-                  </FormControl>
-                  <FormDescription>
-                    The path to limit the analysis to, for example
-                    'path/to/source'.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
