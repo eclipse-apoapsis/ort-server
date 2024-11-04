@@ -225,7 +225,7 @@ class GitHubConfigFileProvider(
 
     override fun resolveContext(context: Context): Context {
         val branchName = if (context == ConfigManager.EMPTY_CONTEXT) defaultBranch else context.name
-        val response = sendHttpRequest("/branches/$branchName", JSON_CONTENT_TYPE_HEADER)
+        val response = sendHttpRequest("/branches/$branchName")
 
         if (!response.isPresent()) {
             throw ConfigException("The branch '${context.name}' is not found in the config repository.", null)
@@ -256,7 +256,6 @@ class GitHubConfigFileProvider(
     override fun contains(context: Context, path: Path): Boolean {
         val response = sendHttpRequest(
             "/contents/${path.path}?ref=${context.name}",
-            JSON_CONTENT_TYPE_HEADER,
             checkSuccess = false
         )
 
@@ -279,7 +278,7 @@ class GitHubConfigFileProvider(
      */
     private fun sendHttpRequest(
         path: String,
-        contentType: String,
+        contentType: String = JSON_CONTENT_TYPE_HEADER,
         checkSuccess: Boolean = true
     ): HttpResponse = runBlocking {
         val response = sendHttpRequestWithRetry(path, contentType)
@@ -352,10 +351,7 @@ class GitHubConfigFileProvider(
      * [context]. Throw a [ConfigException] if the path does not exist or is not a directory.
      */
     private fun downloadFolderContent(context: Context, path: Path): Set<String> {
-        val response = sendHttpRequest(
-            "/contents/${path.path}?ref=${context.name}",
-            JSON_CONTENT_TYPE_HEADER
-        )
+        val response = sendHttpRequest("/contents/${path.path}?ref=${context.name}")
 
         val jsonBody = getJsonBody(response)
 
