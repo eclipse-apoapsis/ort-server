@@ -56,6 +56,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanResult
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
@@ -65,9 +67,12 @@ import org.jetbrains.exposed.sql.insert
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
+import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
+import org.ossreviewtoolkit.scanner.utils.filterScanResultsByVcsPaths
+import org.ossreviewtoolkit.scanner.utils.getVcsPathsForProvenances
 
 @Suppress("LongParameterList", "TooManyFunctions")
 class OrtRunService(
@@ -302,11 +307,13 @@ class OrtRunService(
         val scannerRun = getScannerRunForOrtRun(ortRun.id)
         val evaluatorRun = getEvaluatorRunForOrtRun(ortRun.id)
 
+        val filteredOrtScanResults = filterScanResultsByVcsPath(scannerRun?.provenances, scannerRun?.scanResults)
+
         val baseResult = ortRun.mapToOrt(
             repository = repository,
             analyzerRun = analyzerRun?.mapToOrt(),
             advisorRun = advisorRun?.mapToOrt(),
-            scannerRun = scannerRun?.mapToOrt(),
+            scannerRun = scannerRun?.mapToOrt()?.copy(scanResults = filteredOrtScanResults),
             evaluatorRun = evaluatorRun?.mapToOrt(),
             resolvedConfiguration = resolvedConfiguration.mapToOrt()
         )
@@ -488,5 +495,20 @@ class OrtRunService(
         db.blockingQuery {
             ortRunRepository.update(ortRunId, issues = issues.asPresent())
         }
+    }
+
+    /**
+     * Convert [ORT Server ScanResults][ScanResult] to [ORT ScanResults][OrtScanResult] and filter out any
+     * results that are not within the VCS paths of the provenances.
+     */
+    internal fun filterScanResultsByVcsPath(
+        provenances: Set<ProvenanceResolutionResult>?, scanResults: Set<ScanResult>?
+    ): Set<OrtScanResult> {
+        val ortProvenances = provenances?.map { it.mapToOrt() }?.toSet().orEmpty()
+        val ortScanResults = scanResults?.map { it.mapToOrt() }.orEmpty()
+
+        val vcsPathsForProvenances = getVcsPathsForProvenances(ortProvenances)
+
+        return filterScanResultsByVcsPaths(ortScanResults, vcsPathsForProvenances)
     }
 }

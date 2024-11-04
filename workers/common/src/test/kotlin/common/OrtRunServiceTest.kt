@@ -60,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
@@ -70,8 +71,18 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.CopyrightFinding
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.LicenseFinding
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.RepositoryProvenance
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanResult
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanSummary
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerDetail
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.SnippetFinding
+import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
@@ -85,7 +96,7 @@ import org.ossreviewtoolkit.model.Hash
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.PackageCuration as OrtPackageCuration
 import org.ossreviewtoolkit.model.PackageCurationData as OrtPackageCurationData
-import org.ossreviewtoolkit.model.RemoteArtifact
+import org.ossreviewtoolkit.model.RemoteArtifact as OrtRemoteArtifact
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedPackageCurations as OrtResolvedPackageCurations
 import org.ossreviewtoolkit.model.VcsInfoCurationData
@@ -921,11 +932,11 @@ class OrtRunServiceTest : WordSpec({
                                 concludedLicense = "Apache-2.0".toSpdx(),
                                 description = "description",
                                 homepageUrl = "homepageUrl",
-                                binaryArtifact = RemoteArtifact(
+                                binaryArtifact = OrtRemoteArtifact(
                                     url = "binary URL",
                                     Hash.create("1234567890abcdef1234567890abcdef12345678")
                                 ),
-                                sourceArtifact = RemoteArtifact(
+                                sourceArtifact = OrtRemoteArtifact(
                                     url = "source URL",
                                     Hash.create("abcdef1234567890abcdef1234567890abcdef12")
                                 ),
@@ -1050,6 +1061,58 @@ class OrtRunServiceTest : WordSpec({
             }
         }
     }
+
+    "filterScanResultsByVcsPath" should {
+        "keep scan results unmodified if no VCS path is specified" {
+
+            val provenances = createProvenances(vcsPath = "")
+            val scanResults = createScanResults()
+
+            service.filterScanResultsByVcsPath(provenances, scanResults).let { filteredOrtScanResults ->
+                filteredOrtScanResults.shouldNotBeNull()
+                with(filteredOrtScanResults) {
+                    size shouldBe 1
+                    first().apply {
+                        summary.shouldNotBeNull()
+                        with(summary) {
+                            size shouldBe 1
+                            first().apply {
+                                // No findings are filtered out.
+                                licenseFindings.size shouldBe 2
+                                copyrightFindings.size shouldBe 2
+                                snippetFindings.size shouldBe 2
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        "filter out scan results that are not inside the VCS path" {
+
+            val provenances = createProvenances(vcsPath = "npm/simple")
+            val scanResults = createScanResults()
+
+            service.filterScanResultsByVcsPath(provenances, scanResults).let { filteredOrtScanResults ->
+                filteredOrtScanResults.shouldNotBeNull()
+                with(filteredOrtScanResults) {
+                    size shouldBe 1
+                    first().apply {
+                        summary.shouldNotBeNull()
+                        with(summary) {
+                            size shouldBe 1
+                            first().apply {
+                                // Only the findings within the VCS path are kept.
+                                licenseFindings.size shouldBe 1
+                                copyrightFindings.size shouldBe 1
+                                snippetFindings.size shouldBe 1
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 })
 
 private fun createOrtRun(
@@ -1096,3 +1159,106 @@ private fun createOrtRun(
 }
 
 private fun createVcsInfo(url: String) = VcsInfo(RepositoryType.GIT, url, "revision", "path")
+
+private fun createProvenances(vcsPath: String): Set<ProvenanceResolutionResult> {
+    return setOf(
+        ProvenanceResolutionResult(
+            id = Identifier("NPM", "", "accepts", "1.3.8"),
+            packageProvenance = ArtifactProvenance(
+                sourceArtifact = RemoteArtifact(
+                    url = "https://registry.npmjs.org/accepts/-/accepts-1.3.8.tgz",
+                    hashValue = "0bf0be125b67014adcb0b0921e62db7bffe16b2e",
+                    hashAlgorithm = "SHA-1"
+                )
+            )
+        ),
+        ProvenanceResolutionResult(
+            id = Identifier("NPM", "", "ocaas-test-reference", "0.0.1"),
+            packageProvenance = RepositoryProvenance(
+                vcsInfo = VcsInfo(
+                    type = RepositoryType.GIT,
+                    url = "https://github.com/bosch-ocaas/ocaas-test-projects.git",
+                    revision = "05f320aff2e2b565f150a48a4f801382f6cf5987",
+                    path = vcsPath
+                ),
+                resolvedRevision = "05f320aff2e2b565f150a48a4f801382f6cf5987"
+            )
+        )
+    )
+}
+
+private fun createScanResults(): Set<ScanResult> {
+    return setOf(
+        ScanResult(
+            provenance = RepositoryProvenance(
+                vcsInfo = VcsInfo(
+                    type = RepositoryType.GIT,
+                    url = "https://github.com/bosch-ocaas/ocaas-test-projects.git",
+                    revision = "05f320aff2e2b565f150a48a4f801382f6cf5987",
+                    path = ""
+                ),
+                resolvedRevision = "05f320aff2e2b565f150a48a4f801382f6cf5987"
+            ),
+            scanner = ScannerDetail("scanner", "1.0.0", ""),
+            summary = ScanSummary(
+                startTime = Clock.System.now(),
+                endTime = Clock.System.now(),
+                licenseFindings = setOf(
+                    LicenseFinding(
+                        spdxLicense = "Apache-2.0",
+                        location = TextLocation(
+                            path = "gradle-inspector/bootstrap-java17/.ort.yml",
+                            startLine = 20,
+                            endLine = 20
+                        )
+                    ),
+                    LicenseFinding(
+                        spdxLicense = "ISC",
+                        location = TextLocation(
+                            path = "npm/simple/package.json",
+                            startLine = 6,
+                            endLine = 6
+                        )
+                    ),
+                ),
+                copyrightFindings = setOf(
+                    CopyrightFinding(
+                        statement = "Copyright (c) 2015-2021 the original",
+                        location = TextLocation(
+                            path = "gradle-inspector/bootstrap-java17/gradlew",
+                            startLine = 4,
+                            endLine = 4
+                        )
+                    ),
+                    CopyrightFinding(
+                        statement = "Copyright (c) 2024 the test team",
+                        location = TextLocation(
+                            path = "npm/simple/README.md",
+                            startLine = 1,
+                            endLine = 1
+                        )
+                    ),
+                ),
+                snippetFindings = setOf(
+                    SnippetFinding(
+                        location = TextLocation(
+                            path = "gradle-inspector/bootstrap-java17/gradlew",
+                            startLine = 1,
+                            endLine = 10
+                        ),
+                        snippets = emptySet()
+                    ),
+                    SnippetFinding(
+                        location = TextLocation(
+                            path = "npm/simple/README.md",
+                            startLine = 1,
+                            endLine = 10
+                        ),
+                        snippets = emptySet()
+                    )
+                )
+            ),
+            additionalData = emptyMap()
+        )
+    )
+}
