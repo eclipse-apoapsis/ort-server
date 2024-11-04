@@ -364,19 +364,19 @@ class GitHubConfigFileProvider(
             .mapNotNull { it.jsonObject["path"]?.jsonPrimitive?.content }
             .toSet()
     }
+}
 
-    private fun getJsonBody(response: HttpResponse): JsonElement {
-        if (!response.isPresent()) {
-            throw ConfigException("The requested path doesn't exist in the specified branch.", null)
-        }
-
-        return runBlocking { Json.parseToJsonElement(response.body<String>()) }
+private fun getJsonBody(response: HttpResponse): JsonElement {
+    if (!response.isPresent()) {
+        throw ConfigException("The requested path doesn't exist in the specified branch.", null)
     }
 
-    private fun JsonElement.isFile() = this.jsonObject["type"]?.jsonPrimitive?.content == "file"
-
-    private fun JsonElement.isDirectory() =
-        this is JsonArray || this.jsonObject["type"]?.jsonPrimitive?.content == "dir"
-
-    private fun HttpResponse.isPresent() = status != HttpStatusCode.NotFound
+    return runBlocking { Json.parseToJsonElement(response.body<String>()) }
 }
+
+private fun JsonElement.isFile() = this.jsonObject["type"]?.jsonPrimitive?.content == "file"
+
+private fun JsonElement.isDirectory() =
+    this is JsonArray || this.jsonObject["type"]?.jsonPrimitive?.content == "dir"
+
+private fun HttpResponse.isPresent() = status != HttpStatusCode.NotFound
