@@ -20,8 +20,11 @@
 package org.eclipse.apoapsis.ortserver.storage
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.paths.aFile
+import io.kotest.matchers.paths.exist
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 
 import io.mockk.every
 import io.mockk.just
@@ -32,7 +35,6 @@ import io.mockk.verify
 import java.io.InputStream
 
 import kotlin.io.path.createTempFile
-import kotlin.io.path.exists
 
 class StorageEntryTest : StringSpec({
     "create" should {
@@ -41,11 +43,11 @@ class StorageEntryTest : StringSpec({
 
             val entry = StorageEntry.create(tempFile.toFile(), "some-content")
 
-            tempFile.exists() shouldBe true
+            tempFile shouldBe aFile()
 
             entry.close()
 
-            tempFile.exists() shouldBe false
+            tempFile shouldNot exist()
         }
 
         "create an object with an input stream" {

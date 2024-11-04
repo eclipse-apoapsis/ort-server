@@ -41,8 +41,11 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.file.aDirectory
+import io.kotest.matchers.file.exist
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 
 import io.ktor.http.HttpStatusCode
@@ -153,8 +156,8 @@ class GitHubConfigFileProviderTest : WordSpec({
             val provider = getProvider(cacheConfig)
             provider.resolveContext(Context(REVISION))
 
-            oldRevisionDir.exists() shouldBe false
-            currentRevisionDir.isDirectory shouldBe true
+            oldRevisionDir shouldNot exist()
+            currentRevisionDir shouldBe aDirectory()
         }
 
         "only clean up the cache when the default branch is processed" {
@@ -174,7 +177,7 @@ class GitHubConfigFileProviderTest : WordSpec({
             val provider = getProvider(cacheConfig)
             provider.resolveContext(Context(revision))
 
-            oldRevisionDir.exists() shouldBe true
+            oldRevisionDir shouldBe aDirectory()
         }
     }
 
@@ -206,7 +209,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             server.allServeEvents shouldHaveSize 1
             val revisionCacheDir = cacheDir.resolve(REVISION)
-            revisionCacheDir.isDirectory shouldBe true
+            revisionCacheDir shouldBe aDirectory()
         }
 
         "throw an exception if the response has a wrong content type" {
@@ -325,7 +328,7 @@ class GitHubConfigFileProviderTest : WordSpec({
 
             server.allServeEvents shouldHaveSize 1
             val revisionCacheDir = cacheDir.resolve(REVISION)
-            revisionCacheDir.isDirectory shouldBe true
+            revisionCacheDir shouldBe aDirectory()
         }
     }
 

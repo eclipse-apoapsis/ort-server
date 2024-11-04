@@ -27,6 +27,7 @@ import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.file.aDirectory
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -670,7 +671,7 @@ class ReporterRunnerTest : WordSpec({
                     null
                 } else {
                     dir.parentFile shouldBe configDirectory
-                    dir.isDirectory shouldBe true
+                    dir shouldBe aDirectory()
                     dir.name
                 }
                 downloadedAssets += ReporterAsset(path, relativeDir, thirdArg())
@@ -714,7 +715,7 @@ class ReporterRunnerTest : WordSpec({
             coEvery { context.downloadConfigurationDirectory(any(), any()) } answers {
                 val path = Path(firstArg<String>())
                 val dir = secondArg<File>()
-                dir.isDirectory shouldBe true
+                dir shouldBe aDirectory()
                 downloadedAssets[path] = dir
                 mapOf(path to File(path.path))
             }

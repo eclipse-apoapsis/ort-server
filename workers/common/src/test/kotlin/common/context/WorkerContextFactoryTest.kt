@@ -27,11 +27,14 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.file.aDirectory
+import io.kotest.matchers.file.exist
 import io.kotest.matchers.maps.beEmpty as beEmptyMap
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotBe
 
 import io.mockk.every
@@ -109,7 +112,7 @@ class WorkerContextFactoryTest : WordSpec({
                 val dir1 = context.createTempDir()
                 val dir2 = context.createTempDir()
 
-                dir1.isDirectory shouldBe true
+                dir1 shouldBe aDirectory()
                 dir1 shouldNotBe dir2
             }
         }
@@ -127,7 +130,7 @@ class WorkerContextFactoryTest : WordSpec({
                 dir
             }
 
-            tempDir.exists() shouldBe false
+            tempDir shouldNot exist()
         }
     }
 
