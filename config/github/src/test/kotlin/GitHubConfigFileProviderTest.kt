@@ -95,12 +95,12 @@ class GitHubConfigFileProviderTest : WordSpec({
             resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
         }
 
-        "resolve the default context successfully" {
+        "resolve the empty context successfully" {
             server.stubExistingRevision()
 
             val provider = getProvider()
 
-            val resolvedContext = provider.resolveContext(ConfigManager.DEFAULT_CONTEXT)
+            val resolvedContext = provider.resolveContext(ConfigManager.EMPTY_CONTEXT)
 
             resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
         }

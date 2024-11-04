@@ -80,11 +80,11 @@ class ConfigManager(
         const val SECRET_FROM_CONFIG_PROPERTY = "allowSecretsFromConfig"
 
         /**
-         * Constant for a default configuration context. This indicates that the user has not specified a specific
+         * Constant for an empty configuration context. This indicates that the user has not specified a specific
          * context. The concrete meaning is up to a [ConfigFileProvider] implementation; it should fall back to some
          * meaningful default.
          */
-        val DEFAULT_CONTEXT = Context("")
+        val EMPTY_CONTEXT = Context("")
 
         /** The service loader for file provider factories. */
         private val FILE_PROVIDER_LOADER = ServiceLoader.load(ConfigFileProviderFactory::class.java)
@@ -147,9 +147,9 @@ class ConfigManager(
         }
 
         /**
-         * Either return [context] if it is not *null* or the [DEFAULT_CONTEXT].
+         * Either return [context] if it is not *null* or the [EMPTY_CONTEXT].
          */
-        private fun safeContext(context: Context?): Context = context ?: DEFAULT_CONTEXT
+        private fun safeContext(context: Context?): Context = context ?: EMPTY_CONTEXT
 
         /**
          * Return the system's temporary directory.
