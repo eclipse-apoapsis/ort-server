@@ -39,8 +39,8 @@ fun Application.configureMonitoring() {
 
         mdc("component") { "core" }
         mdc("traceId") { UUID.randomUUID().toString() }
-        mdc("organizationId") { it.request.queryParameters["repositoryId"] }
-        mdc("productId") { it.request.queryParameters["repositoryId"] }
+        mdc("organizationId") { it.request.queryParameters["organizationId"] }
+        mdc("productId") { it.request.queryParameters["productId"] }
         mdc("repositoryId") { it.request.queryParameters["repositoryId"] }
     }
 }
