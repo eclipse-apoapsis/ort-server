@@ -68,6 +68,16 @@ export const MarkdownRenderer = ({ markdown }: MarkdownRendererProps) => {
         code: ({ children }) => (
           <code className='rounded bg-muted/100 p-1'>{children}</code>
         ),
+        a: ({ children, href }) => (
+          <a
+            href={href}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='font-semibold text-blue-400 hover:underline'
+          >
+            {children}
+          </a>
+        ),
       }}
     >
       {markdown}
