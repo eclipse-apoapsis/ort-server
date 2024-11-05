@@ -134,12 +134,14 @@ type Props = {
 };
 const RuleViolationDetailsComponent = ({ details }: Props) => {
   return (
-    <DialogContent className={'max-h-96 overflow-y-scroll lg:max-w-screen-lg'}>
+    <DialogContent
+      className={'max-h-96 overflow-y-scroll text-sm lg:max-w-screen-lg'}
+    >
       <DialogHeader>
         <DialogTitle>{details.rule}</DialogTitle>
         <DialogDescription>{details?.message}</DialogDescription>
       </DialogHeader>
-      <div className='grid grid-cols-8 gap-2 text-sm'>
+      <div className='grid grid-cols-8 gap-2'>
         <div className='col-span-2 font-semibold'>License:</div>
         <div className='col-span-6'>{details.license}</div>
         <div className='col-span-2 font-semibold'>License source:</div>
