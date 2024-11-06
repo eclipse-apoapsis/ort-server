@@ -43,6 +43,10 @@ export const packageManagers = [
     label: 'Bazel (C++, Java, and others)',
   },
   {
+    id: 'Bower',
+    label: 'Bower (JavaScript / Node.js)',
+  },
+  {
     id: 'Bundler',
     label: 'Bundler (Ruby)',
   },
@@ -51,16 +55,32 @@ export const packageManagers = [
     label: 'Cargo (Rust)',
   },
   {
+    id: 'Carthage',
+    label: 'Carthage (Objective-C / Swift)',
+  },
+  {
+    id: 'CocoaPods',
+    label: 'CocoaPods (Objective-C / Swift)',
+  },
+  {
     id: 'Composer',
     label: 'Composer (PHP)',
+  },
+  {
+    id: 'Conan',
+    label: 'Conan 1.x (C / C++)',
   },
   {
     id: 'GoMod',
     label: 'GoMod (Go)',
   },
   {
+    id: 'Gradle',
+    label: 'Gradle Legacy (Java), mutually exclusive with Gradle',
+  },
+  {
     id: 'GradleInspector',
-    label: 'Gradle (Java)',
+    label: 'Gradle (Java), mutually exclusive with Gradle Legacy',
   },
   {
     id: 'Maven',
@@ -89,6 +109,26 @@ export const packageManagers = [
   {
     id: 'Poetry',
     label: 'Poetry (Python)',
+  },
+  {
+    id: 'Pub',
+    label: 'Pub (Dart / Flutter)',
+  },
+  {
+    id: 'SBT',
+    label: 'SBT (Scala)',
+  },
+  {
+    id: 'SpdxDocumentFile',
+    label: 'SPDX Document File',
+  },
+  {
+    id: 'Stack',
+    label: 'Stack (Haskell)',
+  },
+  {
+    id: 'SwiftPM',
+    label: 'SwiftPM (Swift)',
   },
   {
     id: 'Yarn',

@@ -41,23 +41,38 @@ export const createRunFormSchema = z.object({
       repositoryConfigPath: z.string().optional(),
       allowDynamicVersions: z.boolean(),
       skipExcluded: z.boolean(),
-      packageManagers: z.object({
-        Bazel: packageManagerOptionsSchema,
-        Bundler: packageManagerOptionsSchema,
-        Cargo: packageManagerOptionsSchema,
-        Composer: packageManagerOptionsSchema,
-        GoMod: packageManagerOptionsSchema,
-        GradleInspector: packageManagerOptionsSchema,
-        Maven: packageManagerOptionsSchema,
-        NPM: packageManagerOptionsSchema,
-        NuGet: packageManagerOptionsSchema,
-        PIP: packageManagerOptionsSchema,
-        Pipenv: packageManagerOptionsSchema,
-        PNPM: packageManagerOptionsSchema,
-        Poetry: packageManagerOptionsSchema,
-        Yarn: packageManagerOptionsSchema,
-        Yarn2: packageManagerOptionsSchema,
-      }),
+      packageManagers: z
+        .object({
+          Bazel: packageManagerOptionsSchema,
+          Bower: packageManagerOptionsSchema,
+          Bundler: packageManagerOptionsSchema,
+          Cargo: packageManagerOptionsSchema,
+          Carthage: packageManagerOptionsSchema,
+          CocoaPods: packageManagerOptionsSchema,
+          Composer: packageManagerOptionsSchema,
+          Conan: packageManagerOptionsSchema,
+          GoMod: packageManagerOptionsSchema,
+          Gradle: packageManagerOptionsSchema,
+          GradleInspector: packageManagerOptionsSchema,
+          Maven: packageManagerOptionsSchema,
+          NPM: packageManagerOptionsSchema,
+          NuGet: packageManagerOptionsSchema,
+          PIP: packageManagerOptionsSchema,
+          Pipenv: packageManagerOptionsSchema,
+          PNPM: packageManagerOptionsSchema,
+          Poetry: packageManagerOptionsSchema,
+          Pub: packageManagerOptionsSchema,
+          SBT: packageManagerOptionsSchema,
+          SpdxDocumentFile: packageManagerOptionsSchema,
+          Stack: packageManagerOptionsSchema,
+          SwiftPM: packageManagerOptionsSchema,
+          Yarn: packageManagerOptionsSchema,
+          Yarn2: packageManagerOptionsSchema,
+        })
+        .refine((schema) => {
+          // Ensure that not both Gradle and GradleInspector are enabled at the same time.
+          return !(schema.Gradle.enabled && schema.GradleInspector.enabled);
+        }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
     }),
     advisor: z.object({
       enabled: z.boolean(),
@@ -161,10 +176,12 @@ export function defaultValues(
    * or from an earlier ORT run if rerun functionality is used.
    *
    * @param packageManagerId The ID of the package manager.
+   * @param enabledByDefault Whether the package manager should be enabled by default.
    * @returns The default options.
    */
   const defaultPackageManagerOptions = (
-    packageManagerId?: PackageManagerId
+    packageManagerId?: PackageManagerId,
+    enabledByDefault: boolean = true
   ) => {
     if (packageManagerId) {
       return {
@@ -179,7 +196,7 @@ export function defaultValues(
       };
     } else {
       return {
-        enabled: true,
+        enabled: enabledByDefault,
         options: [],
       };
     }
@@ -197,10 +214,15 @@ export function defaultValues(
         skipExcluded: true,
         packageManagers: {
           Bazel: defaultPackageManagerOptions(),
+          Bower: defaultPackageManagerOptions(),
           Bundler: defaultPackageManagerOptions(),
           Cargo: defaultPackageManagerOptions(),
+          Carthage: defaultPackageManagerOptions(),
+          CocoaPods: defaultPackageManagerOptions(),
           Composer: defaultPackageManagerOptions(),
+          Conan: defaultPackageManagerOptions(),
           GoMod: defaultPackageManagerOptions(),
+          Gradle: defaultPackageManagerOptions(undefined, false),
           GradleInspector: defaultPackageManagerOptions(),
           Maven: defaultPackageManagerOptions(),
           NPM: defaultPackageManagerOptions(),
@@ -209,6 +231,11 @@ export function defaultValues(
           Pipenv: defaultPackageManagerOptions(),
           PNPM: defaultPackageManagerOptions(),
           Poetry: defaultPackageManagerOptions(),
+          Pub: defaultPackageManagerOptions(),
+          SBT: defaultPackageManagerOptions(),
+          SpdxDocumentFile: defaultPackageManagerOptions(),
+          Stack: defaultPackageManagerOptions(),
+          SwiftPM: defaultPackageManagerOptions(),
           Yarn: defaultPackageManagerOptions(),
           Yarn2: defaultPackageManagerOptions(),
         },
@@ -283,10 +310,15 @@ export function defaultValues(
               baseDefaults.jobConfigs.analyzer.skipExcluded,
             packageManagers: {
               Bazel: defaultPackageManagerOptions('Bazel'),
+              Bower: defaultPackageManagerOptions('Bower'),
               Bundler: defaultPackageManagerOptions('Bundler'),
               Cargo: defaultPackageManagerOptions('Cargo'),
+              Carthage: defaultPackageManagerOptions('Carthage'),
+              CocoaPods: defaultPackageManagerOptions('CocoaPods'),
               Composer: defaultPackageManagerOptions('Composer'),
+              Conan: defaultPackageManagerOptions('Conan'),
               GoMod: defaultPackageManagerOptions('GoMod'),
+              Gradle: defaultPackageManagerOptions('Gradle'),
               GradleInspector: defaultPackageManagerOptions('GradleInspector'),
               Maven: defaultPackageManagerOptions('Maven'),
               NPM: defaultPackageManagerOptions('NPM'),
@@ -295,6 +327,12 @@ export function defaultValues(
               Pipenv: defaultPackageManagerOptions('Pipenv'),
               PNPM: defaultPackageManagerOptions('PNPM'),
               Poetry: defaultPackageManagerOptions('Poetry'),
+              Pub: defaultPackageManagerOptions('Pub'),
+              SBT: defaultPackageManagerOptions('SBT'),
+              SpdxDocumentFile:
+                defaultPackageManagerOptions('SpdxDocumentFile'),
+              Stack: defaultPackageManagerOptions('Stack'),
+              SwiftPM: defaultPackageManagerOptions('SwiftPM'),
               Yarn: defaultPackageManagerOptions('Yarn'),
               Yarn2: defaultPackageManagerOptions('Yarn2'),
             },
