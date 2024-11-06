@@ -24,7 +24,13 @@ import {
   Row,
   type Table as TanstackTable,
 } from '@tanstack/react-table';
-import { ChevronDown, ChevronRight, Group } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronsUpDown,
+  ChevronUp,
+  Group,
+} from 'lucide-react';
 import * as React from 'react';
 import { Fragment } from 'react';
 
@@ -45,6 +51,9 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
+export const DEFAULT_PAGE = 1;
+export const DEFAULT_PAGE_SIZE = 10;
+
 interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
   table: TanstackTable<TData>;
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
@@ -54,6 +63,12 @@ interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
    * A function to provide `LinkOptions` for a link to set current selected groups in the URL.
    */
   setGroupingOptions?: (groups: GroupingState) => LinkOptions;
+  /**
+   * A function to provide `LinkOptions` for a link to set current sorting in the URL.
+   */
+  setSortingOptions?: (
+    sorting: { id: string; sortBy: 'asc' | 'desc' | null }[]
+  ) => LinkOptions;
   enableGrouping?: boolean;
 }
 
@@ -65,6 +80,7 @@ export function DataTable<TData>({
   setCurrentPageOptions,
   setPageSizeOptions,
   setGroupingOptions,
+  setSortingOptions,
   enableGrouping,
   ...props
 }: DataTableProps<TData>) {
@@ -142,6 +158,63 @@ export function DataTable<TData>({
                                 {header.column.getIsGrouped()
                                   ? 'Toggle grouping off'
                                   : 'Toggle grouping on'}
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : setSortingOptions &&
+                            header.column.getCanSort() ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Link
+                                  {...setSortingOptions([
+                                    {
+                                      id: header.column.id,
+                                      // For sortable columns, the order of sorting is asc -> desc -> [no sorting].
+                                      sortBy: header.column.getIsSorted()
+                                        ? header.column.getIsSorted() === 'asc'
+                                          ? 'desc'
+                                          : null
+                                        : 'asc',
+                                    },
+                                  ])}
+                                >
+                                  <Button
+                                    variant='ghost'
+                                    className='-ml-2 px-2'
+                                    {...{
+                                      onClick: () =>
+                                        header.column.getToggleSortingHandler(),
+                                      style: {
+                                        cursor: 'pointer',
+                                      },
+                                    }}
+                                  >
+                                    <div className='flex items-center gap-2'>
+                                      {flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext()
+                                      )}
+                                      {header.column.getIsSorted() === 'asc' ? (
+                                        <ChevronUp className='h-4 w-4' />
+                                      ) : header.column.getIsSorted() ===
+                                        'desc' ? (
+                                        <ChevronDown className='h-4 w-4' />
+                                      ) : (
+                                        <ChevronsUpDown className='h-4 w-4' />
+                                      )}
+                                    </div>
+                                  </Button>
+                                </Link>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {header.column.getCanSort()
+                                  ? header.column.getNextSortingOrder() ===
+                                    'asc'
+                                    ? 'Sort ascending'
+                                    : header.column.getNextSortingOrder() ===
+                                        'desc'
+                                      ? 'Sort descending'
+                                      : 'Clear sorting'
+                                  : undefined}
                               </TooltipContent>
                             </Tooltip>
                           ) : (
