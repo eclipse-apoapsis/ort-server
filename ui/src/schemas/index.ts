@@ -32,6 +32,15 @@ export const tableGroupingSchema = z.object({
   groups: z.array(z.string()).optional(),
 });
 
+// Sorting schema that is used for search parameter validation
+// sortBy needs to be of form "columnId.asc" or "columnId.desc"
+export const tableSortingSchema = z.object({
+  sortBy: z
+    .string()
+    .regex(/^[a-zA-Z0-9_]+.(asc|desc)$/)
+    .optional(),
+});
+
 // Enum schema for the groupId parameter of the Groups endpoints
 export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
 
