@@ -20,8 +20,8 @@
 import { Loader2 } from 'lucide-react';
 
 import { useRepositoriesServiceGetOrtRunsByRepositoryId } from '@/api/queries';
+import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { config } from '@/config';
-import { formatTimestamp } from '@/lib/utils.ts';
 
 export const LastRunDate = ({ repoId }: { repoId: number }) => {
   const {
@@ -64,9 +64,9 @@ export const LastRunDate = ({ repoId }: { repoId: number }) => {
   return (
     <>
       {run.finishedAt ? (
-        <div>{formatTimestamp(run.finishedAt)}</div>
+        <TimestampWithUTC timestamp={run.finishedAt} />
       ) : (
-        <div className='italic'>{formatTimestamp(run.createdAt)}</div>
+        <TimestampWithUTC className='italic' timestamp={run.createdAt} />
       )}
     </>
   );
