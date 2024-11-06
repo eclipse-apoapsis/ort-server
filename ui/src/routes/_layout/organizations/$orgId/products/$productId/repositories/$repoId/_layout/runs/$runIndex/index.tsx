@@ -24,6 +24,7 @@ import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/pr
 import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
+import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,7 +38,6 @@ import { Label } from '@/components/ui/label';
 import { config } from '@/config';
 import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
-import { formatTimestamp } from '@/lib/utils.ts';
 import { IssuesStatisticsCard } from './-components/issues-statistics-card';
 import { PackagesStatisticsCard } from './-components/packages-statistics-card';
 import { RuleViolationsStatisticsCard } from './-components/rule-violations-statistics-card';
@@ -117,13 +117,13 @@ const RunComponent = () => {
               </div>
               <div className='text-sm'>
                 <Label className='font-semibold'>Created at:</Label>{' '}
-                {formatTimestamp(ortRun.createdAt)}
+                <TimestampWithUTC timestamp={ortRun.createdAt} />
               </div>
               {ortRun.finishedAt && (
                 <div>
                   <div className='text-sm'>
                     <Label className='font-semibold'>Finished at:</Label>{' '}
-                    {formatTimestamp(ortRun.finishedAt)}
+                    <TimestampWithUTC timestamp={ortRun.finishedAt} />
                   </div>
                   <div className='text-sm'>
                     <Label className='font-semibold'>Duration:</Label>{' '}

@@ -38,6 +38,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -50,7 +51,6 @@ import {
 } from '@/components/ui/card';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
-import { formatTimestamp } from '@/lib/utils.ts';
 import {
   issueSeverity,
   issueSeveritySchema,
@@ -135,7 +135,7 @@ const renderSubComponent = ({ row }: { row: Row<Issue> }) => {
     <div className='flex flex-col gap-4'>
       <div className='flex gap-1 text-sm'>
         <div className='font-semibold'>Created at</div>
-        <div>{formatTimestamp(issue.timestamp)}</div>
+        <TimestampWithUTC timestamp={issue.timestamp} />
         <div>by</div>
         <div className='font-semibold'>{issue.worker}</div>
       </div>

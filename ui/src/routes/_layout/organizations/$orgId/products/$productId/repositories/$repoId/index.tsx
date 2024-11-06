@@ -40,6 +40,7 @@ import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
+import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -58,7 +59,6 @@ import {
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
-import { formatTimestamp } from '@/lib/utils.ts';
 import { paginationSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -89,7 +89,7 @@ const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
   {
     accessorKey: 'createdAt',
     header: () => <div>Created At</div>,
-    cell: ({ row }) => <div>{formatTimestamp(row.original.createdAt)}</div>,
+    cell: ({ row }) => <TimestampWithUTC timestamp={row.original.createdAt} />,
   },
   {
     accessorKey: 'runStatus',

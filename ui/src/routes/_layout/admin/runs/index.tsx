@@ -39,6 +39,7 @@ import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
+import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,6 @@ import {
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
-import { formatTimestamp } from '@/lib/utils';
 import { ortRunStatus, paginationSchema, statusSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -124,14 +124,14 @@ const columns = [
   }),
   columnHelper.accessor('createdAt', {
     header: 'Created At',
-    cell: ({ row }) => <>{formatTimestamp(row.original.createdAt)}</>,
+    cell: ({ row }) => <TimestampWithUTC timestamp={row.original.createdAt} />,
     size: 95,
   }),
   columnHelper.accessor('finishedAt', {
     header: 'Finished At',
     cell: ({ row }) =>
       row.original.finishedAt ? (
-        <>{formatTimestamp(row.original.finishedAt)}</>
+        <TimestampWithUTC timestamp={row.original.finishedAt} />
       ) : (
         <span className='italic'>Not finished yet</span>
       ),
