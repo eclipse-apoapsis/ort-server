@@ -27,7 +27,7 @@ import {
   Row,
   useReactTable,
 } from '@tanstack/react-table';
-import { Minus, Plus } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { useIssuesServiceGetIssuesByRunId } from '@/api/queries';
@@ -116,9 +116,9 @@ const columns = [
           }}
         >
           {row.getIsExpanded() ? (
-            <Minus className='h-4 w-4' />
+            <ChevronUp className='h-4 w-4' />
           ) : (
-            <Plus className='h-4 w-4' />
+            <ChevronDown className='h-4 w-4' />
           )}
         </Button>
       ) : (
