@@ -19,13 +19,16 @@
 
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
-  ColumnDef,
+  createColumnHelper,
   getCoreRowModel,
   getExpandedRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
   Row,
   useReactTable,
 } from '@tanstack/react-table';
 import { Minus, Plus } from 'lucide-react';
+import { useMemo } from 'react';
 
 import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
@@ -53,69 +56,91 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
-import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
+import {
+  getVulnerabilityRatingBackgroundColor,
+  VulnerabilityRatings,
+} from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
-import { paginationSchema } from '@/schemas';
+import { paginationSchema, tableSortingSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const columns: ColumnDef<VulnerabilityWithIdentifier>[] = [
-  {
-    accessorKey: 'package',
-    header: 'Package',
-    cell: ({ row }) => {
-      const { type, namespace, name, version } = row.original.identifier;
+const columnHelper = createColumnHelper<VulnerabilityWithIdentifier>();
 
-      return (
-        <div className='font-semibold'>
-          {type ? type.concat(':') : ''}
-          {namespace ? namespace.concat('/') : ''}
-          {name ? name : ''}
-          {version ? '@'.concat(version) : ''}
-        </div>
-      );
+const columns = [
+  columnHelper.accessor(
+    (vuln) => {
+      const { type, namespace, name, version } = vuln.identifier;
+      return `${type ? type.concat(':') : ''}${namespace ? namespace.concat('/') : ''}${name ? name : ''}${version ? '@'.concat(version) : ''}`;
     },
-  },
-  {
-    accessorKey: 'externalId',
+    {
+      id: 'package',
+      header: 'Package',
+      cell: ({ row }) => {
+        return <div className='font-semibold'>{row.getValue('package')}</div>;
+      },
+    }
+  ),
+  columnHelper.accessor('vulnerability.externalId', {
+    id: 'externalId',
     header: 'External ID',
     cell: ({ row }) => (
       <Badge className='whitespace-nowrap bg-blue-300'>
-        {row.original.vulnerability.externalId}
+        {row.getValue('externalId')}
       </Badge>
     ),
-  },
-  {
-    accessorKey: 'rating',
-    header: 'Rating',
-    cell: ({ row }) => {
-      // Calculate the overall vulnerability rating based on the individual ratings
-      const ratings = row.original.vulnerability.references.map(
+  }),
+  columnHelper.accessor(
+    (vuln) => {
+      const ratings = vuln.vulnerability.references.map(
         (reference) => reference.severity
       );
-      const overallRating = calcOverallVulnerability(ratings);
-
-      return (
-        <Badge
-          className={`${getVulnerabilityRatingBackgroundColor(overallRating)}`}
-        >
-          {overallRating}
-        </Badge>
-      );
+      return calcOverallVulnerability(ratings);
     },
-  },
-  {
-    accessorKey: 'summary',
-    header: 'Summary',
-    cell: ({ row }) => {
-      return (
-        <div className='italic text-muted-foreground'>
-          {row.original.vulnerability.summary}
-        </div>
-      );
+    {
+      id: 'rating',
+      header: 'Rating',
+      cell: ({ row }) => {
+        return (
+          <Badge
+            className={`${getVulnerabilityRatingBackgroundColor(row.getValue('rating'))}`}
+          >
+            {row.getValue('rating')}
+          </Badge>
+        );
+      },
+      // Use a special sorting function to sort by the severity rating.
+      // Sorting order: CRITICAL > HIGH > MEDIUM > LOW > NONE.
+      sortingFn: (rowA, rowB) => {
+        return (
+          VulnerabilityRatings[
+            rowA.getValue('rating') as keyof typeof VulnerabilityRatings
+          ] -
+          VulnerabilityRatings[
+            rowB.getValue('rating') as keyof typeof VulnerabilityRatings
+          ]
+        );
+      },
+    }
+  ),
+  columnHelper.accessor(
+    (row) => {
+      return row.vulnerability.summary;
     },
-  },
-  {
+    {
+      id: 'summary',
+      header: 'Summary',
+      cell: ({ row }) => {
+        return (
+          <div className='italic text-muted-foreground'>
+            {row.getValue('summary')}
+          </div>
+        );
+      },
+      enableSorting: false,
+    }
+  ),
+  columnHelper.display({
     id: 'moreInfo',
     header: () => null,
     size: 50,
@@ -139,7 +164,8 @@ const columns: ColumnDef<VulnerabilityWithIdentifier>[] = [
         'No info'
       );
     },
-  },
+    enableSorting: false,
+  }),
 ];
 
 const renderSubComponent = ({
@@ -197,8 +223,28 @@ const renderSubComponent = ({
 const VulnerabilitiesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
-  const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+
+  // All of these need to be memoized to prevent unnecessary re-renders
+  // and (at least for Firefox) the browser freezing up.
+
+  const pageIndex = useMemo(
+    () => (search.page ? search.page - 1 : 0),
+    [search.page]
+  );
+
+  const pageSize = useMemo(
+    () => (search.pageSize ? search.pageSize : defaultPageSize),
+    [search.pageSize]
+  );
+
+  const sortBy = useMemo(() => {
+    return search.sortBy
+      ? search.sortBy.split(',').map((sortParam) => {
+          const [id, desc] = sortParam.split('.');
+          return { id, desc: desc === 'desc' };
+        })
+      : undefined;
+  }, [search.sortBy]);
 
   const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
     repositoryId: Number.parseInt(params.repoId),
@@ -212,26 +258,25 @@ const VulnerabilitiesComponent = () => {
     error,
   } = useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
     runId: ortRun.id,
-    limit: pageSize,
-    offset: pageIndex * pageSize,
+    limit: 100000,
   });
 
   const table = useReactTable({
     data: vulnerabilities?.data || [],
     columns,
-    pageCount: Math.ceil(
-      (vulnerabilities?.pagination.totalCount ?? 0) / pageSize
-    ),
     state: {
       pagination: {
         pageIndex,
         pageSize,
       },
+      sorting: sortBy,
     },
     getCoreRowModel: getCoreRowModel(),
-    getRowCanExpand: () => true,
     getExpandedRowModel: getExpandedRowModel(),
-    manualPagination: true,
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowCanExpand: () => true,
+    enableMultiSort: false,
   });
 
   if (isPending) {
@@ -283,6 +328,29 @@ const VulnerabilitiesComponent = () => {
                 search: { ...search, page: 1, pageSize: size },
               };
             }}
+            setSortingOptions={(sortBy) => {
+              const sortByString = sortBy
+                .filter((sort) => sort.sortBy !== null)
+                .map(({ id, sortBy }) => `${id}.${sortBy}`)
+                .join(',');
+              // When the sorting is reset (clicking the header when it is in descending mode),
+              // remove the sortBy parameter completely from the URL, to pass route validation.
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { sortBy: _, ...rest } = search;
+              if (sortByString.length === 0) {
+                return {
+                  to: Route.to,
+                  search: rest,
+                };
+              }
+              return {
+                to: Route.to,
+                search: {
+                  ...search,
+                  sortBy: sortByString,
+                },
+              };
+            }}
           />
         </CardContent>
       </CardContent>
@@ -293,7 +361,7 @@ const VulnerabilitiesComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/vulnerabilities/'
 )({
-  validateSearch: paginationSchema,
+  validateSearch: paginationSchema.merge(tableSortingSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
       repositoryId: Number.parseInt(params.repoId),
