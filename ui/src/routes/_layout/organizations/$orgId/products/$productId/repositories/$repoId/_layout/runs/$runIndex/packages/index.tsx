@@ -21,8 +21,11 @@ import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
   getCoreRowModel,
+  getExpandedRowModel,
+  Row,
   useReactTable,
 } from '@tanstack/react-table';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import { usePackagesServiceGetPackagesByRunId } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
@@ -31,6 +34,7 @@ import { Package } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -84,7 +88,92 @@ const columns = [
       </a>
     ),
   }),
+  columnHelper.display({
+    id: 'moreInfo',
+    header: () => null,
+    size: 50,
+    cell: ({ row }) => {
+      return row.getCanExpand() ? (
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={row.getToggleExpandedHandler()}
+          style={{ cursor: 'pointer' }}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronUp className='h-4 w-4' />
+          ) : (
+            <ChevronDown className='h-4 w-4' />
+          )}
+        </Button>
+      ) : (
+        'No info'
+      );
+    },
+    enableSorting: false,
+  }),
 ];
+
+const renderSubComponent = ({ row }: { row: Row<Package> }) => {
+  const pkg = row.original;
+
+  return (
+    <div className='flex flex-col gap-4'>
+      <div className='text-lg font-semibold'>Details</div>
+      <div className='flex flex-col gap-2'>
+        <div>
+          <div className='font-semibold'>Description</div>
+          <div className='break-all'>
+            {pkg.description || 'No description available'}
+          </div>
+        </div>
+        <div>
+          <div className='font-semibold'>Repository</div>
+          <div className='ml-2'>
+            <div className='flex gap-2'>
+              <div className='font-semibold'>URL:</div>
+              <a
+                href={pkg.vcsProcessed.url}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='text-blue-400 hover:underline'
+              >
+                {pkg.vcsProcessed.url}
+              </a>
+            </div>
+            {pkg.vcsProcessed.type && (
+              <div className='flex gap-2'>
+                <div className='font-semibold'>Type:</div>
+                <div>{pkg.vcsProcessed.type}</div>
+              </div>
+            )}
+            {pkg.vcsProcessed.revision && (
+              <div className='flex gap-2'>
+                <div className='font-semibold'>Revision:</div>
+                <div>{pkg.vcsProcessed.revision}</div>
+              </div>
+            )}
+            {pkg.vcsProcessed.path && (
+              <div className='flex gap-2'>
+                <div className='font-semibold'>Path:</div>
+                <div>{pkg.vcsProcessed.path} </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div>
+          <div className='font-semibold'>Source Artifact</div>
+          <a
+            href={pkg.sourceArtifact.url}
+            className='text-blue-400 hover:underline'
+          >
+            {pkg.sourceArtifact.url}
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const PackagesComponent = () => {
   const params = Route.useParams();
@@ -119,6 +208,8 @@ const PackagesComponent = () => {
       },
     },
     getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getRowCanExpand: () => true,
     manualPagination: true,
   });
 
@@ -149,6 +240,7 @@ const PackagesComponent = () => {
       <CardContent>
         <DataTable
           table={table}
+          renderSubComponent={renderSubComponent}
           setCurrentPageOptions={(currentPage) => {
             return {
               to: Route.to,
