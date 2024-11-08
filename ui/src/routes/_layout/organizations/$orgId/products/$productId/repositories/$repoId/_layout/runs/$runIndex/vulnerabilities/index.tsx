@@ -56,10 +56,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
-import {
-  getVulnerabilityRatingBackgroundColor,
-  VulnerabilityRatings,
-} from '@/helpers/get-status-class';
+import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
+import { identifierToString } from '@/helpers/identifier-to-string';
+import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
 import { paginationSchema, tableSortingSchema } from '@/schemas';
 
@@ -70,8 +69,7 @@ const columnHelper = createColumnHelper<VulnerabilityWithIdentifier>();
 const columns = [
   columnHelper.accessor(
     (vuln) => {
-      const { type, namespace, name, version } = vuln.identifier;
-      return `${type ? type.concat(':') : ''}${namespace ? namespace.concat('/') : ''}${name ? name : ''}${version ? '@'.concat(version) : ''}`;
+      return identifierToString(vuln.identifier);
     },
     {
       id: 'package',
@@ -109,16 +107,10 @@ const columns = [
           </Badge>
         );
       },
-      // Use a special sorting function to sort by the severity rating.
-      // Sorting order: CRITICAL > HIGH > MEDIUM > LOW > NONE.
       sortingFn: (rowA, rowB) => {
-        return (
-          VulnerabilityRatings[
-            rowA.getValue('rating') as keyof typeof VulnerabilityRatings
-          ] -
-          VulnerabilityRatings[
-            rowB.getValue('rating') as keyof typeof VulnerabilityRatings
-          ]
+        return compareVulnerabilityRating(
+          rowA.getValue('rating'),
+          rowB.getValue('rating')
         );
       },
     }

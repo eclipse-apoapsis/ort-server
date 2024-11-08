@@ -63,6 +63,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
+import { identifierToString } from '@/helpers/identifier-to-string';
 import { paginationSchema, tableGroupingSchema } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -83,10 +84,7 @@ const columns: ColumnDef<RuleViolation>[] = [
   },
   {
     accessorFn: (ruleViolation) => {
-      return `${ruleViolation.packageId?.type ? ruleViolation.packageId?.type.concat(':') : ''}
-        ${ruleViolation.packageId?.namespace ? ruleViolation.packageId?.namespace.concat('/') : ''}
-        ${ruleViolation.packageId?.name ? ruleViolation.packageId?.name : ''}
-        ${ruleViolation.packageId?.version ? '@'.concat(ruleViolation.packageId?.version) : ''}`;
+      return identifierToString(ruleViolation.packageId);
     },
     header: 'Package',
     cell: ({ getValue }) => {

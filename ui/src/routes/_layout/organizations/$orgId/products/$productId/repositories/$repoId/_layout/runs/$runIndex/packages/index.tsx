@@ -42,6 +42,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { identifierToString } from '@/helpers/identifier-to-string';
 import { toast } from '@/lib/toast';
 import { paginationSchema } from '@/schemas';
 
@@ -52,8 +53,7 @@ const columnHelper = createColumnHelper<Package>();
 const columns = [
   columnHelper.accessor(
     (pkg) => {
-      const { type, namespace, name, version } = pkg.identifier;
-      return `${type ? type.concat(':') : ''}${namespace ? namespace.concat('/') : ''}${name ? name : ''}${version ? '@'.concat(version) : ''}`;
+      return identifierToString(pkg.identifier);
     },
     {
       id: 'package',
