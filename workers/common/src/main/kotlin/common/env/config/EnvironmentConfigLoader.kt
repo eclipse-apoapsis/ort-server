@@ -111,8 +111,8 @@ class EnvironmentConfigLoader(
      * cause exceptions to be thrown. Semantic errors are handled according to the `strict` flag.
      */
     fun resolveAndParse(repositoryFolder: File, environmentConfigPath: String? = null): EnvironmentConfig =
-        resolveEnvironmentFile(repositoryFolder, environmentConfigPath)?.let { config ->
-            parse(config)
+        resolveEnvironmentConfigFile(repositoryFolder, environmentConfigPath)?.let { config ->
+            parseEnvironmentConfigFile(config)
         } ?: EnvironmentConfig()
 
     /**
@@ -120,7 +120,7 @@ class EnvironmentConfigLoader(
      * the given file path does not exist or is 'null', the default file path `.ort.env.yml` is used instead. Return the
      * resolved file.
      */
-    internal fun resolveEnvironmentFile(repositoryFolder: File, environmentConfigPath: String? = null): File? {
+    internal fun resolveEnvironmentConfigFile(repositoryFolder: File, environmentConfigPath: String? = null): File? {
         val customEnvironmentConfigFile = environmentConfigPath?.let {
             repositoryFolder.resolve(it).takeIf { file -> file.isFile }.alsoIfNull {
                 logger.warn("Custom environment configuration file '$environmentConfigPath' not found.")
@@ -139,12 +139,13 @@ class EnvironmentConfigLoader(
     }
 
     /**
-     * Parse the environment configuration file [configFile] and return the content as an [ResolvedEnvironmentConfig].
+     * Parse the environment configuration file [environmentConfigFile] and return the content as an
+     * [ResolvedEnvironmentConfig].
      */
-    internal fun parse(configFile: File): EnvironmentConfig {
-        logger.info("Parsing environment configuration file '{}'.", configFile)
+    internal fun parseEnvironmentConfigFile(environmentConfigFile: File): EnvironmentConfig {
+        logger.info("Parsing environment configuration file '{}'.", environmentConfigFile)
 
-        return configFile.inputStream().use { stream ->
+        return environmentConfigFile.inputStream().use { stream ->
             Yaml.default.decodeFromStream(EnvironmentConfig.serializer(), stream)
         }
     }
