@@ -23,13 +23,15 @@ import { JobStatus, OrtRunStatus, Severity } from '@/api/requests';
 export type Status = JobStatus | OrtRunStatus | undefined;
 
 // There is no vulnerability rating in the OpenApi spec, so define it here.
-export const VulnerabilityRatings = {
+export const vulnerabilityRatings = {
   CRITICAL: 4,
   HIGH: 3,
   MEDIUM: 2,
   LOW: 1,
   NONE: 0,
 } as const;
+
+export type VulnerabilityRating = keyof typeof vulnerabilityRatings;
 
 // TailwindCSS classes matching to statuses
 //
@@ -119,7 +121,7 @@ export function getStatusClass(status: Status): string {
 
 // Get the color class for coloring the background of vulnerability ratings
 export function getVulnerabilityRatingBackgroundColor(
-  rating: keyof typeof VulnerabilityRatings
+  rating: VulnerabilityRating
 ): string {
   switch (rating) {
     case 'CRITICAL':
