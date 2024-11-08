@@ -110,7 +110,17 @@ class EnvironmentConfigLoader(
      * content. If not file path is provided, the default path `.ort.env.yml` is used. Syntactic errors in the file
      * cause exceptions to be thrown. Semantic errors are handled according to the `strict` flag.
      */
-    fun parse(repositoryFolder: File, environmentConfigPath: String? = null): EnvironmentConfig {
+    fun resolveAndParse(repositoryFolder: File, environmentConfigPath: String? = null): EnvironmentConfig =
+        resolveEnvironmentFile(repositoryFolder, environmentConfigPath)?.let { config ->
+            parse(config)
+        } ?: EnvironmentConfig()
+
+    /**
+     * Resolve the environment configuration file [environmentConfigPath] in the given folder [repositoryFolder]. If
+     * the given file path does not exist or is 'null', the default file path `.ort.env.yml` is used instead. Return the
+     * resolved file.
+     */
+    internal fun resolveEnvironmentFile(repositoryFolder: File, environmentConfigPath: String? = null): File? {
         val customEnvironmentConfigFile = environmentConfigPath?.let {
             repositoryFolder.resolve(it).takeIf { file -> file.isFile }.alsoIfNull {
                 logger.warn("Custom environment configuration file '$environmentConfigPath' not found.")
@@ -125,13 +135,18 @@ class EnvironmentConfigLoader(
             null
         }
 
-        return (customEnvironmentConfigFile ?: defaultEnvironmentConfigFile)?.let { configFile ->
-            logger.info("Parsing environment configuration file '{}'.", configFile)
+        return (customEnvironmentConfigFile ?: defaultEnvironmentConfigFile)
+    }
 
-            configFile.inputStream().use { stream ->
-                Yaml.default.decodeFromStream(EnvironmentConfig.serializer(), stream)
-            }
-        } ?: EnvironmentConfig()
+    /**
+     * Parse the environment configuration file [configFile] and return the content as an [ResolvedEnvironmentConfig].
+     */
+    internal fun parse(configFile: File): EnvironmentConfig {
+        logger.info("Parsing environment configuration file '{}'.", configFile)
+
+        return configFile.inputStream().use { stream ->
+            Yaml.default.decodeFromStream(EnvironmentConfig.serializer(), stream)
+        }
     }
 
     /**

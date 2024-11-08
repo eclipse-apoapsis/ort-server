@@ -575,7 +575,7 @@ private fun mockConfigLoader(config: ResolvedEnvironmentConfig): EnvironmentConf
     every { envConfig.merge(any()) } returns envConfig
 
     return mockk<EnvironmentConfigLoader> {
-        every { parse(repositoryFolder) } returns envConfig
+        every { resolveAndParse(repositoryFolder) } returns envConfig
         every { resolve(any(), repositoryHierarchy) } returns config
     }
 }
@@ -594,7 +594,7 @@ private fun mockConfigLoader(
     every { mockConfig.merge(envConfig) } returns envConfig
 
     return mockk {
-        every { parse(repositoryFolder) } returns mockConfig
+        every { resolveAndParse(repositoryFolder) } returns mockConfig
         every { resolve(envConfig, repositoryHierarchy) } returns resultConfig
     }
 }
