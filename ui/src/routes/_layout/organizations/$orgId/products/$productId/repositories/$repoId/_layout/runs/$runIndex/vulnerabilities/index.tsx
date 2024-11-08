@@ -56,10 +56,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
-import {
-  getVulnerabilityRatingBackgroundColor,
-  VulnerabilityRatings,
-} from '@/helpers/get-status-class';
+import { getPackageId } from '@/helpers/get-package-id';
+import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import { sortByVulnerabilityRating } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
 import { paginationSchema, tableSortingSchema } from '@/schemas';
@@ -71,8 +69,7 @@ const columnHelper = createColumnHelper<VulnerabilityWithIdentifier>();
 const columns = [
   columnHelper.accessor(
     (vuln) => {
-      const { type, namespace, name, version } = vuln.identifier;
-      return `${type ? type.concat(':') : ''}${namespace ? namespace.concat('/') : ''}${name ? name : ''}${version ? '@'.concat(version) : ''}`;
+      return getPackageId(vuln.identifier);
     },
     {
       id: 'package',

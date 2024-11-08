@@ -50,6 +50,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { getPackageId } from '@/helpers/get-package-id';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
 import { sortBySeverity } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
@@ -83,10 +84,7 @@ const columns = [
   }),
   columnHelper.accessor(
     (issue) => {
-      const { type, namespace, name, version } = issue.identifier
-        ? issue.identifier
-        : {};
-      return `${type ? type.concat(':') : ''}${namespace ? namespace.concat('/') : ''}${name ? name : ''}${version ? '@'.concat(version) : ''}`;
+      return getPackageId(issue.identifier);
     },
     {
       id: 'package',
