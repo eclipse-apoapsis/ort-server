@@ -77,7 +77,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val helper = TestHelper()
             val config = copyConfig(".ort.env.definitions.yml")
 
-            val resolvedFileName = helper.loader().resolveEnvironmentFile(config.parentFile)
+            val resolvedFileName = helper.loader().resolveEnvironmentConfigFile(config.parentFile)
 
             resolvedFileName.shouldNotBeNull {
                 name shouldBe EnvironmentConfigLoader.DEFAULT_CONFIG_FILE_PATH
@@ -88,7 +88,10 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val helper = TestHelper()
             val config = copyConfig(".ort.env.definitions.yml", ".ort.env.definitions.yml")
 
-            val resolvedFileName = helper.loader().resolveEnvironmentFile(config.parentFile, ".ort.env.definitions.yml")
+            val resolvedFileName = helper.loader().resolveEnvironmentConfigFile(
+                config.parentFile,
+                ".ort.env.definitions.yml"
+            )
 
             resolvedFileName.shouldNotBeNull {
                 name shouldBe ".ort.env.definitions.yml"
@@ -99,7 +102,10 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val helper = TestHelper()
             val config = copyConfig(".ort.env.definitions.yml")
 
-            val resolvedFileName = helper.loader().resolveEnvironmentFile(config.parentFile, ".ort.env.definitions.yml")
+            val resolvedFileName = helper.loader().resolveEnvironmentConfigFile(
+                config.parentFile,
+                ".ort.env.definitions.yml"
+            )
 
             resolvedFileName.shouldNotBeNull {
                 name shouldBe EnvironmentConfigLoader.DEFAULT_CONFIG_FILE_PATH
@@ -109,7 +115,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
         "A configuration file can be handled that does not contain any services" {
             val helper = TestHelper()
 
-            val config = parseConfig(".ort.env.no-services.yml", helper)
+            val config = parseConfig(".ort.env.no-services.yml", helper).resolve(helper)
 
             config shouldBe ResolvedEnvironmentConfig()
         }
@@ -125,7 +131,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                 createTestService(2, userSecret, pass2Secret)
             )
 
-            val config = parseConfig(".ort.env.simple.yml", helper)
+            val config = parseConfig(".ort.env.simple.yml", helper).resolve(helper)
 
             config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
         }
@@ -141,7 +147,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                 createTestService(2, userSecret, pass2Secret).copy(credentialsTypes = emptySet())
             )
 
-            val config = parseConfig(".ort.env.no-credentials-types.yml", helper)
+            val config = parseConfig(".ort.env.no-credentials-types.yml", helper).resolve(helper)
 
             config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
         }
@@ -157,7 +163,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
                 createTestService(2, userSecret, pass2Secret)
             )
 
-            val config = parseConfig(".ort.env.simple.yml", helper)
+            val config = parseConfig(".ort.env.simple.yml", helper).resolve(helper)
 
             config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
         }
@@ -168,7 +174,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             helper.createSecret("testPassword1", repository = repository)
             helper.createSecret("testPassword2", repository = repository)
 
-            parseConfig(".ort.env.simple.yml", helper)
+            parseConfig(".ort.env.simple.yml", helper).resolve(helper)
 
             verify(exactly = 0) {
                 helper.secretRepository.listForProduct(any(), any())
@@ -181,7 +187,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             helper.createSecret("testPassword1", organization = organization)
 
             val exception = shouldThrow<EnvironmentConfigException> {
-                parseConfig(".ort.env.simple.yml", helper)
+                parseConfig(".ort.env.simple.yml", helper).resolve(helper)
             }
 
             exception.message shouldContain "testUser"
@@ -195,7 +201,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
 
             val expectedServices = listOf(createTestService(2, userSecret, pass2Secret))
 
-            val config = parseConfig(".ort.env.non-strict.yml", helper)
+            val config = parseConfig(".ort.env.non-strict.yml", helper).resolve(helper)
 
             config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
         }
@@ -220,7 +226,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             helper.createSecret("testPassword2", repository = repository)
 
             val exception = shouldThrow<EnvironmentConfigException> {
-                parseConfig(".ort.env.definitions-errors.yml", helper)
+                parseConfig(".ort.env.definitions-errors.yml", helper).resolve(helper)
             }
 
             exception.message shouldContain "'Non-existing service'"
@@ -266,7 +272,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             helper.createSecret("testSecret1", repository = repository)
 
             val exception = shouldThrow<EnvironmentConfigException> {
-                parseConfig(".ort.env.variables.yml", helper)
+                parseConfig(".ort.env.variables.yml", helper).resolve(helper)
             }
 
             exception.message shouldContain "testSecret2"
@@ -277,7 +283,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val secret1 = helper.createSecret("testSecret1", repository = repository)
             val secret2 = helper.createSecret("testSecret2", repository = repository)
 
-            val config = parseConfig(".ort.env.variables.yml", helper)
+            val config = parseConfig(".ort.env.variables.yml", helper).resolve(helper)
 
             config.environmentVariables shouldContainExactlyInAnyOrder listOf(
                 SecretVariableDefinition("variable1", secret1),
@@ -289,7 +295,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             val helper = TestHelper()
             val secret1 = helper.createSecret("testSecret1", repository = repository)
 
-            val config = parseConfig(".ort.env.variables-non-strict.yml", helper)
+            val config = parseConfig(".ort.env.variables-non-strict.yml", helper).resolve(helper)
 
             config.environmentVariables shouldContainExactlyInAnyOrder listOf(
                 SecretVariableDefinition("variable1", secret1),
@@ -418,7 +424,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
         "Simple environment variable definitions are processed" {
             val helper = TestHelper()
 
-            val config = parseConfig(".ort.env.direct-variables.yml", helper)
+            val config = parseConfig(".ort.env.direct-variables.yml", helper).resolve(helper)
 
             config.environmentVariables shouldContainExactlyInAnyOrder listOf(
                 SimpleVariableDefinition("variable1", value = "testValue1"),
@@ -453,7 +459,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
     private fun parseConfig(name: String, helper: TestHelper): EnvironmentConfig {
         val fileToParse = copyConfig(name)
 
-        return helper.loader().parse(fileToParse)
+        return helper.loader().parseEnvironmentConfigFile(fileToParse)
     }
 
     /**
