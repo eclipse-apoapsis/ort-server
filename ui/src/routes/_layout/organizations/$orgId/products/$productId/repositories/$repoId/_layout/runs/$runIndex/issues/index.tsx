@@ -24,6 +24,7 @@ import {
   getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   Row,
   useReactTable,
 } from '@tanstack/react-table';
@@ -50,11 +51,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
+import { identifierToString } from '@/helpers/identifier-to-string';
+import { compareSeverity } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
 import {
   issueSeverity,
   issueSeveritySchema,
   paginationSchema,
+  tableSortingSchema,
 } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -74,30 +78,27 @@ const columns = [
     filterFn: (row, _columnId, filterValue): boolean => {
       return filterValue.includes(row.original.severity);
     },
-  }),
-  columnHelper.display({
-    id: 'package',
-    header: 'Package ID',
-    cell: function CellComponent({ row }) {
-      if (!row.original.identifier) {
-        return null;
-      }
-      const { type, namespace, name, version } = row.original.identifier;
-      return (
-        <div className='font-semibold'>
-          {type ? type.concat(':') : ''}
-          {namespace ? namespace.concat('/') : ''}
-          {name ? name : ''}
-          {version ? '@'.concat(version) : ''}
-        </div>
-      );
+    sortingFn: (rowA, rowB) => {
+      return compareSeverity(rowA.original.severity, rowB.original.severity);
     },
   }),
+  columnHelper.accessor(
+    (issue) => {
+      return identifierToString(issue.identifier);
+    },
+    {
+      id: 'package',
+      header: 'Package ID',
+      cell: ({ row }) => {
+        return <div className='font-semibold'>{row.getValue('package')}</div>;
+      },
+    }
+  ),
   columnHelper.accessor('affectedPath', {
     header: 'Affected Path',
     cell: ({ row }) => row.original.affectedPath,
+    enableSorting: false,
   }),
-
   columnHelper.accessor('source', {
     header: 'Source',
     cell: ({ row }) => row.original.source,
@@ -125,6 +126,7 @@ const columns = [
         'No info'
       );
     },
+    enableSorting: false,
   }),
 ];
 
@@ -174,6 +176,15 @@ const IssuesComponent = () => {
     [severity]
   );
 
+  const sortBy = useMemo(() => {
+    return search.sortBy
+      ? search.sortBy.split(',').map((sortParam) => {
+          const [id, desc] = sortParam.split('.');
+          return { id, desc: desc === 'desc' };
+        })
+      : undefined;
+  }, [search.sortBy]);
+
   const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
     repositoryId: Number.parseInt(params.repoId),
     ortRunIndex: Number.parseInt(params.runIndex),
@@ -198,11 +209,13 @@ const IssuesComponent = () => {
         pageSize,
       },
       columnFilters,
+      sorting: sortBy,
     },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
   });
 
@@ -274,6 +287,29 @@ const IssuesComponent = () => {
               search: { ...search, page: 1, pageSize: size },
             };
           }}
+          setSortingOptions={(sortBy) => {
+            const sortByString = sortBy
+              .filter((sort) => sort.sortBy !== null)
+              .map(({ id, sortBy }) => `${id}.${sortBy}`)
+              .join(',');
+            // When the sorting is reset (clicking the header when it is in descending mode),
+            // remove the sortBy parameter completely from the URL, to pass route validation.
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { sortBy: _, ...rest } = search;
+            if (sortByString.length === 0) {
+              return {
+                to: Route.to,
+                search: rest,
+              };
+            }
+            return {
+              to: Route.to,
+              search: {
+                ...search,
+                sortBy: sortByString,
+              },
+            };
+          }}
         />
       </CardContent>
     </Card>
@@ -283,7 +319,9 @@ const IssuesComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/issues/'
 )({
-  validateSearch: paginationSchema.merge(issueSeveritySchema),
+  validateSearch: paginationSchema
+    .merge(issueSeveritySchema)
+    .merge(tableSortingSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
       repositoryId: Number.parseInt(params.repoId),
