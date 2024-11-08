@@ -31,6 +31,8 @@ export const VulnerabilityRatings = {
   NONE: 0,
 } as const;
 
+export type VulnerabilityRating = keyof typeof VulnerabilityRatings;
+
 // TailwindCSS classes matching to statuses
 //
 // Note: all color classes need to be defined as they are here, as they
@@ -119,7 +121,7 @@ export function getStatusClass(status: Status): string {
 
 // Get the color class for coloring the background of vulnerability ratings
 export function getVulnerabilityRatingBackgroundColor(
-  rating: keyof typeof VulnerabilityRatings
+  rating: VulnerabilityRating
 ): string {
   switch (rating) {
     case 'CRITICAL':
