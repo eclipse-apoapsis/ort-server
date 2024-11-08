@@ -61,7 +61,7 @@ const Layout = () => {
         },
         {
           title: 'Vulnerabilities',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities?sortBy=rating.desc',
           params,
           icon: () => <ShieldQuestion className='h-4 w-4' />,
         },
@@ -84,7 +84,7 @@ const Layout = () => {
       items: [
         {
           title: 'Issues',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues?sortBy=severity.desc',
           params,
           icon: () => <Bug className='h-4 w-4' />,
         },
