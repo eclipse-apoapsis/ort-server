@@ -60,6 +60,7 @@ import {
   getVulnerabilityRatingBackgroundColor,
   VulnerabilityRatings,
 } from '@/helpers/get-status-class';
+import { sortByVulnerabilityRating } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
 import { paginationSchema, tableSortingSchema } from '@/schemas';
 
@@ -109,16 +110,10 @@ const columns = [
           </Badge>
         );
       },
-      // Use a special sorting function to sort by the severity rating.
-      // Sorting order: CRITICAL > HIGH > MEDIUM > LOW > NONE.
       sortingFn: (rowA, rowB) => {
-        return (
-          VulnerabilityRatings[
-            rowA.getValue('rating') as keyof typeof VulnerabilityRatings
-          ] -
-          VulnerabilityRatings[
-            rowB.getValue('rating') as keyof typeof VulnerabilityRatings
-          ]
+        return sortByVulnerabilityRating(
+          rowA.getValue('rating'),
+          rowB.getValue('rating')
         );
       },
     }
