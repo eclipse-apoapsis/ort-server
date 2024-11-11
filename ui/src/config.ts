@@ -47,6 +47,10 @@ const oidcConfig = {
   client_id: CLIENT_ID,
   automaticSilentRenew: true,
   loadUserInfo: true,
+  onSigninCallback: () => {
+    // This removes the query parameters from the URL after a successful login.
+    window.history.replaceState({}, document.title, window.location.pathname);
+  },
 } satisfies AuthProviderProps;
 
 const serverClientId = CLIENT_ID_SERVER;
