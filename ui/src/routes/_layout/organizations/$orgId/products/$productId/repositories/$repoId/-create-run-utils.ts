@@ -180,26 +180,25 @@ export function defaultValues(
    * @returns The default options.
    */
   const defaultPackageManagerOptions = (
-    packageManagerId?: PackageManagerId,
+    packageManagerId: PackageManagerId,
     enabledByDefault: boolean = true
   ) => {
-    if (packageManagerId) {
+    if (ortRun) {
       return {
         enabled:
           ortRun?.jobConfigs.analyzer?.enabledPackageManagers?.includes(
             packageManagerId
-          ) || true,
+          ) || false,
         options: convertMapToArray(
           ortRun?.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
             ?.options || {}
         ),
       };
-    } else {
-      return {
-        enabled: enabledByDefault,
-        options: [],
-      };
     }
+    return {
+      enabled: enabledByDefault,
+      options: [],
+    };
   };
 
   // Default values for the form: edit only these, not the defaultValues object.
@@ -213,31 +212,31 @@ export function defaultValues(
         allowDynamicVersions: true,
         skipExcluded: true,
         packageManagers: {
-          Bazel: defaultPackageManagerOptions(),
-          Bower: defaultPackageManagerOptions(),
-          Bundler: defaultPackageManagerOptions(),
-          Cargo: defaultPackageManagerOptions(),
-          Carthage: defaultPackageManagerOptions(),
-          CocoaPods: defaultPackageManagerOptions(),
-          Composer: defaultPackageManagerOptions(),
-          Conan: defaultPackageManagerOptions(),
-          GoMod: defaultPackageManagerOptions(),
-          Gradle: defaultPackageManagerOptions(undefined, false),
-          GradleInspector: defaultPackageManagerOptions(),
-          Maven: defaultPackageManagerOptions(),
-          NPM: defaultPackageManagerOptions(),
-          NuGet: defaultPackageManagerOptions(),
-          PIP: defaultPackageManagerOptions(),
-          Pipenv: defaultPackageManagerOptions(),
-          PNPM: defaultPackageManagerOptions(),
-          Poetry: defaultPackageManagerOptions(),
-          Pub: defaultPackageManagerOptions(),
-          SBT: defaultPackageManagerOptions(),
-          SpdxDocumentFile: defaultPackageManagerOptions(),
-          Stack: defaultPackageManagerOptions(),
-          SwiftPM: defaultPackageManagerOptions(),
-          Yarn: defaultPackageManagerOptions(),
-          Yarn2: defaultPackageManagerOptions(),
+          Bazel: defaultPackageManagerOptions('Bazel'),
+          Bower: defaultPackageManagerOptions('Bower'),
+          Bundler: defaultPackageManagerOptions('Bundler'),
+          Cargo: defaultPackageManagerOptions('Cargo'),
+          Carthage: defaultPackageManagerOptions('Carthage'),
+          CocoaPods: defaultPackageManagerOptions('CocoaPods'),
+          Composer: defaultPackageManagerOptions('Composer'),
+          Conan: defaultPackageManagerOptions('Conan'),
+          GoMod: defaultPackageManagerOptions('GoMod'),
+          Gradle: defaultPackageManagerOptions('Gradle', false),
+          GradleInspector: defaultPackageManagerOptions('GradleInspector'),
+          Maven: defaultPackageManagerOptions('Maven'),
+          NPM: defaultPackageManagerOptions('NPM'),
+          NuGet: defaultPackageManagerOptions('NuGet'),
+          PIP: defaultPackageManagerOptions('PIP'),
+          Pipenv: defaultPackageManagerOptions('Pipenv'),
+          PNPM: defaultPackageManagerOptions('PNPM'),
+          Poetry: defaultPackageManagerOptions('Poetry'),
+          Pub: defaultPackageManagerOptions('Pub'),
+          SBT: defaultPackageManagerOptions('SBT'),
+          SpdxDocumentFile: defaultPackageManagerOptions('SpdxDocumentFile'),
+          Stack: defaultPackageManagerOptions('Stack'),
+          SwiftPM: defaultPackageManagerOptions('SwiftPM'),
+          Yarn: defaultPackageManagerOptions('Yarn'),
+          Yarn2: defaultPackageManagerOptions('Yarn2'),
         },
       },
       advisor: {
@@ -308,34 +307,9 @@ export function defaultValues(
             skipExcluded:
               ortRun.jobConfigs.analyzer?.skipExcluded ||
               baseDefaults.jobConfigs.analyzer.skipExcluded,
-            packageManagers: {
-              Bazel: defaultPackageManagerOptions('Bazel'),
-              Bower: defaultPackageManagerOptions('Bower'),
-              Bundler: defaultPackageManagerOptions('Bundler'),
-              Cargo: defaultPackageManagerOptions('Cargo'),
-              Carthage: defaultPackageManagerOptions('Carthage'),
-              CocoaPods: defaultPackageManagerOptions('CocoaPods'),
-              Composer: defaultPackageManagerOptions('Composer'),
-              Conan: defaultPackageManagerOptions('Conan'),
-              GoMod: defaultPackageManagerOptions('GoMod'),
-              Gradle: defaultPackageManagerOptions('Gradle'),
-              GradleInspector: defaultPackageManagerOptions('GradleInspector'),
-              Maven: defaultPackageManagerOptions('Maven'),
-              NPM: defaultPackageManagerOptions('NPM'),
-              NuGet: defaultPackageManagerOptions('NuGet'),
-              PIP: defaultPackageManagerOptions('PIP'),
-              Pipenv: defaultPackageManagerOptions('Pipenv'),
-              PNPM: defaultPackageManagerOptions('PNPM'),
-              Poetry: defaultPackageManagerOptions('Poetry'),
-              Pub: defaultPackageManagerOptions('Pub'),
-              SBT: defaultPackageManagerOptions('SBT'),
-              SpdxDocumentFile:
-                defaultPackageManagerOptions('SpdxDocumentFile'),
-              Stack: defaultPackageManagerOptions('Stack'),
-              SwiftPM: defaultPackageManagerOptions('SwiftPM'),
-              Yarn: defaultPackageManagerOptions('Yarn'),
-              Yarn2: defaultPackageManagerOptions('Yarn2'),
-            },
+            // defaultPackageManagerOptions gets the options from the previous run already in the
+            // baseDefaults object, so those values can be used here.
+            packageManagers: baseDefaults.jobConfigs.analyzer.packageManagers,
           },
           advisor: {
             enabled:
