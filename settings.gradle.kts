@@ -23,6 +23,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "ort-server"
 
+include(":api:v1:client")
 include(":api:v1:mapping")
 include(":api:v1:model")
 include(":cli")
@@ -68,6 +69,7 @@ include(":workers:notifier")
 include(":workers:reporter")
 include(":workers:scanner")
 
+project(":api:v1:client").name = "api-v1-client"
 project(":api:v1:mapping").name = "api-v1-mapping"
 project(":api:v1:model").name = "api-v1-model"
 project(":config:spi").name = "config-spi"
