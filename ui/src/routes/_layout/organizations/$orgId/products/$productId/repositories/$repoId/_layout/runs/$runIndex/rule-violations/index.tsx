@@ -19,7 +19,7 @@
 
 import { createFileRoute } from '@tanstack/react-router';
 import {
-  ColumnDef,
+  createColumnHelper,
   getCoreRowModel,
   getExpandedRowModel,
   getGroupedRowModel,
@@ -68,9 +68,10 @@ import { paginationSchema, tableGroupingSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const columns: ColumnDef<RuleViolation>[] = [
-  {
-    accessorFn: (ruleViolation) => ruleViolation.severity,
+const columnHelper = createColumnHelper<RuleViolation>();
+
+const columns = [
+  columnHelper.accessor('severity', {
     header: 'Severity',
     cell: ({ row }) => {
       return (
@@ -81,28 +82,27 @@ const columns: ColumnDef<RuleViolation>[] = [
         </Badge>
       );
     },
-  },
-  {
-    accessorFn: (ruleViolation) => {
+  }),
+  columnHelper.accessor(
+    (ruleViolation) => {
       return identifierToString(ruleViolation.packageId);
     },
-    header: 'Package',
-    cell: ({ getValue }) => {
-      // TypeScript gets confused, but type casting to string is safe here,
-      // because the accessor function returns a string.
-      return <div className='font-semibold'>{getValue() as string}</div>;
-    },
-  },
-  {
-    accessorFn: (ruleViolation) => ruleViolation.rule,
+    {
+      header: 'Package',
+      cell: ({ getValue }) => {
+        return <div className='font-semibold'>{getValue()}</div>;
+      },
+    }
+  ),
+  columnHelper.accessor('rule', {
     header: 'Rule',
     cell: ({ row }) => (
       <Badge className='whitespace-nowrap bg-blue-300'>
         {row.original.rule}
       </Badge>
     ),
-  },
-  {
+  }),
+  columnHelper.display({
     id: 'moreInfo',
     header: () => null,
     enableGrouping: false,
@@ -122,7 +122,7 @@ const columns: ColumnDef<RuleViolation>[] = [
         <TooltipContent>Show the details of the rule violation</TooltipContent>
       </Tooltip>
     ),
-  },
+  }),
 ];
 
 // TODO: This is a temporary solution, which will be replaced with
