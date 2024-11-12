@@ -57,6 +57,7 @@ import {
   createRunFormSchema,
   CreateRunFormValues,
   defaultValues,
+  flattenErrors,
   formValuesToPayload,
 } from './-create-run-utils';
 
@@ -404,7 +405,18 @@ const CreateRunPage = () => {
               />
             </Accordion>
           </CardContent>
-          <CardFooter>
+          <CardFooter className='flex flex-col items-start gap-4'>
+            {Object.keys(form.formState.errors).length > 0 && (
+              <p className='text-[0.8rem] font-medium text-destructive'>
+                {flattenErrors(form.formState.errors).map(
+                  ({ path, message }) => (
+                    <div key={path}>
+                      <strong>{path}:</strong> {message}
+                    </div>
+                  )
+                )}
+              </p>
+            )}
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
