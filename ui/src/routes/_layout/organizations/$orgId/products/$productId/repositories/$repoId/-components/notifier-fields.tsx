@@ -41,9 +41,15 @@ import { CreateRunFormValues } from '../-create-run-utils';
 
 type NotifierFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
+  value: string;
+  onToggle: () => void;
 };
 
-export const NotifierFields = ({ form }: NotifierFieldsProps) => {
+export const NotifierFields = ({
+  form,
+  value,
+  onToggle,
+}: NotifierFieldsProps) => {
   const { fields, append, remove } = useFieldArray({
     name: 'jobConfigs.notifier.mail.recipientAddresses',
     control: form.control,
@@ -64,8 +70,8 @@ export const NotifierFields = ({ form }: NotifierFieldsProps) => {
           </FormControl>
         )}
       />
-      <AccordionItem value='notifier' className='flex-1'>
-        <AccordionTrigger>Notifier</AccordionTrigger>
+      <AccordionItem value={value} className='flex-1'>
+        <AccordionTrigger onClick={onToggle}>Notifier</AccordionTrigger>
         <AccordionContent>
           <FormField
             control={form.control}

@@ -36,9 +36,15 @@ import { CreateRunFormValues } from '../-create-run-utils';
 
 type ScannerFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
+  value: string;
+  onToggle: () => void;
 };
 
-export const ScannerFields = ({ form }: ScannerFieldsProps) => {
+export const ScannerFields = ({
+  form,
+  value,
+  onToggle,
+}: ScannerFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -54,8 +60,8 @@ export const ScannerFields = ({ form }: ScannerFieldsProps) => {
           </FormControl>
         )}
       />
-      <AccordionItem value='scanner' className='flex-1'>
-        <AccordionTrigger>Scanner</AccordionTrigger>
+      <AccordionItem value={value} className='flex-1'>
+        <AccordionTrigger onClick={onToggle}>Scanner</AccordionTrigger>
         <AccordionContent>
           <FormField
             control={form.control}
