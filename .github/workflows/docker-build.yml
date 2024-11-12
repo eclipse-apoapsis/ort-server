@@ -29,8 +29,6 @@ jobs:
         # image: Name of the image, used for the Docker image name.
         # context: Path to the Docker context directory.
         # dockerfile: Path of the Dockerfile to use, relative to context.
-        # imageVariant (optional): Variant of the image, used for the Docker image tag.
-        # buildArgs (optional): Build arguments to pass to the Docker build.
         #
         # If the image is built with Jib:
         # jibImage: Name of the image built by Jib.
@@ -113,26 +111,6 @@ jobs:
       if: ${{ matrix.docker.preparationTask != '' }}
       run: ./gradlew ${{ matrix.docker.preparationTask }}
 
-    - name: Compute the tags
-      run: |
-        VARIANT=${{ matrix.docker.imageVariant || '' }}
-        DOCKER_IMAGE_TAG=${{ env.ORT_SERVER_VERSION }}
-
-        if [[ -n $VARIANT ]]; then
-          DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG-${{ matrix.docker.imageVariant }}
-        fi
-        echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG" >> $GITHUB_ENV
-
-    - name: Compute Tag Suffix
-      id: compute-tag-suffix
-      run: |
-        if [[ "${{ matrix.docker.imageVariant }}" == "jdk17" || "${{ matrix.docker.imageVariant }}" == "" ]]; then
-          # No suffix.
-          echo "::set-output name=suffix::"
-        else
-          echo "::set-output name=suffix::-${{ matrix.docker.imageVariant }}"
-        fi
-
     - name: Extract Docker Metadata for ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
       id: meta-base
@@ -140,24 +118,22 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}
         tags: |
-          type=raw,value=${{ env.DOCKER_IMAGE_TAG }}
-          type=ref,event=branch,suffix=${{ steps.compute-tag-suffix.outputs.suffix }}
-          type=sha,suffix=${{ steps.compute-tag-suffix.outputs.suffix }}
-          type=raw,value=latest,enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != 'jdk11' && matrix.docker.imageVariant != 'jdk21'}}
-          type=raw,value=latest-${{ matrix.docker.imageVariant}},enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != ''}}
+          type=raw,value=${{ env.ORT_SERVER_VERSION }}
+          type=ref,event=branch
+          type=sha
+          type=raw,value=latest,enable=${{ is_default_branch }}
 
-    - name: Build ${{ matrix.docker.image }} Image with '${{ matrix.docker.imageVariant || 'default' }}' variant
+    - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
       uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6
       with:
         context: ${{ matrix.docker.context }}
         file: ${{ matrix.docker.context }}/${{ matrix.docker.dockerfile }}
-        build-args: ${{ matrix.docker.buildArgs }}
         push: true
         tags: ${{ steps.meta-base.outputs.tags }}
         labels: ${{ steps.meta-base.outputs.labels }}
-        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache${{ steps.compute-tag-suffix.outputs.suffix }}
-        cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache${{ steps.compute-tag-suffix.outputs.suffix }},mode=max
+        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache
+        cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache,mode=max
 
     - name: Extract Docker Metadata for ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
@@ -165,20 +141,19 @@ jobs:
       uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
       with:
         tags: |
-          type=raw,value=${{ env.DOCKER_IMAGE_TAG }}
-          type=ref,event=branch,suffix=${{ steps.compute-tag-suffix.outputs.suffix }}
-          type=sha,suffix=${{ steps.compute-tag-suffix.outputs.suffix }}
-          type=raw,value=latest,enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != 'jdk11' && matrix.docker.imageVariant != 'jdk21'}}
-          type=raw,value=latest-${{ matrix.docker.imageVariant}},enable=${{github.ref == 'refs/heads/main' && matrix.docker.imageVariant != ''}}
+          type=raw,value=${{ env.ORT_SERVER_VERSION }}
+          type=ref,event=branch
+          type=sha
+          type=raw,value=latest,enable=${{ is_default_branch}}
 
-    - name: Build ${{ matrix.docker.jibImage }} Image with '${{ matrix.docker.imageVariant || 'default' }}' variant
+    - name: Build ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
       run: |
         ./gradlew \
           -PdockerBaseImagePrefix=${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
-          -PdockerBaseImageTag=${{ env.DOCKER_IMAGE_TAG }} \
+          -PdockerBaseImageTag=${{ env.ORT_SERVER_VERSION }} \
           -PdockerImagePrefix=${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
-          -PdockerImageTag=${{ env.DOCKER_IMAGE_TAG }} \
+          -PdockerImageTag=${{ env.ORT_SERVER_VERSION }} \
           ${{ matrix.docker.task }} \
           -Djib.console=plain \
           -Djib.container.labels="$(echo "${{ steps.meta.outputs.labels }}" | tr '\n' ',' | sed 's/,$//')" \
