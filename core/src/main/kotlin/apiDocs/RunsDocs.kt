@@ -28,12 +28,14 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package
@@ -447,6 +449,38 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
                                 setOf(OrtRunStatus.FINISHED)
                             )
                         )
+                    )
+                }
+            }
+        }
+    }
+}
+
+val getOrtRunStatistics: OpenApiRoute.() -> Unit = {
+    operationId = "getOrtRunStatistics"
+    summary = "Get statistics about an ORT run."
+    tags = listOf("Runs")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<OrtRunStatistics> {
+                example("Get ORT run statistics") {
+                    value = OrtRunStatistics(
+                        issuesCount = 10,
+                        packagesCount = 200,
+                        ecosystems = listOf(
+                            EcosystemStats("Maven", 20),
+                            EcosystemStats("NPM", 145)
+                           ),
+                        vulnerabilitiesCount = 3,
+                        ruleViolationsCount = 5,
                     )
                 }
             }

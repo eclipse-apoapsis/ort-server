@@ -42,12 +42,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getIssuesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatistics
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRuns
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getPackagesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
@@ -62,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
 import org.eclipse.apoapsis.ortserver.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
@@ -82,6 +85,7 @@ import org.koin.ktor.ext.inject
 /**
  * API for the run's endpoint. This endpoint provides information related to ORT runs and their results.
  */
+@Suppress("LongMethod")
 fun Route.runs() = route("runs") {
     val issueService by inject<IssueService>()
     val ortRunRepository by inject<OrtRunRepository>()
@@ -248,6 +252,53 @@ fun Route.runs() = route("runs") {
                         downloadData.contentType,
                         producer = downloadData.loader,
                         contentLength = downloadData.contentLength
+                    )
+                }
+            }
+        }
+
+        route("statistics") {
+            get(getOrtRunStatistics) {
+                call.forRun(ortRunRepository) { ortRun ->
+                    requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                    val jobs = repositoryService.getJobs(ortRun.repositoryId, ortRun.index)
+
+                    val finishedStateSet: Set<JobStatus> = setOf(JobStatus.FINISHED, JobStatus.FINISHED_WITH_ISSUES)
+
+                    val analyzerJobInFinalState = jobs?.analyzer?.status in finishedStateSet.plus(JobStatus.FAILED)
+                    val analyzerJobInFinishedState = jobs?.analyzer?.status in finishedStateSet
+                    val advisorJobInFinishedState = jobs?.advisor?.status in finishedStateSet
+                    val evaluatorJobInFinishedState = jobs?.evaluator?.status in finishedStateSet
+
+                    val issuesCount = if (analyzerJobInFinalState) issueService.countForOrtRunId(ortRun.id) else null
+
+                    val packagesCount =
+                        if (analyzerJobInFinishedState) packageService.countForOrtRunId(ortRun.id) else null
+
+                    val ecosystems = if (analyzerJobInFinishedState) {
+                        packageService.countEcosystemsForOrtRun(ortRun.id).map { ecosystemStats ->
+                            ecosystemStats.mapToApi()
+                        }
+                    } else {
+                        null
+                    }
+
+                    val vulnerabilitiesCount =
+                        if (advisorJobInFinishedState) vulnerabilityService.countForOrtRunId(ortRun.id) else null
+
+                    val ruleViolationsCount =
+                        if (evaluatorJobInFinishedState) ruleViolationService.countForOrtRunId(ortRun.id) else null
+
+                    call.respond(
+                        HttpStatusCode.OK,
+                        OrtRunStatistics(
+                            issuesCount,
+                            packagesCount,
+                            ecosystems,
+                            vulnerabilitiesCount,
+                            ruleViolationsCount,
+                        )
                     )
                 }
             }

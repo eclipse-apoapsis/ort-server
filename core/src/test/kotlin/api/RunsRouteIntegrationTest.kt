@@ -68,6 +68,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
@@ -90,6 +91,7 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
@@ -1338,6 +1340,449 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 ruleViolationsResponse.data[1] shouldBe ruleViolations[3].mapToApi()
                 ruleViolationsResponse.data[2] shouldBe ruleViolations[1].mapToApi()
                 ruleViolationsResponse.data[3] shouldBe ruleViolations[0].mapToApi()
+            }
+        }
+    }
+
+    "GET /runs/{runId}/statistics" should {
+        "return the counts for issues, packages, ecosystems, vulnerabilities and rule violations" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val now = Clock.System.now()
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRun.id,
+                    configuration = AnalyzerJobConfiguration()
+                )
+
+                dbExtension.fixtures.analyzerRunRepository.create(
+                    analyzerJobId = analyzerJob.id,
+                    startTime = now.toDatabasePrecision(),
+                    endTime = now.toDatabasePrecision(),
+                    environment = Environment(
+                        ortVersion = "1.0",
+                        javaVersion = "11.0.16",
+                        os = "Linux",
+                        processors = 8,
+                        maxMemory = 8321499136,
+                        variables = emptyMap(),
+                        toolVersions = emptyMap()
+                    ),
+                    config = AnalyzerConfiguration(
+                        allowDynamicVersions = true,
+                        enabledPackageManagers = emptyList(),
+                        disabledPackageManagers = emptyList(),
+                        packageManagers = emptyMap(),
+                        skipExcluded = true
+                    ),
+                    projects = emptySet(),
+                    packages = setOf(
+                        Package(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            purl = "pkg:maven/com.example/example@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                spdxExpression = null,
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet(),
+                            ),
+                            description = "An example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        ),
+                        Package(
+                            Identifier("NPM", "com.example", "example2", "1.0"),
+                            purl = "pkg:npm/com.example/example2@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = null,
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            ),
+                            description = "Another example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        )
+                    ),
+                    issues = listOf(
+                        Issue(
+                            timestamp = now.minus(1.hours).toDatabasePrecision(),
+                            source = "Maven",
+                            message = "Issue 1",
+                            severity = Severity.ERROR,
+                            affectedPath = "path",
+                            identifier = Identifier("Maven", "com.example", "example", "1.0"),
+                        ),
+                    ),
+                    dependencyGraphs = emptyMap()
+                )
+
+                dbExtension.fixtures.analyzerJobRepository.update(
+                    analyzerJob.id,
+                    finishedAt = Clock.System.now().asPresent(),
+                    status = JobStatus.FINISHED_WITH_ISSUES.asPresent()
+                )
+
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(ortRun.id)
+
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = now.toDatabasePrecision(),
+                    endTime = now.toDatabasePrecision(),
+                    environment = Environment(
+                        ortVersion = "1.0",
+                        javaVersion = "11.0.16",
+                        os = "Linux",
+                        processors = 8,
+                        maxMemory = 8321499136,
+                        variables = emptyMap(),
+                        toolVersions = emptyMap()
+                    ),
+                    config = AdvisorConfiguration(
+                        config = mapOf(
+                            "VulnerableCode" to PluginConfiguration(
+                                options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+                                secrets = mapOf("apiKey" to "key")
+                            )
+                        )
+                    ),
+                    results = mapOf(
+                        Identifier("NPM", "com.example", "example2", "1.0") to listOf(
+                            AdvisorResult(
+                                advisorName = "Advisor",
+                                capabilities = listOf("vulnerabilities"),
+                                startTime = now.toDatabasePrecision(),
+                                endTime = now.toDatabasePrecision(),
+                                issues = listOf(
+                                    Issue(
+                                        timestamp = now.minus(1.hours).toDatabasePrecision(),
+                                        source = "Advisor",
+                                        message = "Issue 1",
+                                        severity = Severity.ERROR,
+                                        affectedPath = "path"
+                                    ),
+                                    Issue(
+                                        timestamp = now.toDatabasePrecision(),
+                                        source = "Advisor",
+                                        message = "Issue 2",
+                                        severity = Severity.WARNING,
+                                        affectedPath = "path"
+                                    )
+                                ),
+                                defects = emptyList(),
+                                vulnerabilities = listOf(
+                                    Vulnerability(
+                                        externalId = "CVE-2021-1234",
+                                        summary = "A vulnerability",
+                                        description = "A description",
+                                        references = emptyList()
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob.id,
+                    finishedAt = Clock.System.now().asPresent(),
+                    status = JobStatus.FINISHED_WITH_ISSUES.asPresent()
+                )
+
+                val evaluatorJob = dbExtension.fixtures.createEvaluatorJob(
+                    ortRunId = ortRun.id,
+                    configuration = EvaluatorJobConfiguration()
+                )
+
+                dbExtension.fixtures.evaluatorRunRepository.create(
+                    evaluatorJobId = evaluatorJob.id,
+                    startTime = now.toDatabasePrecision(),
+                    endTime = now.toDatabasePrecision(),
+                    violations = listOf(
+                        // 4th record after sort by "rule"
+                        OrtRuleViolation(
+                            "z-Rule-1",
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            "License-1",
+                            "CONCLUDED",
+                            Severity.WARNING,
+                            "Message-1",
+                            "How_to_fix-1"
+                        ),
+                        // 3rd record after sort by "rule"
+                        OrtRuleViolation(
+                            "b-Rule-2",
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            "License-2",
+                            "DETECTED",
+                            Severity.ERROR,
+                            "Message-2",
+                            "How_to_fix-2"
+                        ),
+                        // 1st record after sort by "rule"
+                        OrtRuleViolation(
+                            "1-Rule-3",
+                            Identifier("NPM", "com.example", "example2", "1.0"),
+                            "License-3",
+                            "CONCLUDED",
+                            Severity.WARNING,
+                            "Message-3",
+                            "How_to_fix-3"
+                        ),
+                        // 2nd record after sort by "rule", without package identifier
+                        OrtRuleViolation(
+                            "a-Rule-4",
+                            null,
+                            "License-4",
+                            "CONCLUDED",
+                            Severity.WARNING,
+                            "Message-4",
+                            "How_to_fix-4"
+                        )
+                    )
+                )
+
+                dbExtension.fixtures.evaluatorJobRepository.update(
+                    evaluatorJob.id,
+                    finishedAt = Clock.System.now().asPresent(),
+                    status = JobStatus.FINISHED_WITH_ISSUES.asPresent()
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/statistics")
+
+                response.status shouldBe HttpStatusCode.OK
+
+                val statistics = response.body<OrtRunStatistics>()
+
+                statistics.issuesCount shouldBe 3
+                statistics.packagesCount shouldBe 2
+                statistics.vulnerabilitiesCount shouldBe 1
+                statistics.ruleViolationsCount shouldBe 4
+
+                with(statistics.ecosystems) {
+                    shouldNotBeNull()
+                    shouldHaveSize(2)
+                    first().name shouldBe "Maven"
+                    first().count shouldBe 1
+                    last().name shouldBe "NPM"
+                    last().count shouldBe 1
+                }
+            }
+        }
+
+        "return null for the count if the corresponding job is skipped or has not finished yet" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val now = Clock.System.now()
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRun.id,
+                    configuration = AnalyzerJobConfiguration()
+                )
+
+                dbExtension.fixtures.analyzerRunRepository.create(
+                    analyzerJobId = analyzerJob.id,
+                    startTime = now.toDatabasePrecision(),
+                    endTime = now.toDatabasePrecision(),
+                    environment = Environment(
+                        ortVersion = "1.0",
+                        javaVersion = "11.0.16",
+                        os = "Linux",
+                        processors = 8,
+                        maxMemory = 8321499136,
+                        variables = emptyMap(),
+                        toolVersions = emptyMap()
+                    ),
+                    config = AnalyzerConfiguration(
+                        allowDynamicVersions = true,
+                        enabledPackageManagers = emptyList(),
+                        disabledPackageManagers = emptyList(),
+                        packageManagers = emptyMap(),
+                        skipExcluded = true
+                    ),
+                    projects = emptySet(),
+                    packages = setOf(
+                        Package(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            purl = "pkg:maven/com.example/example@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                spdxExpression = null,
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet(),
+                            ),
+                            description = "An example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        ),
+                        Package(
+                            Identifier("NPM", "com.example", "example2", "1.0"),
+                            purl = "pkg:npm/com.example/example2@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = null,
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            ),
+                            description = "Another example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        )
+                    ),
+                    issues = listOf(
+                        Issue(
+                            timestamp = now.minus(1.hours).toDatabasePrecision(),
+                            source = "Maven",
+                            message = "Issue 1",
+                            severity = Severity.ERROR,
+                            affectedPath = "path",
+                            identifier = Identifier("Maven", "com.example", "example", "1.0"),
+                        ),
+                    ),
+                    dependencyGraphs = emptyMap()
+                )
+
+                dbExtension.fixtures.analyzerJobRepository.update(
+                    analyzerJob.id,
+                    finishedAt = Clock.System.now().asPresent(),
+                    status = JobStatus.FINISHED_WITH_ISSUES.asPresent()
+                )
+
+                dbExtension.fixtures.createAdvisorJob(ortRun.id)
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/statistics")
+
+                response.status shouldBe HttpStatusCode.OK
+
+                val statistics = response.body<OrtRunStatistics>()
+
+                statistics.issuesCount shouldBe 1
+                statistics.packagesCount shouldBe 2
+                statistics.ecosystems?.size shouldBe 2
+                statistics.vulnerabilitiesCount shouldBe null
+                statistics.ruleViolationsCount shouldBe null
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val ortRun = dbExtension.fixtures.createOrtRun(
+                repositoryId = repositoryId,
+                revision = "revision",
+                jobConfigurations = JobConfigurations()
+            )
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/${ortRun.id}/statistics")
             }
         }
     }
