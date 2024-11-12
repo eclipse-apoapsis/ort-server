@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { FieldErrors } from 'react-hook-form';
 import { z } from 'zod';
 
 import { AnalyzerJobConfiguration, CreateOrtRun, OrtRun } from '@/api/requests';
@@ -159,6 +160,51 @@ const convertArrayToMap = (
     },
     {} as { [key: string]: string }
   );
+};
+
+// Define the type for the returned error messages with full paths
+type FlattenedError = {
+  path: string;
+  message: string;
+};
+
+/**
+ * Flatten the error object returned by react-hook-form to an array of error messages with full paths.
+ * The function traverses recursively the object paths until it finds the error messages, and stores
+ * the messages and paths into the messages to the return array.
+ *
+ * @param errors - An array of error objects to be processed.
+ * @param path - The path to the current object in the object tree. It is used for recursion.
+ * @returns An array of error messages with full paths.
+ */
+export const flattenErrors = (
+  errors: FieldErrors<CreateRunFormValues>,
+  path = ''
+): FlattenedError[] => {
+  let result: FlattenedError[] = [];
+
+  for (const key in errors) {
+    const errorKey = key as keyof FieldErrors<CreateRunFormValues>;
+    const error = errors[errorKey];
+
+    if (error?.message) {
+      // Base case: if this entry has a message, add it to the result
+      result.push({
+        path: path ? `${path}.${key}` : key,
+        message: error.message as string, // Cast to string since message is usually typed as string | undefined
+      });
+    } else if (typeof error === 'object') {
+      // Recursive case: traverse nested objects
+      result = result.concat(
+        flattenErrors(
+          error as FieldErrors<CreateRunFormValues>,
+          path ? `${path}.${key}` : key
+        )
+      );
+    }
+  }
+
+  return result;
 };
 
 // Derive the type of packageManagerId from the ids of packageManagers
