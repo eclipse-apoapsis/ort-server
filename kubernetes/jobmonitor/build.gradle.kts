@@ -56,12 +56,9 @@ dependencies {
     implementation(libs.kubernetesClientExtended)
     implementation(libs.typesafeConfig)
 
-    runtimeOnly(projects.transport.activemqartemis)
-    runtimeOnly(projects.transport.kubernetes)
-    runtimeOnly(projects.transport.rabbitmq)
-    runtimeOnly(projects.transport.sqs)
-
     runtimeOnly(projects.config.secretFile)
+    runtimeOnly(platform(projects.transport))
+
     runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(projects.transport.transportSpi))

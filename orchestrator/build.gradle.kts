@@ -45,10 +45,7 @@ dependencies {
     implementation(projects.utils.logging)
 
     runtimeOnly(projects.config.secretFile)
-    runtimeOnly(projects.transport.activemqartemis)
-    runtimeOnly(projects.transport.kubernetes)
-    runtimeOnly(projects.transport.rabbitmq)
-    runtimeOnly(projects.transport.sqs)
+    runtimeOnly(platform(projects.transport))
 
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))

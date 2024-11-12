@@ -53,14 +53,8 @@ dependencies {
     implementation(libs.typesafeConfig)
     implementation(platform(libs.ortAdvisors))
 
-    runtimeOnly(projects.config.git)
-    runtimeOnly(projects.config.github)
-    runtimeOnly(projects.config.local)
-    runtimeOnly(projects.config.secretFile)
-    runtimeOnly(projects.transport.activemqartemis)
-    runtimeOnly(projects.transport.kubernetes)
-    runtimeOnly(projects.transport.rabbitmq)
-    runtimeOnly(projects.transport.sqs)
+    runtimeOnly(platform(projects.config))
+    runtimeOnly(platform(projects.transport))
 
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
