@@ -20,6 +20,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -63,6 +64,26 @@ const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const ortRun = Route.useLoaderData();
+
+  type AccordionSection =
+    | 'analyzer'
+    | 'advisor'
+    | 'scanner'
+    | 'evaluator'
+    | 'reporter'
+    | 'notifier';
+
+  const [openAccordions, setOpenAccordions] = useState<AccordionSection[]>([]);
+
+  // Manually toggle accordion open/close state
+  const toggleAccordionOpen = (value: AccordionSection) => {
+    setOpenAccordions(
+      (prev) =>
+        prev.includes(value)
+          ? prev.filter((v) => v !== value) // Close accordion if open
+          : [...prev, value] // Open accordion if closed
+    );
+  };
 
   const { mutateAsync, isPending } = useRepositoriesServicePostOrtRun({
     onSuccess() {
@@ -120,13 +141,43 @@ const CreateRunPage = () => {
     });
   }
 
+  const onValidationFailed = (errors: typeof form.formState.errors) => {
+    // Determine which accordions contain errors
+    const accordionsWithErrors: AccordionSection[] = [];
+
+    if (errors.jobConfigs?.analyzer) {
+      accordionsWithErrors.push('analyzer');
+    }
+    if (errors.jobConfigs?.advisor) {
+      accordionsWithErrors.push('advisor');
+    }
+    if (errors.jobConfigs?.scanner) {
+      accordionsWithErrors.push('scanner');
+    }
+    if (errors.jobConfigs?.evaluator) {
+      accordionsWithErrors.push('evaluator');
+    }
+    if (errors.jobConfigs?.reporter) {
+      accordionsWithErrors.push('reporter');
+    }
+    if (errors.jobConfigs?.notifier) {
+      accordionsWithErrors.push('notifier');
+    }
+
+    // Open the accordions with errors
+    setOpenAccordions(accordionsWithErrors);
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Create an ORT run</CardTitle>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onValidationFailed)}
+          className='space-y-8'
+        >
           <CardContent>
             <FormField
               control={form.control}
@@ -314,13 +365,43 @@ const CreateRunPage = () => {
               NOTE: Currently, the Analyzer needs to always run as part of an
               ORT Run.
             </div>
-            <Accordion type='multiple'>
-              <AnalyzerFields form={form} />
-              <AdvisorFields form={form} />
-              <ScannerFields form={form} />
-              <EvaluatorFields form={form} />
-              <ReporterFields form={form} />
-              <NotifierFields form={form} />
+            <Accordion
+              type='multiple'
+              value={openAccordions}
+              onValueChange={(value) =>
+                setOpenAccordions(value as AccordionSection[])
+              }
+            >
+              <AnalyzerFields
+                form={form}
+                value='analyzer'
+                onToggle={() => toggleAccordionOpen('analyzer')}
+              />
+              <AdvisorFields
+                form={form}
+                value='advisor'
+                onToggle={() => toggleAccordionOpen('advisor')}
+              />
+              <ScannerFields
+                form={form}
+                value='scanner'
+                onToggle={() => toggleAccordionOpen('scanner')}
+              />
+              <EvaluatorFields
+                form={form}
+                value='evaluator'
+                onToggle={() => toggleAccordionOpen('evaluator')}
+              />
+              <ReporterFields
+                form={form}
+                value='reporter'
+                onToggle={() => toggleAccordionOpen('reporter')}
+              />
+              <NotifierFields
+                form={form}
+                value='notifier'
+                onToggle={() => toggleAccordionOpen('notifier')}
+              />
             </Accordion>
           </CardContent>
           <CardFooter>

@@ -38,9 +38,15 @@ import { CreateRunFormValues } from '../-create-run-utils';
 
 type AdvisorFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
+  value: string;
+  onToggle: () => void;
 };
 
-export const AdvisorFields = ({ form }: AdvisorFieldsProps) => {
+export const AdvisorFields = ({
+  form,
+  value,
+  onToggle,
+}: AdvisorFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -56,8 +62,8 @@ export const AdvisorFields = ({ form }: AdvisorFieldsProps) => {
           </FormControl>
         )}
       />
-      <AccordionItem value='advisor' className='flex-1'>
-        <AccordionTrigger>Advisor</AccordionTrigger>
+      <AccordionItem value={value} className='flex-1'>
+        <AccordionTrigger onClick={onToggle}>Advisor</AccordionTrigger>
         <AccordionContent>
           <FormField
             control={form.control}

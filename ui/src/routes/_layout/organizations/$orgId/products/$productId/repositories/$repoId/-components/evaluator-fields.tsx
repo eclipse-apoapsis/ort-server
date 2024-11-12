@@ -38,9 +38,15 @@ import { CreateRunFormValues } from '../-create-run-utils';
 
 type EvaluatorFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
+  value: string;
+  onToggle: () => void;
 };
 
-export const EvaluatorFields = ({ form }: EvaluatorFieldsProps) => {
+export const EvaluatorFields = ({
+  form,
+  value,
+  onToggle,
+}: EvaluatorFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -56,8 +62,8 @@ export const EvaluatorFields = ({ form }: EvaluatorFieldsProps) => {
           </FormControl>
         )}
       />
-      <AccordionItem value='evaluator' className='flex-1'>
-        <AccordionTrigger>Evaluator</AccordionTrigger>
+      <AccordionItem value={value} className='flex-1'>
+        <AccordionTrigger onClick={onToggle}>Evaluator</AccordionTrigger>
         <AccordionContent>
           <div className='text-sm text-gray-500'>
             In case any input field is left empty, the default path from the

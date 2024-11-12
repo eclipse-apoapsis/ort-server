@@ -39,9 +39,15 @@ import { PackageManagerField } from './package-manager-field';
 
 type AnalyzerFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
+  value: string;
+  onToggle: () => void;
 };
 
-export const AnalyzerFields = ({ form }: AnalyzerFieldsProps) => {
+export const AnalyzerFields = ({
+  form,
+  value,
+  onToggle,
+}: AnalyzerFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -58,8 +64,8 @@ export const AnalyzerFields = ({ form }: AnalyzerFieldsProps) => {
           </FormControl>
         )}
       />
-      <AccordionItem value='analyzer' className='flex-1'>
-        <AccordionTrigger>Analyzer</AccordionTrigger>
+      <AccordionItem value={value} className='flex-1'>
+        <AccordionTrigger onClick={onToggle}>Analyzer</AccordionTrigger>
         <AccordionContent className='flex flex-col gap-6'>
           <FormField
             control={form.control}

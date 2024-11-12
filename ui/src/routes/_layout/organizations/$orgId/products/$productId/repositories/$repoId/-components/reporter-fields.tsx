@@ -32,9 +32,15 @@ import { CreateRunFormValues } from '../-create-run-utils';
 
 type ReporterFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
+  value: string;
+  onToggle: () => void;
 };
 
-export const ReporterFields = ({ form }: ReporterFieldsProps) => {
+export const ReporterFields = ({
+  form,
+  value,
+  onToggle,
+}: ReporterFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -50,8 +56,8 @@ export const ReporterFields = ({ form }: ReporterFieldsProps) => {
           </FormControl>
         )}
       />
-      <AccordionItem value='reporter' className='flex-1'>
-        <AccordionTrigger>Reporter</AccordionTrigger>
+      <AccordionItem value={value} className='flex-1'>
+        <AccordionTrigger onClick={onToggle}>Reporter</AccordionTrigger>
         <AccordionContent>
           <MultiSelectField
             form={form}
