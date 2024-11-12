@@ -57,6 +57,16 @@ class RuleViolationService(private val db: Database) {
 
         ListQueryResult(ruleViolationQueryResult.data, parameters, ruleViolationQueryResult.totalCount)
     }
+
+    suspend fun countForOrtRunId(ortRunId: Long): Long = db.dbQuery {
+        RuleViolationsTable
+            .innerJoin(EvaluatorRunsRuleViolationsTable)
+            .innerJoin(EvaluatorRunsTable)
+            .innerJoin(EvaluatorJobsTable)
+            .select(RuleViolationsTable.id)
+            .where { EvaluatorJobsTable.ortRunId eq ortRunId }
+            .count()
+    }
 }
 
 private fun ResultRow.toRuleViolation(): OrtRuleViolation {

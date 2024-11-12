@@ -366,6 +366,228 @@ class PackageServiceTest : WordSpec() {
                 results should beEmpty()
             }
         }
+
+        "countForOrtRunId" should {
+            "return count for packages found in an ORT run" {
+                val service = PackageService(db)
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        Package(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            purl = "pkg:maven/com.example/example@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = null,
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            ),
+                            description = "An example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        ),
+                        Package(
+                            Identifier("NPM", "com.example", "example2", "1.0"),
+                            purl = "pkg:npm/com.example/example2@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = null,
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            ),
+                            description = "Another example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        ),
+                    )
+                ).id
+
+                service.countForOrtRunId(ortRunId) shouldBe 2
+            }
+        }
+
+        "countEcosystemsForOrtRun" should {
+            "list package types and counts for packages found in an ORT run" {
+                val service = PackageService(db)
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        Package(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            purl = "pkg:maven/com.example/example@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = "Expression",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            ),
+                            description = "An example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        ),
+                        Package(
+                            Identifier("NPM", "com.example", "example2", "1.0"),
+                            purl = "pkg:npm/com.example/example2@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = "Expression",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            ),
+                            description = "Another example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example2-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        ),
+                        Package(
+                            Identifier("Maven", "com.example", "example3", "1.0"),
+                            purl = "pkg:maven/com.example/example3@1.0",
+                            cpe = null,
+                            authors = emptySet(),
+                            declaredLicenses = emptySet(),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = "Expression",
+                                mappedLicenses = emptyMap(),
+                                unmappedLicenses = emptySet()
+                            ),
+                            description = "Yet another example package",
+                            homepageUrl = "https://example.com",
+                            binaryArtifact = RemoteArtifact(
+                                "https://example.com/example3-1.0.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            sourceArtifact = RemoteArtifact(
+                                "https://example.com/example3-1.0-sources.jar",
+                                "sha1:value",
+                                "SHA-1"
+                            ),
+                            vcs = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            vcsProcessed = VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            isMetadataOnly = false,
+                            isModified = false
+                        )
+                    )
+                ).id
+
+                val ecosystems = service.countEcosystemsForOrtRun(ortRunId)
+
+                ecosystems shouldHaveSize 2
+                ecosystems.first().name shouldBe "Maven"
+                ecosystems.first().count shouldBe 2
+                ecosystems.last().name shouldBe "NPM"
+                ecosystems.last().count shouldBe 1
+            }
+        }
     }
 
     private fun createAnalyzerRunWithPackages(packages: Set<Package>): OrtRun {
