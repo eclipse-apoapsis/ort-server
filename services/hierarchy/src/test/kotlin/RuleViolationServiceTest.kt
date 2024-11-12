@@ -102,6 +102,15 @@ class RuleViolationServiceTest : WordSpec() {
                 }
             }
         }
+
+        "countForOrtRunId" should {
+            "return count for rule violations found in an ORT run" {
+                val service = RuleViolationService(db)
+                val ortRun = createRuleViolationEntries()
+
+                service.countForOrtRunId(ortRun.id) shouldBe 3
+            }
+        }
     }
 
     private fun generateRuleViolations(): List<OrtRuleViolation> =

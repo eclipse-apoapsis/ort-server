@@ -25,13 +25,17 @@ import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackageDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQuery
+import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
+import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.stringLiteral
 
 /**
  * A service to interact with packages.
@@ -50,6 +54,35 @@ class PackageService(private val db: Database) {
                 .where { AnalyzerJobsTable.ortRunId eq ortRunId }
         }
     }
+
+    suspend fun countForOrtRunId(ortRunId: Long): Long = db.dbQuery {
+        PackagesTable
+            .innerJoin(PackagesAnalyzerRunsTable)
+            .innerJoin(AnalyzerRunsTable)
+            .innerJoin(AnalyzerJobsTable)
+            .select(PackagesTable.id)
+            .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+            .count()
+    }
+
+    suspend fun countEcosystemsForOrtRun(ortRunId: Long): List<EcosystemStats> =
+        db.dbQuery {
+            val countAlias = Count(stringLiteral("*"))
+            PackagesTable
+                .innerJoin(IdentifiersTable)
+                .innerJoin(PackagesAnalyzerRunsTable)
+                .innerJoin(AnalyzerRunsTable)
+                .innerJoin(AnalyzerJobsTable)
+                .select(IdentifiersTable.type, countAlias)
+                .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+                .groupBy(IdentifiersTable.type)
+                .map { row ->
+                    EcosystemStats(
+                        row[IdentifiersTable.type],
+                        row[countAlias]
+                    )
+                }
+        }
 }
 
 private fun ResultRow.toPackage(): Package = PackageDao.wrapRow(this).mapToModel()

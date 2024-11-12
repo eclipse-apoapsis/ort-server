@@ -81,6 +81,13 @@ class IssueService(private val db: Database) {
         )
     }
 
+    suspend fun countForOrtRunId(ortRunId: Long): Long = db.dbQuery {
+        OrtRunsIssuesTable
+            .select(OrtRunsIssuesTable.id)
+            .where { OrtRunsIssuesTable.ortRunId eq ortRunId }
+            .count()
+    }
+
     private fun createOrtRunIssuesQuery(ortRunId: Long): Query {
         val issuesIdentifiersJoin = OrtRunsIssuesTable
             .innerJoin(IssuesTable, { issueId }, { IssuesTable.id })
