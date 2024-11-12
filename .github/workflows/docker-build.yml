@@ -42,7 +42,7 @@ jobs:
         - jibImage: orchestrator
           task: :orchestrator:jibDockerBuild
         - jibImage: kubernetes-jobmonitor
-          task: :transport:kubernetes-jobmonitor:jibDockerBuild
+          task: :kubernetes:jobmonitor:jibDockerBuild
         - jibImage: advisor-worker
           task: :workers:advisor:jibDockerBuild
         - image: analyzer-worker-base-image
