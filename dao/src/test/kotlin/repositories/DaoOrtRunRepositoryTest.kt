@@ -20,17 +20,23 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeLessThan
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsLabelsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -628,21 +634,49 @@ class DaoOrtRunRepositoryTest : StringSpec({
         ortRunRepository.get(ortRun.id) shouldBe updateResult
     }
 
-    "delete should delete the database entry" {
-        val ortRun = ortRunRepository.create(
-            repositoryId,
-            "revision",
-            null,
-            jobConfigurations,
-            null,
-            labelsMap,
-            traceId = "delete-without-trace",
-            null
-        )
+    "delete should delete the database entries" {
+        with(dbExtension.fixtures) {
+            createAnalyzerJob()
+            createAdvisorJob()
+            createScannerJob()
+            createEvaluatorJob()
+            createReporterJob()
+            createNotifierJob()
 
-        ortRunRepository.delete(ortRun.id)
+            val issue = Issue(
+                Instant.parse("2024-11-12T14:49:35Z"),
+                "test",
+                "A test issue",
+                Severity.WARNING,
+                "test/path",
+                null,
+                "Analyzer"
+            )
+            ortRunRepository.update(ortRun.id, issues = listOf(issue).asPresent())
 
-        ortRunRepository.listForRepository(repositoryId).data shouldBe emptyList()
+            ortRunRepository.delete(ortRun.id)
+
+            ortRunRepository.listForRepository(repository.id).data shouldBe emptyList()
+
+            analyzerJobRepository.getForOrtRun(ortRun.id) should beNull()
+            advisorJobRepository.getForOrtRun(ortRun.id) should beNull()
+            scannerJobRepository.getForOrtRun(ortRun.id) should beNull()
+            evaluatorJobRepository.getForOrtRun(ortRun.id) should beNull()
+            reporterJobRepository.getForOrtRun(ortRun.id) should beNull()
+            notifierJobRepository.getForOrtRun(ortRun.id) should beNull()
+        }
+
+        dbExtension.db.dbQuery {
+            val runIssues = OrtRunIssueDao.find {
+                OrtRunsIssuesTable.ortRunId eq dbExtension.fixtures.ortRun.id
+            }.toList()
+            runIssues should beEmpty()
+
+            val runLabels = OrtRunsLabelsTable.select(OrtRunsLabelsTable.labelId)
+                .where { OrtRunsLabelsTable.ortRunId eq dbExtension.fixtures.ortRun.id }
+                .toList()
+            runLabels should beEmpty()
+        }
     }
 })
 
