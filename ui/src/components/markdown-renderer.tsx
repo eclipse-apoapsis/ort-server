@@ -26,6 +26,7 @@ type MarkdownRendererProps = {
 export const MarkdownRenderer = ({ markdown }: MarkdownRendererProps) => {
   return (
     <Markdown
+      className='prose text-sm dark:prose-invert'
       components={{
         h1: ({ children }) => (
           <p
