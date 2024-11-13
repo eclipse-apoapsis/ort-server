@@ -141,7 +141,7 @@ const renderSubComponent = ({ row }: { row: Row<Issue> }) => {
         <div>by</div>
         <div className='font-semibold'>{issue.worker}</div>
       </div>
-      <div className='whitespace-pre-line italic text-muted-foreground'>
+      <div className='whitespace-pre-line break-all italic text-muted-foreground'>
         {issue.message || 'No details.'}
       </div>
     </div>
