@@ -28,7 +28,6 @@ import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.LabelDao
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunIssueDao
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsLabelsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
@@ -48,9 +47,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedCollection
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.max
 
 import org.slf4j.LoggerFactory
@@ -173,7 +170,6 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     }
 
     override fun delete(id: Long) = db.blockingQuery {
-        OrtRunsLabelsTable.deleteWhere { ortRunId eq id }
         OrtRunDao[id].delete()
     }
 }
