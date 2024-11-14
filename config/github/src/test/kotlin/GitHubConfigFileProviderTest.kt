@@ -530,13 +530,15 @@ private fun WireMockServer.stubUnexpectedJsonContentType() {
         ).withQueryParam("ref", equalTo(REVISION))
             .willReturn(
                 aResponse().withBody(
-                    "{\n" +
-                            "    \"name\": \"app.config\",\n" +
-                            "    \"path\": \"${CONFIG_PATH + 1}\",\n" +
-                            "    \"sha\": \"0a4721665650ba7143871b22ef878e5b81c8f8b5\",\n" +
-                            "    \"type\": \"file\",\n" +
-                            "    \"size\": 303\n" +
-                            "}"
+                    """
+                        {
+                          "name": "app.config",
+                          "path": "${CONFIG_PATH + 1}",
+                          "sha": "0a4721665650ba7143871b22ef878e5b81c8f8b5",
+                          "type": "file",
+                          "size": 303
+                        }
+                    """.trimIndent()
                 ).withHeader("Content-Type", JSON_CONTENT_TYPE_HEADER)
             )
     )
@@ -553,14 +555,16 @@ private fun WireMockServer.stubJsonFileContentType() {
         ).withQueryParam("ref", equalTo(REVISION + 1))
             .willReturn(
                 okJson(
-                    "{\n" +
-                            "    \"name\": \"app.config\",\n" +
-                            "    \"path\": \"$CONFIG_PATH\",\n" +
-                            "    \"sha\": \"0a4721665650ba7143871b22ef878e5b81c8f8b5\",\n" +
-                            "    \"size\": 303,\n" +
-                            "    \"type\": \"file\",\n" +
-                            "    \"content\": \"${Base64.encode(CONTENT.toByteArray())}\"\n" +
-                            "}"
+                    """
+                        {
+                          "name": "app.config",
+                          "path": "$CONFIG_PATH",
+                          "sha": "0a4721665650ba7143871b22ef878e5b81c8f8b5",
+                          "size": 303,
+                          "type": "file",
+                          "content": "${Base64.encode(CONTENT.toByteArray())}"
+                        }
+                    """.trimIndent()
                 )
             )
     )
@@ -576,29 +580,31 @@ private fun WireMockServer.stubDirectory() {
         ).withQueryParam("ref", equalTo(REVISION))
             .willReturn(
                 okJson(
-                    "[\n" +
-                            "{\n" +
-                            "    \"name\": \"app1.config\",\n" +
-                            "    \"path\": \"${CONFIG_PATH + 1}\",\n" +
-                            "    \"sha\": \"0a4721665650ba7143871b22ef878e5b81c8f8b6\",\n" +
-                            "    \"type\": \"file\",\n" +
-                            "    \"size\": 908\n" +
-                            "}," +
-                            "{\n" +
-                            "    \"name\": \"app2.config\",\n" +
-                            "    \"path\": \"${CONFIG_PATH + 2}\",\n" +
-                            "    \"sha\": \"0a4721665650ba7143871b22ef878e5b81c8f8b7\",\n" +
-                            "    \"type\": \"file\",\n" +
-                            "    \"size\": 305\n" +
-                            "}," +
-                            "{\n" +
-                            "    \"name\": \"other configs\",\n" +
-                            "    \"path\": \"${DIRECTORY_PATH + 1}\",\n" +
-                            "    \"sha\": \"0a4721665650ba7143871b22ef878e5b81c8f8b5\",\n" +
-                            "    \"type\": \"dir\",\n" +
-                            "    \"size\": 303\n" +
-                            "}\n" +
-                            "]"
+                    """
+                        [
+                          {
+                              "name": "app1.config",
+                              "path": "${CONFIG_PATH + 1}",
+                              "sha": "0a4721665650ba7143871b22ef878e5b81c8f8b6",
+                              "type": "file",
+                              "size": 908
+                          },
+                          {
+                              "name": "app2.config",
+                              "path": "${CONFIG_PATH + 2}",
+                              "sha": "0a4721665650ba7143871b22ef878e5b81c8f8b7",
+                              "type": "file",
+                              "size": 305
+                          },
+                          {
+                              "name": "other configs",
+                              "path": "${DIRECTORY_PATH + 1}",
+                              "sha": "0a4721665650ba7143871b22ef878e5b81c8f8b5",
+                              "type": "dir",
+                              "size": 303
+                          }
+                        ]
+                    """.trimIndent()
                 )
             )
     )
