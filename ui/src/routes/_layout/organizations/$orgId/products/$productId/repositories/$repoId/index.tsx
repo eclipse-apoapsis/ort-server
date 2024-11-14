@@ -19,7 +19,7 @@
 
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
-  ColumnDef,
+  createColumnHelper,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
@@ -34,7 +34,7 @@ import {
   prefetchUseRepositoriesServiceGetOrtRunsByRepositoryId,
   prefetchUseRepositoriesServiceGetRepositoryById,
 } from '@/api/queries/prefetch';
-import { ApiError, GetOrtRunsByRepositoryIdResponse } from '@/api/requests';
+import { ApiError, OrtRunSummary } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -64,10 +64,11 @@ import { paginationSchema } from '@/schemas';
 const defaultPageSize = 10;
 const pollInterval = config.pollInterval;
 
-const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
-  {
-    accessorKey: 'runIndex',
-    header: () => <div>Run</div>,
+const columnHelper = createColumnHelper<OrtRunSummary>();
+
+const columns = [
+  columnHelper.accessor('index', {
+    header: 'Run',
     cell: ({ row }) => (
       <Link
         className='font-semibold text-blue-400 hover:underline'
@@ -85,15 +86,13 @@ const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
       </Link>
     ),
     size: 50,
-  },
-  {
-    accessorKey: 'createdAt',
-    header: () => <div>Created At</div>,
+  }),
+  columnHelper.accessor('createdAt', {
+    header: 'Created At',
     cell: ({ row }) => <TimestampWithUTC timestamp={row.original.createdAt} />,
-  },
-  {
-    accessorKey: 'runStatus',
-    header: () => <div>Run Status</div>,
+  }),
+  columnHelper.accessor('status', {
+    header: 'Run Status',
     cell: ({ row }) => (
       <Badge
         className={`border ${getStatusBackgroundColor(row.original.status)}`}
@@ -101,9 +100,9 @@ const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
         {row.original.status}
       </Badge>
     ),
-  },
-  {
-    accessorKey: 'jobStatuses',
+  }),
+  columnHelper.display({
+    id: 'jobStatuses',
     header: () => <div>Job Status</div>,
     cell: ({ row }) => (
       <OrtRunJobStatus
@@ -114,19 +113,20 @@ const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
         runIndex={row.original.index.toString()}
       />
     ),
-  },
-  {
-    accessorKey: 'duration',
-    header: () => <div>Duration</div>,
+  }),
+  // TODO: Write this with an accessor as soon as I know how to do it.
+  columnHelper.display({
+    id: 'duration',
+    header: 'Duration',
     cell: ({ row }) => (
       <RunDuration
         createdAt={row.original.createdAt}
         finishedAt={row.original.finishedAt ?? undefined}
       />
     ),
-  },
-  {
-    accessorKey: 'actions',
+  }),
+  columnHelper.display({
+    id: 'actions',
     header: () => <div>Actions</div>,
     cell: ({ row }) => (
       <div className='flex gap-2'>
@@ -176,7 +176,7 @@ const columns: ColumnDef<GetOrtRunsByRepositoryIdResponse['data'][number]>[] = [
         </Tooltip>
       </div>
     ),
-  },
+  }),
 ];
 
 const RepoComponent = () => {
