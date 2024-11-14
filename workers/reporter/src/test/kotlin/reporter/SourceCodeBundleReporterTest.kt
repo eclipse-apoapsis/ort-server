@@ -54,11 +54,10 @@ import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.Scope
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.licenses.LicenseCategorization
 import org.ossreviewtoolkit.model.licenses.LicenseCategory
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
-import org.ossreviewtoolkit.reporter.Reporter
+import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.unpackZip
 import org.ossreviewtoolkit.utils.spdx.SpdxSingleLicenseExpression
@@ -77,6 +76,8 @@ private const val TEST_CONTENT_TRAVIS = "testContentTravis"
 private const val TEST_CONTENT_CHANGELOG = "testContentChangelog"
 private const val TEST_CONTENT_POM = "testContentPom"
 
+private val DEFAULT_CONFIG = SourceCodeBundleReporterConfig(null, listOf("PROJECT"))
+
 class SourceCodeBundleReporterTest : WordSpec({
     "The SourceCodeBundleReporter" should {
         "download source files and create a bundle with a correct name" {
@@ -90,16 +91,12 @@ class SourceCodeBundleReporterTest : WordSpec({
             val downloader = mockk<Downloader>()
             downloader.expectDownload(project.toPackage(), projectContent)
 
-            val reporter = SourceCodeBundleReporter(downloader)
+            val reporter = SourceCodeBundleReporter(config = DEFAULT_CONFIG, downloader = downloader)
 
             val input = getReporterInput()
             val outputDir = tempdir()
 
-            val reportFileResults = reporter.generateReport(
-                input,
-                outputDir,
-                PluginConfiguration(options = mapOf(SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PROJECT"))
-            )
+            val reportFileResults = reporter.generateReport(input, outputDir)
 
             reportFileResults.shouldBeSingleton {
                 it shouldBeSuccess { codeBundleFile ->
@@ -136,17 +133,13 @@ class SourceCodeBundleReporterTest : WordSpec({
                 throw DownloadException("The repository cannot be downloaded")
             }
 
-            val reporter = SourceCodeBundleReporter(downloader)
+            val reporter = SourceCodeBundleReporter(config = DEFAULT_CONFIG, downloader = downloader)
 
             val input = getReporterInput()
             val outputDir = tempdir()
             val bundleTmpOutputDir = outputDir.resolve(SOURCE_BUNDLE_SUB_DIR)
 
-            val reportFileResults = reporter.generateReport(
-                input,
-                outputDir,
-                PluginConfiguration(options = mapOf(SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PROJECT"))
-            )
+            val reportFileResults = reporter.generateReport(input, outputDir)
 
             reportFileResults.shouldBeSingleton {
                 it.shouldBeFailure<DownloadException>()
@@ -157,10 +150,10 @@ class SourceCodeBundleReporterTest : WordSpec({
         }
 
         "be found by the service loader" {
-            val reporter = SourceCodeBundleReporter()
+            val pluginId = SourceCodeBundleReporterFactory.descriptor.id
 
-            Reporter.ALL should containAnyKeys(reporter.type)
-            Reporter.ALL[reporter.type] should beInstanceOf<SourceCodeBundleReporter>()
+            ReporterFactory.ALL should containAnyKeys(pluginId)
+            ReporterFactory.ALL[pluginId] should beInstanceOf<SourceCodeBundleReporterFactory>()
         }
 
         "add only included sources from packages from included license categories" {
@@ -174,21 +167,18 @@ class SourceCodeBundleReporterTest : WordSpec({
             val downloader = mockk<Downloader>()
             downloader.expectDownload(pkg, pkgContent)
 
-            val reporter = SourceCodeBundleReporter(downloader)
+            val reporter = SourceCodeBundleReporter(
+                config = SourceCodeBundleReporterConfig(
+                    includedLicenseCategories = listOf("include-in-source-code-bundle"),
+                    packageTypes = listOf("PROJECT", "PACKAGE")
+                ),
+                downloader = downloader
+            )
 
             val input = getReporterInput()
             val outputDir = tempdir()
 
-            val reportFileResults = reporter.generateReport(
-                input,
-                outputDir,
-                PluginConfiguration(
-                    options = mapOf(
-                        SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PROJECT,PACKAGE",
-                        SourceCodeBundleReporter.INCLUDED_LICENSE_CATEGORIES_PROPERTY to "include-in-source-code-bundle"
-                    )
-                )
-            )
+            val reportFileResults = reporter.generateReport(input, outputDir)
 
             reportFileResults.shouldBeSingleton {
                 it shouldBeSuccess { codeBundleFile ->
@@ -226,20 +216,18 @@ class SourceCodeBundleReporterTest : WordSpec({
             val downloader = mockk<Downloader>()
             downloader.expectDownload(pkg, pkgContent, repoProvenance)
 
-            val reporter = SourceCodeBundleReporter(downloader)
+            val reporter = SourceCodeBundleReporter(
+                config = SourceCodeBundleReporterConfig(
+                    includedLicenseCategories = null,
+                    packageTypes = listOf("PACKAGE")
+                ),
+                downloader = downloader
+            )
 
             val input = getReporterInput()
             val outputDir = tempdir()
 
-            val reportFileResults = reporter.generateReport(
-                input,
-                outputDir,
-                PluginConfiguration(
-                    options = mapOf(
-                        SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PACKAGE"
-                    )
-                )
-            )
+            val reportFileResults = reporter.generateReport(input, outputDir)
 
             reportFileResults.shouldBeSingleton {
                 it shouldBeSuccess { codeBundleFile ->
@@ -273,20 +261,18 @@ class SourceCodeBundleReporterTest : WordSpec({
             val downloader = mockk<Downloader>()
             downloader.expectDownload(pkg, pkgContent, repoProvenance)
 
-            val reporter = SourceCodeBundleReporter(downloader)
+            val reporter = SourceCodeBundleReporter(
+                config = SourceCodeBundleReporterConfig(
+                    includedLicenseCategories = null,
+                    packageTypes = listOf("PACKAGE")
+                ),
+                downloader = downloader
+            )
 
             val input = getReporterInput()
             val outputDir = tempdir()
 
-            val reportFileResults = reporter.generateReport(
-                input,
-                outputDir,
-                PluginConfiguration(
-                    options = mapOf(
-                        SourceCodeBundleReporter.PACKAGE_TYPE_PROPERTY to "PACKAGE"
-                    )
-                )
-            )
+            val reportFileResults = reporter.generateReport(input, outputDir)
 
             reportFileResults.shouldBeSingleton {
                 it shouldBeSuccess { codeBundleFile ->

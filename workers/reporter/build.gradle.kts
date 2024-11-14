@@ -34,6 +34,7 @@ plugins {
 
     // Apply third-party plugins.
     alias(libs.plugins.jib)
+    alias(libs.plugins.ksp)
 }
 
 tasks.withType<JibTask> {
@@ -57,6 +58,9 @@ dependencies {
     implementation(libs.ortDownloader)
     implementation(libs.ortReporter)
     implementation(libs.typesafeConfig)
+
+    ksp(libs.ortPluginCompiler)
+    ksp(libs.ortReporter)
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))

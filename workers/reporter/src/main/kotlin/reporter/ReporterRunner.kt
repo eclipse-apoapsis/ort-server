@@ -50,20 +50,20 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.config.PackageConfiguration
-import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
+import org.ossreviewtoolkit.plugins.api.PluginConfig
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
 import org.ossreviewtoolkit.reporter.DefaultLicenseTextProvider
 import org.ossreviewtoolkit.reporter.HowToFixTextProvider
 import org.ossreviewtoolkit.reporter.LicenseTextProvider
-import org.ossreviewtoolkit.reporter.Reporter
+import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.safeMkdirs
 import org.ossreviewtoolkit.utils.config.setPackageConfigurations
@@ -200,14 +200,16 @@ class ReporterRunner(
                         logger.info("Generating the '$format' report...")
 
                         val result = runCatching {
-                            val reporter = requireNotNull(Reporter.ALL[format]) {
+                            val reporterFactory = requireNotNull(ReporterFactory.ALL[format]) {
                                 "No reporter found for the configured format '$format'."
                             }
 
-                            val reporterOptions = transformedOptions[reporter.type]?.mapToOrt()
-                                ?: OrtPluginConfiguration.EMPTY
+                            val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.let { options ->
+                                PluginConfig(options.options, options.secrets)
+                            } ?: PluginConfig()
 
-                            val reportFileResults = reporter.generateReport(reporterInput, outputDir, reporterOptions)
+                            val reporter = reporterFactory.create(reporterConfig)
+                            val reportFileResults = reporter.generateReport(reporterInput, outputDir)
 
                             val reportFiles = reportFileResults.mapNotNull { result ->
                                 result.getOrElse {
@@ -222,7 +224,7 @@ class ReporterRunner(
                         }
 
                         result.getOrNull()?.let { (reporter, reportFiles) ->
-                            val nameMapper = ReportNameMapper.create(config, reporter.type)
+                            val nameMapper = ReportNameMapper.create(config, reporter.descriptor.id)
                             format to nameMapper.mapReportNames(reportFiles)
                                 .also { reportStorage.storeReportFiles(runId, it) }
                         }

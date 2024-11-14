@@ -31,16 +31,15 @@ import io.kotest.matchers.types.beInstanceOf
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 
 import org.ossreviewtoolkit.model.OrtResult
-import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.readValue
-import org.ossreviewtoolkit.reporter.Reporter
+import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.unpack
 
 class OrtResultReporterTest : WordSpec({
     "The OrtResultReporter" should {
         "create a correct ORT result file" {
-            val reporter = OrtResultReporter()
+            val reporter = OrtResultReporter(config = OrtResultReporterConfig(compressed = false))
 
             // Set the options of the advisor configuration to null because the configured empty map will be serialized
             // as null. Changing the value in OrtTestData is not possible, because the options in the server model are
@@ -60,11 +59,7 @@ class OrtResultReporterTest : WordSpec({
 
             val input = ReporterInput(ortResult = ortResult)
 
-            val reportFileResults = reporter.generateReport(
-                input,
-                tempdir(),
-                PluginConfiguration(options = mapOf(OrtResultReporter.COMPRESSED_PROPERTY to "false"))
-            )
+            val reportFileResults = reporter.generateReport(input, tempdir())
 
             reportFileResults.shouldBeSingleton {
                 it shouldBeSuccess { reportFile ->
@@ -76,7 +71,7 @@ class OrtResultReporterTest : WordSpec({
         }
 
         "create a compressed ORT result file" {
-            val reporter = OrtResultReporter()
+            val reporter = OrtResultReporter(config = OrtResultReporterConfig(compressed = true))
 
             val advisorRun = OrtTestData.advisorRun.copy(
                 config = OrtTestData.advisorConfiguration.copy(config = null)
@@ -107,10 +102,10 @@ class OrtResultReporterTest : WordSpec({
         }
 
         "be found by the service loader" {
-            val reporter = OrtResultReporter()
+            val pluginId = OrtResultReporterFactory.descriptor.id
 
-            Reporter.ALL should containAnyKeys(reporter.type)
-            Reporter.ALL[reporter.type] should beInstanceOf<OrtResultReporter>()
+            ReporterFactory.ALL should containAnyKeys(pluginId)
+            ReporterFactory.ALL[pluginId] should beInstanceOf<OrtResultReporterFactory>()
         }
     }
 })
