@@ -34,14 +34,17 @@ import org.ossreviewtoolkit.model.PackageType
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
-import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.licenses.LicenseCategorization
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.licenses.LicenseView
 import org.ossreviewtoolkit.model.licenses.ResolvedLicenseInfo
 import org.ossreviewtoolkit.model.utils.createLicenseInfoResolver
+import org.ossreviewtoolkit.plugins.api.OrtPlugin
+import org.ossreviewtoolkit.plugins.api.OrtPluginOption
+import org.ossreviewtoolkit.plugins.api.PluginDescriptor
 import org.ossreviewtoolkit.reporter.Reporter
+import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.encodeOrUnknown
 import org.ossreviewtoolkit.utils.common.packZip
@@ -54,12 +57,38 @@ import org.slf4j.LoggerFactory
 const val SOURCE_BUNDLE_FILE_NAME = "source-bundle-archive.zip"
 const val SOURCE_BUNDLE_SUB_DIR = "source_code_bundle"
 
+data class SourceCodeBundleReporterConfig(
+    /**
+     * The license categories to consider when including packages in the source code bundle.
+     */
+    val includedLicenseCategories: List<String>?,
+
+    /**
+     * The type of package to include in the source code bundle. Allowed values are "PROJECT" and "PACKAGE".
+     */
+    @OrtPluginOption(defaultValue = "PROJECT", aliases = ["packageType"])
+    val packageTypes: List<String>
+)
+
 /**
  * A custom reporter that creates source code bundles.
  */
+@OrtPlugin(
+    id = "SourceCodeBundle",
+    displayName = "Source Code Bundle Reporter",
+    description = "A reporter that creates a source code bundle for the given ORT result.",
+    factory = ReporterFactory::class
+)
 class SourceCodeBundleReporter(
-    private val downloader: Downloader = Downloader(DownloaderConfiguration())
+    override val descriptor: PluginDescriptor = SourceCodeBundleReporterFactory.descriptor,
+    private val config: SourceCodeBundleReporterConfig,
+    private val downloader: Downloader
 ) : Reporter {
+    constructor(
+        descriptor: PluginDescriptor = SourceCodeBundleReporterFactory.descriptor,
+        config: SourceCodeBundleReporterConfig
+    ) : this(descriptor, config, Downloader(DownloaderConfiguration()))
+
     companion object {
         /**
          * Name of the property that specifies the type of package for source code bundle
@@ -70,11 +99,6 @@ class SourceCodeBundleReporter(
          * Name of the property that specifies the license classifications to include in the source code bundle.
          */
         const val INCLUDED_LICENSE_CATEGORIES_PROPERTY = "includedLicenseCategories"
-
-        /**
-         * Name of the property that specifies the type of package for source code bundle
-         */
-        const val REPORTER_NAME = "SourceCodeBundle"
 
         /** A file filter that simply includes all files. */
         private val includeAllFilter: (File) -> Boolean = { true }
@@ -107,13 +131,7 @@ class SourceCodeBundleReporter(
         }
     }
 
-    override val type = REPORTER_NAME
-
-    override fun generateReport(
-        input: ReporterInput,
-        outputDir: File,
-        config: PluginConfiguration
-    ): List<Result<File>> {
+    override fun generateReport(input: ReporterInput, outputDir: File): List<Result<File>> {
         log.info("Preparing a source code bundle for repository '${input.ortResult.repository.vcsProcessed.url}'")
 
         val outputFile = runCatching {
@@ -121,8 +139,8 @@ class SourceCodeBundleReporter(
                 input.ortResult,
                 outputDir,
                 input.licenseClassifications,
-                config.options[INCLUDED_LICENSE_CATEGORIES_PROPERTY]?.takeUnless { it.isEmpty() }?.split(",").orEmpty(),
-                config.options.getOrDefault(PACKAGE_TYPE_PROPERTY, "PROJECT")
+                config.includedLicenseCategories.orEmpty(),
+                config.packageTypes
             )
         }
 
@@ -134,16 +152,16 @@ class SourceCodeBundleReporter(
         outputDir: File,
         licenseClassifications: LicenseClassifications,
         includedLicenseCategories: List<String>,
-        packageType: String
+        packageTypes: List<String>
     ): File {
         val allPackages = buildList {
-            if (packageType.contains(PackageType.PROJECT.name, true)) {
+            if (packageTypes.any { it.equals(PackageType.PROJECT.name, ignoreCase = true) }) {
                 val projects = consolidateProjectPackagesByVcs(ortResult.getProjects(true)).keys
                 log.info("Found ${projects.size} project(s) in the ORT result.")
                 addAll(projects)
             }
 
-            if (packageType.contains(PackageType.PACKAGE.name, true)) {
+            if (packageTypes.any { it.equals(PackageType.PACKAGE.name, ignoreCase = true) }) {
                 val packages = ortResult.getPackages(true).map { it.metadata }
                 log.info("Found ${packages.size} packages(s) in the ORT result.")
                 addAll(packages)

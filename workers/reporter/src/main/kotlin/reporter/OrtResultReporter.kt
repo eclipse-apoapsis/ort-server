@@ -21,13 +21,34 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
 
-import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.writeValue
+import org.ossreviewtoolkit.plugins.api.OrtPlugin
+import org.ossreviewtoolkit.plugins.api.OrtPluginOption
+import org.ossreviewtoolkit.plugins.api.PluginDescriptor
 import org.ossreviewtoolkit.reporter.Reporter
+import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.packZip
 
-class OrtResultReporter : Reporter {
+data class OrtResultReporterConfig(
+    /**
+     * Whether to compress the generated file. If set to `true` (which is the default), a Zip archive is generated which
+     * contains the ORT result file.
+     */
+    @OrtPluginOption(defaultValue = "true")
+    val compressed: Boolean
+)
+
+@OrtPlugin(
+    id = "OrtResult",
+    displayName = "ORT Result Reporter",
+    description = "A reporter that creates an ORT result YAML file for the ORT run.",
+    factory = ReporterFactory::class
+)
+class OrtResultReporter(
+    override val descriptor: PluginDescriptor = OrtResultReporterFactory.descriptor,
+    private val config: OrtResultReporterConfig
+) : Reporter {
     companion object {
         /**
          * Name of the property that enables compression of the generated file. If set to *true* (which is the
@@ -42,20 +63,12 @@ class OrtResultReporter : Reporter {
         private const val ARCHIVE_FILE_NAME = "ort-result.zip"
     }
 
-    override val type = "OrtResult"
-
-    override fun generateReport(
-        input: ReporterInput,
-        outputDir: File,
-        config: PluginConfiguration
-    ): List<Result<File>> {
-        val compressed = config.options.getOrDefault(COMPRESSED_PROPERTY, "true").toBooleanStrict()
-
+    override fun generateReport(input: ReporterInput, outputDir: File): List<Result<File>> {
         val reportFile = runCatching {
             val targetDir = outputDir.resolve("ort-result").apply { mkdir() }
             val outputFile = targetDir.resolve(RESULT_FILE_NAME).apply { writeValue(input.ortResult) }
 
-            if (compressed) {
+            if (config.compressed) {
                 val archiveFile = outputDir.resolve(ARCHIVE_FILE_NAME)
                 targetDir.packZip(archiveFile)
                 archiveFile

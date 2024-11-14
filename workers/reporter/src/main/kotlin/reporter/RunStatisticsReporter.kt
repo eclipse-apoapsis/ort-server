@@ -21,9 +21,11 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
 
-import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.writeValue
+import org.ossreviewtoolkit.plugins.api.OrtPlugin
+import org.ossreviewtoolkit.plugins.api.PluginDescriptor
 import org.ossreviewtoolkit.reporter.Reporter
+import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
 
 /**
@@ -31,14 +33,16 @@ import org.ossreviewtoolkit.reporter.ReporterInput
  * statistics data, this reporter does not include any other information to the produced reports thus making them more
  * memory-efficient.
  */
-class RunStatisticsReporter : Reporter {
-    override val type = "RunStatistics"
-
-    override fun generateReport(
-        input: ReporterInput,
-        outputDir: File,
-        config: PluginConfiguration
-    ): List<Result<File>> {
+@OrtPlugin(
+    id = "RunStatistics",
+    displayName = "Run Statistics Reporter",
+    description = "A reporter that creates a JSON file with the statistics of the ORT run.",
+    factory = ReporterFactory::class
+)
+class RunStatisticsReporter(
+    override val descriptor: PluginDescriptor = RunStatisticsReporterFactory.descriptor
+) : Reporter {
+    override fun generateReport(input: ReporterInput, outputDir: File): List<Result<File>> {
         val outputFile = runCatching {
             outputDir.resolve("statistics.json").apply { writeValue(input.statistics) }
         }

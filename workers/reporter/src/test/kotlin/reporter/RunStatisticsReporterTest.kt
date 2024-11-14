@@ -31,7 +31,7 @@ import io.kotest.matchers.types.beInstanceOf
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 
 import org.ossreviewtoolkit.model.readValue
-import org.ossreviewtoolkit.reporter.Reporter
+import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.reporter.Statistics
 
@@ -55,10 +55,10 @@ class RunStatisticsReporterTest : WordSpec({
         }
 
         "be found by the service loader" {
-            val reporter = RunStatisticsReporter()
+            val pluginId = RunStatisticsReporterFactory.descriptor.id
 
-            Reporter.ALL should containAnyKeys(reporter.type)
-            Reporter.ALL[reporter.type] should beInstanceOf<RunStatisticsReporter>()
+            ReporterFactory.ALL should containAnyKeys(pluginId)
+            ReporterFactory.ALL[pluginId] should beInstanceOf<RunStatisticsReporterFactory>()
         }
     }
 })
