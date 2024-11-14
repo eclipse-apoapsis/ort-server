@@ -108,6 +108,17 @@ class GitHubConfigFileProviderTest : WordSpec({
             resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
         }
 
+        "fall back to the remote default branch" {
+            server.stubDefaultBranch()
+            server.stubExistingRevision()
+
+            val provider = getProvider(DEFAULT_BRANCH to "")
+
+            val resolvedContext = provider.resolveContext(ConfigManager.EMPTY_CONTEXT)
+
+            resolvedContext.name shouldBe "0a4721665650ba7143871b22ef878e5b81c8f8b5"
+        }
+
         "throw exception if response doesn't contain SHA-1 commit ID" {
             server.stubMissingRevision()
 
@@ -418,6 +429,25 @@ private fun getProvider(vararg properties: Pair<String, String>): GitHubConfigFi
  */
 private fun authorizedGet(pattern: UrlPattern): MappingBuilder =
     get(pattern).withHeader("Authorization", equalTo("Bearer $API_TOKEN"))
+
+/**
+ * A stub for successfully getting the default branch.
+ */
+private fun WireMockServer.stubDefaultBranch() {
+    stubFor(
+        authorizedGet(
+            urlEqualTo("/repos/$OWNER/$REPOSITORY")
+        ).willReturn(
+            okJson(
+                """
+                    {
+                      "default_branch": "$REVISION"
+                    }
+                """.trimIndent()
+            )
+        )
+    )
+}
 
 /**
  * A stub for successfully resolving a given [revision].

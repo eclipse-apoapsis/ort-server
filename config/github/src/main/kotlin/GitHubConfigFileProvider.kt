@@ -45,13 +45,13 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -71,7 +71,7 @@ class GitHubConfigFileProvider(
     private val baseUrl: String,
 
     /** The default branch to be used if no context is provided. */
-    private val defaultBranch: String,
+    private val configuredDefaultBranch: String?,
 
     /** The cache for storing already fetched configuration data. */
     private val cache: GitHubConfigCache
@@ -168,7 +168,7 @@ class GitHubConfigFileProvider(
             val owner = config.getString(REPOSITORY_OWNER)
             val repository = config.getString(REPOSITORY_NAME)
             val gitHubApiUrl = config.getStringOrDefault(GITHUB_API_URL, DEFAULT_GITHUB_API_URL)
-            val defaultBranch = config.getStringOrDefault(DEFAULT_BRANCH, DEFAULT_REPOSITORY_BRANCH)
+            val defaultBranch = config.getStringOrNull(DEFAULT_BRANCH)
 
             logger.info("Creating GitHubConfigFileProvider.")
             logger.debug("GitHub URI: '{}'.", gitHubApiUrl)
@@ -224,7 +224,11 @@ class GitHubConfigFileProvider(
     }
 
     override fun resolveContext(context: Context): Context {
-        val branchName = if (context == ConfigManager.EMPTY_CONTEXT) defaultBranch else context.name
+        val defaultBranch = configuredDefaultBranch?.takeUnless { it.isEmpty() }
+            ?: getRemoteDefaultBranch()
+            ?: DEFAULT_REPOSITORY_BRANCH
+
+        val branchName = context.name.takeUnless { it.isEmpty() } ?: defaultBranch
         val response = sendHttpRequest("/branches/$branchName")
 
         if (!response.isPresent()) {
@@ -363,6 +367,12 @@ class GitHubConfigFileProvider(
             .filter { it.isFile() }
             .mapNotNull { it.jsonObject["path"]?.jsonPrimitive?.content }
             .toSet()
+    }
+
+    private fun getRemoteDefaultBranch(): String? {
+        val response = sendHttpRequest("")
+        val jsonBody = getJsonBody(response).jsonObject
+        return jsonBody["default_branch"]?.jsonPrimitive?.contentOrNull
     }
 }
 
