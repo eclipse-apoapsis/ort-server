@@ -151,9 +151,7 @@ class GitHubConfigFileProviderTest : WordSpec({
                 setLastModified(outdatedModifiedTime)
             }
 
-            val cacheConfig = mapOf(CACHE_DIRECTORY to cacheDir.absolutePath)
-
-            val provider = getProvider(cacheConfig)
+            val provider = getProvider(CACHE_DIRECTORY to cacheDir.absolutePath)
             provider.resolveContext(Context(REVISION))
 
             oldRevisionDir shouldNot exist()
@@ -172,9 +170,7 @@ class GitHubConfigFileProviderTest : WordSpec({
                 setLastModified(outdatedModifiedTime)
             }
 
-            val cacheConfig = mapOf(CACHE_DIRECTORY to cacheDir.absolutePath)
-
-            val provider = getProvider(cacheConfig)
+            val provider = getProvider(CACHE_DIRECTORY to cacheDir.absolutePath)
             provider.resolveContext(Context(revision))
 
             oldRevisionDir shouldBe aDirectory()
@@ -197,9 +193,8 @@ class GitHubConfigFileProviderTest : WordSpec({
         "use caching when configured" {
             server.stubRawFile()
             val cacheDir = tempdir()
-            val cacheConfig = mapOf(CACHE_DIRECTORY to cacheDir.absolutePath)
 
-            val provider = getProvider(cacheConfig)
+            val provider = getProvider(CACHE_DIRECTORY to cacheDir.absolutePath)
             provider.getFile(Context(REVISION), Path(CONFIG_PATH)).close()
 
             val fileContent = provider.getFile(Context(REVISION), Path(CONFIG_PATH))
@@ -317,9 +312,8 @@ class GitHubConfigFileProviderTest : WordSpec({
             val expectedPaths = setOf(Path(CONFIG_PATH + "1"), Path(CONFIG_PATH + "2"))
 
             val cacheDir = tempdir()
-            val cacheConfig = mapOf(CACHE_DIRECTORY to cacheDir.absolutePath)
 
-            val provider = getProvider(cacheConfig)
+            val provider = getProvider(CACHE_DIRECTORY to cacheDir.absolutePath)
             provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
 
             val listFiles = provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
@@ -399,7 +393,7 @@ internal const val API_TOKEN = "test-api-token"
 /**
  * Return a [GitHubConfigFileProvider] instance with a default configuration and optional additional [properties].
  */
-private fun getProvider(properties: Map<String, String> = emptyMap()): GitHubConfigFileProvider {
+private fun getProvider(vararg properties: Pair<String, String>): GitHubConfigFileProvider {
     val secretProvider = mockk<ConfigSecretProvider>()
 
     every { secretProvider.getSecret(TOKEN) } returns API_TOKEN
