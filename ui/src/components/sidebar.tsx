@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { Link } from '@tanstack/react-router';
+import { Link, LinkProps } from '@tanstack/react-router';
 
 import { buttonVariants } from '@/components/ui/button-variants';
 import { Label } from '@/components/ui/label';
@@ -28,8 +28,9 @@ export interface SidebarNavProps {
   sections: {
     label?: string;
     items: {
-      to?: string;
-      params?: Record<string, string | undefined>;
+      to?: LinkProps['to'];
+      params?: LinkProps['params'];
+      search?: LinkProps['search'];
       title: string;
       icon?: React.ComponentType<{
         className?: string;
@@ -77,6 +78,7 @@ export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
                     to={disabled ? '/' : item.to}
                     disabled={disabled}
                     params={item.params}
+                    search={item.search}
                     activeProps={{
                       className: 'gap-2 bg-muted hover:bg-muted',
                     }}
