@@ -23,13 +23,14 @@ import { BookLock, Eye, ServerCog, User } from 'lucide-react';
 import { useOrganizationsServiceGetOrganizationByIdKey } from '@/api/queries';
 import { OrganizationsService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
+import { SidebarNavProps } from '@/components/sidebar';
 import { useUser } from '@/hooks/use-user';
 
 const Layout = () => {
   const { orgId, productId, repoId, runIndex } = useParams({ strict: false });
   const user = useUser();
 
-  const navItems = [
+  const navItems: SidebarNavProps['sections'][number]['items'] = [
     {
       title: 'Overview',
       to: '/organizations/$orgId',

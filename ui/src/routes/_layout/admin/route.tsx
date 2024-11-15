@@ -21,14 +21,15 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 import { Eye, KeyRound, ListVideo, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
+import { SidebarNavProps } from '@/components/sidebar';
 
 const Layout = () => {
-  const sections = [
+  const sections: SidebarNavProps['sections'] = [
     {
       items: [
         {
           title: 'Overview',
-          to: '/admin/',
+          to: '/admin',
           icon: () => <Eye className='h-4 w-4' />,
         },
       ],

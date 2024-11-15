@@ -29,11 +29,12 @@ import {
 } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
+import { SidebarNavProps } from '@/components/sidebar';
 
 const Layout = () => {
   const params = Route.useParams();
 
-  const sections = [
+  const sections: SidebarNavProps['sections'] = [
     {
       items: [
         {
@@ -61,8 +62,11 @@ const Layout = () => {
         },
         {
           title: 'Vulnerabilities',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities?sortBy=rating.desc',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
           params,
+          search: {
+            sortBy: 'rating.desc',
+          },
           icon: () => <ShieldQuestion className='h-4 w-4' />,
         },
         {
@@ -73,8 +77,11 @@ const Layout = () => {
         },
         {
           title: 'Rule Violations',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations?sortBy=severity.desc',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations',
           params,
+          search: {
+            sortBy: 'severity.desc',
+          },
           icon: () => <Scale className='h-4 w-4' />,
         },
       ],
@@ -84,8 +91,11 @@ const Layout = () => {
       items: [
         {
           title: 'Issues',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues?sortBy=severity.desc',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues',
           params,
+          search: {
+            sortBy: 'severity.desc',
+          },
           icon: () => <Bug className='h-4 w-4' />,
         },
         {

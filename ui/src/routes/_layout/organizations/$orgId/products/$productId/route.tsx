@@ -23,13 +23,14 @@ import { BookLock, Eye, User } from 'lucide-react';
 import { useProductsServiceGetProductByIdKey } from '@/api/queries';
 import { ProductsService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
+import { SidebarNavProps } from '@/components/sidebar';
 import { useUser } from '@/hooks/use-user';
 
 const Layout = () => {
   const { productId, repoId, runIndex } = useParams({ strict: false });
   const user = useUser();
 
-  const navItems = [
+  const navItems: SidebarNavProps['sections'][number]['items'] = [
     {
       title: 'Overview',
       to: '/organizations/$orgId/products/$productId',
@@ -37,7 +38,7 @@ const Layout = () => {
     },
     {
       title: 'Secrets',
-      to: '/organizations/$orgId//products/$productId/secrets',
+      to: '/organizations/$orgId/products/$productId/secrets',
       icon: () => <BookLock className='h-4 w-4' />,
       visible: user.hasRole([
         'superuser',
