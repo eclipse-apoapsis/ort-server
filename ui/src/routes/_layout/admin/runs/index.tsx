@@ -58,7 +58,11 @@ import {
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
-import { ortRunStatus, paginationSchema, statusSchema } from '@/schemas';
+import {
+  paginationSearchParameterSchema,
+  runStatusSchema,
+  statusSearchParameterSchema,
+} from '@/schemas';
 
 const defaultPageSize = 10;
 const pollInterval = config.pollInterval;
@@ -262,7 +266,7 @@ const RunsComponent = () => {
           filters={
             <FilterMultiSelect
               title='Run Status'
-              options={ortRunStatus.options.map((status) => ({
+              options={runStatusSchema.options.map((status) => ({
                 label: status,
                 value: status,
               }))}
@@ -307,7 +311,9 @@ const RunsComponent = () => {
 };
 
 export const Route = createFileRoute('/_layout/admin/runs/')({
-  validateSearch: paginationSchema.merge(statusSchema),
+  validateSearch: paginationSearchParameterSchema.merge(
+    statusSearchParameterSchema
+  ),
   loaderDeps: ({ search: { page, pageSize, status } }) => ({
     page,
     pageSize,

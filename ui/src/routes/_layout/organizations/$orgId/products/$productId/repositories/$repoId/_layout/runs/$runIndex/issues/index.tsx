@@ -55,10 +55,10 @@ import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
 import {
-  issueSeverity,
-  issueSeveritySchema,
-  paginationSchema,
-  tableSortingSchema,
+  paginationSearchParameterSchema,
+  severitySchema,
+  severitySearchParameterSchema,
+  sortingSearchParameterSchema,
 } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -248,7 +248,7 @@ const IssuesComponent = () => {
           filters={
             <FilterMultiSelect
               title='Issue Severity'
-              options={issueSeverity.options.map((severity) => ({
+              options={severitySchema.options.map((severity) => ({
                 label: severity,
                 value: severity,
               }))}
@@ -319,9 +319,9 @@ const IssuesComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/issues/'
 )({
-  validateSearch: paginationSchema
-    .merge(issueSeveritySchema)
-    .merge(tableSortingSchema),
+  validateSearch: paginationSearchParameterSchema
+    .merge(severitySearchParameterSchema)
+    .merge(sortingSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
       repositoryId: Number.parseInt(params.repoId),

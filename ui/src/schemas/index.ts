@@ -21,52 +21,39 @@ import z from 'zod';
 
 import { OrtRunStatus, Severity } from '@/api/requests';
 
-// Pagination schema that is used for search parameter validation
-export const paginationSchema = z.object({
+// Enum schema for the groupId parameter of the Groups endpoints
+export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
+
+// Enum schema for the possible values of the status parameter of the ORT run
+export const runStatusSchema: z.ZodEnum<[OrtRunStatus, ...OrtRunStatus[]]> =
+  z.enum(['CREATED', 'ACTIVE', 'FAILED', 'FINISHED', 'FINISHED_WITH_ISSUES']);
+
+// Enum schema for the possible values of the severities
+export const severitySchema: z.ZodEnum<[Severity, ...Severity[]]> = z.enum([
+  'HINT',
+  'WARNING',
+  'ERROR',
+]);
+
+// Search parameter validation schemas
+
+export const paginationSearchParameterSchema = z.object({
   page: z.number().optional(),
   pageSize: z.number().optional(),
 });
 
-// Grouping schema that is used for search parameter validation
-export const tableGroupingSchema = z.object({
-  groups: z.array(z.string()).optional(),
-});
-
-// Sorting schema that is used for search parameter validation
 // sortBy needs to be of form "columnId.asc" or "columnId.desc"
-export const tableSortingSchema = z.object({
+export const sortingSearchParameterSchema = z.object({
   sortBy: z
     .string()
     .regex(/^[a-zA-Z0-9_]+.(asc|desc)$/)
     .optional(),
 });
 
-// Enum schema for the groupId parameter of the Groups endpoints
-export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
-
-// Enum schema for the possible values of the status parameter of the ORT run
-export const ortRunStatus: z.ZodEnum<[OrtRunStatus, ...OrtRunStatus[]]> =
-  z.enum(['CREATED', 'ACTIVE', 'FAILED', 'FINISHED', 'FINISHED_WITH_ISSUES']);
-
-// Status schema that is used for search parameter validation
-export const statusSchema = z.object({
-  status: z.array(ortRunStatus).optional(),
+export const statusSearchParameterSchema = z.object({
+  status: z.array(runStatusSchema).optional(),
 });
 
-// Enum schema for the possible values of the issue severities
-export const issueSeverity: z.ZodEnum<[Severity, ...Severity[]]> = z.enum([
-  'HINT',
-  'WARNING',
-  'ERROR',
-]);
-
-// Issue severity schema that is used for search parameter validation
-export const issueSeveritySchema = z.object({
-  severity: z.array(issueSeverity).optional(),
+export const severitySearchParameterSchema = z.object({
+  severity: z.array(severitySchema).optional(),
 });
-
-// Enum schema for the possible values of the rule violation severities
-export const ruleViolationSeverity = issueSeverity;
-
-// Rule violation severity schema that is used for search parameter validation
-export const ruleViolationSeveritySchema = issueSeveritySchema;

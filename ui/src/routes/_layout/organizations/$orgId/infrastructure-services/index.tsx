@@ -59,7 +59,7 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
-import { paginationSchema } from '@/schemas';
+import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
@@ -328,7 +328,7 @@ const InfrastructureServices = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/infrastructure-services/'
 )({
-  validateSearch: paginationSchema,
+  validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([

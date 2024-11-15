@@ -54,7 +54,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
-import { paginationSchema } from '@/schemas';
+import { paginationSearchParameterSchema } from '@/schemas';
 import { LastJobStatus } from './products/$productId/-components/last-job-status';
 import { LastRunDate } from './products/$productId/-components/last-run-date';
 import { LastRunStatus } from './products/$productId/-components/last-run-status';
@@ -359,7 +359,7 @@ const OrganizationComponent = () => {
 };
 
 export const Route = createFileRoute('/_layout/organizations/$orgId/')({
-  validateSearch: paginationSchema,
+  validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([

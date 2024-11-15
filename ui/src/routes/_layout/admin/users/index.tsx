@@ -53,7 +53,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
-import { paginationSchema } from '@/schemas';
+import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
@@ -196,7 +196,7 @@ const Users = () => {
 };
 
 export const Route = createFileRoute('/_layout/admin/users/')({
-  validateSearch: paginationSchema,
+  validateSearch: paginationSearchParameterSchema,
   loader: async ({ context }) => {
     prefetchUseAdminServiceGetUsers(context.queryClient);
   },

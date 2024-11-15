@@ -43,7 +43,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { paginationSchema } from '@/schemas';
+import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
@@ -138,7 +138,7 @@ export const IndexPage = () => {
 };
 
 export const Route = createFileRoute('/_layout/')({
-  validateSearch: paginationSchema,
+  validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, deps: { page, pageSize } }) => {
     prefetchUseOrganizationsServiceGetOrganizations(context.queryClient, {

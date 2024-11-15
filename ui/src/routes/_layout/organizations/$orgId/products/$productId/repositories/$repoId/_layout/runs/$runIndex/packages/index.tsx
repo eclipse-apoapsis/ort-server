@@ -44,7 +44,7 @@ import {
 } from '@/components/ui/card';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { toast } from '@/lib/toast';
-import { paginationSchema } from '@/schemas';
+import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 
@@ -262,7 +262,7 @@ const PackagesComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/packages/'
 )({
-  validateSearch: paginationSchema,
+  validateSearch: paginationSearchParameterSchema,
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
       repositoryId: Number.parseInt(params.repoId),

@@ -27,7 +27,7 @@ import {
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
 import { toast } from '@/lib/toast';
-import { ortRunStatus } from '@/schemas';
+import { runStatusSchema } from '@/schemas';
 
 const OverviewContent = () => {
   const {
@@ -115,7 +115,7 @@ const OverviewContent = () => {
         </Link>
         <Link
           to='/admin/runs'
-          search={{ status: [ortRunStatus.Values.ACTIVE] }}
+          search={{ status: [runStatusSchema.Values.ACTIVE] }}
         >
           <StatisticsCard
             title='Active runs'
