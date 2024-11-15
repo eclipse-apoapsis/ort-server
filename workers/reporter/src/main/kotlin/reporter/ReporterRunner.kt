@@ -204,9 +204,8 @@ class ReporterRunner(
                                 "No reporter found for the configured format '$format'."
                             }
 
-                            val reporterOptions = transformedOptions[reporter.type]?.let { options ->
-                                OrtPluginConfiguration(options.options, options.secrets)
-                            } ?: OrtPluginConfiguration.EMPTY
+                            val reporterOptions = transformedOptions[reporter.type]?.mapToOrt()
+                                ?: OrtPluginConfiguration.EMPTY
 
                             val reportFileResults = reporter.generateReport(reporterInput, outputDir, reporterOptions)
 
