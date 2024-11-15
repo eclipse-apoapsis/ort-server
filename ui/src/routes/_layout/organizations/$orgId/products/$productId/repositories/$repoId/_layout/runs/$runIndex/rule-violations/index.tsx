@@ -21,12 +21,14 @@ import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  Row,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
@@ -49,21 +51,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareSeverity } from '@/helpers/sorting-functions';
@@ -118,57 +105,46 @@ const columns = [
   }),
   columnHelper.display({
     id: 'moreInfo',
-    header: () => null,
-    enableGrouping: false,
     size: 50,
-    cell: ({ row }) => (
-      <Tooltip>
-        <TooltipTrigger>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant='outline' size='sm'>
-                <ChevronRight className='h-4 w-4' />
-              </Button>
-            </DialogTrigger>
-            <RuleViolationDetailsComponent details={row.original} />
-          </Dialog>
-        </TooltipTrigger>
-        <TooltipContent>Show the details of the rule violation</TooltipContent>
-      </Tooltip>
-    ),
+    cell: function CellComponent({ row }) {
+      return row.getCanExpand() ? (
+        <Button
+          variant='outline'
+          size='sm'
+          {...{
+            onClick: row.getToggleExpandedHandler(),
+            style: { cursor: 'pointer' },
+          }}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronUp className='h-4 w-4' />
+          ) : (
+            <ChevronDown className='h-4 w-4' />
+          )}
+        </Button>
+      ) : (
+        'No info'
+      );
+    },
+    enableSorting: false,
   }),
 ];
 
-// TODO: This is a temporary solution, which will be replaced with
-// unique subpages to show the rule violation details.
-type Props = {
-  details: RuleViolation;
-};
-const RuleViolationDetailsComponent = ({ details }: Props) => {
+const renderSubComponent = ({ row }: { row: Row<RuleViolation> }) => {
+  const ruleViolation = row.original;
+
   return (
-    <DialogContent
-      className={'max-h-96 overflow-y-scroll text-sm lg:max-w-screen-lg'}
-    >
-      <DialogHeader>
-        <DialogTitle>{details.rule}</DialogTitle>
-        <DialogDescription>{details?.message}</DialogDescription>
-      </DialogHeader>
+    <div className='flex flex-col gap-4'>
+      <div>{ruleViolation.message}</div>
       <div className='grid grid-cols-8 gap-2'>
         <div className='col-span-2 font-semibold'>License:</div>
-        <div className='col-span-6'>{details.license}</div>
+        <div className='col-span-6'>{ruleViolation.license}</div>
         <div className='col-span-2 font-semibold'>License source:</div>
-        <div className='col-span-6'>{details.licenseSource}</div>
+        <div className='col-span-6'>{ruleViolation.licenseSource}</div>
         <div className='col-span-2 font-semibold'>How to fix:</div>
       </div>
-      <MarkdownRenderer markdown={details.howToFix} />
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button type='button' variant='secondary'>
-            Close
-          </Button>
-        </DialogClose>
-      </DialogFooter>
-    </DialogContent>
+      <MarkdownRenderer markdown={ruleViolation.howToFix} />
+    </div>
   );
 };
 
@@ -233,9 +209,11 @@ const RuleViolationsComponent = () => {
       sorting: sortBy,
     },
     getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getRowCanExpand: () => true,
   });
 
   return (
@@ -282,6 +260,7 @@ const RuleViolationsComponent = () => {
           />
           <DataTable
             table={table}
+            renderSubComponent={renderSubComponent}
             setCurrentPageOptions={(currentPage) => {
               return {
                 to: Route.to,
