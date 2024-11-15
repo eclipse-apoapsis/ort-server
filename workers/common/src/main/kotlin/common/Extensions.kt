@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.ossreviewtoolkit.model.yamlMapper
@@ -35,6 +36,14 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 val logger: Logger = LoggerFactory.getLogger(ConfigManager::class.java)
+
+/**
+ * Map the entries of all [PluginConfiguration.options] in this map using the provided [transform] function.
+ */
+fun Map<String, PluginConfiguration>.mapOptions(
+    transform: (Map.Entry<String, String>) -> String
+): Map<String, PluginConfiguration> =
+    mapValues { (_, pluginConfig) -> pluginConfig.copy(options = pluginConfig.options.mapValues(transform)) }
 
 /**
  * If [path] is not `null`, read the YAML configuration file using the provided [context] and deserialize its value. If
