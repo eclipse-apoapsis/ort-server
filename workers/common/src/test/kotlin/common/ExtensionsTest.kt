@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 
@@ -36,11 +36,6 @@ import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.readConfigFile
-import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValue
-import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
-import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
-import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 class ExtensionsTest : WordSpec({
     data class ConfigClass(val name: String, val value: String)
