@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.maps.containExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -35,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 class ExtensionsTest : WordSpec({
@@ -55,6 +57,48 @@ class ExtensionsTest : WordSpec({
     val invalidConfigFileYaml = "invalid"
 
     val configException = ConfigException("message", null)
+
+    "mapOptions" should {
+        "apply the transform to all option entries" {
+            val pluginConfigs = mapOf(
+                "plugin1" to PluginConfiguration(
+                    options = mapOf("key1" to "value1", "key2" to "value2"),
+                    secrets = emptyMap()
+                ),
+                "plugin2" to PluginConfiguration(
+                    options = mapOf("key3" to "value3", "key4" to "value4"),
+                    secrets = emptyMap()
+                )
+            )
+
+            pluginConfigs.mapOptions { it.key + it.value } should containExactly(
+                "plugin1" to PluginConfiguration(
+                    options = mapOf("key1" to "key1value1", "key2" to "key2value2"),
+                    secrets = emptyMap()
+                ),
+                "plugin2" to PluginConfiguration(
+                    options = mapOf("key3" to "key3value3", "key4" to "key4value4"),
+                    secrets = emptyMap()
+                )
+            )
+        }
+
+        "not apply the transform to the secrets" {
+            val pluginConfigs = mapOf(
+                "plugin1" to PluginConfiguration(
+                    options = emptyMap(),
+                    secrets = mapOf("key1" to "value1", "key2" to "value2")
+                )
+            )
+
+            pluginConfigs.mapOptions { it.key + it.value } should containExactly(
+                "plugin1" to PluginConfiguration(
+                    options = emptyMap(),
+                    secrets = mapOf("key1" to "value1", "key2" to "value2")
+                )
+            )
+        }
+    }
 
     "readConfigFileValueWithDefault" should {
         "deserialize the file at path if path is not null" {
