@@ -23,7 +23,6 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
-import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -37,6 +36,5 @@ fun workerContextModule(): Module = module {
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
 
-    single { OptionsTransformerFactory() }
     singleOf(::WorkerContextFactory)
 }

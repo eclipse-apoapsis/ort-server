@@ -33,11 +33,11 @@ import kotlinx.datetime.Clock
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.workers.common.JobPluginOptions
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.mapOptions
@@ -50,7 +50,7 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.CopyrightGarbage
 import org.ossreviewtoolkit.model.config.LicenseFilePatterns
 import org.ossreviewtoolkit.model.config.PackageConfiguration
-import org.ossreviewtoolkit.model.config.PluginConfiguration
+import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.licenses.DefaultLicenseInfoProvider
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
@@ -205,8 +205,8 @@ class ReporterRunner(
                             }
 
                             val reporterOptions = transformedOptions[reporter.type]?.let { options ->
-                                PluginConfiguration(options.options, options.secrets)
-                            } ?: PluginConfiguration.EMPTY
+                                OrtPluginConfiguration(options.options, options.secrets)
+                            } ?: OrtPluginConfiguration.EMPTY
 
                             val reportFileResults = reporter.generateReport(reporterInput, outputDir, reporterOptions)
 
@@ -256,7 +256,7 @@ class ReporterRunner(
     private suspend fun processReporterOptions(
         context: WorkerContext,
         config: ReporterJobConfiguration
-    ): JobPluginOptions = withContext(Dispatchers.IO) {
+    ): Map<String, PluginConfiguration> = withContext(Dispatchers.IO) {
         val templateDir = context.createTempDir()
 
         launch { context.downloadAssetFiles(config.assetFiles, templateDir) }
