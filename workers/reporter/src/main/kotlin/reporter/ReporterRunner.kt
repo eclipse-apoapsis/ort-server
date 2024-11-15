@@ -38,13 +38,12 @@ import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.JobPluginOptions
-import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.mapOptions
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
-import org.eclipse.apoapsis.ortserver.workers.common.recombine
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.model.OrtResult
@@ -85,9 +84,6 @@ class ReporterRunner(
 
     /** The factory for creating a worker context. */
     private val contextFactory: WorkerContextFactory,
-
-    /** The factory for creating a transformer for options. */
-    private val transformerFactory: OptionsTransformerFactory,
 
     /** The config manager used to download configuration files. */
     private val configManager: ConfigManager,
@@ -262,27 +258,37 @@ class ReporterRunner(
         config: ReporterJobConfiguration
     ): JobPluginOptions = withContext(Dispatchers.IO) {
         val templateDir = context.createTempDir()
-        val transformedOptions = async {
-            // Handle the placeholder for the working directory.
-            val workDirOptions = transformerFactory.newPluginOptionsTransformer(config.config.orEmpty())
-                .filter { it.contains(ReporterComponent.WORK_DIR_PLACEHOLDER) }
-                .transform { options ->
-                    options.associateWith {
-                        it.replace(ReporterComponent.WORK_DIR_PLACEHOLDER, templateDir.absolutePath)
-                    }
-                }
-
-            // Handle download of referenced template files.
-            transformerFactory.newTransformer(workDirOptions)
-                .filter { it.contains(ReporterComponent.TEMPLATE_REFERENCE) }
-                .transform { context.downloadReporterTemplates(it, templateDir) }
-        }
 
         launch { context.downloadAssetFiles(config.assetFiles, templateDir) }
         launch { context.downloadAssetDirectories(config.assetDirectories, templateDir) }
 
-        val transformedPluginOptions = config.config?.recombine(transformedOptions.await())
-        context.resolvePluginConfigSecrets(transformedPluginOptions)
+        // Replace the placeholder for the working directory in the options with the actual path.
+        val workDirOptions = config.config?.mapOptions { (_, value) ->
+            if (value.contains(ReporterComponent.WORK_DIR_PLACEHOLDER)) {
+                value.replace(ReporterComponent.WORK_DIR_PLACEHOLDER, templateDir.absolutePath)
+            } else {
+                value
+            }
+        }.orEmpty()
+
+        // Get all template file references from the plugin options.
+        val templateReferences = workDirOptions.flatMap { (_, pluginConfig) ->
+            pluginConfig.options.values.filter { it.contains(ReporterComponent.TEMPLATE_REFERENCE) }
+        }
+
+        // Download the referenced template files.
+        val templateFiles = if (templateReferences.isNotEmpty()) {
+            context.downloadReporterTemplates(templateReferences, templateDir)
+        } else {
+            emptyMap()
+        }
+
+        // Replace the template references in the options with the paths of the downloaded files.
+        val processedOptions = workDirOptions.mapOptions { (_, value) ->
+            templateFiles[value] ?: value
+        }
+
+        context.resolvePluginConfigSecrets(processedOptions)
     }
 }
 

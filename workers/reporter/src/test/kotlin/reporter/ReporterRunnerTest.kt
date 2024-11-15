@@ -62,7 +62,6 @@ import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -132,7 +131,7 @@ class ReporterRunnerTest : WordSpec({
             val storage = mockk<ReportStorage>()
             coEvery { storage.storeReportFiles(any(), any()) } just runs
             val (contextFactory, _) = mockContext()
-            val runner = ReporterRunner(storage, contextFactory, OptionsTransformerFactory(), configManager, mockk())
+            val runner = ReporterRunner(storage, contextFactory, configManager, mockk())
 
             val reportType = "WebApp"
             val mapping = ReportNameMapping("testReport")
@@ -199,7 +198,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -259,7 +257,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -300,7 +297,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -338,7 +334,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -372,7 +367,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -410,7 +404,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -436,7 +429,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -481,7 +473,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -541,7 +532,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -574,7 +564,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -616,7 +605,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -681,7 +669,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -723,7 +710,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -766,7 +752,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )
@@ -815,7 +800,6 @@ class ReporterRunnerTest : WordSpec({
             val runner = ReporterRunner(
                 mockk(relaxed = true),
                 contextFactory,
-                OptionsTransformerFactory(),
                 configManager,
                 mockk()
             )

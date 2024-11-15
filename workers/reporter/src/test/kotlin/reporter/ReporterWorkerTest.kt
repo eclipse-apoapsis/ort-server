@@ -55,7 +55,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
-import org.eclipse.apoapsis.ortserver.workers.common.OptionsTransformerFactory
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -217,7 +216,7 @@ class ReporterWorkerTest : StringSpec({
             mockContextFactory(),
             mockk(),
             mockk(),
-            ReporterRunner(mockk(relaxed = true), mockContextFactory(), OptionsTransformerFactory(), mockk(), mockk()),
+            ReporterRunner(mockk(relaxed = true), mockContextFactory(), mockk(), mockk()),
             ortRunService,
             mockk()
         )
@@ -335,7 +334,7 @@ class ReporterWorkerTest : StringSpec({
             mockContextFactory(),
             mockk(),
             mockk(),
-            ReporterRunner(mockk(relaxed = true), mockContextFactory(), OptionsTransformerFactory(), mockk(), mockk()),
+            ReporterRunner(mockk(relaxed = true), mockContextFactory(), mockk(), mockk()),
             ortRunService,
             mockk()
         )
