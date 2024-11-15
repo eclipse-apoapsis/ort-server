@@ -21,9 +21,9 @@ import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
   getCoreRowModel,
-  getExpandedRowModel,
-  getGroupedRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronRight } from 'lucide-react';
@@ -36,6 +36,8 @@ import {
 } from '@/api/queries/suspense';
 import { RuleViolation } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
+import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Badge } from '@/components/ui/badge';
@@ -64,7 +66,13 @@ import {
 } from '@/components/ui/tooltip';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
 import { identifierToString } from '@/helpers/identifier-to-string';
-import { paginationSchema, tableGroupingSchema } from '@/schemas';
+import { compareSeverity } from '@/helpers/sorting-functions';
+import {
+  paginationSchema,
+  ruleViolationSeverity,
+  ruleViolationSeveritySchema,
+  tableSortingSchema,
+} from '@/schemas';
 
 const defaultPageSize = 10;
 
@@ -81,6 +89,12 @@ const columns = [
           {row.original.severity}
         </Badge>
       );
+    },
+    filterFn: (row, _columnId, filterValue): boolean => {
+      return filterValue.includes(row.original.severity);
+    },
+    sortingFn: (rowA, rowB) => {
+      return compareSeverity(rowA.original.severity, rowB.original.severity);
     },
   }),
   columnHelper.accessor(
@@ -161,6 +175,7 @@ const RuleViolationDetailsComponent = ({ details }: Props) => {
 const RuleViolationsComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   // Memoize the search parameters to prevent unnecessary re-rendering
 
@@ -174,10 +189,24 @@ const RuleViolationsComponent = () => {
     [search.pageSize]
   );
 
-  const groups = useMemo(
-    () => (search.groups ? search.groups : ['Severity']),
-    [search.groups]
+  const severity = useMemo(
+    () => (search.severity ? search.severity : undefined),
+    [search.severity]
   );
+
+  const columnFilters = useMemo(
+    () => (severity ? [{ id: 'severity', value: severity }] : []),
+    [severity]
+  );
+
+  const sortBy = useMemo(() => {
+    return search.sortBy
+      ? search.sortBy.split(',').map((sortParam) => {
+          const [id, desc] = sortParam.split('.');
+          return { id, desc: desc === 'desc' };
+        })
+      : undefined;
+  }, [search.sortBy]);
 
   const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
     repositoryId: Number.parseInt(params.repoId),
@@ -190,7 +219,6 @@ const RuleViolationsComponent = () => {
       // Fetch all data at once, as we need to do both grouping and
       // pagination in front-end for consistency in data handling.
       limit: 100000,
-      sort: 'rule',
     });
 
   const table = useReactTable({
@@ -201,12 +229,13 @@ const RuleViolationsComponent = () => {
         pageIndex,
         pageSize,
       },
-      grouping: groups,
+      columnFilters,
+      sorting: sortBy,
     },
     getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getGroupedRowModel: getGroupedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
@@ -222,6 +251,35 @@ const RuleViolationsComponent = () => {
       </CardHeader>
       <CardContent>
         <CardContent>
+          <DataTableToolbar
+            filters={
+              <FilterMultiSelect
+                title='Rule Violation Severity'
+                options={ruleViolationSeverity.options.map((severity) => ({
+                  label: severity,
+                  value: severity,
+                }))}
+                selected={severity || []}
+                setSelected={(severities) => {
+                  navigate({
+                    search: {
+                      ...search,
+                      page: 1,
+                      severity:
+                        severities.length === 0 ? undefined : severities,
+                    },
+                  });
+                }}
+              />
+            }
+            resetFilters={() => {
+              navigate({
+                search: { ...search, page: 1, severity: undefined },
+              });
+            }}
+            resetBtnVisible={severity !== undefined}
+            className='mb-2'
+          />
           <DataTable
             table={table}
             setCurrentPageOptions={(currentPage) => {
@@ -236,13 +294,29 @@ const RuleViolationsComponent = () => {
                 search: { ...search, page: 1, pageSize: size },
               };
             }}
-            setGroupingOptions={(groups) => {
+            setSortingOptions={(sortBy) => {
+              const sortByString = sortBy
+                .filter((sort) => sort.sortBy !== null)
+                .map(({ id, sortBy }) => `${id}.${sortBy}`)
+                .join(',');
+              // When the sorting is reset (clicking the header when it is in descending mode),
+              // remove the sortBy parameter completely from the URL, to pass route validation.
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { sortBy: _, ...rest } = search;
+              if (sortByString.length === 0) {
+                return {
+                  to: Route.to,
+                  search: rest,
+                };
+              }
               return {
                 to: Route.to,
-                search: { ...search, groups: groups },
+                search: {
+                  ...search,
+                  sortBy: sortByString,
+                },
               };
             }}
-            enableGrouping={true}
           />
         </CardContent>
       </CardContent>
@@ -253,7 +327,9 @@ const RuleViolationsComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/rule-violations/'
 )({
-  validateSearch: paginationSchema.merge(tableGroupingSchema),
+  validateSearch: paginationSchema
+    .merge(ruleViolationSeveritySchema)
+    .merge(tableSortingSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
       repositoryId: Number.parseInt(params.repoId),

@@ -64,3 +64,9 @@ export const issueSeverity: z.ZodEnum<[Severity, ...Severity[]]> = z.enum([
 export const issueSeveritySchema = z.object({
   severity: z.array(issueSeverity).optional(),
 });
+
+// Enum schema for the possible values of the rule violation severities
+export const ruleViolationSeverity = issueSeverity;
+
+// Rule violation severity schema that is used for search parameter validation
+export const ruleViolationSeveritySchema = issueSeveritySchema;
