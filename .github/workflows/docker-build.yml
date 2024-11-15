@@ -121,7 +121,7 @@ jobs:
           type=raw,value=${{ env.ORT_SERVER_VERSION }}
           type=ref,event=branch
           type=sha
-          type=raw,value=latest,enable=${{ is_default_branch }}
+          type=raw,value=latest,enable={{ is_default_branch }}
 
     - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
@@ -144,7 +144,7 @@ jobs:
           type=raw,value=${{ env.ORT_SERVER_VERSION }}
           type=ref,event=branch
           type=sha
-          type=raw,value=latest,enable=${{ is_default_branch}}
+          type=raw,value=latest,enable={{ is_default_branch }}
 
     - name: Build ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
