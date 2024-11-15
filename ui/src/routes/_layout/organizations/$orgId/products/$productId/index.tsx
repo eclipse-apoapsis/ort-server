@@ -53,7 +53,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
-import { paginationSchema } from '@/schemas';
+import { paginationSearchParameterSchema } from '@/schemas';
 import { LastJobStatus } from './-components/last-job-status';
 import { LastRunDate } from './-components/last-run-date';
 import { LastRunStatus } from './-components/last-run-status';
@@ -290,7 +290,7 @@ const ProductComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/'
 )({
-  validateSearch: paginationSchema,
+  validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([

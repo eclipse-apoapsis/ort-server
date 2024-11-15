@@ -59,7 +59,7 @@ import {
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
-import { paginationSchema } from '@/schemas';
+import { paginationSearchParameterSchema } from '@/schemas';
 
 const defaultPageSize = 10;
 const pollInterval = config.pollInterval;
@@ -358,7 +358,7 @@ const RepoComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/'
 )({
-  validateSearch: paginationSchema,
+  validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([

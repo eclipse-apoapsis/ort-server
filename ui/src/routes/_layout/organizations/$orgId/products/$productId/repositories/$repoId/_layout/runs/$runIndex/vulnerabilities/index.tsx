@@ -60,7 +60,10 @@ import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-clas
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
-import { paginationSchema, tableSortingSchema } from '@/schemas';
+import {
+  paginationSearchParameterSchema,
+  sortingSearchParameterSchema,
+} from '@/schemas';
 
 const defaultPageSize = 10;
 
@@ -353,7 +356,9 @@ const VulnerabilitiesComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/vulnerabilities/'
 )({
-  validateSearch: paginationSchema.merge(tableSortingSchema),
+  validateSearch: paginationSearchParameterSchema.merge(
+    sortingSearchParameterSchema
+  ),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
       repositoryId: Number.parseInt(params.repoId),

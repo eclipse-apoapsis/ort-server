@@ -55,10 +55,10 @@ import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-cl
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import {
-  paginationSchema,
-  ruleViolationSeverity,
-  ruleViolationSeveritySchema,
-  tableSortingSchema,
+  paginationSearchParameterSchema,
+  severitySchema,
+  severitySearchParameterSchema,
+  sortingSearchParameterSchema,
 } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -233,7 +233,7 @@ const RuleViolationsComponent = () => {
             filters={
               <FilterMultiSelect
                 title='Rule Violation Severity'
-                options={ruleViolationSeverity.options.map((severity) => ({
+                options={severitySchema.options.map((severity) => ({
                   label: severity,
                   value: severity,
                 }))}
@@ -306,9 +306,9 @@ const RuleViolationsComponent = () => {
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/rule-violations/'
 )({
-  validateSearch: paginationSchema
-    .merge(ruleViolationSeveritySchema)
-    .merge(tableSortingSchema),
+  validateSearch: paginationSearchParameterSchema
+    .merge(severitySearchParameterSchema)
+    .merge(sortingSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
       repositoryId: Number.parseInt(params.repoId),
