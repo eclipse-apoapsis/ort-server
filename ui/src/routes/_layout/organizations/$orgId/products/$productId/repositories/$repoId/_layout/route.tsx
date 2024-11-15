@@ -73,7 +73,7 @@ const Layout = () => {
         },
         {
           title: 'Rule Violations',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations?sortBy=severity.desc',
           params,
           icon: () => <Scale className='h-4 w-4' />,
         },

@@ -251,6 +251,7 @@ const RunComponent = () => {
               repoId: params.repoId,
               runIndex: params.runIndex,
             }}
+            search={{ sortBy: 'severity.desc' }}
           >
             <RuleViolationsStatisticsCard
               runId={ortRun.id}
