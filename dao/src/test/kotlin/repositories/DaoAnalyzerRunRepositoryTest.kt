@@ -24,6 +24,10 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -88,6 +92,18 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         analyzerRunRepository.create(analyzerJobId, analyzerRun)
 
         dbExtension.db.dbQuery { ProjectsTable.selectAll().count() } shouldBe 1
+    }
+
+    "create should handle unique constraint violations" {
+        val txCount = 64
+        withContext(Dispatchers.IO) {
+            (1..txCount).map {
+                async {
+                    val run = analyzerRun.copy(packages = setOf(createPackage(it)))
+                    analyzerRunRepository.create(analyzerJobId, run)
+                }
+            }
+        }.awaitAll()
     }
 
     "get should return null" {
@@ -166,11 +182,13 @@ val project = Project(
     scopeNames = setOf("compile")
 )
 
-internal val pkg = Package(
+internal val pkg = createPackage(1)
+
+private fun createPackage(index: Int) = Package(
     identifier = Identifier(
         type = "type",
         namespace = "namespace",
-        name = "package",
+        name = "package$index",
         version = "version"
     ),
     purl = "purl",
@@ -194,24 +212,24 @@ internal val pkg = Package(
     description = "description",
     homepageUrl = "https://example.com",
     binaryArtifact = RemoteArtifact(
-        url = "https://example.com/binary.zip",
+        url = "https://example.com/binary$index.zip",
         hashValue = "",
         hashAlgorithm = ""
     ),
     sourceArtifact = RemoteArtifact(
-        url = "https://example.com/source.zip",
+        url = "https://example.com/source$index.zip",
         hashValue = "0123456789abcdef0123456789abcdef01234567",
         hashAlgorithm = "SHA-1"
     ),
     vcs = VcsInfo(
         type = RepositoryType.GIT,
-        url = "https://example.com/package.git",
+        url = "https://example.com/package$index.git",
         revision = "",
         path = ""
     ),
     vcsProcessed = VcsInfo(
         type = RepositoryType.GIT,
-        url = "https://example.com/package.git",
+        url = "https://example.com/package$index.git",
         revision = "main",
         path = ""
     )
