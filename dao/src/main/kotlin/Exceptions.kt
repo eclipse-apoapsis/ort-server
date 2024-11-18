@@ -21,6 +21,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao
 
+import java.sql.SQLException
+
 import kotlinx.coroutines.CopyableThrowable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
@@ -32,7 +34,7 @@ enum class PostgresErrorCodes(val value: String) {
 }
 
 class UniqueConstraintException(msg: String, cause: Throwable) :
-    RuntimeException(msg, cause), CopyableThrowable<UniqueConstraintException> {
+    SQLException(msg, cause), CopyableThrowable<UniqueConstraintException> {
     override fun createCopy() = UniqueConstraintException(checkNotNull(message), this)
 }
 
