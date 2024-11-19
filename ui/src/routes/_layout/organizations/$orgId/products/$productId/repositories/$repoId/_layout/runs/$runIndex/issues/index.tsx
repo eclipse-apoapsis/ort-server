@@ -66,6 +66,32 @@ const defaultPageSize = 10;
 const columnHelper = createColumnHelper<Issue>();
 
 const columns = [
+  columnHelper.display({
+    id: 'moreInfo',
+    header: 'Details',
+    size: 50,
+    cell: function CellComponent({ row }) {
+      return row.getCanExpand() ? (
+        <Button
+          variant='outline'
+          size='sm'
+          {...{
+            onClick: row.getToggleExpandedHandler(),
+            style: { cursor: 'pointer' },
+          }}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronUp className='h-4 w-4' />
+          ) : (
+            <ChevronDown className='h-4 w-4' />
+          )}
+        </Button>
+      ) : (
+        'No info'
+      );
+    },
+    enableSorting: false,
+  }),
   columnHelper.accessor('severity', {
     header: 'Severity',
     cell: ({ row }) => (
@@ -96,37 +122,14 @@ const columns = [
   ),
   columnHelper.accessor('affectedPath', {
     header: 'Affected Path',
-    cell: ({ row }) => row.original.affectedPath,
+    cell: ({ row }) => (
+      <div className='break-all'>{row.original.affectedPath}</div>
+    ),
     enableSorting: false,
   }),
   columnHelper.accessor('source', {
     header: 'Source',
     cell: ({ row }) => row.original.source,
-  }),
-  columnHelper.display({
-    id: 'moreInfo',
-    size: 50,
-    cell: function CellComponent({ row }) {
-      return row.getCanExpand() ? (
-        <Button
-          variant='outline'
-          size='sm'
-          {...{
-            onClick: row.getToggleExpandedHandler(),
-            style: { cursor: 'pointer' },
-          }}
-        >
-          {row.getIsExpanded() ? (
-            <ChevronUp className='h-4 w-4' />
-          ) : (
-            <ChevronDown className='h-4 w-4' />
-          )}
-        </Button>
-      ) : (
-        'No info'
-      );
-    },
-    enableSorting: false,
   }),
 ];
 

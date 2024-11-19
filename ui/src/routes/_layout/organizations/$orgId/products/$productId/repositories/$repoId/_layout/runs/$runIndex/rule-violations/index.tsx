@@ -66,6 +66,32 @@ const defaultPageSize = 10;
 const columnHelper = createColumnHelper<RuleViolation>();
 
 const columns = [
+  columnHelper.display({
+    id: 'moreInfo',
+    header: 'Details',
+    size: 50,
+    cell: function CellComponent({ row }) {
+      return row.getCanExpand() ? (
+        <Button
+          variant='outline'
+          size='sm'
+          {...{
+            onClick: row.getToggleExpandedHandler(),
+            style: { cursor: 'pointer' },
+          }}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronUp className='h-4 w-4' />
+          ) : (
+            <ChevronDown className='h-4 w-4' />
+          )}
+        </Button>
+      ) : (
+        'No info'
+      );
+    },
+    enableSorting: false,
+  }),
   columnHelper.accessor('severity', {
     header: 'Severity',
     cell: ({ row }) => {
@@ -102,31 +128,6 @@ const columns = [
         {row.original.rule}
       </Badge>
     ),
-  }),
-  columnHelper.display({
-    id: 'moreInfo',
-    size: 50,
-    cell: function CellComponent({ row }) {
-      return row.getCanExpand() ? (
-        <Button
-          variant='outline'
-          size='sm'
-          {...{
-            onClick: row.getToggleExpandedHandler(),
-            style: { cursor: 'pointer' },
-          }}
-        >
-          {row.getIsExpanded() ? (
-            <ChevronUp className='h-4 w-4' />
-          ) : (
-            <ChevronDown className='h-4 w-4' />
-          )}
-        </Button>
-      ) : (
-        'No info'
-      );
-    },
-    enableSorting: false,
   }),
 ];
 
@@ -228,76 +229,73 @@ const RuleViolationsComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <CardContent>
-          <DataTableToolbar
-            filters={
-              <FilterMultiSelect
-                title='Rule Violation Severity'
-                options={severitySchema.options.map((severity) => ({
-                  label: severity,
-                  value: severity,
-                }))}
-                selected={severity || []}
-                setSelected={(severities) => {
-                  navigate({
-                    search: {
-                      ...search,
-                      page: 1,
-                      severity:
-                        severities.length === 0 ? undefined : severities,
-                    },
-                  });
-                }}
-              />
+        <DataTableToolbar
+          filters={
+            <FilterMultiSelect
+              title='Rule Violation Severity'
+              options={severitySchema.options.map((severity) => ({
+                label: severity,
+                value: severity,
+              }))}
+              selected={severity || []}
+              setSelected={(severities) => {
+                navigate({
+                  search: {
+                    ...search,
+                    page: 1,
+                    severity: severities.length === 0 ? undefined : severities,
+                  },
+                });
+              }}
+            />
+          }
+          resetFilters={() => {
+            navigate({
+              search: { ...search, page: 1, severity: undefined },
+            });
+          }}
+          resetBtnVisible={severity !== undefined}
+          className='mb-2'
+        />
+        <DataTable
+          table={table}
+          renderSubComponent={renderSubComponent}
+          setCurrentPageOptions={(currentPage) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: currentPage },
+            };
+          }}
+          setPageSizeOptions={(size) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: 1, pageSize: size },
+            };
+          }}
+          setSortingOptions={(sortBy) => {
+            const sortByString = sortBy
+              .filter((sort) => sort.sortBy !== null)
+              .map(({ id, sortBy }) => `${id}.${sortBy}`)
+              .join(',');
+            // When the sorting is reset (clicking the header when it is in descending mode),
+            // remove the sortBy parameter completely from the URL, to pass route validation.
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { sortBy: _, ...rest } = search;
+            if (sortByString.length === 0) {
+              return {
+                to: Route.to,
+                search: rest,
+              };
             }
-            resetFilters={() => {
-              navigate({
-                search: { ...search, page: 1, severity: undefined },
-              });
-            }}
-            resetBtnVisible={severity !== undefined}
-            className='mb-2'
-          />
-          <DataTable
-            table={table}
-            renderSubComponent={renderSubComponent}
-            setCurrentPageOptions={(currentPage) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: currentPage },
-              };
-            }}
-            setPageSizeOptions={(size) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: 1, pageSize: size },
-              };
-            }}
-            setSortingOptions={(sortBy) => {
-              const sortByString = sortBy
-                .filter((sort) => sort.sortBy !== null)
-                .map(({ id, sortBy }) => `${id}.${sortBy}`)
-                .join(',');
-              // When the sorting is reset (clicking the header when it is in descending mode),
-              // remove the sortBy parameter completely from the URL, to pass route validation.
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const { sortBy: _, ...rest } = search;
-              if (sortByString.length === 0) {
-                return {
-                  to: Route.to,
-                  search: rest,
-                };
-              }
-              return {
-                to: Route.to,
-                search: {
-                  ...search,
-                  sortBy: sortByString,
-                },
-              };
-            }}
-          />
-        </CardContent>
+            return {
+              to: Route.to,
+              search: {
+                ...search,
+                sortBy: sortByString,
+              },
+            };
+          }}
+        />
       </CardContent>
     </Card>
   );

@@ -70,26 +70,31 @@ const defaultPageSize = 10;
 const columnHelper = createColumnHelper<VulnerabilityWithIdentifier>();
 
 const columns = [
-  columnHelper.accessor(
-    (vuln) => {
-      return identifierToString(vuln.identifier);
+  columnHelper.display({
+    id: 'moreInfo',
+    header: 'Details',
+    size: 50,
+    cell: ({ row }) => {
+      return row.getCanExpand() ? (
+        <Button
+          variant='outline'
+          size='sm'
+          {...{
+            onClick: row.getToggleExpandedHandler(),
+            style: { cursor: 'pointer' },
+          }}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronUp className='h-4 w-4' />
+          ) : (
+            <ChevronDown className='h-4 w-4' />
+          )}
+        </Button>
+      ) : (
+        'No info'
+      );
     },
-    {
-      id: 'package',
-      header: 'Package',
-      cell: ({ row }) => {
-        return <div className='font-semibold'>{row.getValue('package')}</div>;
-      },
-    }
-  ),
-  columnHelper.accessor('vulnerability.externalId', {
-    id: 'externalId',
-    header: 'External ID',
-    cell: ({ row }) => (
-      <Badge className='whitespace-nowrap bg-blue-300'>
-        {row.getValue('externalId')}
-      </Badge>
-    ),
+    enableSorting: false,
   }),
   columnHelper.accessor(
     (vuln) => {
@@ -119,6 +124,27 @@ const columns = [
     }
   ),
   columnHelper.accessor(
+    (vuln) => {
+      return identifierToString(vuln.identifier);
+    },
+    {
+      id: 'package',
+      header: 'Package',
+      cell: ({ row }) => {
+        return <div className='font-semibold'>{row.getValue('package')}</div>;
+      },
+    }
+  ),
+  columnHelper.accessor('vulnerability.externalId', {
+    id: 'externalId',
+    header: 'External ID',
+    cell: ({ row }) => (
+      <Badge className='whitespace-nowrap bg-blue-300'>
+        {row.getValue('externalId')}
+      </Badge>
+    ),
+  }),
+  columnHelper.accessor(
     (row) => {
       return row.vulnerability.summary;
     },
@@ -135,32 +161,6 @@ const columns = [
       enableSorting: false,
     }
   ),
-  columnHelper.display({
-    id: 'moreInfo',
-    header: () => null,
-    size: 50,
-    cell: ({ row }) => {
-      return row.getCanExpand() ? (
-        <Button
-          variant='outline'
-          size='sm'
-          {...{
-            onClick: row.getToggleExpandedHandler(),
-            style: { cursor: 'pointer' },
-          }}
-        >
-          {row.getIsExpanded() ? (
-            <ChevronUp className='h-4 w-4' />
-          ) : (
-            <ChevronDown className='h-4 w-4' />
-          )}
-        </Button>
-      ) : (
-        'No info'
-      );
-    },
-    enableSorting: false,
-  }),
 ];
 
 const renderSubComponent = ({
@@ -307,47 +307,45 @@ const VulnerabilitiesComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <CardContent>
-          <DataTable
-            table={table}
-            renderSubComponent={renderSubComponent}
-            setCurrentPageOptions={(currentPage) => {
+        <DataTable
+          table={table}
+          renderSubComponent={renderSubComponent}
+          setCurrentPageOptions={(currentPage) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: currentPage },
+            };
+          }}
+          setPageSizeOptions={(size) => {
+            return {
+              to: Route.to,
+              search: { ...search, page: 1, pageSize: size },
+            };
+          }}
+          setSortingOptions={(sortBy) => {
+            const sortByString = sortBy
+              .filter((sort) => sort.sortBy !== null)
+              .map(({ id, sortBy }) => `${id}.${sortBy}`)
+              .join(',');
+            // When the sorting is reset (clicking the header when it is in descending mode),
+            // remove the sortBy parameter completely from the URL, to pass route validation.
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { sortBy: _, ...rest } = search;
+            if (sortByString.length === 0) {
               return {
                 to: Route.to,
-                search: { ...search, page: currentPage },
+                search: rest,
               };
-            }}
-            setPageSizeOptions={(size) => {
-              return {
-                to: Route.to,
-                search: { ...search, page: 1, pageSize: size },
-              };
-            }}
-            setSortingOptions={(sortBy) => {
-              const sortByString = sortBy
-                .filter((sort) => sort.sortBy !== null)
-                .map(({ id, sortBy }) => `${id}.${sortBy}`)
-                .join(',');
-              // When the sorting is reset (clicking the header when it is in descending mode),
-              // remove the sortBy parameter completely from the URL, to pass route validation.
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const { sortBy: _, ...rest } = search;
-              if (sortByString.length === 0) {
-                return {
-                  to: Route.to,
-                  search: rest,
-                };
-              }
-              return {
-                to: Route.to,
-                search: {
-                  ...search,
-                  sortBy: sortByString,
-                },
-              };
-            }}
-          />
-        </CardContent>
+            }
+            return {
+              to: Route.to,
+              search: {
+                ...search,
+                sortBy: sortByString,
+              },
+            };
+          }}
+        />
       </CardContent>
     </Card>
   );
