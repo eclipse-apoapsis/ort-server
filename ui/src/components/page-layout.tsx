@@ -33,7 +33,7 @@ export const PageLayout = ({ sections, children }: PageLayoutProps) => {
           <Sidebar sections={sections} />
         </Pane>
       )}
-      <Content className='w-full md:max-w-4xl'>{children}</Content>
+      <Content className='w-full md:max-w-5xl'>{children}</Content>
     </Page>
   );
 };
