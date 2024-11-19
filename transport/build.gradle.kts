@@ -21,3 +21,5 @@ plugins {
     // Apply precompiled plugins.
     id("ort-server-platform-conventions")
 }
+
+group = "org.eclipse.apoapsis.ortserver"
