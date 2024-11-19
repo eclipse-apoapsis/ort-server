@@ -51,6 +51,30 @@ const defaultPageSize = 10;
 const columnHelper = createColumnHelper<Package>();
 
 const columns = [
+  columnHelper.display({
+    id: 'moreInfo',
+    header: 'Details',
+    size: 50,
+    cell: ({ row }) => {
+      return row.getCanExpand() ? (
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={row.getToggleExpandedHandler()}
+          style={{ cursor: 'pointer' }}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronUp className='h-4 w-4' />
+          ) : (
+            <ChevronDown className='h-4 w-4' />
+          )}
+        </Button>
+      ) : (
+        'No info'
+      );
+    },
+    enableSorting: false,
+  }),
   columnHelper.accessor(
     (pkg) => {
       return identifierToString(pkg.identifier);
@@ -87,30 +111,6 @@ const columns = [
         {row.getValue('homepageUrl')}
       </a>
     ),
-  }),
-  columnHelper.display({
-    id: 'moreInfo',
-    header: () => null,
-    size: 50,
-    cell: ({ row }) => {
-      return row.getCanExpand() ? (
-        <Button
-          variant='outline'
-          size='sm'
-          onClick={row.getToggleExpandedHandler()}
-          style={{ cursor: 'pointer' }}
-        >
-          {row.getIsExpanded() ? (
-            <ChevronUp className='h-4 w-4' />
-          ) : (
-            <ChevronDown className='h-4 w-4' />
-          )}
-        </Button>
-      ) : (
-        'No info'
-      );
-    },
-    enableSorting: false,
   }),
 ];
 
