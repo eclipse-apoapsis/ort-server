@@ -51,6 +51,7 @@ dependencies {
     implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
+    implementation(libs.kotlinxSerializationJson)
     implementation(libs.ortScanner)
     implementation(libs.typesafeConfig)
 

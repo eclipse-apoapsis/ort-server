@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import kotlinx.datetime.toKotlinInstant
+import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
@@ -27,15 +28,23 @@ import org.eclipse.apoapsis.ortserver.dao.tables.AdditionalScanResultData
 import org.eclipse.apoapsis.ortserver.dao.tables.CopyrightFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao.Companion.matchesRemoteArtifact
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao.Companion.matchesVcsInfo
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesIssuesDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
+import org.eclipse.apoapsis.ortserver.dao.utils.utils.JsonHashFunction
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Expression
+import org.jetbrains.exposed.sql.ISqlExpressionBuilder
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.stringLiteral
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.KnownProvenance
@@ -65,13 +74,13 @@ class OrtServerScanResultStorage(
         db.blockingQuery {
             val scanResultDaos = when (provenance) {
                 is ArtifactProvenance -> {
-                    ScanResultDao.findByRemoteArtifact(provenance.sourceArtifact.mapToModel())
+                    ScanResultDao.find { matchesRemoteArtifact(provenance.sourceArtifact.mapToModel()) }
                 }
 
                 is RepositoryProvenance -> {
-                    ScanResultDao.findByVcsInfo(
-                        provenance.vcsInfo.copy(revision = provenance.resolvedRevision).mapToModel()
-                    )
+                    ScanResultDao.find {
+                        matchesVcsInfo(provenance.vcsInfo.copy(revision = provenance.resolvedRevision).mapToModel())
+                    }
                 }
             }
 
@@ -107,71 +116,78 @@ class OrtServerScanResultStorage(
         }
 
         db.blockingQuery {
-            val summaryDao = ScanSummaryDao.new {
-                this.startTime = scanResult.summary.startTime.toKotlinInstant()
-                this.endTime = scanResult.summary.endTime.toKotlinInstant()
+            val resultDao = findExistingScanResult(scanResult) ?: createNewScanResult(scanResult, provenance)
+
+            associateScanResultWithScannerRun(resultDao)
+        }
+    }
+
+    /**
+     * Create a new database entry for the given [scanResult] for the given [provenance].
+     */
+    private fun createNewScanResult(scanResult: ScanResult, provenance: KnownProvenance): ScanResultDao {
+        val summaryDao = ScanSummaryDao.new {
+            this.startTime = scanResult.summary.startTime.toKotlinInstant()
+            this.endTime = scanResult.summary.endTime.toKotlinInstant()
+        }
+
+        scanResult.summary.issues.forEach {
+            ScanSummariesIssuesDao.createByIssue(summaryDao.id.value, it.mapToModel())
+        }
+
+        return ScanResultDao.new {
+            when (provenance) {
+                is ArtifactProvenance -> {
+                    this.artifactUrl = provenance.sourceArtifact.url
+                    this.artifactHash = provenance.sourceArtifact.hash.value
+                    this.artifactHashAlgorithm = provenance.sourceArtifact.hash.algorithm.toString()
+                }
+
+                is RepositoryProvenance -> {
+                    this.vcsType = provenance.vcsInfo.type.mapToModel().name
+                    this.vcsUrl = provenance.vcsInfo.url
+                    this.vcsRevision = provenance.resolvedRevision
+                }
             }
 
-            scanResult.summary.issues.forEach {
-                ScanSummariesIssuesDao.createByIssue(summaryDao.id.value, it.mapToModel())
+            this.scannerName = scanResult.scanner.name
+            this.scannerVersion = scanResult.scanner.version
+            this.scannerConfiguration = scanResult.scanner.configuration
+            this.additionalScanResultData = AdditionalScanResultData(scanResult.additionalData)
+            this.scanSummary = summaryDao
+
+            val summary = this.scanSummary
+            scanResult.summary.licenseFindings.forEach {
+                LicenseFindingDao.new {
+                    this.scanSummary = summary
+                    this.license = it.license.toString()
+                    this.path = it.location.path
+                    this.startLine = it.location.startLine
+                    this.endLine = it.location.endLine
+                    this.score = it.score
+                }
             }
-
-            ScanResultDao.new {
-                when (provenance) {
-                    is ArtifactProvenance -> {
-                        this.artifactUrl = provenance.sourceArtifact.url
-                        this.artifactHash = provenance.sourceArtifact.hash.value
-                        this.artifactHashAlgorithm = provenance.sourceArtifact.hash.algorithm.toString()
-                    }
-
-                    is RepositoryProvenance -> {
-                        this.vcsType = provenance.vcsInfo.type.mapToModel().name
-                        this.vcsUrl = provenance.vcsInfo.url
-                        this.vcsRevision = provenance.resolvedRevision
-                    }
+            scanResult.summary.copyrightFindings.forEach {
+                CopyrightFindingDao.new {
+                    this.scanSummary = summary
+                    this.statement = it.statement
+                    this.path = it.location.path
+                    this.startLine = it.location.startLine
+                    this.endLine = it.location.endLine
                 }
-
-                this.scannerName = scanResult.scanner.name
-                this.scannerVersion = scanResult.scanner.version
-                this.scannerConfiguration = scanResult.scanner.configuration
-                this.additionalScanResultData = AdditionalScanResultData(scanResult.additionalData)
-                this.scanSummary = summaryDao
-
-                val summary = this.scanSummary
-                scanResult.summary.licenseFindings.forEach {
-                    LicenseFindingDao.new {
-                        this.scanSummary = summary
-                        this.license = it.license.toString()
-                        this.path = it.location.path
-                        this.startLine = it.location.startLine
-                        this.endLine = it.location.endLine
-                        this.score = it.score
-                    }
+            }
+            scanResult.summary.snippetFindings.forEach { snippetFinding ->
+                SnippetFindingDao.new {
+                    this.scanSummary = summary
+                    this.path = snippetFinding.sourceLocation.path
+                    this.startLine = snippetFinding.sourceLocation.startLine
+                    this.endLine = snippetFinding.sourceLocation.endLine
+                    this.snippets = SizedCollection(
+                        snippetFinding.snippets.map { snippet ->
+                            SnippetDao.put(snippet.mapToModel())
+                        }
+                    )
                 }
-                scanResult.summary.copyrightFindings.forEach {
-                    CopyrightFindingDao.new {
-                        this.scanSummary = summary
-                        this.statement = it.statement
-                        this.path = it.location.path
-                        this.startLine = it.location.startLine
-                        this.endLine = it.location.endLine
-                    }
-                }
-                scanResult.summary.snippetFindings.forEach { snippetFinding ->
-                    SnippetFindingDao.new {
-                        this.scanSummary = summary
-                        this.path = snippetFinding.sourceLocation.path
-                        this.startLine = snippetFinding.sourceLocation.startLine
-                        this.endLine = snippetFinding.sourceLocation.endLine
-                        this.snippets = SizedCollection(
-                            snippetFinding.snippets.map { snippet ->
-                                SnippetDao.put(snippet.mapToModel())
-                            }
-                        )
-                    }
-                }
-            }.also {
-                associateScanResultWithScannerRun(it)
             }
         }
     }
@@ -183,3 +199,43 @@ class OrtServerScanResultStorage(
         )
     }
 }
+
+/**
+ * Check whether there is already an entry in the database matching the given [scanResult]. If so, return it. This is
+ * used to prevent duplicate scan result entries. Note that results with additional data are not deduplicated;
+ * therefore, this function always returns *null* in this case.
+ */
+private fun findExistingScanResult(scanResult: ScanResult): ScanResultDao? =
+    (scanResult.provenance as? KnownProvenance?)?.let { knownProvenance ->
+        ScanResultDao.find {
+            when (val provenance = knownProvenance) {
+                is ArtifactProvenance ->
+                    matchesRemoteArtifact(provenance.sourceArtifact.mapToModel())
+
+                is RepositoryProvenance ->
+                    matchesVcsInfo(
+                        provenance.vcsInfo.copy(revision = provenance.resolvedRevision).mapToModel()
+                    )
+            } and matchesBasicScanResultProperties(scanResult)
+        }.firstOrNull()
+    }
+
+/**
+ * Generate an [Expression] to match the properties of the given [scanResult] in the database that do not depend on
+ * the provenance.
+ */
+private fun ISqlExpressionBuilder.matchesBasicScanResultProperties(scanResult: ScanResult): Expression<Boolean> =
+    (ScanResultsTable.scannerName eq scanResult.scanner.name) and
+            (ScanResultsTable.scannerVersion eq scanResult.scanner.version) and
+            (ScanResultsTable.scannerConfiguration eq scanResult.scanner.configuration) and
+            (
+                    JsonHashFunction(ScanResultsTable.additionalScanResultData) eq
+                    JsonHashFunction(
+                        stringLiteral(
+                            Json.encodeToString(
+                                AdditionalScanResultData.serializer(),
+                                AdditionalScanResultData(scanResult.additionalData)
+                            )
+                        )
+                    )
+            )
