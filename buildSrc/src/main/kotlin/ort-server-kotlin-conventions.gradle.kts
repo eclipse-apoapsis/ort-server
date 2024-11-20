@@ -48,6 +48,12 @@ detekt {
     basePath = rootDir.path
 }
 
+tasks.withType<Detekt>().configureEach {
+    exclude {
+        "/build/generated/" in it.file.absolutePath
+    }
+}
+
 tasks.register("detektAll") {
     group = "Verification"
     description = "Run all detekt tasks with and without type resolution."
