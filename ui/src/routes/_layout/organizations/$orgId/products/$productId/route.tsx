@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
-import { BookLock, Eye, User } from 'lucide-react';
+import { BookLock, Eye, Files, User } from 'lucide-react';
 
 import { useProductsServiceGetProductByIdKey } from '@/api/queries';
 import { ProductsService } from '@/api/requests';
@@ -35,6 +35,11 @@ const Layout = () => {
       title: 'Overview',
       to: '/organizations/$orgId/products/$productId',
       icon: () => <Eye className='h-4 w-4' />,
+    },
+    {
+      title: 'Repositories',
+      to: '/organizations/$orgId/products/$productId/repositories',
+      icon: () => <Files className='h-4 w-4' />,
     },
     {
       title: 'Secrets',
