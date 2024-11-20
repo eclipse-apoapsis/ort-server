@@ -31,7 +31,9 @@ import io.kotest.matchers.shouldBe
 import java.time.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
@@ -94,7 +96,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
         "write" should {
             "create a repository provenance scan result in the storage and associate it to the scanner run" {
                 val provenance = createRepositoryProvenance()
-                val scanResult = createScanResult("VulnerableCode", createIssue("source1"), provenance)
+                val scanResult = createScanResult("ScanCode", createIssue("source1"), provenance)
                 scanResultStorage.write(scanResult)
 
                 verifyAssociatedScanResults(scannerRun, scanResult)
@@ -104,12 +106,106 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
             "create an artifact provenance scan result in the storage and associate it to the scanner run" {
                 val provenance = createArtifactProvenance()
-                val scanResult = createScanResult("VulnerableCode", createIssue("source1"), provenance)
+                val scanResult = createScanResult("ScanCode", createIssue("source1"), provenance)
                 scanResultStorage.write(scanResult)
 
                 verifyAssociatedScanResults(scannerRun, scanResult)
 
                 scanResultStorage.read(provenance, scannerMatcher) shouldBe listOf(scanResult)
+            }
+
+            "not create duplicate scan results for repository provenances" {
+                val provenance = createRepositoryProvenance()
+                val scanResult = createScanResult(
+                    "ScanCode",
+                    createIssue("source1"),
+                    provenance,
+                )
+                scanResultStorage.write(scanResult)
+
+                scanResultStorage.write(scanResult)
+
+                dbExtension.db.dbQuery {
+                    ScanResultDao.all().count()
+                } shouldBe 1
+            }
+
+            "not create duplicate scan results for artifact provenances" {
+                val provenance = createArtifactProvenance()
+                val scanResult = createScanResult(
+                    "ScanCode",
+                    createIssue("source1"),
+                    provenance,
+                )
+                scanResultStorage.write(scanResult)
+
+                scanResultStorage.write(scanResult)
+
+                dbExtension.db.dbQuery {
+                    ScanResultDao.all().count()
+                } shouldBe 1
+            }
+
+            "duplicate a result if additional data is different" {
+                val provenance = createArtifactProvenance()
+                val scanResult1 = createScanResult("ScanCode", createIssue("source1"), provenance)
+                val scanResult2 = createScanResult(
+                    "ScanCode",
+                    createIssue("source1"),
+                    provenance,
+                    additionalData = mapOf("more" to "data")
+                )
+                scanResultStorage.write(scanResult1)
+
+                scanResultStorage.write(scanResult2)
+
+                dbExtension.db.dbQuery {
+                    ScanResultDao.all().count()
+                } shouldBe 2
+            }
+
+            "duplicate a result if the scanner version is different" {
+                val provenance = createRepositoryProvenance()
+                val scanResult1 = createScanResult("ScanCode", createIssue("source1"), provenance)
+                val scanResult2 = createScanResult("ScanCode", createIssue("source1"), provenance, "0.0.1")
+                scanResultStorage.write(scanResult1)
+
+                scanResultStorage.write(scanResult2)
+
+                dbExtension.db.dbQuery {
+                    ScanResultDao.all().count()
+                } shouldBe 2
+            }
+
+            "duplicate a result if the scanner name is different" {
+                val provenance = createRepositoryProvenance()
+                val scanResult1 = createScanResult("ScanCode", createIssue("source1"), provenance)
+                val scanResult2 = createScanResult("FossID", createIssue("source1"), provenance)
+                scanResultStorage.write(scanResult1)
+
+                scanResultStorage.write(scanResult2)
+
+                dbExtension.db.dbQuery {
+                    ScanResultDao.all().count()
+                } shouldBe 2
+            }
+
+            "duplicate a result if the scanner config is different" {
+                val provenance = createArtifactProvenance()
+                val scanResult1 = createScanResult("ScanCode", createIssue("source1"), provenance)
+                val scanResult2 = createScanResult(
+                    "ScanCode",
+                    createIssue("source1"),
+                    provenance,
+                    scannerConfig = "other_config"
+                )
+                scanResultStorage.write(scanResult1)
+
+                scanResultStorage.write(scanResult2)
+
+                dbExtension.db.dbQuery {
+                    ScanResultDao.all().count()
+                } shouldBe 2
             }
         }
 
@@ -118,7 +214,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val repositoryProvenance = createRepositoryProvenance()
                 val artifactProvenance = createArtifactProvenance()
 
-                val scanResult1 = createScanResult("VulnerableCode", createIssue("source1"), repositoryProvenance)
+                val scanResult1 = createScanResult("ScanCode", createIssue("source1"), repositoryProvenance)
                 val scanResult2 = createScanResult("FossID", createIssue("source2"), repositoryProvenance)
                 val scanResult3 = createScanResult("FossID", createIssue("source3"), artifactProvenance)
 
@@ -137,7 +233,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val artifactProvenance = createArtifactProvenance()
                 val repositoryProvenance = createRepositoryProvenance()
 
-                val scanResult1 = createScanResult("VulnerableCode", createIssue("source1"), artifactProvenance)
+                val scanResult1 = createScanResult("ScanCode", createIssue("source1"), artifactProvenance)
                 val scanResult2 = createScanResult("FossID", createIssue("source2"), artifactProvenance)
                 val scanResult3 = createScanResult("FossID", createIssue("source3"), repositoryProvenance)
 
@@ -156,7 +252,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val artifactProvenance = createArtifactProvenance()
                 val repositoryProvenance = createRepositoryProvenance()
 
-                val scanResult = createScanResult("VulnerableCode", createIssue("source"), artifactProvenance)
+                val scanResult = createScanResult("ScanCode", createIssue("source"), artifactProvenance)
 
                 scanResultStorage.write(scanResult)
 
@@ -222,11 +318,13 @@ private fun createScanResult(
     scannerName: String,
     issue: Issue,
     provenance: KnownProvenance,
-    scannerVersion: String = SCANNER_VERSION
+    scannerVersion: String = SCANNER_VERSION,
+    scannerConfig: String = "config",
+    additionalData: Map<String, String> = mapOf("additional1" to "data1", "additional2" to "data2")
 ): ScanResult {
     return ScanResult(
         provenance = provenance,
-        scanner = ScannerDetails(scannerName, scannerVersion, "config"),
+        scanner = ScannerDetails(scannerName, scannerVersion, scannerConfig),
         summary = ScanSummary(
             Instant.ofEpochSecond(TIME_STAMP_SECONDS),
             Instant.ofEpochSecond(TIME_STAMP_SECONDS),
@@ -268,6 +366,6 @@ private fun createScanResult(
             ),
             listOf(issue)
         ),
-        mapOf("additional" to "data", "additional" to "data")
+        additionalData
     )
 }

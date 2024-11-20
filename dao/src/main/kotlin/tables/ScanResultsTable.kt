@@ -37,6 +37,8 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ISqlExpressionBuilder
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.and
 
 /**
@@ -58,19 +60,21 @@ object ScanResultsTable : LongIdTable("scan_results") {
 
 class ScanResultDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScanResultDao>(ScanResultsTable) {
-        fun findByRemoteArtifact(artifact: RemoteArtifact) =
-            find {
-                ScanResultsTable.artifactUrl eq artifact.url and
-                        (ScanResultsTable.artifactHash eq artifact.hashValue) and
-                        (ScanResultsTable.artifactHashAlgorithm eq artifact.hashAlgorithm)
-            }
+        /**
+         * Return an expression that encapsulates the condition that the scan result matches the given [artifact].
+         */
+        fun ISqlExpressionBuilder.matchesRemoteArtifact(artifact: RemoteArtifact): Op<Boolean> =
+            (ScanResultsTable.artifactUrl eq artifact.url) and
+                    (ScanResultsTable.artifactHash eq artifact.hashValue) and
+                    (ScanResultsTable.artifactHashAlgorithm eq artifact.hashAlgorithm)
 
-        fun findByVcsInfo(vcs: VcsInfo) =
-            find {
-                ScanResultsTable.vcsType eq vcs.type.name and
-                        (ScanResultsTable.vcsUrl eq vcs.url) and
-                        (ScanResultsTable.vcsRevision eq vcs.revision)
-            }
+        /**
+         * Return an expression that encapsulates the condition that the scan result matches the given [vcs].
+         */
+        fun ISqlExpressionBuilder.matchesVcsInfo(vcs: VcsInfo): Op<Boolean> =
+            (ScanResultsTable.vcsType eq vcs.type.name) and
+                    (ScanResultsTable.vcsUrl eq vcs.url) and
+                    (ScanResultsTable.vcsRevision eq vcs.revision)
     }
 
     var artifactUrl by ScanResultsTable.artifactUrl
