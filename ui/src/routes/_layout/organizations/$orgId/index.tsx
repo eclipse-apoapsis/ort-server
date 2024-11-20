@@ -56,10 +56,10 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
-import { LastJobStatus } from './products/$productId/-components/last-job-status';
-import { LastRunDate } from './products/$productId/-components/last-run-date';
-import { LastRunStatus } from './products/$productId/-components/last-run-status';
-import { TotalRuns } from './products/$productId/-components/total-runs';
+import { LastJobStatus } from './products/$productId/repositories/-components/last-job-status';
+import { LastRunDate } from './products/$productId/repositories/-components/last-run-date';
+import { LastRunStatus } from './products/$productId/repositories/-components/last-run-status';
+import { TotalRuns } from './products/$productId/repositories/-components/total-runs';
 
 const defaultPageSize = 10;
 
