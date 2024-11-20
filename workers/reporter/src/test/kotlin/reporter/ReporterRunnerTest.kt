@@ -161,12 +161,12 @@ class ReporterRunnerTest : WordSpec({
 
             val plainFormat = "plain"
             val plainReporter = reporterMock(plainFormat) {
-                every { generateReport(any(), any(), any()) } returns listOf(Result.success(tempfile()))
+                every { generateReport(any(), any(), any()) } returns emptyList()
             }
 
             val templateFormat = "template"
             val templateReporter = reporterMock(templateFormat) {
-                every { generateReport(any(), any(), any()) } returns listOf(Result.success(tempfile()))
+                every { generateReport(any(), any(), any()) } returns emptyList()
             }
 
             mockReportersAll(
@@ -232,7 +232,7 @@ class ReporterRunnerTest : WordSpec({
 
             val templateFormat = "template"
             val templateReporter = reporterMock(templateFormat) {
-                every { generateReport(any(), any(), any()) } returns listOf(Result.success(tempfile()))
+                every { generateReport(any(), any(), any()) } returns emptyList()
             }
 
             mockReportersAll(templateFormat to templateReporter)
@@ -281,7 +281,7 @@ class ReporterRunnerTest : WordSpec({
         "resolve the placeholder for the current working directory in reporter options" {
             val templateFormat = "testTemplate"
             val templateReporter = reporterMock(templateFormat) {
-                every { generateReport(any(), any(), any()) } returns listOf(Result.success(tempfile()))
+                every { generateReport(any(), any(), any()) } returns emptyList()
             }
 
             mockReportersAll(templateFormat to templateReporter)
@@ -320,7 +320,7 @@ class ReporterRunnerTest : WordSpec({
         "resolve secrets in the plugin configurations" {
             val templateFormat = "testSecretTemplate"
             val templateReporter = reporterMock(templateFormat) {
-                every { generateReport(any(), any(), any()) } returns listOf(Result.success(tempfile()))
+                every { generateReport(any(), any(), any()) } returns emptyList()
             }
 
             mockReportersAll(templateFormat to templateReporter)
@@ -648,7 +648,7 @@ class ReporterRunnerTest : WordSpec({
         "download asset files" {
             val format = "testAssetFiles"
             val reporter = reporterMock(format) {
-                every { generateReport(any(), any(), any()) } returns listOf(Result.success(tempfile()))
+                every { generateReport(any(), any(), any()) } returns emptyList()
             }
 
             mockReportersAll(format to reporter)
@@ -693,7 +693,7 @@ class ReporterRunnerTest : WordSpec({
         "download asset directories" {
             val format = "testAssetDirectories"
             val reporter = reporterMock(format) {
-                every { generateReport(any(), any(), any()) } returns listOf(Result.success(tempfile()))
+                every { generateReport(any(), any(), any()) } returns emptyList()
             }
 
             mockReportersAll(format to reporter)
@@ -741,7 +741,7 @@ class ReporterRunnerTest : WordSpec({
         "download custom license text files" {
             val format = "testCustomLicenseTexts"
             val reporter = reporterMock(format) {
-                every { generateReport(any(), any(), any()) } returns listOf(Result.success(tempfile()))
+                every { generateReport(any(), any(), any()) } returns emptyList()
             }
 
             mockReportersAll(format to reporter)
@@ -791,7 +791,7 @@ class ReporterRunnerTest : WordSpec({
             )
 
             val reporter = reporterMock(format) {
-                every { generateReport(any(), any(), any()) } returns listOf(Result.success(tempfile()))
+                every { generateReport(any(), any(), any()) } returns emptyList()
             }
 
             mockReportersAll(format to reporter)
