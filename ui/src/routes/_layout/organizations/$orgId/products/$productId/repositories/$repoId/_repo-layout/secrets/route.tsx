@@ -20,14 +20,14 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/users'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets'
 )({
   component: () => <Outlet />,
   beforeLoad: ({ context, params }) => {
     if (
       !context.auth.hasRole([
         'superuser',
-        `role_repository_${params.repoId}_admin`,
+        `permission_repository_${params.repoId}_write_secrets`,
       ])
     ) {
       throw redirect({

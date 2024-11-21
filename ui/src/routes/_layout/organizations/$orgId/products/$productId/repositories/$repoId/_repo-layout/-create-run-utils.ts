@@ -21,7 +21,7 @@ import { FieldErrors } from 'react-hook-form';
 import { z } from 'zod';
 
 import { AnalyzerJobConfiguration, CreateOrtRun, OrtRun } from '@/api/requests';
-import { packageManagers } from './-types';
+import { packageManagers } from '../-types';
 
 const keyValueSchema = z.object({
   key: z.string(),

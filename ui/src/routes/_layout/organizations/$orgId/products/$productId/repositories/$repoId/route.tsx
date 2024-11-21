@@ -17,53 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
-import { BookLock, Eye, User } from 'lucide-react';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { useRepositoriesServiceGetRepositoryByIdKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
-import { PageLayout } from '@/components/page-layout';
-import { SidebarNavProps } from '@/components/sidebar';
-import { useUser } from '@/hooks/use-user';
 
 const Layout = () => {
-  const { repoId, runIndex } = useParams({ strict: false });
-  const user = useUser();
-
-  const navItems: SidebarNavProps['sections'][number]['items'] = [
-    {
-      title: 'Overview',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-      icon: () => <Eye className='h-4 w-4' />,
-    },
-    {
-      title: 'Secrets',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
-      icon: () => <BookLock className='h-4 w-4' />,
-      visible: user.hasRole([
-        'superuser',
-        `permission_repository_${repoId}_write_secrets`,
-      ]),
-    },
-    {
-      title: 'Users',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
-      icon: () => <User className='h-4 w-4' />,
-      visible: user.hasRole(['superuser', `role_repository_${repoId}_admin`]),
-    },
-  ];
-
-  return (
-    <>
-      {!runIndex ? (
-        <PageLayout sections={[{ items: navItems }]}>
-          <Outlet />
-        </PageLayout>
-      ) : (
-        <Outlet />
-      )}
-    </>
-  );
+  return <Outlet />;
 };
 
 export const Route = createFileRoute(

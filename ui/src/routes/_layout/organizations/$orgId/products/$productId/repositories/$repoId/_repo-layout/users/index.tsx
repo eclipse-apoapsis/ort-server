@@ -238,7 +238,7 @@ const ManageUsers = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/users/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users/'
 )({
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetRepositoryById(context.queryClient, {
