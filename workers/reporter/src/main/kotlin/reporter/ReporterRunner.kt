@@ -21,8 +21,6 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
 
-import kotlin.time.measureTimedValue
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -75,6 +73,8 @@ import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.showStackTrace
 
 import org.slf4j.LoggerFactory
+
+import reporter.LoggingLicenseTextProvider
 
 private val logger = LoggerFactory.getLogger(ReporterRunner::class.java)
 
@@ -187,7 +187,7 @@ class ReporterRunner(
                         ),
                         copyrightGarbage = copyrightGarbage,
                         licenseClassifications = licenseClassifications,
-                        licenseTextProvider = createLicenseTextProvider(context, config),
+                        licenseTextProvider = createLicenseTextProvider(config),
                         howToFixTextProvider = howToFixTextProvider
                     )
                 }
@@ -370,24 +370,12 @@ private fun String.toTemplatePath(): Path = Path(removePrefix(ReporterComponent.
  * Return the provider for license texts based on the given [config]. If a path to custom license texts is configured,
  * download this directory and create a [LicenseTextProvider] for it.
  */
-private suspend fun createLicenseTextProvider(
-    context: WorkerContext,
+private fun createLicenseTextProvider(
     config: ReporterJobConfiguration
 ): LicenseTextProvider {
-    val licenseTextDirectories = config.customLicenseTextDir?.let { customLicenseTextDir ->
-        logger.info("Downloading custom license texts from '{}'.", customLicenseTextDir)
-
-        val licenseTextFolder = context.createTempDir()
-        val timedFiles = measureTimedValue {
-            context.downloadConfigurationDirectory(Path(customLicenseTextDir), licenseTextFolder)
-        }
-
-        logger.debug("Downloaded {} custom license text files in {}.", timedFiles.value.size, timedFiles.duration)
-
-        listOf(licenseTextFolder)
-    }.orEmpty()
-
-    return DefaultLicenseTextProvider(licenseTextDirectories)
+    return config.customLicenseTextDir?.let { customLicenseTextDir ->
+        LoggingLicenseTextProvider(File(customLicenseTextDir))
+    } ?: DefaultLicenseTextProvider()
 }
 
 /**

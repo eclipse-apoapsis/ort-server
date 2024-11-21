@@ -334,8 +334,8 @@ data class ReporterJobConfiguration(
     val resolutionsFile: String? = null,
 
     /**
-     * An optional path to a configuration directory containing custom license texts. If defined, all files from this
-     * directory are downloaded and made available via a `DefaultLicenseTextProvider` instance.
+     * An optional path to a configuration directory containing custom license texts. If defined, files from this
+     * directory are accessed by a `DefaultLicenseTextProvider` instance.
      */
     val customLicenseTextDir: String? = null,
 

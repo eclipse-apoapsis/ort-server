@@ -733,11 +733,10 @@ class ReporterRunnerTest : WordSpec({
 
             val customLicenseText = "This is a custom license."
             val licenseId = "LicenseRef-Test-License"
-            val customLicenseTextFile = configDirectory.resolve(licenseId).also { it.writeText(customLicenseText) }
-            val customLicenseTextsPath = "custom-license-texts"
+            configDirectory.resolve(licenseId).also { it.writeText(customLicenseText) }
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(format),
-                customLicenseTextDir = customLicenseTextsPath
+                customLicenseTextDir = configDirectory.absolutePath
             )
 
             val resolvedContext = Context("theResolvedContext")
@@ -745,9 +744,6 @@ class ReporterRunnerTest : WordSpec({
             val (contextFactory, context) = mockContext()
             every { context.ortRun.resolvedJobConfigContext } returns resolvedContext.name
             every { context.configManager } returns configManager
-            coEvery { context.downloadConfigurationDirectory(Path(customLicenseTextsPath), any()) } returns mapOf(
-                Path(customLicenseTextsPath) to customLicenseTextFile
-            )
 
             val runner = ReporterRunner(
                 mockk(relaxed = true),
