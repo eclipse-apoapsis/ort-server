@@ -46,7 +46,7 @@ const LicenseFindingsComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/license-findings/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings/'
 )({
   component: LicenseFindingsComponent,
   pendingComponent: LoadingIndicator,

@@ -320,7 +320,7 @@ const IssuesComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/issues/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues/'
 )({
   validateSearch: paginationSearchParameterSchema
     .merge(severitySearchParameterSchema)

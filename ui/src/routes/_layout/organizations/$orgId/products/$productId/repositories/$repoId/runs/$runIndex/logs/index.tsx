@@ -168,7 +168,7 @@ const ReportComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/logs/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/logs/'
 )({
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
