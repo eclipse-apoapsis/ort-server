@@ -37,6 +37,7 @@ import { useAdminServiceGetUsersSuspense } from '@/api/queries/suspense';
 import { ApiError, User } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
+import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -118,6 +119,7 @@ const columns = [
             onDelete={() => delUser({ username: row.original.username })}
             isPending={isDelPending}
             textConfirmation={true}
+            trigger={<DeleteIconButton />}
           />
         </div>
       );
