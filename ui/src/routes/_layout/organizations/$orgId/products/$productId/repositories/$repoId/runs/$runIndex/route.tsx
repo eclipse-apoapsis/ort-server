@@ -27,6 +27,7 @@ import {
   History,
   ListTree,
   Scale,
+  Settings,
   ShieldQuestion,
   User,
 } from 'lucide-react';
@@ -152,6 +153,16 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
           params,
           icon: () => <User className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_repository_${params.repoId}_admin`,
+          ]),
+        },
+        {
+          title: 'Settings',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/settings',
+          params,
+          icon: () => <Settings className='h-4 w-4' />,
           visible: user.hasRole([
             'superuser',
             `role_repository_${params.repoId}_admin`,

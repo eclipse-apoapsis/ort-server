@@ -18,19 +18,13 @@
  */
 
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { EditIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 
-import {
-  useRepositoriesServiceDeleteRepositoryById,
-  useRepositoriesServiceGetRepositoryById,
-} from '@/api/queries';
+import { useRepositoriesServiceGetRepositoryById } from '@/api/queries';
 import {
   prefetchUseRepositoriesServiceGetOrtRunsByRepositoryId,
   prefetchUseRepositoriesServiceGetRepositoryById,
 } from '@/api/queries/prefetch';
-import { ApiError } from '@/api/requests';
-import { DeleteDialog } from '@/components/delete-dialog';
-import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -54,7 +48,6 @@ const defaultPageSize = 10;
 
 const RepositoryRunsComponent = () => {
   const params = Route.useParams();
-  const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
@@ -67,35 +60,6 @@ const RepositoryRunsComponent = () => {
   } = useRepositoriesServiceGetRepositoryById({
     repositoryId: Number.parseInt(params.repoId),
   });
-
-  const { mutateAsync: deleteRepository, isPending } =
-    useRepositoriesServiceDeleteRepositoryById({
-      onSuccess() {
-        toast.info('Delete Repository', {
-          description: `Repository "${repo?.url}" deleted successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId',
-          params: { orgId: params.orgId, productId: params.productId },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
-
-  async function handleDelete() {
-    await deleteRepository({
-      repositoryId: Number.parseInt(params.repoId),
-    });
-  }
 
   if (repoIsPending) {
     return <LoadingIndicator />;
@@ -116,43 +80,8 @@ const RepositoryRunsComponent = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='flex flex-row justify-between'>
-          <div className='flex items-stretch'>
-            <div className='flex items-center pb-1'>{repo.url}</div>
-            <Tooltip>
-              <TooltipTrigger>
-                <Button
-                  asChild
-                  size='sm'
-                  variant='outline'
-                  className='ml-2 px-2'
-                >
-                  <Link
-                    to='/organizations/$orgId/products/$productId/repositories/$repoId/edit'
-                    params={{
-                      orgId: params.orgId,
-                      productId: params.productId,
-                      repoId: params.repoId,
-                    }}
-                  >
-                    <EditIcon className='h-4 w-4' />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Edit this repository</TooltipContent>
-            </Tooltip>
-          </div>
-          <DeleteDialog
-            item={{
-              descriptor: 'repository',
-              name: repo.url,
-            }}
-            onDelete={handleDelete}
-            isPending={isPending}
-            trigger={<DeleteIconButton />}
-          />
-        </CardTitle>
-        <CardDescription>{repo.type}</CardDescription>
+        <CardTitle>Runs</CardTitle>
+        <CardDescription>All runs for {repo.url}</CardDescription>
         <div className='py-2'>
           <Tooltip>
             <TooltipTrigger asChild>
