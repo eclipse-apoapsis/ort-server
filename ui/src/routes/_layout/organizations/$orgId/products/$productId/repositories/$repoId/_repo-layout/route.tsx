@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { BookLock, Eye, User } from 'lucide-react';
+import { BookLock, History, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
@@ -30,9 +30,9 @@ const RepoLayout = () => {
 
   const navItems: SidebarNavProps['sections'][number]['items'] = [
     {
-      title: 'Overview',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-      icon: () => <Eye className='h-4 w-4' />,
+      title: 'Runs',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs',
+      icon: () => <History className='h-4 w-4' />,
     },
     {
       title: 'Secrets',

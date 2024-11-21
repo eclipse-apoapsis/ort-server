@@ -19,13 +19,16 @@
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import {
+  BookLock,
   Boxes,
   Bug,
   Eye,
   FileText,
+  History,
   ListTree,
   Scale,
   ShieldQuestion,
+  User,
 } from 'lucide-react';
 import { Suspense } from 'react';
 
@@ -33,9 +36,11 @@ import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
+import { useUser } from '@/hooks/use-user';
 
 const Layout = () => {
   const params = Route.useParams();
+  const user = useUser();
 
   const sections: SidebarNavProps['sections'] = [
     {
@@ -45,6 +50,12 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
           params,
           icon: () => <Eye className='h-4 w-4' />,
+        },
+        {
+          title: 'All Runs',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs',
+          params,
+          icon: () => <History className='h-4 w-4' />,
         },
       ],
     },
@@ -115,6 +126,36 @@ const Layout = () => {
           title: 'Job Configurations',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config',
           params,
+        },
+      ],
+    },
+    {
+      label: 'Repository',
+      visible: user.hasRole([
+        'superuser',
+        `role_repository_${params.repoId}_admin`,
+        `permission_repository_${params.repoId}_write_secrets`,
+      ]),
+      items: [
+        {
+          title: 'Secrets',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
+          params,
+          icon: () => <BookLock className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `permission_repository_${params.repoId}_write_secrets`,
+          ]),
+        },
+        {
+          title: 'Users',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
+          params,
+          icon: () => <User className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_repository_${params.repoId}_admin`,
+          ]),
         },
       ],
     },

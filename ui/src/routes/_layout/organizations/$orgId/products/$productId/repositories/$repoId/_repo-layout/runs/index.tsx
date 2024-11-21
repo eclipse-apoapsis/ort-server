@@ -47,11 +47,11 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
-import { RepositoryRunsTable } from '../-components/repository-runs-table';
+import { RepositoryRunsTable } from '../../-components/repository-runs-table';
 
 const defaultPageSize = 10;
 
-const RepoComponent = () => {
+const RepositoryRunsComponent = () => {
   const params = Route.useParams();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
@@ -187,7 +187,7 @@ const RepoComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/runs/'
 )({
   validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
@@ -207,6 +207,6 @@ export const Route = createFileRoute(
       ),
     ]);
   },
-  component: RepoComponent,
+  component: RepositoryRunsComponent,
   pendingComponent: LoadingIndicator,
 });
