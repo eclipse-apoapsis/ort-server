@@ -17,8 +17,8 @@
  * License-Filename: LICENSE
  */
 
-import { Loader2, OctagonAlert, TrashIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Loader2, OctagonAlert } from 'lucide-react';
+import { ReactNode, useEffect, useState } from 'react';
 
 import {
   AlertDialog,
@@ -37,7 +37,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
 
 interface DeleteDialogProps {
   open?: boolean;
@@ -48,8 +47,8 @@ interface DeleteDialogProps {
   };
   onDelete: () => void;
   isPending: boolean;
-  className?: string;
   textConfirmation?: boolean;
+  trigger: ReactNode;
 }
 
 export const DeleteDialog = ({
@@ -58,8 +57,8 @@ export const DeleteDialog = ({
   item,
   onDelete,
   isPending,
-  className,
   textConfirmation = false,
+  trigger,
 }: DeleteDialogProps) => {
   const [input, setInput] = useState('');
   const isDeleteDisabled = textConfirmation && input !== item.name;
@@ -75,16 +74,7 @@ export const DeleteDialog = ({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
-          <AlertDialogTrigger asChild>
-            <Button
-              size='sm'
-              variant='outline'
-              className={cn('h-9 px-2', className)}
-            >
-              <span className='sr-only'>Delete</span>
-              <TrashIcon size={16} />
-            </Button>
-          </AlertDialogTrigger>
+          <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
         </TooltipTrigger>
         <TooltipContent>Delete this {item.descriptor}</TooltipContent>
       </Tooltip>

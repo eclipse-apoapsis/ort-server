@@ -30,6 +30,7 @@ import {
 } from '@/api/queries/prefetch';
 import { ApiError } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog';
+import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -148,6 +149,7 @@ const RepositoryRunsComponent = () => {
             }}
             onDelete={handleDelete}
             isPending={isPending}
+            trigger={<DeleteIconButton />}
           />
         </CardTitle>
         <CardDescription>{repo.type}</CardDescription>
