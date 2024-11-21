@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { BookLock, History, User } from 'lucide-react';
+import { BookLock, History, Settings, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
@@ -47,6 +47,12 @@ const RepoLayout = () => {
       title: 'Users',
       to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
       icon: () => <User className='h-4 w-4' />,
+      visible: user.hasRole(['superuser', `role_repository_${repoId}_admin`]),
+    },
+    {
+      title: 'Settings',
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/settings',
+      icon: () => <Settings className='h-4 w-4' />,
       visible: user.hasRole(['superuser', `role_repository_${repoId}_admin`]),
     },
   ];
