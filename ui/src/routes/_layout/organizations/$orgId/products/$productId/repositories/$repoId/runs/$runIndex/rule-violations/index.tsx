@@ -17,11 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
   getCoreRowModel,
   getExpandedRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   Row,
@@ -30,14 +31,17 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
-import { VulnerabilityWithIdentifier } from '@/api/requests';
+import {
+  useRepositoriesServiceGetOrtRunByIndexSuspense,
+  useRuleViolationsServiceGetRuleViolationsByRunIdSuspense,
+} from '@/api/queries/suspense';
+import { RuleViolation } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
+import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
-import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,34 +51,26 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
-import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
+import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
 import { identifierToString } from '@/helpers/identifier-to-string';
-import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
-import { toast } from '@/lib/toast';
+import { compareSeverity } from '@/helpers/sorting-functions';
 import {
   paginationSearchParameterSchema,
+  severitySchema,
+  severitySearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
 
 const defaultPageSize = 10;
 
-const columnHelper = createColumnHelper<VulnerabilityWithIdentifier>();
+const columnHelper = createColumnHelper<RuleViolation>();
 
 const columns = [
   columnHelper.display({
     id: 'moreInfo',
     header: 'Details',
     size: 50,
-    cell: ({ row }) => {
+    cell: function CellComponent({ row }) {
       return row.getCanExpand() ? (
         <Button
           variant='outline'
@@ -96,131 +92,69 @@ const columns = [
     },
     enableSorting: false,
   }),
-  columnHelper.accessor(
-    (vuln) => {
-      const ratings = vuln.vulnerability.references.map(
-        (reference) => reference.severity
+  columnHelper.accessor('severity', {
+    header: 'Severity',
+    cell: ({ row }) => {
+      return (
+        <Badge
+          className={`${getRuleViolationSeverityBackgroundColor(row.original.severity)}`}
+        >
+          {row.original.severity}
+        </Badge>
       );
-      return calcOverallVulnerability(ratings);
     },
-    {
-      id: 'rating',
-      header: 'Rating',
-      cell: ({ row }) => {
-        return (
-          <Badge
-            className={`${getVulnerabilityRatingBackgroundColor(row.getValue('rating'))}`}
-          >
-            {row.getValue('rating')}
-          </Badge>
-        );
-      },
-      sortingFn: (rowA, rowB) => {
-        return compareVulnerabilityRating(
-          rowA.getValue('rating'),
-          rowB.getValue('rating')
-        );
-      },
-    }
-  ),
+    filterFn: (row, _columnId, filterValue): boolean => {
+      return filterValue.includes(row.original.severity);
+    },
+    sortingFn: (rowA, rowB) => {
+      return compareSeverity(rowA.original.severity, rowB.original.severity);
+    },
+  }),
   columnHelper.accessor(
-    (vuln) => {
-      return identifierToString(vuln.identifier);
+    (ruleViolation) => {
+      return identifierToString(ruleViolation.packageId);
     },
     {
-      id: 'package',
       header: 'Package',
-      cell: ({ row }) => {
-        return <div className='font-semibold'>{row.getValue('package')}</div>;
+      cell: ({ getValue }) => {
+        return <div className='font-semibold'>{getValue()}</div>;
       },
     }
   ),
-  columnHelper.accessor('vulnerability.externalId', {
-    id: 'externalId',
-    header: 'External ID',
+  columnHelper.accessor('rule', {
+    header: 'Rule',
     cell: ({ row }) => (
       <Badge className='whitespace-nowrap bg-blue-300'>
-        {row.getValue('externalId')}
+        {row.original.rule}
       </Badge>
     ),
   }),
-  columnHelper.accessor(
-    (row) => {
-      return row.vulnerability.summary;
-    },
-    {
-      id: 'summary',
-      header: 'Summary',
-      cell: ({ row }) => {
-        return (
-          <div className='italic text-muted-foreground'>
-            {row.getValue('summary')}
-          </div>
-        );
-      },
-      enableSorting: false,
-    }
-  ),
 ];
 
-const renderSubComponent = ({
-  row,
-}: {
-  row: Row<VulnerabilityWithIdentifier>;
-}) => {
-  const vulnerability = row.original.vulnerability;
+const renderSubComponent = ({ row }: { row: Row<RuleViolation> }) => {
+  const ruleViolation = row.original;
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='text-lg font-semibold'>Description</div>
-      <MarkdownRenderer
-        markdown={vulnerability.description || 'No description.'}
-      />
-      <div className='mt-2 text-lg font-semibold'>
-        Links to vulnerability references
+      <div>{ruleViolation.message}</div>
+      <div className='grid grid-cols-8 gap-2'>
+        <div className='col-span-2 font-semibold'>License:</div>
+        <div className='col-span-6'>{ruleViolation.license}</div>
+        <div className='col-span-2 font-semibold'>License source:</div>
+        <div className='col-span-6'>{ruleViolation.licenseSource}</div>
+        <div className='col-span-2 font-semibold'>How to fix:</div>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Severity</TableHead>
-            <TableHead>Scoring system</TableHead>
-            <TableHead>Score</TableHead>
-            <TableHead>Vector</TableHead>
-            <TableHead>Link</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {vulnerability.references.map((reference, index) => (
-            <TableRow key={index}>
-              <TableCell>{reference.severity || '-'}</TableCell>
-              <TableCell>{reference.scoringSystem || '-'}</TableCell>
-              <TableCell>{reference.score || '-'}</TableCell>
-              <TableCell>{reference.vector || '-'}</TableCell>
-              <TableCell>
-                {
-                  <Link
-                    className='break-all font-semibold text-blue-400 hover:underline'
-                    to={reference.url}
-                    target='_blank'
-                  >
-                    {reference.url}
-                  </Link>
-                }
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <MarkdownRenderer markdown={ruleViolation.howToFix} />
     </div>
   );
 };
 
-const VulnerabilitiesComponent = () => {
+const RuleViolationsComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
 
-  // All of these need to be memoized to prevent unnecessary re-renders
-  // and (at least for Firefox) the browser freezing up.
+  // Memoize the search parameters to prevent unnecessary re-rendering
 
   const pageIndex = useMemo(
     () => (search.page ? search.page - 1 : 0),
@@ -230,6 +164,16 @@ const VulnerabilitiesComponent = () => {
   const pageSize = useMemo(
     () => (search.pageSize ? search.pageSize : defaultPageSize),
     [search.pageSize]
+  );
+
+  const severity = useMemo(
+    () => (search.severity ? search.severity : undefined),
+    [search.severity]
+  );
+
+  const columnFilters = useMemo(
+    () => (severity ? [{ id: 'severity', value: severity }] : []),
+    [severity]
   );
 
   const sortBy = useMemo(() => {
@@ -246,67 +190,73 @@ const VulnerabilitiesComponent = () => {
     ortRunIndex: Number.parseInt(params.runIndex),
   });
 
-  const {
-    data: vulnerabilities,
-    isPending,
-    isError,
-    error,
-  } = useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
-    runId: ortRun.id,
-    limit: 100000,
-  });
+  const { data: ruleViolations } =
+    useRuleViolationsServiceGetRuleViolationsByRunIdSuspense({
+      runId: ortRun.id,
+      // Fetch all data at once, as we need to do both grouping and
+      // pagination in front-end for consistency in data handling.
+      limit: 100000,
+    });
 
   const table = useReactTable({
-    data: vulnerabilities?.data || [],
+    data: ruleViolations?.data || [],
     columns,
     state: {
       pagination: {
         pageIndex,
         pageSize,
       },
+      columnFilters,
       sorting: sortBy,
     },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
-    enableMultiSort: false,
   });
-
-  if (isPending) {
-    return <LoadingIndicator />;
-  }
-
-  if (isError) {
-    toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
-      duration: Infinity,
-      cancel: {
-        label: 'Dismiss',
-        onClick: () => {},
-      },
-    });
-    return;
-  }
 
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>Vulnerabilities (ORT run global ID: {ortRun.id})</CardTitle>
+        <CardTitle>Rule violations (ORT run global ID: {ortRun.id})</CardTitle>
         <CardDescription>
-          These are the vulnerabilities found currently in the project. Please
-          note that the vulnerability status may change over time, as your
-          project dependencies change. Therefore, your project should be scanned
-          for vulnerabilities regularly.
-        </CardDescription>
-        <CardDescription>
-          By clicking on "References" you can see more information about the
-          vulnerability. The overall severity rating is calculated based on the
-          highest severity rating found in the references.
+          These are the rule violations found from the ORT run. Please note that
+          the status may change over time, as your project dependencies change.
+          Therefore, your project should be scanned for rule violations
+          regularly.
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <DataTableToolbar
+          filters={
+            <FilterMultiSelect
+              title='Rule Violation Severity'
+              options={severitySchema.options.map((severity) => ({
+                label: severity,
+                value: severity,
+              }))}
+              selected={severity || []}
+              setSelected={(severities) => {
+                navigate({
+                  search: {
+                    ...search,
+                    page: 1,
+                    severity: severities.length === 0 ? undefined : severities,
+                  },
+                });
+              }}
+            />
+          }
+          resetFilters={() => {
+            navigate({
+              search: { ...search, page: 1, severity: undefined },
+            });
+          }}
+          resetBtnVisible={severity !== undefined}
+          className='mb-2'
+        />
         <DataTable
           table={table}
           renderSubComponent={renderSubComponent}
@@ -352,17 +302,17 @@ const VulnerabilitiesComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/vulnerabilities/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations/'
 )({
-  validateSearch: paginationSearchParameterSchema.merge(
-    sortingSearchParameterSchema
-  ),
+  validateSearch: paginationSearchParameterSchema
+    .merge(severitySearchParameterSchema)
+    .merge(sortingSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
       repositoryId: Number.parseInt(params.repoId),
       ortRunIndex: Number.parseInt(params.runIndex),
     });
   },
-  component: VulnerabilitiesComponent,
+  component: RuleViolationsComponent,
   pendingComponent: LoadingIndicator,
 });

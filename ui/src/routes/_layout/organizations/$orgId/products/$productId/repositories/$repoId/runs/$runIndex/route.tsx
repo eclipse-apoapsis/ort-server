@@ -27,7 +27,10 @@ import {
   Scale,
   ShieldQuestion,
 } from 'lucide-react';
+import { Suspense } from 'react';
 
+import { useRepositoriesServiceGetOrtRunByIndexKey } from '@/api/queries';
+import { RepositoriesService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 
@@ -119,12 +122,29 @@ const Layout = () => {
 
   return (
     <PageLayout sections={sections}>
-      <Outlet />
+      <Suspense fallback={<div>Loading...</div>}>
+        <Outlet />
+      </Suspense>
     </PageLayout>
   );
 };
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
 )({
+  loader: async ({ context, params }) => {
+    const run = await context.queryClient.ensureQueryData({
+      queryKey: [
+        useRepositoriesServiceGetOrtRunByIndexKey,
+        params.repoId,
+        params.runIndex,
+      ],
+      queryFn: () =>
+        RepositoriesService.getOrtRunByIndex({
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        }),
+    });
+    context.breadcrumbs.run = run.index.toString();
+  },
   component: Layout,
 });

@@ -44,7 +44,7 @@ const DependenciesComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/dependencies/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies/'
 )({
   component: DependenciesComponent,
   pendingComponent: LoadingIndicator,

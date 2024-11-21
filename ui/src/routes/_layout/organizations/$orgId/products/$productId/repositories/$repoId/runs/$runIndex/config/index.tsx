@@ -60,7 +60,7 @@ const ConfigComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/config/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config/'
 )({
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {

@@ -260,7 +260,7 @@ const PackagesComponent = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_layout/runs/$runIndex/packages/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages/'
 )({
   validateSearch: paginationSearchParameterSchema,
   loader: async ({ context, params }) => {
