@@ -47,12 +47,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
-import { AdvisorFields } from './-components/advisor-fields';
-import { AnalyzerFields } from './-components/analyzer-fields';
-import { EvaluatorFields } from './-components/evaluator-fields';
-import { NotifierFields } from './-components/notifier-fields';
-import { ReporterFields } from './-components/reporter-fields';
-import { ScannerFields } from './-components/scanner-fields';
+import { AdvisorFields } from '../-components/advisor-fields';
+import { AnalyzerFields } from '../-components/analyzer-fields';
+import { EvaluatorFields } from '../-components/evaluator-fields';
+import { NotifierFields } from '../-components/notifier-fields';
+import { ReporterFields } from '../-components/reporter-fields';
+import { ScannerFields } from '../-components/scanner-fields';
 import {
   createRunFormSchema,
   CreateRunFormValues,
@@ -439,7 +439,7 @@ const rerunIndexSchema = z.object({
 });
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run'
 )({
   // This is used to access the search params in the loader.
   // As search params we use the index of the ORT run on which this run will be based.

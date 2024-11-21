@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { advisors } from '@/routes/_layout/organizations/$orgId/products/$productId/repositories/$repoId/-types';
-import { CreateRunFormValues } from '../-create-run-utils';
+import { CreateRunFormValues } from '../_repo-layout/-create-run-utils';
 
 type AdvisorFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;

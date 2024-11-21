@@ -209,7 +209,7 @@ const EditRepositorySecretPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/secrets/$secretName/edit'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/$secretName/edit'
 )({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({

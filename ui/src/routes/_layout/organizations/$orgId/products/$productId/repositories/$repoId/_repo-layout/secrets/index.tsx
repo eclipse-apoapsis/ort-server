@@ -257,7 +257,7 @@ const RepositorySecrets = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/secrets/'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/'
 )({
   validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),

@@ -208,7 +208,7 @@ const EditRepositoryPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/edit'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/edit'
 )({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({

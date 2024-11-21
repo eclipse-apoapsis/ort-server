@@ -160,7 +160,7 @@ const CreateRepositorySecretPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/secrets/create-secret'
+  '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/create-secret'
 )({
   component: CreateRepositorySecretPage,
 });
