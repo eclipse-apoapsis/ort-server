@@ -38,7 +38,7 @@
     "@docusaurus/types": "3.5.2",
     "@ianvs/prettier-plugin-sort-imports": "^4.3.1",
     "prettier": "^3.3.3",
-    "typescript": "~5.6.0"
+    "typescript": "~5.7.0"
   },
   "browserslist": {
     "production": [
