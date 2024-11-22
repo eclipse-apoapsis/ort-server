@@ -18,11 +18,21 @@
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type StatisticsCardProps = {
   title: string;
   icon?: React.ComponentType<{ className?: string }>;
   value?: React.ReactNode;
+  counts?: {
+    key: string;
+    count: number;
+    color: string;
+  }[];
   description?: string;
   className?: string;
 };
@@ -31,9 +41,24 @@ export const StatisticsCard = ({
   title,
   icon: Icon,
   value,
+  counts = [],
   description,
   className,
 }: StatisticsCardProps) => {
+  const calcPercentages = (
+    counts: { key: string; count: number; color: string }[]
+  ) => {
+    const total = counts.reduce((acc, { count }) => acc + count, 0);
+    return counts.map(({ key, count, color }) => ({
+      key,
+      count,
+      color,
+      percentage: total > 0 ? (count / total) * 100 : 0,
+    }));
+  };
+
+  const percentages = calcPercentages(counts);
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -46,6 +71,31 @@ export const StatisticsCard = ({
       </CardHeader>
       <CardContent className='text-sm'>
         <div className='flex flex-col'>
+          {counts.length > 0 && (
+            <div className='relative mb-2 h-3 w-full overflow-hidden rounded-sm bg-gray-100'>
+              {percentages.map(({ key, count, color, percentage }, index) => {
+                const left = percentages
+                  .slice(0, index)
+                  .reduce((sum, { percentage }) => sum + percentage, 0);
+                return (
+                  <Tooltip key={key}>
+                    <TooltipTrigger>
+                      <div
+                        className={`absolute top-0 h-full cursor-default ${color}`}
+                        style={{
+                          left: `${left}%`,
+                          width: `${percentage}%`,
+                        }}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {key}: {count}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          )}
           <div className='text-2xl font-bold'>
             {value !== undefined ? value : 'Failed'}
           </div>
