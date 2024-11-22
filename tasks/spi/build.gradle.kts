@@ -26,9 +26,11 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.tasks"
 
 dependencies {
-    api(projects.model)
-
     api(libs.koinCore)
+
+    implementation(projects.config.configSpi)
+    implementation(libs.typesafeConfig)
+    implementation(libs.logback)
 
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
