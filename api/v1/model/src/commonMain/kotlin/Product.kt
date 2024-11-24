@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import io.konform.validation.Validation
-import io.konform.validation.jsonschema.pattern
+import io.konform.validation.constraints.pattern
 
 import kotlinx.serialization.Serializable
 
