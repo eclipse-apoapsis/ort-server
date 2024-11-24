@@ -68,11 +68,11 @@ data class CreateRepository(
         val validate: ValidatorFunc<CreateRepository> = { obj ->
             Validation {
                 CreateRepository::url {
-                    addConstraint("malformed URL") {
+                    constrain("malformed URL") {
                         Repository.isValidUrl(it)
                     } hint Repository.INVALID_URL_MESSAGE
 
-                    addConstraint("URL cannot contain userinfo") {
+                    constrain("URL cannot contain userinfo") {
                         !Repository.hasUserInfo(it)
                     } hint Repository.USER_INFO_MESSAGE
                 }
@@ -93,14 +93,14 @@ data class UpdateRepository(
         val validate: ValidatorFunc<UpdateRepository> = { obj ->
             Validation {
                 UpdateRepository::url {
-                    addConstraint("malformed URL") {
+                    constrain("malformed URL") {
                         when (it) {
                             is OptionalValue.Present -> Repository.isValidUrl(it.value)
                             is OptionalValue.Absent -> true
                         }
                     } hint Repository.INVALID_URL_MESSAGE
 
-                    addConstraint("URL cannot contain userinfo") {
+                    constrain("URL cannot contain userinfo") {
                         when (it) {
                             is OptionalValue.Present -> !Repository.hasUserInfo(it.valueOrThrow)
                             is OptionalValue.Absent -> true
