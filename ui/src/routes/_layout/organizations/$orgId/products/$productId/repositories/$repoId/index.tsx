@@ -19,40 +19,56 @@
 
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import { RepositoriesService } from '@/api/requests';
+import { UseRepositoriesServiceGetOrtRunsByRepositoryIdKeyFn } from '@/api/queries';
+import { OrtRunSummary, RepositoriesService } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 
 export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/'
 )({
-  loader: async ({ params }) => {
-    const runs = await RepositoriesService.getOrtRunsByRepositoryId({
+  loader: async ({ params, context: { queryClient }, preload }) => {
+    const queryKey = UseRepositoriesServiceGetOrtRunsByRepositoryIdKeyFn({
       repositoryId: Number.parseInt(params.repoId),
       limit: 1,
       sort: '-index',
     });
 
-    const firstRun = runs.data[0];
+    const { data } = await queryClient.fetchQuery({
+      queryKey,
+      queryFn: () =>
+        RepositoriesService.getOrtRunsByRepositoryId({
+          repositoryId: Number.parseInt(params.repoId),
+          limit: 1,
+          sort: '-index',
+        }),
+      staleTime: 1000,
+    });
 
-    if (firstRun) {
-      throw redirect({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
-        params: {
-          orgId: params.orgId,
-          productId: params.productId,
-          repoId: params.repoId,
-          runIndex: firstRun.index.toString(),
-        },
-      });
-    } else {
-      throw redirect({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId/create-run',
-        params: {
-          orgId: params.orgId,
-          productId: params.productId,
-          repoId: params.repoId,
-        },
-      });
+    // TODO: This type should be removed once TypeScript is configured with
+    // `noUncheckedIndexedAccess`.
+    const firstRun: OrtRunSummary | undefined = data[0];
+
+    if (!preload) {
+      if (firstRun) {
+        throw redirect({
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
+          params: {
+            orgId: params.orgId,
+            productId: params.productId,
+            repoId: params.repoId,
+            runIndex: firstRun.index.toString(),
+          },
+        });
+      } else {
+        throw redirect({
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/create-run',
+          params: {
+            orgId: params.orgId,
+            productId: params.productId,
+            repoId: params.repoId,
+          },
+        });
+      }
     }
   },
   pendingComponent: LoadingIndicator,
