@@ -94,7 +94,7 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                     {Object.keys(jobConfigs.packageManagerOptions).map((pm) => (
                       <div className='ml-2' key={pm}>
                         <Label className='font-semibold'>{pm}:</Label>
-                        {jobConfigs.packageManagerOptions?.[pm].options && (
+                        {jobConfigs.packageManagerOptions?.[pm]?.options && (
                           <div className='ml-2'>
                             <div className='ml-2'>
                               {Object.entries(

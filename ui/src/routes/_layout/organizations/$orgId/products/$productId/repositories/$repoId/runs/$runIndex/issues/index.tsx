@@ -181,10 +181,16 @@ const IssuesComponent = () => {
 
   const sortBy = useMemo(() => {
     return search.sortBy
-      ? search.sortBy.split(',').map((sortParam) => {
-          const [id, desc] = sortParam.split('.');
-          return { id, desc: desc === 'desc' };
-        })
+      ? search.sortBy
+          .split(',')
+          .map((sortParam) => {
+            const [id, desc] = sortParam.split('.');
+            if (!id) {
+              return null;
+            }
+            return { id, desc: desc === 'desc' };
+          })
+          .filter((sort) => sort !== null)
       : undefined;
   }, [search.sortBy]);
 
