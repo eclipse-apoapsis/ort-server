@@ -41,4 +41,18 @@ class OrtRunService(
     ): ListQueryResult<OrtRun> = db.dbQuery {
         ortRunRepository.list(parameters, filters)
     }
+
+    suspend fun deleteOrtRun(ortRunId: Long): Unit = db.dbQuery {
+        if (ortRunRepository.delete(ortRunId) == 0) {
+            throw ResourceNotFoundException("ORT run with id '$ortRunId' not found.")
+        }
+    }
+
+    suspend fun deleteOrtRun(repositoryId: Long, ortRunIndex: Long) = db.dbQuery {
+        if (ortRunRepository.deleteByRepositoryIdAndOrtRunIndex(repositoryId, ortRunIndex) == 0) {
+            throw ResourceNotFoundException(
+                "ORT run with repositoryId '$repositoryId' and ortRunIndex '$ortRunIndex' not found."
+            )
+        }
+    }
 }

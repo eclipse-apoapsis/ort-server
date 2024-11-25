@@ -98,6 +98,28 @@ val getOrtRunById: OpenApiRoute.() -> Unit = {
     }
 }
 
+val deleteOrtRunById: OpenApiRoute.() -> Unit = {
+    operationId = "deleteOrtRunById"
+    summary = "Delete an ORT run."
+    tags = listOf("Runs")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The run's ID."
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Successfully deleted the ORT run."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
+    }
+}
+
 val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
     operationId = "GetReportByRunIdAndFileName"
     summary = "Download a report of an ORT run."

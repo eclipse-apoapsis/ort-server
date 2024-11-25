@@ -502,6 +502,32 @@ val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
     }
 }
 
+val deleteOrtRunByIndex: OpenApiRoute.() -> Unit = {
+    operationId = "deleteOrtRunByIndex"
+    summary = "Delete an ORT run of a repository."
+    tags = listOf("Repositories")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+
+        pathParameter<Long>("ortRunIndex") {
+            description = "The index of an ORT run."
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Successfully deleted the ORT run."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
+    }
+}
+
 val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretsByRepositoryId"
     summary = "Get all secrets of a repository."
