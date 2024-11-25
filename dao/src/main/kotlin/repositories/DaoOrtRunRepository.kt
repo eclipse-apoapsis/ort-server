@@ -47,7 +47,9 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.max
 
 import org.slf4j.LoggerFactory
@@ -169,8 +171,14 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         OrtRunDao[id].mapToModel()
     }
 
-    override fun delete(id: Long) = db.blockingQuery {
-        OrtRunDao[id].delete()
+    override fun delete(id: Long): Int = db.blockingQuery {
+        OrtRunsTable.deleteWhere { OrtRunsTable.id eq id }
+    }
+
+    override fun deleteByRepositoryIdAndOrtRunIndex(repositoryId: Long, ortRunIndex: Long): Int = db.blockingQuery {
+        OrtRunsTable.deleteWhere {
+            (OrtRunsTable.repositoryId eq repositoryId) and (index eq ortRunIndex)
+        }
     }
 }
 

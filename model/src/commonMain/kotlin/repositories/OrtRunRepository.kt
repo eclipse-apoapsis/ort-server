@@ -99,5 +99,10 @@ interface OrtRunRepository {
     /**
      * Delete an ORT run by [id].
      */
-    fun delete(id: Long)
+    fun delete(id: Long): Int
+
+    /**
+     * Delete an ORT run by [repositoryId] and [ortRunIndex].
+     */
+    fun deleteByRepositoryIdAndOrtRunIndex(repositoryId: Long, ortRunIndex: Long): Int
 }

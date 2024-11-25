@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromRepositoryGroup
@@ -62,6 +63,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 
@@ -69,6 +71,7 @@ import org.koin.ktor.ext.inject
 
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val orchestratorService by inject<OrchestratorService>()
+    val ortRunService by inject<OrtRunService>()
     val repositoryService by inject<RepositoryService>()
     val secretService by inject<SecretService>()
 
@@ -150,6 +153,16 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                         call.respond(HttpStatusCode.OK, it.mapToApi(jobs.mapToApi()))
                     }
                 } ?: call.respond(HttpStatusCode.NotFound)
+            }
+
+            delete(deleteOrtRunByIndex) { _ ->
+                requirePermission(RepositoryPermission.DELETE)
+
+                val repositoryId = call.requireIdParameter("repositoryId")
+                val ortRunIndex = call.requireIdParameter("ortRunIndex")
+
+                ortRunService.deleteOrtRun(repositoryId, ortRunIndex)
+                call.respond(HttpStatusCode.NoContent)
             }
         }
     }

@@ -534,6 +534,62 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
+    "DELETE /repositories/{repositoryId}/runs/{ortRunIndex}" should {
+        "require role RepositoryPermission.DELETE" {
+            val createdRepository = createRepository()
+            val run =
+                ortRunRepository.create(
+                    createdRepository.id,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    null,
+                    labelsMap,
+                    traceId = "test-trace-id",
+                    null
+                )
+
+            requestShouldRequireRole(
+                RepositoryPermission.DELETE.roleName(createdRepository.id),
+                HttpStatusCode.NoContent
+            ) {
+                delete("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
+            }
+        }
+
+        "handle a non-existing ORT run" {
+            val createdRepository = createRepository()
+            integrationTestApplication {
+                val response = superuserClient.delete("/api/v1/repositories/${createdRepository.id}/runs/12345")
+
+                response shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "delete an ORT run" {
+            val createdRepository = createRepository()
+            val run = ortRunRepository.create(
+                createdRepository.id,
+                "revision",
+                null,
+                JobConfigurations(),
+                "jobConfigContext",
+                labelsMap,
+                traceId = "t1",
+                null
+            )
+
+            integrationTestApplication {
+                val response = superuserClient.delete("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
+
+                response shouldHaveStatus HttpStatusCode.NoContent
+
+                ortRunRepository.get(run.id) shouldBe beNull()
+                ortRunRepository.getByIndex(createdRepository.id, run.index) shouldBe beNull()
+            }
+        }
+    }
+
     "POST /repositories/{repositoryId}/runs" should {
         "create a new ORT run" {
             integrationTestApplication {

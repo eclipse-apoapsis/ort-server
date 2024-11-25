@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
+import io.github.smiley4.ktorswaggerui.dsl.routing.delete
 import io.github.smiley4.ktorswaggerui.dsl.routing.get
 
 import io.ktor.http.ContentDisposition
@@ -46,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getIssuesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
@@ -128,6 +130,17 @@ fun Route.runs() = route("runs") {
                 repositoryService.getJobs(ortRun.repositoryId, ortRun.index)?.let { jobs ->
                     call.respond(HttpStatusCode.OK, ortRun.mapToApi(jobs.mapToApi()))
                 }
+            } ?: call.respond(HttpStatusCode.NotFound)
+        }
+
+        delete(deleteOrtRunById) { _ ->
+            val ortRunId = call.requireIdParameter("runId")
+
+            ortRunRepository.get(ortRunId)?.let { ortRun ->
+                requirePermission(RepositoryPermission.DELETE.roleName(ortRun.repositoryId))
+
+                ortRunService.deleteOrtRun(ortRunId)
+                call.respond(HttpStatusCode.NoContent)
             } ?: call.respond(HttpStatusCode.NotFound)
         }
 

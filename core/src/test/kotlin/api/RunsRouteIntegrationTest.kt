@@ -39,6 +39,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
@@ -325,6 +326,54 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}")
+            }
+        }
+    }
+
+    "DELETE /runs/{runId}" should {
+        "should require role RepositoryPermission.DELETE" {
+            val run = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                JobConfigurations(),
+                "jobConfigContext",
+                labelsMap,
+                traceId = "t1",
+                null
+            )
+
+            requestShouldRequireRole(RepositoryPermission.DELETE.roleName(repositoryId), HttpStatusCode.NoContent) {
+                delete("/api/v1/runs/${run.id}")
+            }
+        }
+
+        "handle a non-existing ORT run" {
+            integrationTestApplication {
+                val response = superuserClient.delete("/api/v1/runs/12345")
+
+                response shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "delete an ORT run" {
+            val run = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                JobConfigurations(),
+                "jobConfigContext",
+                labelsMap,
+                traceId = "t1",
+                null
+            )
+
+            integrationTestApplication {
+                val response = superuserClient.delete("/api/v1/runs/${run.id}")
+
+                response shouldHaveStatus HttpStatusCode.NoContent
+
+                ortRunRepository.get(run.id) shouldBe beNull()
             }
         }
     }
