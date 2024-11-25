@@ -18,6 +18,7 @@
  */
 
 import { JobStatus, OrtRunStatus, Severity } from '@/api/requests';
+import { PackageManager } from '@/routes/_layout/organizations/$orgId/products/$productId/repositories/$repoId/-types';
 
 // Combine statuses reported either by ORT Runs or the individual jobs within them.
 export type Status = JobStatus | OrtRunStatus | undefined;
@@ -148,4 +149,73 @@ export function getRuleViolationSeverityBackgroundColor(
 // Get the color class for coloring the background of issue severities
 export function getIssueSeverityBackgroundColor(severity: Severity): string {
   return ISSUE_SEVERITY_BG_COLOR[severity];
+}
+
+// Get the color class for coloring the background of ecosystems.
+// These color classes are defined as follows:
+// 1. To avoid clashing with "status indicator colors" (eg. red for "FAILED")
+//    elsewhere in the UI, those TailwindCSS color palettes which are already
+//    used for status indicators are excluded, which leaves 15 different color
+//    palettes to choose from.
+// 2. The package managers are grouped according to the programming languages,
+//    with a total of 14 different groups.
+// 3. Package managers which belong to the same group are chosen from inside
+//    these 14 color palettes in a way that the colors are visually distinct.
+export function getEcosystemBackgroundColor(
+  ecosystem: PackageManager | string
+): string {
+  switch (ecosystem) {
+    case 'Bazel':
+      return 'bg-stone-500';
+    case 'Bower':
+      return 'bg-teal-300';
+    case 'Bundler':
+      return 'bg-pink-400';
+    case 'Cargo':
+      return 'bg-purple-400';
+    case 'Carthage':
+      return 'bg-emerald-500';
+    case 'CocoaPods':
+      return 'bg-rose-400';
+    case 'Composer':
+      return 'bg-neutral-400';
+    case 'Conan':
+      return 'bg-emerald-400';
+    case 'GoMod':
+      return 'bg-cyan-500';
+    case 'Gradle':
+      return 'bg-indigo-400';
+    case 'GradleInspector':
+      return 'bg-indigo-500';
+    case 'Maven':
+      return 'bg-indigo-600';
+    case 'NPM':
+      return 'bg-teal-400';
+    case 'NuGet':
+      return 'bg-violet-500';
+    case 'PIP':
+      return 'bg-lime-400';
+    case 'Pipenv':
+      return 'bg-lime-500';
+    case 'PNPM':
+      return 'bg-teal-500';
+    case 'Poetry':
+      return 'bg-lime-600';
+    case 'Pub':
+      return 'bg-fuchsia-400';
+    case 'SBT':
+      return 'bg-sky-400';
+    case 'SpdxDocumentFile':
+      return 'bg-zinc-400';
+    case 'Stack':
+      return 'bg-slate-400';
+    case 'SwiftPM':
+      return 'bg-rose-500';
+    case 'Yarn':
+      return 'bg-teal-600';
+    case 'Yarn2':
+      return 'bg-teal-700';
+    default:
+      return 'bg-neutral-300'; // Fallback for undefined ecosystems
+  }
 }
