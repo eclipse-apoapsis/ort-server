@@ -116,7 +116,7 @@ const columns = [
 
       if (isError) return <span>Error loading data.</span>;
 
-      if (data.pagination.totalCount === 1)
+      if (data.pagination.totalCount === 1 && data.data[0])
         return <TotalRuns repoId={data.data[0].id} />;
       else return <span>-</span>;
     },
@@ -141,7 +141,7 @@ const columns = [
 
       if (isError) return <span>Error loading data.</span>;
 
-      if (data.pagination.totalCount === 1)
+      if (data.pagination.totalCount === 1 && data.data[0])
         return <LastRunStatus repoId={data.data[0].id} />;
       else
         return <span>Contains {data.pagination.totalCount} repositories</span>;
@@ -167,7 +167,7 @@ const columns = [
 
       if (isError) return <span>Error loading data.</span>;
 
-      if (data.pagination.totalCount === 1)
+      if (data.pagination.totalCount === 1 && data.data[0])
         return <LastRunDate repoId={data.data[0].id} />;
       else return null;
     },
@@ -192,7 +192,7 @@ const columns = [
 
       if (isError) return <span>Error loading data.</span>;
 
-      if (data.pagination.totalCount === 1)
+      if (data.pagination.totalCount === 1 && data.data[0])
         return <LastJobStatus repoId={data.data[0].id} />;
       else return null;
     },

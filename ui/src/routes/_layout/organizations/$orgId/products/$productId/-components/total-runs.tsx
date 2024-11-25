@@ -37,7 +37,7 @@ export const TotalRuns = ({ repoId }: { repoId: number }) => {
     {
       refetchInterval: (query) => {
         const curData = query.state.data?.data;
-        if (curData && curData.length > 0 && curData[0].finishedAt) {
+        if (curData && curData[0] && curData[0].finishedAt) {
           return undefined;
         }
         return config.pollInterval;

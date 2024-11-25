@@ -56,10 +56,8 @@ const oidcConfig = {
 const serverClientId = CLIENT_ID_SERVER;
 
 // Configure Keycloak
-const authBaseUrl = AUTHORITY
-  ? AUTHORITY.split('/realms/')[0]
-  : 'http://localhost:8081';
-const realm = AUTHORITY ? AUTHORITY.split('/realms/')[1] : 'master';
+const authBaseUrl = AUTHORITY.split('/realms/')[0] || 'http://localhost:8081';
+const realm = AUTHORITY.split('/realms/')[1] || 'master';
 
 // Polling interval for run status updates
 const pollInterval = RUN_POLL_INTERVAL;
