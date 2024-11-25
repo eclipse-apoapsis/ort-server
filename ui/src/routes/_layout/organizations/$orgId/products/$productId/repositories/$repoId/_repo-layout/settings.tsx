@@ -18,7 +18,6 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -29,6 +28,7 @@ import {
   UseRepositoriesServiceGetRepositoryByIdKeyFn,
   useRepositoriesServicePatchRepositoryById,
 } from '@/api/queries';
+import { useRepositoriesServiceGetRepositoryByIdSuspense } from '@/api/queries/suspense';
 import { $RepositoryType, ApiError, RepositoriesService } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
@@ -69,14 +69,8 @@ const RepositorySettingsPage = () => {
 
   const repositoryId = Number.parseInt(params.repoId);
 
-  const { data: repository } = useSuspenseQuery({
-    queryKey: UseRepositoriesServiceGetRepositoryByIdKeyFn({
-      repositoryId,
-    }),
-    queryFn: async () =>
-      await RepositoriesService.getRepositoryById({
-        repositoryId,
-      }),
+  const { data: repository } = useRepositoriesServiceGetRepositoryByIdSuspense({
+    repositoryId,
   });
 
   const { mutateAsync, isPending } = useRepositoriesServicePatchRepositoryById({
