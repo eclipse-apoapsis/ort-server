@@ -26,8 +26,7 @@ import { z } from 'zod';
 
 import {
   useRepositoriesServiceDeleteRepositoryById,
-  useRepositoriesServiceGetRepositoryById,
-  useRepositoriesServiceGetRepositoryByIdKey,
+  UseRepositoriesServiceGetRepositoryByIdKeyFn,
   useRepositoriesServicePatchRepositoryById,
 } from '@/api/queries';
 import { $RepositoryType, ApiError, RepositoriesService } from '@/api/requests';
@@ -68,16 +67,15 @@ const RepositorySettingsPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
 
+  const repositoryId = Number.parseInt(params.repoId);
+
   const { data: repository } = useSuspenseQuery({
-    queryKey: [
-      useRepositoriesServiceGetRepositoryById,
-      params.orgId,
-      params.productId,
-      params.repoId,
-    ],
+    queryKey: UseRepositoriesServiceGetRepositoryByIdKeyFn({
+      repositoryId,
+    }),
     queryFn: async () =>
       await RepositoriesService.getRepositoryById({
-        repositoryId: Number.parseInt(params.repoId),
+        repositoryId,
       }),
   });
 
@@ -263,11 +261,12 @@ export const Route = createFileRoute(
   '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/settings'
 )({
   loader: async ({ context, params }) => {
+    const repositoryId = Number.parseInt(params.repoId);
     await context.queryClient.ensureQueryData({
-      queryKey: [useRepositoriesServiceGetRepositoryByIdKey, params.repoId],
+      queryKey: UseRepositoriesServiceGetRepositoryByIdKeyFn({ repositoryId }),
       queryFn: () =>
         RepositoriesService.getRepositoryById({
-          repositoryId: Number.parseInt(params.repoId),
+          repositoryId,
         }),
     });
   },
