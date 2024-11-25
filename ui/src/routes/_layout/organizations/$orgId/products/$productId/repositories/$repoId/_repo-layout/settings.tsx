@@ -262,7 +262,7 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context, params }) => {
     const repositoryId = Number.parseInt(params.repoId);
-    await context.queryClient.ensureQueryData({
+    await context.queryClient.prefetchQuery({
       queryKey: UseRepositoriesServiceGetRepositoryByIdKeyFn({ repositoryId }),
       queryFn: () =>
         RepositoriesService.getRepositoryById({
