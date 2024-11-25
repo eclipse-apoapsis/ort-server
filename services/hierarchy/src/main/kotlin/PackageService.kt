@@ -46,20 +46,14 @@ class PackageService(private val db: Database) {
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<Package> = db.dbQuery {
         PackageDao.listCustomQuery(parameters, ResultRow::toPackage) {
-            PackagesTable
-                .innerJoin(PackagesAnalyzerRunsTable)
-                .innerJoin(AnalyzerRunsTable)
-                .innerJoin(AnalyzerJobsTable)
+            PackagesTable.joinAnalyzerTables()
                 .select(PackagesTable.columns)
                 .where { AnalyzerJobsTable.ortRunId eq ortRunId }
         }
     }
 
     suspend fun countForOrtRunId(ortRunId: Long): Long = db.dbQuery {
-        PackagesTable
-            .innerJoin(PackagesAnalyzerRunsTable)
-            .innerJoin(AnalyzerRunsTable)
-            .innerJoin(AnalyzerJobsTable)
+        PackagesTable.joinAnalyzerTables()
             .select(PackagesTable.id)
             .where { AnalyzerJobsTable.ortRunId eq ortRunId }
             .count()
@@ -68,11 +62,8 @@ class PackageService(private val db: Database) {
     suspend fun countEcosystemsForOrtRun(ortRunId: Long): List<EcosystemStats> =
         db.dbQuery {
             val countAlias = Count(stringLiteral("*"))
-            PackagesTable
+            PackagesTable.joinAnalyzerTables()
                 .innerJoin(IdentifiersTable)
-                .innerJoin(PackagesAnalyzerRunsTable)
-                .innerJoin(AnalyzerRunsTable)
-                .innerJoin(AnalyzerJobsTable)
                 .select(IdentifiersTable.type, countAlias)
                 .where { AnalyzerJobsTable.ortRunId eq ortRunId }
                 .groupBy(IdentifiersTable.type)
@@ -86,3 +77,8 @@ class PackageService(private val db: Database) {
 }
 
 private fun ResultRow.toPackage(): Package = PackageDao.wrapRow(this).mapToModel()
+
+private fun PackagesTable.joinAnalyzerTables() =
+    innerJoin(PackagesAnalyzerRunsTable)
+        .innerJoin(AnalyzerRunsTable)
+        .innerJoin(AnalyzerJobsTable)
