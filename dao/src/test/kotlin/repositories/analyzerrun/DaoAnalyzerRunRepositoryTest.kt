@@ -31,21 +31,22 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.environment
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.issue
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphEdge
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphNode
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphRoot
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
@@ -113,7 +114,7 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
     }
 })
 
-internal fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: AnalyzerRun) = create(
+private fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: AnalyzerRun) = create(
     analyzerJobId = analyzerJobId,
     startTime = analyzerRun.startTime,
     endTime = analyzerRun.endTime,
@@ -125,7 +126,7 @@ internal fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: A
     dependencyGraphs = analyzerRun.dependencyGraphs
 )
 
-internal val analyzerConfiguration = AnalyzerConfiguration(
+private val analyzerConfiguration = AnalyzerConfiguration(
     allowDynamicVersions = true,
     enabledPackageManagers = listOf("Gradle", "NPM", "Yarn"),
     disabledPackageManagers = listOf("Maven", "Pub"),
@@ -143,7 +144,7 @@ internal val analyzerConfiguration = AnalyzerConfiguration(
     skipExcluded = false
 )
 
-val project = Project(
+private val project = Project(
     identifier = Identifier(
         type = "type",
         namespace = "namespace",
@@ -184,7 +185,7 @@ val project = Project(
     scopeNames = setOf("compile")
 )
 
-internal val pkg = createPackage(1)
+private val pkg = createPackage(1)
 
 private fun createPackage(index: Int) = Package(
     identifier = Identifier(
@@ -237,7 +238,7 @@ private fun createPackage(index: Int) = Package(
     )
 )
 
-internal val dependencyGraphs = mapOf(
+private val dependencyGraphs = mapOf(
     "Maven" to DependencyGraph(
         packages = listOf(
             Identifier(
@@ -284,7 +285,43 @@ internal val dependencyGraphs = mapOf(
     )
 )
 
-internal val analyzerRun = AnalyzerRun(
+private val variables = mapOf(
+    "SHELL" to "/bin/bash",
+    "TERM" to "xterm-256color"
+)
+
+private val toolVersions = mapOf(
+    "Conan" to "1.53.0",
+    "NPM" to "8.15.1"
+)
+
+private val environment = Environment(
+    ortVersion = "1.0",
+    javaVersion = "11.0.16",
+    os = "Linux",
+    processors = 8,
+    maxMemory = 8321499136,
+    variables = variables,
+    toolVersions = toolVersions
+)
+
+private val identifier = Identifier(
+    type = "type",
+    namespace = "namespace",
+    name = "name",
+    version = "version"
+)
+
+private val issue = Issue(
+    timestamp = Clock.System.now().toDatabasePrecision(),
+    source = "NexusIq",
+    message = "message",
+    severity = Severity.ERROR,
+    identifier = identifier,
+    worker = "advisor"
+)
+
+private val analyzerRun = AnalyzerRun(
     id = -1L,
     analyzerJobId = -1L,
     startTime = Clock.System.now().toDatabasePrecision(),
