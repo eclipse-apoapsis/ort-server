@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     // Apply core plugins.
     `java-test-fixtures`
@@ -70,4 +72,10 @@ dependencies {
     testFixturesImplementation(libs.mockk)
     testFixturesImplementation(libs.testContainers)
     testFixturesImplementation(libs.testContainersPostgresql)
+}
+
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-receivers")
+    }
 }
