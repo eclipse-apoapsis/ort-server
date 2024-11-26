@@ -17,6 +17,10 @@
  * License-Filename: LICENSE
  */
 
+// TODO: Remove this once context parameters become available, see:
+// https://kotlinlang.org/docs/whatsnew2020.html#phased-replacement-of-context-receivers-with-context-parameters
+@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED")
+
 package org.eclipse.apoapsis.ortserver.dao.utils
 
 import kotlinx.datetime.DateTimeUnit
@@ -24,12 +28,12 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.minus
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.ReporterJobDao.Companion.transform
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
+import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.sql.AbstractQuery
 import org.jetbrains.exposed.sql.Column
@@ -51,6 +55,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 /**
  * Transform the given column [to database precision][toDatabasePrecision] when creating a DAO object.
  */
+context(EntityClass<*, *>)
 @Suppress("DEPRECATION", "UNCHECKED_CAST") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
 fun <T : Instant?> Column<T>.transformToDatabasePrecision() = transform({ it?.toDatabasePrecision() as T }, { it })
 
