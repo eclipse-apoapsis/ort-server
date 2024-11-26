@@ -24,10 +24,10 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.identifier
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
@@ -118,7 +118,7 @@ class DaoRepositoryConfigurationRepositoryTest : WordSpec({
     }
 })
 
-internal fun DaoRepositoryConfigurationRepository.create(ortRunId: Long, repositoryConfig: RepositoryConfiguration) =
+private fun DaoRepositoryConfigurationRepository.create(ortRunId: Long, repositoryConfig: RepositoryConfiguration) =
     create(
         ortRunId = ortRunId,
         analyzerConfig = repositoryConfig.analyzerConfig,
@@ -130,7 +130,7 @@ internal fun DaoRepositoryConfigurationRepository.create(ortRunId: Long, reposit
         provenanceSnippetChoices = repositoryConfig.provenanceSnippetChoices
     )
 
-internal val repositoryAnalyzerConfig = RepositoryAnalyzerConfiguration(
+private val repositoryAnalyzerConfig = RepositoryAnalyzerConfiguration(
     allowDynamicVersions = true,
     enabledPackageManagers = listOf("Gradle", "Maven"),
     disabledPackageManagers = listOf("NPM", "Yarn"),
@@ -145,37 +145,37 @@ internal val repositoryAnalyzerConfig = RepositoryAnalyzerConfiguration(
     skipExcluded = true
 )
 
-internal val pathExclude = PathExclude(
+private val pathExclude = PathExclude(
     pattern = "**/file.txt",
     reason = "BUILD_TOOL_OF",
     comment = "Test path exclude."
 )
 
-internal val scopeExclude = ScopeExclude(
+private val scopeExclude = ScopeExclude(
     pattern = "scope1",
     reason = "PROVIDED_DEPENDENCY_OF",
     comment = "Test scope exclude."
 )
 
-internal val issueResolution = IssueResolution(
+private val issueResolution = IssueResolution(
     message = "issue message",
     reason = "CANT_FIX_ISSUE",
     comment = "Test issue resolution."
 )
 
-internal val ruleViolationResolution = RuleViolationResolution(
+private val ruleViolationResolution = RuleViolationResolution(
     message = "rule violation message",
     reason = "CANT_FIX_EXCEPTION",
     comment = "Test rule violation resolution."
 )
 
-internal val vulnerabilityResolution = VulnerabilityResolution(
+private val vulnerabilityResolution = VulnerabilityResolution(
     externalId = "vulnerability id",
     reason = "INEFFECTIVE_VULNERABILITY",
     comment = "Test vulnerability resolution."
 )
 
-internal val packageCurationData = PackageCurationData(
+private val packageCurationData = PackageCurationData(
     comment = "Test package curation.",
     purl = "pkg:type/namespace/name@version",
     cpe = "cpe:2.3:a:",
@@ -204,12 +204,19 @@ internal val packageCurationData = PackageCurationData(
     isModified = true
 )
 
-internal val packageCuration = PackageCuration(
+private val identifier = Identifier(
+    type = "type",
+    namespace = "namespace",
+    name = "name",
+    version = "version"
+)
+
+private val packageCuration = PackageCuration(
     id = identifier,
     data = packageCurationData
 )
 
-internal val licenseFindingCuration = LicenseFindingCuration(
+private val licenseFindingCuration = LicenseFindingCuration(
     path = "a/path",
     startLines = listOf(7, 8),
     lineCount = 5,
@@ -219,7 +226,7 @@ internal val licenseFindingCuration = LicenseFindingCuration(
     comment = "Test license finding curation"
 )
 
-internal val packageConfiguration = PackageConfiguration(
+private val packageConfiguration = PackageConfiguration(
     id = identifier,
     sourceArtifactUrl = "https://example.org/source.artifact.url",
     vcs = VcsMatcher(
@@ -231,17 +238,17 @@ internal val packageConfiguration = PackageConfiguration(
     licenseFindingCurations = listOf(licenseFindingCuration)
 )
 
-internal val spdxLicenseChoice = SpdxLicenseChoice(
+private val spdxLicenseChoice = SpdxLicenseChoice(
     given = "LicenseRef-a OR LicenseRef-b",
     choice = "LicenseRef-b"
 )
 
-internal val packageLicenseChoice = PackageLicenseChoice(
+private val packageLicenseChoice = PackageLicenseChoice(
     identifier = identifier,
     licenseChoices = listOf(spdxLicenseChoice)
 )
 
-internal val provenanceSnippetChoices = ProvenanceSnippetChoices(
+private val provenanceSnippetChoices = ProvenanceSnippetChoices(
     provenance = Provenance("https://example.org/provenance-url"),
     choices = listOf(
         SnippetChoice(
@@ -255,7 +262,7 @@ internal val provenanceSnippetChoices = ProvenanceSnippetChoices(
     )
 )
 
-internal val repositoryConfig = RepositoryConfiguration(
+private val repositoryConfig = RepositoryConfiguration(
     id = -1L,
     ortRunId = -1L,
     analyzerConfig = repositoryAnalyzerConfig,

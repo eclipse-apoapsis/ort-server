@@ -103,7 +103,7 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
     }
 })
 
-fun DaoAdvisorRunRepository.create(advisorJobId: Long, advisorRun: AdvisorRun) = create(
+private fun DaoAdvisorRunRepository.create(advisorJobId: Long, advisorRun: AdvisorRun) = create(
     advisorJobId = advisorJobId,
     startTime = advisorRun.startTime,
     endTime = advisorRun.endTime,
@@ -112,17 +112,17 @@ fun DaoAdvisorRunRepository.create(advisorJobId: Long, advisorRun: AdvisorRun) =
     results = advisorRun.results.mapValues { (_, results) -> results.map { it.withPlainIssues() } }
 )
 
-val variables = mapOf(
+private val variables = mapOf(
     "SHELL" to "/bin/bash",
     "TERM" to "xterm-256color"
 )
 
-val toolVersions = mapOf(
+private val toolVersions = mapOf(
     "Conan" to "1.53.0",
     "NPM" to "8.15.1"
 )
 
-val environment = Environment(
+private val environment = Environment(
     ortVersion = "1.0",
     javaVersion = "11.0.16",
     os = "Linux",
@@ -132,7 +132,7 @@ val environment = Environment(
     toolVersions = toolVersions
 )
 
-val advisorConfiguration = AdvisorConfiguration(
+private val advisorConfiguration = AdvisorConfiguration(
     config = mapOf(
         "GitHubDefects" to PluginConfiguration(
             options = mapOf(
@@ -164,21 +164,21 @@ val advisorConfiguration = AdvisorConfiguration(
     )
 )
 
-val identifier = Identifier(
+private val identifier = Identifier(
     type = "type",
     namespace = "namespace",
     name = "name",
     version = "version"
 )
 
-val otherIdentifier = Identifier(
+private val otherIdentifier = Identifier(
     type = "otherType",
     namespace = "otherNamespace",
     name = "otherName",
     version = "otherVersion"
 )
 
-val issue = Issue(
+private val issue = Issue(
     timestamp = Clock.System.now().toDatabasePrecision(),
     source = "NexusIq",
     message = "message",
@@ -187,7 +187,7 @@ val issue = Issue(
     worker = "advisor"
 )
 
-val otherIssue = Issue(
+private val otherIssue = Issue(
     timestamp = Clock.System.now().toDatabasePrecision(),
     source = "GitHubDefects",
     message = "otherMessage",
@@ -196,7 +196,7 @@ val otherIssue = Issue(
     worker = "advisor"
 )
 
-val defect = Defect(
+private val defect = Defect(
     externalId = "external-id",
     url = "https://example.com/external-id",
     title = "title",
@@ -211,7 +211,7 @@ val defect = Defect(
     labels = mapOf("key" to "value")
 )
 
-val vulnerability = Vulnerability(
+private val vulnerability = Vulnerability(
     externalId = "external-id",
     summary = "summary",
     description = "description",
@@ -226,7 +226,7 @@ val vulnerability = Vulnerability(
     )
 )
 
-val advisorResult = AdvisorResult(
+private val advisorResult = AdvisorResult(
     advisorName = "NexusIQ",
     capabilities = emptyList(),
     startTime = Clock.System.now().toDatabasePrecision(),
@@ -236,7 +236,7 @@ val advisorResult = AdvisorResult(
     vulnerabilities = listOf(vulnerability)
 )
 
-val otherAdvisorResult = AdvisorResult(
+private val otherAdvisorResult = AdvisorResult(
     advisorName = "GitHubDefects",
     capabilities = emptyList(),
     startTime = Clock.System.now().toDatabasePrecision(),
@@ -246,7 +246,7 @@ val otherAdvisorResult = AdvisorResult(
     vulnerabilities = emptyList()
 )
 
-val advisorRun = AdvisorRun(
+private val advisorRun = AdvisorRun(
     id = -1L,
     advisorJobId = -1L,
     startTime = Clock.System.now().toDatabasePrecision(),

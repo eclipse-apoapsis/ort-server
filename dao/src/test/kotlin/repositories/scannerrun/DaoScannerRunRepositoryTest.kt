@@ -29,11 +29,7 @@ import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
 
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.environment
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.DaoAnalyzerRunRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.analyzerRun
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.create
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.pkg
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
@@ -48,7 +44,14 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
@@ -232,7 +235,7 @@ class DaoScannerRunRepositoryTest : StringSpec({
 
 private const val SCANNER_NAME = "TestScanner"
 
-internal fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: ScannerRun): ScannerRun {
+private fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: ScannerRun): ScannerRun {
     val createdScannerRun = create(scannerJobId = scannerJobId)
     return update(
         id = createdScannerRun.id,
@@ -244,7 +247,7 @@ internal fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: Scan
     )
 }
 
-internal fun createPackageProvenance(
+private fun createPackageProvenance(
     id: Identifier,
     vcsProcessed: VcsInfo? = null,
     sourceArtifact: RemoteArtifact? = null
@@ -303,7 +306,7 @@ private fun createScanResult(
     }
 }
 
-internal val scannerConfiguration = ScannerConfiguration(
+private val scannerConfiguration = ScannerConfiguration(
     skipConcluded = false,
     skipExcluded = false,
     detectedLicenseMappings = mapOf(
@@ -344,7 +347,27 @@ private fun associateScannerRunWithScanResult(scannerRun: ScannerRun, scanResult
     }
 }
 
-internal val scannerRun = ScannerRun(
+private val variables = mapOf(
+    "SHELL" to "/bin/bash",
+    "TERM" to "xterm-256color"
+)
+
+private val toolVersions = mapOf(
+    "Conan" to "1.53.0",
+    "NPM" to "8.15.1"
+)
+
+private val environment = Environment(
+    ortVersion = "1.0",
+    javaVersion = "11.0.16",
+    os = "Linux",
+    processors = 8,
+    maxMemory = 8321499136,
+    variables = variables,
+    toolVersions = toolVersions
+)
+
+private val scannerRun = ScannerRun(
     id = -1L,
     scannerJobId = -1L,
     startTime = Clock.System.now().toDatabasePrecision(),
@@ -354,4 +377,109 @@ internal val scannerRun = ScannerRun(
     provenances = emptySet(),
     scanResults = emptySet(),
     scanners = emptyMap()
+)
+
+private val project = Project(
+    identifier = Identifier(
+        type = "type",
+        namespace = "namespace",
+        name = "project",
+        version = "version"
+    ),
+    cpe = "cpe",
+    definitionFilePath = "definitionFilePath",
+    authors = emptySet(),
+    declaredLicenses = emptySet(),
+    processedDeclaredLicense = ProcessedDeclaredLicense(
+        spdxExpression = null,
+        mappedLicenses = emptyMap(),
+        unmappedLicenses = emptySet()
+    ),
+    vcs = VcsInfo(
+        type = RepositoryType.GIT,
+        url = "https://example.com/project.git",
+        revision = "",
+        path = ""
+    ),
+    vcsProcessed = VcsInfo(
+        type = RepositoryType.GIT,
+        url = "https://example.com/project.git",
+        revision = "main",
+        path = ""
+    ),
+    homepageUrl = "https://example.com",
+    scopeNames = emptySet()
+)
+
+private val pkg = Package(
+    identifier = Identifier(
+        type = "type",
+        namespace = "namespace",
+        name = "package",
+        version = "version"
+    ),
+    purl = "purl",
+    cpe = "cpe",
+    authors = emptySet(),
+    declaredLicenses = emptySet(),
+    processedDeclaredLicense = ProcessedDeclaredLicense(
+        spdxExpression = null,
+        mappedLicenses = emptyMap(),
+        unmappedLicenses = emptySet()
+    ),
+    description = "description",
+    homepageUrl = "https://example.com",
+    binaryArtifact = RemoteArtifact(
+        url = "https://example.com/binary.zip",
+        hashValue = "",
+        hashAlgorithm = ""
+    ),
+    sourceArtifact = RemoteArtifact(
+        url = "https://example.com/source.zip",
+        hashValue = "0123456789abcdef0123456789abcdef01234567",
+        hashAlgorithm = "SHA-1"
+    ),
+    vcs = VcsInfo(
+        type = RepositoryType.GIT,
+        url = "https://example.com/package.git",
+        revision = "",
+        path = ""
+    ),
+    vcsProcessed = VcsInfo(
+        type = RepositoryType.GIT,
+        url = "https://example.com/package.git",
+        revision = "main",
+        path = ""
+    )
+)
+
+private val analyzerRun = AnalyzerRun(
+    id = -1L,
+    analyzerJobId = -1L,
+    startTime = Clock.System.now().toDatabasePrecision(),
+    endTime = Clock.System.now().toDatabasePrecision(),
+    environment = environment,
+    config = AnalyzerConfiguration(
+        allowDynamicVersions = true,
+        enabledPackageManagers = null,
+        disabledPackageManagers = null,
+        packageManagers = null,
+        skipExcluded = true
+    ),
+    projects = setOf(project),
+    packages = setOf(pkg),
+    issues = emptyList(),
+    dependencyGraphs = emptyMap()
+)
+
+private fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: AnalyzerRun) = create(
+    analyzerJobId = analyzerJobId,
+    startTime = analyzerRun.startTime,
+    endTime = analyzerRun.endTime,
+    environment = analyzerRun.environment,
+    config = analyzerRun.config,
+    projects = analyzerRun.projects,
+    packages = analyzerRun.packages,
+    issues = analyzerRun.issues,
+    dependencyGraphs = analyzerRun.dependencyGraphs
 )
