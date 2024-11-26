@@ -52,6 +52,7 @@ export const Route = createFileRoute(
       if (firstRun) {
         throw redirect({
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
+          replace: true,
           params: {
             orgId: params.orgId,
             productId: params.productId,
@@ -62,6 +63,7 @@ export const Route = createFileRoute(
       } else {
         throw redirect({
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/create-run',
+          replace: true,
           params: {
             orgId: params.orgId,
             productId: params.productId,
