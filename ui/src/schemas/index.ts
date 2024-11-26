@@ -45,8 +45,10 @@ export const paginationSearchParameterSchema = z.object({
 // sortBy needs to be of form "columnId.asc" or "columnId.desc"
 export const sortingSearchParameterSchema = z.object({
   sortBy: z
-    .string()
-    .regex(/^[a-zA-Z0-9_]+.(asc|desc)$/)
+    .object({
+      id: z.string(),
+      desc: z.boolean(),
+    })
     .optional(),
 });
 

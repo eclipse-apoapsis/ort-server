@@ -80,7 +80,7 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
           params,
           search: {
-            sortBy: 'rating.desc',
+            sortBy: { id: 'rating', desc: true },
           },
           icon: () => <ShieldQuestion className='h-4 w-4' />,
         },
@@ -95,7 +95,7 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations',
           params,
           search: {
-            sortBy: 'severity.desc',
+            sortBy: { id: 'severity', desc: true },
           },
           icon: () => <Scale className='h-4 w-4' />,
         },
@@ -109,7 +109,7 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues',
           params,
           search: {
-            sortBy: 'severity.desc',
+            sortBy: { id: 'severity', desc: true },
           },
           icon: () => <Bug className='h-4 w-4' />,
         },
