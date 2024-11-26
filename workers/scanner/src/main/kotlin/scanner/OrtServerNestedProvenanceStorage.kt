@@ -20,12 +20,12 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceSubRepositoryDao
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenancesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceSubRepositoryDao
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt

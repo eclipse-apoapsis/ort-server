@@ -21,8 +21,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.organization
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.OrganizationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.OrganizationsTable
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue

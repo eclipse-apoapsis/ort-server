@@ -30,16 +30,14 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.DaoAnalyzerRunRepository
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceSubRepositoryDao
+import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceSubRepositoryDao
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanResultsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision

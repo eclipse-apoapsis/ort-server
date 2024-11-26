@@ -34,11 +34,10 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunIssueDao
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsIssuesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsLabelsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations

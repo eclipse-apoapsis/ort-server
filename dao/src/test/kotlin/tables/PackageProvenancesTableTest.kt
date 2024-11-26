@@ -26,9 +26,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo

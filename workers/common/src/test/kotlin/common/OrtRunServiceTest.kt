@@ -38,9 +38,9 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision

@@ -24,11 +24,9 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
-import org.eclipse.apoapsis.ortserver.dao.tables.OrganizationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.ProductDao
-import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
-import org.eclipse.apoapsis.ortserver.dao.tables.SecretDao
-import org.eclipse.apoapsis.ortserver.dao.tables.SecretsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository

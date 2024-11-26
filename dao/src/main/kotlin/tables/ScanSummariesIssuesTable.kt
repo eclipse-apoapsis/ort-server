@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssueDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.dao.LongEntity

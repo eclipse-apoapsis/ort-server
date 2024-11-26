@@ -30,9 +30,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel

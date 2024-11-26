@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.Dao
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.DaoScannerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration

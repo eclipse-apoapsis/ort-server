@@ -23,9 +23,9 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsIssuesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue

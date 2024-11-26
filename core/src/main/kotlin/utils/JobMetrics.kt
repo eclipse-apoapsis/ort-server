@@ -26,18 +26,18 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.MeterBinder
 
 import org.eclipse.apoapsis.ortserver.core.plugins.DatabaseReady
-import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobDao
-import org.eclipse.apoapsis.ortserver.dao.tables.AdvisorJobsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobDao
-import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobDao
-import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.ReporterJobDao
-import org.eclipse.apoapsis.ortserver.dao.tables.ReporterJobsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.ScannerJobDao
-import org.eclipse.apoapsis.ortserver.dao.tables.ScannerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.ReporterJobDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.ReporterJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 

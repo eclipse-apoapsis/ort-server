@@ -22,8 +22,8 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 
 import org.ossreviewtoolkit.model.RepositoryProvenance
 

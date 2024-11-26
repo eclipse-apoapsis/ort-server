@@ -24,9 +24,7 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobDao
-import org.eclipse.apoapsis.ortserver.dao.tables.AnalyzerJobsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobStatus

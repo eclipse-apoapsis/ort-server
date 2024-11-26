@@ -27,7 +27,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.resolvedconfiguration.ResolvedConfigurationDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
