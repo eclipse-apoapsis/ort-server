@@ -116,6 +116,9 @@ RUN groupadd --gid $USER_GID $USERNAME \
     --home-dir $HOMEDIR \
     --create-home $USERNAME
 
+RUN mkdir -p $HOMEDIR/.cache \
+    && chown $USER:$USER $HOMEDIR/.cache
+
 RUN chgrp $USER /opt \
     && chmod g+wx /opt
 
