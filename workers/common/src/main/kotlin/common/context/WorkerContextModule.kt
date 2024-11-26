@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.context
 
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoRepositoryRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 

@@ -30,13 +30,13 @@ import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorJobRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoEvaluatorJobRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoNotifierJobRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoReporterJobRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.DaoNotifierJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository

@@ -29,8 +29,8 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.spyk
 
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrganizationRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoProductRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Organization
