@@ -21,11 +21,11 @@ package org.eclipse.apoapsis.ortserver.workers.advisor
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorJobRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAdvisorRunRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerJobRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoAnalyzerRunRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.DaoOrtRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.DaoAnalyzerRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
