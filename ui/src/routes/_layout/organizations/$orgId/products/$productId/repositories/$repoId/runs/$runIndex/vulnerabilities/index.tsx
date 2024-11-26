@@ -232,20 +232,10 @@ const VulnerabilitiesComponent = () => {
     [search.pageSize]
   );
 
-  const sortBy = useMemo(() => {
-    return search.sortBy
-      ? search.sortBy
-          .split(',')
-          .map((sortParam) => {
-            const [id, desc] = sortParam.split('.');
-            if (!id) {
-              return null;
-            }
-            return { id, desc: desc === 'desc' };
-          })
-          .filter((sort) => sort !== null)
-      : undefined;
-  }, [search.sortBy]);
+  const sortBy = useMemo(
+    () => (search.sortBy ? [search.sortBy] : undefined),
+    [search.sortBy]
+  );
 
   const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
     repositoryId: Number.parseInt(params.repoId),
@@ -329,25 +319,11 @@ const VulnerabilitiesComponent = () => {
             };
           }}
           setSortingOptions={(sortBy) => {
-            const sortByString = sortBy
-              .filter((sort) => sort.sortBy !== null)
-              .map(({ id, sortBy }) => `${id}.${sortBy}`)
-              .join(',');
-            // When the sorting is reset (clicking the header when it is in descending mode),
-            // remove the sortBy parameter completely from the URL, to pass route validation.
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { sortBy: _, ...rest } = search;
-            if (sortByString.length === 0) {
-              return {
-                to: Route.to,
-                search: rest,
-              };
-            }
             return {
               to: Route.to,
               search: {
                 ...search,
-                sortBy: sortByString,
+                sortBy: sortBy,
               },
             };
           }}

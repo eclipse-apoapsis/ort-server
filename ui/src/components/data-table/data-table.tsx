@@ -67,7 +67,7 @@ interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
    * A function to provide `LinkOptions` for a link to set current sorting in the URL.
    */
   setSortingOptions?: (
-    sorting: { id: string; sortBy: 'asc' | 'desc' | null }[]
+    sorting: { id: string; desc: boolean } | undefined
   ) => LinkOptions;
   enableGrouping?: boolean;
 }
@@ -165,17 +165,19 @@ export function DataTable<TData>({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Link
-                                  {...setSortingOptions([
-                                    {
-                                      id: header.column.id,
-                                      // For sortable columns, the order of sorting is asc -> desc -> [no sorting].
-                                      sortBy: header.column.getIsSorted()
-                                        ? header.column.getIsSorted() === 'asc'
-                                          ? 'desc'
-                                          : null
-                                        : 'asc',
-                                    },
-                                  ])}
+                                  {...setSortingOptions(
+                                    header.column.getIsSorted() === 'desc'
+                                      ? undefined
+                                      : {
+                                          id: header.column.id,
+                                          // For sortable columns, the order of sorting is asc -> desc -> [no sorting].
+                                          desc:
+                                            header.column.getIsSorted() ===
+                                            'asc'
+                                              ? true
+                                              : false,
+                                        }
+                                  )}
                                 >
                                   <Button
                                     variant='ghost'

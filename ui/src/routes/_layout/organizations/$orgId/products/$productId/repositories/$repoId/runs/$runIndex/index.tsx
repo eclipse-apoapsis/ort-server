@@ -207,7 +207,7 @@ const RunComponent = () => {
               repoId: params.repoId,
               runIndex: params.runIndex,
             }}
-            search={{ sortBy: 'severity.desc' }}
+            search={{ sortBy: { id: 'severity', desc: true } }}
           >
             <IssuesStatisticsCard
               runId={ortRun.id}
@@ -236,7 +236,7 @@ const RunComponent = () => {
               repoId: params.repoId,
               runIndex: params.runIndex,
             }}
-            search={{ sortBy: 'rating.desc' }}
+            search={{ sortBy: { id: 'rating', desc: true } }}
           >
             <VulnerabilitiesStatisticsCard
               runId={ortRun.id}
@@ -251,7 +251,7 @@ const RunComponent = () => {
               repoId: params.repoId,
               runIndex: params.runIndex,
             }}
-            search={{ sortBy: 'severity.desc' }}
+            search={{ sortBy: { id: 'severity', desc: true } }}
           >
             <RuleViolationsStatisticsCard
               runId={ortRun.id}
