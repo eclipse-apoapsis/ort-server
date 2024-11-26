@@ -20,7 +20,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 import { UseRepositoriesServiceGetOrtRunsByRepositoryIdKeyFn } from '@/api/queries';
-import { OrtRunSummary, RepositoriesService } from '@/api/requests';
+import { RepositoriesService } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 
 export const Route = createFileRoute(
@@ -44,9 +44,7 @@ export const Route = createFileRoute(
       staleTime: 1000,
     });
 
-    // TODO: This type should be removed once TypeScript is configured with
-    // `noUncheckedIndexedAccess`.
-    const firstRun: OrtRunSummary | undefined = data[0];
+    const firstRun = data[0];
 
     if (!preload) {
       if (firstRun) {
