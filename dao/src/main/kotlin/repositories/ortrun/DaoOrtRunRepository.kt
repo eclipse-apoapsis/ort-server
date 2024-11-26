@@ -25,11 +25,8 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
-import org.eclipse.apoapsis.ortserver.dao.tables.LabelDao
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunDao
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunIssueDao
-import org.eclipse.apoapsis.ortserver.dao.tables.OrtRunsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision

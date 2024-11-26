@@ -23,7 +23,7 @@ package org.eclipse.apoapsis.ortserver.workers.common
 
 import kotlinx.datetime.toKotlinInstant
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity

@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 import kotlinx.datetime.toKotlinInstant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.AdditionalScanResultData
 import org.eclipse.apoapsis.ortserver.dao.tables.CopyrightFindingDao
 import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingDao
@@ -30,7 +31,6 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesIssuesDao
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 

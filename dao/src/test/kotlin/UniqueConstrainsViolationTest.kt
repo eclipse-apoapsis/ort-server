@@ -27,7 +27,7 @@ import io.mockk.mockk
 import java.sql.SQLException
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 

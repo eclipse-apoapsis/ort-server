@@ -24,7 +24,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.minus
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
-import org.eclipse.apoapsis.ortserver.dao.tables.ReporterJobDao.Companion.transform
+import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.ReporterJobDao.Companion.transform
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult

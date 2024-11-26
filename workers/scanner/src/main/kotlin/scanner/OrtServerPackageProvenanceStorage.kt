@@ -23,13 +23,13 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenancesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsPackageProvenancesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifierDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsPackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 

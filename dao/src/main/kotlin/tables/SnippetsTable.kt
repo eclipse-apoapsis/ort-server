@@ -21,10 +21,10 @@ package org.eclipse.apoapsis.ortserver.dao.tables
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.RemoteArtifactsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ArtifactProvenance
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.RepositoryProvenance

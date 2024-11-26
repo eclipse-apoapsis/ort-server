@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repository
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.ProductDao
-import org.eclipse.apoapsis.ortserver.dao.tables.RepositoriesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.RepositoryDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.RepositoryType

@@ -31,9 +31,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.AnalyzerRunDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.PackagesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.analyzer.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.RepositoryType

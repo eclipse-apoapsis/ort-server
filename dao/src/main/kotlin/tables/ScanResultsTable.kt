@@ -21,8 +21,8 @@ package org.eclipse.apoapsis.ortserver.dao.tables
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.scanner.ScannerRunsScanResultsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact

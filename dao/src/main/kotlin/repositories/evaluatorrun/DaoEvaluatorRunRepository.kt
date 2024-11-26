@@ -24,10 +24,7 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
-import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.EvaluatorRunDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.EvaluatorRunsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.RuleViolationDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobDao
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation

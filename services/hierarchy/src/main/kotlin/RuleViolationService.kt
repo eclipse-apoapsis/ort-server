@@ -20,12 +20,12 @@
 package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.tables.EvaluatorJobsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.EvaluatorRunsRuleViolationsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.EvaluatorRunsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.RuleViolationDao
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.evaluator.RuleViolationsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsRuleViolationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQuery
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters

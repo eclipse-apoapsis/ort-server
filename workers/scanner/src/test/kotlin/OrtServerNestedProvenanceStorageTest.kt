@@ -27,9 +27,9 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.NestedProvenancesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenanceDao
-import org.eclipse.apoapsis.ortserver.dao.tables.provenance.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
+import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel

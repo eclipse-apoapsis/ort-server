@@ -19,7 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.tables
 
-import org.eclipse.apoapsis.ortserver.dao.tables.runs.shared.VcsInfoTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
