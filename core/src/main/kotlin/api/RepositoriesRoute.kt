@@ -156,13 +156,15 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             }
 
             delete(deleteOrtRunByIndex) { _ ->
-                requirePermission(RepositoryPermission.DELETE)
-
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val ortRunIndex = call.requireIdParameter("ortRunIndex")
 
-                ortRunService.deleteOrtRun(repositoryId, ortRunIndex)
-                call.respond(HttpStatusCode.NoContent)
+                requirePermission(RepositoryPermission.DELETE)
+
+                repositoryService.getOrtRunId(repositoryId, ortRunIndex)?.let { ortRunId ->
+                    ortRunService.deleteOrtRun(ortRunId)
+                    call.respond(HttpStatusCode.NoContent)
+                } ?: call.respond(HttpStatusCode.NotFound)
             }
         }
     }

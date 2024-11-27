@@ -132,7 +132,7 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { RuleViolationService(get()) }
     single { PackageService(get()) }
     single { UserService(get()) }
-    single { OrtRunService(get(), get()) }
+    single { OrtRunService(get(), get(), get(), get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)
 }

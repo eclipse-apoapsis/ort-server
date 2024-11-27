@@ -23,18 +23,25 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
 import org.jetbrains.exposed.sql.Database
+
+import org.slf4j.LoggerFactory
 
 /**
  * A service to interact with ORT runs.
  */
 class OrtRunService(
     private val db: Database,
-    private val ortRunRepository: OrtRunRepository
+    private val ortRunRepository: OrtRunRepository,
+    private val reporterJobRepository: ReporterJobRepository,
+    private val reportStorageService: ReportStorageService
 ) {
+    private val logger = LoggerFactory.getLogger(OrtRunService::class.java)
+
     suspend fun listOrtRuns(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: OrtRunFilters? = null
@@ -42,17 +49,28 @@ class OrtRunService(
         ortRunRepository.list(parameters, filters)
     }
 
-    suspend fun deleteOrtRun(ortRunId: Long): Unit = db.dbQuery {
+    /**
+     * Delete the ORT run with the [ortRunId] and all its reports from storage and dependent database entities.
+     * In case a report does not exist in storage, although it should, the operation continues, because
+     * the report might have been manually deleted from storage. However, if there is a technical issue
+     * during the deletion of a report from storage, the function fails and the ORT run is not deleted,
+     * allowing to retry the delete operation.
+     */
+    suspend fun deleteOrtRun(ortRunId: Long) {
+        reporterJobRepository.getForOrtRun(ortRunId)?.filenames?.forEach { filename ->
+            runCatching {
+                reportStorageService.deleteReport(ortRunId, filename)
+            }.onFailure { e ->
+                if (e is ReportNotFoundException) {
+                    logger.warn("Report $filename for ORT run $ortRunId not found in storage. Continuing.")
+                } else {
+                    throw e
+                }
+            }
+        }
+
         if (ortRunRepository.delete(ortRunId) == 0) {
             throw ResourceNotFoundException("ORT run with id '$ortRunId' not found.")
-        }
-    }
-
-    suspend fun deleteOrtRun(repositoryId: Long, ortRunIndex: Long) = db.dbQuery {
-        if (ortRunRepository.deleteByRepositoryIdAndOrtRunIndex(repositoryId, ortRunIndex) == 0) {
-            throw ResourceNotFoundException(
-                "ORT run with repositoryId '$repositoryId' and ortRunIndex '$ortRunIndex' not found."
-            )
         }
     }
 }

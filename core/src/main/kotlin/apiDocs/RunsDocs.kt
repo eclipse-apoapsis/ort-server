@@ -101,6 +101,7 @@ val getOrtRunById: OpenApiRoute.() -> Unit = {
 val deleteOrtRunById: OpenApiRoute.() -> Unit = {
     operationId = "deleteOrtRunById"
     summary = "Delete an ORT run."
+    description = "This operation deletes an ORT run and all generated data, including the generated reports."
     tags = listOf("Runs")
 
     request {

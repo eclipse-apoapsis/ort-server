@@ -58,6 +58,13 @@ interface OrtRunRepository {
     fun getByIndex(repositoryId: Long, ortRunIndex: Long): OrtRun?
 
     /**
+     * Get the id of an ORT run by its [index][ortRunIndex] within a [repository][repositoryId].
+     * This function is more efficient than [getByIndex], as it only retrieves the ID of the ORT run or
+     * returns null if the ORT run is not found.
+     */
+    fun getIdByIndex(repositoryId: Long, ortRunIndex: Long): Long?
+
+    /**
      * List all ORT runs according to the given [parameters] and [filters].
      */
     fun list(
@@ -100,9 +107,4 @@ interface OrtRunRepository {
      * Delete an ORT run by [id].
      */
     fun delete(id: Long): Int
-
-    /**
-     * Delete an ORT run by [repositoryId] and [ortRunIndex].
-     */
-    fun deleteByRepositoryIdAndOrtRunIndex(repositoryId: Long, ortRunIndex: Long): Int
 }

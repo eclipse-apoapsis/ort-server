@@ -96,6 +96,15 @@ class RepositoryService(
     }
 
     /**
+     * Get the id of an ORT run by its [index][ortRunIndex] within a [repository][repositoryId].
+     * This function is more efficient than [getOrtRun], as it only retrieves the ID of the ORT run or
+     * returns null if the ORT run is not found.
+     */
+    suspend fun getOrtRunId(repositoryId: Long, ortRunIndex: Long): Long? = db.dbQuery {
+        ortRunRepository.getIdByIndex(repositoryId, ortRunIndex)
+    }
+
+    /**
      * Get the summaries of the runs executed on the given [repository][repositoryId] according
      * to the given [parameters].
      */

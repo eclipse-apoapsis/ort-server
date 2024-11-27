@@ -505,6 +505,7 @@ val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
 val deleteOrtRunByIndex: OpenApiRoute.() -> Unit = {
     operationId = "deleteOrtRunByIndex"
     summary = "Delete an ORT run of a repository."
+    description = "This operation deletes an ORT run and all generated data, including the generated reports."
     tags = listOf("Repositories")
 
     request {
