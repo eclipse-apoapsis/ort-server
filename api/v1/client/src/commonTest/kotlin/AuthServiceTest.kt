@@ -21,20 +21,17 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-
-import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
-import io.ktor.serialization.kotlinx.json.json
 
 import org.eclipse.apoapsis.ortserver.client.auth.AuthService
 import org.eclipse.apoapsis.ortserver.client.auth.AuthenticationException
 import org.eclipse.apoapsis.ortserver.client.auth.TokenInfo
+import org.eclipse.apoapsis.ortserver.client.createDefaultHttpClient
 
 class AuthServiceTest : StringSpec({
     val tokenUrl = "http://localhost/token"
@@ -49,14 +46,14 @@ class AuthServiceTest : StringSpec({
             )
 
             val mockEngine = MockEngine { respondToken(expectedToken) }
-            val authService = AuthService(createHttpClientMock(mockEngine), tokenUrl, clientId)
+            val authService = AuthService(createDefaultHttpClient(engine = mockEngine), tokenUrl, clientId)
 
             authService.generateToken("testUser", "testPassword") shouldBe expectedToken
         }
 
         "fail with an exception if a token cannot be generated" {
             val mockEngine = MockEngine { invalidRespond() }
-            val authService = AuthService(createHttpClientMock(mockEngine), tokenUrl, clientId)
+            val authService = AuthService(createDefaultHttpClient(engine = mockEngine), tokenUrl, clientId)
 
             shouldThrow<AuthenticationException> {
                 authService.generateToken("testUser", "testPassword")
@@ -73,14 +70,14 @@ class AuthServiceTest : StringSpec({
             )
 
             val mockEngine = MockEngine { respondToken(expectedToken) }
-            val authService = AuthService(createHttpClientMock(mockEngine), tokenUrl, clientId)
+            val authService = AuthService(createDefaultHttpClient(engine = mockEngine), tokenUrl, clientId)
 
             authService.refreshToken("test-refresh-token") shouldBe expectedToken
         }
 
         "fail with an exception if a token cannot be refreshed" {
             val mockEngine = MockEngine { invalidRespond() }
-            val authService = AuthService(createHttpClientMock(mockEngine), tokenUrl, clientId)
+            val authService = AuthService(createDefaultHttpClient(engine = mockEngine), tokenUrl, clientId)
 
             shouldThrow<AuthenticationException> {
                 authService.refreshToken("test-refresh-token")
@@ -88,12 +85,6 @@ class AuthServiceTest : StringSpec({
         }
     }
 })
-
-private fun createHttpClientMock(mockEngine: MockEngine) = HttpClient(mockEngine) {
-    install(ContentNegotiation) {
-        json()
-    }
-}
 
 private fun MockRequestHandleScope.invalidRespond() =
     respond(
