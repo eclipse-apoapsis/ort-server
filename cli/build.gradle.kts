@@ -44,7 +44,16 @@ application {
 }
 
 dependencies {
+    implementation(projects.api.v1.apiV1Client)
+    implementation(projects.api.v1.apiV1Model)
+
     implementation(libs.clikt)
+    implementation(libs.kotlinxCoroutines)
+    implementation(libs.kotlinxSerializationJson)
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.mockk)
 }
 
 jib {
