@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.model
 
 import io.konform.validation.Invalid
 import io.konform.validation.Validation
-import io.konform.validation.jsonschema.pattern
+import io.konform.validation.constraints.pattern
 
 import java.util.EnumSet
 
