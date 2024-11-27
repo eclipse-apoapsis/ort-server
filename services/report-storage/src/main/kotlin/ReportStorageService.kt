@@ -71,6 +71,15 @@ class ReportStorageService(
             fetchReport(runId, report.filename)
         } ?: throw ReportNotFoundException(runId, "<from token>")
     }
+
+    /**
+     * Delete a report with the given [fileName] for the specified [runId].
+     * Throw a [ReportNotFoundException] if the report does not exist.
+     */
+    suspend fun deleteReport(runId: Long, fileName: String) {
+        val key = generateKey(runId, fileName)
+        if (!reportStorage.delete(key)) throw ReportNotFoundException(runId, fileName)
+    }
 }
 
 /**

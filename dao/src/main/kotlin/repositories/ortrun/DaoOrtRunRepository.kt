@@ -95,6 +95,11 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             .firstOrNull()?.mapToModel()
     }
 
+    override fun getIdByIndex(repositoryId: Long, ortRunIndex: Long): Long? = db.blockingQuery {
+        OrtRunDao.find { OrtRunsTable.repositoryId eq repositoryId and (OrtRunsTable.index eq ortRunIndex) }
+            .firstOrNull()?.id?.value
+    }
+
     override fun list(parameters: ListQueryParameters, filters: OrtRunFilters?): ListQueryResult<OrtRun> =
         db.blockingQuery {
             OrtRunDao.listQuery(parameters, OrtRunDao::mapToModel) {
@@ -170,12 +175,6 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
 
     override fun delete(id: Long): Int = db.blockingQuery {
         OrtRunsTable.deleteWhere { OrtRunsTable.id eq id }
-    }
-
-    override fun deleteByRepositoryIdAndOrtRunIndex(repositoryId: Long, ortRunIndex: Long): Int = db.blockingQuery {
-        OrtRunsTable.deleteWhere {
-            (OrtRunsTable.repositoryId eq repositoryId) and (index eq ortRunIndex)
-        }
     }
 }
 

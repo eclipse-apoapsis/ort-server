@@ -32,6 +32,7 @@ dependencies {
     api(libs.exposedCore)
 
     implementation(projects.dao)
+    implementation(projects.services.reportStorageService)
 
     runtimeOnly(libs.logback)
 

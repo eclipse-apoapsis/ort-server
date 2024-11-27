@@ -19,19 +19,34 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+
+import io.mockk.Runs
+import io.mockk.andThenJust
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
+
+import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.storage.StorageException
 
 import org.jetbrains.exposed.sql.Database
 
@@ -49,7 +64,7 @@ class OrtRunServiceTest : WordSpec() {
 
         "listOrtRuns" should {
             "return all ort runs" {
-                val service = OrtRunService(db, dbExtension.fixtures.ortRunRepository)
+                val service = createService()
                 createOrtRuns()
 
                 val results = service.listOrtRuns().data
@@ -58,7 +73,7 @@ class OrtRunServiceTest : WordSpec() {
             }
 
             "return ort runs filtered by status" {
-                val service = OrtRunService(db, dbExtension.fixtures.ortRunRepository)
+                val service = createService()
                 createOrtRuns()
 
                 val filters = OrtRunFilters(
@@ -78,7 +93,7 @@ class OrtRunServiceTest : WordSpec() {
             }
 
             "return an empty list if no ORT runs with requested statuses are found" {
-                val service = OrtRunService(db, dbExtension.fixtures.ortRunRepository)
+                val service = createService()
                 createOrtRuns()
 
                 val filters = OrtRunFilters(
@@ -94,15 +109,98 @@ class OrtRunServiceTest : WordSpec() {
                 results.totalCount shouldBe 0
             }
         }
+
+        "deleteOrtRun" should {
+            "delete an ORT run" {
+                val ortRunId = createOrtRun()
+                val jobId = createReporterJob(ortRunId)
+
+                val mockReportStorageService = mockk<ReportStorageService> {
+                    coEvery { deleteReport(any() as Long, any() as String) } just Runs
+                }
+
+                val service = createService(mockReportStorageService)
+                service.deleteOrtRun(ortRunId)
+
+                coVerify(exactly = 3) {
+                    mockReportStorageService.deleteReport(
+                        eq(ortRunId),
+                        or(eq("abc123"), or(eq("def456"), eq("ghi789")))
+                    )
+                }
+
+                fixtures.reporterRunRepository.getByJobId(jobId) shouldBe null
+                fixtures.ortRunRepository.get(ortRunId) shouldBe null
+            }
+
+            "delete an ORT run even if some reports are not found in storage" {
+                val ortRunId = createOrtRun()
+                val jobId = createReporterJob(ortRunId)
+
+                val mockReportStorageService = mockk<ReportStorageService> {
+                    coEvery {
+                        deleteReport(any() as Long, any() as String)
+                    } just Runs andThenThrows ReportNotFoundException(ortRunId, "def456") andThenJust runs
+                }
+
+                val service = createService(mockReportStorageService)
+                service.deleteOrtRun(ortRunId)
+
+                // Check if the remaining reports were deleted although one report was not found.
+                coVerify(exactly = 2) {
+                    mockReportStorageService.deleteReport(
+                        eq(ortRunId),
+                        or(eq("abc123"), eq("ghi789"))
+                    )
+                }
+
+                fixtures.reporterRunRepository.getByJobId(jobId) shouldBe null
+                fixtures.ortRunRepository.get(ortRunId) shouldBe null
+            }
+
+            "not delete an ORT run in case of technical issues of the report storage" {
+                val ortRunId = createOrtRun()
+                val jobId = createReporterJob(ortRunId)
+
+                val mockReportStorageService = mockk<ReportStorageService> {
+                    coEvery {
+                        deleteReport(any() as Long, any() as String)
+                    } just Runs andThenThrows StorageException("Simulated Exception")
+                }
+
+                val service = createService(mockReportStorageService)
+
+                shouldThrow<StorageException> {
+                    service.deleteOrtRun(ortRunId)
+                }.message shouldBe "Simulated Exception"
+
+                fixtures.reporterRunRepository.getByJobId(jobId) shouldNotBe null
+                fixtures.ortRunRepository.get(ortRunId) shouldNotBe null
+            }
+        }
+    }
+
+    private fun createService(reportStorageService: ReportStorageService = mockk()) =
+        OrtRunService(db, fixtures.ortRunRepository, fixtures.reporterJobRepository, reportStorageService)
+
+    private fun createRepository(organizationName: String): Long {
+        val organizationId = fixtures.createOrganization(organizationName).id
+        val productId = fixtures.createProduct(organizationId = organizationId).id
+        val repositoryId = fixtures.createRepository(productId = productId).id
+
+        return repositoryId
+    }
+
+    private fun createOrtRun(): Long {
+        val repositoryId = createRepository("org3")
+        val ortRunId = fixtures.createOrtRun(repositoryId).id
+
+        return ortRunId
     }
 
     private fun createOrtRuns() {
-        val organization1Id = fixtures.createOrganization("org1").id
-        val organization2Id = fixtures.createOrganization("org2").id
-        val product1Id = fixtures.createProduct(organizationId = organization1Id).id
-        val product2Id = fixtures.createProduct(organizationId = organization2Id).id
-        val repository1Id = fixtures.createRepository(productId = product1Id).id
-        val repository2Id = fixtures.createRepository(productId = product2Id).id
+        val repository1Id = createRepository("org1")
+        val repository2Id = createRepository("org2")
 
         val ortRunId1 = fixtures.createOrtRun(repository1Id).id
         val ortRunId2 = fixtures.createOrtRun(repository1Id).id
@@ -112,5 +210,23 @@ class OrtRunServiceTest : WordSpec() {
         fixtures.ortRunRepository.update(ortRunId1, OrtRunStatus.FINISHED.asPresent())
         fixtures.ortRunRepository.update(ortRunId2, OrtRunStatus.FAILED.asPresent())
         fixtures.ortRunRepository.update(ortRunId3, OrtRunStatus.ACTIVE.asPresent())
+    }
+
+    private fun createReporterJob(ortRunId: Long): Long {
+        val reporterJobId = fixtures.createReporterJob(ortRunId, ReporterJobConfiguration()).id
+        val reports = listOf(
+            Report("abc123", "https://example.com/report/abc123", Clock.System.now()),
+            Report("def456", "https://example.com/report/def456", Clock.System.now()),
+            Report("ghi789", "https://example.com/report/ghi789", Clock.System.now()),
+        )
+
+        fixtures.reporterRunRepository.create(
+            reporterJobId = reporterJobId,
+            startTime = Clock.System.now(),
+            endTime = Clock.System.now(),
+            reports = reports
+        )
+
+        return reporterJobId
     }
 }
