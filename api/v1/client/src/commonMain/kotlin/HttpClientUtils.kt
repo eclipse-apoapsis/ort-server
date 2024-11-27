@@ -20,11 +20,15 @@
 package org.eclipse.apoapsis.ortserver.client
 
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 
 import kotlinx.serialization.json.Json
@@ -46,3 +50,38 @@ fun createDefaultHttpClient(json: Json = Json.Default, engine: HttpClientEngine?
         }
     }
 }
+
+/**
+ * Create a customized HTTP client with a default configuration for the ORT server client, adding response validation
+ * and error handling by building upon [createDefaultHttpClient].
+ */
+fun createOrtHttpClient(
+    json: Json = Json.Default,
+    engine: HttpClientEngine? = null,
+    config: HttpClientConfig<*>.() -> Unit = {}
+): HttpClient =
+    createDefaultHttpClient(json, engine).config {
+        HttpResponseValidator {
+            handleResponseExceptionWithRequest { cause, request ->
+                throw OrtServerClientException(
+                    "Request to ${request.url} failed with exception: ${cause.message}",
+                    cause
+                )
+            }
+
+            validateResponse { response ->
+                if (!response.status.isSuccess()) {
+                    throw OrtServerClientException(
+                        "Request failed with status ${response.status.value}: ${response.bodyAsText()}"
+                    )
+                }
+            }
+        }
+
+        config()
+    }
+
+/**
+ * An exception thrown by the ORT server client.
+ */
+class OrtServerClientException(message: String, cause: Throwable? = null) : Exception(message, cause)
