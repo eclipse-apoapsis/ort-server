@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.11
+# syntax=docker/dockerfile:1.12
 
 # This Dockerfile is the base image for the Scanner Docker image. It contains all the tooling required to run the
 # Scanner.
