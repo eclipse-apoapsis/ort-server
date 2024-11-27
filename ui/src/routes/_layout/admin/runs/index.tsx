@@ -195,8 +195,7 @@ const columns = [
                   runIndex: row.original.index.toString(),
                 }}
               >
-                View
-                <View className='ml-1 h-4 w-4' />
+                <View className='h-4 w-4' />
               </Link>
             </Button>
           </TooltipTrigger>
