@@ -48,6 +48,12 @@ kotlin {
             }
         }
 
+        jvmMain {
+            dependencies {
+                implementation(libs.ktorClientOkHttp)
+            }
+        }
+
         jvmTest {
             dependencies {
                 implementation(libs.kotestRunnerJunit5)
