@@ -18,26 +18,23 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
-  useInfrastructureServicesServicePatchInfrastructureServiceForOrganizationIdAndName,
-} from '@/api/queries';
-import { ApiError, InfrastructureServicesService } from '@/api/requests';
+import { useInfrastructureServicesServicePostInfrastructureServiceForOrganization } from '@/api/queries';
+import { ApiError } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
-import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 import {
   Form,
@@ -52,7 +49,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  name: z.string().optional(),
+  name: z.string(),
   url: z.string().url(),
   description: z.string().optional(),
   usernameSecretRef: z.string(),
@@ -62,75 +59,52 @@ const formSchema = z.object({
 
 type FormSchema = z.infer<typeof formSchema>;
 
-const EditInfrastructureServicePage = () => {
+const CreateInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  /* Search service details from all infrastructure services of the organization
-   * TODO: Edit this to fetch the details from:
-   * GET /api/v1/organizations/{organizationId}/infrastructure-services/{serviceName}
-   * when the endpoint is implemented
-   */
-  const { data: infrastructureServices } = useSuspenseQuery({
-    queryKey: [
-      useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
-      params.orgId,
-    ],
-    queryFn: () =>
-      InfrastructureServicesService.getInfrastructureServicesByOrganizationId({
-        organizationId: Number.parseInt(params.orgId),
-        limit: 1000,
-      }),
-  });
-
-  const service = infrastructureServices?.data.find(
-    (service) => service.name === params.serviceName
-  );
-
   const { mutateAsync, isPending } =
-    useInfrastructureServicesServicePatchInfrastructureServiceForOrganizationIdAndName(
-      {
-        onSuccess(data) {
-          toast.info('Edit Infrastructure Service', {
-            description: `Infrastructure service "${data.name}" has been updated successfully.`,
-          });
-          navigate({
-            to: '/organizations/$orgId/infrastructure-services',
-            params: { orgId: params.orgId },
-          });
-        },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+    useInfrastructureServicesServicePostInfrastructureServiceForOrganization({
+      onSuccess(data) {
+        toast.info('Create Infrastructure Service', {
+          description: `New infrastructure service "${data.name}" created successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId/infrastructure-services',
+          params: { orgId: params.orgId },
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: service?.name,
-      url: service?.url,
-      description: service?.description ?? undefined,
-      usernameSecretRef: service?.usernameSecretRef,
-      passwordSecretRef: service?.passwordSecretRef,
-      credentialsTypes: service?.credentialsTypes,
+      name: '',
+      url: '',
+      description: '',
+      usernameSecretRef: '',
+      passwordSecretRef: '',
+      credentialsTypes: ['NETRC_FILE'],
     },
   });
 
   const onSubmit = (values: FormSchema) => {
     mutateAsync({
       organizationId: Number.parseInt(params.orgId),
-      serviceName: params.serviceName,
       requestBody: {
+        name: values.name,
         url: values.url,
-        description: values.description,
+        description: values.description || undefined,
         usernameSecretRef: values.usernameSecretRef,
         passwordSecretRef: values.passwordSecretRef,
         credentialsTypes: values.credentialsTypes,
@@ -138,9 +112,25 @@ const EditInfrastructureServicePage = () => {
     });
   };
 
+  /*
+   * Sources for descriptions used in the form:
+   * - https://github.com/eclipse-apoapsis/ort-server/blob/e4c5284a75cc281de11c31f1958b0e3a50dcf270/model/src/commonMain/kotlin/InfrastructureService.kt
+   * - https://github.com/eclipse-apoapsis/ort-server/blob/e4c5284a75cc281de11c31f1958b0e3a50dcf270/model/src/commonMain/kotlin/CredentialsType.kt
+   */
+
   return (
     <Card>
-      <CardHeader>Edit Infrastructure Service</CardHeader>
+      <CardHeader>
+        <CardTitle>Create Infrastructure Service</CardTitle>
+        <CardDescription>
+          An infrastructure service refers to essential services required by a
+          repository during an ORT run. These services can, for instance,
+          include source code or artifact repositories that help resolve
+          dependencies for the repository being analyzed. Defining these
+          services is crucial for setting up the build environment and ensuring
+          the necessary credentials are available for access.
+        </CardDescription>
+      </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className='space-y-4'>
@@ -150,16 +140,15 @@ const EditInfrastructureServicePage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
-                  <FormControl>
+                  <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    The name of the infrastructure service (cannot be changed).
+                    The name of the infrastructure service.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
-              disabled
             />
             <FormField
               control={form.control}
@@ -167,7 +156,7 @@ const EditInfrastructureServicePage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Url</FormLabel>
-                  <FormControl autoFocus>
+                  <FormControl>
                     <Input {...field} type='url' />
                   </FormControl>
                   <FormDescription>
@@ -277,30 +266,16 @@ const EditInfrastructureServicePage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button
-              type='button'
-              className='m-1'
-              variant='outline'
-              onClick={() =>
-                navigate({
-                  to: '/organizations/$orgId/infrastructure-services',
-                  params: { orgId: params.orgId },
-                })
-              }
-              disabled={isPending}
-            >
-              Cancel
-            </Button>
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
                   <span className='sr-only'>
-                    Editing infrastructure service...
+                    Creating infrastructure service...
                   </span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
-                'Submit'
+                'Create'
               )}
             </Button>
           </CardFooter>
@@ -311,23 +286,7 @@ const EditInfrastructureServicePage = () => {
 };
 
 export const Route = createFileRoute(
-  '/organizations/$orgId/infrastructure-services/$serviceName/edit'
+  '/organizations/$orgId/infrastructure-services/create/'
 )({
-  loader: async ({ context, params }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: [
-        useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
-        params.orgId,
-      ],
-      queryFn: () =>
-        InfrastructureServicesService.getInfrastructureServicesByOrganizationId(
-          {
-            organizationId: Number.parseInt(params.orgId),
-            limit: 1000,
-          }
-        ),
-    });
-  },
-  component: EditInfrastructureServicePage,
-  pendingComponent: LoadingIndicator,
+  component: CreateInfrastructureServicePage,
 });

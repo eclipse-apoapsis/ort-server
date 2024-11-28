@@ -143,6 +143,6 @@ const CreateProductPage = () => {
   );
 };
 
-export const Route = createFileRoute('/organizations/$orgId/create-product')({
+export const Route = createFileRoute('/organizations/$orgId/create-product/')({
   component: CreateProductPage,
 });

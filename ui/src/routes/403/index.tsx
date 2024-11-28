@@ -20,7 +20,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Lock } from 'lucide-react';
 
-export const Route = createFileRoute('/403')({
+export const Route = createFileRoute('/403/')({
   component: () => (
     <div className='flex flex-col items-center justify-center'>
       <Lock size={64} className='mt-8' />

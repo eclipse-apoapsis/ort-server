@@ -156,7 +156,7 @@ const CreateProductSecretPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/organizations/$orgId/products/$productId/secrets/create-secret'
+  '/organizations/$orgId/products/$productId/secrets/create-secret/'
 )({
   component: CreateProductSecretPage,
 });

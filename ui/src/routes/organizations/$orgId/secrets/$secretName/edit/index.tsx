@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetSecretByProductIdAndNameKey,
-  useSecretsServicePatchSecretByProductIdAndName,
+  useSecretsServiceGetSecretByOrganizationIdAndNameKey,
+  useSecretsServicePatchSecretByOrganizationIdAndName,
 } from '@/api/queries';
 import { ApiError, SecretsService } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -58,19 +58,20 @@ const editSecretFormSchema = z.object({
 
 export type EditSecretFormValues = z.infer<typeof editSecretFormSchema>;
 
-const EditProductSecretPage = () => {
+const EditOrganizationSecretPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
+  const search = Route.useSearch();
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetSecretByProductIdAndNameKey,
-      params.productId,
+      useSecretsServiceGetSecretByOrganizationIdAndNameKey,
+      params.orgId,
       params.secretName,
     ],
     queryFn: () =>
-      SecretsService.getSecretByProductIdAndName({
-        productId: Number.parseInt(params.productId),
+      SecretsService.getSecretByOrganizationIdAndName({
+        organizationId: Number.parseInt(params.orgId),
         secretName: params.secretName,
       }),
   });
@@ -85,14 +86,14 @@ const EditProductSecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } =
-    useSecretsServicePatchSecretByProductIdAndName({
+    useSecretsServicePatchSecretByOrganizationIdAndName({
       onSuccess(data) {
-        toast.info('Edit Product Secret', {
+        toast.info('Edit organization secret', {
           description: `Secret "${data.name}" updated successfully.`,
         });
         navigate({
-          to: '/organizations/$orgId/products/$productId/secrets',
-          params: { orgId: params.orgId, productId: params.productId },
+          to: search.returnTo || '/organizations/$orgId/secrets',
+          params: { orgId: params.orgId },
         });
       },
       onError(error: ApiError) {
@@ -109,7 +110,7 @@ const EditProductSecretPage = () => {
 
   const onSubmit = (values: EditSecretFormValues) => {
     editSecret({
-      productId: Number.parseInt(params.productId),
+      organizationId: Number.parseInt(params.orgId),
       secretName: secret.name,
       requestBody: {
         value: values.value,
@@ -120,7 +121,7 @@ const EditProductSecretPage = () => {
 
   return (
     <Card>
-      <CardHeader>Edit Product Secret</CardHeader>
+      <CardHeader>Edit Organization Secret</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent className='space-y-4'>
@@ -175,8 +176,8 @@ const EditProductSecretPage = () => {
               variant='outline'
               onClick={() =>
                 navigate({
-                  to: '/organizations/$orgId/products/$productId/secrets',
-                  params: { orgId: params.orgId, productId: params.productId },
+                  to: search.returnTo || '/organizations/$orgId/secrets',
+                  params: { orgId: params.orgId },
                 })
               }
               disabled={isPending}
@@ -200,23 +201,33 @@ const EditProductSecretPage = () => {
   );
 };
 
+const searchParamsSchema = z.object({
+  returnTo: z
+    .enum([
+      '/organizations/$orgId/secrets',
+      '/organizations/$orgId/infrastructure-services',
+    ])
+    .optional(),
+});
+
 export const Route = createFileRoute(
-  '/organizations/$orgId/products/$productId/secrets/$secretName/edit'
+  '/organizations/$orgId/secrets/$secretName/edit/'
 )({
+  validateSearch: searchParamsSchema,
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useSecretsServiceGetSecretByProductIdAndNameKey,
-        params.productId,
+        useSecretsServiceGetSecretByOrganizationIdAndNameKey,
+        params.orgId,
         params.secretName,
       ],
       queryFn: () =>
-        SecretsService.getSecretByProductIdAndName({
-          productId: Number.parseInt(params.productId),
+        SecretsService.getSecretByOrganizationIdAndName({
+          organizationId: Number.parseInt(params.orgId),
           secretName: params.secretName,
         }),
     });
   },
-  component: EditProductSecretPage,
+  component: EditOrganizationSecretPage,
   pendingComponent: LoadingIndicator,
 });

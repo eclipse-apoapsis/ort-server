@@ -18,17 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useOrganizationsServiceGetOrganizationByIdKey,
-  useOrganizationsServicePatchOrganizationById,
-} from '@/api/queries';
-import { ApiError, OrganizationsService } from '@/api/requests';
+import { useSecretsServicePostSecretForOrganization } from '@/api/queries';
+import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,29 +46,22 @@ import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string(),
+  value: z.string(),
   description: z.string().optional(),
 });
 
-const EditOrganizationPage = () => {
-  const params = Route.useParams();
+const CreateOrganizationSecretPage = () => {
   const navigate = useNavigate();
+  const params = Route.useParams();
 
-  const { data: organization } = useSuspenseQuery({
-    queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-    queryFn: async () =>
-      await OrganizationsService.getOrganizationById({
-        organizationId: Number.parseInt(params.orgId),
-      }),
-  });
-
-  const { mutateAsync, isPending } =
-    useOrganizationsServicePatchOrganizationById({
+  const { mutateAsync, isPending } = useSecretsServicePostSecretForOrganization(
+    {
       onSuccess(data) {
-        toast.info('Edit Organization', {
-          description: `Organization "${data.name}" updated successfully.`,
+        toast.info('Create Organization Secret', {
+          description: `New organization secret "${data.name}" created successfully.`,
         });
         navigate({
-          to: '/organizations/$orgId',
+          to: '/organizations/$orgId/secrets',
           params: { orgId: params.orgId },
         });
       },
@@ -86,21 +75,19 @@ const EditOrganizationPage = () => {
           },
         });
       },
-    });
+    }
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: organization.name,
-      description: organization.description ?? undefined,
-    },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      organizationId: organization.id,
+      organizationId: Number.parseInt(params.orgId),
       requestBody: {
         name: values.name,
+        value: values.value,
         description: values.description,
       },
     });
@@ -108,7 +95,7 @@ const EditOrganizationPage = () => {
 
   return (
     <Card>
-      <CardHeader>Edit Organization</CardHeader>
+      <CardHeader>Create Organization Secret</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent className='space-y-4'>
@@ -119,6 +106,19 @@ const EditOrganizationPage = () => {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl autoFocus>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='value'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Value</FormLabel>
+                  <FormControl>
                     <Input {...field} />
                   </FormControl>
                   <FormMessage />
@@ -140,23 +140,16 @@ const EditOrganizationPage = () => {
             />
           </CardContent>
           <CardFooter>
-            <Button
-              type='button'
-              className='m-1'
-              variant='outline'
-              onClick={() => navigate({ to: '/organizations/' + params.orgId })}
-              disabled={isPending}
-            >
-              Cancel
-            </Button>
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
-                  <span className='sr-only'>Editing organization...</span>
+                  <span className='sr-only'>
+                    Creating organization secret...
+                  </span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
-                'Submit'
+                'Create'
               )}
             </Button>
           </CardFooter>
@@ -166,15 +159,8 @@ const EditOrganizationPage = () => {
   );
 };
 
-export const Route = createFileRoute('/organizations/$orgId/edit')({
-  loader: async ({ context, params }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
-      queryFn: () =>
-        OrganizationsService.getOrganizationById({
-          organizationId: Number.parseInt(params.orgId),
-        }),
-    });
-  },
-  component: EditOrganizationPage,
+export const Route = createFileRoute(
+  '/organizations/$orgId/secrets/create-secret/'
+)({
+  component: CreateOrganizationSecretPage,
 });

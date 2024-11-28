@@ -18,13 +18,17 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useRepositoriesServiceCreateRepository } from '@/api/queries';
-import { $RepositoryType, ApiError } from '@/api/requests';
+import {
+  useProductsServiceGetProductByIdKey,
+  useProductsServicePatchProductById,
+} from '@/api/queries';
+import { ApiError, ProductsService } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,7 +36,6 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   Form,
@@ -43,36 +46,33 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  url: z.string(),
-  type: z.enum($RepositoryType.enum),
+  name: z.string(),
+  description: z.string().optional(),
 });
 
-const CreateRepositoryPage = () => {
-  const navigate = useNavigate();
+const EditProductPage = () => {
   const params = Route.useParams();
+  const navigate = useNavigate();
 
-  const { mutateAsync, isPending } = useRepositoriesServiceCreateRepository({
+  const { data: product } = useSuspenseQuery({
+    queryKey: [useProductsServiceGetProductByIdKey, params.productId],
+    queryFn: async () =>
+      await ProductsService.getProductById({
+        productId: Number.parseInt(params.productId),
+      }),
+  });
+
+  const { mutateAsync, isPending } = useProductsServicePatchProductById({
     onSuccess(data) {
-      toast.info('Add Repository', {
-        description: `Repository ${data.url} added successfully.`,
+      toast.info('Edit Product', {
+        description: `Product "${data.name}" updated successfully.`,
       });
       navigate({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-        params: {
-          orgId: params.orgId,
-          productId: params.productId,
-          repoId: data.id.toString(),
-        },
+        to: '/organizations/$orgId/products/$productId',
+        params: { orgId: params.orgId, productId: params.productId },
       });
     },
     onError(error: ApiError) {
@@ -90,34 +90,33 @@ const CreateRepositoryPage = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: 'GIT',
+      name: product.name,
+      description: product.description || '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      productId: Number.parseInt(params.productId),
+      productId: product.id,
       requestBody: {
-        url: values.url,
-        type: values.type,
+        name: values.name,
+        description: values.description,
       },
     });
   }
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Add repository</CardTitle>
-      </CardHeader>
+      <CardHeader>Edit Product</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent className='space-y-4'>
             <FormField
               control={form.control}
-              name='url'
+              name='name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>URL</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
@@ -127,41 +126,44 @@ const CreateRepositoryPage = () => {
             />
             <FormField
               control={form.control}
-              name='type'
+              name='description'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select a type' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values($RepositoryType.enum).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='(optional)' />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </CardContent>
           <CardFooter>
+            <Button
+              type='button'
+              className='m-1'
+              variant='outline'
+              onClick={() =>
+                navigate({
+                  to:
+                    '/organizations/' +
+                    params.orgId +
+                    '/products/' +
+                    params.productId,
+                })
+              }
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
-                  <span className='sr-only'>Creating repository...</span>
+                  <span className='sr-only'>Editing product...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
-                'Create'
+                'Submit'
               )}
             </Button>
           </CardFooter>
@@ -172,7 +174,16 @@ const CreateRepositoryPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/organizations/$orgId/products/$productId/create-repository'
+  '/organizations/$orgId/products/$productId/edit/'
 )({
-  component: CreateRepositoryPage,
+  loader: async ({ context, params }) => {
+    await context.queryClient.ensureQueryData({
+      queryKey: [useProductsServiceGetProductByIdKey, params.productId],
+      queryFn: () =>
+        ProductsService.getProductById({
+          productId: Number.parseInt(params.productId),
+        }),
+    });
+  },
+  component: EditProductPage,
 });

@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetSecretByRepositoryIdAndNameKey,
-  useSecretsServicePatchSecretByRepositoryIdAndName,
+  useSecretsServiceGetSecretByProductIdAndNameKey,
+  useSecretsServicePatchSecretByProductIdAndName,
 } from '@/api/queries';
 import { ApiError, SecretsService } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -58,19 +58,19 @@ const editSecretFormSchema = z.object({
 
 export type EditSecretFormValues = z.infer<typeof editSecretFormSchema>;
 
-const EditRepositorySecretPage = () => {
+const EditProductSecretPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetSecretByRepositoryIdAndNameKey,
-      params.repoId,
+      useSecretsServiceGetSecretByProductIdAndNameKey,
+      params.productId,
       params.secretName,
     ],
     queryFn: () =>
-      SecretsService.getSecretByRepositoryIdAndName({
-        repositoryId: Number.parseInt(params.repoId),
+      SecretsService.getSecretByProductIdAndName({
+        productId: Number.parseInt(params.productId),
         secretName: params.secretName,
       }),
   });
@@ -85,18 +85,14 @@ const EditRepositorySecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } =
-    useSecretsServicePatchSecretByRepositoryIdAndName({
+    useSecretsServicePatchSecretByProductIdAndName({
       onSuccess(data) {
-        toast.info('Edit Repository Secret', {
+        toast.info('Edit Product Secret', {
           description: `Secret "${data.name}" updated successfully.`,
         });
         navigate({
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
-          params: {
-            orgId: params.orgId,
-            productId: params.productId,
-            repoId: params.repoId,
-          },
+          to: '/organizations/$orgId/products/$productId/secrets',
+          params: { orgId: params.orgId, productId: params.productId },
         });
       },
       onError(error: ApiError) {
@@ -113,7 +109,7 @@ const EditRepositorySecretPage = () => {
 
   const onSubmit = (values: EditSecretFormValues) => {
     editSecret({
-      repositoryId: Number.parseInt(params.repoId),
+      productId: Number.parseInt(params.productId),
       secretName: secret.name,
       requestBody: {
         value: values.value,
@@ -124,7 +120,7 @@ const EditRepositorySecretPage = () => {
 
   return (
     <Card>
-      <CardHeader>Edit Repository Secret</CardHeader>
+      <CardHeader>Edit Product Secret</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent className='space-y-4'>
@@ -179,12 +175,8 @@ const EditRepositorySecretPage = () => {
               variant='outline'
               onClick={() =>
                 navigate({
-                  to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
-                  params: {
-                    orgId: params.orgId,
-                    productId: params.productId,
-                    repoId: params.repoId,
-                  },
+                  to: '/organizations/$orgId/products/$productId/secrets',
+                  params: { orgId: params.orgId, productId: params.productId },
                 })
               }
               disabled={isPending}
@@ -209,22 +201,22 @@ const EditRepositorySecretPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/$secretName/edit'
+  '/organizations/$orgId/products/$productId/secrets/$secretName/edit/'
 )({
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useSecretsServiceGetSecretByRepositoryIdAndNameKey,
-        params.repoId,
+        useSecretsServiceGetSecretByProductIdAndNameKey,
+        params.productId,
         params.secretName,
       ],
       queryFn: () =>
-        SecretsService.getSecretByRepositoryIdAndName({
-          repositoryId: Number.parseInt(params.repoId),
+        SecretsService.getSecretByProductIdAndName({
+          productId: Number.parseInt(params.productId),
           secretName: params.secretName,
         }),
     });
   },
-  component: EditRepositorySecretPage,
+  component: EditProductSecretPage,
   pendingComponent: LoadingIndicator,
 });

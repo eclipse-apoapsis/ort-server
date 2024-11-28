@@ -23,8 +23,8 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useSecretsServicePostSecretForRepository } from '@/api/queries';
-import { ApiError } from '@/api/requests';
+import { useRepositoriesServiceCreateRepository } from '@/api/queries';
+import { $RepositoryType, ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +32,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 import {
   Form,
@@ -42,29 +43,35 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  name: z.string(),
-  value: z.string(),
-  description: z.string().optional(),
+  url: z.string(),
+  type: z.enum($RepositoryType.enum),
 });
 
-const CreateRepositorySecretPage = () => {
+const CreateRepositoryPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { mutateAsync, isPending } = useSecretsServicePostSecretForRepository({
+  const { mutateAsync, isPending } = useRepositoriesServiceCreateRepository({
     onSuccess(data) {
-      toast.info('Create Repository Secret', {
-        description: `New repository secret "${data.name}" created successfully.`,
+      toast.info('Add Repository', {
+        description: `Repository ${data.url} added successfully.`,
       });
       navigate({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
         params: {
           orgId: params.orgId,
           productId: params.productId,
-          repoId: params.repoId,
+          repoId: data.id.toString(),
         },
       });
     },
@@ -82,31 +89,35 @@ const CreateRepositorySecretPage = () => {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      type: 'GIT',
+    },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      repositoryId: Number.parseInt(params.repoId),
+      productId: Number.parseInt(params.productId),
       requestBody: {
-        name: values.name,
-        value: values.value,
-        description: values.description,
+        url: values.url,
+        type: values.type,
       },
     });
   }
 
   return (
     <Card>
-      <CardHeader>Create Repository Secret</CardHeader>
+      <CardHeader>
+        <CardTitle>Add repository</CardTitle>
+      </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent className='space-y-4'>
             <FormField
               control={form.control}
-              name='name'
+              name='url'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>URL</FormLabel>
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
@@ -116,26 +127,27 @@ const CreateRepositorySecretPage = () => {
             />
             <FormField
               control={form.control}
-              name='value'
+              name='type'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Value</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='description'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder='(optional)' />
-                  </FormControl>
+                  <FormLabel>Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select a type' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values($RepositoryType.enum).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -145,7 +157,7 @@ const CreateRepositorySecretPage = () => {
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
-                  <span className='sr-only'>Creating repository secret...</span>
+                  <span className='sr-only'>Creating repository...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
@@ -160,7 +172,7 @@ const CreateRepositorySecretPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/create-secret'
+  '/organizations/$orgId/products/$productId/create-repository/'
 )({
-  component: CreateRepositorySecretPage,
+  component: CreateRepositoryPage,
 });

@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetSecretByOrganizationIdAndNameKey,
-  useSecretsServicePatchSecretByOrganizationIdAndName,
+  useSecretsServiceGetSecretByRepositoryIdAndNameKey,
+  useSecretsServicePatchSecretByRepositoryIdAndName,
 } from '@/api/queries';
 import { ApiError, SecretsService } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -58,20 +58,19 @@ const editSecretFormSchema = z.object({
 
 export type EditSecretFormValues = z.infer<typeof editSecretFormSchema>;
 
-const EditOrganizationSecretPage = () => {
+const EditRepositorySecretPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
-  const search = Route.useSearch();
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetSecretByOrganizationIdAndNameKey,
-      params.orgId,
+      useSecretsServiceGetSecretByRepositoryIdAndNameKey,
+      params.repoId,
       params.secretName,
     ],
     queryFn: () =>
-      SecretsService.getSecretByOrganizationIdAndName({
-        organizationId: Number.parseInt(params.orgId),
+      SecretsService.getSecretByRepositoryIdAndName({
+        repositoryId: Number.parseInt(params.repoId),
         secretName: params.secretName,
       }),
   });
@@ -86,14 +85,18 @@ const EditOrganizationSecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } =
-    useSecretsServicePatchSecretByOrganizationIdAndName({
+    useSecretsServicePatchSecretByRepositoryIdAndName({
       onSuccess(data) {
-        toast.info('Edit organization secret', {
+        toast.info('Edit Repository Secret', {
           description: `Secret "${data.name}" updated successfully.`,
         });
         navigate({
-          to: search.returnTo || '/organizations/$orgId/secrets',
-          params: { orgId: params.orgId },
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
+          params: {
+            orgId: params.orgId,
+            productId: params.productId,
+            repoId: params.repoId,
+          },
         });
       },
       onError(error: ApiError) {
@@ -110,7 +113,7 @@ const EditOrganizationSecretPage = () => {
 
   const onSubmit = (values: EditSecretFormValues) => {
     editSecret({
-      organizationId: Number.parseInt(params.orgId),
+      repositoryId: Number.parseInt(params.repoId),
       secretName: secret.name,
       requestBody: {
         value: values.value,
@@ -121,7 +124,7 @@ const EditOrganizationSecretPage = () => {
 
   return (
     <Card>
-      <CardHeader>Edit Organization Secret</CardHeader>
+      <CardHeader>Edit Repository Secret</CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent className='space-y-4'>
@@ -176,8 +179,12 @@ const EditOrganizationSecretPage = () => {
               variant='outline'
               onClick={() =>
                 navigate({
-                  to: search.returnTo || '/organizations/$orgId/secrets',
-                  params: { orgId: params.orgId },
+                  to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
+                  params: {
+                    orgId: params.orgId,
+                    productId: params.productId,
+                    repoId: params.repoId,
+                  },
                 })
               }
               disabled={isPending}
@@ -201,33 +208,23 @@ const EditOrganizationSecretPage = () => {
   );
 };
 
-const searchParamsSchema = z.object({
-  returnTo: z
-    .enum([
-      '/organizations/$orgId/secrets',
-      '/organizations/$orgId/infrastructure-services',
-    ])
-    .optional(),
-});
-
 export const Route = createFileRoute(
-  '/organizations/$orgId/secrets/$secretName/edit'
+  '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/$secretName/edit/'
 )({
-  validateSearch: searchParamsSchema,
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useSecretsServiceGetSecretByOrganizationIdAndNameKey,
-        params.orgId,
+        useSecretsServiceGetSecretByRepositoryIdAndNameKey,
+        params.repoId,
         params.secretName,
       ],
       queryFn: () =>
-        SecretsService.getSecretByOrganizationIdAndName({
-          organizationId: Number.parseInt(params.orgId),
+        SecretsService.getSecretByRepositoryIdAndName({
+          repositoryId: Number.parseInt(params.repoId),
           secretName: params.secretName,
         }),
     });
   },
-  component: EditOrganizationSecretPage,
+  component: EditRepositorySecretPage,
   pendingComponent: LoadingIndicator,
 });
