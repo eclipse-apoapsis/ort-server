@@ -64,7 +64,7 @@ export const Header = () => {
   const matches = useRouterState({ select: (state) => state.matches });
 
   // The breadcrumbs are set in the routes, for example the organization name is set in the route
-  // file `_layout.organizations.$orgId.route.tsx`, which is activated when the route matches any
+  // file `organizations.$orgId.route.tsx`, which is activated when the route matches any
   // route that starts with `/organizations/$orgId`. The breadcrumbs are stored in the router
   // context, and it is not reset when the user leaves the organization route. If does change when
   // the user navigates to a different organization.
@@ -72,25 +72,24 @@ export const Header = () => {
   // This find checks if the organization route is currently active, so we can display the
   // organization name in the header breadcrumb only when the user is in the organization route.
   const organizationMatch = matches.find(
-    (match) => match.routeId === '/_layout/organizations/$orgId'
+    (match) => match.routeId === '/organizations/$orgId'
   );
 
   // The same breadcrumb logic applies to the other breadcrumb levels.
   const productMatch = matches.find(
-    (match) =>
-      match.routeId === '/_layout/organizations/$orgId/products/$productId'
+    (match) => match.routeId === '/organizations/$orgId/products/$productId'
   );
 
   const repoMatch = matches.find(
     (match) =>
       match.routeId ===
-      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId'
+      '/organizations/$orgId/products/$productId/repositories/$repoId'
   );
 
   const runMatch = matches.find(
     (match) =>
       match.routeId ===
-      '/_layout/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+      '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
   );
 
   return (
