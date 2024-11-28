@@ -93,7 +93,19 @@ const columns = [
     id: 'runs',
     header: 'Runs',
     size: 60,
-    cell: ({ row }) => <TotalRuns repoId={row.original.id} />,
+    cell: ({ row }) => (
+      <Link
+        to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
+        params={{
+          orgId: row.original.organizationId.toString(),
+          productId: row.original.productId.toString(),
+          repoId: row.original.id.toString(),
+        }}
+        className='font-semibold text-blue-400 hover:underline'
+      >
+        <TotalRuns repoId={row.original.id} />
+      </Link>
+    ),
   }),
   columnHelper.display({
     id: 'runStatus',
