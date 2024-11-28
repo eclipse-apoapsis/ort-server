@@ -156,7 +156,14 @@ export const Header = () => {
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link to={repoMatch.pathname}>
+                    <Link
+                      to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
+                      params={{
+                        orgId: repoMatch.params.orgId,
+                        productId: repoMatch.params.productId,
+                        repoId: repoMatch.params.repoId,
+                      }}
+                    >
                       {repoMatch.context.breadcrumbs.repo}
                     </Link>
                   </BreadcrumbLink>
