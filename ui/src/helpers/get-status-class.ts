@@ -18,7 +18,7 @@
  */
 
 import { JobStatus, OrtRunStatus, Severity } from '@/api/requests';
-import { PackageManager } from '@/routes/_layout/organizations/$orgId/products/$productId/repositories/$repoId/-types';
+import { PackageManager } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-types';
 
 // Combine statuses reported either by ORT Runs or the individual jobs within them.
 export type Status = JobStatus | OrtRunStatus | undefined;
