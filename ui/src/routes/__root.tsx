@@ -22,6 +22,7 @@ import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import React, { Suspense } from 'react';
 
 import { RouterContext } from '@/app';
+import { Header } from '@/components/header';
 
 // Don't use Router devtools in production.
 const TanStackRouterDevtools = import.meta.env.PROD
@@ -36,7 +37,12 @@ const RootComponent = () => {
   return (
     <>
       <ReactQueryDevtools initialIsOpen={false} />
-      <Outlet />
+      <div className='flex min-h-screen w-full flex-col'>
+        <Header />
+        <main className='flex h-full flex-col gap-4 p-4 md:w-full md:items-center md:gap-8 md:p-8'>
+          <Outlet />
+        </main>
+      </div>
       <Suspense>
         <TanStackRouterDevtools />
       </Suspense>
