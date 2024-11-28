@@ -19,20 +19,16 @@
 
 package org.eclipse.apoapsis.ortserver.cli
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
+import com.github.ajalt.clikt.command.main
 
 import kotlin.system.exitProcess
 
 const val COMMAND_NAME = "ort-server"
 
-fun main(args: Array<String>) {
+suspend fun main(args: Array<String>) {
     OrtServerMain().main(args)
     exitProcess(0)
 }
 
-class OrtServerMain : CliktCommand(COMMAND_NAME) {
-    override fun run() {
-        echo("Hello, ORT Server!")
-    }
-}
+class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME)
