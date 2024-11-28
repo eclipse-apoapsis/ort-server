@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -25,9 +26,16 @@ import {
 } from '@tanstack/react-table';
 import { Repeat, View } from 'lucide-react';
 
-import { useRepositoriesServiceGetOrtRunsByRepositoryId } from '@/api/queries';
-import { OrtRunSummary } from '@/api/requests';
+import {
+  useRepositoriesServiceDeleteOrtRunByIndex,
+  useRepositoriesServiceGetOrtRunsByRepositoryId,
+  useRepositoriesServiceGetOrtRunsByRepositoryIdKey,
+} from '@/api/queries';
+import { useRepositoriesServiceGetRepositoryByIdSuspense } from '@/api/queries/suspense';
+import { ApiError, OrtRunSummary } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { DeleteDialog } from '@/components/delete-dialog';
+import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
@@ -120,52 +128,104 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => <div>Actions</div>,
-    cell: ({ row }) => (
-      <div className='flex gap-2'>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant='outline' asChild size='sm'>
-              <Link
-                to={
-                  '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-                }
-                params={{
-                  orgId: row.original.organizationId.toString(),
-                  productId: row.original.productId.toString(),
-                  repoId: row.original.repositoryId.toString(),
-                  runIndex: row.original.index.toString(),
-                }}
-              >
-                <View className='h-4 w-4' />
-              </Link>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>View the details of this run</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant='outline' asChild size='sm'>
-              <Link
-                to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-                params={{
-                  orgId: row.original.organizationId.toString(),
-                  productId: row.original.productId.toString(),
-                  repoId: row.original.repositoryId.toString(),
-                }}
-                search={{
-                  rerunIndex: row.original.index,
-                }}
-              >
-                <Repeat className='h-4 w-4' />
-              </Link>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Create a new ORT run based on this run
-          </TooltipContent>
-        </Tooltip>
-      </div>
-    ),
+    cell: function Row({ row }) {
+      const queryClient = useQueryClient();
+
+      const repository = useRepositoriesServiceGetRepositoryByIdSuspense({
+        repositoryId: row.original.repositoryId,
+      });
+
+      const { mutateAsync: deleteRun } =
+        useRepositoriesServiceDeleteOrtRunByIndex({
+          onSuccess() {
+            toast.info('Delete ORT Run', {
+              description: `ORT Run "${row.original.index}" deleted successfully.`,
+            });
+            queryClient.invalidateQueries({
+              queryKey: [
+                useRepositoriesServiceGetOrtRunsByRepositoryIdKey,
+                row.original.repositoryId,
+              ],
+            });
+          },
+          onError(error: ApiError) {
+            toast.error(error.message, {
+              description: <ToastError error={error} />,
+              duration: Infinity,
+              cancel: {
+                label: 'Dismiss',
+                onClick: () => {},
+              },
+            });
+          },
+        });
+
+      async function handleDelete() {
+        await deleteRun({
+          ortRunIndex: row.original.index,
+          repositoryId: row.original.repositoryId,
+        });
+      }
+
+      return (
+        <div className='flex gap-2'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant='outline' asChild size='sm'>
+                <Link
+                  to={
+                    '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+                  }
+                  params={{
+                    orgId: row.original.organizationId.toString(),
+                    productId: row.original.productId.toString(),
+                    repoId: row.original.repositoryId.toString(),
+                    runIndex: row.original.index.toString(),
+                  }}
+                >
+                  <View className='h-4 w-4' />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>View the details of this run</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant='outline' asChild size='sm'>
+                <Link
+                  to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                  params={{
+                    orgId: row.original.organizationId.toString(),
+                    productId: row.original.productId.toString(),
+                    repoId: row.original.repositoryId.toString(),
+                  }}
+                  search={{
+                    rerunIndex: row.original.index,
+                  }}
+                >
+                  <Repeat className='h-4 w-4' />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Create a new ORT run based on this run
+            </TooltipContent>
+          </Tooltip>
+          <DeleteDialog
+            description={
+              <>
+                Please confirm the deletion of a run with index{' '}
+                <span className='font-bold'>{row.original.index}</span> from
+                repository{' '}
+                <span className='font-bold'>{repository.data.url}</span>.
+              </>
+            }
+            onDelete={handleDelete}
+            trigger={<DeleteIconButton className='text-red-500' />}
+          />
+        </div>
+      );
+    },
   }),
 ];
 
