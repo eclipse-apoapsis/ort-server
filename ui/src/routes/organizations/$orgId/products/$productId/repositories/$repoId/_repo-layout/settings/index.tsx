@@ -252,7 +252,7 @@ const RepositorySettingsPage = () => {
 };
 
 export const Route = createFileRoute(
-  '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/settings'
+  '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/settings/'
 )({
   loader: async ({ context, params }) => {
     const repositoryId = Number.parseInt(params.repoId);

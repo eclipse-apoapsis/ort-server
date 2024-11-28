@@ -66,6 +66,6 @@ const Authorization = () => {
   );
 };
 
-export const Route = createFileRoute('/admin/users/authorization')({
+export const Route = createFileRoute('/admin/users/authorization/')({
   component: Authorization,
 });

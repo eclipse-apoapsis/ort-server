@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { CreateRunFormValues } from '../_repo-layout/-create-run-utils';
+import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
 import { PackageManagerField } from './package-manager-field';
 
 type AnalyzerFieldsProps = {

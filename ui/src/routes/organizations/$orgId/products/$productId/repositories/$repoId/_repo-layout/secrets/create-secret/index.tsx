@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useAdminServicePostUsers } from '@/api/queries';
+import { useSecretsServicePostSecretForRepository } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -32,9 +32,7 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -47,24 +45,27 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  username: z.string(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  email: z.string().email().optional(),
-  password: z.string().optional(),
-  temporary: z.boolean(),
+  name: z.string(),
+  value: z.string(),
+  description: z.string().optional(),
 });
 
-const CreateUser = () => {
+const CreateRepositorySecretPage = () => {
   const navigate = useNavigate();
+  const params = Route.useParams();
 
-  const { mutateAsync, isPending } = useAdminServicePostUsers({
-    onSuccess() {
-      toast.info('Add User', {
-        description: `User "${form.getValues().username}" added successfully to the server.`,
+  const { mutateAsync, isPending } = useSecretsServicePostSecretForRepository({
+    onSuccess(data) {
+      toast.info('Create Repository Secret', {
+        description: `New repository secret "${data.name}" created successfully.`,
       });
       navigate({
-        to: '/admin/users',
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: params.repoId,
+        },
       });
     },
     onError(error: ApiError) {
@@ -81,40 +82,33 @@ const CreateUser = () => {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      temporary: true,
-    },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
+      repositoryId: Number.parseInt(params.repoId),
       requestBody: {
-        username: values.username,
-        firstName: values.firstName,
-        lastName: values.lastName,
-        email: values.email,
-        password: values.password,
-        temporary: values.temporary,
+        name: values.name,
+        value: values.value,
+        description: values.description,
       },
     });
   }
 
   return (
-    <Card className='col-span-2 w-full'>
-      <CardHeader>
-        <CardTitle className='text-sm'>Create User</CardTitle>
-      </CardHeader>
+    <Card>
+      <CardHeader>Create Repository Secret</CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent className='space-y-4'>
             <FormField
               control={form.control}
-              name='username'
+              name='name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input {...field} autoFocus />
+                  <FormLabel>Name</FormLabel>
+                  <FormControl autoFocus>
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -122,76 +116,27 @@ const CreateUser = () => {
             />
             <FormField
               control={form.control}
-              name='firstName'
+              name='value'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First name</FormLabel>
+                  <FormLabel>Value</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='description'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='lastName'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder='(optional)' />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='email'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email address</FormLabel>
-                  <FormControl>
-                    <Input type='email' {...field} placeholder='(optional)' />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='password'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type='password'
-                      {...field}
-                      placeholder='(optional)'
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='temporary'
-              render={({ field }) => (
-                <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4'>
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className='space-y-1 leading-none'>
-                    <FormLabel>
-                      Password change required on first login
-                    </FormLabel>
-                  </div>
                 </FormItem>
               )}
             />
@@ -200,7 +145,7 @@ const CreateUser = () => {
             <Button type='submit' disabled={isPending}>
               {isPending ? (
                 <>
-                  <span className='sr-only'>Creating user...</span>
+                  <span className='sr-only'>Creating repository secret...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
@@ -214,6 +159,8 @@ const CreateUser = () => {
   );
 };
 
-export const Route = createFileRoute('/admin/users/create-user')({
-  component: CreateUser,
+export const Route = createFileRoute(
+  '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/create-secret/'
+)({
+  component: CreateRepositorySecretPage,
 });

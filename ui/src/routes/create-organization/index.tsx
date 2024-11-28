@@ -138,6 +138,6 @@ const CreateOrganizationPage = () => {
   );
 };
 
-export const Route = createFileRoute('/create-organization')({
+export const Route = createFileRoute('/create-organization/')({
   component: CreateOrganizationPage,
 });
