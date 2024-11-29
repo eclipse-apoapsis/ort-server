@@ -27,7 +27,6 @@ import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
@@ -79,7 +78,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
 
         OrtRunDao.new {
             this.index = nextIndex
-            this.repository = RepositoryDao[repositoryId]
+            this.repositoryId = repositoryId
             this.revision = revision
             this.path = path
             this.createdAt = Clock.System.now().toDatabasePrecision()

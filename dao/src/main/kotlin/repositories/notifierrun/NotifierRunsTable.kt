@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.notifierrun
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.NotifierJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.NotifierJobsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -39,6 +40,7 @@ object NotifierRunsTable : LongIdTable("notifier_runs") {
 class NotifierRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<NotifierRunDao>(NotifierRunsTable)
 
+    var notifierJobId by NotifierRunsTable.notifierJobId.transformToEntityId()
     var notifierJob by NotifierJobDao referencedOn NotifierRunsTable.notifierJobId
     var startTime by NotifierRunsTable.startTime.transformToDatabasePrecision()
     var endTime by NotifierRunsTable.endTime.transformToDatabasePrecision()

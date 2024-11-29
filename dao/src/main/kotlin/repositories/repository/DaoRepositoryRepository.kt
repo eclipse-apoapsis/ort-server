@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repository
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
@@ -38,7 +37,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         RepositoryDao.new {
             this.type = type.name
             this.url = url
-            product = ProductDao[productId]
+            this.productId = productId
         }.mapToModel()
     }
 

@@ -35,6 +35,8 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
 import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.LongEntity
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.AbstractQuery
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Op
@@ -51,6 +53,15 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
+
+/**
+ * Transform the given column to an [EntityID] when creating a DAO object. This can be used for foreign key columns to
+ * avoid the need to manually create an [EntityID] object.
+ */
+context(EntityClass<*, *>)
+@Suppress("DEPRECATION", "UNCHECKED_CAST") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
+fun <T : EntityID<Long>?> Column<T>.transformToEntityId() =
+    transform({ it?.let { EntityID(it, table as IdTable<Long>) } as T }, { it?.value })
 
 /**
  * Transform the given column [to database precision][toDatabasePrecision] when creating a DAO object.

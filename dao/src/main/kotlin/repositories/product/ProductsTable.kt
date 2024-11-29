@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.organization.Organization
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.Product
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -41,6 +42,7 @@ object ProductsTable : SortableTable("products") {
 class ProductDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<ProductDao>(ProductsTable)
 
+    var organizationId by ProductsTable.organizationId.transformToEntityId()
     var organization by OrganizationDao referencedOn ProductsTable.organizationId
 
     var name by ProductsTable.name

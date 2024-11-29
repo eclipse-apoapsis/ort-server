@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTa
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.Secret
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -45,8 +46,11 @@ object SecretsTable : SortableTable("secrets") {
 class SecretDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<SecretDao>(SecretsTable)
 
+    var organizationId by SecretsTable.organizationId.transformToEntityId()
     var organization by OrganizationDao optionalReferencedOn SecretsTable.organizationId
+    var productId by SecretsTable.productId.transformToEntityId()
     var product by ProductDao optionalReferencedOn SecretsTable.productId
+    var repositoryId by SecretsTable.repositoryId.transformToEntityId()
     var repository by RepositoryDao optionalReferencedOn SecretsTable.repositoryId
 
     var path by SecretsTable.path

@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -42,6 +43,7 @@ object EvaluatorRunsTable : LongIdTable("evaluator_runs") {
 class EvaluatorRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<EvaluatorRunDao>(EvaluatorRunsTable)
 
+    var evaluatorJobId by EvaluatorRunsTable.evaluatorJobId.transformToEntityId()
     var evaluatorJob by EvaluatorJobDao referencedOn EvaluatorRunsTable.evaluatorJobId
     var startTime by EvaluatorRunsTable.startTime.transformToDatabasePrecision()
     var endTime by EvaluatorRunsTable.endTime.transformToDatabasePrecision()

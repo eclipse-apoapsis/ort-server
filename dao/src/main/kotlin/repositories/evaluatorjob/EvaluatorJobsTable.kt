@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -50,6 +51,7 @@ object EvaluatorJobsTable : LongIdTable("evaluator_jobs") {
 class EvaluatorJobDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<EvaluatorJobDao>(EvaluatorJobsTable)
 
+    var ortRunId by EvaluatorJobsTable.ortRunId.transformToEntityId()
     var ortRun by OrtRunDao referencedOn EvaluatorJobsTable.ortRunId
 
     var createdAt by EvaluatorJobsTable.createdAt.transformToDatabasePrecision()

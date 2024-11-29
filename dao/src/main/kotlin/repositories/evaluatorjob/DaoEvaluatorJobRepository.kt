@@ -24,7 +24,6 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -37,7 +36,7 @@ import org.jetbrains.exposed.sql.and
 class DaoEvaluatorJobRepository(private val db: Database) : EvaluatorJobRepository {
     override fun create(ortRunId: Long, configuration: EvaluatorJobConfiguration): EvaluatorJob = db.blockingQuery {
         EvaluatorJobDao.new {
-            ortRun = OrtRunDao[ortRunId]
+            this.ortRunId = ortRunId
             createdAt = Clock.System.now()
             this.configuration = configuration
             status = JobStatus.CREATED
