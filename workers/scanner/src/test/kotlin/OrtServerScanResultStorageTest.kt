@@ -28,8 +28,6 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import java.time.Instant
-
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
@@ -37,40 +35,14 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.SCANNER_VERSION
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createArtifactProvenance
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createIssue
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createRepositoryProvenance
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createScanResult
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.scannerMatcher
 
-import org.ossreviewtoolkit.model.ArtifactProvenance
-import org.ossreviewtoolkit.model.CopyrightFinding
-import org.ossreviewtoolkit.model.Hash
-import org.ossreviewtoolkit.model.HashAlgorithm
-import org.ossreviewtoolkit.model.Issue
-import org.ossreviewtoolkit.model.KnownProvenance
-import org.ossreviewtoolkit.model.LicenseFinding
-import org.ossreviewtoolkit.model.RemoteArtifact
-import org.ossreviewtoolkit.model.RepositoryProvenance
-import org.ossreviewtoolkit.model.ScanResult
-import org.ossreviewtoolkit.model.ScanSummary
-import org.ossreviewtoolkit.model.ScannerDetails
-import org.ossreviewtoolkit.model.Severity
-import org.ossreviewtoolkit.model.Snippet
-import org.ossreviewtoolkit.model.SnippetFinding
-import org.ossreviewtoolkit.model.TextLocation
-import org.ossreviewtoolkit.model.VcsInfo
-import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.scanner.ScannerMatcher
-import org.ossreviewtoolkit.utils.spdx.toSpdx
-
-import org.semver4j.Semver
-
-private const val SCANNER_VERSION = "1.0.0"
-private const val TIME_STAMP_SECONDS = 1678119934L
-
-/** A matcher that matches all scanners with the default [SCANNER_VERSION]. */
-private val scannerMatcher = ScannerMatcher(
-    regScannerName = ".*",
-    minVersion = Semver(SCANNER_VERSION),
-    maxVersion = Semver(SCANNER_VERSION).nextMinor(),
-    configuration = null
-)
+import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 
 class OrtServerScanResultStorageTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
@@ -84,7 +56,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
             scanResultStorage = OrtServerScanResultStorage(dbExtension.db, scannerRun.id)
         }
 
-        fun verifyAssociatedScanResults(scannerRun: ScannerRun, vararg scanResults: ScanResult) {
+        fun verifyAssociatedScanResults(scannerRun: ScannerRun, vararg scanResults: OrtScanResult) {
             dbExtension.db.blockingQuery {
                 val associatedScanResults = ScannerRunDao[scannerRun.id].scanResults.map { it.mapToModel() }
 
@@ -101,7 +73,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 verifyAssociatedScanResults(scannerRun, scanResult)
 
-                scanResultStorage.read(provenance, scannerMatcher) shouldBe listOf(scanResult)
+                scanResultStorage.read(provenance.mapToOrt(), scannerMatcher) shouldBe listOf(scanResult)
             }
 
             "create an artifact provenance scan result in the storage and associate it to the scanner run" {
@@ -111,7 +83,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 verifyAssociatedScanResults(scannerRun, scanResult)
 
-                scanResultStorage.read(provenance, scannerMatcher) shouldBe listOf(scanResult)
+                scanResultStorage.read(provenance.mapToOrt(), scannerMatcher) shouldBe listOf(scanResult)
             }
 
             "not create duplicate scan results for repository provenances" {
@@ -224,7 +196,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 verifyAssociatedScanResults(scannerRun, scanResult1, scanResult2, scanResult3)
 
-                val readResult = scanResultStorage.read(repositoryProvenance, scannerMatcher)
+                val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldContainExactlyInAnyOrder listOf(scanResult1, scanResult2)
                 readResult shouldNotContain scanResult3
             }
@@ -243,7 +215,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 verifyAssociatedScanResults(scannerRun, scanResult1, scanResult2, scanResult3)
 
-                val readResult = scanResultStorage.read(artifactProvenance, scannerMatcher)
+                val readResult = scanResultStorage.read(artifactProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldContainExactlyInAnyOrder listOf(scanResult1, scanResult2)
                 readResult shouldNotContain scanResult3
             }
@@ -256,7 +228,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 scanResultStorage.write(scanResult)
 
-                val readResult = scanResultStorage.read(repositoryProvenance, scannerMatcher)
+                val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldBe emptyList()
             }
 
@@ -268,7 +240,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 scanResultStorage.write(scanResult)
 
-                val readResult = scanResultStorage.read(artifactProvenance, scannerMatcher)
+                val readResult = scanResultStorage.read(artifactProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldBe emptyList()
             }
 
@@ -283,89 +255,10 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(matchingScanResult)
                 scanResultStorage.write(notMatchingScanResult)
 
-                val readResult = scanResultStorage.read(repositoryProvenance, scannerMatcher)
+                val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldContain matchingScanResult
                 readResult shouldNotContain notMatchingScanResult
             }
         }
     }
-}
-
-private fun createVcsInfo() = VcsInfo(
-    VcsType.GIT,
-    "https://github.com/apache/logging-log4j2.git",
-    "be881e503e14b267fb8a8f94b6d15eddba7ed8c4"
-)
-
-private fun createRepositoryProvenance(
-    vcsInfo: VcsInfo = createVcsInfo(),
-    resolvedRevision: String = vcsInfo.revision
-) = RepositoryProvenance(vcsInfo, resolvedRevision)
-
-private fun createRemoteArtifact() =
-    RemoteArtifact(
-        url = "https://repo1.maven.org/maven2/org/apache/logging/" +
-                "log4j/log4j-api/2.14.1/log4j-api-2.14.1-sources.jar",
-        hash = Hash("b2327c47ca413c1ec183575b19598e281fcd74d8", HashAlgorithm.SHA1)
-    )
-
-private fun createArtifactProvenance() = ArtifactProvenance(createRemoteArtifact())
-
-private fun createIssue(source: String) =
-    Issue(Instant.ofEpochSecond(TIME_STAMP_SECONDS), source, "message", Severity.ERROR)
-
-private fun createScanResult(
-    scannerName: String,
-    issue: Issue,
-    provenance: KnownProvenance,
-    scannerVersion: String = SCANNER_VERSION,
-    scannerConfig: String = "config",
-    additionalData: Map<String, String> = mapOf("additional1" to "data1", "additional2" to "data2")
-): ScanResult {
-    return ScanResult(
-        provenance = provenance,
-        scanner = ScannerDetails(scannerName, scannerVersion, scannerConfig),
-        summary = ScanSummary(
-            Instant.ofEpochSecond(TIME_STAMP_SECONDS),
-            Instant.ofEpochSecond(TIME_STAMP_SECONDS),
-            setOf(
-                LicenseFinding(
-                    "LicenseRef-23",
-                    TextLocation("/example/path", 1, 50),
-                    Float.MIN_VALUE
-                )
-            ),
-            setOf(
-                CopyrightFinding(
-                    "Copyright Finding Statement",
-                    TextLocation("/example/path", 1, 50)
-                )
-            ),
-            setOf(
-                SnippetFinding(
-                    TextLocation("/example/path", 1, 50),
-                    setOf(
-                        Snippet(
-                            score = 1.0f,
-                            location = TextLocation("/example/path", 1, 50),
-                            provenance = createArtifactProvenance(),
-                            purl = "org.apache.logging.log4j:log4j-api:2.14.1",
-                            license = "LicenseRef-23".toSpdx(),
-                            additionalData = mapOf("data" to "value")
-                        ),
-                        Snippet(
-                            score = 2.0f,
-                            location = TextLocation("/example/path2", 10, 20),
-                            provenance = createRepositoryProvenance(),
-                            purl = "org.apache.logging.log4j:log4j-api:2.14.1",
-                            license = "LicenseRef-23".toSpdx(),
-                            additionalData = mapOf("data2" to "value2")
-                        )
-                    )
-                )
-            ),
-            listOf(issue)
-        ),
-        additionalData
-    )
 }
