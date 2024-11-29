@@ -26,7 +26,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { EditIcon, PlusIcon } from 'lucide-react';
-import { useState } from 'react';
 
 import {
   useProductsServiceGetProductById,
@@ -68,16 +67,14 @@ const defaultPageSize = 10;
 const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
-  const [openDelDialog, setOpenDelDialog] = useState(false);
 
   const { data: product } = useProductsServiceGetProductByIdSuspense({
     productId: Number.parseInt(params.productId),
   });
 
-  const { mutateAsync: deleteSecret, isPending: delIsPending } =
+  const { mutateAsync: deleteSecret } =
     useSecretsServiceDeleteSecretByProductIdAndName({
       onSuccess() {
-        setOpenDelDialog(false);
         toast.info('Delete Secret', {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
@@ -120,21 +117,18 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         <TooltipContent>Edit this secret</TooltipContent>
       </Tooltip>
       <DeleteDialog
-        open={openDelDialog}
-        setOpen={setOpenDelDialog}
         description={
           <>
             Are you sure you want to delete the secret{' '}
             <span className='font-bold'>{row.original.name}</span>?
           </>
         }
-        onDelete={() =>
-          deleteSecret({
+        onDelete={async () =>
+          await deleteSecret({
             productId: product.id,
             secretName: row.original.name,
           })
         }
-        isPending={delIsPending}
         trigger={<DeleteIconButton />}
       />
     </div>

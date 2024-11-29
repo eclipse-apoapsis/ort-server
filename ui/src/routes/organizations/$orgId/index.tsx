@@ -226,7 +226,7 @@ const OrganizationComponent = () => {
     offset: pageIndex * pageSize,
   });
 
-  const { mutateAsync: deleteOrganization, isPending } =
+  const { mutateAsync: deleteOrganization } =
     useOrganizationsServiceDeleteOrganizationById({
       onSuccess() {
         toast.info('Delete Organization', {
@@ -317,7 +317,6 @@ const OrganizationComponent = () => {
                 <span className='font-bold'>{organization.name}</span>?
               </>
             }
-            isPending={isPending}
             trigger={<DeleteIconButton />}
           />
         </CardTitle>

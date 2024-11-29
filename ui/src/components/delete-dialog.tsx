@@ -39,11 +39,8 @@ import {
 } from '@/components/ui/tooltip';
 
 interface DeleteDialogProps {
-  open?: boolean;
-  setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   description: ReactNode;
-  onDelete: () => void;
-  isPending: boolean;
+  onDelete: () => void | Promise<void>;
   /**
    * Optional confirmation text to be required before deletion. If the text is provided, the user is
    * required to type the text in an input field to confirm the deletion. If the text is not
@@ -54,15 +51,14 @@ interface DeleteDialogProps {
 }
 
 export const DeleteDialog = ({
-  open,
-  setOpen,
   onDelete,
   description,
-  isPending,
   confirmationText,
   trigger,
 }: DeleteDialogProps) => {
   const [input, setInput] = useState('');
+  const [open, setOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const isDeleteDisabled = confirmationText
     ? input !== confirmationText
     : false;
@@ -117,7 +113,15 @@ export const DeleteDialog = ({
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <Button
             disabled={isDeleteDisabled}
-            onClick={onDelete}
+            onClick={async () => {
+              setIsPending(true);
+              try {
+                await onDelete();
+              } finally {
+                setIsPending(false);
+              }
+              setOpen(false);
+            }}
             className='bg-red-500'
           >
             {isPending ? (

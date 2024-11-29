@@ -26,7 +26,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { UserPlus } from 'lucide-react';
-import { useState } from 'react';
 
 import {
   useAdminServiceDeleteUserByUsername,
@@ -82,38 +81,32 @@ const columns = [
     header: () => <div className='text-right'>Actions</div>,
     cell: function CellComponent({ row }) {
       const queryClient = useQueryClient();
-      const [openDelDialog, setOpenDelDialog] = useState(false);
 
-      const { mutateAsync: delUser, isPending: isDelPending } =
-        useAdminServiceDeleteUserByUsername({
-          onSuccess() {
-            setOpenDelDialog(false);
-            toast.info('Delete User', {
-              description: `User "${row.original.username}" deleted successfully.`,
-            });
-            queryClient.invalidateQueries({
-              queryKey: [useAdminServiceGetUsersKey],
-            });
-          },
-          onError(error: ApiError) {
-            toast.error(error.message, {
-              description: <ToastError error={error} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
-          },
-        });
+      const { mutateAsync: delUser } = useAdminServiceDeleteUserByUsername({
+        onSuccess() {
+          toast.info('Delete User', {
+            description: `User "${row.original.username}" deleted successfully.`,
+          });
+          queryClient.invalidateQueries({
+            queryKey: [useAdminServiceGetUsersKey],
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      });
 
       return (
         <div className='flex justify-end'>
           <DeleteDialog
-            open={openDelDialog}
-            setOpen={setOpenDelDialog}
             onDelete={() => delUser({ username: row.original.username })}
-            isPending={isDelPending}
             confirmationText={row.original.username}
             description={
               <>

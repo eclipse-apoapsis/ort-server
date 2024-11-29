@@ -117,7 +117,7 @@ const RepositorySettingsPage = () => {
     });
   }
 
-  const { mutateAsync: deleteRepository, isPending: deleteIsPending } =
+  const { mutateAsync: deleteRepository } =
     useRepositoriesServiceDeleteRepositoryById({
       onSuccess() {
         toast.info('Delete Repository', {
@@ -243,7 +243,6 @@ const RepositorySettingsPage = () => {
                 </>
               }
               onDelete={handleDelete}
-              isPending={deleteIsPending}
               trigger={<Button variant='destructive'>Delete repository</Button>}
             />
           </div>
