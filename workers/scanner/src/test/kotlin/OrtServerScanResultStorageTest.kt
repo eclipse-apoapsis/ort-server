@@ -50,6 +50,14 @@ class OrtServerScanResultStorageTest : WordSpec() {
     private lateinit var scanResultStorage: OrtServerScanResultStorage
     private lateinit var scannerRun: ScannerRun
 
+    /**
+     * Return a [Set] with the IDs of all scan summaries assigned to a scan result.
+     */
+    private fun loadScanSummaryIds(): Set<Long> =
+        dbExtension.db.blockingQuery {
+            ScanResultDao.all().map { it.scanSummary.id.value }.toSet()
+        }
+
     init {
         beforeEach {
             scannerRun = dbExtension.fixtures.scannerRunRepository.create(dbExtension.fixtures.scannerJob.id)
@@ -178,6 +186,61 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 dbExtension.db.dbQuery {
                     ScanResultDao.all().count()
                 } shouldBe 2
+            }
+
+            "not duplicate a scan summary if there is already a matching one" {
+                val scanResult1 = createScanResult(
+                    "ScanCode",
+                    createIssue("source1"),
+                    createArtifactProvenance()
+                )
+                val scanResult2 = createScanResult(
+                    "ScanCode",
+                    createIssue("source1"),
+                    createRepositoryProvenance()
+                )
+                scanResultStorage.write(scanResult1)
+
+                scanResultStorage.write(scanResult2)
+
+                loadScanSummaryIds().size shouldBe 1
+            }
+
+            "duplicate a scan summary if it has different timestamps" {
+                val scanResult1 = createScanResult(
+                    "ScanCode",
+                    createIssue("source1"),
+                    createArtifactProvenance()
+                )
+                val summary2 = scanResult1.summary.copy(startTime = scanResult1.summary.startTime.plusSeconds(1))
+                val scanResult2 = createScanResult(
+                    "ScanCode",
+                    createIssue("source1"),
+                    createRepositoryProvenance()
+                ).copy(summary = summary2)
+                scanResultStorage.write(scanResult1)
+
+                scanResultStorage.write(scanResult2)
+
+                loadScanSummaryIds().size shouldBe 2
+            }
+
+            "duplicate a scan summary if it has different content" {
+                val scanResult1 = createScanResult(
+                    "ScanCode",
+                    createIssue("source1"),
+                    createArtifactProvenance()
+                )
+                val scanResult2 = createScanResult(
+                    "ScanCode",
+                    createIssue("source2"),
+                    createRepositoryProvenance()
+                )
+                scanResultStorage.write(scanResult1)
+
+                scanResultStorage.write(scanResult2)
+
+                loadScanSummaryIds().size shouldBe 2
             }
         }
 

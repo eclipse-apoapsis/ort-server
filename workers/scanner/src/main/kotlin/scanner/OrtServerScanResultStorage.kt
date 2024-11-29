@@ -32,9 +32,11 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao.Companion.matches
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao.Companion.matchesVcsInfo
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesIssuesDao
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.dao.utils.utils.JsonHashFunction
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
@@ -50,6 +52,7 @@ import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.KnownProvenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.ScanResult
+import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails
 import org.ossreviewtoolkit.scanner.ProvenanceBasedScanStorage
 import org.ossreviewtoolkit.scanner.ScanStorageException
@@ -126,14 +129,7 @@ class OrtServerScanResultStorage(
      * Create a new database entry for the given [scanResult] for the given [provenance].
      */
     private fun createNewScanResult(scanResult: ScanResult, provenance: KnownProvenance): ScanResultDao {
-        val summaryDao = ScanSummaryDao.new {
-            this.startTime = scanResult.summary.startTime.toKotlinInstant()
-            this.endTime = scanResult.summary.endTime.toKotlinInstant()
-        }
-
-        scanResult.summary.issues.forEach {
-            ScanSummariesIssuesDao.createByIssue(summaryDao.id.value, it.mapToModel())
-        }
+        val summaryDao = getOrCreateScanSummaryDao(scanResult.summary)
 
         return ScanResultDao.new {
             when (provenance) {
@@ -155,41 +151,70 @@ class OrtServerScanResultStorage(
             this.scannerConfiguration = scanResult.scanner.configuration
             this.additionalScanResultData = AdditionalScanResultData(scanResult.additionalData)
             this.scanSummary = summaryDao
+        }
+    }
 
-            val summary = this.scanSummary
-            scanResult.summary.licenseFindings.forEach {
-                LicenseFindingDao.new {
-                    this.scanSummary = summary
-                    this.license = it.license.toString()
-                    this.path = it.location.path
-                    this.startLine = it.location.startLine
-                    this.endLine = it.location.endLine
-                    this.score = it.score
-                }
-            }
-            scanResult.summary.copyrightFindings.forEach {
-                CopyrightFindingDao.new {
-                    this.scanSummary = summary
-                    this.statement = it.statement
-                    this.path = it.location.path
-                    this.startLine = it.location.startLine
-                    this.endLine = it.location.endLine
-                }
-            }
-            scanResult.summary.snippetFindings.forEach { snippetFinding ->
-                SnippetFindingDao.new {
-                    this.scanSummary = summary
-                    this.path = snippetFinding.sourceLocation.path
-                    this.startLine = snippetFinding.sourceLocation.startLine
-                    this.endLine = snippetFinding.sourceLocation.endLine
-                    this.snippets = SizedCollection(
-                        snippetFinding.snippets.map { snippet ->
-                            SnippetDao.put(snippet.mapToModel())
-                        }
-                    )
-                }
+    /**
+     * Obtain the [ScanSummaryDao] for the given [summary]. Check whether there is already an entity in the database
+     * that matches the given [summary]. Create a new instance if necessary.
+     */
+    private fun getOrCreateScanSummaryDao(summary: ScanSummary): ScanSummaryDao {
+        val summaries = ScanSummaryDao.find {
+            (ScanSummariesTable.startTime eq summary.startTime.toKotlinInstant().toDatabasePrecision()) and
+                    (ScanSummariesTable.endTime eq summary.endTime.toKotlinInstant().toDatabasePrecision())
+        }.toList()
+
+        return summaries.takeUnless { it.isEmpty() }?.let { existingSummaries ->
+            existingSummaries.firstOrNull { compareScanSummaries(summary, it.mapToModel()) }
+        } ?: createScanSummaryDao(summary)
+    }
+
+    /**
+     * Create a new [ScanSummaryDao] for the given [summary].
+     */
+    private fun createScanSummaryDao(summary: ScanSummary): ScanSummaryDao {
+        val summaryDao = ScanSummaryDao.new {
+            this.startTime = summary.startTime.toKotlinInstant()
+            this.endTime = summary.endTime.toKotlinInstant()
+        }
+
+        summary.issues.forEach {
+            ScanSummariesIssuesDao.createByIssue(summaryDao.id.value, it.mapToModel())
+        }
+        summary.licenseFindings.forEach {
+            LicenseFindingDao.new {
+                this.scanSummary = summaryDao
+                this.license = it.license.toString()
+                this.path = it.location.path
+                this.startLine = it.location.startLine
+                this.endLine = it.location.endLine
+                this.score = it.score
             }
         }
+        summary.copyrightFindings.forEach {
+            CopyrightFindingDao.new {
+                this.scanSummary = summaryDao
+                this.statement = it.statement
+                this.path = it.location.path
+                this.startLine = it.location.startLine
+                this.endLine = it.location.endLine
+            }
+        }
+        summary.snippetFindings.forEach { snippetFinding ->
+            SnippetFindingDao.new {
+                this.scanSummary = summaryDao
+                this.path = snippetFinding.sourceLocation.path
+                this.startLine = snippetFinding.sourceLocation.startLine
+                this.endLine = snippetFinding.sourceLocation.endLine
+                this.snippets = SizedCollection(
+                    snippetFinding.snippets.map { snippet ->
+                        SnippetDao.put(snippet.mapToModel())
+                    }
+                )
+            }
+        }
+
+        return summaryDao
     }
 
     private fun associateScanResultWithScannerRun(scanResultDao: ScanResultDao) {
