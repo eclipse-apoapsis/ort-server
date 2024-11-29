@@ -112,13 +112,15 @@ const columns = [
           <DeleteDialog
             open={openDelDialog}
             setOpen={setOpenDelDialog}
-            item={{
-              descriptor: 'user',
-              name: row.original.username,
-            }}
             onDelete={() => delUser({ username: row.original.username })}
             isPending={isDelPending}
-            textConfirmation={true}
+            confirmationText={row.original.username}
+            description={
+              <>
+                Are you sure you want to delete the user{' '}
+                <span className='font-bold'>{row.original.username}</span>?
+              </>
+            }
             trigger={<DeleteIconButton />}
           />
         </div>

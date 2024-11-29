@@ -115,12 +115,17 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
       <DeleteDialog
         open={openDelDialog}
         setOpen={setOpenDelDialog}
-        item={{ descriptor: 'infrastructure service', name: row.original.name }}
         onDelete={() =>
           delService({
             organizationId: Number.parseInt(params.orgId),
             serviceName: row.original.name,
           })
+        }
+        description={
+          <>
+            Are you sure you want to delete the infrastructure service{' '}
+            <span className='font-bold'>{row.original.name}</span>?
+          </>
         }
         isPending={delIsPending}
         trigger={<DeleteIconButton />}

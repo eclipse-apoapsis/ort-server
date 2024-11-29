@@ -154,10 +154,12 @@ const ProductComponent = () => {
                 </Tooltip>
               </div>
               <DeleteDialog
-                item={{
-                  descriptor: 'product',
-                  name: product.name,
-                }}
+                description={
+                  <>
+                    Are you sure you want to delete the product{' '}
+                    <span className='font-bold'>{product.name}</span>?
+                  </>
+                }
                 onDelete={handleDelete}
                 isPending={isPending}
                 trigger={<DeleteIconButton />}

@@ -236,10 +236,12 @@ const RepositorySettingsPage = () => {
           <div className='flex justify-between'>
             <div>Delete this repository</div>
             <DeleteDialog
-              item={{
-                descriptor: 'repository',
-                name: repository.url,
-              }}
+              description={
+                <>
+                  Are you sure you want to delete the repository{' '}
+                  <span className='font-bold'>{repository.url}</span>?
+                </>
+              }
               onDelete={handleDelete}
               isPending={deleteIsPending}
               trigger={<Button variant='destructive'>Delete repository</Button>}
