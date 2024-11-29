@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.JobSummary
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
@@ -50,6 +51,7 @@ object ScannerJobsTable : LongIdTable("scanner_jobs") {
 class ScannerJobDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScannerJobDao>(ScannerJobsTable)
 
+    var ortRunId by ScannerJobsTable.ortRunId.transformToEntityId()
     var ortRun by OrtRunDao referencedOn ScannerJobsTable.ortRunId
 
     var createdAt by ScannerJobsTable.createdAt.transformToDatabasePrecision()

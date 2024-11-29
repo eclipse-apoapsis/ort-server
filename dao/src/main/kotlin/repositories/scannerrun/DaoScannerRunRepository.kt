@@ -25,7 +25,6 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -47,7 +46,7 @@ import org.jetbrains.exposed.sql.insert
 class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
     override fun create(scannerJobId: Long): ScannerRun = db.blockingQuery {
         val scannerRunDao = ScannerRunDao.new {
-            this.scannerJob = ScannerJobDao[scannerJobId]
+            this.scannerJobId = scannerJobId
         }
 
         scannerRunDao.mapToModel()

@@ -24,7 +24,6 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
@@ -37,7 +36,7 @@ import org.jetbrains.exposed.sql.and
 class DaoScannerJobRepository(private val db: Database) : ScannerJobRepository {
     override fun create(ortRunId: Long, configuration: ScannerJobConfiguration): ScannerJob = db.blockingQuery {
         ScannerJobDao.new {
-            ortRun = OrtRunDao[ortRunId]
+            this.ortRunId = ortRunId
             createdAt = Clock.System.now()
             this.configuration = configuration
             status = JobStatus.CREATED

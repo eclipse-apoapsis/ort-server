@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun.ReporterRunDa
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun.ReporterRunsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.JobSummary
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
@@ -52,6 +53,7 @@ object ReporterJobsTable : LongIdTable("reporter_jobs") {
 class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ReporterJobDao>(ReporterJobsTable)
 
+    var ortRunId by ReporterJobsTable.ortRunId.transformToEntityId()
     var ortRun by OrtRunDao referencedOn ReporterJobsTable.ortRunId
     val reporterRun by ReporterRunDao optionalBackReferencedOn ReporterRunsTable.reporterJobId
 

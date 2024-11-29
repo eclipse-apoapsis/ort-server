@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.ReporterJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.ReporterJobsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -42,6 +43,7 @@ object ReporterRunsTable : LongIdTable("reporter_runs") {
 class ReporterRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ReporterRunDao>(ReporterRunsTable)
 
+    var reporterJobId by ReporterRunsTable.reporterJobId.transformToEntityId()
     var reporterJob by ReporterJobDao referencedOn ReporterRunsTable.reporterJobId
     var startTime by ReporterRunsTable.startTime.transformToDatabasePrecision()
     var endTime by ReporterRunsTable.endTime.transformToDatabasePrecision()

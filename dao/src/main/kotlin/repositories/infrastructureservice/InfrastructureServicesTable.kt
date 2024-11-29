@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
@@ -109,10 +110,14 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
         { fromCredentialsTypeString(it) }
     )
 
+    var usernameSecretId by InfrastructureServicesTable.usernameSecretId.transformToEntityId()
     var usernameSecret by SecretDao referencedOn InfrastructureServicesTable.usernameSecretId
+    var passwordSecretId by InfrastructureServicesTable.passwordSecretId.transformToEntityId()
     var passwordSecret by SecretDao referencedOn InfrastructureServicesTable.passwordSecretId
 
+    var organizationId by InfrastructureServicesTable.organizationId.transformToEntityId()
     var organization by OrganizationDao optionalReferencedOn InfrastructureServicesTable.organizationId
+    var productId by InfrastructureServicesTable.productId.transformToEntityId()
     var product by ProductDao optionalReferencedOn InfrastructureServicesTable.productId
 
     fun mapToModel() = InfrastructureService(

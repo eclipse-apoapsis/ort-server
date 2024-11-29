@@ -24,8 +24,6 @@ import java.net.URI
 import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
-import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
@@ -83,11 +81,11 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             this.name = name
             this.url = url
             this.description = description
-            this.usernameSecret = SecretDao[usernameSecret.id]
-            this.passwordSecret = SecretDao[passwordSecret.id]
+            this.usernameSecretId = usernameSecret.id
+            this.passwordSecretId = passwordSecret.id
             this.credentialsTypes = credentialsTypes
-            this.organization = organizationId?.let { OrganizationDao[it] }
-            this.product = productId?.let { ProductDao[it] }
+            this.organizationId = organizationId
+            this.productId = productId
         }.mapToModel()
     }
 

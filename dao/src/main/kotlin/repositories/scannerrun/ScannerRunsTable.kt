@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -48,6 +49,7 @@ object ScannerRunsTable : LongIdTable("scanner_runs") {
 class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ScannerRunDao>(ScannerRunsTable)
 
+    var scannerJobId by ScannerRunsTable.scannerJobId.transformToEntityId()
     var scannerJob by ScannerJobDao referencedOn ScannerRunsTable.scannerJobId
     var environment by EnvironmentDao optionalReferencedOn ScannerRunsTable.environmentId
 

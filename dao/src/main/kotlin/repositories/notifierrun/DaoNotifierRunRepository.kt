@@ -23,7 +23,6 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.NotifierJobDao
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 
@@ -35,7 +34,7 @@ import org.jetbrains.exposed.sql.Database
 class DaoNotifierRunRepository(private val db: Database) : NotifierRunRepository {
     override fun create(notifierJobId: Long, startTime: Instant, endTime: Instant): NotifierRun = db.blockingQuery {
         NotifierRunDao.new {
-            this.notifierJob = NotifierJobDao[notifierJobId]
+            this.notifierJobId = notifierJobId
             this.startTime = startTime
             this.endTime = endTime
         }.mapToModel()

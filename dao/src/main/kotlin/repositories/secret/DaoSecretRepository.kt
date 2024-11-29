@@ -24,9 +24,6 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
-import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
@@ -54,9 +51,9 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
             this.path = path
             this.name = name
             this.description = description
-            this.organization = organizationId?.let { OrganizationDao[it] }
-            this.product = productId?.let { ProductDao[it] }
-            this.repository = repositoryId?.let { RepositoryDao[it] }
+            this.organizationId = organizationId
+            this.productId = productId
+            this.repositoryId = repositoryId
         }.mapToModel()
     }
 

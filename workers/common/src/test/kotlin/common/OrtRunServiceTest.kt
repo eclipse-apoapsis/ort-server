@@ -88,7 +88,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
-import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
@@ -170,7 +170,7 @@ class OrtRunServiceTest : WordSpec({
         }
 
         "fail if the scanner job does not exist" {
-            shouldThrow<EntityNotFoundException> {
+            shouldThrow<ExposedSQLException> {
                 service.createScannerRun(-1L)
             }
         }

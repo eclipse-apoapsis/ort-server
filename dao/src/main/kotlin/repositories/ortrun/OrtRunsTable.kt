@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -82,6 +83,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
 class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<OrtRunDao>(OrtRunsTable)
 
+    var repositoryId by OrtRunsTable.repositoryId.transformToEntityId()
     var repository by RepositoryDao referencedOn OrtRunsTable.repositoryId
 
     var index by OrtRunsTable.index

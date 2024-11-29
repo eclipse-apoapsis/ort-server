@@ -24,7 +24,6 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
-import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.ReporterJobDao
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
@@ -50,7 +49,7 @@ class DaoReporterRunRepository(private val db: Database) : ReporterRunRepository
         }
 
         ReporterRunDao.new {
-            this.reporterJob = ReporterJobDao[reporterJobId]
+            this.reporterJobId = reporterJobId
             this.startTime = startTime
             this.endTime = endTime
             this.reports = reportsList
