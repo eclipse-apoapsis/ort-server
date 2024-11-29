@@ -310,11 +310,13 @@ const OrganizationComponent = () => {
             </Tooltip>
           </div>
           <DeleteDialog
-            item={{
-              descriptor: 'organization',
-              name: organization.name,
-            }}
             onDelete={handleDelete}
+            description={
+              <>
+                Are you sure you want to delete the organization{' '}
+                <span className='font-bold'>{organization.name}</span>?
+              </>
+            }
             isPending={isPending}
             trigger={<DeleteIconButton />}
           />

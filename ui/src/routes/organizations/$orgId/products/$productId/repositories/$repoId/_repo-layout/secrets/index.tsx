@@ -121,7 +121,12 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
       <DeleteDialog
         open={openDelDialog}
         setOpen={setOpenDelDialog}
-        item={{ descriptor: 'secret', name: row.original.name }}
+        description={
+          <>
+            Are you sure you want to delete the secret{' '}
+            <span className='font-bold'>{row.original.name}</span>?
+          </>
+        }
         onDelete={() =>
           deleteSecret({
             repositoryId: repo.id,

@@ -41,27 +41,31 @@ import {
 interface DeleteDialogProps {
   open?: boolean;
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-  item: {
-    descriptor: string;
-    name: string;
-  };
+  description: ReactNode;
   onDelete: () => void;
   isPending: boolean;
-  textConfirmation?: boolean;
+  /**
+   * Optional confirmation text to be required before deletion. If the text is provided, the user is
+   * required to type the text in an input field to confirm the deletion. If the text is not
+   * provided, the user can delete the item without any additional confirmation.
+   */
+  confirmationText?: string;
   trigger: ReactNode;
 }
 
 export const DeleteDialog = ({
   open,
   setOpen,
-  item,
   onDelete,
+  description,
   isPending,
-  textConfirmation = false,
+  confirmationText,
   trigger,
 }: DeleteDialogProps) => {
   const [input, setInput] = useState('');
-  const isDeleteDisabled = textConfirmation && input !== item.name;
+  const isDeleteDisabled = confirmationText
+    ? input !== confirmationText
+    : false;
 
   // Reset the input field whenever the dialog is opened/closed
   useEffect(() => {
@@ -76,42 +80,39 @@ export const DeleteDialog = ({
         <TooltipTrigger asChild>
           <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
         </TooltipTrigger>
-        <TooltipContent>Delete this {item.descriptor}</TooltipContent>
+        <TooltipContent>Delete</TooltipContent>
       </Tooltip>
       {/* Adding the preventDefault will prevent focusing on the trigger after closing the modal (which would cause the tooltip to show) */}
       <AlertDialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
         <AlertDialogHeader>
           <div className='flex items-center'>
             <OctagonAlert className='h-8 w-8 pr-2 text-red-500' />
-            <AlertDialogTitle>Delete {item.descriptor}</AlertDialogTitle>
+            <AlertDialogTitle>Confirm deletion</AlertDialogTitle>
           </div>
         </AlertDialogHeader>
-        {textConfirmation ? (
-          <AlertDialogDescription>
-            <div className='flex flex-col gap-2'>
-              <div>
-                Are you sure you want to delete this {item.descriptor}:{' '}
-                <span className='font-bold'>{item.name}</span>?
-              </div>
-              <div>
-                Deleting might have unwanted results and side effects, and the
-                deletion is irreversible. Please type{' '}
-                <span className='font-bold'>{item.name}</span> below to confirm
-                deletion.
-              </div>
-              <Input
-                autoFocus
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
+        <AlertDialogDescription>
+          <div className='flex flex-col gap-2'>
+            <div>{description}</div>
+            <div>
+              Deleting might have unwanted results and side effects, and the
+              deletion is irreversible.
             </div>
-          </AlertDialogDescription>
-        ) : (
-          <AlertDialogDescription>
-            Are you sure you want to delete this {item.descriptor}:{' '}
-            <span className='font-bold'>{item.name}</span>?
-          </AlertDialogDescription>
-        )}
+            {confirmationText && (
+              <>
+                <div>
+                  Please type{' '}
+                  <span className='font-bold'>{confirmationText}</span> below to
+                  confirm deletion.
+                </div>
+                <Input
+                  autoFocus
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                />
+              </>
+            )}
+          </div>
+        </AlertDialogDescription>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <Button
@@ -121,7 +122,7 @@ export const DeleteDialog = ({
           >
             {isPending ? (
               <>
-                <span className='sr-only'>Deleting {item.descriptor}...</span>
+                <span className='sr-only'>Deleting...</span>
                 <Loader2 size={16} className='mx-3 animate-spin' />
               </>
             ) : (
