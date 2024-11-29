@@ -82,10 +82,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
-          queryKey: [
-            useSecretsServiceGetSecretsByRepositoryIdKey,
-            params.repoId,
-          ],
+          queryKey: [useSecretsServiceGetSecretsByRepositoryIdKey],
         });
       },
       onError(error: ApiError) {
