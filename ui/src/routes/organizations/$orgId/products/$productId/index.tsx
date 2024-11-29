@@ -78,28 +78,27 @@ const ProductComponent = () => {
     productId: Number.parseInt(params.productId),
   });
 
-  const { mutateAsync: deleteProduct, isPending } =
-    useProductsServiceDeleteProductById({
-      onSuccess() {
-        toast.info('Delete Product', {
-          description: `Product "${product?.name}" deleted successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId',
-          params: { orgId: params.orgId },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync: deleteProduct } = useProductsServiceDeleteProductById({
+    onSuccess() {
+      toast.info('Delete Product', {
+        description: `Product "${product?.name}" deleted successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId',
+        params: { orgId: params.orgId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   async function handleDelete() {
     await deleteProduct({
@@ -161,7 +160,6 @@ const ProductComponent = () => {
                   </>
                 }
                 onDelete={handleDelete}
-                isPending={isPending}
                 trigger={<DeleteIconButton />}
               />
             </CardTitle>

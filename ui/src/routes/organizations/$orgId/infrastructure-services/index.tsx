@@ -26,7 +26,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { EditIcon, Pencil, PlusIcon } from 'lucide-react';
-import { useState } from 'react';
 
 import {
   useInfrastructureServicesServiceDeleteInfrastructureServiceForOrganizationIdAndName,
@@ -67,13 +66,11 @@ const defaultPageSize = 10;
 const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
-  const [openDelDialog, setOpenDelDialog] = useState(false);
 
-  const { mutateAsync: delService, isPending: delIsPending } =
+  const { mutateAsync: delService } =
     useInfrastructureServicesServiceDeleteInfrastructureServiceForOrganizationIdAndName(
       {
         onSuccess() {
-          setOpenDelDialog(false);
           toast.info('Delete Infrastructure Service', {
             description: `Infrastructure service "${row.original.name}" deleted successfully.`,
           });
@@ -113,8 +110,6 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
       </Tooltip>
 
       <DeleteDialog
-        open={openDelDialog}
-        setOpen={setOpenDelDialog}
         onDelete={() =>
           delService({
             organizationId: Number.parseInt(params.orgId),
@@ -127,7 +122,6 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
             <span className='font-bold'>{row.original.name}</span>?
           </>
         }
-        isPending={delIsPending}
         trigger={<DeleteIconButton />}
       />
     </div>

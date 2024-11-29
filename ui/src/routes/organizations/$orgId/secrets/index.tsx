@@ -26,7 +26,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { EditIcon, PlusIcon } from 'lucide-react';
-import { useState } from 'react';
 
 import {
   useOrganizationsServiceGetOrganizationById,
@@ -68,17 +67,15 @@ const defaultPageSize = 10;
 const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
-  const [openDelDialog, setOpenDelDialog] = useState(false);
 
   const { data: organization } =
     useOrganizationsServiceGetOrganizationByIdSuspense({
       organizationId: Number.parseInt(params.orgId),
     });
 
-  const { mutateAsync: delSecret, isPending: delIsPending } =
+  const { mutateAsync: delSecret } =
     useSecretsServiceDeleteSecretByOrganizationIdAndName({
       onSuccess() {
-        setOpenDelDialog(false);
         toast.info('Delete Secret', {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
@@ -114,21 +111,18 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         <TooltipContent>Edit this secret</TooltipContent>
       </Tooltip>
       <DeleteDialog
-        open={openDelDialog}
-        setOpen={setOpenDelDialog}
         description={
           <>
             Are you sure you want to delete the secret{' '}
             <span className='font-bold'>{row.original.name}</span>?
           </>
         }
-        onDelete={() =>
-          delSecret({
+        onDelete={async () =>
+          await delSecret({
             organizationId: organization.id,
             secretName: row.original.name,
           })
         }
-        isPending={delIsPending}
         trigger={<DeleteIconButton />}
       />
     </div>
