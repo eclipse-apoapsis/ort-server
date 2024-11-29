@@ -3,4 +3,4 @@
 # https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/about-code-owners#codeowners-syntax
 
 * @bs-ondem @MarcelBochtler @mnonnenmacher @nnobelis @oheger-bosch @sschuberth
-/ui/ @Etsija @mmurto
+/ui/ @Etsija @lamppu @mmurto
