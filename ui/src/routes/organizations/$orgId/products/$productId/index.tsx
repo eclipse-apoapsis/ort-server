@@ -159,6 +159,7 @@ const ProductComponent = () => {
                     <span className='font-bold'>{product.name}</span>?
                   </>
                 }
+                confirmationText={product.name}
                 onDelete={handleDelete}
                 trigger={<DeleteIconButton />}
               />
