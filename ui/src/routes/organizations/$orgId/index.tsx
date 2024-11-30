@@ -317,6 +317,7 @@ const OrganizationComponent = () => {
                 <span className='font-bold'>{organization.name}</span>?
               </>
             }
+            confirmationText={organization.name}
             trigger={<DeleteIconButton />}
           />
         </CardTitle>
