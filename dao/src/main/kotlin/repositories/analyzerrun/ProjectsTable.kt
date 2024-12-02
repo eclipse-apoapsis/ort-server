@@ -43,6 +43,7 @@ object ProjectsTable : LongIdTable("projects") {
 
     val cpe = text("cpe").nullable()
     val definitionFilePath = text("definition_file_path")
+    val description = text("description")
     val homepageUrl = text("homepage_url")
 }
 
@@ -70,6 +71,7 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
 
     var cpe by ProjectsTable.cpe
     var definitionFilePath by ProjectsTable.definitionFilePath
+    var description by ProjectsTable.description
     var homepageUrl by ProjectsTable.homepageUrl
 
     var authors by AuthorDao via ProjectsAuthorsTable
@@ -89,6 +91,7 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
         processedDeclaredLicense = processedDeclaredLicense.mapToModel(),
         vcs = vcs.mapToModel(),
         vcsProcessed = vcsProcessed.mapToModel(),
+        description = description,
         homepageUrl = homepageUrl,
         scopeNames = scopeNames.mapTo(mutableSetOf(), ProjectScopeDao::name)
     )

@@ -168,6 +168,7 @@ private fun insertProject(
         this.vcsProcessed = vcsProcessed
 
         this.cpe = project.cpe
+        this.description = project.description
         this.homepageUrl = project.homepageUrl
         this.definitionFilePath = project.definitionFilePath
     }

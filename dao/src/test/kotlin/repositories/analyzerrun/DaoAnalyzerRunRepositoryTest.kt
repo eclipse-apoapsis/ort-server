@@ -178,6 +178,7 @@ private val project = Project(
         revision = "main",
         path = ""
     ),
+    description = "description",
     homepageUrl = "https://example.com",
     scopeNames = setOf("compile")
 )

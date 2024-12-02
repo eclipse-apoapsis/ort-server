@@ -402,6 +402,7 @@ fun OrtProject.mapToModel() =
         processedDeclaredLicense = declaredLicensesProcessed.mapToModel(),
         vcs = vcs.mapToModel(),
         vcsProcessed = vcsProcessed.mapToModel(),
+        description = description,
         homepageUrl = homepageUrl,
         scopeNames = scopeNames.orEmpty()
     )

@@ -336,6 +336,7 @@ object OrtTestData {
             revision = projectRevision,
             path = ""
         ),
+        description = "description",
         homepageUrl = "https://example.org/project",
         scopeNames = setOf("compile")
     )
