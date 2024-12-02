@@ -208,6 +208,7 @@ class OrtServerMappingsTest : WordSpec({
                     revision = OrtTestData.projectRevision,
                     path = ""
                 ),
+                description = "description",
                 homepageUrl = "https://example.org/project",
                 scopeNames = setOf("compile")
             )

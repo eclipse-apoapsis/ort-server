@@ -28,6 +28,7 @@ data class Project(
     val processedDeclaredLicense: ProcessedDeclaredLicense,
     val vcs: VcsInfo,
     val vcsProcessed: VcsInfo,
+    val description: String,
     val homepageUrl: String,
     val scopeNames: Set<String>
 )

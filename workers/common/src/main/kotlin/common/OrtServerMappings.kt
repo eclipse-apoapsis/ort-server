@@ -480,6 +480,7 @@ fun Project.mapToOrt() =
         declaredLicensesProcessed = processedDeclaredLicense.mapToOrt(),
         vcs = vcs.mapToOrt(),
         vcsProcessed = vcsProcessed.mapToOrt(),
+        description = description,
         homepageUrl = homepageUrl,
         scopeNames = scopeNames.toSortedSet()
     )

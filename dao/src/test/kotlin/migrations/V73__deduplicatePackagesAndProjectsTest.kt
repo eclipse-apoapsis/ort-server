@@ -387,6 +387,7 @@ private val baseProject = Project(
     processedDeclaredLicense = baseProcessedDeclaredLicense,
     vcs = vcsInfo,
     vcsProcessed = vcsInfo,
+    description = "",
     homepageUrl = "https://example.com/project",
     scopeNames = setOf("compile", "test")
 )
