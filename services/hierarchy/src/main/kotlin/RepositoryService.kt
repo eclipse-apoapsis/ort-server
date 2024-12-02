@@ -63,9 +63,11 @@ class RepositoryService(
     private val authorizationService: AuthorizationService
 ) {
     /**
-     * Delete a repository by [repositoryId].
+     * Delete the [Repository] by its [repositoryId] and all [OrtRun]s that are associated with it.
      */
     suspend fun deleteRepository(repositoryId: Long): Unit = db.dbQueryCatching {
+        ortRunRepository.deleteByRepository(repositoryId)
+
         repositoryRepository.delete(repositoryId)
     }.onSuccess {
         runCatching {

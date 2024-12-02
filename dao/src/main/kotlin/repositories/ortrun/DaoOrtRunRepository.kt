@@ -176,6 +176,10 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
     override fun delete(id: Long): Int = db.blockingQuery {
         OrtRunsTable.deleteWhere { OrtRunsTable.id eq id }
     }
+
+    override fun deleteByRepository(repositoryId: Long): Int = db.blockingQuery {
+        OrtRunsTable.deleteWhere { OrtRunsTable.repositoryId eq repositoryId }
+    }
 }
 
 /**

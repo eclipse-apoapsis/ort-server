@@ -79,6 +79,21 @@ class RepositoryServiceTest : WordSpec({
                 authorizationService.deleteRepositoryRoles(fixtures.repository.id)
             }
         }
+
+        "delete all ORT runs of the repository" {
+            val service = createService()
+
+            val repository = fixtures.createRepository()
+
+            fixtures.createOrtRun(repository.id)
+            fixtures.createOrtRun(repository.id)
+
+            fixtures.ortRunRepository.listForRepository(repository.id).totalCount shouldBe 2
+
+            service.deleteRepository(repository.id)
+
+            fixtures.ortRunRepository.listForRepository(repository.id).totalCount shouldBe 0
+        }
     }
 
     "getJobs" should {
