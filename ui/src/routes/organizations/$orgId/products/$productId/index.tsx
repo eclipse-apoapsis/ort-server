@@ -19,24 +19,24 @@
 
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
-  Boxes,
-  Bug,
-  EditIcon,
-  Files,
-  Scale,
-  ShieldQuestion,
-} from 'lucide-react';
+  createColumnHelper,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { Boxes, Bug, EditIcon, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 
 import {
   useProductsServiceDeleteProductById,
   useProductsServiceGetProductById,
+  useRepositoriesServiceGetRepositoriesByProductId,
 } from '@/api/queries';
 import {
   prefetchUseProductsServiceGetProductById,
   prefetchUseRepositoriesServiceGetRepositoriesByProductId,
 } from '@/api/queries/prefetch';
-import { ApiError } from '@/api/requests';
+import { ApiError, Repository } from '@/api/requests';
+import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -45,6 +45,7 @@ import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -59,14 +60,90 @@ import {
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
+import { LastJobStatus } from './-components/last-job-status';
+import { LastRunDate } from './-components/last-run-date';
+import { LastRunStatus } from './-components/last-run-status';
 import { ProductIssuesStatisticsCard } from './-components/product-issues-statistics-card';
 import { ProductPackagesStatisticsCard } from './-components/product-packages-statistics-card';
 import { ProductRepositoriesStatisticsCard } from './-components/product-repositories-statistics-card';
 import { ProductViolationsStatisticsCard } from './-components/product-violations-statistics-card';
 import { ProductVulnerabilitiesStatisticsCard } from './-components/product-vulnerabilities-statistics-card';
+import { TotalRuns } from './-components/total-runs';
+
+const defaultPageSize = 5;
+
+const columnHelper = createColumnHelper<Repository>();
+
+const columns = [
+  columnHelper.accessor(
+    ({ url, type }) => {
+      return url + type;
+    },
+    {
+      id: 'repository',
+      header: 'Repositories',
+      cell: ({ row }) => (
+        <>
+          <Link
+            className='block font-semibold text-blue-400 hover:underline'
+            to={
+              '/organizations/$orgId/products/$productId/repositories/$repoId'
+            }
+            params={{
+              orgId: row.original.organizationId.toString(),
+              productId: row.original.productId.toString(),
+              repoId: row.original.id.toString(),
+            }}
+          >
+            {row.original.url}
+          </Link>
+          <div className='text-sm text-muted-foreground md:inline'>
+            {row.original.type}
+          </div>
+        </>
+      ),
+    }
+  ),
+  columnHelper.display({
+    id: 'runs',
+    header: 'Runs',
+    size: 60,
+    cell: ({ row }) => (
+      <Link
+        to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
+        params={{
+          orgId: row.original.organizationId.toString(),
+          productId: row.original.productId.toString(),
+          repoId: row.original.id.toString(),
+        }}
+        className='font-semibold text-blue-400 hover:underline'
+      >
+        <TotalRuns repoId={row.original.id} />
+      </Link>
+    ),
+  }),
+  columnHelper.display({
+    id: 'runStatus',
+    header: 'Last Run Status',
+    cell: ({ row }) => <LastRunStatus repoId={row.original.id} />,
+  }),
+  columnHelper.display({
+    id: 'lastRunDate',
+    header: 'Last Run Date',
+    cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
+  }),
+  columnHelper.display({
+    id: 'jobStatus',
+    header: 'Last Job Status',
+    cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
+  }),
+];
 
 const ProductComponent = () => {
   const params = Route.useParams();
+  const search = Route.useSearch();
+  const pageIndex = search.page ? search.page - 1 : 0;
+  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const navigate = Route.useNavigate();
 
   const {
@@ -76,6 +153,17 @@ const ProductComponent = () => {
     isError: prodIsError,
   } = useProductsServiceGetProductById({
     productId: Number.parseInt(params.productId),
+  });
+
+  const {
+    data: repositories,
+    error: reposError,
+    isPending: reposIsPending,
+    isError: reposIsError,
+  } = useRepositoriesServiceGetRepositoriesByProductId({
+    productId: Number.parseInt(params.productId),
+    limit: pageSize,
+    offset: pageIndex * pageSize,
   });
 
   const { mutateAsync: deleteProduct } = useProductsServiceDeleteProductById({
@@ -100,19 +188,33 @@ const ProductComponent = () => {
     },
   });
 
+  const table = useReactTable({
+    data: repositories?.data || [],
+    columns,
+    pageCount: Math.ceil((repositories?.pagination.totalCount ?? 0) / pageSize),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
+
   async function handleDelete() {
     await deleteProduct({
       productId: Number.parseInt(params.productId),
     });
   }
 
-  if (prodIsPending) {
+  if (prodIsPending || reposIsPending) {
     return <LoadingIndicator />;
   }
 
-  if (prodIsError) {
+  if (prodIsError || reposIsError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={prodError} />,
+      description: <ToastError error={prodError || reposError} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -167,27 +269,11 @@ const ProductComponent = () => {
             <CardDescription>{product.description}</CardDescription>
           </CardHeader>
         </Card>
-        <Link
-          to='/organizations/$orgId/products/$productId/repositories'
-          params={{
-            orgId: params.orgId,
-            productId: params.productId,
-          }}
+        <ProductRepositoriesStatisticsCard
           className='col-span-2'
-        >
-          <Suspense
-            fallback={
-              <StatisticsCard
-                title='Repositories'
-                icon={() => <Files className='h-4 w-4 text-orange-500' />}
-                value={<LoadingIndicator />}
-                className='h-full hover:bg-muted/50'
-              />
-            }
-          >
-            <ProductRepositoriesStatisticsCard productId={product.id} />
-          </Suspense>
-        </Link>
+          orgId={params.orgId}
+          productId={product.id.toString()}
+        />
       </div>
       <div className='grid grid-cols-4 gap-2'>
         <Link
@@ -252,6 +338,25 @@ const ProductComponent = () => {
           <ProductPackagesStatisticsCard productId={product.id} />
         </Suspense>
       </div>
+      <Card>
+        <CardContent className='my-4'>
+          <DataTable
+            table={table}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: 1, pageSize: size },
+              };
+            }}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };
