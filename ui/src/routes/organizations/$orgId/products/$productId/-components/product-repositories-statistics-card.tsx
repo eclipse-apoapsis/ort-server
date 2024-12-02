@@ -17,27 +17,36 @@
  * License-Filename: LICENSE
  */
 
-import { Files } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { Files, PlusIcon } from 'lucide-react';
 
 import { useRepositoriesServiceGetRepositoriesByProductId } from '@/api/queries';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
-import { cn } from '@/lib/utils';
 
 type ProductRepositoriesStatisticsCardProps = {
-  productId: number;
+  orgId: string;
+  productId: string;
   className?: string;
 };
 
 export const ProductRepositoriesStatisticsCard = ({
+  orgId,
   productId,
   className,
 }: ProductRepositoriesStatisticsCardProps) => {
   const { data, isPending, isError, error } =
     useRepositoriesServiceGetRepositoriesByProductId({
-      productId: productId,
+      productId: Number.parseInt(productId),
       limit: 1,
     });
 
@@ -64,14 +73,44 @@ export const ProductRepositoriesStatisticsCard = ({
     return;
   }
 
-  const vulnerabilitiesTotal = data.pagination.totalCount;
+  const repositoriesTotal = data.pagination.totalCount;
 
   return (
-    <StatisticsCard
-      title='Repositories'
-      icon={() => <Files className='h-4 w-4 text-green-500' />}
-      value={vulnerabilitiesTotal}
-      className={cn('h-full hover:bg-muted/50', className)}
-    />
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle>
+          <div className='flex items-center justify-between'>
+            <span className='text-sm font-semibold'>Repositories</span>
+            <Files className='h-4 w-4' />
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className='text-sm'>
+        <div className='flex'>
+          <div className='text-2xl font-bold'>
+            {repositoriesTotal !== undefined ? repositoriesTotal : 'Failed'}
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild size='sm' className='ml-auto gap-1'>
+                <Link
+                  to='/organizations/$orgId/products/$productId/create-repository'
+                  params={{
+                    orgId: orgId,
+                    productId: productId,
+                  }}
+                >
+                  Add repository
+                  <PlusIcon className='h-4 w-4' />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Add a repository for managing compliance runs
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
