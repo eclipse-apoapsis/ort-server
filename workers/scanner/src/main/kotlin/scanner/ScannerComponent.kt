@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
+import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
 import org.eclipse.apoapsis.ortserver.workers.common.env.buildEnvironmentModule
