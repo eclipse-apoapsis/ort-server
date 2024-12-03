@@ -72,4 +72,9 @@ interface RepositoryRepository {
      * Delete a repository by [id].
      */
     fun delete(id: Long)
+
+    /**
+     * Delete all [Repositories][Repository] associated to this [productId].
+     */
+    fun deleteByProduct(productId: Long): Int
 }

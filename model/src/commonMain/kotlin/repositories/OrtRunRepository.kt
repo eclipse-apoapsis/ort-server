@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 /**
  * A repository of [ORT runs][OrtRun].
  */
+@Suppress("TooManyFunctions")
 interface OrtRunRepository {
     /**
      * Create an ORT run.
@@ -112,4 +113,9 @@ interface OrtRunRepository {
      * Delete the ORT runs of a repository, specified by the [repositoryId].
      */
     fun deleteByRepository(repositoryId: Long): Int
+
+    /**
+     * Delete all ORT runs associated to this [productId].
+     */
+    fun deleteByProduct(productId: Long): Int
 }

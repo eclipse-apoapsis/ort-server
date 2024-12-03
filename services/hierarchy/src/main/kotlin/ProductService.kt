@@ -21,10 +21,12 @@ package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
+import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -45,6 +47,7 @@ class ProductService(
     private val db: Database,
     private val productRepository: ProductRepository,
     private val repositoryRepository: RepositoryRepository,
+    private val ortRunRepository: OrtRunRepository,
     private val authorizationService: AuthorizationService
 ) {
     /**
@@ -62,9 +65,12 @@ class ProductService(
     }.getOrThrow()
 
     /**
-     * Delete a product by [productId].
+     * Delete a [product][productId] with its [repositories][Repository] and [OrtRun]s.
      */
     suspend fun deleteProduct(productId: Long): Unit = db.dbQueryCatching {
+        ortRunRepository.deleteByProduct(productId)
+        repositoryRepository.deleteByProduct(productId)
+
         productRepository.delete(productId)
     }.onSuccess {
         runCatching {
