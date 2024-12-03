@@ -25,22 +25,36 @@ import kotlinx.serialization.Serializable
  * The status of a Job.
  */
 @Serializable
-enum class JobStatus {
+enum class JobStatus(
+    /** A flag that indicates whether the status is a final status. */
+    val final: Boolean,
+
+    /** A flag that indicates whether the status is a successful status. */
+    val successful: Boolean
+) {
     /** The job was created in the database but not yet scheduled for execution. */
-    CREATED,
+    CREATED(false, false),
 
     /** The job was scheduled for execution. */
-    SCHEDULED,
+    SCHEDULED(false, false),
 
     /** The responsible worker started processing the job. */
-    RUNNING,
+    RUNNING(false, false),
 
     /** The job failed during execution. */
-    FAILED,
+    FAILED(true, false),
 
     /** The job was processed successfully. */
-    FINISHED,
+    FINISHED(true, true),
 
     /** The job has finished but there were some issues over the threshold. */
-    FINISHED_WITH_ISSUES
+    FINISHED_WITH_ISSUES(true, true);
+
+    companion object {
+        /** List of final statuses. */
+        val FINAL_STATUSES: List<JobStatus> = entries.filter { it.final }
+
+        /** List of successful statuses. */
+        val SUCCESSFUL_STATUSES: List<JobStatus> = entries.filter { it.successful }
+    }
 }

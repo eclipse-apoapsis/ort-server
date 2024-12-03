@@ -21,6 +21,11 @@ package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
+import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
@@ -41,6 +46,8 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.services.utils.toJoinedString
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.and
 
 import org.slf4j.LoggerFactory
 
@@ -187,5 +194,77 @@ class RepositoryService(
         // Keycloak) and business exceptions (e.g. user not found), we can't do special exception handling here
         // and just let the exception propagate.
         authorizationService.addUserToGroup(username, groupName)
+    }
+
+    /**
+     * Get the ID of the latest ORT run of the repository where the analyzer job is in a final state.
+     */
+    suspend fun getLatestOrtRunIdWithAnalyzerJobInFinalState(repositoryId: Long): Long? = db.dbQuery {
+        AnalyzerJobsTable
+            .innerJoin(OrtRunsTable)
+            .select(AnalyzerJobsTable.ortRunId)
+            .where {
+                (OrtRunsTable.repositoryId eq repositoryId) and
+                        (AnalyzerJobsTable.status inList JobStatus.FINAL_STATUSES)
+            }
+            .orderBy(OrtRunsTable.index, SortOrder.DESC)
+            .limit(1)
+            .firstOrNull()
+            ?.get(AnalyzerJobsTable.ortRunId)
+            ?.value
+    }
+
+    /**
+     * Get the ID of the latest ORT run of the repository where the analyzer job has succeeded.
+     */
+    suspend fun getLatestOrtRunIdWithSuccessfulAnalyzerJob(repositoryId: Long): Long? = db.dbQuery {
+        AnalyzerJobsTable
+            .innerJoin(OrtRunsTable)
+            .select(AnalyzerJobsTable.ortRunId)
+            .where {
+                (OrtRunsTable.repositoryId eq repositoryId) and
+                        (AnalyzerJobsTable.status inList JobStatus.SUCCESSFUL_STATUSES)
+            }
+            .orderBy(OrtRunsTable.index, SortOrder.DESC)
+            .limit(1)
+            .firstOrNull()
+            ?.get(AnalyzerJobsTable.ortRunId)
+            ?.value
+    }
+
+    /**
+     * Get the ID of the latest ORT run of the repository where the advisor job has succeeded.
+     */
+    suspend fun getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId: Long): Long? = db.dbQuery {
+        AdvisorJobsTable
+            .innerJoin(OrtRunsTable)
+            .select(AdvisorJobsTable.ortRunId)
+            .where {
+                (OrtRunsTable.repositoryId eq repositoryId) and
+                        (AdvisorJobsTable.status inList JobStatus.SUCCESSFUL_STATUSES)
+            }
+            .orderBy(OrtRunsTable.index, SortOrder.DESC)
+            .limit(1)
+            .firstOrNull()
+            ?.get(AdvisorJobsTable.ortRunId)
+            ?.value
+    }
+
+    /**
+     * Get the ID of the latest ORT run of the repository where the evaluator job has succeeded.
+     */
+    suspend fun getLatestOrtRunIdWithSuccessfulEvaluatorJob(repositoryId: Long): Long? = db.dbQuery {
+        EvaluatorJobsTable
+            .innerJoin(OrtRunsTable)
+            .select(EvaluatorJobsTable.ortRunId)
+            .where {
+                (OrtRunsTable.repositoryId eq repositoryId) and
+                        (EvaluatorJobsTable.status inList JobStatus.SUCCESSFUL_STATUSES)
+            }
+            .orderBy(OrtRunsTable.index, SortOrder.DESC)
+            .limit(1)
+            .firstOrNull()
+            ?.get(EvaluatorJobsTable.ortRunId)
+            ?.value
     }
 }
