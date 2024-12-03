@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -29,6 +30,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.spyk
 
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -44,12 +46,14 @@ class ProductServiceTest : WordSpec({
     lateinit var db: Database
     lateinit var productRepository: DaoProductRepository
     lateinit var repositoryRepository: DaoRepositoryRepository
+    lateinit var ortRunRepository: DaoOrtRunRepository
     lateinit var fixtures: Fixtures
 
     beforeEach {
         db = dbExtension.db
         productRepository = dbExtension.fixtures.productRepository
         repositoryRepository = dbExtension.fixtures.repositoryRepository
+        ortRunRepository = dbExtension.fixtures.ortRunRepository
         fixtures = dbExtension.fixtures
     }
 
@@ -60,7 +64,8 @@ class ProductServiceTest : WordSpec({
                 coEvery { createRepositoryRoles(any()) } just runs
             }
 
-            val service = ProductService(db, productRepository, repositoryRepository, authorizationService)
+            val service =
+                ProductService(db, productRepository, repositoryRepository, ortRunRepository, authorizationService)
             val repository =
                 service.createRepository(RepositoryType.GIT, "https://example.com/repo.git", fixtures.product.id)
 
@@ -78,7 +83,8 @@ class ProductServiceTest : WordSpec({
                 coEvery { deleteProductRoles(any()) } just runs
             }
 
-            val service = ProductService(db, productRepository, repositoryRepository, authorizationService)
+            val service =
+                ProductService(db, productRepository, repositoryRepository, ortRunRepository, authorizationService)
             service.deleteProduct(fixtures.product.id)
 
             coVerify(exactly = 1) {
@@ -86,11 +92,35 @@ class ProductServiceTest : WordSpec({
                 authorizationService.deleteProductRoles(fixtures.product.id)
             }
         }
+
+        "delete all repositories associated to this product" {
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
+
+            val product = fixtures.createProduct()
+
+            val repo1 = fixtures.createRepository(url = "https://example.com/git/first.git", productId = product.id)
+            val repo2 = fixtures.createRepository(url = "https://example.com/git/second.git", productId = product.id)
+
+            fixtures.createOrtRun(repo1.id)
+            fixtures.createOrtRun(repo1.id)
+            fixtures.createOrtRun(repo2.id)
+            fixtures.createOrtRun(repo2.id)
+
+            fixtures.repositoryRepository.listForProduct(product.id).totalCount shouldBe 2
+            fixtures.ortRunRepository.listForRepository(repo1.id).totalCount shouldBe 2
+            fixtures.ortRunRepository.listForRepository(repo2.id).totalCount shouldBe 2
+
+            service.deleteProduct(product.id)
+
+            fixtures.repositoryRepository.listForProduct(product.id).totalCount shouldBe 0
+            fixtures.ortRunRepository.listForRepository(repo1.id).totalCount shouldBe 0
+            fixtures.ortRunRepository.listForRepository(repo2.id).totalCount shouldBe 0
+        }
     }
 
     "addUserToGroup" should {
         "throw an exception if the organization does not exist" {
-            val service = ProductService(db, productRepository, repositoryRepository, mockk())
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
 
             shouldThrow<ResourceNotFoundException> {
                 service.addUserToGroup("username", 1, "readers")
@@ -108,6 +138,7 @@ class ProductServiceTest : WordSpec({
                     db,
                     productRepository,
                     repositoryRepository,
+                    ortRunRepository,
                     authorizationService
                 )
             ) {
@@ -131,6 +162,7 @@ class ProductServiceTest : WordSpec({
                     db,
                     productRepository,
                     repositoryRepository,
+                    ortRunRepository,
                     authorizationService
                 )
             ) {
@@ -150,7 +182,7 @@ class ProductServiceTest : WordSpec({
 
     "removeUsersFromGroup" should {
         "throw an exception if the organization does not exist" {
-            val service = ProductService(db, productRepository, repositoryRepository, mockk())
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
 
             shouldThrow<ResourceNotFoundException> {
                 service.removeUserFromGroup("username", 1, "readers")
@@ -168,6 +200,7 @@ class ProductServiceTest : WordSpec({
                     db,
                     productRepository,
                     repositoryRepository,
+                    ortRunRepository,
                     authorizationService
                 )
             ) {
@@ -190,6 +223,7 @@ class ProductServiceTest : WordSpec({
                     db,
                     productRepository,
                     repositoryRepository,
+                    ortRunRepository,
                     authorizationService
                 )
             ) {

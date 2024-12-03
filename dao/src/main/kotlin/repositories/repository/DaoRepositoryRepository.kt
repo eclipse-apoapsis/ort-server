@@ -30,6 +30,8 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
 
 class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     override fun create(type: RepositoryType, url: String, productId: Long) = db.blockingQuery {
@@ -67,4 +69,8 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     }
 
     override fun delete(id: Long) = db.blockingQuery { RepositoryDao[id].delete() }
+
+    override fun deleteByProduct(productId: Long): Int = db.blockingQuery {
+        RepositoriesTable.deleteWhere { RepositoriesTable.productId eq productId }
+    }
 }

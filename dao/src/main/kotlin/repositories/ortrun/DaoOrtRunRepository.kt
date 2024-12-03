@@ -25,6 +25,8 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
@@ -46,7 +48,9 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.delete
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.max
 
 import org.slf4j.LoggerFactory
@@ -179,6 +183,15 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
 
     override fun deleteByRepository(repositoryId: Long): Int = db.blockingQuery {
         OrtRunsTable.deleteWhere { OrtRunsTable.repositoryId eq repositoryId }
+    }
+
+    override fun deleteByProduct(productId: Long): Int = db.blockingQuery {
+        OrtRunsTable
+            .innerJoin(RepositoriesTable, { repositoryId }, { RepositoriesTable.id })
+            .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
+            .delete(OrtRunsTable) {
+                ProductsTable.id eq productId
+            }
     }
 }
 
