@@ -35,8 +35,10 @@ import io.mockk.spyk
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 import org.jetbrains.exposed.sql.Database
 
@@ -220,6 +222,128 @@ class RepositoryServiceTest : WordSpec({
                     "REPOSITORY_1_READERS"
                 )
             }
+        }
+    }
+
+    "getLatestOrtRunIdWithAnalyzerJobInFinalState" should {
+        "return the ID of the latest ORT run of the repository where the analyzer job has finished or failed" {
+            val service = createService()
+
+            val repoId = fixtures.createRepository().id
+
+            val run1Id = fixtures.createOrtRun(repoId).id
+            val analyzerJob1Id = fixtures.createAnalyzerJob(run1Id).id
+            fixtures.analyzerJobRepository.update(
+                id = analyzerJob1Id,
+                status = JobStatus.FINISHED.asPresent()
+            )
+
+            val run2Id = fixtures.createOrtRun(repoId).id
+            val analyzerJob2Id = fixtures.createAnalyzerJob(run2Id).id
+            fixtures.analyzerJobRepository.update(
+                id = analyzerJob2Id,
+                status = JobStatus.FAILED.asPresent()
+            )
+
+            val run3Id = fixtures.createOrtRun(repoId).id
+            fixtures.createAnalyzerJob(run3Id).id
+
+            val ortRunId = service.getLatestOrtRunIdWithAnalyzerJobInFinalState(repoId)
+
+            ortRunId shouldBe run2Id
+        }
+    }
+
+    "getLatestOrtRunIdWithSuccessfulAnalyzerJob" should {
+        "return the ID of the latest ORT run of the repository that has a successful analyzer job" {
+            val service = createService()
+
+            val repoId = fixtures.createRepository().id
+
+            val run1Id = fixtures.createOrtRun(repoId).id
+            val analyzerJob1Id = fixtures.createAnalyzerJob(run1Id).id
+            fixtures.analyzerJobRepository.update(
+                id = analyzerJob1Id,
+                status = JobStatus.FINISHED.asPresent()
+            )
+
+            val run2Id = fixtures.createOrtRun(repoId).id
+            val analyzerJob2Id = fixtures.createAnalyzerJob(run2Id).id
+            fixtures.analyzerJobRepository.update(
+                id = analyzerJob2Id,
+                status = JobStatus.FINISHED_WITH_ISSUES.asPresent()
+            )
+
+            val run3Id = fixtures.createOrtRun(repoId).id
+            val analyzerJob3Id = fixtures.createAnalyzerJob(run3Id).id
+            fixtures.analyzerJobRepository.update(
+                id = analyzerJob3Id,
+                status = JobStatus.FAILED.asPresent()
+            )
+
+            val ortRunId = service.getLatestOrtRunIdWithSuccessfulAnalyzerJob(repoId)
+
+            ortRunId shouldBe run2Id
+        }
+    }
+
+    "getLatestOrtRunIdWithSuccessfulAdvisorJob" should {
+        "return the ID of the latest ORT run of the repository that has a successful advisor job" {
+            val service = createService()
+
+            val repoId = fixtures.createRepository().id
+
+            val run1Id = fixtures.createOrtRun(repoId).id
+            val advisorJob1Id = fixtures.createAdvisorJob(run1Id).id
+            fixtures.advisorJobRepository.update(
+                id = advisorJob1Id,
+                status = JobStatus.FINISHED_WITH_ISSUES.asPresent()
+            )
+
+            val run2Id = fixtures.createOrtRun(repoId).id
+            val advisorJob2Id = fixtures.createAdvisorJob(run2Id).id
+            fixtures.advisorJobRepository.update(
+                id = advisorJob2Id,
+                status = JobStatus.FINISHED.asPresent()
+            )
+
+            val run3Id = fixtures.createOrtRun(repoId).id
+            val advisorJob3Id = fixtures.createAdvisorJob(run3Id).id
+            fixtures.advisorJobRepository.update(
+                id = advisorJob3Id,
+                status = JobStatus.FAILED.asPresent()
+            )
+
+            val ortRunId = service.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId = repoId)
+            ortRunId shouldBe run2Id
+        }
+    }
+
+    "getLatestOrtRunIdWithSuccessfulEvaluatorJob" should {
+        "return the ID of the latest ORT run of the repository that has a successful evaluator job" {
+            val service = createService()
+
+            val repoId = fixtures.createRepository().id
+
+            val run1Id = fixtures.createOrtRun(repoId).id
+            val evaluatorJob1Id = fixtures.createEvaluatorJob(run1Id).id
+            fixtures.evaluatorJobRepository.update(
+                id = evaluatorJob1Id,
+                status = JobStatus.FINISHED.asPresent()
+            )
+
+            val run2Id = fixtures.createOrtRun(repoId).id
+            val evaluatorJob2Id = fixtures.createEvaluatorJob(run2Id).id
+            fixtures.evaluatorJobRepository.update(
+                id = evaluatorJob2Id,
+                status = JobStatus.FAILED.asPresent()
+            )
+
+            val run3Id = fixtures.createOrtRun(repoId).id
+            fixtures.createEvaluatorJob(run3Id).id
+
+            val ortRunId = service.getLatestOrtRunIdWithSuccessfulEvaluatorJob(repositoryId = repoId)
+            ortRunId shouldBe run1Id
         }
     }
 })
