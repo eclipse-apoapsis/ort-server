@@ -40,7 +40,10 @@ const Layout = () => {
       title: 'Vulnerabilities',
       to: '/organizations/$orgId/products/$productId/vulnerabilities',
       search: {
-        sortBy: { id: 'rating', desc: true },
+        sortBy: [
+          { id: 'rating', desc: true },
+          { id: 'count', desc: true },
+        ],
       },
       icon: () => <ShieldQuestion className='h-4 w-4' />,
     },

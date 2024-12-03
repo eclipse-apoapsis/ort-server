@@ -57,6 +57,7 @@ import {
 } from '@/components/ui/table';
 import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
+import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
@@ -233,7 +234,7 @@ const VulnerabilitiesComponent = () => {
   );
 
   const sortBy = useMemo(
-    () => (search.sortBy ? [search.sortBy] : undefined),
+    () => (search.sortBy ? search.sortBy : undefined),
     [search.sortBy]
   );
 
@@ -323,7 +324,7 @@ const VulnerabilitiesComponent = () => {
               to: Route.to,
               search: {
                 ...search,
-                sortBy: sortBy,
+                sortBy: updateColumnSorting(search.sortBy, sortBy),
               },
             };
           }}

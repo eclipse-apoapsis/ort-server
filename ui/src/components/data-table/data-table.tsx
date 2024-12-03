@@ -66,9 +66,10 @@ interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * A function to provide `LinkOptions` for a link to set current sorting in the URL.
    */
-  setSortingOptions?: (
-    sorting: { id: string; desc: boolean } | undefined
-  ) => LinkOptions;
+  setSortingOptions?: (sorting: {
+    id: string;
+    desc: boolean | undefined; // For column removal to work when multisorting, this needed to be changed
+  }) => LinkOptions;
   enableGrouping?: boolean;
 }
 
@@ -165,19 +166,16 @@ export function DataTable<TData>({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Link
-                                  {...setSortingOptions(
-                                    header.column.getIsSorted() === 'desc'
-                                      ? undefined
-                                      : {
-                                          id: header.column.id,
-                                          // For sortable columns, the order of sorting is asc -> desc -> [no sorting].
-                                          desc:
-                                            header.column.getIsSorted() ===
-                                            'asc'
-                                              ? true
-                                              : false,
-                                        }
-                                  )}
+                                  {...setSortingOptions({
+                                    id: header.column.id,
+                                    // For sortable columns, the order of sorting is asc -> desc -> [no sorting].
+                                    desc:
+                                      header.column.getIsSorted() === 'desc'
+                                        ? undefined
+                                        : header.column.getIsSorted() === 'asc'
+                                          ? true
+                                          : false,
+                                  })}
                                 >
                                   <Button
                                     variant='ghost'
@@ -209,13 +207,11 @@ export function DataTable<TData>({
                               </TooltipTrigger>
                               <TooltipContent>
                                 {header.column.getCanSort()
-                                  ? header.column.getNextSortingOrder() ===
-                                    'asc'
-                                    ? 'Sort ascending'
-                                    : header.column.getNextSortingOrder() ===
-                                        'desc'
-                                      ? 'Sort descending'
-                                      : 'Clear sorting'
+                                  ? header.column.getIsSorted() === 'asc'
+                                    ? 'Sort descending'
+                                    : header.column.getIsSorted() === 'desc'
+                                      ? 'Clear sorting'
+                                      : 'Sort ascending'
                                   : undefined}
                               </TooltipContent>
                             </Tooltip>

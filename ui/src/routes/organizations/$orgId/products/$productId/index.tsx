@@ -283,7 +283,10 @@ const ProductComponent = () => {
             productId: params.productId,
           }}
           search={{
-            sortBy: { id: 'rating', desc: true },
+            sortBy: [
+              { id: 'rating', desc: true },
+              { id: 'count', desc: true },
+            ],
           }}
         >
           <Suspense
