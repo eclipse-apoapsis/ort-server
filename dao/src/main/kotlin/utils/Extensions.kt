@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-// TODO: Remove this once context parameters become available, see:
+// TODO: Remove "CONTEXT_RECEIVERS_DEPRECATED" once context parameters become available, see:
 // https://kotlinlang.org/docs/whatsnew2020.html#phased-replacement-of-context-receivers-with-context-parameters
-@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED")
+@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED", "TooManyFunctions")
 
 package org.eclipse.apoapsis.ortserver.dao.utils
 
@@ -37,6 +37,7 @@ import org.jetbrains.exposed.dao.EntityClass
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.sql.AbstractQuery
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SizedIterable
@@ -99,6 +100,23 @@ fun <E : LongEntity, M, T : AbstractQuery<T>> SortableEntityClass<E>.listCustomQ
 }
 
 /**
+ * Run the [query] using the [parameters] and the [customOrders] to create a [ListQueryResult]. The entities are mapped
+ * to the corresponding model objects using the provided [entityMapper].
+ */
+fun <M, T : AbstractQuery<T>> listCustomQueryCustomOrders(
+    parameters: ListQueryParameters,
+    customOrders: List<Pair<Expression<*>, SortOrder>>,
+    entityMapper: (ResultRow) -> M,
+    query: () -> AbstractQuery<T>
+): ListQueryResult<M> {
+    val totalCount = query().count()
+    val apply = query().apply(parameters, customOrders)
+    val data = apply.map(entityMapper)
+
+    return ListQueryResult(data, parameters, totalCount)
+}
+
+/**
  * Apply the given [parameters] to this query result using [table] to resolve the columns to be sorted by.
  */
 internal fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQueryParameters): SizedIterable<T> {
@@ -109,6 +127,17 @@ internal fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQu
     }
 
     val orderedQuery = orderBy(*orders.toTypedArray())
+    return parameters.limit?.let { orderedQuery.limit(it).offset(parameters.offset ?: 0) } ?: orderedQuery
+}
+
+/**
+ * Apply the given [parameters] and [customOrders] to this query result.
+ */
+internal fun <T> SizedIterable<T>.apply(
+    parameters: ListQueryParameters,
+    customOrders: List<Pair<Expression<*>, SortOrder>>
+): SizedIterable<T> {
+    val orderedQuery = orderBy(*customOrders.toTypedArray())
     return parameters.limit?.let { orderedQuery.limit(it).offset(parameters.offset ?: 0) } ?: orderedQuery
 }
 
