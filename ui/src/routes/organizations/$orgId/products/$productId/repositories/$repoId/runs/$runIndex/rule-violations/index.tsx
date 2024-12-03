@@ -52,6 +52,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
+import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import {
@@ -176,7 +177,7 @@ const RuleViolationsComponent = () => {
     [severity]
   );
   const sortBy = useMemo(
-    () => (search.sortBy ? [search.sortBy] : undefined),
+    () => (search.sortBy ? search.sortBy : undefined),
     [search.sortBy]
   );
 
@@ -272,7 +273,7 @@ const RuleViolationsComponent = () => {
               to: Route.to,
               search: {
                 ...search,
-                sortBy: sortBy,
+                sortBy: updateColumnSorting(search.sortBy, sortBy),
               },
             };
           }}
