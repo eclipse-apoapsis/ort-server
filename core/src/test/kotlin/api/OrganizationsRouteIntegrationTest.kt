@@ -306,6 +306,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(invalidJson)
                 }
 
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Invalid request body."
                 body.cause.shouldContain(
