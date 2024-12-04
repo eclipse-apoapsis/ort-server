@@ -76,6 +76,12 @@ class OrganizationService(
      * Delete an organization by [organizationId].
      */
     suspend fun deleteOrganization(organizationId: Long): Unit = db.dbQueryCatching {
+        if (productRepository.countForOrganization(organizationId) != 0L) {
+            throw OrganizationNotEmptyException(
+                "Cannot delete organization '$organizationId', as it still contains products."
+            )
+        }
+
         organizationRepository.delete(organizationId)
     }.onSuccess {
         runCatching {
@@ -179,3 +185,5 @@ class OrganizationService(
         authorizationService.removeUserFromGroup(username, groupName)
     }
 }
+
+class OrganizationNotEmptyException(message: String) : Exception(message)

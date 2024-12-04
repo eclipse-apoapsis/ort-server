@@ -52,6 +52,11 @@ interface ProductRepository {
     ): ListQueryResult<Product>
 
     /**
+     * Count the products associated to an [organization][organizationId].
+     */
+    fun countForOrganization(organizationId: Long): Long
+
+    /**
      * Update a product by [id] with the [present][OptionalValue.Present] values.
      */
     fun update(
