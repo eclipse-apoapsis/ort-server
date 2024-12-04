@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 class DaoProductRepository(private val db: Database) : ProductRepository {
     override fun create(name: String, description: String?, organizationId: Long) = db.blockingQuery {
@@ -42,6 +43,9 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
 
     override fun list(parameters: ListQueryParameters) =
         db.blockingQuery { ProductDao.list(parameters).map { it.mapToModel() } }
+
+    override fun countForOrganization(organizationId: Long) =
+        ProductDao.count(ProductsTable.organizationId eq organizationId)
 
     override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters) = db.blockingQuery {
         ProductDao.listQuery(parameters, ProductDao::mapToModel) { ProductsTable.organizationId eq organizationId }

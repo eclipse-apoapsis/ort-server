@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.UrlPathFormatException
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
+import org.eclipse.apoapsis.ortserver.services.OrganizationNotEmptyException
 import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
@@ -67,6 +68,15 @@ fun Application.configureStatusPages() {
             call.respond(
                 HttpStatusCode.BadRequest,
                 ErrorResponse(message = "Secret reference could not be resolved.", e.message)
+            )
+        }
+        exception<OrganizationNotEmptyException> { call, e ->
+            call.respond(
+                HttpStatusCode.Conflict,
+                ErrorResponse(
+                    "Organization is not empty. Delete all products before deleting the organization.",
+                    e.message
+                )
             )
         }
         exception<ReferencedEntityException> { call, e ->
