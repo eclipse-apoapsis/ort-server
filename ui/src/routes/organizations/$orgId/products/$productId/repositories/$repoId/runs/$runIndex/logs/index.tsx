@@ -25,6 +25,7 @@ import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/pr
 import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
 import { OpenAPI } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -39,6 +40,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { toast } from '@/lib/toast';
 
 const ReportComponent = () => {
   const params = Route.useParams();
@@ -65,6 +67,12 @@ const ReportComponent = () => {
           },
         }
       );
+
+      // Check if the response status is not in the 2xx range
+      if (!response.ok) {
+        throw new Error();
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -79,7 +87,14 @@ const ReportComponent = () => {
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error(error);
+      toast.error('Unable to download logs', {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
     } finally {
       setIsPending(false);
     }
