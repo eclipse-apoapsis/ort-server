@@ -277,12 +277,10 @@ fun Route.runs() = route("runs") {
 
                     val jobs = repositoryService.getJobs(ortRun.repositoryId, ortRun.index)
 
-                    val finishedStateSet: Set<JobStatus> = setOf(JobStatus.FINISHED, JobStatus.FINISHED_WITH_ISSUES)
-
-                    val analyzerJobInFinalState = jobs?.analyzer?.status in finishedStateSet.plus(JobStatus.FAILED)
-                    val analyzerJobInFinishedState = jobs?.analyzer?.status in finishedStateSet
-                    val advisorJobInFinishedState = jobs?.advisor?.status in finishedStateSet
-                    val evaluatorJobInFinishedState = jobs?.evaluator?.status in finishedStateSet
+                    val analyzerJobInFinalState = jobs?.analyzer?.status in JobStatus.FINAL_STATUSES
+                    val analyzerJobInFinishedState = jobs?.analyzer?.status in JobStatus.SUCCESSFUL_STATUSES
+                    val advisorJobInFinishedState = jobs?.advisor?.status in JobStatus.SUCCESSFUL_STATUSES
+                    val evaluatorJobInFinishedState = jobs?.evaluator?.status in JobStatus.SUCCESSFUL_STATUSES
 
                     val issuesCount = if (analyzerJobInFinalState) issueService.countForOrtRunId(ortRun.id) else null
 
