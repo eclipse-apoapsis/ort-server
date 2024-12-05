@@ -23,6 +23,7 @@ import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/pr
 import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
 import { OpenAPI } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -31,6 +32,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { toast } from '@/lib/toast';
 
 const ReportComponent = () => {
   const params = Route.useParams();
@@ -56,6 +58,12 @@ const ReportComponent = () => {
           },
         }
       );
+
+      // Check if the response status is not in the 2xx range
+      if (!response.ok) {
+        throw new Error();
+      }
+
       // Convert the response to a Blob
       const blob = await response.blob();
       // Create a temporary URL for the Blob
@@ -69,7 +77,14 @@ const ReportComponent = () => {
       // Clean up by revoking the URL
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error(error);
+      toast.error('Unable to download report', {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
     }
   };
 
