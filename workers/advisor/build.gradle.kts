@@ -54,6 +54,7 @@ dependencies {
     implementation(platform(libs.ortAdvisors))
 
     runtimeOnly(platform(projects.config))
+    runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.transport))
 
     runtimeOnly(libs.log4jToSlf4j)
