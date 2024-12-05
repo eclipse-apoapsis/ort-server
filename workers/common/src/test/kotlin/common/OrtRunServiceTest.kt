@@ -48,8 +48,6 @@ import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
@@ -122,17 +120,11 @@ class OrtRunServiceTest : WordSpec({
     lateinit var db: Database
     lateinit var fixtures: Fixtures
 
-    lateinit var repositoryConfigRepository: RepositoryConfigurationRepository
-    lateinit var resolvedConfigurationRepository: ResolvedConfigurationRepository
-
     lateinit var service: OrtRunService
 
     beforeEach {
         db = dbExtension.db
         fixtures = dbExtension.fixtures
-
-        repositoryConfigRepository = dbExtension.fixtures.repositoryConfigurationRepository
-        resolvedConfigurationRepository = dbExtension.fixtures.resolvedConfigurationRepository
 
         service = OrtRunService(
             db,
@@ -147,9 +139,9 @@ class OrtRunServiceTest : WordSpec({
             fixtures.reporterRunRepository,
             fixtures.notifierJobRepository,
             fixtures.notifierRunRepository,
-            repositoryConfigRepository,
+            fixtures.repositoryConfigurationRepository,
             fixtures.repositoryRepository,
-            resolvedConfigurationRepository,
+            fixtures.resolvedConfigurationRepository,
             fixtures.scannerJobRepository,
             fixtures.scannerRunRepository
         )
@@ -406,8 +398,7 @@ class OrtRunServiceTest : WordSpec({
                 processedVcsInfo,
                 nestedVcsInfo1,
                 nestedVcsInfo2,
-                fixtures,
-                repositoryConfigRepository
+                fixtures
             )
 
             service.getOrtRepositoryInformation(ortRun) shouldBe Repository(
@@ -429,8 +420,7 @@ class OrtRunServiceTest : WordSpec({
                 processedVcsInfo,
                 nestedVcsInfo1,
                 nestedVcsInfo2,
-                fixtures,
-                repositoryConfigRepository
+                fixtures
             )
 
             val exception = shouldThrow<IllegalArgumentException> {
@@ -451,8 +441,7 @@ class OrtRunServiceTest : WordSpec({
                 null,
                 nestedVcsInfo1,
                 nestedVcsInfo2,
-                fixtures,
-                repositoryConfigRepository
+                fixtures
             )
 
             val exception = shouldThrow<IllegalArgumentException> {
@@ -525,7 +514,7 @@ class OrtRunServiceTest : WordSpec({
             val id = Identifier("type", "namespace", "name", "version")
 
             val packageConfigurations = listOf(PackageConfiguration(id = id))
-            resolvedConfigurationRepository.addPackageConfigurations(ortRun.id, packageConfigurations)
+            fixtures.resolvedConfigurationRepository.addPackageConfigurations(ortRun.id, packageConfigurations)
 
             val packageCurations = listOf(
                 ResolvedPackageCurations(
@@ -533,12 +522,12 @@ class OrtRunServiceTest : WordSpec({
                     curations = listOf(PackageCuration(id = id, PackageCurationData()))
                 )
             )
-            resolvedConfigurationRepository.addPackageCurations(ortRun.id, packageCurations)
+            fixtures.resolvedConfigurationRepository.addPackageCurations(ortRun.id, packageCurations)
 
             val resolutions = Resolutions(
                 issues = listOf(IssueResolution(message = "message", reason = "reason", comment = "comment"))
             )
-            resolvedConfigurationRepository.addResolutions(ortRun.id, resolutions)
+            fixtures.resolvedConfigurationRepository.addResolutions(ortRun.id, resolutions)
 
             service.getResolvedConfiguration(ortRun) shouldBe
                     ResolvedConfiguration(packageConfigurations, packageCurations, resolutions)
@@ -1037,8 +1026,7 @@ class OrtRunServiceTest : WordSpec({
                 processedVcsInfo,
                 nestedVcsInfo1,
                 nestedVcsInfo2,
-                fixtures,
-                repositoryConfigRepository
+                fixtures
             )
 
             service.generateOrtResult(ortRun).let { ortResult ->
@@ -1121,8 +1109,7 @@ private fun createOrtRun(
     processedVcsInfo: VcsInfo?,
     nestedVcsInfo1: VcsInfo,
     nestedVcsInfo2: VcsInfo,
-    fixtures: Fixtures,
-    repositoryConfigurationRepository: RepositoryConfigurationRepository
+    fixtures: Fixtures
 ) = db.blockingQuery {
     val vcs = vcsInfo?.let(VcsInfoDao::getOrPut)
     val vcsProcessed = processedVcsInfo?.let(VcsInfoDao::getOrPut)
@@ -1144,7 +1131,7 @@ private fun createOrtRun(
 
     val repositoryConfiguration = OrtTestData.repository.config.mapToModel(fixtures.ortRun.id)
 
-    repositoryConfigurationRepository.create(
+    fixtures.repositoryConfigurationRepository.create(
         ortRunId = ortRunDao.id.value,
         analyzerConfig = repositoryConfiguration.analyzerConfig,
         excludes = repositoryConfiguration.excludes,
