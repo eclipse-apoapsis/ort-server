@@ -105,6 +105,7 @@ class EvaluatorWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val ortRunService = mockk<OrtRunService> {
+            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns OrtResult.EMPTY
             every { getAdvisorRunForOrtRun(any()) } returns advisorRun
             every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
             every { getEvaluatorJob(any()) } returns evaluatorJob
@@ -158,7 +159,6 @@ class EvaluatorWorkerTest : StringSpec({
 
             coVerify(exactly = 1) {
                 ortRunService.storeEvaluatorRun(any())
-                ortRunService.getOrtRepositoryInformation(ortRun)
             }
         }
     }
@@ -198,6 +198,7 @@ class EvaluatorWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val ortRunService = mockk<OrtRunService> {
+            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns OrtResult.EMPTY
             every { getAdvisorRunForOrtRun(any()) } returns advisorRun
             every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
             every { getEvaluatorJob(any()) } returns evaluatorJob
@@ -242,7 +243,6 @@ class EvaluatorWorkerTest : StringSpec({
 
             coVerify(exactly = 1) {
                 ortRunService.storeEvaluatorRun(any())
-                ortRunService.getOrtRepositoryInformation(ortRun)
             }
         }
     }

@@ -27,7 +27,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 
@@ -54,19 +53,7 @@ internal class EvaluatorWorker(
             ?: throw IllegalArgumentException("The evaluator job with id '$jobId' could not be started.")
         logger.debug("Evaluator job with id '{}' started at {}.", job.id, job.startedAt)
 
-        val repository = ortRunService.getOrtRepositoryInformation(ortRun)
-        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
-        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(ortRun.id)
-        val advisorRun = ortRunService.getAdvisorRunForOrtRun(ortRun.id)
-        val scannerRun = ortRunService.getScannerRunForOrtRun(ortRun.id)
-
-        val ortResult = ortRun.mapToOrt(
-            repository = repository,
-            analyzerRun = analyzerRun?.mapToOrt(),
-            advisorRun = advisorRun?.mapToOrt(),
-            scannerRun = scannerRun?.mapToOrt(),
-            resolvedConfiguration = resolvedConfiguration.mapToOrt()
-        )
+        val ortResult = ortRunService.generateOrtResult(ortRun)
 
         val evaluatorRunnerResult = runner.run(ortResult, job.configuration, workerContext)
 
