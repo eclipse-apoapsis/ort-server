@@ -81,6 +81,7 @@ dependencies {
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))
+    runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.transport))
 
     runtimeOnly(libs.log4jToSlf4j)

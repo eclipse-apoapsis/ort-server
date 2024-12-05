@@ -56,6 +56,7 @@ dependencies {
     runtimeOnly(libs.logback)
 
     runtimeOnly(platform(projects.config))
+    runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.transport))
 
     testImplementation(libs.koinTest)

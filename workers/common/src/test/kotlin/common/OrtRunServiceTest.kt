@@ -31,6 +31,8 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
+import io.mockk.mockk
+
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -143,7 +145,8 @@ class OrtRunServiceTest : WordSpec({
             fixtures.repositoryRepository,
             fixtures.resolvedConfigurationRepository,
             fixtures.scannerJobRepository,
-            fixtures.scannerRunRepository
+            fixtures.scannerRunRepository,
+            mockk()
         )
     }
 
