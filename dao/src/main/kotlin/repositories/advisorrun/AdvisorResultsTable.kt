@@ -47,7 +47,6 @@ class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {
     var advisorRunIdentifier by AdvisorRunIdentifierDao referencedOn AdvisorResultsTable.advisorRunIdentifierId
 
     var advisorName by AdvisorResultsTable.advisorName
-    @Suppress("DEPRECATION") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
     var capabilities by AdvisorResultsTable.capabilities
         .transform({ it.joinToString(",") }, { it.split(",") })
     var startTime by AdvisorResultsTable.startTime.transformToDatabasePrecision()

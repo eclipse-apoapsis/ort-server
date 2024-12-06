@@ -45,7 +45,6 @@ class ScannerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var skipConcluded by ScannerConfigurationsTable.skipConcluded
     var skipExcluded by ScannerConfigurationsTable.skipExcluded
-    @Suppress("DEPRECATION") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
     var ignorePatterns: List<String>? by ScannerConfigurationsTable.ignorePatterns
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var detectedLicenseMappings by DetectedLicenseMappingDao via

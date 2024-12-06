@@ -103,7 +103,7 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
     var name by InfrastructureServicesTable.name
     var url by InfrastructureServicesTable.url
     var description by InfrastructureServicesTable.description
-    @Suppress("DEPRECATION") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
+
     var credentialsTypes by InfrastructureServicesTable.credentialsType.transform(
         { toCredentialsTypeString(it) },
         { fromCredentialsTypeString(it) }

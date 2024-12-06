@@ -56,7 +56,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
  * Transform the given column [to database precision][toDatabasePrecision] when creating a DAO object.
  */
 context(EntityClass<*, *>)
-@Suppress("DEPRECATION", "UNCHECKED_CAST") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
+@Suppress("UNCHECKED_CAST")
 fun <T : Instant?> Column<T>.transformToDatabasePrecision() = transform({ it?.toDatabasePrecision() as T }, { it })
 
 /**

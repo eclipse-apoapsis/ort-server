@@ -39,7 +39,6 @@ class PackageManagerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<PackageManagerConfigurationDao>(PackageManagerConfigurationsTable)
 
     var name by PackageManagerConfigurationsTable.name
-    @Suppress("DEPRECATION") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
     var mustRunAfter: List<String>? by PackageManagerConfigurationsTable.mustRunAfter
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var hasOptions by PackageManagerConfigurationsTable.hasOptions
