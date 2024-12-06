@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.orchestrator
 import java.sql.Connection
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
@@ -42,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrtRunStuckJobsError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
@@ -260,6 +262,69 @@ class Orchestrator(
         }.onFailure {
             log.warn("Failed to handle 'WorkerError' message.", it)
         }
+    }
+
+    fun handleOrtRunStuckJobsError(header: MessageHeader, error: OrtRunStuckJobsError) {
+        val ortRun = ortRunRepository.get(error.ortRunId)
+
+        requireNotNull(ortRun) {
+            "Can't find ort run with id: ${error.ortRunId}. Failed handle 'OrtRunStuckJobsError' message."
+        }
+
+        val jobs = getJobsForOrtRun(ortRun.id)
+        val lastJobEndpoint = findLastJobEndpointForStuckRun(jobs)
+
+        if (lastJobEndpoint.isNotEmpty()) {
+            nextJobsToSchedule(
+                Endpoint.fromConfigPrefix(lastJobEndpoint),
+                ortRun.id,
+                header,
+                jobs
+            )
+        } else {
+            db.blockingQueryCatching(transactionIsolation = isolationLevel) {
+                val context = WorkerScheduleContext(
+                    ortRun,
+                    workerJobRepositories,
+                    publisher,
+                    header,
+                    emptyMap()
+                )
+                context to listOf { scheduleConfigWorkerJob(ortRun, header) }
+            }.onSuccess { (context, createdJobs) ->
+                scheduleCreatedJobs(context, createdJobs)
+            }.onFailure {
+                log.warn("Failed handle 'OrtRunStuckJobsError' message.", it)
+            }
+        }
+    }
+
+    private fun getJobsForOrtRun(ortRunId: Long): Map<String, WorkerJob> {
+        val jobs = mutableMapOf<String, WorkerJob>()
+
+        workerJobRepositories.jobRepositories.forEach { (endpoint, repository) ->
+            repository.getForOrtRun(ortRunId)?.let { job ->
+                jobs[endpoint] = job
+            }
+        }
+
+        return jobs
+    }
+
+    private fun findLastJobEndpointForStuckRun(jobs: Map<String, WorkerJob>): String {
+        var lastJob = ""
+        var lastJobFinishTime = Instant.DISTANT_PAST
+
+        jobs.forEach { (endpoint, job) ->
+            job.finishedAt?.let {
+                if (lastJobFinishTime < it) {
+                    lastJobFinishTime = it
+                    lastJob = endpoint
+                }
+            }
+        }
+
+        return lastJob
     }
 
     /**

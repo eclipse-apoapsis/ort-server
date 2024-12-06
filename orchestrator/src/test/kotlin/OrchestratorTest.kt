@@ -71,6 +71,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrtRunStuckJobsError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
@@ -1973,6 +1974,61 @@ class OrchestratorTest : WordSpec() {
                     )
                 }
                 verifyReporterJobCreated(reporterJobRepository, publisher)
+            }
+        }
+
+        "handleOrtRunStuckJobsError" should {
+            "OrtRunStuckJobsError should be handled by reschedule jobs from configurator if no jobs exists" {
+                val stuckJobsError = OrtRunStuckJobsError(ortRunId = RUN_ID)
+
+                val analyzerJobRepository: AnalyzerJobRepository = mockk {
+                    every { getForOrtRun(RUN_ID) } returns null
+                }
+                val advisorJobRepository: AdvisorJobRepository = mockk {
+                    every { getForOrtRun(RUN_ID) } returns null
+                }
+                val scannerJobRepository: ScannerJobRepository = mockk {
+                    every { getForOrtRun(RUN_ID) } returns null
+                }
+                val evaluatorJobRepository: EvaluatorJobRepository = mockk {
+                    every { getForOrtRun(RUN_ID) } returns null
+                }
+                val reporterJobRepository: ReporterJobRepository = mockk {
+                    every { getForOrtRun(RUN_ID) } returns null
+                }
+                val ortRunRepository: OrtRunRepository = mockk {
+                    every { get(RUN_ID) } returns ortRun
+                    every { update(any(), any()) } returns mockk()
+                }
+
+                val publisher = createMessagePublisher()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        evaluatorJobRepository = evaluatorJobRepository,
+                        reporterJobRepository = reporterJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleOrtRunStuckJobsError(msgHeader, stuckJobsError)
+                }
+
+                verify(exactly = 1) {
+                    publisher.publish(
+                        to = withArg { it shouldBe ConfigEndpoint },
+                        message = withArg<Message<ConfigRequest>> {
+                            it.header shouldBe msgHeaderWithProperties
+                            it.payload shouldBe ConfigRequest(ortRun.id)
+                        }
+                    )
+
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe analyzerJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.ACTIVE) }
+                    )
+                }
             }
         }
     }
