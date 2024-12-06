@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.ortrun
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
@@ -137,6 +138,13 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             logger.error("Cannot list ORT runs for repository $repositoryId.", it)
             ListQueryResult(emptyList(), parameters, 0L)
         }
+
+    override fun listActive(before: Instant?): List<OrtRun> = db.blockingQuery {
+        OrtRunDao.find {
+            val statusActive = OrtRunsTable.status eq OrtRunStatus.ACTIVE
+            before?.let { statusActive and (OrtRunsTable.createdAt lessEq it) } ?: statusActive
+        }.map { it.mapToModel() }
+    }
 
     override fun update(
         id: Long,

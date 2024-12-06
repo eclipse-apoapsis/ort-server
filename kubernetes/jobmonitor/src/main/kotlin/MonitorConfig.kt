@@ -90,6 +90,10 @@ data class MonitorConfig(
     /** The interval in which the detection for long-running jobs should run. */
     val longRunningJobsInterval: Duration,
 
+    val stuckJobsInterval: Duration,
+
+    val stuckJobsMinAge: Duration,
+
     /** The configuration of the timeouts for the single workers. */
     val timeoutConfig: TimeoutConfig,
 
@@ -103,7 +107,10 @@ data class MonitorConfig(
     val lostJobsEnabled: Boolean,
 
     /** Flag whether the detection of long-running jobs should be active. */
-    val longRunningJobsEnabled: Boolean
+    val longRunningJobsEnabled: Boolean,
+
+    /** Flag whether the detection of stuck ort run jobs should be active. */
+    val stuckJobsEnabled: Boolean
 ) {
     companion object {
         /** The prefix for all configuration properties. */
@@ -125,6 +132,10 @@ data class MonitorConfig(
          * The configuration property defining the interval in which the lost jobs detection should run (in seconds).
          */
         private const val LOST_JOBS_INTERVAL_PROPERTY = "lostJobsInterval"
+
+        private const val STUCK_JOBS_INTERVAL_PROPERTY = "stuckJobsInterval"
+
+        private const val STUCK_JOBS_MIN_AGE_PROPERTY = "stuckJobsMinAge"
 
         /** The configuration property defining the minimum age of a job (in seconds) to be considered lost. */
         private const val LOST_JOBS_MIN_AGE_PROPERTY = "lostJobsMinAge"
@@ -152,6 +163,9 @@ data class MonitorConfig(
 
         /** The configuration property to enable or disable the detection of long-running jobs. */
         private const val LONG_RUNNING_JOBS_ENABLED_PROPERTY = "enableLongRunningJobs"
+
+        /** The configuration property to enable or disable the detection of long-running jobs. */
+        private const val STUCK_JOBS_ENABLED_PROPERTY = "enableStuckJobs"
 
         /** The section that defines the timeouts for the single workers. */
         private const val TIMEOUTS_SECTION = "timeouts"
@@ -191,10 +205,13 @@ data class MonitorConfig(
                 lostJobsMinAge = config.getInt(LOST_JOBS_MIN_AGE_PROPERTY).seconds,
                 recentlyProcessedInterval = config.getInt(RECENTLY_PROCESSED_INTERVAL_PROPERTY).seconds,
                 longRunningJobsInterval = config.getInt(LONG_RUNNING_JOBS_INTERVAL_PROPERTY).seconds,
+                stuckJobsInterval = config.getInt(STUCK_JOBS_INTERVAL_PROPERTY).seconds,
+                stuckJobsMinAge = config.getInt(STUCK_JOBS_MIN_AGE_PROPERTY).seconds,
                 watchingEnabled = config.getBoolean(WATCHING_ENABLED_PROPERTY),
                 reaperEnabled = config.getBoolean(REAPER_ENABLED_PROPERTY),
                 lostJobsEnabled = config.getBoolean(LOST_JOBS_ENABLED_PROPERTY),
                 longRunningJobsEnabled = config.getBoolean(LONG_RUNNING_JOBS_ENABLED_PROPERTY),
+                stuckJobsEnabled = config.getBoolean(STUCK_JOBS_ENABLED_PROPERTY),
                 timeoutConfig = createTimeoutConfig(config)
             )
         }
