@@ -44,10 +44,8 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var analyzerRun by AnalyzerRunDao referencedOn AnalyzerConfigurationsTable.analyzerRunId
 
     var allowDynamicVersions by AnalyzerConfigurationsTable.allowDynamicVersions
-    @Suppress("DEPRECATION") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
     var enabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.enabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })
-    @Suppress("DEPRECATION") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
     var disabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.disabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var skipExcluded by AnalyzerConfigurationsTable.skipExcluded

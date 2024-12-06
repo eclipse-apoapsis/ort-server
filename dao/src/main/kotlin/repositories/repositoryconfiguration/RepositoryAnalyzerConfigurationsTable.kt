@@ -86,10 +86,8 @@ class RepositoryAnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     }
 
     var allowDynamicVersions by RepositoryAnalyzerConfigurationsTable.allowDynamicVersions
-    @Suppress("DEPRECATION") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
     var enabledPackageManagers: List<String>? by RepositoryAnalyzerConfigurationsTable.enabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })
-    @Suppress("DEPRECATION") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
     var disabledPackageManagers: List<String>? by RepositoryAnalyzerConfigurationsTable.disabledPackageManagers
         .transform({ it?.joinToString(",") }, { it?.split(",") })
     var skipExcluded by RepositoryAnalyzerConfigurationsTable.skipExcluded
