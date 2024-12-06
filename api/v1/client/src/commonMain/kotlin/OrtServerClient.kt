@@ -28,6 +28,7 @@ import io.ktor.client.plugins.defaultRequest
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
+import org.eclipse.apoapsis.ortserver.client.api.RunsApi
 import org.eclipse.apoapsis.ortserver.client.auth.AuthService
 
 class OrtServerClient(
@@ -94,4 +95,9 @@ class OrtServerClient(
      * Provide access to the repositories API, allowing operations on repositories in the ORT server.
      */
     val repositories = RepositoriesApi(client)
+
+    /**
+     * Provide access to the runs API, allowing operations on runs in the ORT server.
+     */
+    val runs = RunsApi(client)
 }
