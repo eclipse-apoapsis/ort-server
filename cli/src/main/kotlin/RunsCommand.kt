@@ -24,6 +24,6 @@ import com.github.ajalt.clikt.core.subcommands
 
 class RunsCommand(config: OrtServerOptions) : SuspendingNoOpCliktCommand(name = "runs") {
     init {
-        subcommands(StartCommand(config))
+        subcommands(StartCommand(config), InfoCommand(config))
     }
 }
