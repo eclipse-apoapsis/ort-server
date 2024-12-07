@@ -17,13 +17,26 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.cli
+package org.eclipse.apoapsis.ortserver.client.api
 
-import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
-import com.github.ajalt.clikt.core.subcommands
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
 
-class RunsCommand(config: OrtServerOptions) : SuspendingNoOpCliktCommand(name = "runs") {
-    init {
-        subcommands(StartCommand(config), InfoCommand(config))
-    }
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
+
+/**
+ * A client for the runs API.
+ */
+class RunsApi(
+    /**
+     * The configured HTTP client for the interaction with the API.
+     */
+    private val client: HttpClient
+) {
+    /**
+     * Get the [ORT run][OrtRun] with the given [id].
+     */
+    suspend fun getOrtRun(id: Long): OrtRun =
+        client.get("api/v1/runs/$id").body()
 }
