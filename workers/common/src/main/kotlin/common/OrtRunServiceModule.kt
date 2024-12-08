@@ -51,10 +51,16 @@ import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
+import org.eclipse.apoapsis.ortserver.storage.Storage
 
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
+
+import org.ossreviewtoolkit.downloader.DefaultWorkingTreeCache
+import org.ossreviewtoolkit.model.config.DownloaderConfiguration
+import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
+import org.ossreviewtoolkit.scanner.utils.FileListResolver
 
 /**
  * Return a module with bean definitions for the [OrtRunService] and the repositories it depends on.
@@ -76,6 +82,14 @@ fun ortRunServiceModule(): Module = module {
     single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
     single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
     single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
+
+    single {
+        val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
+        FileListResolver(
+            OrtServerFileListStorage(storage),
+            DefaultProvenanceDownloader(DownloaderConfiguration(), DefaultWorkingTreeCache())
+        )
+    }
 
     singleOf(::OrtRunService)
 }

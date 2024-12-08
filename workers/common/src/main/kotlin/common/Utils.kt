@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
+import org.ossreviewtoolkit.model.FileList
+import org.ossreviewtoolkit.model.KnownProvenance
+import org.ossreviewtoolkit.scanner.utils.FileListResolver
 import org.ossreviewtoolkit.utils.ort.printStackTrace
 
 /**
@@ -27,3 +30,17 @@ import org.ossreviewtoolkit.utils.ort.printStackTrace
 fun enableOrtStackTraces() {
     printStackTrace = true
 }
+
+/**
+ * Use the [fileListResolver] to get the [FileList]s for the provided [provenances]. If a [FileList] is not
+ * available for a provenance, it is ignored and not included in the result.
+ */
+internal fun getFileLists(fileListResolver: FileListResolver, provenances: Set<KnownProvenance>) =
+    provenances
+        .mapNotNull { provenance -> fileListResolver.get(provenance)?.let { provenance to it } }
+        .mapTo(mutableSetOf()) { (provenance, fileList) ->
+            FileList(
+                provenance,
+                fileList.files.mapTo(mutableSetOf()) { FileList.Entry(it.path, it.sha1) }
+            )
+        }

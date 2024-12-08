@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.scanner
+package org.eclipse.apoapsis.ortserver.workers.common
 
 import java.io.InputStream
 

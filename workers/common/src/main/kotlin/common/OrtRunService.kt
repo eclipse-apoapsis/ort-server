@@ -71,6 +71,7 @@ import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
+import org.ossreviewtoolkit.scanner.utils.FileListResolver
 import org.ossreviewtoolkit.scanner.utils.filterScanResultsByVcsPaths
 import org.ossreviewtoolkit.scanner.utils.getVcsPathsForProvenances
 
@@ -92,7 +93,8 @@ class OrtRunService(
     private val repositoryRepository: RepositoryRepository,
     private val resolvedConfigurationRepository: ResolvedConfigurationRepository,
     private val scannerJobRepository: ScannerJobRepository,
-    private val scannerRunRepository: ScannerRunRepository
+    private val scannerRunRepository: ScannerRunRepository,
+    private val fileListResolver: FileListResolver
 ) {
     companion object {
         private const val RUN_ID_LABEL = "runId"
@@ -309,11 +311,21 @@ class OrtRunService(
 
         val filteredOrtScanResults = filterScanResultsByVcsPath(scannerRun?.provenances, scannerRun?.scanResults)
 
+        val provenances = scannerRun?.provenances
+            ?.flatMap { it.getProvenances() }
+            ?.mapTo(mutableSetOf()) { it.mapToOrt() }
+            .orEmpty()
+
+        val fileLists = getFileLists(fileListResolver, provenances)
+
         val baseResult = ortRun.mapToOrt(
             repository = repository,
             analyzerRun = analyzerRun?.mapToOrt(),
             advisorRun = advisorRun?.mapToOrt(),
-            scannerRun = scannerRun?.mapToOrt()?.copy(scanResults = filteredOrtScanResults),
+            scannerRun = scannerRun?.mapToOrt()?.copy(
+                scanResults = filteredOrtScanResults,
+                files = fileLists
+            ),
             evaluatorRun = evaluatorRun?.mapToOrt(),
             resolvedConfiguration = resolvedConfiguration.mapToOrt()
         )

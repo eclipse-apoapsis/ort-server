@@ -51,6 +51,7 @@ dependencies {
 
     api(libs.jacksonModuleKotlin)
     api(libs.koinCore)
+    api(libs.ortDownloader)
     api(libs.ortModel)
     api(libs.ortScanner)
     api(libs.typesafeConfig)
