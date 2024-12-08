@@ -19,10 +19,10 @@
     "gen-api-docs": "docusaurus gen-api-docs all"
   },
   "dependencies": {
-    "@docusaurus/core": "3.5.2",
-    "@docusaurus/preset-classic": "3.5.2",
-    "@docusaurus/theme-common": "3.5.2",
-    "@docusaurus/theme-mermaid": "3.5.2",
+    "@docusaurus/core": "3.6.3",
+    "@docusaurus/preset-classic": "3.6.3",
+    "@docusaurus/theme-common": "3.6.3",
+    "@docusaurus/theme-mermaid": "3.6.3",
     "@iconify/react": "^5.0.2",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
@@ -33,9 +33,9 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.5.2",
-    "@docusaurus/tsconfig": "3.5.2",
-    "@docusaurus/types": "3.5.2",
+    "@docusaurus/module-type-aliases": "3.6.3",
+    "@docusaurus/tsconfig": "3.6.3",
+    "@docusaurus/types": "3.6.3",
     "@ianvs/prettier-plugin-sort-imports": "^4.3.1",
     "prettier": "^3.3.3",
     "typescript": "~5.7.0"
