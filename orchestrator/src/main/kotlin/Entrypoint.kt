@@ -43,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrtRunStuckJobsError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
@@ -101,6 +102,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is NotifierWorkerResult -> orchestrator.handleNotifierWorkerResult(message.header, payload)
             is NotifierWorkerError -> orchestrator.handleNotifierWorkerError(message.header, payload)
             is WorkerError -> orchestrator.handleWorkerError(message.header, payload)
+            is OrtRunStuckJobsError -> orchestrator.handleOrtRunStuckJobsError(message.header, payload)
         }
     }
 

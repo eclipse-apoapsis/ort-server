@@ -110,6 +110,14 @@ internal class MonitorComponent(
             val monitor by inject<JobMonitor>()
             monitor.watch()
         }
+
+        if (monitorConfig.stuckJobsEnabled) {
+            logger.info("Starting watcher component.")
+
+            val scheduler by inject<Scheduler>()
+            val stuckJobsFinder by inject<OrtRunStuckJobsFinder>()
+            stuckJobsFinder.run(scheduler)
+        }
     }
 
     /**
@@ -142,6 +150,7 @@ internal class MonitorComponent(
             singleOf(::Reaper)
             singleOf(::LostJobsFinder)
             singleOf(::LongRunningJobsFinder)
+            singleOf(::OrtRunStuckJobsFinder)
         }
     }
 }
