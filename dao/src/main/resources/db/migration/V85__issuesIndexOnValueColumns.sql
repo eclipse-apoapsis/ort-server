@@ -7,7 +7,7 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Make sure that functions from extensions installed in the "public" schema are available.
-SET search_path = ${flyway:defaultSchema}, public;
+SET search_path = '${flyway:defaultSchema}', public;
 
 -- Create the expression index.
 CREATE UNIQUE INDEX "issues_all_value_columns"
