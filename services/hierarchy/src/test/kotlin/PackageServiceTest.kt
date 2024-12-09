@@ -63,58 +63,12 @@ class PackageServiceTest : WordSpec() {
             "return the packages for the given ORT run id" {
                 val service = PackageService(db)
 
-                val pkg1 = Package(
-                    Identifier("Maven", "com.example", "example", "1.0"),
-                    purl = "pkg:maven/com.example/example@1.0",
-                    cpe = null,
-                    authors = emptySet(),
-                    declaredLicenses = emptySet(),
-                    ProcessedDeclaredLicense(
-                        spdxExpression = "Expression",
-                        mappedLicenses = emptyMap(),
-                        unmappedLicenses = emptySet()
-                    ),
-                    description = "An example package",
-                    homepageUrl = "https://example.com",
-                    binaryArtifact = RemoteArtifact(
-                        "https://example.com/example-1.0.jar",
-                        "sha1:binary",
-                        "SHA-1"
-                    ),
-                    sourceArtifact = RemoteArtifact(
-                        "https://example.com/example-1.0-sources.jar",
-                        "sha1:source",
-                        "SHA-1"
-                    ),
-                    vcs = VcsInfo(
-                        RepositoryType(""),
-                        "https://example.com/git",
-                        "revision1",
-                        "path"
-                    ),
-                    vcsProcessed = VcsInfo(
-                        RepositoryType("GIT"),
-                        "https://example.com/git",
-                        "revision2",
-                        "path"
-                    ),
-                    isMetadataOnly = false,
-                    isModified = false
-                )
+                val pkg1 = generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
 
-                val pkg2 = Package(
-                    Identifier("Maven", "com.example", "example2", "1.0"),
-                    purl = "pkg:maven/com.example/example2@1.0",
-                    cpe = null,
-                    authors = emptySet(),
-                    declaredLicenses = emptySet(),
-                    ProcessedDeclaredLicense(
-                        spdxExpression = "Expression",
-                        mappedLicenses = emptyMap(),
-                        unmappedLicenses = emptySet()
-                    ),
+                val pkg2 = generatePackage(
+                    identifier = Identifier("Maven", "com.example", "example2", "1.0"),
                     description = "Another example package",
-                    homepageUrl = "https://example.com",
+                    homepageUrl = "https://example2.com",
                     binaryArtifact = RemoteArtifact(
                         "https://example.com/example2-1.0.jar",
                         "sha1:binary",
@@ -124,21 +78,7 @@ class PackageServiceTest : WordSpec() {
                         "https://example.com/example2-1.0-sources.jar",
                         "sha1:source",
                         "SHA-1"
-                    ),
-                    vcs = VcsInfo(
-                        RepositoryType("GIT"),
-                        "https://example.com/git",
-                        "revision",
-                        "path"
-                    ),
-                    vcsProcessed = VcsInfo(
-                        RepositoryType("GIT"),
-                        "https://example.com/git",
-                        "revision",
-                        "path"
-                    ),
-                    isMetadataOnly = false,
-                    isModified = false
+                    )
                 )
 
                 val ortRunId = createAnalyzerRunWithPackages(setOf(pkg1, pkg2)).id
@@ -151,13 +91,11 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        Package(
-                            Identifier("Maven", "com.example", "example", "1.0"),
-                            purl = "pkg:maven/com.example/example@1.0",
-                            cpe = null,
+                        generatePackage(
+                            identifier = Identifier("Maven", "com.example", "example", "1.0"),
                             authors = setOf("Author One", "Author Two", "Author Three"),
                             declaredLicenses = setOf("License 1", "License 2", "License 3", "License 4"),
-                            ProcessedDeclaredLicense(
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
                                 spdxExpression = "License Expression",
                                 mappedLicenses = mapOf(
                                     "License 1" to "Mapped License 1",
@@ -165,32 +103,6 @@ class PackageServiceTest : WordSpec() {
                                     ),
                                 unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
                             ),
-                            description = "An example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
                         )
                     )
                 ).id
@@ -222,120 +134,9 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        Package(
-                            Identifier("Maven", "com.example", "example", "1.0"),
-                            purl = "pkg:maven/com.example/example@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = "Expression",
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "An example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        ),
-                        Package(
-                            Identifier("Maven", "com.example", "example2", "1.0"),
-                            purl = "pkg:maven/com.example/example2@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = "Expression",
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "Another example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        ),
-                        Package(
-                            Identifier("Maven", "com.example", "example3", "1.0"),
-                            purl = "pkg:maven/com.example/example3@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = "Expression",
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "Yet another example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example3-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example3-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        )
+                        generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        generatePackage(Identifier("Maven", "com.example", "example2", "1.0")),
+                        generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
                     )
                 ).id
 
@@ -373,82 +174,8 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        Package(
-                            Identifier("Maven", "com.example", "example", "1.0"),
-                            purl = "pkg:maven/com.example/example@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = null,
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "An example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        ),
-                        Package(
-                            Identifier("NPM", "com.example", "example2", "1.0"),
-                            purl = "pkg:npm/com.example/example2@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = null,
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "Another example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        ),
+                        generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
                     )
                 ).id
 
@@ -462,120 +189,9 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        Package(
-                            Identifier("Maven", "com.example", "example", "1.0"),
-                            purl = "pkg:maven/com.example/example@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = "Expression",
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "An example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        ),
-                        Package(
-                            Identifier("NPM", "com.example", "example2", "1.0"),
-                            purl = "pkg:npm/com.example/example2@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = "Expression",
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "Another example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        ),
-                        Package(
-                            Identifier("Maven", "com.example", "example3", "1.0"),
-                            purl = "pkg:maven/com.example/example3@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = "Expression",
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "Yet another example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example3-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example3-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        )
+                        generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        generatePackage(Identifier("NPM", "com.example", "example2", "1.0")),
+                        generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
                     )
                 ).id
 
@@ -632,4 +248,54 @@ class PackageServiceTest : WordSpec() {
 
         return ortRun
     }
+
+    private fun generatePackage(
+        identifier: Identifier,
+        authors: Set<String> = emptySet(),
+        declaredLicenses: Set<String> = emptySet(),
+        processedDeclaredLicense: ProcessedDeclaredLicense = ProcessedDeclaredLicense(
+            spdxExpression = null,
+            mappedLicenses = emptyMap(),
+            unmappedLicenses = emptySet()
+        ),
+        description: String = "Example package",
+        homepageUrl: String = "https://example.com",
+        binaryArtifact: RemoteArtifact = RemoteArtifact(
+            "https://example.com/example-1.0.jar",
+            "sha1:value",
+            "SHA-1"
+        ),
+        sourceArtifact: RemoteArtifact = RemoteArtifact(
+            "https://example.com/example-1.0-sources.jar",
+            "sha1:value",
+            "SHA-1"
+        ),
+        vcs: VcsInfo = VcsInfo(
+            RepositoryType("GIT"),
+            "https://example.com/git",
+            "revision",
+            "path"
+        ),
+        vcsProcessed: VcsInfo = VcsInfo(
+            RepositoryType("GIT"),
+            "https://example.com/git",
+            "revision",
+            "path"
+        )
+    ) = Package(
+        identifier = identifier,
+        purl = "pkg:${identifier.type}/${identifier.namespace}/${identifier.name}@${identifier.version}",
+        cpe = null,
+        authors = authors,
+        declaredLicenses = declaredLicenses,
+        processedDeclaredLicense = processedDeclaredLicense,
+        description = description,
+        homepageUrl = homepageUrl,
+        binaryArtifact = binaryArtifact,
+        sourceArtifact = sourceArtifact,
+        vcs = vcs,
+        vcsProcessed = vcsProcessed,
+        isMetadataOnly = false,
+        isModified = false
+    )
 }
