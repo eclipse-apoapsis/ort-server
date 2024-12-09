@@ -58,12 +58,35 @@ class IssueServiceTest : WordSpec() {
             }
         }
 
-        "countForOrtRunId" should {
+        "countForOrtRunIds" should {
             "return issue count for ORT run" {
                 val service = IssueService(db)
                 val ortRun = createOrtRunWithIssues()
 
-                service.countForOrtRunId(ortRun.id) shouldBe 3
+                service.countForOrtRunIds(ortRun.id) shouldBe 3
+            }
+
+            "return count of issues found in ORT runs" {
+                val service = IssueService(db)
+                val repositoryId = fixtures.createRepository().id
+
+                val ortRun1Id = createOrtRunWithIssues(repositoryId).id
+
+                val ortRun2Id = createOrtRunWithIssues(
+                    repositoryId,
+                    generateIssues().plus(
+                        Issue(
+                            timestamp = Clock.System.now(),
+                            source = "Scanner",
+                            message = "Issue",
+                            severity = Severity.WARNING,
+                            affectedPath = "path",
+                            identifier = Identifier("Maven", "com.example", "example", "1.0")
+                        )
+                    )
+                ).id
+
+                service.countForOrtRunIds(ortRun1Id, ortRun2Id) shouldBe 7
             }
         }
     }

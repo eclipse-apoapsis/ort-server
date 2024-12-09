@@ -179,11 +179,26 @@ class PackageServiceTest : WordSpec() {
                     )
                 ).id
 
-                service.countForOrtRunId(ortRunId) shouldBe 2
+                service.countForOrtRunIds(ortRunId) shouldBe 2
             }
-        }
 
-        "countEcosystemsForOrtRun" should {
+            "return count for packages found in ORT runs" {
+                val service = PackageService(db)
+
+                val repositoryId = fixtures.createRepository().id
+
+                val pkg1 = generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
+                val pkg2 = generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
+                val pkg3 = generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
+
+                val ortRun1Id = createAnalyzerRunWithPackages(setOf(pkg1, pkg2), repositoryId).id
+                val ortRun2Id = createAnalyzerRunWithPackages(setOf(pkg1, pkg3), repositoryId).id
+
+                service.countForOrtRunIds(ortRun1Id, ortRun2Id) shouldBe 3
+            }
+    }
+
+        "countEcosystemsForOrtRunIds" should {
             "list package types and counts for packages found in an ORT run" {
                 val service = PackageService(db)
 
@@ -195,7 +210,7 @@ class PackageServiceTest : WordSpec() {
                     )
                 ).id
 
-                val ecosystems = service.countEcosystemsForOrtRun(ortRunId)
+                val ecosystems = service.countEcosystemsForOrtRunIds(ortRunId)
 
                 ecosystems shouldHaveSize 2
                 ecosystems.first().name shouldBe "Maven"
@@ -203,14 +218,48 @@ class PackageServiceTest : WordSpec() {
                 ecosystems.last().name shouldBe "NPM"
                 ecosystems.last().count shouldBe 1
             }
+
+            "list package types and counts for packages found in ORT runs" {
+                val service = PackageService(db)
+
+                val repositoryId = fixtures.createRepository().id
+
+                val ortRun1Id = createAnalyzerRunWithPackages(
+                    setOf(
+                        generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        generatePackage(Identifier("NPM", "com.example", "example2", "1.0")),
+                        generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
+                    ),
+                    repositoryId
+                ).id
+
+                val ortRun2Id = createAnalyzerRunWithPackages(
+                    setOf(
+                        generatePackage(Identifier("Maven", "com.example", "example4", "1.0")),
+                        generatePackage(Identifier("NPM", "com.example", "example2", "1.0")),
+                        generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
+                    ),
+                    repositoryId
+                ).id
+
+                service.countForOrtRunIds(ortRun1Id, ortRun2Id) shouldBe 4
+
+                val ecosystems = service.countEcosystemsForOrtRunIds(ortRun1Id, ortRun2Id)
+                ecosystems shouldHaveSize 2
+                ecosystems.first().name shouldBe "Maven"
+                ecosystems.first().count shouldBe 3
+                ecosystems.last().name shouldBe "NPM"
+                ecosystems.last().count shouldBe 1
+            }
         }
     }
 
-    private fun createAnalyzerRunWithPackages(packages: Set<Package>): OrtRun {
-        val repository = fixtures.createRepository()
-
+    private fun createAnalyzerRunWithPackages(
+        packages: Set<Package>,
+        repositoryId: Long = fixtures.createRepository().id
+    ): OrtRun {
         val ortRun = fixtures.createOrtRun(
-            repositoryId = repository.id,
+            repositoryId = repositoryId,
             revision = "revision",
             jobConfigurations = JobConfigurations()
         )

@@ -35,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.stringLiteral
 
 /**
  * A service to interact with packages.
@@ -52,20 +51,23 @@ class PackageService(private val db: Database) {
         }
     }
 
-    suspend fun countForOrtRunId(ortRunId: Long): Long = db.dbQuery {
+    /** Count packages found in provided ORT runs. */
+    suspend fun countForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
         PackagesTable.joinAnalyzerTables()
             .select(PackagesTable.id)
-            .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+            .where { AnalyzerJobsTable.ortRunId inList ortRunIds.asList() }
+            .withDistinct()
             .count()
     }
 
-    suspend fun countEcosystemsForOrtRun(ortRunId: Long): List<EcosystemStats> =
+    /** Count packages by ecosystem found in provided ORT runs. */
+    suspend fun countEcosystemsForOrtRunIds(vararg ortRunIds: Long): List<EcosystemStats> =
         db.dbQuery {
-            val countAlias = Count(stringLiteral("*"))
+            val countAlias = Count(PackagesTable.id, true)
             PackagesTable.joinAnalyzerTables()
                 .innerJoin(IdentifiersTable)
                 .select(IdentifiersTable.type, countAlias)
-                .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+                .where { AnalyzerJobsTable.ortRunId inList ortRunIds.asList() }
                 .groupBy(IdentifiersTable.type)
                 .map { row ->
                     EcosystemStats(

@@ -198,12 +198,7 @@ class Fixtures(private val db: Database) {
             "identifier_version"
         )
     ): Identifier = db.blockingQuery {
-        IdentifierDao.new {
-            type = identifier.type
-            namespace = identifier.namespace
-            name = identifier.name
-            version = identifier.version
-        }.mapToModel()
+        IdentifierDao.getOrPut(identifier).mapToModel()
     }
 
     fun getViolation() = OrtRuleViolation(
