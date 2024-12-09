@@ -17,7 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Outlet,
+  useMatch,
+  useParams,
+} from '@tanstack/react-router';
 import { BookLock, Eye, ShieldQuestion, User } from 'lucide-react';
 
 import { useProductsServiceGetProductByIdKey } from '@/api/queries';
@@ -29,6 +34,12 @@ import { useUser } from '@/hooks/use-user';
 const Layout = () => {
   const { productId, repoId, runIndex } = useParams({ strict: false });
   const user = useUser();
+  const match = useMatch({
+    from: Route.fullPath,
+  });
+
+  const title = match.context.breadcrumbs.product;
+  document.title = `${title} - ORT Server`;
 
   const navItems: SidebarNavProps['sections'][number]['items'] = [
     {
