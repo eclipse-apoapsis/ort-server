@@ -108,7 +108,36 @@ class RuleViolationServiceTest : WordSpec() {
                 val service = RuleViolationService(db)
                 val ortRun = createRuleViolationEntries()
 
-                service.countForOrtRunId(ortRun.id) shouldBe 3
+                service.countForOrtRunIds(ortRun.id) shouldBe 3
+            }
+
+            "return count for rule violations found in ORT runs" {
+                val service = RuleViolationService(db)
+
+                val repositoryId = fixtures.createRepository().id
+
+                val ortRun1Id = createRuleViolationEntries(repositoryId).id
+                val ortRun2Id = createRuleViolationEntries(
+                    repositoryId,
+                    generateRuleViolations().plus(
+                        OrtRuleViolation(
+                            "Rule-1",
+                            Identifier(
+                                "Maven",
+                                "org.apache.logging.log4j",
+                                "log4j-api",
+                                "2.14.0"
+                            ),
+                            "License-1",
+                            "CONCLUDED",
+                            Severity.WARNING,
+                            "Message-1",
+                            "How_to_fix-1"
+                        )
+                    )
+                ).id
+
+                service.countForOrtRunIds(ortRun1Id, ortRun2Id) shouldBe 4
             }
         }
     }
@@ -154,11 +183,12 @@ class RuleViolationServiceTest : WordSpec() {
             )
         )
 
-    private fun createRuleViolationEntries(): OrtRun {
-        val repository = fixtures.createRepository()
-
+    private fun createRuleViolationEntries(
+        repositoryId: Long = fixtures.createRepository().id,
+        ruleViolations: List<OrtRuleViolation> = this.generateRuleViolations()
+    ): OrtRun {
         val ortRun = fixtures.createOrtRun(
-            repositoryId = repository.id,
+            repositoryId = repositoryId,
             revision = "revision",
             jobConfigurations = JobConfigurations()
         )
@@ -168,7 +198,6 @@ class RuleViolationServiceTest : WordSpec() {
             configuration = EvaluatorJobConfiguration()
         )
 
-        val ruleViolations = this.generateRuleViolations()
         ruleViolations.forEach { it.packageId?.let { identifier -> fixtures.createIdentifier(identifier) } }
 
         fixtures.evaluatorRunRepository.create(

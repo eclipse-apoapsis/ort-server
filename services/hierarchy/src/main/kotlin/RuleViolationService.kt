@@ -58,13 +58,15 @@ class RuleViolationService(private val db: Database) {
         ListQueryResult(ruleViolationQueryResult.data, parameters, ruleViolationQueryResult.totalCount)
     }
 
-    suspend fun countForOrtRunId(ortRunId: Long): Long = db.dbQuery {
+    /** Count rule violations found in provided ORT runs. */
+    suspend fun countForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
         RuleViolationsTable
             .innerJoin(EvaluatorRunsRuleViolationsTable)
             .innerJoin(EvaluatorRunsTable)
             .innerJoin(EvaluatorJobsTable)
             .select(RuleViolationsTable.id)
-            .where { EvaluatorJobsTable.ortRunId eq ortRunId }
+            .where { EvaluatorJobsTable.ortRunId inList ortRunIds.asList() }
+            .withDistinct()
             .count()
     }
 }
