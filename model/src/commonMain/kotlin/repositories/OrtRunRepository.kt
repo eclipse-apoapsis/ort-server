@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.repositories
 
+import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
@@ -89,6 +90,12 @@ interface OrtRunRepository {
         repositoryId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<OrtRunSummary>
+
+    /**
+     * Return a list with information about all currently active ORT runs. The list contains all the runs in the states
+     * `ACTIVE` and `CREATED`.
+     */
+    fun listActiveRuns(): List<ActiveOrtRun>
 
     /**
      * Update an ORT run by [id] with the [present][OptionalValue.Present] values. If [issues] or [labels] are

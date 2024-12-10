@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -400,6 +401,54 @@ class DaoOrtRunRepositoryTest : StringSpec({
 
         ortRunRepository.listForRepository(repositoryId, parameters) shouldBe
                 ListQueryResult(listOf(ortRun2), parameters, 2)
+    }
+
+    "listActiveRuns should return all active runs" {
+        val createdRun = ortRunRepository.create(
+            repositoryId,
+            "revision1",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "t",
+            null
+        )
+        val activeRun = ortRunRepository.create(
+            repositoryId,
+            "revision2",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "trace-id",
+            null
+        )
+        ortRunRepository.update(
+            id = activeRun.id,
+            status = OrtRunStatus.ACTIVE.asPresent()
+        )
+
+        setOf(OrtRunStatus.FAILED, OrtRunStatus.FINISHED, OrtRunStatus.FINISHED_WITH_ISSUES).forEach { status ->
+            val run = ortRunRepository.create(
+                repositoryId,
+                "revision${status.name}",
+                null,
+                jobConfigurations,
+                null,
+                labelsMap,
+                traceId = "irrelevant",
+                null
+            )
+            ortRunRepository.update(run.id, status = status.asPresent())
+        }
+
+        val activeRuns = ortRunRepository.listActiveRuns()
+
+        activeRuns shouldContainExactlyInAnyOrder listOf(
+            ActiveOrtRun(createdRun.id, createdRun.createdAt, createdRun.traceId),
+            ActiveOrtRun(activeRun.id, activeRun.createdAt, activeRun.traceId)
+        )
     }
 
     "update should update an entry in the database" {

@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
@@ -138,6 +139,12 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             ListQueryResult(emptyList(), parameters, 0L)
         }
 
+    override fun listActiveRuns(): List<ActiveOrtRun> = db.blockingQuery {
+        OrtRunDao.find {
+            OrtRunsTable.status inList activeRunStatuses
+        }.map { ActiveOrtRun(it.id.value, it.createdAt, it.traceId) }
+    }
+
     override fun update(
         id: Long,
         status: OptionalValue<OrtRunStatus>,
@@ -199,3 +206,6 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
  */
 private fun getLabelDao(entry: Map.Entry<String, String>): LabelDao =
     LabelDao.getOrPut(entry.key, entry.value)
+
+/** A collection with the statuses in which an ORT run is considered active. */
+private val activeRunStatuses = setOf(OrtRunStatus.CREATED, OrtRunStatus.ACTIVE)
