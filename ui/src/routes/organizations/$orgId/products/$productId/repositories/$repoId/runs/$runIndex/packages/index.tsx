@@ -163,12 +163,16 @@ const renderSubComponent = ({ row }: { row: Row<Package> }) => {
         </div>
         <div>
           <div className='font-semibold'>Source Artifact</div>
-          <a
-            href={pkg.sourceArtifact.url}
-            className='text-blue-400 hover:underline'
-          >
-            {pkg.sourceArtifact.url}
-          </a>
+          {pkg.isMetadataOnly ? (
+            'This is a metadata-only package.'
+          ) : (
+            <a
+              href={pkg.sourceArtifact.url}
+              className='text-blue-400 hover:underline'
+            >
+              {pkg.sourceArtifact.url}
+            </a>
+          )}
         </div>
       </div>
     </div>
