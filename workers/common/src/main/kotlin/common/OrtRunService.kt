@@ -64,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 
+import org.ossreviewtoolkit.model.FileList
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.ResolvedPackageCurations
@@ -71,6 +72,7 @@ import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 import org.ossreviewtoolkit.model.config.PackageConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
+import org.ossreviewtoolkit.model.utils.getKnownProvenancesWithoutVcsPath
 import org.ossreviewtoolkit.scanner.utils.FileListResolver
 import org.ossreviewtoolkit.scanner.utils.filterScanResultsByVcsPaths
 import org.ossreviewtoolkit.scanner.utils.getVcsPathsForProvenances
@@ -311,12 +313,19 @@ class OrtRunService(
 
         val filteredOrtScanResults = filterScanResultsByVcsPath(scannerRun?.provenances, scannerRun?.scanResults)
 
-        val provenances = scannerRun?.provenances
-            ?.flatMap { it.getProvenances() }
-            ?.mapTo(mutableSetOf()) { it.mapToOrt() }
-            .orEmpty()
+        val provenanceResolutionResults = scannerRun?.provenances?.mapTo(mutableSetOf()) { it.mapToOrt() }.orEmpty()
 
-        val fileLists = getFileLists(fileListResolver, provenances)
+        val provenancesWithoutVcsPath = provenanceResolutionResults
+            .flatMapTo(mutableSetOf()) { it.getKnownProvenancesWithoutVcsPath().values }
+
+        val vcsPathsForProvenances = getVcsPathsForProvenances(provenanceResolutionResults)
+
+        val fileLists = getFileLists(fileListResolver, provenancesWithoutVcsPath)
+            .mapNotNullTo(mutableSetOf()) { fileList ->
+                vcsPathsForProvenances[fileList.provenance]?.let {
+                    fileList.filterByVcsPaths(it)
+                }
+            }
 
         val baseResult = ortRun.mapToOrt(
             repository = repository,
@@ -523,4 +532,17 @@ class OrtRunService(
 
         return filterScanResultsByVcsPaths(ortScanResults, vcsPathsForProvenances)
     }
+}
+
+/**
+ * Filter the [files][FileList.files] in this [FileList] to only contain files matching the provided [paths].
+ */
+private fun FileList.filterByVcsPaths(paths: Collection<String>): FileList {
+    if (paths.any { it.isBlank() }) return this
+
+    return copy(
+        files = files.filterTo(mutableSetOf()) { file ->
+            paths.any { file.path.startsWith("$it/") }
+        }
+    )
 }
