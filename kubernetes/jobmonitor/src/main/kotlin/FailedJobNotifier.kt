@@ -24,6 +24,7 @@ import io.kubernetes.client.openapi.models.V1Job
 import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.ortRunId
 import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.traceId
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.model.orchestrator.OrtRunStuckJobsError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
@@ -65,6 +66,13 @@ internal class FailedJobNotifier(
     fun sendLostJobNotification(ortRunId: Long, endpoint: Endpoint<*>) {
         val header = MessageHeader(traceId = "", ortRunId)
         val message = Message(header, WorkerError(endpoint.configPrefix))
+
+        sendToOrchestrator(message)
+    }
+
+    fun sendStuckJobsNotification(ortRunId: Long) {
+        val header = MessageHeader(traceId = "", ortRunId)
+        val message = Message(header, OrtRunStuckJobsError(ortRunId))
 
         sendToOrchestrator(message)
     }

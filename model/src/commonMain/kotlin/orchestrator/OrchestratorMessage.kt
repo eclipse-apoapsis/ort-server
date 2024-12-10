@@ -190,3 +190,12 @@ data class WorkerError(
     /** The name of the endpoint where the error has happened. */
     val endpointName: String,
 ) : OrchestratorMessage()
+
+/**
+ * A message notifying the Orchestrator about found OrtRun either has no jobs scheduled or started, or jobs finished
+ * with success, but whole OrtRun is still in ACTIVE state.
+ */
+@Serializable
+data class OrtRunStuckJobsError(
+    val ortRunId: Long
+) : OrchestratorMessage()
