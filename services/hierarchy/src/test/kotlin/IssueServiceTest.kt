@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 import kotlinx.datetime.Clock
@@ -87,6 +88,85 @@ class IssueServiceTest : WordSpec() {
                 ).id
 
                 service.countForOrtRunIds(ortRun1Id, ortRun2Id) shouldBe 7
+            }
+        }
+
+        "countIssuesBySeverityForOrtRunIds" should {
+            "return the counts per severity for issues found in ORT runs" {
+                val service = IssueService(db)
+                val repositoryId = fixtures.createRepository().id
+
+                val ortRun1Id = createOrtRunWithIssues(
+                    repositoryId,
+                    generateIssues().plus(
+                        Issue(
+                            timestamp = Clock.System.now(),
+                            source = "Evaluator",
+                            message = "Issue",
+                            severity = Severity.HINT,
+                            affectedPath = "path",
+                            identifier = Identifier("Maven", "com.example", "example", "1.0")
+                        )
+                    )
+                ).id
+                val ortRun2Id = createOrtRunWithIssues(
+                    repositoryId,
+                    generateIssues().plus(
+                        Issue(
+                            timestamp = Clock.System.now(),
+                            source = "Scanner",
+                            message = "Issue",
+                            severity = Severity.WARNING,
+                            affectedPath = "path",
+                            identifier = Identifier("Maven", "com.example", "example", "1.0")
+                        )
+                    )
+                ).id
+
+                val severitiesToCounts = service.countBySeverityForOrtRunIds(ortRun1Id, ortRun2Id)
+
+                severitiesToCounts.map.size shouldBe Severity.entries.size
+                severitiesToCounts.map.keys shouldContainExactlyInAnyOrder Severity.entries
+                severitiesToCounts.getCount(Severity.HINT) shouldBe 1
+                severitiesToCounts.getCount(Severity.WARNING) shouldBe 3
+                severitiesToCounts.getCount(Severity.ERROR) shouldBe 4
+            }
+
+            "return counts by severity that sum up to the count returned by countForOrtRunIds" {
+                val service = IssueService(db)
+                val repositoryId = fixtures.createRepository().id
+
+                val ortRun1Id = createOrtRunWithIssues(repositoryId).id
+                val ortRun2Id = createOrtRunWithIssues(
+                    repositoryId,
+                    generateIssues().plus(
+                        Issue(
+                            timestamp = Clock.System.now(),
+                            source = "Scanner",
+                            message = "Issue",
+                            severity = Severity.WARNING,
+                            affectedPath = "path",
+                            identifier = Identifier("Maven", "com.example", "example", "1.0")
+                        )
+                    )
+                ).id
+
+                val severitiesToCounts = service.countBySeverityForOrtRunIds(ortRun1Id, ortRun2Id)
+                val count = service.countForOrtRunIds(ortRun1Id, ortRun2Id)
+
+                severitiesToCounts.map.values.sum() shouldBe count
+            }
+
+            "include counts of 0 for severities that are not found in issues" {
+                val service = IssueService(db)
+
+                val repositoryId = fixtures.createRepository().id
+                val ortRunId = fixtures.createOrtRun(repositoryId).id
+
+                val severitiesToCounts = service.countBySeverityForOrtRunIds(ortRunId)
+
+                severitiesToCounts.map.keys shouldContainExactlyInAnyOrder Severity.entries
+                severitiesToCounts.map.values.sum() shouldBe 0
             }
         }
     }
