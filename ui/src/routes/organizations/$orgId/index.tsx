@@ -24,6 +24,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { EditIcon, Loader2, PlusIcon } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 import {
   useOrganizationsServiceDeleteOrganizationById,
@@ -205,6 +206,7 @@ const OrganizationComponent = () => {
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const context = Route.useRouteContext();
 
   const {
     data: organization,
@@ -285,80 +287,85 @@ const OrganizationComponent = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className='flex flex-row justify-between'>
-          <div className='flex items-stretch'>
-            <div className='flex items-center pb-1'>{organization.name}</div>
+    <>
+      <Helmet>
+        <title>`${context.breadcrumbs.organization} - ORT Server`</title>
+      </Helmet>
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex flex-row justify-between'>
+            <div className='flex items-stretch'>
+              <div className='flex items-center pb-1'>{organization.name}</div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    asChild
+                    size='sm'
+                    variant='outline'
+                    className='ml-2 px-2'
+                  >
+                    <Link
+                      to='/organizations/$orgId/edit'
+                      params={{ orgId: organization.id.toString() }}
+                    >
+                      <EditIcon className='h-4 w-4' />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit this organization</TooltipContent>
+              </Tooltip>
+            </div>
+            <DeleteDialog
+              onDelete={handleDelete}
+              description={
+                <>
+                  Are you sure you want to delete the organization{' '}
+                  <span className='font-bold'>{organization.name}</span>?
+                </>
+              }
+              confirmationText={organization.name}
+              trigger={<DeleteIconButton />}
+            />
+          </CardTitle>
+          <CardDescription>{organization.description}</CardDescription>
+          <div className='py-2'>
             <Tooltip>
-              <TooltipTrigger>
-                <Button
-                  asChild
-                  size='sm'
-                  variant='outline'
-                  className='ml-2 px-2'
-                >
+              <TooltipTrigger asChild>
+                <Button asChild size='sm' className='ml-auto gap-1'>
                   <Link
-                    to='/organizations/$orgId/edit'
+                    to='/organizations/$orgId/create-product'
                     params={{ orgId: organization.id.toString() }}
                   >
-                    <EditIcon className='h-4 w-4' />
+                    Add product
+                    <PlusIcon className='h-4 w-4' />
                   </Link>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Edit this organization</TooltipContent>
+              <TooltipContent>
+                Add a product for managing repositories
+              </TooltipContent>
             </Tooltip>
           </div>
-          <DeleteDialog
-            onDelete={handleDelete}
-            description={
-              <>
-                Are you sure you want to delete the organization{' '}
-                <span className='font-bold'>{organization.name}</span>?
-              </>
-            }
-            confirmationText={organization.name}
-            trigger={<DeleteIconButton />}
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            table={table}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: 1, pageSize: size },
+              };
+            }}
           />
-        </CardTitle>
-        <CardDescription>{organization.description}</CardDescription>
-        <div className='py-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
-                <Link
-                  to='/organizations/$orgId/create-product'
-                  params={{ orgId: organization.id.toString() }}
-                >
-                  Add product
-                  <PlusIcon className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Add a product for managing repositories
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          table={table}
-          setCurrentPageOptions={(currentPage) => {
-            return {
-              to: Route.to,
-              search: { ...search, page: currentPage },
-            };
-          }}
-          setPageSizeOptions={(size) => {
-            return {
-              to: Route.to,
-              search: { ...search, page: 1, pageSize: size },
-            };
-          }}
-        />
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 

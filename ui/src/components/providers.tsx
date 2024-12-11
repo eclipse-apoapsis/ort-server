@@ -19,6 +19,7 @@
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from 'react-oidc-context';
 
 import { OpenAPI as OpenAPIConfig } from '@/api/requests/core/OpenAPI';
@@ -34,23 +35,25 @@ const oidcConfig = config.oidcConfig;
 
 export const Providers = ({ children }: { children: ReactNode }) => {
   return (
-    <AuthProvider {...oidcConfig}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
-          <TooltipProvider>{children}</TooltipProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-      <Toaster
-        toastOptions={{
-          classNames: {
-            title: 'font-semibold',
-            error: 'bg-red-500 text-white',
-            success: 'text-green-400',
-            warning: 'text-yellow-400',
-            info: 'bg-white text-black',
-          },
-        }}
-      />
-    </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider {...oidcConfig}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
+            <TooltipProvider>{children}</TooltipProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+        <Toaster
+          toastOptions={{
+            classNames: {
+              title: 'font-semibold',
+              error: 'bg-red-500 text-white',
+              success: 'text-green-400',
+              warning: 'text-yellow-400',
+              info: 'bg-white text-black',
+            },
+          }}
+        />
+      </AuthProvider>
+    </HelmetProvider>
   );
 };

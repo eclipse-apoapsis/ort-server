@@ -25,6 +25,7 @@ import {
 } from '@tanstack/react-table';
 import { Boxes, Bug, EditIcon, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 import {
   useProductsServiceDeleteProductById,
@@ -145,6 +146,7 @@ const ProductComponent = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const navigate = Route.useNavigate();
+  const context = Route.useRouteContext();
 
   const {
     data: product,
@@ -226,6 +228,9 @@ const ProductComponent = () => {
 
   return (
     <div className='flex flex-col gap-2'>
+      <Helmet>
+        <title>`${context.breadcrumbs.product} - ORT Server`</title>
+      </Helmet>
       <div className='grid grid-cols-4 gap-2'>
         <Card className='col-span-2'>
           <CardHeader>
