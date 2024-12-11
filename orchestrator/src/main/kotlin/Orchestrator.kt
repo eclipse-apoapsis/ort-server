@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
@@ -99,7 +100,7 @@ class Orchestrator(
             }
 
             val context = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, emptyMap())
-            context to listOf { scheduleConfigWorkerJob(ortRun, header) }
+            context to listOf { scheduleConfigWorkerJob(ortRun, header, updateRun = true) }
         }.scheduleNextJobs {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
         }
@@ -257,6 +258,27 @@ class Orchestrator(
     }
 
     /**
+     * Handle messages of the type [LostSchedule] with the given [header]. Determine the current status of worker jobs
+     * for the affected ORT run and schedule the next jobs if possible.
+     */
+    fun handleLostSchedule(header: MessageHeader, lostSchedule: LostSchedule) {
+        log.info("Handling a lost schedule for ORT run {}.", lostSchedule.ortRunId)
+
+        db.blockingQueryCatching(transactionIsolation = isolationLevel) {
+            val ortRun = getCurrentOrtRun(lostSchedule.ortRunId)
+            val context = createWorkerSchedulerContext(ortRun, header)
+
+            if (context.jobs.isNotEmpty()) {
+                fetchNextJobs(context)
+            } else {
+                context to listOf { scheduleConfigWorkerJob(ortRun, header, updateRun = false) }
+            }
+        }.scheduleNextJobs {
+            log.warn("Failed to handle 'LostSchedule' message.", it)
+        }
+    }
+
+    /**
      * Obtain the [OrtRun] with the given [ortRunId] of fail with an exception if it does not exist.
      */
     private fun getCurrentOrtRun(ortRunId: Long): OrtRun =
@@ -395,12 +417,15 @@ class Orchestrator(
     }
 
     /**
-     * Publish a message to the [ConfigEndpoint] and update the current ORT run to the active state.
+     * Publish a message with the given [header] to the [ConfigEndpoint] to trigger the Config worker job for the given
+     * [run]. If [updateRun] is *true*, set the status of the run to ACTIVE.
      */
-    private fun scheduleConfigWorkerJob(run: OrtRun, header: MessageHeader) {
+    private fun scheduleConfigWorkerJob(run: OrtRun, header: MessageHeader, updateRun: Boolean) {
         publish(ConfigEndpoint, run, header, ConfigRequest(run.id))
 
-        ortRunRepository.update(run.id, OrtRunStatus.ACTIVE.asPresent())
+        if (updateRun) {
+            ortRunRepository.update(run.id, OrtRunStatus.ACTIVE.asPresent())
+        }
     }
 
     /**
