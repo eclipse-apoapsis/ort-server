@@ -24,7 +24,11 @@ import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
-import { getStatusFontColor } from '@/helpers/get-status-class';
+import {
+  getStatusFontColor,
+  getVulnerabilityRatingBackgroundColor,
+} from '@/helpers/get-status-class';
+import { calcVulnerabilityRatingCounts } from '@/helpers/item-counts';
 import { toast } from '@/lib/toast';
 
 type VulnerabilitiesStatisticsCardProps = {
@@ -39,7 +43,7 @@ export const VulnerabilitiesStatisticsCard = ({
   const { data, isPending, isError, error } =
     useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
       runId: runId,
-      limit: 1,
+      limit: 100000,
     });
 
   if (isPending) {
@@ -77,6 +81,17 @@ export const VulnerabilitiesStatisticsCard = ({
       )}
       value={status ? vulnerabilitiesTotal : 'Skipped'}
       description={status ? '' : 'Enable the job for results'}
+      counts={
+        vulnerabilitiesTotal
+          ? calcVulnerabilityRatingCounts(data.data).map(
+              ({ rating, count }) => ({
+                key: rating,
+                count,
+                color: getVulnerabilityRatingBackgroundColor(rating),
+              })
+            )
+          : []
+      }
       className='h-full hover:bg-muted/50'
     />
   );
