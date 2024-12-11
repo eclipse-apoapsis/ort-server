@@ -20,66 +20,14 @@
 import { ShieldQuestion } from 'lucide-react';
 
 import { StatisticsCard } from '@/components/statistics-card';
-import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
-import {
-  getVulnerabilityRatingBackgroundColor,
-  VulnerabilityRating,
-} from '@/helpers/get-status-class';
-import {
-  useVulnerabilitiesByProductIdSuspense,
-  VulnerabilityWithRepositoryCount,
-} from '@/hooks/use-vulnerabilities-by-product-suspense';
+import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
+import { calcVulnerabilityRatingCounts } from '@/helpers/item-counts';
+import { useVulnerabilitiesByProductIdSuspense } from '@/hooks/use-vulnerabilities-by-product-suspense';
 import { cn } from '@/lib/utils';
 
 type ProductVulnerabilitiesStatisticsCardProps = {
   productId: number;
   className?: string;
-};
-
-/**
- * Calculate the counts of vulnerabilities by their overall rating.
- *
- * @param vulnerabilities
- * @returns Vulnerability counts sorted in decreasing order of rating.
- */
-const calcVulnerabilityRatingCounts = (
-  vulnerabilities: VulnerabilityWithRepositoryCount[]
-): { rating: VulnerabilityRating; count: number }[] => {
-  let criticalCount = 0;
-  let highCount = 0;
-  let mediumCount = 0;
-  let lowCount = 0;
-  let noneCount = 0;
-  for (const vulnerability of vulnerabilities) {
-    const ratings = vulnerability.vulnerability.references.map(
-      (reference) => reference.severity
-    );
-    const overallRating = calcOverallVulnerability(ratings);
-    switch (overallRating) {
-      case 'CRITICAL':
-        criticalCount++;
-        break;
-      case 'HIGH':
-        highCount++;
-        break;
-      case 'MEDIUM':
-        mediumCount++;
-        break;
-      case 'LOW':
-        lowCount++;
-        break;
-      case 'NONE':
-        noneCount++;
-        break;
-    }
-  }
-  return [
-    { rating: 'CRITICAL', count: criticalCount },
-    { rating: 'HIGH', count: highCount },
-    { rating: 'MEDIUM', count: mediumCount },
-    { rating: 'LOW', count: lowCount },
-    { rating: 'NONE', count: noneCount },
-  ];
 };
 
 export const ProductVulnerabilitiesStatisticsCard = ({
