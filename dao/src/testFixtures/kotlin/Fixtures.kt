@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.test
 
+import kotlinx.datetime.Clock
+
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
@@ -49,12 +51,16 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
 import org.jetbrains.exposed.sql.Database
 
@@ -209,5 +215,32 @@ class Fixtures(private val db: Database) {
         message = "message",
         severity = Severity.ERROR,
         howToFix = "how to fix"
+    )
+
+    fun createAdvisorRun(
+        advisorJobId: Long = advisorJob.id,
+        results: Map<Identifier, List<AdvisorResult>>
+    ) = advisorRunRepository.create(
+        advisorJobId = advisorJobId,
+        startTime = Clock.System.now(),
+        endTime = Clock.System.now(),
+        environment = Environment(
+            ortVersion = "1.0",
+            javaVersion = "11.0.16",
+            os = "Linux",
+            processors = 8,
+            maxMemory = 8321499136,
+            variables = emptyMap(),
+            toolVersions = emptyMap()
+        ),
+        config = AdvisorConfiguration(
+            config = mapOf(
+                "VulnerableCode" to PluginConfiguration(
+                    options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+                    secrets = mapOf("apiKey" to "key")
+                )
+            )
+        ),
+        results = results
     )
 }
