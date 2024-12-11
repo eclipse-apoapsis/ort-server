@@ -32,9 +32,11 @@ import io.mockk.verify
 
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
@@ -63,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 class LostJobsFinderTest : StringSpec({
     "Notifications for lost jobs should be sent" {
         val jobHandler = mockk<JobHandler>().apply {
+            every { findJobsForWorker(ConfigEndpoint) } returns emptyList()
             prepareJobsQuery(AnalyzerEndpoint)
             prepareJobsQuery(AdvisorEndpoint)
             prepareJobsQuery(ScannerEndpoint)
@@ -90,6 +93,7 @@ class LostJobsFinderTest : StringSpec({
                 every { id } answers { arg(0) }
                 every { traceId } returns ""
             }
+            every { listActiveRuns() } returns emptyList()
         }
 
         val notifier = mockk<FailedJobNotifier> {
@@ -126,6 +130,79 @@ class LostJobsFinderTest : StringSpec({
             notifier.sendLostJobNotification(RUN_ID, EvaluatorEndpoint)
             notifier.sendLostJobNotification(RUN_ID, ReporterEndpoint)
             notifier.sendLostJobNotification(RUN_ID, NotifierEndpoint)
+        }
+    }
+
+    "Notifications for lost schedules should be sent" {
+        val configJob = createKubernetesJob(RUN_ID + 7, "config-plus-some-suffix")
+        val jobHandler = mockk<JobHandler>().apply {
+            prepareJobsQuery(AnalyzerEndpoint)
+            prepareJobsQuery(AdvisorEndpoint)
+            prepareJobsQuery(ScannerEndpoint)
+            prepareJobsQuery(EvaluatorEndpoint)
+            prepareJobsQuery(ReporterEndpoint)
+            prepareJobsQuery(NotifierEndpoint)
+            every { findJobsForWorker(ConfigEndpoint) }.returns(listOf(configJob))
+        }
+        val analyzerJobs = listOf(workerJobMock<AnalyzerJob>(RUN_ID), workerJobMock<AnalyzerJob>(RUN_ID + 1))
+        val advisorJobs = listOf(workerJobMock<AdvisorJob>(RUN_ID + 2))
+        val scannerJobs = listOf(workerJobMock<ScannerJob>(RUN_ID + 3))
+        val evaluatorJobs = listOf(workerJobMock<EvaluatorJob>(RUN_ID + 4))
+        val reporterJobs = listOf(workerJobMock<ReporterJob>(RUN_ID + 5))
+        val notifierJobs = listOf(workerJobMock<NotifierJob>(RUN_ID + 6))
+
+        val analyzerJobRepo = repositoryMock<AnalyzerJob, AnalyzerJobRepository>(analyzerJobs)
+        val advisorJobRepo = repositoryMock<AdvisorJob, AdvisorJobRepository>(advisorJobs)
+        val scannerJobRepo = repositoryMock<ScannerJob, ScannerJobRepository>(scannerJobs)
+        val evaluatorJobRepo = repositoryMock<EvaluatorJob, EvaluatorJobRepository>(evaluatorJobs)
+        val reporterJobRepo = repositoryMock<ReporterJob, ReporterJobRepository>(reporterJobs)
+        val notifierJobRepo = repositoryMock<NotifierJob, NotifierJobRepository>(notifierJobs)
+
+        val runWithLostSchedules = ActiveOrtRun(RUN_ID + 42, jobCreationTime, "traceLost")
+        val ortRunRepo = mockk<OrtRunRepository> {
+            every { get(any<Long>()) } returns mockk {
+                every { id } answers { arg(0) }
+                every { traceId } returns ""
+            }
+            every { listActiveRuns() } returns listOf(
+                runWithLostSchedules,
+                ActiveOrtRun(RUN_ID, jobCreationTime, "trace1"),
+                ActiveOrtRun(RUN_ID + 1, jobCreationTime, "trace2"),
+                ActiveOrtRun(RUN_ID + 43, jobCreationTime + 1.seconds, "trace3"),
+                ActiveOrtRun(RUN_ID + 7, jobCreationTime, "trace4")
+            )
+        }
+
+        val notifier = mockk<FailedJobNotifier> {
+            every { sendLostJobNotification(any(), any()) } just runs
+            every { sendLostScheduleNotification(runWithLostSchedules) } just runs
+        }
+
+        val config = mockk<MonitorConfig> {
+            every { lostJobsMinAge } returns minJobAge
+            every { lostJobsInterval } returns runInterval
+        }
+
+        val finder = LostJobsFinder(
+            jobHandler,
+            notifier,
+            config,
+            analyzerJobRepo,
+            advisorJobRepo,
+            scannerJobRepo,
+            evaluatorJobRepo,
+            reporterJobRepo,
+            notifierJobRepo,
+            ortRunRepo,
+            testTimeHelper
+        )
+
+        val helper = SchedulerTestHelper()
+        finder.run(helper.scheduler)
+        helper.expectSchedule(runInterval).triggerAction()
+
+        verify {
+            notifier.sendLostScheduleNotification(runWithLostSchedules)
         }
     }
 })

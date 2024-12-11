@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
@@ -239,6 +240,10 @@ class MonitorComponentTest : KoinTest, StringSpec() {
                 declareRepositoryMock<EvaluatorJob, EvaluatorJobRepository>()
                 declareRepositoryMock<ReporterJob, ReporterJobRepository>()
                 declareRepositoryMock<NotifierJob, NotifierJobRepository>()
+
+                declareMock<OrtRunRepository> {
+                    every { listActiveRuns() } returns emptyList()
+                }
 
                 val scheduler = declareMock<Scheduler> {
                     initSchedulerMock(this)
