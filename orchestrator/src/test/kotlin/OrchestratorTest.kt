@@ -69,6 +69,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
@@ -1973,6 +1974,124 @@ class OrchestratorTest : WordSpec() {
                     )
                 }
                 verifyReporterJobCreated(reporterJobRepository, publisher)
+            }
+        }
+
+        "handleLostSchedule" should {
+            "trigger the Config worker if no worker jobs have been scheduled yet" {
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
+                val publisher = createMessagePublisher()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleLostSchedule(msgHeader, LostSchedule(RUN_ID))
+                }
+
+                verify(exactly = 1) {
+                    // The message was sent.
+                    publisher.publish(
+                        to = withArg { it shouldBe ConfigEndpoint },
+                        message = withArg<Message<ConfigRequest>> {
+                            it.header shouldBe msgHeaderWithProperties
+                            it.payload shouldBe ConfigRequest(ortRun.id)
+                        }
+                    )
+                }
+            }
+
+            "schedule the next worker jobs according to the job state of the affected run" {
+                val scannerJobRepository: ScannerJobRepository = createRepository {
+                    every { create(ortRun.id, any()) } returns scannerJob
+                    every { get(scannerJob.id) } returns scannerJob
+                    every { update(scannerJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val advisorJobRepository: AdvisorJobRepository = createRepository {
+                    every { create(ortRun.id, any()) } returns advisorJob
+                    every { get(advisorJob.id) } returns advisorJob
+                    every { update(advisorJob.id, any(), any(), any()) } returns mockk()
+                }
+
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED) {
+                    every { get(analyzerJob.id) } returns analyzerJob
+                    every { complete(analyzerJob.id, any(), any()) } returns mockk()
+                }
+
+                val ortRunRepository = createOrtRunRepository(expectUpdate = false)
+
+                val publisher = createMessagePublisher()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        ortRunRepository = ortRunRepository,
+                        publisher = publisher
+                    ).handleLostSchedule(msgHeader, LostSchedule(RUN_ID))
+                }
+
+                verify(exactly = 1) {
+                    advisorJobRepository.create(
+                        ortRunId = withArg { it shouldBe ortRun.id },
+                        configuration = withArg { it shouldBe advisorJob.configuration }
+                    )
+                    scannerJobRepository.create(
+                        ortRunId = withArg { it shouldBe ortRun.id },
+                        configuration = withArg { it shouldBe scannerJob.configuration }
+                    )
+                    publisher.publish(
+                        to = withArg<AdvisorEndpoint> { it shouldBe AdvisorEndpoint },
+                        message = withArg {
+                            it.header shouldBe msgHeaderWithProperties
+                            it.payload.advisorJobId shouldBe advisorJob.id
+                        }
+                    )
+                    advisorJobRepository.update(
+                        id = withArg { it shouldBe advisorJob.id },
+                        status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+                    scannerJobRepository.update(
+                        id = withArg { it shouldBe scannerJob.id },
+                        status = withArg { it.verifyOptionalValue(JobStatus.SCHEDULED) }
+                    )
+                }
+            }
+
+            "complete the ORT run if all jobs have run" {
+                val analyzerJobRepository: AnalyzerJobRepository = createRepository(JobStatus.FINISHED)
+                val advisorJobRepository: AdvisorJobRepository = createRepository(JobStatus.FINISHED)
+                val scannerJobRepository: ScannerJobRepository = createRepository(JobStatus.FINISHED)
+                val evaluatorJobRepository: EvaluatorJobRepository = createRepository(JobStatus.FINISHED)
+                val reporterJobRepository: ReporterJobRepository = createRepository(JobStatus.FINISHED)
+
+                val notifierJobRepository: NotifierJobRepository =
+                    createRepository(JobStatus.FINISHED, notifierJob.id) {
+                        every { deleteMailRecipients(notifierJob.id) } returns notifierJob
+                    }
+
+                val ortRunRepository = createOrtRunRepository()
+
+                mockkTransaction {
+                    createOrchestrator(
+                        analyzerJobRepository = analyzerJobRepository,
+                        advisorJobRepository = advisorJobRepository,
+                        scannerJobRepository = scannerJobRepository,
+                        evaluatorJobRepository = evaluatorJobRepository,
+                        reporterJobRepository = reporterJobRepository,
+                        notifierJobRepository = notifierJobRepository,
+                        ortRunRepository = ortRunRepository
+                    ).handleLostSchedule(msgHeader, LostSchedule(RUN_ID))
+                }
+
+                verify(exactly = 1) {
+                    ortRunRepository.update(
+                        id = withArg { it shouldBe notifierJob.ortRunId },
+                        status = withArg { it.verifyOptionalValue(OrtRunStatus.FINISHED) }
+                    )
+                }
             }
         }
     }

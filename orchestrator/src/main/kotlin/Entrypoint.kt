@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
@@ -101,6 +102,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is NotifierWorkerResult -> orchestrator.handleNotifierWorkerResult(message.header, payload)
             is NotifierWorkerError -> orchestrator.handleNotifierWorkerError(message.header, payload)
             is WorkerError -> orchestrator.handleWorkerError(message.header, payload)
+            is LostSchedule -> orchestrator.handleLostSchedule(message.header, payload)
         }
     }
 

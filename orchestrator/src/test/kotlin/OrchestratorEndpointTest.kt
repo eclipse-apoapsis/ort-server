@@ -47,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.EvaluatorWorkerResult
+import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
@@ -436,6 +437,23 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
 
                 verify {
                     orchestrator.handleWorkerError(msgHeader, workerError)
+                }
+            }
+        }
+
+        "LostSchedule messages should be handled" {
+            val lostSchedule = LostSchedule(20241211081733L)
+            val message = Message(msgHeader, lostSchedule)
+
+            runEndpointTest {
+                val orchestrator = declareMock<Orchestrator> {
+                    every { handleLostSchedule(any(), any()) } just runs
+                }
+
+                MessageReceiverFactoryForTesting.receive(OrchestratorEndpoint, message)
+
+                verify {
+                    orchestrator.handleLostSchedule(msgHeader, lostSchedule)
                 }
             }
         }

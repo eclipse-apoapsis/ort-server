@@ -190,3 +190,13 @@ data class WorkerError(
     /** The name of the endpoint where the error has happened. */
     val endpointName: String,
 ) : OrchestratorMessage()
+
+/**
+ * A message notifying the Orchestrator about an ORT run for which scheduling of worker jobs has failed. It is
+ * triggered for ORT runs in state ACTIVE for which no jobs are running. The message is typically processed by
+ * rescheduling the jobs.
+ */
+@Serializable
+data class LostSchedule(
+    val ortRunId: Long
+) : OrchestratorMessage()
