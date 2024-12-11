@@ -18,14 +18,17 @@
  */
 
 import { ListTree } from 'lucide-react';
-import { useMemo } from 'react';
 
 import { usePackagesServiceGetPackagesByRunId } from '@/api/queries';
 import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
-import { getStatusFontColor } from '@/helpers/get-status-class';
+import {
+  getEcosystemBackgroundColor,
+  getStatusFontColor,
+} from '@/helpers/get-status-class';
+import { calcPackageEcosystemCounts } from '@/helpers/item-counts';
 import { toast } from '@/lib/toast';
 
 type PackagesStatisticsCardProps = {
@@ -40,27 +43,8 @@ export const PackagesStatisticsCard = ({
   const { data, isPending, isError, error } =
     usePackagesServiceGetPackagesByRunId({
       runId: runId,
-      // Use a large page size for packages request to try to use all packages
-      // for finding de-duplicated package types.
-      // Another option would be to do two packages queries: first to find the
-      // total number of packages, second to fetch using the total as the page
-      // size.
-      // This can be simplified once the ORT Run statistics query is implemented.
       limit: 100000,
     });
-
-  // Find de-duplicated package types in packages data and sort alphabetically.
-  // Packages data can be quite large, so use memoization to avoid unnecessary
-  // component rerenders.
-  const ecoSystems = useMemo(
-    () =>
-      [
-        ...new Set(
-          data?.data.map((item) => item.identifier?.type).filter(Boolean)
-        ),
-      ].sort(),
-    [data?.data]
-  );
 
   if (isPending) {
     return (
@@ -96,14 +80,16 @@ export const PackagesStatisticsCard = ({
         <ListTree className={`h-4 w-4 ${getStatusFontColor(status)}`} />
       )}
       value={status ? packagesTotal : 'Skipped'}
-      description={
-        ecoSystems.length
-          ? ecoSystems.length > 1
-            ? `from ${ecoSystems.length} ecosystems (${ecoSystems.join(', ')})`
-            : `from 1 ecosystem (${ecoSystems})`
-          : status
-            ? ''
-            : 'Enable the job for results'
+      counts={
+        packagesTotal
+          ? calcPackageEcosystemCounts(data.data).map(
+              ({ ecosystem, count }) => ({
+                key: ecosystem,
+                count,
+                color: getEcosystemBackgroundColor(ecosystem),
+              })
+            )
+          : []
       }
       className='h-full hover:bg-muted/50'
     />

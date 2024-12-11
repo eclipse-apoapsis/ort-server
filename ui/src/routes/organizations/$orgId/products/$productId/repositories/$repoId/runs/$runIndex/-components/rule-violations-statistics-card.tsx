@@ -24,7 +24,11 @@ import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
-import { getStatusFontColor } from '@/helpers/get-status-class';
+import {
+  getRuleViolationSeverityBackgroundColor,
+  getStatusFontColor,
+} from '@/helpers/get-status-class';
+import { calcRuleViolationSeverityCounts } from '@/helpers/item-counts';
 import { toast } from '@/lib/toast';
 
 type RuleViolationsStatisticsCardProps = {
@@ -39,7 +43,7 @@ export const RuleViolationsStatisticsCard = ({
   const { data, isPending, isError, error } =
     useRuleViolationsServiceGetRuleViolationsByRunId({
       runId: runId,
-      limit: 1,
+      limit: 100000,
     });
 
   if (isPending) {
@@ -67,14 +71,25 @@ export const RuleViolationsStatisticsCard = ({
     return;
   }
 
-  const ruleViolationsTotal = data.pagination.totalCount;
+  const violationsTotal = data.pagination.totalCount;
 
   return (
     <StatisticsCard
       title='Rule Violations'
       icon={() => <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
-      value={status ? ruleViolationsTotal : 'Skipped'}
+      value={status ? violationsTotal : 'Skipped'}
       description={status ? '' : 'Enable the job for results'}
+      counts={
+        violationsTotal
+          ? calcRuleViolationSeverityCounts(data.data).map(
+              ({ severity, count }) => ({
+                key: severity,
+                count,
+                color: getRuleViolationSeverityBackgroundColor(severity),
+              })
+            )
+          : []
+      }
       className='h-full hover:bg-muted/50'
     />
   );

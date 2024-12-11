@@ -24,7 +24,11 @@ import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
-import { getStatusFontColor } from '@/helpers/get-status-class';
+import {
+  getIssueSeverityBackgroundColor,
+  getStatusFontColor,
+} from '@/helpers/get-status-class';
+import { calcIssueSeverityCounts } from '@/helpers/item-counts';
 import { toast } from '@/lib/toast';
 
 type IssuesStatisticsCardProps = {
@@ -38,7 +42,7 @@ export const IssuesStatisticsCard = ({
 }: IssuesStatisticsCardProps) => {
   const { data, isPending, isError, error } = useIssuesServiceGetIssuesByRunId({
     runId: runId,
-    limit: 1,
+    limit: 100000,
   });
 
   if (isPending) {
@@ -72,6 +76,15 @@ export const IssuesStatisticsCard = ({
       icon={() => <Bug className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
       value={status ? issuesTotal : 'Skipped'}
       description={status ? '' : 'Enable the job for results'}
+      counts={
+        issuesTotal
+          ? calcIssueSeverityCounts(data.data).map(({ severity, count }) => ({
+              key: severity,
+              count,
+              color: getIssueSeverityBackgroundColor(severity),
+            }))
+          : []
+      }
       className='h-full hover:bg-muted/50'
     />
   );
