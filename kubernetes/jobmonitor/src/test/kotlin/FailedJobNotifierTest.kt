@@ -32,6 +32,10 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
 
+import kotlinx.datetime.Clock
+
+import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
+import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.transport.Message
@@ -150,6 +154,28 @@ class FailedJobNotifierTest : WordSpec({
             with(slot.captured) {
                 header.ortRunId shouldBe ortRunId
                 payload shouldBe WorkerError("scanner")
+            }
+        }
+    }
+
+    "sendLostScheduleNotification" should {
+        "send a notification about a lost schedule" {
+            val ortRun = ActiveOrtRun(20241211084817L, Clock.System.now(), "someTraceId")
+            val sender = mockk<MessageSender<OrchestratorMessage>>()
+            every { sender.send(any()) } just runs
+
+            val notifier = FailedJobNotifier(sender)
+            notifier.sendLostScheduleNotification(ortRun)
+
+            val slot = slot<Message<OrchestratorMessage>>()
+            verify {
+                sender.send(capture(slot))
+            }
+
+            with(slot.captured) {
+                header.ortRunId shouldBe ortRun.runId
+                header.traceId shouldBe ortRun.traceId
+                payload shouldBe LostSchedule(ortRun.runId)
             }
         }
     }
