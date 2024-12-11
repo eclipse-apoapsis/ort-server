@@ -19,7 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor
 
+import io.kubernetes.client.openapi.models.V1Job
+
 import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.ortRunId
+import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
@@ -30,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
+import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
@@ -51,6 +55,10 @@ import org.slf4j.MDC
  * status in Kubernetes. It looks for jobs that should be running according to the database, but do not exist
  * (anymore) in Kubernetes. For such jobs, it sends a notification to the Orchestrator, to give it the chance to act
  * accordingly.
+ *
+ * Another problem detected by this class is missing schedules, i.e. active ORT runs for which all jobs have been
+ * completed. For such runs, a different type of notification is sent to the Orchestrator, so that it can try to resume
+ * the run.
  */
 @Suppress("LongParameterList")
 internal class LostJobsFinder(
@@ -113,15 +121,31 @@ internal class LostJobsFinder(
      * exists. For those jobs, send a corresponding notification to the Orchestrator.
      */
     private fun checkForLostJobs() {
-        logger.info("Checking for lost jobs.")
+        logger.info("Checking for lost jobs and missing schedules.")
 
-        jobRepositories.forEach { (endpoint, jobRepository) -> checkForLostWorkerJobs(endpoint, jobRepository) }
+        // Keep track of runs for which active jobs exist. These runs are not subject to lost schedules.
+        val ortRunsWithJobs = mutableSetOf<Long>()
+
+        jobRepositories.forEach { (endpoint, jobRepository) ->
+            val (jobsMap, lostJobs) = gatherLostJobData(endpoint, jobRepository)
+            handleLostWorkerJobs(endpoint, lostJobs)
+
+            ortRunsWithJobs += jobsMap.keys.filterNotNull()
+            ortRunsWithJobs += lostJobs.map { it.ortRunId }
+        }
+
+        checkForLostSchedules(ortRunsWithJobs)
     }
 
     /**
-     * Perform a check for lost jobs for the given worker [endpoint] using its [jobRepository].
+     * Find information about lost jobs and affected ORT runs for the given [endpoint] using the given [jobRepository].
+     *  Return a map with the active ORT runs and their jobs of the endpoint and a list with the lost jobs that were
+     *  found.
      */
-    private fun checkForLostWorkerJobs(endpoint: Endpoint<*>, jobRepository: WorkerJobRepository<*>) {
+    private fun gatherLostJobData(
+        endpoint: Endpoint<*>,
+        jobRepository: WorkerJobRepository<*>
+    ): Pair<Map<Long?, V1Job>, List<WorkerJob>> {
         val currentTime = timeHelper.now()
 
         val kubeJobs = jobHandler.findJobsForWorker(endpoint).associateBy { it.ortRunId }
@@ -136,6 +160,16 @@ internal class LostJobsFinder(
         val lostJobs = jobRepository.listActive(currentTime - monitorConfig.lostJobsMinAge)
             .filterNot { it.ortRunId in kubeJobs }
 
+        return Pair(kubeJobs, lostJobs)
+    }
+
+    /**
+     * Perform actions to handle the given list of [lostJobs] for the given [endpoint].
+     */
+    private fun handleLostWorkerJobs(
+        endpoint: Endpoint<*>,
+        lostJobs: List<WorkerJob>
+    ) {
         if (lostJobs.isNotEmpty()) {
             logger.warn("Found ${lostJobs.size} lost jobs for ${endpoint.configPrefix}.")
             logger.debug("Lost jobs: {}", lostJobs)
@@ -148,6 +182,28 @@ internal class LostJobsFinder(
 
                 notifier.sendLostJobNotification(it.ortRunId, endpoint)
             }
+        }
+    }
+
+    /**
+     * Check for active ORT runs for which no jobs exist in Kubernetes. Determine affected runs based on the given
+     * set with [ortRunsWithJobs]. Notify the Orchestrator about those runs.
+     */
+    private fun checkForLostSchedules(ortRunsWithJobs: Set<Long>) {
+        val referenceTime = timeHelper.now() - monitorConfig.lostJobsMinAge
+
+        // The ORT runs with job take only workers into account for which a database representation exists.
+        // This is not the case for the Config worker, so those need to be added manually.
+        val ortRunsWithConfigJobs = jobHandler.findJobsForWorker(ConfigEndpoint)
+            .mapNotNullTo(mutableSetOf()) { it.ortRunId }
+        ortRunsWithConfigJobs += ortRunsWithJobs
+
+        val runsWithMissingSchedules = ortRunRepository.listActiveRuns()
+            .filter { it.createdAt <= referenceTime && it.runId !in ortRunsWithConfigJobs }
+
+        runsWithMissingSchedules.forEach { ortRun ->
+            logger.warn("Found ORT run {} with missing schedules.", ortRun)
+            notifier.sendLostScheduleNotification(ortRun)
         }
     }
 }
