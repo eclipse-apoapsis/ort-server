@@ -1,6 +1,11 @@
 name: Docker Build
 
 on:
+  merge_group:
+    types: [ checks_requested ]
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -131,7 +136,8 @@ jobs:
       with:
         context: ${{ matrix.docker.context }}
         file: ${{ matrix.docker.context }}/${{ matrix.docker.dockerfile }}
-        push: true
+        push: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
+        load: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
         tags: ${{ steps.meta-base.outputs.tags }}
         labels: ${{ steps.meta-base.outputs.labels }}
         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache
@@ -160,4 +166,6 @@ jobs:
           -Djib.console=plain \
           -Djib.container.labels="$(echo "${{ steps.meta.outputs.labels }}" | tr '\n' ',' | sed 's/,$//')" \
           -Djib.to.tags="$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ',' | sed 's/,$//')"
-        docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.jibImage }} --all-tags
+        if [ "${{ github.event_name }}" != "pull_request" ] && [ "${{ github.event_name }}" != "merge_group" ]; then
+          docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.jibImage }} --all-tags
+        fi
