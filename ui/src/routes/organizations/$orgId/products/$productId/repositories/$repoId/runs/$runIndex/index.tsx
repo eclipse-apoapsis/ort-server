@@ -27,13 +27,7 @@ import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { config } from '@/config';
 import { calculateDuration } from '@/helpers/get-run-duration';
@@ -200,35 +194,6 @@ const RunComponent = () => {
         </div>
         <div className='grid grid-cols-4 gap-2'>
           <Link
-            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues'
-            params={{
-              orgId: params.orgId,
-              productId: params.productId,
-              repoId: params.repoId,
-              runIndex: params.runIndex,
-            }}
-            search={{ sortBy: [{ id: 'severity', desc: true }] }}
-          >
-            <IssuesStatisticsCard
-              runId={ortRun.id}
-              status={ortRun.jobs.analyzer?.status}
-            />
-          </Link>
-          <Link
-            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
-            params={{
-              orgId: params.orgId,
-              productId: params.productId,
-              repoId: params.repoId,
-              runIndex: params.runIndex,
-            }}
-          >
-            <PackagesStatisticsCard
-              runId={ortRun.id}
-              status={ortRun.jobs.analyzer?.status}
-            />
-          </Link>
-          <Link
             to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities'
             params={{
               orgId: params.orgId,
@@ -239,8 +204,25 @@ const RunComponent = () => {
             search={{ sortBy: [{ id: 'rating', desc: true }] }}
           >
             <VulnerabilitiesStatisticsCard
+              jobIncluded={ortRun.jobConfigs.advisor !== undefined}
               runId={ortRun.id}
               status={ortRun.jobs.advisor?.status}
+            />
+          </Link>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/issues'
+            params={{
+              orgId: params.orgId,
+              productId: params.productId,
+              repoId: params.repoId,
+              runIndex: params.runIndex,
+            }}
+            search={{ sortBy: [{ id: 'severity', desc: true }] }}
+          >
+            <IssuesStatisticsCard
+              jobIncluded={ortRun.jobConfigs.analyzer !== undefined}
+              runId={ortRun.id}
+              status={ortRun.jobs.analyzer?.status}
             />
           </Link>
           <Link
@@ -254,21 +236,27 @@ const RunComponent = () => {
             search={{ sortBy: [{ id: 'severity', desc: true }] }}
           >
             <RuleViolationsStatisticsCard
+              jobIncluded={ortRun.jobConfigs.evaluator !== undefined}
               runId={ortRun.id}
               status={ortRun.jobs.evaluator?.status}
             />
           </Link>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
+            params={{
+              orgId: params.orgId,
+              productId: params.productId,
+              repoId: params.repoId,
+              runIndex: params.runIndex,
+            }}
+          >
+            <PackagesStatisticsCard
+              jobIncluded={ortRun.jobConfigs.analyzer !== undefined}
+              runId={ortRun.id}
+              status={ortRun.jobs.analyzer?.status}
+            />
+          </Link>
         </div>
-        <Card className='flex flex-1 overflow-hidden'>
-          <CardHeader>
-            <CardTitle>Summary</CardTitle>
-            <CardDescription>
-              When the corresponding API endpoints have been implemented, this
-              section will include a summary of the run, for example number of
-              issues by severity, and some statistical data from the run.
-            </CardDescription>
-          </CardHeader>
-        </Card>
       </div>
     </>
   );
