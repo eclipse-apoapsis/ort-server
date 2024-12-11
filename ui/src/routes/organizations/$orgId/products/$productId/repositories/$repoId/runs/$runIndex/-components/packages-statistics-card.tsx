@@ -32,11 +32,13 @@ import { calcPackageEcosystemCounts } from '@/helpers/item-counts';
 import { toast } from '@/lib/toast';
 
 type PackagesStatisticsCardProps = {
+  jobIncluded?: boolean;
   status: JobStatus | undefined;
   runId: number;
 };
 
 export const PackagesStatisticsCard = ({
+  jobIncluded,
   status,
   runId,
 }: PackagesStatisticsCardProps) => {
@@ -73,13 +75,29 @@ export const PackagesStatisticsCard = ({
 
   const packagesTotal = data.pagination.totalCount;
 
+  const value = jobIncluded
+    ? status === undefined
+      ? '-'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? '...'
+        : packagesTotal
+    : 'Skipped';
+  const description = jobIncluded
+    ? status === undefined
+      ? 'Not started'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? 'Running'
+        : ''
+    : 'Enable the job for results';
+
   return (
     <StatisticsCard
       title='Packages'
       icon={() => (
         <ListTree className={`h-4 w-4 ${getStatusFontColor(status)}`} />
       )}
-      value={status ? packagesTotal : 'Skipped'}
+      value={value}
+      description={description}
       counts={
         packagesTotal
           ? calcPackageEcosystemCounts(data.data).map(

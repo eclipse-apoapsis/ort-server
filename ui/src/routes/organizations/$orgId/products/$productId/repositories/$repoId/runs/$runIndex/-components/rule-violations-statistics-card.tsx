@@ -32,11 +32,13 @@ import { calcRuleViolationSeverityCounts } from '@/helpers/item-counts';
 import { toast } from '@/lib/toast';
 
 type RuleViolationsStatisticsCardProps = {
+  jobIncluded?: boolean;
   status: JobStatus | undefined;
   runId: number;
 };
 
 export const RuleViolationsStatisticsCard = ({
+  jobIncluded,
   status,
   runId,
 }: RuleViolationsStatisticsCardProps) => {
@@ -73,12 +75,27 @@ export const RuleViolationsStatisticsCard = ({
 
   const violationsTotal = data.pagination.totalCount;
 
+  const value = jobIncluded
+    ? status === undefined
+      ? '-'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? '...'
+        : violationsTotal
+    : 'Skipped';
+  const description = jobIncluded
+    ? status === undefined
+      ? 'Not started'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? 'Running'
+        : ''
+    : 'Enable the job for results';
+
   return (
     <StatisticsCard
       title='Rule Violations'
       icon={() => <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
-      value={status ? violationsTotal : 'Skipped'}
-      description={status ? '' : 'Enable the job for results'}
+      value={value}
+      description={description}
       counts={
         violationsTotal
           ? calcRuleViolationSeverityCounts(data.data).map(
