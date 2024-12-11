@@ -32,11 +32,13 @@ import { calcIssueSeverityCounts } from '@/helpers/item-counts';
 import { toast } from '@/lib/toast';
 
 type IssuesStatisticsCardProps = {
+  jobIncluded?: boolean;
   status: JobStatus | undefined;
   runId: number;
 };
 
 export const IssuesStatisticsCard = ({
+  jobIncluded,
   status,
   runId,
 }: IssuesStatisticsCardProps) => {
@@ -70,12 +72,27 @@ export const IssuesStatisticsCard = ({
 
   const issuesTotal = data.pagination.totalCount;
 
+  const value = jobIncluded
+    ? status === undefined
+      ? '-'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? '...'
+        : issuesTotal
+    : 'Skipped';
+  const description = jobIncluded
+    ? status === undefined
+      ? 'Not started'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? 'Running'
+        : ''
+    : 'Enable the job for results';
+
   return (
     <StatisticsCard
       title='Issues'
       icon={() => <Bug className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
-      value={status ? issuesTotal : 'Skipped'}
-      description={status ? '' : 'Enable the job for results'}
+      value={value}
+      description={description}
       counts={
         issuesTotal
           ? calcIssueSeverityCounts(data.data).map(({ severity, count }) => ({

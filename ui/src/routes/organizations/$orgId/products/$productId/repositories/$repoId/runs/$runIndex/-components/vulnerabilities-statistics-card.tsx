@@ -32,11 +32,13 @@ import { calcVulnerabilityRatingCounts } from '@/helpers/item-counts';
 import { toast } from '@/lib/toast';
 
 type VulnerabilitiesStatisticsCardProps = {
+  jobIncluded?: boolean;
   status: JobStatus | undefined;
   runId: number;
 };
 
 export const VulnerabilitiesStatisticsCard = ({
+  jobIncluded,
   status,
   runId,
 }: VulnerabilitiesStatisticsCardProps) => {
@@ -73,14 +75,29 @@ export const VulnerabilitiesStatisticsCard = ({
 
   const vulnerabilitiesTotal = data.pagination.totalCount;
 
+  const value = jobIncluded
+    ? status === undefined
+      ? '-'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? '...'
+        : vulnerabilitiesTotal
+    : 'Skipped';
+  const description = jobIncluded
+    ? status === undefined
+      ? 'Not started'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? 'Running'
+        : ''
+    : 'Enable the job for results';
+
   return (
     <StatisticsCard
       title='Vulnerabilities'
       icon={() => (
         <ShieldQuestion className={`h-4 w-4 ${getStatusFontColor(status)}`} />
       )}
-      value={status ? vulnerabilitiesTotal : 'Skipped'}
-      description={status ? '' : 'Enable the job for results'}
+      value={value}
+      description={description}
       counts={
         vulnerabilitiesTotal
           ? calcVulnerabilityRatingCounts(data.data).map(
