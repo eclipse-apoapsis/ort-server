@@ -23,6 +23,8 @@ import io.kubernetes.client.openapi.models.V1Job
 
 import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.ortRunId
 import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.traceId
+import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
+import org.eclipse.apoapsis.ortserver.model.orchestrator.LostSchedule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
@@ -65,6 +67,17 @@ internal class FailedJobNotifier(
     fun sendLostJobNotification(ortRunId: Long, endpoint: Endpoint<*>) {
         val header = MessageHeader(traceId = "", ortRunId)
         val message = Message(header, WorkerError(endpoint.configPrefix))
+
+        sendToOrchestrator(message)
+    }
+
+    /**
+     * Send a notification about an ORT run without active schedules for the given [ortRun]. This is used to notify
+     * the Orchestrator that it has to reschedule jobs for the affected run.
+     */
+    fun sendLostScheduleNotification(ortRun: ActiveOrtRun) {
+        val header = MessageHeader(ortRun.traceId.orEmpty(), ortRun.runId)
+        val message = Message(header, LostSchedule(ortRun.runId))
 
         sendToOrchestrator(message)
     }
