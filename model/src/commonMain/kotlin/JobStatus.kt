@@ -52,9 +52,9 @@ enum class JobStatus(
 
     companion object {
         /** List of final statuses. */
-        val FINAL_STATUSES: List<JobStatus> = entries.filter { it.final }
+        val FINAL_STATUSES = entries.filter { it.final }
 
         /** List of successful statuses. */
-        val SUCCESSFUL_STATUSES: List<JobStatus> = entries.filter { it.successful }
+        val SUCCESSFUL_STATUSES = entries.filter { it.successful }
     }
 }
