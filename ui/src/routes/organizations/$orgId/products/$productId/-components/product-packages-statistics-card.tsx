@@ -19,37 +19,15 @@
 
 import { Boxes } from 'lucide-react';
 
-import { Package } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getEcosystemBackgroundColor } from '@/helpers/get-status-class';
+import { calcPackageEcosystemCounts } from '@/helpers/item-counts';
 import { usePackagesByProductIdSuspense } from '@/hooks/use-packages-by-product-suspense';
 import { cn } from '@/lib/utils';
 
 type ProductPackagesStatisticsCardProps = {
   productId: number;
   className?: string;
-};
-
-/**
- * Calculate the counts of packages by their ecosystem.
- *
- * @param packages
- * @returns Package counts sorted by ecosystem.
- */
-const calcPackageEcosystemCounts = (
-  packages: Package[]
-): { ecosystem: string; count: number }[] => {
-  const ecosystemCounts = new Map<string, number>();
-  for (const pkg of packages) {
-    const ecosystem = pkg.identifier.type;
-    ecosystemCounts.set(ecosystem, (ecosystemCounts.get(ecosystem) || 0) + 1);
-  }
-  return Array.from(ecosystemCounts.entries())
-    .map(([ecosystem, count]) => ({
-      ecosystem: ecosystem,
-      count,
-    }))
-    .sort((a, b) => a.ecosystem.localeCompare(b.ecosystem));
 };
 
 export const ProductPackagesStatisticsCard = ({
