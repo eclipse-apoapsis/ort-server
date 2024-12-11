@@ -100,9 +100,7 @@ class Orchestrator(
 
             val context = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, emptyMap())
             context to listOf { scheduleConfigWorkerJob(ortRun, header) }
-        }.onSuccess { (context, createdJobs) ->
-            scheduleCreatedJobs(context, createdJobs)
-        }.onFailure {
+        }.scheduleNextJobs {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
         }
     }
@@ -115,9 +113,7 @@ class Orchestrator(
             val ortRun = getCurrentOrtRun(configWorkerResult.ortRunId)
 
             nextJobsToSchedule(ConfigEndpoint, ortRun.id, header, jobs = emptyMap())
-        }.onSuccess { (context, createdJobs) ->
-            scheduleCreatedJobs(context, createdJobs)
-        }.onFailure {
+        }.scheduleNextJobs {
             log.warn("Failed to handle 'ConfigWorkerResult' message.", it)
         }
     }
@@ -255,9 +251,7 @@ class Orchestrator(
                     nextJobsToSchedule(Endpoint.fromConfigPrefix(workerError.endpointName), job.ortRunId, header)
                 }
             } ?: (createWorkerSchedulerContext(getCurrentOrtRun(ortRunId), header, failed = true) to emptyList())
-        }.onSuccess { (context, schedules) ->
-            scheduleCreatedJobs(context, schedules)
-        }.onFailure {
+        }.scheduleNextJobs {
             log.warn("Failed to handle 'WorkerError' message.", it)
         }
     }
@@ -317,9 +311,7 @@ class Orchestrator(
             if (issues.isNotEmpty()) ortRunRepository.update(job.ortRunId, issues = issues.asPresent())
 
             nextJobsToSchedule(endpoint, job.ortRunId, header)
-        }.onSuccess { (context, schedules) ->
-            scheduleCreatedJobs(context, schedules)
-        }.onFailure {
+        }.scheduleNextJobs {
             log.warn("Failed to handle '{}' message.", message::class.java.simpleName, it)
         }
     }
@@ -340,9 +332,22 @@ class Orchestrator(
 
         val ortRun = getCurrentOrtRun(ortRunId)
         val scheduleContext = createWorkerSchedulerContext(ortRun, header, workerJobs = jobs)
-        val schedules = WorkerScheduleInfo.entries.mapNotNull { it.createAndScheduleJobIfPossible(scheduleContext) }
 
-        return scheduleContext to schedules
+        return fetchNextJobs(scheduleContext)
+    }
+
+    /**
+     * Convenience function to evaluate and process this [Result] with information about the next jobs to be scheduled.
+     * If the result is successful, actually trigger the jobs. Otherwise, call the given [onFailure] function with the
+     * exception that occurred.
+     */
+    private fun Result<Pair<WorkerScheduleContext, List<JobScheduleFunc>>>.scheduleNextJobs(
+        onFailure: (Throwable) -> Unit
+    ) {
+        onSuccess { (context, schedules) ->
+            scheduleCreatedJobs(context, schedules)
+        }
+        this@scheduleNextJobs.onFailure { onFailure(it) }
     }
 
     /**
@@ -450,3 +455,12 @@ fun <T : Any> Endpoint<T>.createErrorIssue(): Issue = Issue(
     message = "The $configPrefix worker failed due to an unexpected error.",
     severity = Severity.ERROR
 )
+
+/**
+ * Return a [Pair] with the given [scheduleContext] and the list of jobs that can be scheduled in the current phase
+ * of the affected ORT run.
+ */
+private fun fetchNextJobs(
+    scheduleContext: WorkerScheduleContext
+): Pair<WorkerScheduleContext, List<JobScheduleFunc>> =
+    scheduleContext to WorkerScheduleInfo.entries.mapNotNull { it.createAndScheduleJobIfPossible(scheduleContext) }
