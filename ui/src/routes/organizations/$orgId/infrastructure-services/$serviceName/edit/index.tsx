@@ -49,6 +49,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -79,7 +80,7 @@ const EditInfrastructureServicePage = () => {
     queryFn: () =>
       InfrastructureServicesService.getInfrastructureServicesByOrganizationId({
         organizationId: Number.parseInt(params.orgId),
-        limit: 1000,
+        limit: ALL_ITEMS,
       }),
   });
 
@@ -323,7 +324,7 @@ export const Route = createFileRoute(
         InfrastructureServicesService.getInfrastructureServicesByOrganizationId(
           {
             organizationId: Number.parseInt(params.orgId),
-            limit: 1000,
+            limit: ALL_ITEMS,
           }
         ),
     });

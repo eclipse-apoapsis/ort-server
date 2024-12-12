@@ -29,6 +29,7 @@ import {
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
 import { calcVulnerabilityRatingCounts } from '@/helpers/item-counts';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 type VulnerabilitiesStatisticsCardProps = {
@@ -45,7 +46,7 @@ export const VulnerabilitiesStatisticsCard = ({
   const { data, isPending, isError, error } =
     useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
       runId: runId,
-      limit: 100000,
+      limit: ALL_ITEMS,
     });
 
   if (isPending) {

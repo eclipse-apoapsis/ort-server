@@ -55,6 +55,7 @@ import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-cl
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareSeverity } from '@/helpers/sorting-functions';
+import { ALL_ITEMS } from '@/lib/constants';
 import {
   paginationSearchParameterSchema,
   severitySchema,
@@ -189,9 +190,7 @@ const RuleViolationsComponent = () => {
   const { data: ruleViolations } =
     useRuleViolationsServiceGetRuleViolationsByRunIdSuspense({
       runId: ortRun.id,
-      // Fetch all data at once, as we need to do both grouping and
-      // pagination in front-end for consistency in data handling.
-      limit: 100000,
+      limit: ALL_ITEMS,
     });
 
   const table = useReactTable({

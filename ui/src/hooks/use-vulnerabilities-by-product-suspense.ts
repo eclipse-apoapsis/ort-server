@@ -30,6 +30,7 @@ import {
   VulnerabilitiesService,
   VulnerabilityWithIdentifier,
 } from '@/api/requests';
+import { ALL_ITEMS } from '@/lib/constants';
 
 export type VulnerabilityWithRepositoryCount = VulnerabilityWithIdentifier & {
   repositoryCount: number;
@@ -87,14 +88,14 @@ export function useVulnerabilitiesByProductIdSuspense({
                 'productVulnerabilities',
                 ...UseVulnerabilitiesServiceGetVulnerabilitiesByRunIdKeyFn({
                   runId: lastRunData.id,
-                  limit: 100000,
+                  limit: ALL_ITEMS,
                 }),
               ],
               queryFn: async () => {
                 const vulnerabilities =
                   await VulnerabilitiesService.getVulnerabilitiesByRunId({
                     runId: lastRunData.id,
-                    limit: 100000,
+                    limit: ALL_ITEMS,
                   });
 
                 return vulnerabilities.data.map((vulnerability) => ({
