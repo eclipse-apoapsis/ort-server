@@ -74,6 +74,8 @@ export const IndexPage = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
+  document.title = 'ORT Server';
+
   const { data } = useOrganizationsServiceGetOrganizationsSuspense({
     limit: pageSize,
     offset: pageIndex * pageSize,
