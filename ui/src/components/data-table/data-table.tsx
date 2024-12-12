@@ -17,39 +17,19 @@
  * License-Filename: LICENSE
  */
 
-import { Link, LinkOptions } from '@tanstack/react-router';
+import { LinkOptions } from '@tanstack/react-router';
 import {
-  flexRender,
   GroupingState,
   Row,
   type Table as TanstackTable,
 } from '@tanstack/react-table';
-import {
-  ChevronDown,
-  ChevronRight,
-  ChevronsUpDown,
-  ChevronUp,
-  Group,
-} from 'lucide-react';
-import * as React from 'react';
-import { Fragment } from 'react';
+import React from 'react';
 
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Table } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import { DataTableBody } from './data-table-body';
+import { DataTableHeader } from './data-table-header';
 
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_PAGE_SIZE = 10;
@@ -76,7 +56,6 @@ interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
 export function DataTable<TData>({
   table,
   renderSubComponent,
-  children,
   className,
   setCurrentPageOptions,
   setPageSizeOptions,
@@ -95,223 +74,19 @@ export function DataTable<TData>({
       className={cn('w-full space-y-2.5 overflow-auto', className)}
       {...props}
     >
-      {children}
-      <div>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      style={{ minWidth: header.column.columnDef.size }}
-                      colSpan={header.colSpan}
-                    >
-                      {header.isPlaceholder ? null : (
-                        <div>
-                          {groupingEnabled &&
-                          setGroupingOptions &&
-                          header.column.getCanGroup() ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Link
-                                  {...setGroupingOptions(
-                                    header.column.getIsGrouped()
-                                      ? groups.filter(
-                                          (group) =>
-                                            group !==
-                                            header.column.columnDef.header?.toString()
-                                        ) // Remove the column from groups if it's grouped
-                                      : [
-                                          ...groups,
-                                          header.column.columnDef.header?.toString() ||
-                                            '',
-                                        ] // Add the column to groups if it's not already grouped
-                                  )}
-                                >
-                                  <Button
-                                    variant={
-                                      header.column.getIsGrouped()
-                                        ? 'secondary'
-                                        : 'ghost'
-                                    }
-                                    className='-ml-2 px-2'
-                                    {...{
-                                      onClick:
-                                        header.column.getToggleGroupingHandler(),
-                                      style: {
-                                        cursor: 'pointer',
-                                      },
-                                    }}
-                                  >
-                                    <div className='flex items-center gap-2'>
-                                      {flexRender(
-                                        header.column.columnDef.header,
-                                        header.getContext()
-                                      )}
-                                      <Group className='h-4 w-4' />
-                                    </div>
-                                  </Button>
-                                </Link>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {header.column.getIsGrouped()
-                                  ? 'Toggle grouping off'
-                                  : 'Toggle grouping on'}
-                              </TooltipContent>
-                            </Tooltip>
-                          ) : setSortingOptions &&
-                            header.column.getCanSort() ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Link
-                                  {...setSortingOptions({
-                                    id: header.column.id,
-                                    // For sortable columns, the order of sorting is asc -> desc -> [no sorting].
-                                    desc:
-                                      header.column.getIsSorted() === 'desc'
-                                        ? undefined
-                                        : header.column.getIsSorted() === 'asc'
-                                          ? true
-                                          : false,
-                                  })}
-                                >
-                                  <Button
-                                    variant='ghost'
-                                    className='-ml-2 px-2'
-                                    {...{
-                                      onClick: () =>
-                                        header.column.getToggleSortingHandler(),
-                                      style: {
-                                        cursor: 'pointer',
-                                      },
-                                    }}
-                                  >
-                                    <div className='flex items-center gap-2'>
-                                      {flexRender(
-                                        header.column.columnDef.header,
-                                        header.getContext()
-                                      )}
-                                      {header.column.getIsSorted() === 'asc' ? (
-                                        <ChevronUp className='h-4 w-4' />
-                                      ) : header.column.getIsSorted() ===
-                                        'desc' ? (
-                                        <ChevronDown className='h-4 w-4' />
-                                      ) : (
-                                        <ChevronsUpDown className='h-4 w-4' />
-                                      )}
-                                    </div>
-                                  </Button>
-                                </Link>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {header.column.getCanSort()
-                                  ? header.column.getIsSorted() === 'asc'
-                                    ? 'Sort descending'
-                                    : header.column.getIsSorted() === 'desc'
-                                      ? 'Clear sorting'
-                                      : 'Sort ascending'
-                                  : undefined}
-                              </TooltipContent>
-                            </Tooltip>
-                          ) : (
-                            <>
-                              {flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <Fragment key={row.id}>
-                  <TableRow
-                    data-state={row.getIsSelected() && 'selected'}
-                    className={
-                      row.getIsExpanded() && renderSubComponent
-                        ? 'border-0'
-                        : undefined
-                    }
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        style={{ minWidth: cell.column.columnDef.size }}
-                      >
-                        {cell.getIsGrouped() ? (
-                          // If it's a grouped cell, add an expander and row count
-                          <Button
-                            variant='ghost'
-                            className='-ml-2 px-2'
-                            {...{
-                              onClick: row.getToggleExpandedHandler(),
-                            }}
-                          >
-                            <div className='flex items-center gap-2'>
-                              {row.getIsExpanded() ? (
-                                <ChevronDown className='h-4 w-4' />
-                              ) : (
-                                <ChevronRight className='h-4 w-4' />
-                              )}
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                              ({row.subRows.length})
-                            </div>
-                          </Button>
-                        ) : cell.getIsAggregated() ? (
-                          // If the cell is aggregated, use the Aggregated
-                          // renderer for cell. This is for possible future
-                          // aggregated information for grouped tables
-                          flexRender(
-                            cell.column.columnDef.aggregatedCell ??
-                              cell.column.columnDef.cell,
-                            cell.getContext()
-                          )
-                        ) : cell.getIsPlaceholder() ? null : ( // For cells with repeated values, render null
-                          // Otherwise, just render the regular cell
-                          flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  {row.getIsExpanded() && renderSubComponent && (
-                    <TableRow>
-                      {/* 2nd row is a custom 1 cell row */}
-                      <TableCell colSpan={row.getVisibleCells().length}>
-                        {renderSubComponent({ row })}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </Fragment>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={table.getAllColumns().length}
-                  className='h-24 text-center'
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <Table>
+        <DataTableHeader
+          headerGroups={table.getHeaderGroups()}
+          groupingEnabled={groupingEnabled}
+          setGroupingOptions={setGroupingOptions}
+          setSortingOptions={setSortingOptions}
+          groups={groups}
+        />
+        <DataTableBody
+          rows={table.getRowModel().rows}
+          renderSubComponent={renderSubComponent}
+        />
+      </Table>
       {table.getRowModel().rows?.length > 0 && (
         <div className='flex flex-col gap-2.5'>
           <DataTablePagination
