@@ -24,21 +24,28 @@ import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
-import { getStatusFontColor } from '@/helpers/get-status-class';
+import {
+  getIssueSeverityBackgroundColor,
+  getStatusFontColor,
+} from '@/helpers/get-status-class';
+import { calcIssueSeverityCounts } from '@/helpers/item-counts';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 type IssuesStatisticsCardProps = {
+  jobIncluded?: boolean;
   status: JobStatus | undefined;
   runId: number;
 };
 
 export const IssuesStatisticsCard = ({
+  jobIncluded,
   status,
   runId,
 }: IssuesStatisticsCardProps) => {
   const { data, isPending, isError, error } = useIssuesServiceGetIssuesByRunId({
     runId: runId,
-    limit: 1,
+    limit: ALL_ITEMS,
   });
 
   if (isPending) {
@@ -66,12 +73,36 @@ export const IssuesStatisticsCard = ({
 
   const issuesTotal = data.pagination.totalCount;
 
+  const value = jobIncluded
+    ? status === undefined
+      ? '-'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? '...'
+        : issuesTotal
+    : 'Skipped';
+  const description = jobIncluded
+    ? status === undefined
+      ? 'Not started'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? 'Running'
+        : ''
+    : 'Enable the job for results';
+
   return (
     <StatisticsCard
       title='Issues'
       icon={() => <Bug className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
-      value={status ? issuesTotal : 'Skipped'}
-      description={status ? '' : 'Enable the job for results'}
+      value={value}
+      description={description}
+      counts={
+        issuesTotal
+          ? calcIssueSeverityCounts(data.data).map(({ severity, count }) => ({
+              key: severity,
+              count,
+              color: getIssueSeverityBackgroundColor(severity),
+            }))
+          : []
+      }
       className='h-full hover:bg-muted/50'
     />
   );

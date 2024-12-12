@@ -24,22 +24,29 @@ import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
-import { getStatusFontColor } from '@/helpers/get-status-class';
+import {
+  getRuleViolationSeverityBackgroundColor,
+  getStatusFontColor,
+} from '@/helpers/get-status-class';
+import { calcRuleViolationSeverityCounts } from '@/helpers/item-counts';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 type RuleViolationsStatisticsCardProps = {
+  jobIncluded?: boolean;
   status: JobStatus | undefined;
   runId: number;
 };
 
 export const RuleViolationsStatisticsCard = ({
+  jobIncluded,
   status,
   runId,
 }: RuleViolationsStatisticsCardProps) => {
   const { data, isPending, isError, error } =
     useRuleViolationsServiceGetRuleViolationsByRunId({
       runId: runId,
-      limit: 1,
+      limit: ALL_ITEMS,
     });
 
   if (isPending) {
@@ -67,14 +74,40 @@ export const RuleViolationsStatisticsCard = ({
     return;
   }
 
-  const ruleViolationsTotal = data.pagination.totalCount;
+  const violationsTotal = data.pagination.totalCount;
+
+  const value = jobIncluded
+    ? status === undefined
+      ? '-'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? '...'
+        : violationsTotal
+    : 'Skipped';
+  const description = jobIncluded
+    ? status === undefined
+      ? 'Not started'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? 'Running'
+        : ''
+    : 'Enable the job for results';
 
   return (
     <StatisticsCard
       title='Rule Violations'
       icon={() => <Scale className={`h-4 w-4 ${getStatusFontColor(status)}`} />}
-      value={status ? ruleViolationsTotal : 'Skipped'}
-      description={status ? '' : 'Enable the job for results'}
+      value={value}
+      description={description}
+      counts={
+        violationsTotal
+          ? calcRuleViolationSeverityCounts(data.data).map(
+              ({ severity, count }) => ({
+                key: severity,
+                count,
+                color: getRuleViolationSeverityBackgroundColor(severity),
+              })
+            )
+          : []
+      }
       className='h-full hover:bg-muted/50'
     />
   );

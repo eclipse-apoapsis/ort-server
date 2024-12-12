@@ -19,47 +19,15 @@
 
 import { Scale } from 'lucide-react';
 
-import { RuleViolation, Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
+import { calcRuleViolationSeverityCounts } from '@/helpers/item-counts';
 import { useViolationsByProductIdSuspense } from '@/hooks/use-violations-by-product-suspense';
 import { cn } from '@/lib/utils';
 
 type ProductViolationsStatisticsCardProps = {
   productId: number;
   className?: string;
-};
-
-/**
- * Calculate the counts of rule violations by their severity.
- *
- * @param violations
- * @returns Rule violation counts sorted in decreasing order of severity.
- */
-const calcRuleViolationSeverityCounts = (
-  violations: RuleViolation[]
-): { severity: Severity; count: number }[] => {
-  let errorCount = 0;
-  let warningCount = 0;
-  let hintCount = 0;
-  for (const violation of violations) {
-    switch (violation.severity) {
-      case 'ERROR':
-        errorCount++;
-        break;
-      case 'WARNING':
-        warningCount++;
-        break;
-      case 'HINT':
-        hintCount++;
-        break;
-    }
-  }
-  return [
-    { severity: 'ERROR', count: errorCount },
-    { severity: 'WARNING', count: warningCount },
-    { severity: 'HINT', count: hintCount },
-  ];
 };
 
 export const ProductViolationsStatisticsCard = ({

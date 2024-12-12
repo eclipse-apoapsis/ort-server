@@ -19,47 +19,15 @@
 
 import { Bug } from 'lucide-react';
 
-import { Issue, Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
+import { calcIssueSeverityCounts } from '@/helpers/item-counts';
 import { useIssuesByProductIdSuspense } from '@/hooks/use-issues-by-product-suspense';
 import { cn } from '@/lib/utils';
 
 type ProductIssuesStatisticsCardProps = {
   productId: number;
   className?: string;
-};
-
-/**
- * Calculate the counts of issues by their severity.
- *
- * @param issues
- * @returns Issue counts sorted in decreasing order of severity.
- */
-const calcIssueSeverityCounts = (
-  issues: Issue[]
-): { severity: Severity; count: number }[] => {
-  let errorCount = 0;
-  let warningCount = 0;
-  let hintCount = 0;
-  for (const issue of issues) {
-    switch (issue.severity) {
-      case 'ERROR':
-        errorCount++;
-        break;
-      case 'WARNING':
-        warningCount++;
-        break;
-      case 'HINT':
-        hintCount++;
-        break;
-    }
-  }
-  return [
-    { severity: 'ERROR', count: errorCount },
-    { severity: 'WARNING', count: warningCount },
-    { severity: 'HINT', count: hintCount },
-  ];
 };
 
 export const ProductIssuesStatisticsCard = ({

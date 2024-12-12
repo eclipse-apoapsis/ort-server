@@ -24,22 +24,29 @@ import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
-import { getStatusFontColor } from '@/helpers/get-status-class';
+import {
+  getStatusFontColor,
+  getVulnerabilityRatingBackgroundColor,
+} from '@/helpers/get-status-class';
+import { calcVulnerabilityRatingCounts } from '@/helpers/item-counts';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 type VulnerabilitiesStatisticsCardProps = {
+  jobIncluded?: boolean;
   status: JobStatus | undefined;
   runId: number;
 };
 
 export const VulnerabilitiesStatisticsCard = ({
+  jobIncluded,
   status,
   runId,
 }: VulnerabilitiesStatisticsCardProps) => {
   const { data, isPending, isError, error } =
     useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
       runId: runId,
-      limit: 1,
+      limit: ALL_ITEMS,
     });
 
   if (isPending) {
@@ -69,14 +76,40 @@ export const VulnerabilitiesStatisticsCard = ({
 
   const vulnerabilitiesTotal = data.pagination.totalCount;
 
+  const value = jobIncluded
+    ? status === undefined
+      ? '-'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? '...'
+        : vulnerabilitiesTotal
+    : 'Skipped';
+  const description = jobIncluded
+    ? status === undefined
+      ? 'Not started'
+      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
+        ? 'Running'
+        : ''
+    : 'Enable the job for results';
+
   return (
     <StatisticsCard
       title='Vulnerabilities'
       icon={() => (
         <ShieldQuestion className={`h-4 w-4 ${getStatusFontColor(status)}`} />
       )}
-      value={status ? vulnerabilitiesTotal : 'Skipped'}
-      description={status ? '' : 'Enable the job for results'}
+      value={value}
+      description={description}
+      counts={
+        vulnerabilitiesTotal
+          ? calcVulnerabilityRatingCounts(data.data).map(
+              ({ rating, count }) => ({
+                key: rating,
+                count,
+                color: getVulnerabilityRatingBackgroundColor(rating),
+              })
+            )
+          : []
+      }
       className='h-full hover:bg-muted/50'
     />
   );
