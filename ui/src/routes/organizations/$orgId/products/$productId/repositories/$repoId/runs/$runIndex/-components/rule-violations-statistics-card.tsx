@@ -74,22 +74,19 @@ export const RuleViolationsStatisticsCard = ({
     return;
   }
 
-  const violationsTotal = data.pagination.totalCount;
+  const total = data.pagination.totalCount;
 
-  const value = jobIncluded
-    ? status === undefined
-      ? '-'
-      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
-        ? '...'
-        : violationsTotal
-    : 'Skipped';
-  const description = jobIncluded
-    ? status === undefined
-      ? 'Not started'
-      : !['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status)
-        ? 'Running'
-        : ''
-    : 'Enable the job for results';
+  const jobIsScheduled = status !== undefined;
+  const jobIsFinished =
+    jobIsScheduled &&
+    ['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status);
+  const { value, description } = jobIncluded
+    ? jobIsScheduled
+      ? jobIsFinished
+        ? { value: total, description: '' }
+        : { value: '...', description: 'Running' }
+      : { value: '-', description: 'Not started' }
+    : { value: 'Skipped', description: 'Enable the job for results' };
 
   return (
     <StatisticsCard
@@ -98,7 +95,7 @@ export const RuleViolationsStatisticsCard = ({
       value={value}
       description={description}
       counts={
-        violationsTotal
+        total
           ? calcRuleViolationSeverityCounts(data.data).map(
               ({ severity, count }) => ({
                 key: severity,
