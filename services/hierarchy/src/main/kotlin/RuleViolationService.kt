@@ -27,10 +27,13 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolatio
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQuery
+import org.eclipse.apoapsis.ortserver.model.CountByCategory
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
+import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 
@@ -68,6 +71,26 @@ class RuleViolationService(private val db: Database) {
             .where { EvaluatorJobsTable.ortRunId inList ortRunIds.asList() }
             .withDistinct()
             .count()
+    }
+
+    /** Count rule violations by severity in provided ORT runs. */
+    suspend fun countBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> = db.dbQuery {
+        val countAlias = Count(RuleViolationsTable.id, true)
+
+        val severityToCountMap = Severity.entries.associateWithTo(mutableMapOf()) { 0L }
+
+        RuleViolationsTable
+            .innerJoin(EvaluatorRunsRuleViolationsTable)
+            .innerJoin(EvaluatorRunsTable)
+            .innerJoin(EvaluatorJobsTable)
+            .select(RuleViolationsTable.severity, countAlias)
+            .where { EvaluatorJobsTable.ortRunId inList ortRunIds.asList() }
+            .groupBy(RuleViolationsTable.severity)
+            .map { row ->
+                severityToCountMap.put(row[RuleViolationsTable.severity], row[countAlias])
+            }
+
+        CountByCategory(severityToCountMap)
     }
 }
 

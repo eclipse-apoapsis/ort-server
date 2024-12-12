@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 
@@ -138,6 +139,105 @@ class RuleViolationServiceTest : WordSpec() {
                 ).id
 
                 service.countForOrtRunIds(ortRun1Id, ortRun2Id) shouldBe 4
+            }
+        }
+
+        "countBySeverityForOrtRunIds" should {
+            "return the counts per severity for rule violations found in ORT runs" {
+                val service = RuleViolationService(db)
+
+                val repositoryId = fixtures.createRepository().id
+
+                val ortRun1Id = createRuleViolationEntries(
+                    repositoryId,
+                    generateRuleViolations().plus(
+                        OrtRuleViolation(
+                            "Rule-1",
+                            Identifier(
+                                "Maven",
+                                "org.apache.logging.log4j",
+                                "log4j-api",
+                                "2.14.0"
+                            ),
+                            "License-1",
+                            "CONCLUDED",
+                            Severity.HINT,
+                            "Message-1",
+                            "How_to_fix-1"
+                        )
+                    )
+                ).id
+                val ortRun2Id = createRuleViolationEntries(
+                    repositoryId,
+                    generateRuleViolations().plus(
+                        OrtRuleViolation(
+                            "Rule-1",
+                            Identifier(
+                                "Maven",
+                                "org.apache.logging.log4j",
+                                "log4j-api",
+                                "2.14.0"
+                            ),
+                            "License-1",
+                            "CONCLUDED",
+                            Severity.WARNING,
+                            "Message-1",
+                            "How_to_fix-1"
+                        )
+                    )
+                ).id
+
+                val severitiesToCounts = service.countBySeverityForOrtRunIds(ortRun1Id, ortRun2Id)
+
+                severitiesToCounts.map.size shouldBe Severity.entries.size
+                severitiesToCounts.map.keys shouldContainExactlyInAnyOrder Severity.entries
+                severitiesToCounts.getCount(Severity.HINT) shouldBe 2
+                severitiesToCounts.getCount(Severity.WARNING) shouldBe 2
+                severitiesToCounts.getCount(Severity.ERROR) shouldBe 1
+            }
+
+            "return counts by severity that sum up to the count returned by countForOrtRunIds" {
+                val service = RuleViolationService(db)
+
+                val repositoryId = fixtures.createRepository().id
+
+                val ortRun1Id = createRuleViolationEntries(repositoryId).id
+                val ortRun2Id = createRuleViolationEntries(
+                    repositoryId,
+                    generateRuleViolations().plus(
+                        OrtRuleViolation(
+                            "Rule-1",
+                            Identifier(
+                                "Maven",
+                                "org.apache.logging.log4j",
+                                "log4j-api",
+                                "2.14.0"
+                            ),
+                            "License-1",
+                            "CONCLUDED",
+                            Severity.WARNING,
+                            "Message-1",
+                            "How_to_fix-1"
+                        )
+                    )
+                ).id
+
+                val severitiesToCounts = service.countBySeverityForOrtRunIds(ortRun1Id, ortRun2Id)
+                val count = service.countForOrtRunIds(ortRun1Id, ortRun2Id)
+
+                severitiesToCounts.map.values.sum() shouldBe count
+            }
+
+            "include counts of 0 for severities that are not found in rule violations" {
+                val service = RuleViolationService(db)
+
+                val repositoryId = fixtures.createRepository().id
+                val ortRunId = fixtures.createOrtRun(repositoryId).id
+
+                val severitiesToCounts = service.countBySeverityForOrtRunIds(ortRunId)
+
+                severitiesToCounts.map.keys shouldContainExactlyInAnyOrder Severity.entries
+                severitiesToCounts.map.values.sum() shouldBe 0
             }
         }
     }
