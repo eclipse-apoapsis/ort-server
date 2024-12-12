@@ -62,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions as ApiPagingOpt
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfiguration as ApiPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability as ApiProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration as ApiProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact as ApiRemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterAsset as ApiReporterAsset
@@ -80,6 +81,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier as ApiVulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
@@ -121,6 +123,8 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.User
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -761,3 +765,13 @@ fun ApiSourceCodeOrigin.mapToModel() =
 fun User.mapToApi() = ApiUser(username, firstName, lastName, email)
 
 fun EcosystemStats.mapToApi() = ApiEcosystemStats(name = name, count = count)
+
+fun VulnerabilityRating.mapToApi() = ApiVulnerabilityRating.valueOf(name)
+
+fun VulnerabilityWithAccumulatedData.mapToApi() = ApiProductVulnerability(
+    vulnerability = vulnerability.mapToApi(),
+    identifier = identifier.mapToApi(),
+    rating = rating.mapToApi(),
+    ortRunIds = ortRunIds,
+    repositoriesCount = repositoriesCount
+)
