@@ -25,6 +25,7 @@ import {
 } from '@/api/queries';
 import { useRepositoriesServiceGetRepositoriesByProductIdSuspense } from '@/api/queries/suspense';
 import { Issue, IssuesService, RepositoriesService } from '@/api/requests';
+import { ALL_ITEMS } from '@/lib/constants';
 
 export function useIssuesByProductIdSuspense({
   productId,
@@ -76,12 +77,12 @@ export function useIssuesByProductIdSuspense({
             {
               queryKey: UseIssuesServiceGetIssuesByRunIdKeyFn({
                 runId: lastRunData.id,
-                limit: 100000,
+                limit: ALL_ITEMS,
               }),
               queryFn: async () => {
                 const issues = await IssuesService.getIssuesByRunId({
                   runId: lastRunData.id,
-                  limit: 100000,
+                  limit: ALL_ITEMS,
                 });
 
                 return issues;

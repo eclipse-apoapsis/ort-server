@@ -29,6 +29,7 @@ import {
   getStatusFontColor,
 } from '@/helpers/get-status-class';
 import { calcPackageEcosystemCounts } from '@/helpers/item-counts';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 type PackagesStatisticsCardProps = {
@@ -45,7 +46,7 @@ export const PackagesStatisticsCard = ({
   const { data, isPending, isError, error } =
     usePackagesServiceGetPackagesByRunId({
       runId: runId,
-      limit: 100000,
+      limit: ALL_ITEMS,
     });
 
   if (isPending) {
