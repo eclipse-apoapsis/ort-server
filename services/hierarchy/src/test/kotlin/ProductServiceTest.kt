@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
@@ -238,6 +239,20 @@ class ProductServiceTest : WordSpec({
                     "PRODUCT_1_READERS"
                 )
             }
+        }
+    }
+
+    "getRepositoryIdsForProduct" should {
+        "return IDs for all repositories of a product" {
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
+
+            val prodId = fixtures.createProduct().id
+
+            val repo1Id = fixtures.createRepository(productId = prodId).id
+            val repo2Id = fixtures.createRepository(url = "https://example.com/repo2.git", productId = prodId).id
+            val repo3Id = fixtures.createRepository(url = "https://example.com/repo3.git", productId = prodId).id
+
+            service.getRepositoryIdsForProduct(prodId).shouldContainExactlyInAnyOrder(repo1Id, repo2Id, repo3Id)
         }
     }
 })

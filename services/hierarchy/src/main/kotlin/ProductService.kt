@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
@@ -163,5 +164,12 @@ class ProductService(
         // Keycloak) and business exceptions (e.g. user not found), we can't do special exception handling here
         // and just let the exception propagate.
         authorizationService.removeUserFromGroup(username, groupName)
+    }
+
+    suspend fun getRepositoryIdsForProduct(productId: Long): List<Long> = db.dbQuery {
+        RepositoriesTable
+            .select(RepositoriesTable.id)
+            .where { RepositoriesTable.productId eq productId }
+            .map { it[RepositoriesTable.id].value }
     }
 }
