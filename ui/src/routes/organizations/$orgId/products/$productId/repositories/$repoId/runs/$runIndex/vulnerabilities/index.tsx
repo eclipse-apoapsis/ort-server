@@ -60,6 +60,7 @@ import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-clas
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,
@@ -250,7 +251,7 @@ const VulnerabilitiesComponent = () => {
     error,
   } = useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
     runId: ortRun.id,
-    limit: 100000,
+    limit: ALL_ITEMS,
   });
 
   const table = useReactTable({

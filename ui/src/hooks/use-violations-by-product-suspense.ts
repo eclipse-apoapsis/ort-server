@@ -29,6 +29,7 @@ import {
   RuleViolation,
   RuleViolationsService,
 } from '@/api/requests';
+import { ALL_ITEMS } from '@/lib/constants';
 
 export function useViolationsByProductIdSuspense({
   productId,
@@ -80,13 +81,13 @@ export function useViolationsByProductIdSuspense({
             {
               queryKey: UseRuleViolationsServiceGetRuleViolationsByRunIdKeyFn({
                 runId: lastRunData.id,
-                limit: 100000,
+                limit: ALL_ITEMS,
               }),
               queryFn: async () => {
                 const violations =
                   await RuleViolationsService.getRuleViolationsByRunId({
                     runId: lastRunData.id,
-                    limit: 100000,
+                    limit: ALL_ITEMS,
                   });
 
                 return violations;
