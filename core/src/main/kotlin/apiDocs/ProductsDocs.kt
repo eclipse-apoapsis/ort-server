@@ -25,9 +25,11 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
@@ -36,6 +38,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
 val getProductById: OpenApiRoute.() -> Unit = {
@@ -407,6 +412,59 @@ val deleteUserFromProductGroup: OpenApiRoute.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "Product or group not found."
+        }
+    }
+}
+
+val getVulnerabilitiesAcrossRepositoriesByProductId: OpenApiRoute.() -> Unit = {
+    operationId = "GetVulnerabilitiesAcrossRepositoriesByProductId"
+    summary = "Get the vulnerabilities from latest successful advisor runs across the repositories in a product."
+    tags = listOf("Vulnerabilities")
+
+    request {
+        pathParameter<Long>("productId") {
+            description = "The product's ID."
+        }
+
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            jsonBody<PagedResponse<ProductVulnerability>> {
+                example("Get vulnerabilities for product") {
+                    value = PagedResponse(
+                        listOf(
+                            ProductVulnerability(
+                                vulnerability = Vulnerability(
+                                    externalId = "CVE-2021-1234",
+                                    summary = "A vulnerability",
+                                    description = "A description",
+                                    references = listOf(
+                                        VulnerabilityReference(
+                                            "https://example.com",
+                                            "CVSS3",
+                                            "HIGH",
+                                            9.8f,
+                                            "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                        )
+                                    )
+                                ),
+                                identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
+                                rating = VulnerabilityRating.HIGH,
+                                ortRunIds = listOf(40, 53),
+                                repositoriesCount = 2
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 1,
+                            sortProperties = listOf(SortProperty("rating", SortDirection.DESCENDING))
+                        )
+                    )
+                }
+            }
         }
     }
 }

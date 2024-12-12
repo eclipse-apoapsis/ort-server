@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoriesByProductId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByProductId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepositoriesByProductId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
@@ -59,15 +60,21 @@ import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
+import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 
 import org.koin.ktor.ext.inject
 
+@Suppress("LongMethod")
 fun Route.products() = route("products/{productId}") {
     val productService by inject<ProductService>()
+    val repositoryService by inject<RepositoryService>()
     val secretService by inject<SecretService>()
+    val vulnerabilityService by inject<VulnerabilityService>()
 
     get(getProductById) {
         requirePermission(ProductPermission.READ)
@@ -235,6 +242,28 @@ fun Route.products() = route("products/{productId}") {
                 productService.removeUserFromGroup(user.username, productId, groupId)
                 call.respond(HttpStatusCode.NoContent)
             }
+        }
+    }
+
+    route("vulnerabilities") {
+        get(getVulnerabilitiesAcrossRepositoriesByProductId) {
+            requirePermission(ProductPermission.READ)
+
+            val productId = call.requireIdParameter("productId")
+            val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
+
+            val repositoryIds = productService.getRepositoryIdsForProduct(productId)
+
+            val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
+                repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
+            }
+
+            val vulnerabilities =
+                vulnerabilityService.listForOrtRuns(ortRunIds, pagingOptions.mapToModel())
+
+            val pagedResponse = vulnerabilities.mapToApi(VulnerabilityWithAccumulatedData::mapToApi)
+
+            call.respond(HttpStatusCode.OK, pagedResponse)
         }
     }
 }

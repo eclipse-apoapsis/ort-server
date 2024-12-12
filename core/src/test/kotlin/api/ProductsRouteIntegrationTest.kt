@@ -47,6 +47,8 @@ import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
 
+import kotlinx.datetime.Clock
+
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
@@ -54,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
@@ -62,12 +65,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
@@ -78,7 +83,12 @@ import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
@@ -916,6 +926,175 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
                     membersAfter.shouldBeEmpty()
                 }
+            }
+        }
+    }
+
+    "GET /products/{productId}/vulnerabilities" should {
+        "return vulnerabilities across repositories in the product found in latest successful advisor jobs" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val repository1Id = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.org/repo.git",
+                    productId = productId
+                ).id
+                val repository2Id = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.org/repo2.git",
+                    productId = productId
+                ).id
+
+                val commonVulnerability = Vulnerability(
+                    externalId = "CVE-2021-1234",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "Medium",
+                            score = 4.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                val identifier1 = Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                val identifier2 = Identifier("Maven", "org.apache.logging.log4j", "log4j-api", "2.14.0")
+
+                val run1Id = dbExtension.fixtures.createOrtRun(repository1Id).id
+                val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(run1Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob1Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run1Vulnerability = Vulnerability(
+                    externalId = "CVE-2022-2345",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "LOW",
+                            score = 1.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob1Id,
+                    mapOf(
+                       identifier1 to
+                        listOf(
+                            AdvisorResult(
+                                advisorName = "advisor",
+                                capabilities = listOf("vulnerabilities"),
+                                startTime = Clock.System.now(),
+                                endTime = Clock.System.now(),
+                                issues = emptyList(),
+                                defects = emptyList(),
+                                vulnerabilities = listOf(
+                                    commonVulnerability,
+                                    run1Vulnerability
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val run2Id = dbExtension.fixtures.createOrtRun(repository1Id).id
+                val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(run2Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob2Id,
+                    status = JobStatus.FAILED.asPresent2()
+                )
+
+                val run3Id = dbExtension.fixtures.createOrtRun(repository2Id).id
+                val advisorJob3Id = dbExtension.fixtures.createAdvisorJob(run3Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob3Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob3Id,
+                    mapOf(
+                        identifier1 to
+                                listOf(
+                                    AdvisorResult(
+                                        advisorName = "advisor",
+                                        capabilities = listOf("vulnerabilities"),
+                                        startTime = Clock.System.now(),
+                                        endTime = Clock.System.now(),
+                                        issues = emptyList(),
+                                        defects = emptyList(),
+                                        vulnerabilities = listOf(
+                                            commonVulnerability
+                                        )
+                                    )
+                                ),
+                        identifier2 to
+                                listOf(
+                                    AdvisorResult(
+                                        advisorName = "advisor",
+                                        capabilities = listOf("vulnerabilities"),
+                                        startTime = Clock.System.now(),
+                                        endTime = Clock.System.now(),
+                                        issues = emptyList(),
+                                        defects = emptyList(),
+                                        vulnerabilities = listOf(
+                                            commonVulnerability
+                                        )
+                                    )
+                                )
+                    )
+                )
+
+                val response =
+                    superuserClient.get("/api/v1/products/$productId/vulnerabilities?sort=-rating,-repositories_count")
+
+                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        ProductVulnerability(
+                            vulnerability = commonVulnerability.mapToApi(),
+                            identifier = identifier1.mapToApi(),
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run1Id, run3Id),
+                            repositoriesCount = 2
+                        ),
+                        ProductVulnerability(
+                            vulnerability = commonVulnerability.mapToApi(),
+                            identifier = identifier2.mapToApi(),
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run3Id),
+                            repositoriesCount = 1
+                        ),
+                        ProductVulnerability(
+                            vulnerability = run1Vulnerability.mapToApi(),
+                            identifier = identifier1.mapToApi(),
+                            rating = VulnerabilityRating.LOW,
+                            ortRunIds = listOf(run1Id),
+                            repositoriesCount = 1
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 3,
+                        sortProperties = listOf(
+                            SortProperty("rating", SortDirection.DESCENDING),
+                            SortProperty("repositories_count", SortDirection.DESCENDING)
+                        )
+                    )
+                )
+            }
+        }
+
+        "require ProductPermission.READ_REPOSITORIES" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(ProductPermission.READ_REPOSITORIES.roleName(createdProduct.id)) {
+                get("/api/v1/products/${createdProduct.id}/repositories")
             }
         }
     }
