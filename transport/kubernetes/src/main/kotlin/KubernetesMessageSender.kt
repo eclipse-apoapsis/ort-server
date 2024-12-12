@@ -31,6 +31,8 @@ import io.kubernetes.client.openapi.models.V1SecretVolumeSource
 import io.kubernetes.client.openapi.models.V1Volume
 import io.kubernetes.client.openapi.models.V1VolumeMount
 
+import java.util.UUID
+
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageSender
@@ -88,22 +90,23 @@ internal class KubernetesMessageSender<T : Any>(
     private val serializer = JsonSerializer.forClass(endpoint.messageClass)
 
     override fun send(message: Message<T>) {
+        val traceId = validTraceId(message)
         val msgMap = mapOf(
-            TRACE_PROPERTY to message.header.traceId,
+            TRACE_PROPERTY to traceId,
             RUN_ID_PROPERTY to message.header.ortRunId.toString(),
             "payload" to serializer.toJson(message.payload)
         )
 
         val msgConfig = config.forMessage(message)
         val envVars = createEnvironment()
-        val labels = createTraceIdLabels(message.header.traceId) + mapOf(
+        val labels = createTraceIdLabels(traceId) + mapOf(
             RUN_ID_LABEL to message.header.ortRunId.toString(),
             WORKER_LABEL to endpoint.configPrefix
         )
 
         val jobBody = V1JobBuilder()
             .withNewMetadata()
-                .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
+                .withName("${endpoint.configPrefix}-$traceId".take(64))
                 .withLabels<String, String>(labels)
             .endMetadata()
             .withNewSpec()
@@ -121,7 +124,7 @@ internal class KubernetesMessageSender<T : Any>(
                         )
                        .withServiceAccountName(msgConfig.serviceAccountName)
                        .addNewContainer()
-                           .withName("${endpoint.configPrefix}-${message.header.traceId}".take(64))
+                           .withName("${endpoint.configPrefix}-$traceId".take(64))
                            .withImage(msgConfig.imageName)
                            .withCommand(msgConfig.commands)
                            .withArgs(msgConfig.args)
@@ -140,6 +143,14 @@ internal class KubernetesMessageSender<T : Any>(
 
         api.createNamespacedJob(msgConfig.namespace, jobBody, null, null, null, null)
     }
+
+    /**
+     * Generate a valid trace ID from the given [message]. Check the ID contained in the message. If it is empty, a
+     * unique ID is generated. This is needed because the job name is derived from the trace ID, and Kubernetes
+     * as some restrictions for such names.
+     */
+    private fun validTraceId(message: Message<T>): String =
+        (message.header.traceId.takeUnless { it.isBlank() } ?: UUID.randomUUID()).toString()
 
     /**
      * Prepare the environment for the job to create. This environment contains all the variables from the current

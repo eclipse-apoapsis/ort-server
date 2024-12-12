@@ -24,15 +24,18 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.OverrideMode
 import io.kotest.extensions.system.withEnvironment
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContainAll
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 
 import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.apis.BatchV1Api
@@ -168,6 +171,35 @@ class KubernetesMessageSenderTest : StringSpec({
             requests shouldBe expectedRequests
         }
     }
+
+    "Valid job names are generated even if no trace ID is provided" {
+        val config = createConfig()
+        val msg = message.copy(header = header.copy(traceId = " "))
+
+        val (client, sender) = createClientAndSender(config)
+
+        val jobs = mutableListOf<V1Job>()
+        sender.send(msg)
+        sender.send(msg)
+
+        verify(exactly = 2) {
+            client.createNamespacedJob(
+                "test-namespace",
+                capture(jobs),
+                null,
+                null,
+                null,
+                null
+            )
+        }
+
+        val jobNames = jobs.mapNotNull { it.metadata?.name }.toSet()
+        jobNames shouldHaveSize 2
+        jobNames.forAll { jobName ->
+            jobName.shouldStartWith("analyzer-")
+            jobName.length shouldBeGreaterThan 20
+        }
+    }
 })
 
 private val annotations = mapOf(
@@ -201,15 +233,7 @@ private fun createJob(
     config: KubernetesSenderConfig,
     msg: Message<AnalyzerRequest> = message
 ): V1Job {
-    val client = mockk<BatchV1Api> {
-        every { createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
-    }
-
-    val sender = KubernetesMessageSender(
-        api = client,
-        config = config,
-        endpoint = AnalyzerEndpoint
-    )
+    val (client, sender) = createClientAndSender(config)
 
     withEnvironment(envVars, OverrideMode.SetOrOverride) {
         sender.send(msg)
@@ -228,6 +252,24 @@ private fun createJob(
     }
 
     return job.captured
+}
+
+/**
+ * Create a sender to be tested based on the given [config] together with a mocked Kubernetes client.
+ */
+private fun createClientAndSender(
+    config: KubernetesSenderConfig
+): Pair<BatchV1Api, KubernetesMessageSender<AnalyzerRequest>> {
+    val client = mockk<BatchV1Api> {
+        every { createNamespacedJob(any(), any(), null, null, null, null) } returns mockk()
+    }
+
+    val sender = KubernetesMessageSender(
+        api = client,
+        config = config,
+        endpoint = AnalyzerEndpoint
+    )
+    return Pair(client, sender)
 }
 
 /**
