@@ -152,7 +152,7 @@ jobs:
       if: ${{ matrix.docker.task != '' }}
       run: |
         ./gradlew \
-          -PdockerBaseImagePrefix=${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
+          -PdockerBaseImagePrefix=docker://${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
           -PdockerBaseImageTag=${{ env.ORT_SERVER_VERSION }} \
           -PdockerImagePrefix=${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
           -PdockerImageTag=${{ env.ORT_SERVER_VERSION }} \
