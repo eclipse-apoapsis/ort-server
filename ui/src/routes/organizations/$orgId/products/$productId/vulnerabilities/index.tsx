@@ -29,22 +29,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useVulnerabilitiesByProductIdSuspense } from '@/hooks/use-vulnerabilities-by-product-suspense';
 import {
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
-import { ProductVulnerabilitiesTable } from './-components/product-vulnerability-table';
+import { ProductVulnerabilityTable } from './-components/product-vulnerability-table';
 
 const ProductVulnerabilitiesComponent = () => {
   const params = Route.useParams();
 
   const { data: product } = useProductsServiceGetProductByIdSuspense({
-    productId: Number.parseInt(params.productId),
-  });
-
-  // Custom hook, to be replaced later with API call.
-  const vulnerabilities = useVulnerabilitiesByProductIdSuspense({
     productId: Number.parseInt(params.productId),
   });
 
@@ -65,9 +59,7 @@ const ProductVulnerabilitiesComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {vulnerabilities && (
-          <ProductVulnerabilitiesTable vulnerabilities={vulnerabilities} />
-        )}
+        <ProductVulnerabilityTable />
       </CardContent>
     </Card>
   );
