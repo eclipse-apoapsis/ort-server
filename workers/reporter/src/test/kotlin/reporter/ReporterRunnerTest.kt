@@ -33,6 +33,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.beInstanceOf
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -49,6 +50,7 @@ import java.io.File
 import java.io.FileNotFoundException
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
@@ -56,6 +58,9 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
@@ -75,6 +80,7 @@ import org.ossreviewtoolkit.model.Severity as OrtSeverity
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.plugins.api.PluginConfig
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
+import org.ossreviewtoolkit.reporter.DefaultLicenseTextProvider
 import org.ossreviewtoolkit.reporter.HowToFixTextProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterFactory
@@ -717,7 +723,7 @@ class ReporterRunnerTest : WordSpec({
             }
         }
 
-        "download custom license text files" {
+        "configure a correct custom license text provider" {
             val format = "testCustomLicenseTexts"
             val reporterInputSlot = slot<ReporterInput>()
             val reporter = reporterFactoryMock(format) {
@@ -726,23 +732,14 @@ class ReporterRunnerTest : WordSpec({
 
             mockReporterFactoryAll(format to reporter)
 
-            val customLicenseText = "This is a custom license."
-            val licenseId = "LicenseRef-Test-License"
-            val customLicenseTextFile = configDirectory.resolve(licenseId).also { it.writeText(customLicenseText) }
             val customLicenseTextsPath = "custom-license-texts"
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(format),
                 customLicenseTextDir = customLicenseTextsPath
             )
 
-            val resolvedContext = Context("theResolvedContext")
-
             val (contextFactory, context) = mockContext()
-            every { context.ortRun.resolvedJobConfigContext } returns resolvedContext.name
             every { context.configManager } returns configManager
-            coEvery { context.downloadConfigurationDirectory(Path(customLicenseTextsPath), any()) } returns mapOf(
-                Path(customLicenseTextsPath) to customLicenseTextFile
-            )
 
             val runner = ReporterRunner(
                 mockk(relaxed = true),
@@ -752,9 +749,11 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            // Verify that custom license texts have been correctly configured.
+            // Verify that a correct provider was passed to the reporter input.
             reporterInputSlot.isCaptured shouldBe true
-            reporterInputSlot.captured.licenseTextProvider.getLicenseText(licenseId) shouldBe customLicenseText
+            with(reporterInputSlot.captured.licenseTextProvider as CustomLicenseTextProvider) {
+                licenseTextDir shouldBe Path(customLicenseTextsPath)
+            }
         }
 
         "use the configured how-to-fix text provider" {
@@ -803,6 +802,59 @@ class ReporterRunnerTest : WordSpec({
             reporterInputSlot.captured.howToFixTextProvider.getHowToFixText(
                 issue = Issue(message = "Test issue message.", source = "Test")
             ) shouldBe "A test How-To-Fix text."
+        }
+    }
+
+    "createLicenseTextProvider" should {
+        "create a CustomLicenseTextProvider if a custom license text directory is configured" {
+            val testConfigContext = "configurationContext"
+            val customLicenseTextDir = "path/to/custom/licenses"
+            val reporterConfig = ReporterJobConfiguration(customLicenseTextDir = customLicenseTextDir)
+            val run = OrtRun(
+                id = 1,
+                index = 2,
+                organizationId = 3,
+                productId = 4,
+                repositoryId = 5,
+                createdAt = Instant.parse("2024-12-06T05:40:00Z"),
+                revision = "test",
+                finishedAt = null,
+                jobConfigs = JobConfigurations(),
+                resolvedJobConfigs = null,
+                status = OrtRunStatus.ACTIVE,
+                vcsId = null,
+                vcsProcessedId = null,
+                nestedRepositoryIds = null,
+                labels = emptyMap(),
+                repositoryConfigId = null,
+                jobConfigContext = null,
+                issues = emptyList(),
+                traceId = null,
+                resolvedJobConfigContext = testConfigContext
+            )
+
+            val context = mockk<WorkerContext> {
+                every { ortRun } returns run
+                every { this@mockk.configManager } returns configManager
+            }
+
+            val provider = createLicenseTextProvider(context, reporterConfig)
+
+            with(provider as CustomLicenseTextProvider) {
+                this.configManager shouldBe configManager
+                this.configurationContext?.name shouldBe testConfigContext
+                licenseTextDir shouldBe Path(customLicenseTextDir)
+                wrappedProvider should beInstanceOf<DefaultLicenseTextProvider>()
+            }
+        }
+
+        "create a DefaultLicenseTextProvider if no custom license text directory is configured" {
+            val reporterConfig = ReporterJobConfiguration()
+            val context = mockk<WorkerContext>()
+
+            val provider = createLicenseTextProvider(context, reporterConfig)
+
+            provider should beInstanceOf<DefaultLicenseTextProvider>()
         }
     }
 })

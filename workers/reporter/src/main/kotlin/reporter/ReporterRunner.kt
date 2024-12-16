@@ -21,8 +21,6 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
 
-import kotlin.time.measureTimedValue
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -370,27 +368,16 @@ private fun String.toTemplatePath(): Path = Path(removePrefix(ReporterComponent.
 
 /**
  * Return the provider for license texts based on the given [config]. If a path to custom license texts is configured,
- * download this directory and create a [LicenseTextProvider] for it.
+ * create a [CustomLicenseTextProvider] that downloads license texts from this directory on demand. Otherwise, return
+ * a [DefaultLicenseTextProvider] that can only handle standard license texts.
  */
-private suspend fun createLicenseTextProvider(
+internal fun createLicenseTextProvider(
     context: WorkerContext,
     config: ReporterJobConfiguration
-): LicenseTextProvider {
-    val licenseTextDirectories = config.customLicenseTextDir?.let { customLicenseTextDir ->
-        logger.info("Downloading custom license texts from '{}'.", customLicenseTextDir)
-
-        val licenseTextFolder = context.createTempDir()
-        val timedFiles = measureTimedValue {
-            context.downloadConfigurationDirectory(Path(customLicenseTextDir), licenseTextFolder)
-        }
-
-        logger.debug("Downloaded {} custom license text files in {}.", timedFiles.value.size, timedFiles.duration)
-
-        listOf(licenseTextFolder)
-    }.orEmpty()
-
-    return DefaultLicenseTextProvider(licenseTextDirectories)
-}
+): LicenseTextProvider =
+    config.customLicenseTextDir?.let { dir ->
+        CustomLicenseTextProvider(context.configManager, context.resolvedConfigurationContext, Path(dir))
+    } ?: DefaultLicenseTextProvider()
 
 /**
  * Create an issue for the given report [format] with information derived from the given [throwable][e] and also log it.
