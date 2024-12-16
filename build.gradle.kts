@@ -24,7 +24,6 @@ val dockerBaseImageTag: String by project
 val dockerImageTag: String by project
 
 plugins {
-    alias(libs.plugins.dependencyAnalysis)
     alias(libs.plugins.gitSemver)
     alias(libs.plugins.jib) apply false
     alias(libs.plugins.versions)
