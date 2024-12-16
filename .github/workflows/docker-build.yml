@@ -16,6 +16,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  IS_PR: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
 
 jobs:
   build:
@@ -136,8 +137,8 @@ jobs:
       with:
         context: ${{ matrix.docker.context }}
         file: ${{ matrix.docker.context }}/${{ matrix.docker.dockerfile }}
-        push: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
-        load: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+        push: ${{ !env.IS_PR }}
+        load: ${{ env.IS_PR }}
         tags: ${{ steps.meta-base.outputs.tags }}
         labels: ${{ steps.meta-base.outputs.labels }}
         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache
@@ -166,6 +167,6 @@ jobs:
           -Djib.console=plain \
           -Djib.container.labels="$(echo "${{ steps.meta.outputs.labels }}" | tr '\n' ',' | sed 's/,$//')" \
           -Djib.to.tags="$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ',' | sed 's/,$//')"
-        if [ "${{ github.event_name }}" != "pull_request" ] && [ "${{ github.event_name }}" != "merge_group" ]; then
+        if [ "${{ !env.IS_PR }}" ]; then
           docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.jibImage }} --all-tags
         fi
