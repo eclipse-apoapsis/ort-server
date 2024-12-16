@@ -133,7 +133,7 @@ jobs:
 
     - name: Set cache-to
       id: set-cache-to
-      run: echo "cache_to=$([[ ${{ !env.IS_PR }} == 'true' ]] && echo 'type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache,mode=max' || echo '')" >> $GITHUB_ENV
+      run: echo "cache_to=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache,mode=max' || echo '')" >> $GITHUB_ENV
 
     - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
@@ -171,6 +171,6 @@ jobs:
           -Djib.console=plain \
           -Djib.container.labels="$(echo "${{ steps.meta.outputs.labels }}" | tr '\n' ',' | sed 's/,$//')" \
           -Djib.to.tags="$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ',' | sed 's/,$//')"
-        if [ "${{ !env.IS_PR }}" ]; then
+        if [ "${{ env.IS_PR }}" = "false" ]; then
           docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.jibImage }} --all-tags
         fi
