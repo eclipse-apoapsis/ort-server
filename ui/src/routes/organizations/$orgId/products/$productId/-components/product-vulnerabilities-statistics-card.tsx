@@ -19,10 +19,11 @@
 
 import { ShieldQuestion } from 'lucide-react';
 
+import { useVulnerabilitiesServiceGetVulnerabilitiesAcrossRepositoriesByProductIdSuspense } from '@/api/queries/suspense';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import { calcVulnerabilityRatingCounts } from '@/helpers/item-counts';
-import { useVulnerabilitiesByProductIdSuspense } from '@/hooks/use-vulnerabilities-by-product-suspense';
+import { ALL_ITEMS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 type ProductVulnerabilitiesStatisticsCardProps = {
@@ -34,24 +35,30 @@ export const ProductVulnerabilitiesStatisticsCard = ({
   productId,
   className,
 }: ProductVulnerabilitiesStatisticsCardProps) => {
-  const data = useVulnerabilitiesByProductIdSuspense({
-    productId: productId,
-  });
+  const { data: vulnerabilities } =
+    useVulnerabilitiesServiceGetVulnerabilitiesAcrossRepositoriesByProductIdSuspense(
+      {
+        productId: productId,
+        limit: ALL_ITEMS,
+      }
+    );
 
-  const vulnerabilitiesTotal = data.length;
+  const total = vulnerabilities.pagination.totalCount;
 
   return (
     <StatisticsCard
       title='Vulnerabilities'
       icon={() => <ShieldQuestion className='h-4 w-4 text-green-500' />}
-      value={vulnerabilitiesTotal}
+      value={total}
       counts={
-        vulnerabilitiesTotal
-          ? calcVulnerabilityRatingCounts(data).map(({ rating, count }) => ({
-              key: rating,
-              count,
-              color: getVulnerabilityRatingBackgroundColor(rating),
-            }))
+        total
+          ? calcVulnerabilityRatingCounts(vulnerabilities.data).map(
+              ({ rating, count }) => ({
+                key: rating,
+                count,
+                color: getVulnerabilityRatingBackgroundColor(rating),
+              })
+            )
           : []
       }
       className={cn('h-full hover:bg-muted/50', className)}
