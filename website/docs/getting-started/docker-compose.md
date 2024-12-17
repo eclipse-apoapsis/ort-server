@@ -38,7 +38,7 @@ If this port is already in use, it can be changed using the `ORT_SERVER_CORE_POR
 ORT_SERVER_CORE_PORT=8090 docker compose up
 ```
 
-When using a different port, please make sure that it is not used by [another service](#accessing-the-services).
+When using a different port, please make sure that it is not used by [another service](#access-the-services).
 
 ### Update the Images
 
