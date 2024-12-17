@@ -38,6 +38,9 @@ enum class OrganizationPermission {
     /** Permission to write the [Organization] secrets. */
     WRITE_SECRETS,
 
+    /** Permission to manage [Organization] groups. */
+    MANAGE_GROUPS,
+
     /** Permission to read the list of [Product]s of the [Organization]. */
     READ_PRODUCTS,
 

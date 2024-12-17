@@ -1252,12 +1252,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
         ) { method ->
-            "require OrganizationPermission.WRITE for method '${method.value}'" {
+            "require OrganizationPermission.MANAGE_GROUPS for method '${method.value}'" {
                 val createdOrg = createOrganization()
                 val user = Username(TEST_USER.username.value)
 
                 requestShouldRequireRole(
-                    OrganizationPermission.WRITE.roleName(createdOrg.id),
+                    OrganizationPermission.MANAGE_GROUPS.roleName(createdOrg.id),
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {

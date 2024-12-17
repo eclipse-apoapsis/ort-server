@@ -37,6 +37,9 @@ enum class ProductPermission {
     /** Permission to write the [Product] secrets. */
     WRITE_SECRETS,
 
+    /** Permission to manage [Product] groups. */
+    MANAGE_GROUPS,
+
     /** Permission to read the list of [repositories][Repository] of the [Product]. */
     READ_REPOSITORIES,
 

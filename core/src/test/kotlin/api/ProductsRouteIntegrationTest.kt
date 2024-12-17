@@ -712,11 +712,11 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
         ) { method ->
-            "require ProductPermission.WRITE for method '${method.value}'" {
+            "require ProductPermission.MANAGE_GROUPS for method '${method.value}'" {
                 val createdProd = createProduct()
                 val user = Username(TEST_USER.username.value)
                 requestShouldRequireRole(
-                    ProductPermission.WRITE.roleName(createdProd.id),
+                    ProductPermission.MANAGE_GROUPS.roleName(createdProd.id),
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {
