@@ -188,6 +188,20 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         }
     }
 
+    override fun listForHierarchy(
+        organizationId: Long,
+        productId: Long
+    ): List<InfrastructureService> = db.blockingQuery {
+        list(ListQueryParameters.DEFAULT) {
+            InfrastructureServicesTable.productId eq productId or
+                    (InfrastructureServicesTable.organizationId eq organizationId)
+        }.groupBy(InfrastructureService::url)
+            .flatMap { (_, services) ->
+                // For duplicates, prefer services defined for products over those for organizations
+                services.takeIf { it.size < 2 } ?: services.filter { it.product != null }
+            }
+    }
+
     override fun listForSecret(secretId: Long): List<InfrastructureService> =
         listBlocking(ListQueryParameters.DEFAULT) {
             InfrastructureServicesTable.usernameSecretId eq secretId or
