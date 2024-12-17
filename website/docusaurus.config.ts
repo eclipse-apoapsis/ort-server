@@ -20,6 +20,7 @@ const config: Config = {
   organizationName: 'eclipse-apoapsis', // Usually your GitHub org/user name.
   projectName: 'ort-server', // Usually your repo name.
 
+  onBrokenAnchors: 'throw',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
 
