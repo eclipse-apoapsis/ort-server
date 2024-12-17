@@ -1,5 +1,10 @@
 # Development Helm Chart
 
+:::warning
+The development Helm Chart is currently not maintained and needs to be updated to deploy all required components.
+For now, use the [Docker Compose setup](../getting-started/docker-compose.md) instead.
+:::
+
 For development, ORT Server provides a [Helm Chart](https://github.com/eclipse-apoapsis/ort-server/tree/main/scripts/helm/ort-server) that can be used to deploy the ORT Server on Minikube.
 
 ## Preparations
