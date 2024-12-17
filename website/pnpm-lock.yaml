@@ -31,10 +31,10 @@ importers:
         version: 2.1.1
       docusaurus-plugin-openapi-docs:
         specifier: ^4.1.0
-        version: 4.3.0(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0)
+        version: 4.3.1(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0)
       docusaurus-theme-openapi-docs:
         specifier: ^4.1.0
-        version: 4.3.1(@docusaurus/theme-common@3.6.3(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@types/react@19.0.1)(docusaurus-plugin-openapi-docs@4.3.0(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0))(docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(sass@1.83.0)(webpack@5.97.1))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 4.3.1(@docusaurus/theme-common@3.6.3(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@types/react@19.0.1)(docusaurus-plugin-openapi-docs@4.3.1(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0))(docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(sass@1.83.0)(webpack@5.97.1))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       prism-react-renderer:
         specifier: ^2.3.0
         version: 2.4.1(react@19.0.0)
@@ -2728,8 +2728,8 @@ packages:
     resolution: {integrity: sha512-l4gcSouhcgIKRvyy99RNVOgxXiicE+2jZoNmaNmZ6JXiGajBOJAesk1OBlJuM5k2c+eudGdLxDqXuPCKIj6kpw==}
     engines: {node: '>=6'}
 
-  docusaurus-plugin-openapi-docs@4.3.0:
-    resolution: {integrity: sha512-IOxJzLfH8vhGvzQSd9TI99w2naD705r838gaa1/oDlmcaajXYtKePkk7YwcqjLLKgJ/roQcvQAK2qNX/sijQvQ==}
+  docusaurus-plugin-openapi-docs@4.3.1:
+    resolution: {integrity: sha512-uVv/mipiQzgqHIhgnTmJmsBW3UuuAufmuyXeHzQR8PGovsjMOKJU6YVDTd8qHlkXQ09IdoBLKG0RUZ9daNxt0w==}
     engines: {node: '>=14'}
     peerDependencies:
       '@docusaurus/plugin-content-docs': ^3.5.0
@@ -10043,7 +10043,7 @@ snapshots:
     dependencies:
       '@leichtgewicht/ip-codec': 2.0.5
 
-  docusaurus-plugin-openapi-docs@4.3.0(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0):
+  docusaurus-plugin-openapi-docs@4.3.1(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0):
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.7.3
       '@docusaurus/plugin-content-docs': 3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2)
@@ -10078,7 +10078,7 @@ snapshots:
       - node-sass
       - webpack
 
-  docusaurus-theme-openapi-docs@4.3.1(@docusaurus/theme-common@3.6.3(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@types/react@19.0.1)(docusaurus-plugin-openapi-docs@4.3.0(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0))(docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(sass@1.83.0)(webpack@5.97.1))(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  docusaurus-theme-openapi-docs@4.3.1(@docusaurus/theme-common@3.6.3(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@types/react@19.0.1)(docusaurus-plugin-openapi-docs@4.3.1(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0))(docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(sass@1.83.0)(webpack@5.97.1))(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
       '@docusaurus/theme-common': 3.6.3(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2)
       '@hookform/error-message': 2.0.1(react-dom@19.0.0(react@19.0.0))(react-hook-form@7.54.1(react@19.0.0))(react@19.0.0)
@@ -10087,7 +10087,7 @@ snapshots:
       clsx: 1.2.1
       copy-text-to-clipboard: 3.2.0
       crypto-js: 4.2.0
-      docusaurus-plugin-openapi-docs: 4.3.0(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0)
+      docusaurus-plugin-openapi-docs: 4.3.1(@docusaurus/plugin-content-docs@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils-validation@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(@docusaurus/utils@3.6.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(react@19.0.0)
       docusaurus-plugin-sass: 0.2.5(@docusaurus/core@3.6.3(@mdx-js/react@3.1.0(@types/react@19.0.1)(react@19.0.0))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.2))(sass@1.83.0)(webpack@5.97.1)
       file-saver: 2.0.5
       lodash: 4.17.21
