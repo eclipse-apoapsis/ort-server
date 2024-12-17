@@ -37,6 +37,9 @@ enum class RepositoryPermission {
     /** Permission to write the [Repository] secrets. */
     WRITE_SECRETS,
 
+    /** Permission to manage [Repository] groups. */
+    MANAGE_GROUPS,
+
     /** Permission to read the list of [OrtRun]s of the [Repository]. */
     READ_ORT_RUNS,
 

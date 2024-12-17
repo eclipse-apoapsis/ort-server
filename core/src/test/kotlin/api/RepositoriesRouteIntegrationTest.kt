@@ -980,11 +980,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
         ) { method ->
-            "require ProductPermission.WRITE for method '${method.value}'" {
+            "require ProductPermission.MANAGE_GROUPS for method '${method.value}'" {
                 val createdRepo = createRepository()
                 val user = Username(TEST_USER.username.value)
                 requestShouldRequireRole(
-                    RepositoryPermission.WRITE.roleName(createdRepo.id),
+                    RepositoryPermission.MANAGE_GROUPS.roleName(createdRepo.id),
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {

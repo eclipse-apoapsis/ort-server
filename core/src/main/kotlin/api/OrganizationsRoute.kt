@@ -329,7 +329,7 @@ fun Route.organizations() = route("organizations") {
             // groupId "readers", "writers" or "admins".
             route("{groupId}") {
                 put(putUserToOrganizationGroup) {
-                    requirePermission(OrganizationPermission.WRITE)
+                    requirePermission(OrganizationPermission.MANAGE_GROUPS)
 
                     val user = call.receive<Username>()
                     val organizationId = call.requireIdParameter("organizationId")
@@ -340,7 +340,7 @@ fun Route.organizations() = route("organizations") {
                 }
 
                 delete(deleteUserFromOrganizationGroup) {
-                    requirePermission(OrganizationPermission.WRITE)
+                    requirePermission(OrganizationPermission.MANAGE_GROUPS)
 
                     val user = call.receive<Username>()
                     val organizationId = call.requireIdParameter("organizationId")

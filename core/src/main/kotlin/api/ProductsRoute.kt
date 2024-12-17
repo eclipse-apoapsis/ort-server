@@ -222,7 +222,7 @@ fun Route.products() = route("products/{productId}") {
         // groupId "readers", "writers" or "admins".
         route("{groupId}") {
             put(putUserToProductGroup) {
-                requirePermission(ProductPermission.WRITE)
+                requirePermission(ProductPermission.MANAGE_GROUPS)
 
                 val user = call.receive<Username>()
                 val productId = call.requireIdParameter("productId")
@@ -233,7 +233,7 @@ fun Route.products() = route("products/{productId}") {
             }
 
             delete(deleteUserFromProductGroup) {
-                requirePermission(ProductPermission.WRITE)
+                requirePermission(ProductPermission.MANAGE_GROUPS)
 
                 val user = call.receive<Username>()
                 val productId = call.requireIdParameter("productId")

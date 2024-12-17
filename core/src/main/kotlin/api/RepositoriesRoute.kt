@@ -250,7 +250,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         // groupId "readers", "writers" or "admins".
         route("{groupId}") {
             put(putUserToRepositoryGroup) {
-                requirePermission(RepositoryPermission.WRITE)
+                requirePermission(RepositoryPermission.MANAGE_GROUPS)
 
                 val user = call.receive<Username>()
                 val repositoryId = call.requireIdParameter("repositoryId")
@@ -261,7 +261,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             }
 
             delete(deleteUserFromRepositoryGroup) {
-                requirePermission(RepositoryPermission.WRITE)
+                requirePermission(RepositoryPermission.MANAGE_GROUPS)
 
                 val user = call.receive<Username>()
                 val repositoryId = call.requireIdParameter("repositoryId")
