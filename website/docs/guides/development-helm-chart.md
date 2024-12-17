@@ -43,9 +43,9 @@ you can make sure that `/data/postgres-pv` is empty.
 
 We need to configure the Docker CLI to connect it to the Docker Engine inside Minikube. This allows:
 
-* Building images to Minikube Docker registry
-* Listing images from this registry (with `docker images`)
-* Listing Docker containers running in Minikube's Docker Engine (with `docker ps`)
+- Building images to Minikube Docker registry
+- Listing images from this registry (with `docker images`)
+- Listing Docker containers running in Minikube's Docker Engine (with `docker ps`)
 
 Run once per shell to expose the Docker Engine inside Minikube:
 
