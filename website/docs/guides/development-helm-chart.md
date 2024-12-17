@@ -1,4 +1,6 @@
-# Instructions for Helm charts
+# Development Helm Chart
+
+For development, ORT Server provides a [Helm Chart](https://github.com/eclipse-apoapsis/ort-server/tree/main/scripts/helm/ort-server) that can be used to deploy the ORT Server on Minikube.
 
 ## Preparations
 
