@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice
 
-import java.net.URI
-
 import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
@@ -172,21 +170,6 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
 
             list(parameters) { InfrastructureServicesTable.id inSubQuery subQuery }
         }
-
-    override fun listForRepositoryUrl(
-        repositoryUrl: String,
-        organizationId: Long,
-        productId: Long
-    ): List<InfrastructureService> = db.blockingQuery {
-        val repositoryHost = URI.create(repositoryUrl).host
-        val hostPattern = "%$repositoryHost%"
-        list(ListQueryParameters.DEFAULT) {
-            InfrastructureServicesTable.url like hostPattern and (
-                    (InfrastructureServicesTable.productId eq productId) or
-                            (InfrastructureServicesTable.organizationId eq organizationId)
-                    )
-        }
-    }
 
     override fun listForHierarchy(
         organizationId: Long,
