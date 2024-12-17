@@ -20,9 +20,9 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -68,113 +68,93 @@ class EnvironmentServiceTest : WordSpec({
         unmockkAll()
     }
 
-    "findInfrastructureServiceForRepository" should {
-        "return null if no infrastructure services are defined" {
+    "findInfrastructureServicesForRepository" should {
+        "return the infrastructure services defined for the hierarchy" {
+            val services = listOf(
+                createInfrastructureService(),
+                createInfrastructureService("https://repo.example.org/test-orga/test-repo"),
+                createInfrastructureService("https://repo.example.org/")
+            )
+
             val repository = mockk<InfrastructureServiceRepository> {
-                every { listForRepositoryUrl(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID) } returns emptyList()
+                every { listForHierarchy(ORGANIZATION_ID, PRODUCT_ID) } returns services
             }
 
             val environmentService = EnvironmentService(repository, mockk(), mockk())
-            val result =
-                environmentService.findInfrastructureServiceForRepository(mockContext())
+            val result = environmentService.findInfrastructureServicesForRepository(mockContext(), null)
 
-            result should beNull()
+            result shouldContainExactlyInAnyOrder services
         }
 
-        "return the infrastructure service with the longest matching URL" {
-            val matchingService = createInfrastructureService()
-            val service1 = createInfrastructureService("https://repo.example.org/test-orga/test-repo")
-            val service2 = createInfrastructureService("https://repo.example.org/")
+        "return the infrastructure services from the environment configuration" {
+            val services = listOf(
+                createInfrastructureService(),
+                createInfrastructureService("https://repo.example.org/test-orga/test-repo"),
+                createInfrastructureService("https://repo.example.org/")
+            )
+
+            val config = mockk<EnvironmentConfig>()
+            val configLoader = mockk<EnvironmentConfigLoader> {
+                every { resolve(config, any()) } returns ResolvedEnvironmentConfig(services)
+            }
 
             val repository = mockk<InfrastructureServiceRepository> {
-                every { listForRepositoryUrl(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID) } returns listOf(
-                    service2,
-                    matchingService,
-                    service1
-                )
+                every { listForHierarchy(ORGANIZATION_ID, PRODUCT_ID) } returns emptyList()
             }
 
-            val environmentService = EnvironmentService(repository, mockk(), mockk())
-            val result =
-                environmentService.findInfrastructureServiceForRepository(mockContext())
+            val environmentService = EnvironmentService(repository, mockk(), configLoader)
+            val result = environmentService.findInfrastructureServicesForRepository(mockContext(), config)
 
-            result shouldBe matchingService
+            result shouldContainExactlyInAnyOrder services
         }
 
-        "ignore infrastructure services for other repositories" {
-            val matchingService = createInfrastructureService()
-            val service1 = createInfrastructureService("https://repo.example.org/test-orga/other-repo.git")
-            val service2 =
-                createInfrastructureService("https://x.org?url=https://repo.example.org/test-orga/test-repo.git")
+        "return the merged infrastructure services from the hierarchy and the environment configuration" {
+            val hierarchyService = createInfrastructureService("https://hierarchy.example.org/")
+            val configService = createInfrastructureService("https://config.example.org/")
+            val overriddenService = createInfrastructureService().copy(name = "overridden")
+            val overrideService = createInfrastructureService()
+
             val repository = mockk<InfrastructureServiceRepository> {
-                every { listForRepositoryUrl(REPOSITORY_URL, ORGANIZATION_ID, PRODUCT_ID) } returns listOf(
-                    service2,
-                    matchingService,
-                    service1
-                )
+                every {
+                    listForHierarchy(ORGANIZATION_ID, PRODUCT_ID)
+                } returns listOf(hierarchyService, overriddenService)
             }
 
-            val environmentService = EnvironmentService(repository, mockk(), mockk())
-            val result =
-                environmentService.findInfrastructureServiceForRepository(mockContext())
-
-            result shouldBe matchingService
-        }
-    }
-
-    "findInfrastructureServiceForRepository from config" should {
-        "return null if no infrastructure services are defined" {
+            val config = mockk<EnvironmentConfig>()
             val configLoader = mockk<EnvironmentConfigLoader> {
-                every { resolve(any(), any()) } returns ResolvedEnvironmentConfig()
+                every {
+                    resolve(config, any())
+                } returns ResolvedEnvironmentConfig(listOf(configService, overrideService))
             }
 
-            val environmentService = EnvironmentService(mockk(), mockk(), configLoader)
-            val result = environmentService.findInfrastructureServiceForRepository(mockContext(), mockk())
+            val environmentService = EnvironmentService(repository, mockk(), configLoader)
+            val result = environmentService.findInfrastructureServicesForRepository(mockContext(), config)
 
-            result should beNull()
+            result shouldContainExactlyInAnyOrder listOf(hierarchyService, configService, overrideService)
         }
 
-        "return the infrastructure service with the longest matching URL" {
-            val matchingService = createInfrastructureService()
-            val service1 = createInfrastructureService("https://repo.example.org/test-orga/test-repo")
-            val service2 = createInfrastructureService("https://repo.example.org/")
+        "ignore infrastructure services not intended to be used for the .netrc file" {
+            val service1 = createInfrastructureService(
+                "https://repo.example.org/test-orga/test-repo",
+                credentialsTypes = EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
+            )
+            val service2 = createInfrastructureService(credentialsTypes = emptySet())
 
-            val configLoader = mockk<EnvironmentConfigLoader> {
-                every { resolve(any(), any()) } returns ResolvedEnvironmentConfig(
-                    listOf(
-                        matchingService,
-                        service1,
-                        service2
-                    )
-                )
+            val repository = mockk<InfrastructureServiceRepository> {
+                every {
+                    listForHierarchy(ORGANIZATION_ID, PRODUCT_ID)
+                } returns listOf(service1)
             }
 
-            val environmentService = EnvironmentService(mockk(), mockk(), configLoader)
-            val result = environmentService.findInfrastructureServiceForRepository(mockContext(), mockk())
-
-            result shouldBe matchingService
-        }
-
-        "ignore infrastructure services for other repositories" {
-            val matchingService = createInfrastructureService()
-            val service1 = createInfrastructureService("https://repo.example.org/test-orga/other-repo.git")
-            val service2 =
-                createInfrastructureService("https://x.org?url=https://repo.example.org/test-orga/test-repo.git")
-
+            val config = mockk<EnvironmentConfig>()
             val configLoader = mockk<EnvironmentConfigLoader> {
-                every { resolve(any(), any()) } returns ResolvedEnvironmentConfig(
-                    listOf(
-                        matchingService,
-                        service1,
-                        service2
-                    )
-                )
+                every { resolve(config, any()) } returns ResolvedEnvironmentConfig(listOf(service2))
             }
 
-            val environmentService = EnvironmentService(mockk(), mockk(), configLoader)
-            val result = environmentService.findInfrastructureServiceForRepository(mockContext(), mockk())
+            val environmentService = EnvironmentService(repository, mockk(), configLoader)
+            val result = environmentService.findInfrastructureServicesForRepository(mockContext(), config)
 
-            result shouldBe matchingService
+            result should beEmpty()
         }
     }
 
@@ -197,7 +177,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val environmentService = EnvironmentService(serviceRepository, listOf(generator1, generator2), configLoader)
 
-            val configResult = environmentService.setUpEnvironment(context, repositoryFolder, null, null)
+            val configResult = environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
             configResult shouldBe config
 
@@ -218,7 +198,7 @@ class EnvironmentServiceTest : WordSpec({
             val assignedServices = serviceRepository.expectServiceAssignments()
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
-            val configResult = environmentService.setUpEnvironment(context, repositoryFolder, null, null)
+            val configResult = environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
             configResult shouldBe config
 
@@ -249,12 +229,12 @@ class EnvironmentServiceTest : WordSpec({
             val serviceRepository = mockk<InfrastructureServiceRepository>()
             val configLoader = EnvironmentConfigLoader(mockk(), mockk(), EnvironmentDefinitionFactory())
             val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
-            val config = environmentService.setUpEnvironment(context, repositoryFolder, null, null)
+            val config = environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
             config.environmentVariables shouldBe setOf(SimpleVariableDefinition("variable1", "testValue1"))
         }
 
-        "assign the infrastructure service for the repository to the current ORT run" {
+        "assign the infrastructure services for the repository to the current ORT run" {
             val repositoryService = mockk<InfrastructureService>()
             val otherService = mockk<InfrastructureService>()
 
@@ -266,7 +246,7 @@ class EnvironmentServiceTest : WordSpec({
             val assignedServices = serviceRepository.expectServiceAssignments()
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
-            environmentService.setUpEnvironment(context, repositoryFolder, null, repositoryService)
+            environmentService.setUpEnvironment(context, repositoryFolder, null, listOf(repositoryService))
 
             assignedServices shouldContainExactlyInAnyOrder listOf(repositoryService, otherService)
         }
@@ -283,7 +263,7 @@ class EnvironmentServiceTest : WordSpec({
             val assignedServices = serviceRepository.expectServiceAssignments()
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
-            environmentService.setUpEnvironment(context, repositoryFolder, null, null)
+            environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
             assignedServices shouldContainExactlyInAnyOrder services
         }
@@ -310,7 +290,7 @@ class EnvironmentServiceTest : WordSpec({
             val assignedServices = serviceRepository.expectServiceAssignments()
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
-            environmentService.setUpEnvironment(context, repositoryFolder, null, null)
+            environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
             val expectedAssignedService = service.copy(
                 credentialsTypes = EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
@@ -331,7 +311,7 @@ class EnvironmentServiceTest : WordSpec({
             val assignedServices = serviceRepository.expectServiceAssignments()
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
-            environmentService.setUpEnvironment(context, repositoryFolder, null, repositoryService)
+            environmentService.setUpEnvironment(context, repositoryFolder, null, listOf(repositoryService))
 
             assignedServices shouldContainExactlyInAnyOrder services
         }
@@ -357,7 +337,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val environmentService = EnvironmentService(serviceRepository, listOf(generator1, generator2), configLoader)
 
-            val configResult = environmentService.setUpEnvironment(context, repositoryFolder, envConfig, null)
+            val configResult = environmentService.setUpEnvironment(context, repositoryFolder, envConfig, emptyList())
 
             configResult shouldBe resolvedConfig
 
@@ -380,7 +360,7 @@ class EnvironmentServiceTest : WordSpec({
             serviceRepository.expectServiceAssignments()
 
             val environmentService = EnvironmentService(serviceRepository, listOf(generator), configLoader)
-            environmentService.setUpEnvironment(context, repositoryFolder, envConfig, null)
+            environmentService.setUpEnvironment(context, repositoryFolder, envConfig, emptyList())
 
             val (_, definitions) = generator.verify(context, null)
             definitions shouldHaveSize 1
@@ -536,15 +516,18 @@ private val currentOrtRun = mockk<OrtRun> {
 private val repositoryFolder = File("repositoryCheckoutLocation")
 
 /**
- * Create an InfrastructureServiceDeclaration with the given [name].
-
+ * Create an InfrastructureServiceDeclaration with the given [name] and [credentialsTypes].
  */
-fun createInfrastructureServiceDeclaration(name: String): InfrastructureServiceDeclaration =
+fun createInfrastructureServiceDeclaration(
+    name: String,
+    credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
+): InfrastructureServiceDeclaration =
     InfrastructureServiceDeclaration(
         name = name,
         url = "https://example.org/$name",
         usernameSecret = "usernameSecret",
         passwordSecret = "passwordSecret",
+        credentialsTypes = credentialsTypes
     )
 
 /**

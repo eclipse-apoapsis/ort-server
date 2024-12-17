@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
@@ -61,17 +62,15 @@ internal class AnalyzerWorker(
         val context = contextFactory.createContext(job.ortRunId)
         val envConfigFromJob = job.configuration.environmentConfig
 
-        val repositoryService = envConfigFromJob?.let {
-            environmentService.findInfrastructureServiceForRepository(context, it)
-        } ?: environmentService.findInfrastructureServiceForRepository(context)
-        repositoryService?.also { serviceForRepo ->
+        val repositoryServices = environmentService.findInfrastructureServicesForRepository(context, envConfigFromJob)
+        if (repositoryServices.isNotEmpty()) {
             logger.info(
-                "Generating a .netrc file with credentials from infrastructure service '{}' to download the " +
+                "Generating a .netrc file with credentials from infrastructure services '{}' to download the " +
                         "repository.",
-                serviceForRepo
+                repositoryServices.map(InfrastructureService::name)
             )
 
-            environmentService.generateNetRcFile(context, listOf(serviceForRepo))
+            environmentService.generateNetRcFile(context, repositoryServices)
         }
 
         val sourcesDir = downloader.downloadRepository(
@@ -85,7 +84,7 @@ internal class AnalyzerWorker(
             context,
             sourcesDir,
             envConfigFromJob,
-            repositoryService
+            repositoryServices
         )
         val ortResult = runner.run(context, sourcesDir, job.configuration, resolvedEnvConfig)
 
