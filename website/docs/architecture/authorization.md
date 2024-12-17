@@ -54,60 +54,60 @@ The currently defined roles and permissions can be looked up in the [enum classe
 #### Permissions
 
 | Name                | Function                                 | Name in Keycloak                           |
-|---------------------|------------------------------------------|--------------------------------------------|
-| READ                | Read organization details                | permission_organization_$id_read           |
-| WRITE               | Write organization details               | permission_organization_$id_write          |
-| READ_PRODUCTS       | Read list of products                    | permission_organization_$id_read_products  |
-| CREATE_PRODUCT      | Create a new product in the organization | permission_organization_$id_create_product |
-| DELETE_ORGANIZATION | Delete the organization                  | permission_organization_$id_delete         |
+| ------------------- | ---------------------------------------- | ------------------------------------------ |
+| READ                | Read organization details                | permission*organization*$id_read           |
+| WRITE               | Write organization details               | permission*organization*$id_write          |
+| READ_PRODUCTS       | Read list of products                    | permission*organization*$id_read_products  |
+| CREATE_PRODUCT      | Create a new product in the organization | permission*organization*$id_create_product |
+| DELETE_ORGANIZATION | Delete the organization                  | permission*organization*$id_delete         |
 
 #### Roles
 
-| Name   | Permissions                                | Name in Keycloak             | Group name in Keycloak   
-|--------|--------------------------------------------|------------------------------|--------------------------|
-| Reader | READ, READ_PRODUCTS                        | role_organization_$id_reader | ORGANIZATION_$id_READERS |
-| Writer | READ, READ_PRODUCTS, WRITE, CREATE_PRODUCT | role_organization_$id_writer | ORGANIZATION_$id_WRITERS |
-| Admin  | *                                          | role_organization_$id_admin  | ORGANIZATION_$id_ADMINS  |
+| Name   | Permissions                                | Name in Keycloak             | Group name in Keycloak    |
+| ------ | ------------------------------------------ | ---------------------------- | ------------------------- |
+| Reader | READ, READ_PRODUCTS                        | role*organization*$id_reader | ORGANIZATION\_$id_READERS |
+| Writer | READ, READ_PRODUCTS, WRITE, CREATE_PRODUCT | role*organization*$id_writer | ORGANIZATION\_$id_WRITERS |
+| Admin  | \*                                         | role*organization*$id_admin  | ORGANIZATION\_$id_ADMINS  |
 
 ### Products
 
 #### Permissions
 
 | Name              | Function                               | Name in Keycloak                         |
-|-------------------|----------------------------------------|------------------------------------------|
-| READ              | Read product details                   | permission_product_$id_read              |
-| WRITE             | Write product details                  | permission_product_$id_write             |
-| READ_REPOSITORIES | Read list of repositories              | permission_product_$id_read_repositories |
-| CREATE_REPOSITORY | Create a new repository in the product | permission_product_$id_create_repository |
-| DELETE_PRODUCT    | Delete the product                     | permission_product_$id_delete            |
+| ----------------- | -------------------------------------- | ---------------------------------------- |
+| READ              | Read product details                   | permission*product*$id_read              |
+| WRITE             | Write product details                  | permission*product*$id_write             |
+| READ_REPOSITORIES | Read list of repositories              | permission*product*$id_read_repositories |
+| CREATE_REPOSITORY | Create a new repository in the product | permission*product*$id_create_repository |
+| DELETE_PRODUCT    | Delete the product                     | permission*product*$id_delete            |
 
 #### Roles
 
 | Name   | Permissions                                | Name in Keycloak        | Group name in Keycloak |
-|--------|--------------------------------------------|-------------------------|------------------------|
-| Reader | READ, READ_REPOSITORIES                    | role_product_$id_reader | PRODUCT_$id_READERS    |
-| Writer | READ, READ_REPOSITORIES, CREATE_REPOSITORY | role_product_$id_writer | PRODUCT_$id_WRITERS    |
-| Admin  | *                                          | role_product_$id_admin  | PRODUCT_$id_ADMINS     |
+| ------ | ------------------------------------------ | ----------------------- | ---------------------- |
+| Reader | READ, READ_REPOSITORIES                    | role*product*$id_reader | PRODUCT\_$id_READERS   |
+| Writer | READ, READ_REPOSITORIES, CREATE_REPOSITORY | role*product*$id_writer | PRODUCT\_$id_WRITERS   |
+| Admin  | \*                                         | role*product*$id_admin  | PRODUCT\_$id_ADMINS    |
 
 ### Repositories
 
 #### Permissions
 
 | Name              | Function                                 | Name in Keycloak                          |
-|-------------------|------------------------------------------|-------------------------------------------|
-| READ              | Read repository details                  | permission_repository_$id_read            |
-| WRITE             | Write repository details                 | permission_repository_$id_write           |
-| READ_ORT_RUNS     | Read scan results                        | permission_repository_$id_read_ort_runs   |
-| TRIGGER_ORT_RUN   | Trigger a new ORT run for the repository | permission_repository_$id_trigger_ort_run |
-| DELETE_REPOSITORY | Delete the repository                    | permission_repository_$id_delete          |
+| ----------------- | ---------------------------------------- | ----------------------------------------- |
+| READ              | Read repository details                  | permission*repository*$id_read            |
+| WRITE             | Write repository details                 | permission*repository*$id_write           |
+| READ_ORT_RUNS     | Read scan results                        | permission*repository*$id_read_ort_runs   |
+| TRIGGER_ORT_RUN   | Trigger a new ORT run for the repository | permission*repository*$id_trigger_ort_run |
+| DELETE_REPOSITORY | Delete the repository                    | permission*repository*$id_delete          |
 
 #### Roles
 
-| Name   | Permissions                    | Name in Keycloak           | Group name in Keycloak |
-|--------|--------------------------------|----------------------------|------------------------|
-| Reader | READ, READ_SCANS               | role_repository_$id_reader | REPOSITORY_$id_READERS |
-| Writer | READ, READ_SCANS, TRIGGER_SCAN | role_repository_$id_writer | REPOSITORY_$id_WRITERS |
-| Admin  | *                              | role_repository_$id_admin  | REPOSITORY_$id_ADMINS  |
+| Name   | Permissions                    | Name in Keycloak           | Group name in Keycloak  |
+| ------ | ------------------------------ | -------------------------- | ----------------------- |
+| Reader | READ, READ_SCANS               | role*repository*$id_reader | REPOSITORY\_$id_READERS |
+| Writer | READ, READ_SCANS, TRIGGER_SCAN | role*repository*$id_writer | REPOSITORY\_$id_WRITERS |
+| Admin  | \*                             | role*repository*$id_admin  | REPOSITORY\_$id_ADMINS  |
 
 ### Superuser
 
@@ -127,14 +127,14 @@ With the hierarchical concept, it only needs to check for the specific permissio
 
 Below is a list of the roles and permissions for the following setup:
 
-* Organization 1
-  * Product 1
-    * Repository 1
+- Organization 1
+  - Product 1
+    - Repository 1
 
 #### Roles
 
 | Name                            | Permissions                                                                                                                                                                          | Contained Roles                 |
-|---------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
 | role_organization_1_reader      | permission_organization_1_read, permission_organization_1_read_products                                                                                                              | role_product_1_reader           |
 | role_organization_1_writer      | permission_organization_1_read, permission_organization_1_read_products, permission_organization_1_write, permission_organization_1_create_product                                   | role_product_1_writer           |
 | role_organization_1_admin       | permission_organization_1_read, permission_organization_1_read_products, permission_organization_1_write, permission_organization_1_create_product, permission_organization_1_delete | role_product_1_admin            |
@@ -148,7 +148,7 @@ Below is a list of the roles and permissions for the following setup:
 #### Groups
 
 | Name                   | Contained Role             |
-|------------------------|----------------------------|
+| ---------------------- | -------------------------- |
 | ORGANIZATION_1_READERS | role_organization_1_reader |
 | ORGANIZATION_1_WRITERS | role_organization_1_writer |
 | ORGANIZATION_1_ADMINS  | role_organization_1_admin  |
@@ -189,7 +189,7 @@ Assigning roles directly to users is not recommended, because the role definitio
 If a user is added to a group, the ORT Server [ensures](#keycloak-synchronization) that the group always has the correct roles and permissions assigned.
 
 Please note that it is possible to configure a prefix for group names, so the actual group names could be different to those used in this documentation.
-For example, if the group name prefix is set to "PREFIX_", the group from the previous paragraph would be called "PREFIX_ORGANIZATION_1_READERS".
+For example, if the group name prefix is set to "PREFIX\_", the group from the previous paragraph would be called "PREFIX_ORGANIZATION_1_READERS".
 The prefix option is useful in a testing setup where multiple instances of the ORT Server share the same Keycloak realm.
 
 ## Keycloak Synchronization
@@ -200,11 +200,11 @@ This might later be extended by triggering synchronization periodically or by ad
 
 Synchronization is required because:
 
-* The role and permission definitions could have changed when upgrading to a newer version of the ORT Server.
-* The roles and groups could have been manually changed in Keycloak, leading to unexpected results.
+- The role and permission definitions could have changed when upgrading to a newer version of the ORT Server.
+- The roles and groups could have been manually changed in Keycloak, leading to unexpected results.
 
 During synchronization, the ORT Server verifies that:
 
-* All permissions for all hierarchy entities (organizations, products, and repositories) are represented by roles in Keycloak.
-* All roles for all hierarchy entities are represented by composite roles in Keycloak and have the correct child roles assigned.
-* All roles for all hierarchy entities are represented by groups in Keycloak and have the correct roles assigned.
+- All permissions for all hierarchy entities (organizations, products, and repositories) are represented by roles in Keycloak.
+- All roles for all hierarchy entities are represented by composite roles in Keycloak and have the correct child roles assigned.
+- All roles for all hierarchy entities are represented by groups in Keycloak and have the correct roles assigned.
