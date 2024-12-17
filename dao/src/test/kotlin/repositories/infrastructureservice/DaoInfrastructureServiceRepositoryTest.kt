@@ -541,6 +541,71 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
             }
         }
 
+        "listForHierarchy" should {
+            "return all services for the provided IDs" {
+                val repositoryUrl = "https://repo.example.org/test/repo/"
+                val otherOrg = fixtures.createOrganization("anotherOrganization")
+                val otherProduct = fixtures.createProduct("anotherProduct")
+
+                val match1 = createInfrastructureService(
+                    "matching1",
+                    url = "${repositoryUrl}repo1",
+                    organization = fixtures.organization
+                )
+                val match2 = createInfrastructureService(
+                    "matching2",
+                    url = "${repositoryUrl}repo2",
+                    product = fixtures.product
+                )
+                val match3 = createInfrastructureService(
+                    "matching3",
+                    url = "${repositoryUrl}repo3",
+                    organization = fixtures.organization
+                )
+
+                val noMatch1 = createInfrastructureService(
+                    "non-matching1",
+                    organization = otherOrg
+                )
+                val noMatch2 = createInfrastructureService(
+                    name = "non-matching2",
+                    url = repositoryUrl,
+                    product = otherProduct
+                )
+
+                listOf(match1, match2, match3, noMatch1, noMatch2).forEach {
+                    infrastructureServicesRepository.create(it)
+                }
+
+                val services = infrastructureServicesRepository.listForHierarchy(
+                    fixtures.organization.id,
+                    fixtures.product.id
+                )
+
+                services shouldContainExactlyInAnyOrder listOf(match1, match2, match3)
+            }
+
+            "handle infrastructure services with duplicate URL correctly" {
+                val productService = createInfrastructureService(product = fixtures.product)
+                val orgService = createInfrastructureService(organization = fixtures.organization)
+                val orgService2 = createInfrastructureService(
+                    url = "${SERVICE_URL}/other",
+                    organization = fixtures.organization
+                )
+
+                listOf(productService, orgService, orgService2).forEach {
+                    infrastructureServicesRepository.create(it)
+                }
+
+                val services = infrastructureServicesRepository.listForHierarchy(
+                    fixtures.organization.id,
+                    fixtures.product.id
+                )
+
+                services shouldContainExactlyInAnyOrder listOf(productService, orgService2)
+            }
+        }
+
         "listForSecret" should {
             "return all services using the secret" {
                 val service1 = createInfrastructureService()

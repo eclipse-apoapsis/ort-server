@@ -142,6 +142,13 @@ interface InfrastructureServiceRepository {
     fun listForRepositoryUrl(repositoryUrl: String, organizationId: Long, productId: Long): List<InfrastructureService>
 
     /**
+     * Return a list with [InfrastructureService]s that are associated with the given [organizationId], or
+     * [productId]. If there are multiple services with the same URL, instances on a lower level of
+     * the hierarchy are preferred, and others are dropped. This corresponds to an override semantics.
+     */
+    fun listForHierarchy(organizationId: Long, productId: Long): List<InfrastructureService>
+
+    /**
      * Return a list with the [InfrastructureService]s that are associated with the given [Secret][secretId].
      */
     fun listForSecret(secretId: Long): List<InfrastructureService>
