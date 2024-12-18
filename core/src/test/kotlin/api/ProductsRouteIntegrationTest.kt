@@ -985,16 +985,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 dbExtension.fixtures.createAdvisorRun(
                     advisorJob1Id,
                     mapOf(
-                       identifier1 to
-                        listOf(
-                            AdvisorResult(
-                                advisorName = "advisor",
-                                capabilities = listOf("vulnerabilities"),
-                                startTime = Clock.System.now(),
-                                endTime = Clock.System.now(),
-                                issues = emptyList(),
-                                defects = emptyList(),
-                                vulnerabilities = listOf(
+                        identifier1 to listOf(
+                            generateAdvisorResult(
+                                listOf(
                                     commonVulnerability,
                                     run1Vulnerability
                                 )
@@ -1019,34 +1012,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 dbExtension.fixtures.createAdvisorRun(
                     advisorJob3Id,
                     mapOf(
-                        identifier1 to
-                                listOf(
-                                    AdvisorResult(
-                                        advisorName = "advisor",
-                                        capabilities = listOf("vulnerabilities"),
-                                        startTime = Clock.System.now(),
-                                        endTime = Clock.System.now(),
-                                        issues = emptyList(),
-                                        defects = emptyList(),
-                                        vulnerabilities = listOf(
-                                            commonVulnerability
-                                        )
-                                    )
-                                ),
-                        identifier2 to
-                                listOf(
-                                    AdvisorResult(
-                                        advisorName = "advisor",
-                                        capabilities = listOf("vulnerabilities"),
-                                        startTime = Clock.System.now(),
-                                        endTime = Clock.System.now(),
-                                        issues = emptyList(),
-                                        defects = emptyList(),
-                                        vulnerabilities = listOf(
-                                            commonVulnerability
-                                        )
-                                    )
-                                )
+                        identifier1 to listOf(generateAdvisorResult(listOf(commonVulnerability))),
+                        identifier2 to listOf(generateAdvisorResult(listOf(commonVulnerability)))
                     )
                 )
 
@@ -1099,3 +1066,13 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 })
+
+private fun generateAdvisorResult(vulnerabilities: List<Vulnerability>) = AdvisorResult(
+    advisorName = "advisor",
+    capabilities = listOf("vulnerabilities"),
+    startTime = Clock.System.now(),
+    endTime = Clock.System.now(),
+    issues = emptyList(),
+    defects = emptyList(),
+    vulnerabilities = vulnerabilities
+)
