@@ -26,27 +26,18 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class OrtRunStatistics(
-    /**
-     * The number of issues found in the ORT run, or null if no jobs have finished yet.
-     */
+    /** The number of issues found in the run(s), or null if no valid jobs have completed yet. */
     val issuesCount: Long? = null,
-    /**
-     * The number of packages in the ORT run, or null if the analyzer job has not finished yet or has failed.
-     */
+
+    /** The number of packages found in the run(s), or null if no valid jobs have finished successfully yet. */
     val packagesCount: Long? = null,
-    /**
-     * The list of unique ecosystems for the packages in the ORT run, or null if the analyzer job has not finished yet
-     * or has failed.
-     */
+
+    /** Counts of packages by ecosystem, or null if no valid jobs have finished successfully yet. */
     val ecosystems: List<EcosystemStats>? = null,
-    /**
-     * The number of vulnerabilities found in the ORT run, or null if the advisor job has not finished yet or has
-     * failed or was not configured to run.
-     */
+
+    /** The number of vulnerabilities found in the run(s), or null if no valid jobs have finished successfully yet. */
     val vulnerabilitiesCount: Long? = null,
-    /**
-     * The number of rule violations found in the ORT run, or null if the evaluator job has not finished yet or has
-     * failed or was not configured to run.
-     */
+
+    /** The number of rule violations found in the run(s), or null if no valid jobs have finished successfully yet. */
     val ruleViolationsCount: Long? = null,
 )
