@@ -17,12 +17,19 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useMatch } from '@tanstack/react-router';
 
 import { useRepositoriesServiceGetRepositoryByIdKey } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
 
 const Layout = () => {
+  const match = useMatch({
+    from: Route.fullPath,
+  });
+
+  const title = match.context.breadcrumbs.repo;
+  document.title = `${title} - ORT Server`;
+
   return <Outlet />;
 };
 
