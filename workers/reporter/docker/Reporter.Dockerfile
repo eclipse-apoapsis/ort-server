@@ -19,6 +19,24 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+# Build-Stage for Python executing scancode-license-data to get the license texts in a directory
+FROM python:3.11-slim AS scancode-license-data-build
+
+# Keep in sync with Scanner.Dockerfile
+ARG SCANCODE_VERSION=32.2.1
+
+RUN apt-get update && apt-get install -y curl libgomp1 && rm -rf /var/lib/apt/lists/*
+
+# Use pip to install ScanCode
+RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
+    pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
+    rm requirements.txt
+
+# Extract ScanCode license data to directory.
+RUN scancode-license-data --path /opt/scancode-license-data \
+    && find /opt/scancode-license-data -type f -not -name "*.LICENSE" -exec rm -f {} + \
+    && rm -rf /opt/scancode-license-data/static
+
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
 FROM eclipse-temurin:21.0.4_7-jdk-jammy@sha256:0472478e22da0f66043fa6acd8cd30126592349f47937adafc2340794e5bf06a
 
@@ -50,5 +68,7 @@ RUN chgrp -R 0 /home/ort && chmod -R g+rwX /home/ort
 
 USER $USERNAME
 WORKDIR $HOMEDIR
+
+COPY --from=scancode-license-data-build --chown=$USER:$USER /opt/scancode-license-data /opt/scancode-license-data
 
 ENTRYPOINT ["/bin/bash"]
