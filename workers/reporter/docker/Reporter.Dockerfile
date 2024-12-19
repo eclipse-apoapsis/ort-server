@@ -51,4 +51,23 @@ RUN chgrp -R 0 /home/ort && chmod -R g+rwX /home/ort
 USER $USERNAME
 WORKDIR $HOMEDIR
 
+# Copy only ScanCode license data.
+COPY --from=scancode-license-data-build --chown=$USER:$USER /opt/scancode-license-data /opt/scancode-license-data
+
 ENTRYPOINT ["/bin/bash"]
+
+# Build-Stage for Python executing scancode-license-data to get the license texts in a directory
+FROM python:3.11-slim AS scancode-license-data-build
+
+# Keep in sync with Scanner.Dockerfile
+ARG SCANCODE_VERSION=32.2.1
+
+RUN apt-get update && apt-get install -y curl libgomp1 && rm -rf /var/lib/apt/lists/*
+
+# Use pip to install ScanCode
+RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
+    pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
+    rm requirements.txt
+
+# Extract ScanCode license data to directory
+RUN scancode-license-data --path /opt/scancode-license-data
