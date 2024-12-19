@@ -25,7 +25,9 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
@@ -33,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
@@ -461,6 +464,55 @@ val getVulnerabilitiesAcrossRepositoriesByProductId: OpenApiRoute.() -> Unit = {
                             offset = 0,
                             totalCount = 1,
                             sortProperties = listOf(SortProperty("rating", SortDirection.DESCENDING))
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+val getOrtRunStatisticsByProductId: OpenApiRoute.() -> Unit = {
+    operationId = "GetOrtRunStatisticsByProductId"
+    summary = "Get statistics about ORT runs across the repositories of a product."
+    tags = listOf("Products")
+
+    request {
+        pathParameter<Long>("productId") {
+            description = "The product's ID."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            jsonBody<OrtRunStatistics> {
+                example("Get run statistics across repositories of a product") {
+                    value = OrtRunStatistics(
+                        issuesCount = 131,
+                        issuesCountBySeverity = mapOf(
+                            Severity.HINT to 40,
+                            Severity.WARNING to 0,
+                            Severity.ERROR to 91
+                        ),
+                        packagesCount = 953,
+                        ecosystems = listOf(
+                            EcosystemStats("Maven", 578),
+                            EcosystemStats("NPM", 326),
+                            EcosystemStats("PyPI", 49)
+                        ),
+                        vulnerabilitiesCount = 163,
+                        vulnerabilitiesCountByRating = mapOf(
+                            VulnerabilityRating.NONE to 11,
+                            VulnerabilityRating.LOW to 1,
+                            VulnerabilityRating.MEDIUM to 47,
+                            VulnerabilityRating.HIGH to 83,
+                            VulnerabilityRating.CRITICAL to 21
+                        ),
+                        ruleViolationsCount = 104,
+                        ruleViolationsCountBySeverity = mapOf(
+                            Severity.HINT to 0,
+                            Severity.WARNING to 6,
+                            Severity.ERROR to 98
                         )
                     )
                 }
