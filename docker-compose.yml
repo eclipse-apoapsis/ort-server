@@ -86,8 +86,6 @@ services:
       retries: 15
       start_period: 90s
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
       KC_DB: postgres
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgres
