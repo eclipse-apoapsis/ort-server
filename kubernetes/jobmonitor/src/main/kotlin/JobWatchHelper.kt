@@ -67,7 +67,7 @@ internal class JobWatchHelper(
          * jobs using the given [jobApi].
          */
         private fun fetchResourceVersion(jobApi: BatchV1Api, namespace: String): String? =
-            jobApi.listNamespacedJob(namespace, null, false, null, null, null, 1, null, null, null, false)
+            jobApi.listNamespacedJob(namespace).allowWatchBookmarks(false).limit(1).watch(false).execute()
                 .metadata?.resourceVersion
     }
 
@@ -125,20 +125,8 @@ internal class JobWatchHelper(
 
         return Watch.createWatch<V1Job?>(
             jobApi.apiClient,
-            jobApi.listNamespacedJobCall(
-                namespace,
-                null,
-                true,
-                null,
-                null,
-                null,
-                null,
-                resourceVersion,
-                null,
-                null,
-                true,
-                null
-            ),
+            jobApi.listNamespacedJob(namespace).allowWatchBookmarks(true).resourceVersion(resourceVersion).watch(true)
+                .buildCall(null),
             JOB_TYPE.type
         ).iterator()
     }
