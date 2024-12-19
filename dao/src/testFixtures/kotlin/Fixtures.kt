@@ -56,9 +56,14 @@ import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
@@ -192,7 +197,6 @@ class Fixtures(private val db: Database) {
         val evaluatorJob = createEvaluatorJob(ortRunId)
         val reporterJob = createReporterJob(ortRunId)
         val notifierJob = createNotifierJob(ortRunId)
-
         return Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob, notifierJob)
     }
 
@@ -215,6 +219,38 @@ class Fixtures(private val db: Database) {
         message = "message",
         severity = Severity.ERROR,
         howToFix = "how to fix"
+    )
+
+    fun createAnalyzerRun(
+        analyzerJobId: Long = analyzerJob.id,
+        projects: Set<Project> = emptySet(),
+        packages: Set<Package> = emptySet(),
+        issues: List<Issue> = emptyList(),
+        dependencyGraphs: Map<String, DependencyGraph> = emptyMap()
+    ) = analyzerRunRepository.create(
+        analyzerJobId = analyzerJobId,
+        startTime = Clock.System.now(),
+        endTime = Clock.System.now(),
+        environment = Environment(
+            ortVersion = "1.0",
+            javaVersion = "11.0.16",
+            os = "Linux",
+            processors = 8,
+            maxMemory = 8321499136,
+            variables = emptyMap(),
+            toolVersions = emptyMap()
+        ),
+        config = AnalyzerConfiguration(
+            allowDynamicVersions = true,
+            enabledPackageManagers = emptyList(),
+            disabledPackageManagers = emptyList(),
+            packageManagers = emptyMap(),
+            skipExcluded = true
+        ),
+        projects = projects,
+        packages = packages,
+        issues = issues,
+        dependencyGraphs = dependencyGraphs
     )
 
     fun createAdvisorRun(
