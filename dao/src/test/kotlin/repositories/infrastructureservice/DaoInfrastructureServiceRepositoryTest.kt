@@ -488,28 +488,31 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
             }
         }
 
-        "listForRepositoryUrl" should {
-            "find all services matching the repository host" {
+        "listForHierarchy" should {
+            "return all services for the provided IDs" {
                 val repositoryUrl = "https://repo.example.org/test/repo/"
+                val otherOrg = fixtures.createOrganization("anotherOrganization")
                 val otherProduct = fixtures.createProduct("anotherProduct")
 
-                val match1 = createInfrastructureService("matching1", organization = fixtures.organization)
-                val match2 = createInfrastructureService("matching2", product = fixtures.product)
-                val match3 = createInfrastructureService(
-                    "matching3",
-                    url = "http://repo.example.org:443",
+                val match1 = createInfrastructureService(
+                    "matching1",
+                    url = "${repositoryUrl}repo1",
                     organization = fixtures.organization
                 )
-                val match4 = createInfrastructureService(
-                    "matching4",
-                    url = "https://repo.example.org/test/repo/test.git",
+                val match2 = createInfrastructureService(
+                    "matching2",
+                    url = "${repositoryUrl}repo2",
                     product = fixtures.product
+                )
+                val match3 = createInfrastructureService(
+                    "matching3",
+                    url = "${repositoryUrl}repo3",
+                    organization = fixtures.organization
                 )
 
                 val noMatch1 = createInfrastructureService(
                     "non-matching1",
-                    url = "https://repo2.example.org/test/repo",
-                    organization = fixtures.organization
+                    organization = otherOrg
                 )
                 val noMatch2 = createInfrastructureService(
                     name = "non-matching2",
@@ -517,27 +520,36 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     product = otherProduct
                 )
 
-                listOf(match1, match2, match3, match4, noMatch1, noMatch2).forEach {
+                listOf(match1, match2, match3, noMatch1, noMatch2).forEach {
                     infrastructureServicesRepository.create(it)
                 }
 
-                val services = infrastructureServicesRepository.listForRepositoryUrl(
-                    repositoryUrl,
+                val services = infrastructureServicesRepository.listForHierarchy(
                     fixtures.organization.id,
                     fixtures.product.id
                 )
 
-                services shouldContainExactlyInAnyOrder listOf(match1, match2, match3, match4)
+                services shouldContainExactlyInAnyOrder listOf(match1, match2, match3)
             }
 
-            "throw when passed an invalid repository URL" {
-                shouldThrow<IllegalArgumentException> {
-                    infrastructureServicesRepository.listForRepositoryUrl(
-                        "?!invalid URL!?",
-                        fixtures.organization.id,
-                        fixtures.product.id
-                    )
+            "handle infrastructure services with duplicate URL correctly" {
+                val productService = createInfrastructureService(product = fixtures.product)
+                val orgService = createInfrastructureService(organization = fixtures.organization)
+                val orgService2 = createInfrastructureService(
+                    url = "${SERVICE_URL}/other",
+                    organization = fixtures.organization
+                )
+
+                listOf(productService, orgService, orgService2).forEach {
+                    infrastructureServicesRepository.create(it)
                 }
+
+                val services = infrastructureServicesRepository.listForHierarchy(
+                    fixtures.organization.id,
+                    fixtures.product.id
+                )
+
+                services shouldContainExactlyInAnyOrder listOf(productService, orgService2)
             }
         }
 
