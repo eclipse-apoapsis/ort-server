@@ -51,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
@@ -497,13 +498,30 @@ val getOrtRunStatistics: OpenApiRoute.() -> Unit = {
                 example("Get ORT run statistics") {
                     value = OrtRunStatistics(
                         issuesCount = 10,
+                        issuesCountBySeverity = mapOf(
+                            Severity.HINT to 4,
+                            Severity.WARNING to 0,
+                            Severity.ERROR to 6
+                        ),
                         packagesCount = 200,
                         ecosystems = listOf(
-                            EcosystemStats("Maven", 20),
+                            EcosystemStats("Maven", 55),
                             EcosystemStats("NPM", 145)
                            ),
                         vulnerabilitiesCount = 3,
+                        vulnerabilitiesCountByRating = mapOf(
+                            VulnerabilityRating.NONE to 0,
+                            VulnerabilityRating.LOW to 1,
+                            VulnerabilityRating.MEDIUM to 0,
+                            VulnerabilityRating.HIGH to 1,
+                            VulnerabilityRating.CRITICAL to 1
+                        ),
                         ruleViolationsCount = 5,
+                        ruleViolationsCountBySeverity = mapOf(
+                            Severity.HINT to 0,
+                            Severity.WARNING to 1,
+                            Severity.ERROR to 4
+                        )
                     )
                 }
             }

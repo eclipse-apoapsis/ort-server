@@ -29,6 +29,9 @@ data class OrtRunStatistics(
     /** The number of issues found in the run(s), or null if no valid jobs have completed yet. */
     val issuesCount: Long? = null,
 
+    /** Counts of issues by severity, or null if no valid jobs have finished successfully yet. */
+    val issuesCountBySeverity: Map<Severity, Long>? = null,
+
     /** The number of packages found in the run(s), or null if no valid jobs have finished successfully yet. */
     val packagesCount: Long? = null,
 
@@ -38,6 +41,12 @@ data class OrtRunStatistics(
     /** The number of vulnerabilities found in the run(s), or null if no valid jobs have finished successfully yet. */
     val vulnerabilitiesCount: Long? = null,
 
+    /** Counts of vulnerabilities by rating, or null if no valid jobs have finished successfully yet. */
+    val vulnerabilitiesCountByRating: Map<VulnerabilityRating, Long>? = null,
+
     /** The number of rule violations found in the run(s), or null if no valid jobs have finished successfully yet. */
     val ruleViolationsCount: Long? = null,
+
+    /** Counts of rule violations by severity, or null if no valid jobs have finished successfully yet. */
+    val ruleViolationsCountBySeverity: Map<Severity, Long>? = null
 )
