@@ -284,6 +284,12 @@ fun Route.runs() = route("runs") {
 
                     val issuesCount = if (analyzerJobInFinalState) issueService.countForOrtRunIds(ortRun.id) else null
 
+                    val issuesBySeverity = if (analyzerJobInFinalState) {
+                        issueService.countBySeverityForOrtRunIds(ortRun.id).map.mapKeys { it.key.mapToApi() }
+                    } else {
+                        null
+                    }
+
                     val packagesCount =
                         if (analyzerJobInFinishedState) packageService.countForOrtRunIds(ortRun.id) else null
 
@@ -298,17 +304,32 @@ fun Route.runs() = route("runs") {
                     val vulnerabilitiesCount =
                         if (advisorJobInFinishedState) vulnerabilityService.countForOrtRunIds(ortRun.id) else null
 
+                    val vulnerabilitiesByRating = if (advisorJobInFinishedState) {
+                        vulnerabilityService.countByRatingForOrtRunIds(ortRun.id).map.mapKeys { it.key.mapToApi() }
+                    } else {
+                        null
+                    }
+
                     val ruleViolationsCount =
                         if (evaluatorJobInFinishedState) ruleViolationService.countForOrtRunIds(ortRun.id) else null
+
+                    val ruleViolationsBySeverity = if (evaluatorJobInFinishedState) {
+                        ruleViolationService.countBySeverityForOrtRunIds(ortRun.id).map.mapKeys { it.key.mapToApi() }
+                    } else {
+                        null
+                    }
 
                     call.respond(
                         HttpStatusCode.OK,
                         OrtRunStatistics(
-                            issuesCount,
-                            packagesCount,
-                            ecosystems,
-                            vulnerabilitiesCount,
-                            ruleViolationsCount,
+                            issuesCount = issuesCount,
+                            issuesCountBySeverity = issuesBySeverity,
+                            packagesCount = packagesCount,
+                            ecosystems = ecosystems,
+                            vulnerabilitiesCount = vulnerabilitiesCount,
+                            vulnerabilitiesCountByRating = vulnerabilitiesByRating,
+                            ruleViolationsCount = ruleViolationsCount,
+                            ruleViolationsCountBySeverity = ruleViolationsBySeverity
                         )
                     )
                 }

@@ -31,6 +31,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.file.aFile
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeLessThan
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -63,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
@@ -80,6 +82,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection.DESCENDING
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
@@ -113,6 +116,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
@@ -1395,7 +1399,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "GET /runs/{runId}/statistics" should {
-        "return the counts for issues, packages, ecosystems, vulnerabilities and rule violations" {
+        "return statistics counts for the run" {
             integrationTestApplication {
                 val ortRun = dbExtension.fixtures.createOrtRun(
                     repositoryId = repositoryId,
@@ -1580,7 +1584,15 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                                         externalId = "CVE-2021-1234",
                                         summary = "A vulnerability",
                                         description = "A description",
-                                        references = emptyList()
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "MEDIUM",
+                                                score = 5.1f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
                                     )
                                 )
                             )
@@ -1659,18 +1671,40 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val statistics = response.body<OrtRunStatistics>()
 
-                statistics.issuesCount shouldBe 3
-                statistics.packagesCount shouldBe 2
-                statistics.vulnerabilitiesCount shouldBe 1
-                statistics.ruleViolationsCount shouldBe 4
-
-                with(statistics.ecosystems) {
-                    shouldNotBeNull()
-                    shouldHaveSize(2)
-                    first().name shouldBe "Maven"
-                    first().count shouldBe 1
-                    last().name shouldBe "NPM"
-                    last().count shouldBe 1
+                with(statistics) {
+                    issuesCount shouldBe 3
+                    issuesCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 1,
+                            ApiSeverity.ERROR to 2
+                        )
+                    )
+                    packagesCount shouldBe 2
+                    ecosystems?.shouldContainExactlyInAnyOrder(
+                        listOf(
+                            EcosystemStats("NPM", 1),
+                            EcosystemStats("Maven", 1)
+                        )
+                    )
+                    vulnerabilitiesCount shouldBe 1
+                    vulnerabilitiesCountByRating?.shouldContainExactly(
+                        mapOf(
+                            VulnerabilityRating.NONE to 0,
+                            VulnerabilityRating.LOW to 0,
+                            VulnerabilityRating.MEDIUM to 1,
+                            VulnerabilityRating.HIGH to 0,
+                            VulnerabilityRating.CRITICAL to 0
+                        )
+                    )
+                    ruleViolationsCount shouldBe 4
+                    ruleViolationsCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 3,
+                            ApiSeverity.ERROR to 1
+                        )
+                    )
                 }
             }
         }
@@ -1683,131 +1717,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     jobConfigurations = JobConfigurations()
                 )
 
-                val now = Clock.System.now()
-
-                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
-                    ortRunId = ortRun.id,
-                    configuration = AnalyzerJobConfiguration()
-                )
-
-                dbExtension.fixtures.analyzerRunRepository.create(
-                    analyzerJobId = analyzerJob.id,
-                    startTime = now.toDatabasePrecision(),
-                    endTime = now.toDatabasePrecision(),
-                    environment = Environment(
-                        ortVersion = "1.0",
-                        javaVersion = "11.0.16",
-                        os = "Linux",
-                        processors = 8,
-                        maxMemory = 8321499136,
-                        variables = emptyMap(),
-                        toolVersions = emptyMap()
-                    ),
-                    config = AnalyzerConfiguration(
-                        allowDynamicVersions = true,
-                        enabledPackageManagers = emptyList(),
-                        disabledPackageManagers = emptyList(),
-                        packageManagers = emptyMap(),
-                        skipExcluded = true
-                    ),
-                    projects = emptySet(),
-                    packages = setOf(
-                        Package(
-                            Identifier("Maven", "com.example", "example", "1.0"),
-                            purl = "pkg:maven/com.example/example@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            processedDeclaredLicense = ProcessedDeclaredLicense(
-                                spdxExpression = null,
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet(),
-                            ),
-                            description = "An example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        ),
-                        Package(
-                            Identifier("NPM", "com.example", "example2", "1.0"),
-                            purl = "pkg:npm/com.example/example2@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = null,
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "Another example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        )
-                    ),
-                    issues = listOf(
-                        Issue(
-                            timestamp = now.minus(1.hours).toDatabasePrecision(),
-                            source = "Maven",
-                            message = "Issue 1",
-                            severity = Severity.ERROR,
-                            affectedPath = "path",
-                            identifier = Identifier("Maven", "com.example", "example", "1.0"),
-                        ),
-                    ),
-                    dependencyGraphs = emptyMap()
-                )
-
-                dbExtension.fixtures.analyzerJobRepository.update(
-                    analyzerJob.id,
-                    finishedAt = Clock.System.now().asPresent(),
-                    status = JobStatus.FINISHED_WITH_ISSUES.asPresent()
-                )
-
+                dbExtension.fixtures.createAnalyzerJob(ortRun.id)
                 dbExtension.fixtures.createAdvisorJob(ortRun.id)
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/statistics")
@@ -1816,11 +1726,16 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val statistics = response.body<OrtRunStatistics>()
 
-                statistics.issuesCount shouldBe 1
-                statistics.packagesCount shouldBe 2
-                statistics.ecosystems?.size shouldBe 2
-                statistics.vulnerabilitiesCount shouldBe null
-                statistics.ruleViolationsCount shouldBe null
+                with(statistics) {
+                    issuesCount should beNull()
+                    issuesCountBySeverity should beNull()
+                    packagesCount should beNull()
+                    ecosystems should beNull()
+                    vulnerabilitiesCount should beNull()
+                    vulnerabilitiesCountByRating should beNull()
+                    ruleViolationsCount should beNull()
+                    ruleViolationsCountBySeverity should beNull()
+                }
             }
         }
 
