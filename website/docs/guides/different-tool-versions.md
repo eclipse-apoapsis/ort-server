@@ -1,5 +1,10 @@
 # Different Tool Versions
 
+:::info
+This concept is currently not in use as ORT added support for bootstrapping the required Java versions.
+The documentation is kept for future reference.
+:::
+
 This document describes the concept used within ORT Server to support different versions of tools at the same time.
 
 ## Problem Description
