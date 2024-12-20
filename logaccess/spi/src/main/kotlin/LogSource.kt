@@ -23,25 +23,28 @@ package org.eclipse.apoapsis.ortserver.logaccess
  * An enumeration class that defines the different sources for which log files can be downloaded. The sources
  * available correspond to the single workers executed during an ORT run.
  */
-enum class LogSource {
+enum class LogSource(
+    /** The value used for the component entry in the MDC. */
+    val component: String
+) {
     /** Log source for the Config worker. */
-    CONFIG,
+    CONFIG("config-worker"),
 
     /** Log source for the Analyzer worker. */
-    ANALYZER,
+    ANALYZER("analyzer-worker"),
 
     /** Log source for the Advisor worker. */
-    ADVISOR,
+    ADVISOR("advisor-worker"),
 
     /** Log source for the Scanner worker. */
-    SCANNER,
+    SCANNER("scanner-worker"),
 
     /** Log source for the Evaluator worker. */
-    EVALUATOR,
+    EVALUATOR("evaluator-worker"),
 
     /** Log source for the Reporter worker. */
-    REPORTER,
+    REPORTER("reporter-worker"),
 
     /** Log source for the Notifier worker. */
-    NOTIFIER
+    NOTIFIER("notifier-worker")
 }
