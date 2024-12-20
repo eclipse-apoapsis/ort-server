@@ -79,7 +79,7 @@ class LokiLogFileProviderTest : StringSpec() {
     init {
         "A correct log file should be returned" {
             val logData = generateLogData(32)
-            server.stubLogRequest(logData, LogSource.ADVISOR, """level="ERROR"""")
+            server.stubLogRequest(logData, LogSource.ADVISOR, "ERROR")
 
             val logFile = sendTestRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
 
@@ -90,10 +90,10 @@ class LokiLogFileProviderTest : StringSpec() {
             withTimeout(3.seconds) {
                 val logData1 = generateLogData(LIMIT)
                 val lastTimestamp = logData1.last().first
-                server.stubLogRequest(logData1, LogSource.ADVISOR, """level="ERROR"""")
+                server.stubLogRequest(logData1, LogSource.ADVISOR, "ERROR")
 
                 val logData2 = generateLogDataWithIdenticalTimestamp(LIMIT, lastTimestamp)
-                server.stubLogRequest(logData2, LogSource.ADVISOR, """level="ERROR"""", from = lastTimestamp)
+                server.stubLogRequest(logData2, LogSource.ADVISOR, "ERROR", from = lastTimestamp)
 
                 val logFile = sendTestRequest(LogSource.ADVISOR, EnumSet.of(LogLevel.ERROR))
 
@@ -109,11 +109,11 @@ class LokiLogFileProviderTest : StringSpec() {
             val nextStartTime = logDataTimestamp(startTime, LIMIT)
             val logData2 = generateLogData(logSize - LIMIT + 1, nextStartTime)
 
-            server.stubLogRequest(logData1, LogSource.EVALUATOR, """level="ERROR"""")
+            server.stubLogRequest(logData1, LogSource.EVALUATOR, "ERROR")
             server.stubLogRequest(
                 logData1.takeLast(2) + logData2,
                 LogSource.EVALUATOR,
-                """level="ERROR"""",
+                "ERROR",
                 nextStartTimeStr
             )
 
@@ -125,8 +125,8 @@ class LokiLogFileProviderTest : StringSpec() {
 
         "Querying log data should terminate if only duplicate statements are returned" {
             val logData = generateLogData(LIMIT)
-            server.stubLogRequest(logData, LogSource.ANALYZER, """level="ERROR"""")
-            server.stubLogRequest(logData, LogSource.ANALYZER, """level="ERROR"""", logData.last().first)
+            server.stubLogRequest(logData, LogSource.ANALYZER, "ERROR")
+            server.stubLogRequest(logData, LogSource.ANALYZER, "ERROR", logData.last().first)
 
             val logFile = sendTestRequest(LogSource.ANALYZER, EnumSet.of(LogLevel.ERROR))
 
@@ -163,7 +163,7 @@ class LokiLogFileProviderTest : StringSpec() {
 
         "The log level should correctly be evaluated" {
             val logData = generateLogData(8)
-            val levelCriterion = """level="INFO" or level="WARN""""
+            val levelCriterion = "INFO|WARN"
             server.stubLogRequest(logData, LogSource.REPORTER, levelCriterion)
 
             val logFile = sendTestRequest(LogSource.REPORTER, EnumSet.of(LogLevel.INFO, LogLevel.WARN))
@@ -186,7 +186,7 @@ class LokiLogFileProviderTest : StringSpec() {
 
         "Basic Auth should be supported" {
             val logData = generateLogData(16)
-            server.stubLogRequest(logData, LogSource.ADVISOR, """level="ERROR"""")
+            server.stubLogRequest(logData, LogSource.ADVISOR, "ERROR")
 
             val username = "scott"
             val password = "tiger"
@@ -205,7 +205,7 @@ class LokiLogFileProviderTest : StringSpec() {
 
         "Multi-tenant mode should be supported" {
             val logData = generateLogData(16)
-            server.stubLogRequest(logData, LogSource.ADVISOR, """level="ERROR"""")
+            server.stubLogRequest(logData, LogSource.ADVISOR, "ERROR")
 
             val tenant = "lokiTestTenant"
             val config = server.lokiConfig().copy(tenantId = tenant)
@@ -261,7 +261,7 @@ class LokiLogFileProviderTest : StringSpec() {
             val logFileService = LogFileService.create(configManager, tempdir().toPath())
 
             val logData = generateLogData(32)
-            server.stubLogRequest(logData, LogSource.ADVISOR, """level="ERROR"""")
+            server.stubLogRequest(logData, LogSource.ADVISOR, "ERROR")
 
             logFileService.createLogFilesArchive(
                 RUN_ID,
@@ -457,5 +457,4 @@ private fun LogData.isContainedInLogFile(file: File): Boolean {
  * Generate a query string for the given [source] and [log level criterion][levelCriterion].
  */
 private fun generateQuery(source: LogSource, levelCriterion: String): String =
-    """{namespace="$NAMESPACE",container=~"${source.name.lowercase()}.*",run_id="$RUN_ID"} | logfmt level | """ +
-            "$levelCriterion | drop __error__, __error_details__, level"
+    """{namespace="$NAMESPACE",component="${source.component}"} |~ "level=$levelCriterion" |~ "ortRunId=$RUN_ID""""

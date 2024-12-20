@@ -159,10 +159,9 @@ class LokiLogFileProvider(
         source: LogSource,
         levels: Set<LogLevel>
     ): String {
-        val levelCriterion = levels.joinToString(" or ") { """level="${it.name}"""" }
-        return """{namespace="${config.namespace}",container=~"${source.name.lowercase()}.*",""" +
-                """run_id="$ortRunId"} | logfmt level | $levelCriterion """ +
-                "| drop __error__, __error_details__, level"
+        val levelCriterion = levels.joinToString("|") { it.name }
+        return """{namespace="${config.namespace}",component="${source.component}"}""" +
+                """ |~ "level=$levelCriterion" |~ "ortRunId=$ortRunId""""
     }
 
     /**
