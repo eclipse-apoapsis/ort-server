@@ -48,7 +48,7 @@ ARG SWIFT_VERSION=5.10.1
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
 ARG TEMURIN_VERSION=21.0.4_7-jdk-jammy@sha256:0472478e22da0f66043fa6acd8cd30126592349f47937adafc2340794e5bf06a
 
-FROM eclipse-temurin:$TEMURIN_VERSION as ort-base-image
+FROM eclipse-temurin:$TEMURIN_VERSION AS ort-base-image
 
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
@@ -143,7 +143,7 @@ ENTRYPOINT [ "/bin/bash" ]
 
 #------------------------------------------------------------------------
 # PYTHON - Build Python as a separate component with pyenv
-FROM ort-base-image as pythonbuild
+FROM ort-base-image AS pythonbuild
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -414,7 +414,7 @@ COPY --from=dotnetbuild /opt/dotnet /opt/dotnet
 
 #------------------------------------------------------------------------
 # BAZEL
-FROM ort-base-image as bazelbuild
+FROM ort-base-image AS bazelbuild
 
 ARG BAZELISK_VERSION
 
@@ -433,13 +433,13 @@ COPY --from=gobuild /opt/go /opt/go
 
 RUN $GOBIN/go install github.com/bazelbuild/buildtools/buildozer@latest && chmod a+x $GOBIN/buildozer
 
-FROM scratch as bazel
+FROM scratch AS bazel
 COPY --from=bazelbuild /opt/bazel /opt/bazel
 COPY --from=bazelbuild /opt/go/bin/buildozer /opt/go/bin/buildozer
 
 #------------------------------------------------------------------------
 # Components container
-FROM ort-base-image as components
+FROM ort-base-image AS components
 
 # Remove ort build scripts
 RUN [ -d /etc/scripts ] && sudo rm -rf /etc/scripts
