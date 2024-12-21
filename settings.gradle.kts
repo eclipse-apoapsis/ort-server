@@ -58,6 +58,7 @@ include(":storage:azure-blob")
 include(":storage:database")
 include(":storage:s3")
 include(":storage:spi")
+include(":tasks:spi")
 include(":transport")
 include(":transport:activemqartemis")
 include(":transport:kubernetes")
@@ -88,6 +89,7 @@ project(":services:infrastructure").name = "infrastructure-service"
 project(":services:report-storage").name = "report-storage-service"
 project(":services:secret").name = "secret-service"
 project(":storage:spi").name = "storage-spi"
+project(":tasks:spi").name = "tasks-spi"
 project(":transport:spi").name = "transport-spi"
 project(":workers:config").name = "config-worker"
 
