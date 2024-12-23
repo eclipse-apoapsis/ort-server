@@ -19,11 +19,10 @@
 
 import { ShieldQuestion } from 'lucide-react';
 
-import { useVulnerabilitiesServiceGetVulnerabilitiesAcrossRepositoriesByProductIdSuspense } from '@/api/queries/suspense';
+import { useProductsServiceGetOrtRunStatisticsByProductIdSuspense } from '@/api/queries/suspense';
+import { VulnerabilityRating } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
-import { calcVulnerabilityRatingCounts } from '@/helpers/item-counts';
-import { ALL_ITEMS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 type ProductVulnerabilitiesStatisticsCardProps = {
@@ -35,30 +34,27 @@ export const ProductVulnerabilitiesStatisticsCard = ({
   productId,
   className,
 }: ProductVulnerabilitiesStatisticsCardProps) => {
-  const { data: vulnerabilities } =
-    useVulnerabilitiesServiceGetVulnerabilitiesAcrossRepositoriesByProductIdSuspense(
-      {
-        productId: productId,
-        limit: ALL_ITEMS,
-      }
-    );
+  const data = useProductsServiceGetOrtRunStatisticsByProductIdSuspense({
+    productId: productId,
+  });
 
-  const total = vulnerabilities.pagination.totalCount;
+  const total = data.data.vulnerabilitiesCount;
+  const counts = data.data.vulnerabilitiesCountByRating;
 
   return (
     <StatisticsCard
       title='Vulnerabilities'
       icon={() => <ShieldQuestion className='h-4 w-4 text-green-500' />}
-      value={total}
+      value={total || '-'}
       counts={
-        total
-          ? calcVulnerabilityRatingCounts(vulnerabilities.data).map(
-              ({ rating, count }) => ({
-                key: rating,
-                count,
-                color: getVulnerabilityRatingBackgroundColor(rating),
-              })
-            )
+        counts
+          ? Object.entries(counts).map(([rating, count]) => ({
+              key: rating,
+              count: count,
+              color: getVulnerabilityRatingBackgroundColor(
+                rating as VulnerabilityRating
+              ),
+            }))
           : []
       }
       className={cn('h-full hover:bg-muted/50', className)}

@@ -19,10 +19,10 @@
 
 import { Bug } from 'lucide-react';
 
+import { useProductsServiceGetOrtRunStatisticsByProductIdSuspense } from '@/api/queries/suspense';
+import { Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
-import { calcIssueSeverityCounts } from '@/helpers/item-counts';
-import { useIssuesByProductIdSuspense } from '@/hooks/use-issues-by-product-suspense';
 import { cn } from '@/lib/utils';
 
 type ProductIssuesStatisticsCardProps = {
@@ -34,23 +34,24 @@ export const ProductIssuesStatisticsCard = ({
   productId,
   className,
 }: ProductIssuesStatisticsCardProps) => {
-  const data = useIssuesByProductIdSuspense({
+  const data = useProductsServiceGetOrtRunStatisticsByProductIdSuspense({
     productId: productId,
   });
 
-  const issuesTotal = data.length;
+  const total = data.data.issuesCount;
+  const counts = data.data.issuesCountBySeverity;
 
   return (
     <StatisticsCard
       title='Issues'
       icon={() => <Bug className='h-4 w-4 text-green-500' />}
-      value={issuesTotal}
+      value={total || '-'}
       counts={
-        issuesTotal
-          ? calcIssueSeverityCounts(data).map(({ severity, count }) => ({
+        counts
+          ? Object.entries(counts).map(([severity, count]) => ({
               key: severity,
-              count,
-              color: getIssueSeverityBackgroundColor(severity),
+              count: count,
+              color: getIssueSeverityBackgroundColor(severity as Severity),
             }))
           : []
       }

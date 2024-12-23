@@ -19,10 +19,9 @@
 
 import { Boxes } from 'lucide-react';
 
+import { useProductsServiceGetOrtRunStatisticsByProductIdSuspense } from '@/api/queries/suspense';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getEcosystemBackgroundColor } from '@/helpers/get-status-class';
-import { calcPackageEcosystemCounts } from '@/helpers/item-counts';
-import { usePackagesByProductIdSuspense } from '@/hooks/use-packages-by-product-suspense';
 import { cn } from '@/lib/utils';
 
 type ProductPackagesStatisticsCardProps = {
@@ -34,26 +33,23 @@ export const ProductPackagesStatisticsCard = ({
   productId,
   className,
 }: ProductPackagesStatisticsCardProps) => {
-  const data = usePackagesByProductIdSuspense({
+  const data = useProductsServiceGetOrtRunStatisticsByProductIdSuspense({
     productId: productId,
   });
 
-  const packagesTotal = data.length;
+  const total = data.data.packagesCount;
+  const counts = data.data.ecosystems;
 
   return (
     <StatisticsCard
       title='Packages'
       icon={() => <Boxes className='h-4 w-4 text-green-500' />}
-      value={packagesTotal}
-      counts={
-        packagesTotal
-          ? calcPackageEcosystemCounts(data).map(({ ecosystem, count }) => ({
-              key: ecosystem,
-              count,
-              color: getEcosystemBackgroundColor(ecosystem),
-            }))
-          : []
-      }
+      value={total || '-'}
+      counts={counts?.map(({ name, count }) => ({
+        key: name,
+        count: count,
+        color: getEcosystemBackgroundColor(name),
+      }))}
       className={cn('h-full hover:bg-muted/50', className)}
     />
   );
