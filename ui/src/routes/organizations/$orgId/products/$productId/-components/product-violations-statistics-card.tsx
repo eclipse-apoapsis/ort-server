@@ -19,10 +19,10 @@
 
 import { Scale } from 'lucide-react';
 
+import { useProductsServiceGetOrtRunStatisticsByProductIdSuspense } from '@/api/queries/suspense';
+import { Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
-import { calcRuleViolationSeverityCounts } from '@/helpers/item-counts';
-import { useViolationsByProductIdSuspense } from '@/hooks/use-violations-by-product-suspense';
 import { cn } from '@/lib/utils';
 
 type ProductViolationsStatisticsCardProps = {
@@ -34,26 +34,27 @@ export const ProductViolationsStatisticsCard = ({
   productId,
   className,
 }: ProductViolationsStatisticsCardProps) => {
-  const data = useViolationsByProductIdSuspense({
+  const data = useProductsServiceGetOrtRunStatisticsByProductIdSuspense({
     productId: productId,
   });
 
-  const violationsTotal = data.length;
+  const total = data.data.ruleViolationsCount;
+  const counts = data.data.ruleViolationsCountBySeverity;
 
   return (
     <StatisticsCard
       title='Rule Violations'
       icon={() => <Scale className='h-4 w-4 text-green-500' />}
-      value={violationsTotal}
+      value={total || '-'}
       counts={
-        violationsTotal
-          ? calcRuleViolationSeverityCounts(data).map(
-              ({ severity, count }) => ({
-                key: severity,
-                count,
-                color: getRuleViolationSeverityBackgroundColor(severity),
-              })
-            )
+        counts
+          ? Object.entries(counts).map(([severity, count]) => ({
+              key: severity,
+              count: count,
+              color: getRuleViolationSeverityBackgroundColor(
+                severity as Severity
+              ),
+            }))
           : []
       }
       className={cn('h-full hover:bg-muted/50', className)}
