@@ -71,7 +71,7 @@ export const StatisticsCard = ({
       </CardHeader>
       <CardContent className='text-sm'>
         <div className='flex flex-col'>
-          {counts.length > 0 && (
+          {counts.length > 0 && counts.some(({ count }) => count > 0) ? (
             <div className='relative mb-2 h-3 w-full overflow-hidden rounded-sm bg-gray-100'>
               {percentages.map(({ key, count, color, percentage }, index) => {
                 const left = percentages
@@ -95,6 +95,8 @@ export const StatisticsCard = ({
                 );
               })}
             </div>
+          ) : (
+            <div className='relative mb-2 h-3 w-full overflow-hidden rounded-sm' />
           )}
           <div className='text-2xl font-bold'>
             {value !== undefined ? value : 'Failed'}
