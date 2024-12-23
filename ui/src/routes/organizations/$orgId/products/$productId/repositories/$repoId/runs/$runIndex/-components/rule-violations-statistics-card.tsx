@@ -19,8 +19,8 @@
 
 import { Scale } from 'lucide-react';
 
-import { useRuleViolationsServiceGetRuleViolationsByRunId } from '@/api/queries';
-import { JobStatus } from '@/api/requests';
+import { useRunsServiceGetOrtRunStatistics } from '@/api/queries';
+import { JobStatus, Severity } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -28,8 +28,6 @@ import {
   getRuleViolationSeverityBackgroundColor,
   getStatusFontColor,
 } from '@/helpers/get-status-class';
-import { calcRuleViolationSeverityCounts } from '@/helpers/item-counts';
-import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 type RuleViolationsStatisticsCardProps = {
@@ -43,11 +41,11 @@ export const RuleViolationsStatisticsCard = ({
   status,
   runId,
 }: RuleViolationsStatisticsCardProps) => {
-  const { data, isPending, isError, error } =
-    useRuleViolationsServiceGetRuleViolationsByRunId({
+  const { data, isPending, isError, error } = useRunsServiceGetOrtRunStatistics(
+    {
       runId: runId,
-      limit: ALL_ITEMS,
-    });
+    }
+  );
 
   if (isPending) {
     return (
@@ -74,7 +72,8 @@ export const RuleViolationsStatisticsCard = ({
     return;
   }
 
-  const total = data.pagination.totalCount;
+  const total = data.ruleViolationsCount;
+  const counts = data.ruleViolationsCountBySeverity;
 
   const jobIsScheduled = status !== undefined;
   const jobIsFinished =
@@ -95,14 +94,14 @@ export const RuleViolationsStatisticsCard = ({
       value={value}
       description={description}
       counts={
-        total
-          ? calcRuleViolationSeverityCounts(data.data).map(
-              ({ severity, count }) => ({
-                key: severity,
-                count,
-                color: getRuleViolationSeverityBackgroundColor(severity),
-              })
-            )
+        counts
+          ? Object.entries(counts).map(([severity, count]) => ({
+              key: severity,
+              count: count,
+              color: getRuleViolationSeverityBackgroundColor(
+                severity as Severity
+              ),
+            }))
           : []
       }
       className='h-full hover:bg-muted/50'

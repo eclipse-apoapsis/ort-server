@@ -19,8 +19,8 @@
 
 import { ShieldQuestion } from 'lucide-react';
 
-import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
-import { JobStatus } from '@/api/requests';
+import { useRunsServiceGetOrtRunStatistics } from '@/api/queries';
+import { JobStatus, VulnerabilityRating } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -28,8 +28,6 @@ import {
   getStatusFontColor,
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
-import { calcVulnerabilityRatingCounts } from '@/helpers/item-counts';
-import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 type VulnerabilitiesStatisticsCardProps = {
@@ -43,11 +41,11 @@ export const VulnerabilitiesStatisticsCard = ({
   status,
   runId,
 }: VulnerabilitiesStatisticsCardProps) => {
-  const { data, isPending, isError, error } =
-    useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
+  const { data, isPending, isError, error } = useRunsServiceGetOrtRunStatistics(
+    {
       runId: runId,
-      limit: ALL_ITEMS,
-    });
+    }
+  );
 
   if (isPending) {
     return (
@@ -74,7 +72,8 @@ export const VulnerabilitiesStatisticsCard = ({
     return;
   }
 
-  const total = data.pagination.totalCount;
+  const total = data.vulnerabilitiesCount;
+  const counts = data.vulnerabilitiesCountByRating;
 
   const jobIsScheduled = status !== undefined;
   const jobIsFinished =
@@ -97,14 +96,14 @@ export const VulnerabilitiesStatisticsCard = ({
       value={value}
       description={description}
       counts={
-        total
-          ? calcVulnerabilityRatingCounts(data.data).map(
-              ({ rating, count }) => ({
-                key: rating,
-                count,
-                color: getVulnerabilityRatingBackgroundColor(rating),
-              })
-            )
+        counts
+          ? Object.entries(counts).map(([rating, count]) => ({
+              key: rating,
+              count: count,
+              color: getVulnerabilityRatingBackgroundColor(
+                rating as VulnerabilityRating
+              ),
+            }))
           : []
       }
       className='h-full hover:bg-muted/50'

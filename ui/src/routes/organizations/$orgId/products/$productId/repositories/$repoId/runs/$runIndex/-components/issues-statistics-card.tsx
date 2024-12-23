@@ -19,8 +19,8 @@
 
 import { Bug } from 'lucide-react';
 
-import { useIssuesServiceGetIssuesByRunId } from '@/api/queries';
-import { JobStatus } from '@/api/requests';
+import { useRunsServiceGetOrtRunStatistics } from '@/api/queries';
+import { JobStatus, Severity } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -28,8 +28,6 @@ import {
   getIssueSeverityBackgroundColor,
   getStatusFontColor,
 } from '@/helpers/get-status-class';
-import { calcIssueSeverityCounts } from '@/helpers/item-counts';
-import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 type IssuesStatisticsCardProps = {
@@ -43,10 +41,11 @@ export const IssuesStatisticsCard = ({
   status,
   runId,
 }: IssuesStatisticsCardProps) => {
-  const { data, isPending, isError, error } = useIssuesServiceGetIssuesByRunId({
-    runId: runId,
-    limit: ALL_ITEMS,
-  });
+  const { data, isPending, isError, error } = useRunsServiceGetOrtRunStatistics(
+    {
+      runId: runId,
+    }
+  );
 
   if (isPending) {
     return (
@@ -71,7 +70,8 @@ export const IssuesStatisticsCard = ({
     return;
   }
 
-  const total = data.pagination.totalCount;
+  const total = data.issuesCount;
+  const counts = data.issuesCountBySeverity;
 
   const jobIsScheduled = status !== undefined;
   const jobIsFinished =
@@ -92,11 +92,11 @@ export const IssuesStatisticsCard = ({
       value={value}
       description={description}
       counts={
-        total
-          ? calcIssueSeverityCounts(data.data).map(({ severity, count }) => ({
+        counts
+          ? Object.entries(counts).map(([severity, count]) => ({
               key: severity,
-              count,
-              color: getIssueSeverityBackgroundColor(severity),
+              count: count,
+              color: getIssueSeverityBackgroundColor(severity as Severity),
             }))
           : []
       }

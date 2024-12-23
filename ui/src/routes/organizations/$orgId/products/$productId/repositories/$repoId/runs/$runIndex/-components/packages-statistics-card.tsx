@@ -19,7 +19,7 @@
 
 import { ListTree } from 'lucide-react';
 
-import { usePackagesServiceGetPackagesByRunId } from '@/api/queries';
+import { useRunsServiceGetOrtRunStatistics } from '@/api/queries';
 import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
@@ -28,8 +28,6 @@ import {
   getEcosystemBackgroundColor,
   getStatusFontColor,
 } from '@/helpers/get-status-class';
-import { calcPackageEcosystemCounts } from '@/helpers/item-counts';
-import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 type PackagesStatisticsCardProps = {
@@ -43,11 +41,11 @@ export const PackagesStatisticsCard = ({
   status,
   runId,
 }: PackagesStatisticsCardProps) => {
-  const { data, isPending, isError, error } =
-    usePackagesServiceGetPackagesByRunId({
+  const { data, isPending, isError, error } = useRunsServiceGetOrtRunStatistics(
+    {
       runId: runId,
-      limit: ALL_ITEMS,
-    });
+    }
+  );
 
   if (isPending) {
     return (
@@ -74,7 +72,8 @@ export const PackagesStatisticsCard = ({
     return;
   }
 
-  const total = data.pagination.totalCount;
+  const total = data.packagesCount;
+  const counts = data.ecosystems;
 
   const jobIsScheduled = status !== undefined;
   const jobIsFinished =
@@ -96,17 +95,11 @@ export const PackagesStatisticsCard = ({
       )}
       value={value}
       description={description}
-      counts={
-        total
-          ? calcPackageEcosystemCounts(data.data).map(
-              ({ ecosystem, count }) => ({
-                key: ecosystem,
-                count,
-                color: getEcosystemBackgroundColor(ecosystem),
-              })
-            )
-          : []
-      }
+      counts={counts?.map(({ name, count }) => ({
+        key: name,
+        count: count,
+        color: getEcosystemBackgroundColor(name),
+      }))}
       className='h-full hover:bg-muted/50'
     />
   );
