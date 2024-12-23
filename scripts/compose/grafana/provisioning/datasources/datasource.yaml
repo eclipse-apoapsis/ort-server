@@ -3,4 +3,5 @@ apiVersion: 1
 datasources:
   - name: loki
     type: loki
+    uid: P982945308D3682D1
     url: http://loki:3100

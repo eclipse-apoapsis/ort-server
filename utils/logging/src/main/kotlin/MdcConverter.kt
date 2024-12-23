@@ -17,21 +17,12 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply precompiled plugins.
-    id("ort-server-kotlin-jvm-conventions")
-    id("ort-server-publication-conventions")
-}
+package org.eclipse.apoapsis.ortserver.utils.logging
 
-group = "org.eclipse.apoapsis.ortserver.utils"
+import ch.qos.logback.classic.pattern.ClassicConverter
+import ch.qos.logback.classic.spi.ILoggingEvent
 
-dependencies {
-    api(libs.kotlinxCoroutines)
-
-    implementation(libs.kotlinxCoroutinesSlf4j)
-    implementation(libs.logback)
-    implementation(libs.slf4j)
-
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
+class MdcConverter : ClassicConverter() {
+    override fun convert(event: ILoggingEvent?) =
+        event?.mdcPropertyMap?.entries?.joinToString(separator = " ") { (key, value) -> "$key=$value" }.orEmpty()
 }
