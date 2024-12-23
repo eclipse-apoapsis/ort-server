@@ -17,7 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { JobStatus, OrtRunStatus, Severity } from '@/api/requests';
+import {
+  JobStatus,
+  OrtRunStatus,
+  Severity,
+  VulnerabilityRating,
+} from '@/api/requests';
 import { PackageManager } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-types';
 
 // Combine statuses reported either by ORT Runs or the individual jobs within them.
@@ -31,8 +36,6 @@ export const vulnerabilityRatings = {
   LOW: 1,
   NONE: 0,
 } as const;
-
-export type VulnerabilityRating = keyof typeof vulnerabilityRatings;
 
 // TailwindCSS classes matching to statuses
 //
