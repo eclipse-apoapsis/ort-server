@@ -77,7 +77,7 @@ class RuleViolationService(private val db: Database) {
     suspend fun countBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> = db.dbQuery {
         val countAlias = Count(RuleViolationsTable.id, true)
 
-        val severityToCountMap = Severity.entries.associateWithTo(mutableMapOf()) { 0L }
+        val severityToCountMap = Severity.entries.reversed().associateWithTo(mutableMapOf()) { 0L }
 
         RuleViolationsTable
             .innerJoin(EvaluatorRunsRuleViolationsTable)
