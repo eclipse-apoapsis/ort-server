@@ -18,21 +18,14 @@
  */
 
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Boxes, Bug, EditIcon, Scale, ShieldQuestion } from 'lucide-react';
+import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 
-import {
-  useProductsServiceDeleteProductById,
-  useProductsServiceGetProductById,
-} from '@/api/queries';
+import { useProductsServiceGetProductById } from '@/api/queries';
 import { prefetchUseProductsServiceGetProductById } from '@/api/queries/prefetch';
-import { ApiError } from '@/api/requests';
-import { DeleteDialog } from '@/components/delete-dialog';
-import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -40,11 +33,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,
@@ -59,7 +47,6 @@ import { ProductVulnerabilitiesStatisticsCard } from './-components/product-vuln
 
 const ProductComponent = () => {
   const params = Route.useParams();
-  const navigate = Route.useNavigate();
 
   const {
     data: product,
@@ -69,34 +56,6 @@ const ProductComponent = () => {
   } = useProductsServiceGetProductById({
     productId: Number.parseInt(params.productId),
   });
-
-  const { mutateAsync: deleteProduct } = useProductsServiceDeleteProductById({
-    onSuccess() {
-      toast.info('Delete Product', {
-        description: `Product "${product?.name}" deleted successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId',
-        params: { orgId: params.orgId },
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
-
-  async function handleDelete() {
-    await deleteProduct({
-      productId: Number.parseInt(params.productId),
-    });
-  }
 
   if (prodIsPending) {
     return <LoadingIndicator />;
@@ -119,43 +78,7 @@ const ProductComponent = () => {
       <div className='grid grid-cols-4 gap-2'>
         <Card className='col-span-2'>
           <CardHeader>
-            <CardTitle className='flex flex-row justify-between'>
-              <div className='flex items-stretch'>
-                <div className='flex items-center pb-1'>{product.name}</div>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Button
-                      asChild
-                      size='sm'
-                      variant='outline'
-                      className='ml-2 px-2'
-                    >
-                      <Link
-                        to='/organizations/$orgId/products/$productId/edit'
-                        params={{
-                          orgId: params.orgId,
-                          productId: params.productId,
-                        }}
-                      >
-                        <EditIcon className='h-4 w-4' />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Edit this product</TooltipContent>
-                </Tooltip>
-              </div>
-              <DeleteDialog
-                description={
-                  <>
-                    Are you sure you want to delete the product{' '}
-                    <span className='font-bold'>{product.name}</span>?
-                  </>
-                }
-                confirmationText={product.name}
-                onDelete={handleDelete}
-                trigger={<DeleteIconButton />}
-              />
-            </CardTitle>
+            <CardTitle>{product.name}</CardTitle>
             <CardDescription>{product.description}</CardDescription>
           </CardHeader>
         </Card>
