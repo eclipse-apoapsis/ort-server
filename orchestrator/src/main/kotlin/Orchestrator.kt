@@ -251,7 +251,7 @@ class Orchestrator(
                 repository.tryComplete(job.id, Clock.System.now(), JobStatus.FAILED)?.let {
                     nextJobsToSchedule(Endpoint.fromConfigPrefix(workerError.endpointName), job.ortRunId, header)
                 }
-            } ?: (createWorkerSchedulerContext(getCurrentOrtRun(ortRunId), header, failed = true) to emptyList())
+            } ?: (createWorkerScheduleContext(getCurrentOrtRun(ortRunId), header, failed = true) to emptyList())
         }.scheduleNextJobs {
             log.warn("Failed to handle 'WorkerError' message.", it)
         }
@@ -266,7 +266,7 @@ class Orchestrator(
 
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val ortRun = getCurrentOrtRun(lostSchedule.ortRunId)
-            val context = createWorkerSchedulerContext(ortRun, header)
+            val context = createWorkerScheduleContext(ortRun, header)
 
             if (context.jobs.isNotEmpty()) {
                 fetchNextJobs(context)
@@ -353,7 +353,7 @@ class Orchestrator(
         log.info("Handling a completed job for endpoint '{}' and ORT run {}.", endpoint.configPrefix, ortRunId)
 
         val ortRun = getCurrentOrtRun(ortRunId)
-        val scheduleContext = createWorkerSchedulerContext(ortRun, header, workerJobs = jobs)
+        val scheduleContext = createWorkerScheduleContext(ortRun, header, workerJobs = jobs)
 
         return fetchNextJobs(scheduleContext)
     }
@@ -377,7 +377,7 @@ class Orchestrator(
      * The context is initialized with the status of all jobs for this run, either from the given [workerJobs]
      * parameter or by loading the job status from the database.
      */
-    private fun createWorkerSchedulerContext(
+    private fun createWorkerScheduleContext(
         ortRun: OrtRun,
         header: MessageHeader,
         failed: Boolean = false,
