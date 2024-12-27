@@ -17,28 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Link } from '@tanstack/react-router';
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { Loader2, PlusIcon } from 'lucide-react';
+import { createFileRoute } from '@tanstack/react-router';
 
-import {
-  useOrganizationsServiceGetOrganizationById,
-  useProductsServiceGetOrganizationProducts,
-  useRepositoriesServiceGetRepositoriesByProductId,
-} from '@/api/queries';
-import {
-  prefetchUseOrganizationsServiceGetOrganizationById,
-  prefetchUseProductsServiceGetOrganizationProducts,
-} from '@/api/queries/prefetch';
-import { Product } from '@/api/requests';
-import { DataTable } from '@/components/data-table/data-table';
+import { useOrganizationsServiceGetOrganizationById } from '@/api/queries';
+import { prefetchUseOrganizationsServiceGetOrganizationById } from '@/api/queries/prefetch';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -46,161 +30,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
-import { LastJobStatus } from './products/$productId/-components/last-job-status';
-import { LastRunDate } from './products/$productId/-components/last-run-date';
-import { LastRunStatus } from './products/$productId/-components/last-run-status';
-import { TotalRuns } from './products/$productId/-components/total-runs';
-
-const defaultPageSize = 10;
-
-const columnHelper = createColumnHelper<Product>();
-
-// In anticipation of these column definitions to be changed later, when the corresponding
-// endpoint is implemented, columnHelper.accessor() is only used when the data being
-// shown contains data from the column helper type.
-
-const columns = [
-  columnHelper.accessor(
-    ({ name, description }) => {
-      return name + description;
-    },
-    {
-      header: 'Products',
-      cell: ({ row }) => (
-        <>
-          <Link
-            className='block font-semibold text-blue-400 hover:underline'
-            to={`/organizations/$orgId/products/$productId`}
-            params={{
-              orgId: row.original.organizationId.toString(),
-              productId: row.original.id.toString(),
-            }}
-          >
-            {row.original.name}
-          </Link>
-          <div className='text-sm text-muted-foreground md:inline'>
-            {row.original.description}
-          </div>
-        </>
-      ),
-    }
-  ),
-  columnHelper.display({
-    id: 'runs',
-    header: 'Runs',
-    size: 60,
-    cell: function CellComponent({ row }) {
-      const { data, isPending, isError } =
-        useRepositoriesServiceGetRepositoriesByProductId({
-          productId: row.original.id,
-          limit: 1,
-        });
-
-      if (isPending)
-        return (
-          <>
-            <span className='sr-only'>Loading...</span>
-            <Loader2 size={16} className='mx-3 animate-spin' />
-          </>
-        );
-
-      if (isError) return <span>Error loading data.</span>;
-
-      if (data.pagination.totalCount === 1 && data.data[0])
-        return <TotalRuns repoId={data.data[0].id} />;
-      else return <span>-</span>;
-    },
-  }),
-  columnHelper.display({
-    id: 'runStatus',
-    header: 'Last Run Status',
-    cell: function CellComponent({ row }) {
-      const { data, isPending, isError } =
-        useRepositoriesServiceGetRepositoriesByProductId({
-          productId: row.original.id,
-          limit: 1,
-        });
-
-      if (isPending)
-        return (
-          <>
-            <span className='sr-only'>Loading...</span>
-            <Loader2 size={16} className='mx-3 animate-spin' />
-          </>
-        );
-
-      if (isError) return <span>Error loading data.</span>;
-
-      if (data.pagination.totalCount === 1 && data.data[0])
-        return <LastRunStatus repoId={data.data[0].id} />;
-      else
-        return <span>Contains {data.pagination.totalCount} repositories</span>;
-    },
-  }),
-  columnHelper.display({
-    id: 'lastRunDate',
-    header: 'Last Run Date',
-    cell: function CellComponent({ row }) {
-      const { data, isPending, isError } =
-        useRepositoriesServiceGetRepositoriesByProductId({
-          productId: row.original.id,
-          limit: 1,
-        });
-
-      if (isPending)
-        return (
-          <>
-            <span className='sr-only'>Loading...</span>
-            <Loader2 size={16} className='mx-3 animate-spin' />
-          </>
-        );
-
-      if (isError) return <span>Error loading data.</span>;
-
-      if (data.pagination.totalCount === 1 && data.data[0])
-        return <LastRunDate repoId={data.data[0].id} />;
-      else return null;
-    },
-  }),
-  columnHelper.display({
-    id: 'jobStatus',
-    header: 'Last Job Status',
-    cell: function CellComponent({ row }) {
-      const { data, isPending, isError } =
-        useRepositoriesServiceGetRepositoriesByProductId({
-          productId: row.original.id,
-          limit: 1,
-        });
-
-      if (isPending)
-        return (
-          <>
-            <span className='sr-only'>Loading...</span>
-            <Loader2 size={16} className='mx-3 animate-spin' />
-          </>
-        );
-
-      if (isError) return <span>Error loading data.</span>;
-
-      if (data.pagination.totalCount === 1 && data.data[0])
-        return <LastJobStatus repoId={data.data[0].id} />;
-      else return null;
-    },
-  }),
-];
+import { OrganizationProductTable } from './-components/organization-product-table';
+import { OrganizationProductsStatisticsCard } from './-components/organization-products-statistics-card';
 
 const OrganizationComponent = () => {
   const params = Route.useParams();
-  const search = Route.useSearch();
-  const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
   const {
     data: organization,
@@ -211,38 +47,13 @@ const OrganizationComponent = () => {
     organizationId: Number.parseInt(params.orgId),
   });
 
-  const {
-    data: products,
-    error: prodError,
-    isPending: prodIsPending,
-    isError: prodIsError,
-  } = useProductsServiceGetOrganizationProducts({
-    organizationId: Number.parseInt(params.orgId),
-    limit: pageSize,
-    offset: pageIndex * pageSize,
-  });
-
-  const table = useReactTable({
-    data: products?.data || [],
-    columns,
-    pageCount: Math.ceil((products?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
-      },
-    },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
-
-  if (orgIsPending || prodIsPending) {
+  if (orgIsPending) {
     return <LoadingIndicator />;
   }
 
-  if (orgIsError || prodIsError) {
+  if (orgIsError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={orgError || prodError} />,
+      description: <ToastError error={orgError} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -253,64 +64,38 @@ const OrganizationComponent = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{organization.name}</CardTitle>
-        <CardDescription>{organization.description}</CardDescription>
-        <div className='py-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
-                <Link
-                  to='/organizations/$orgId/create-product'
-                  params={{ orgId: organization.id.toString() }}
-                >
-                  Add product
-                  <PlusIcon className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Add a product for managing repositories
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          table={table}
-          setCurrentPageOptions={(currentPage) => {
-            return {
-              to: Route.to,
-              search: { ...search, page: currentPage },
-            };
-          }}
-          setPageSizeOptions={(size) => {
-            return {
-              to: Route.to,
-              search: { ...search, page: 1, pageSize: size },
-            };
-          }}
+    <div className='flex flex-col gap-2'>
+      <div className='grid grid-cols-4 gap-2'>
+        <Card className='col-span-2'>
+          <CardHeader>
+            <CardTitle>{organization.name}</CardTitle>
+            <CardDescription>{organization.description}</CardDescription>
+          </CardHeader>
+        </Card>
+        <OrganizationProductsStatisticsCard
+          className='col-span-2'
+          orgId={params.orgId}
         />
-      </CardContent>
-    </Card>
+      </div>
+      <div className='grid grid-cols-4 gap-2'></div>
+      <Card>
+        <CardContent className='my-4'>
+          <OrganizationProductTable />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
 export const Route = createFileRoute('/organizations/$orgId/')({
   validateSearch: paginationSearchParameterSchema,
-  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context, params, deps: { page, pageSize } }) => {
-    await Promise.allSettled([
-      prefetchUseOrganizationsServiceGetOrganizationById(context.queryClient, {
+  loader: async ({ context, params }) => {
+    await prefetchUseOrganizationsServiceGetOrganizationById(
+      context.queryClient,
+      {
         organizationId: Number.parseInt(params.orgId),
-      }),
-      prefetchUseProductsServiceGetOrganizationProducts(context.queryClient, {
-        organizationId: Number.parseInt(params.orgId),
-        limit: pageSize || defaultPageSize,
-        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-      }),
-    ]);
+      }
+    );
   },
   component: OrganizationComponent,
   pendingComponent: LoadingIndicator,
