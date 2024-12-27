@@ -23,10 +23,9 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { EditIcon, Loader2, PlusIcon } from 'lucide-react';
+import { Loader2, PlusIcon } from 'lucide-react';
 
 import {
-  useOrganizationsServiceDeleteOrganizationById,
   useOrganizationsServiceGetOrganizationById,
   useProductsServiceGetOrganizationProducts,
   useRepositoriesServiceGetRepositoriesByProductId,
@@ -35,10 +34,8 @@ import {
   prefetchUseOrganizationsServiceGetOrganizationById,
   prefetchUseProductsServiceGetOrganizationProducts,
 } from '@/api/queries/prefetch';
-import { ApiError, Product } from '@/api/requests';
+import { Product } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
-import { DeleteDialog } from '@/components/delete-dialog';
-import { DeleteIconButton } from '@/components/delete-icon-button';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -201,7 +198,6 @@ const columns = [
 
 const OrganizationComponent = () => {
   const params = Route.useParams();
-  const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
@@ -225,34 +221,6 @@ const OrganizationComponent = () => {
     limit: pageSize,
     offset: pageIndex * pageSize,
   });
-
-  const { mutateAsync: deleteOrganization } =
-    useOrganizationsServiceDeleteOrganizationById({
-      onSuccess() {
-        toast.info('Delete Organization', {
-          description: `Organization "${organization?.name}" deleted successfully.`,
-        });
-        navigate({
-          to: '/',
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
-
-  async function handleDelete() {
-    await deleteOrganization({
-      organizationId: Number.parseInt(params.orgId),
-    });
-  }
 
   const table = useReactTable({
     data: products?.data || [],
@@ -287,40 +255,7 @@ const OrganizationComponent = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='flex flex-row justify-between'>
-          <div className='flex items-stretch'>
-            <div className='flex items-center pb-1'>{organization.name}</div>
-            <Tooltip>
-              <TooltipTrigger>
-                <Button
-                  asChild
-                  size='sm'
-                  variant='outline'
-                  className='ml-2 px-2'
-                >
-                  <Link
-                    to='/organizations/$orgId/edit'
-                    params={{ orgId: organization.id.toString() }}
-                  >
-                    <EditIcon className='h-4 w-4' />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Edit this organization</TooltipContent>
-            </Tooltip>
-          </div>
-          <DeleteDialog
-            onDelete={handleDelete}
-            description={
-              <>
-                Are you sure you want to delete the organization{' '}
-                <span className='font-bold'>{organization.name}</span>?
-              </>
-            }
-            confirmationText={organization.name}
-            trigger={<DeleteIconButton />}
-          />
-        </CardTitle>
+        <CardTitle>{organization.name}</CardTitle>
         <CardDescription>{organization.description}</CardDescription>
         <div className='py-2'>
           <Tooltip>

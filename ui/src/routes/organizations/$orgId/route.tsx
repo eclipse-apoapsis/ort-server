@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
-import { BookLock, Eye, ServerCog, User } from 'lucide-react';
+import { BookLock, Eye, ServerCog, Settings, User } from 'lucide-react';
 
 import { useOrganizationsServiceGetOrganizationByIdKey } from '@/api/queries';
 import { OrganizationsService } from '@/api/requests';
@@ -55,6 +55,12 @@ const Layout = () => {
       title: 'Users',
       to: '/organizations/$orgId/users',
       icon: () => <User className='h-4 w-4' />,
+      visible: user.hasRole(['superuser', `role_organization_${orgId}_admin`]),
+    },
+    {
+      title: 'Settings',
+      to: '/organizations/$orgId/settings',
+      icon: () => <Settings className='h-4 w-4' />,
       visible: user.hasRole(['superuser', `role_organization_${orgId}_admin`]),
     },
   ];
