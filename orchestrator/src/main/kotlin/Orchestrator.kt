@@ -78,7 +78,7 @@ private val log = LoggerFactory.getLogger(Orchestrator::class.java)
  * It creates jobs for the single processing steps and passes them to the corresponding workers. It collects the results
  * produced by the workers until the complete ORT result is available or the run has failed.
  */
-@Suppress("LongParameterList", "TooManyFunctions")
+@Suppress("TooManyFunctions")
 class Orchestrator(
     private val db: Database,
     private val workerJobRepositories: WorkerJobRepositories,
