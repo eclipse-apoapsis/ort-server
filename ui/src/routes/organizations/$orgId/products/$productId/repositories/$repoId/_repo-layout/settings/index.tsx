@@ -242,6 +242,7 @@ const RepositorySettingsPage = () => {
                   <span className='font-bold'>{repository.url}</span>?
                 </>
               }
+              confirmationText={repository.url}
               onDelete={handleDelete}
               trigger={<Button variant='destructive'>Delete repository</Button>}
             />
