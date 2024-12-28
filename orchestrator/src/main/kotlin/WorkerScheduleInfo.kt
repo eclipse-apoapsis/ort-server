@@ -56,18 +56,18 @@ internal enum class WorkerScheduleInfo(
      * A list defining the worker jobs that this job depends on. This job will only be executed after all the
      * dependencies have been successfully completed.
      */
-    private val dependsOn: List<WorkerScheduleInfo> = emptyList(),
+    val dependsOn: List<WorkerScheduleInfo> = emptyList(),
 
     /**
      * A list defining the worker jobs that must run before this job. The difference to [dependsOn] is that this job
      * can also run if these other jobs will not be executed. It is only guaranteed that it runs after all of them.
      */
-    private val runsAfter: List<WorkerScheduleInfo> = emptyList(),
+    val runsAfter: List<WorkerScheduleInfo> = emptyList(),
 
     /**
      * A flag determining whether the represented worker should be run even if previous workers have already failed.
      */
-    private val runAfterFailure: Boolean = false
+    val runAfterFailure: Boolean = false
 ) {
     ANALYZER(AnalyzerEndpoint) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob =
@@ -159,7 +159,7 @@ internal enum class WorkerScheduleInfo(
      * no cycles exist in the dependency graph of workers; otherwise, the scheduler algorithm would have a severe
      * problem.
      */
-    private val runsAfterTransitively: Set<WorkerScheduleInfo>
+    val runsAfterTransitively: Set<WorkerScheduleInfo>
         get() = (runsAfter + dependsOn).flatMapTo(mutableSetOf()) { it.runsAfterTransitively + it }
 
     /**
