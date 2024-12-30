@@ -28,10 +28,10 @@ export const Route = createFileRoute('/runs/$runId/')({
       const ortRun = await RunsService.getOrtRunById({
         runId: Number.parseInt(params.runId),
       });
-      organizationId = ortRun.organizationId;
-      productId = ortRun.productId;
-      repositoryId = ortRun.repositoryId;
-      index = ortRun.index;
+      organizationId = ortRun.organizationId.toString();
+      productId = ortRun.productId.toString();
+      repositoryId = ortRun.repositoryId.toString();
+      index = ortRun.index.toString();
     } catch (error) {
       if (error instanceof ApiError) {
         throw notFound();
@@ -39,7 +39,13 @@ export const Route = createFileRoute('/runs/$runId/')({
     }
     if (organizationId && productId && repositoryId && index) {
       throw redirect({
-        to: `/organizations/${organizationId}/products/${productId}/repositories/${repositoryId}/runs/${index}`,
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
+        params: {
+          orgId: organizationId,
+          productId: productId,
+          repoId: repositoryId,
+          runIndex: index,
+        },
       });
     }
   },
