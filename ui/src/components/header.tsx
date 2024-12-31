@@ -20,6 +20,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { CircleUser, Home, Menu } from 'lucide-react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -44,6 +45,8 @@ import {
 } from './ui/dropdown-menu';
 import { Input } from './ui/input';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+
+const TITLE = 'ORT Server';
 
 const formSchema = z.object({
   id: z.string().min(1),
@@ -91,6 +94,23 @@ export const Header = () => {
       match.routeId ===
       '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
   );
+
+  // Update the document title based on the deepest breadcrumb level currently active.
+  useEffect(() => {
+    const organization = organizationMatch?.context.breadcrumbs.organization;
+    const product = productMatch?.context.breadcrumbs.product;
+    const repository = repoMatch?.context.breadcrumbs.repo;
+
+    if (repository) {
+      document.title = `${repository} - ${TITLE}`;
+    } else if (product) {
+      document.title = `${product} - ${TITLE}`;
+    } else if (organization) {
+      document.title = `${organization} - ${TITLE}`;
+    } else {
+      document.title = `${TITLE}`;
+    }
+  }, [organizationMatch, productMatch, repoMatch]);
 
   return (
     <header className='sticky top-0 z-50 flex h-16 justify-between gap-4 border-b bg-background px-4 md:px-6'>
