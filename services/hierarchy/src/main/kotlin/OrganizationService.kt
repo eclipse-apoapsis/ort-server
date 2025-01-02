@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
@@ -183,6 +185,15 @@ class OrganizationService(
         // Keycloak) and business exceptions (e.g. user not found), we can't do special exception handling here
         // and just let the exception propagate.
         authorizationService.removeUserFromGroup(username, groupName)
+    }
+
+    /** Get IDs for all repositories found in the products of the organization. */
+    suspend fun getRepositoryIdsForOrganization(organizationId: Long): List<Long> = db.dbQuery {
+        RepositoriesTable
+            .innerJoin(ProductsTable)
+            .select(RepositoriesTable.id)
+            .where { ProductsTable.organizationId eq organizationId }
+            .map { it[RepositoriesTable.id].value }
     }
 }
 
