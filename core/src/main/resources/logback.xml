@@ -21,7 +21,7 @@
     <conversionRule conversionWord="customMdc" converterClass="org.eclipse.apoapsis.ortserver.utils.logging.MdcConverter" />
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>time=%d{YYYY-MM-dd HH:mm:ss.SSS} thread=%thread %customMdc level=%-5level logger=%logger{36} message="%replace(%msg){'\"','\\\"'}"%n</pattern>
+            <pattern>time=%d{YYYY-MM-dd'T'HH:mm:ss.SSS} thread=%thread %customMdc level=%-5level logger=%logger{36} message="%replace(%msg){'\"','\\\"'}"%n</pattern>
         </encoder>
     </appender>
     <root level="trace">
