@@ -132,8 +132,9 @@ jobs:
           type=raw,value=latest,enable={{ is_default_branch }}
 
     - name: Set cache-to
-      id: set-cache-to
-      run: echo "cache_to=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache,mode=max' || echo '')" >> $GITHUB_ENV
+      run: |
+        # Only write to the registry cache if the workflow is not running for a PR.
+        echo "CACHE_TO=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache,mode=max' || echo '')" >> $GITHUB_ENV
 
     - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
@@ -146,7 +147,7 @@ jobs:
         tags: ${{ steps.meta-base.outputs.tags }}
         labels: ${{ steps.meta-base.outputs.labels }}
         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache
-        cache-to: ${{ steps.set-cache-to.output.cache-to }}
+        cache-to: ${{ env.CACHE_TO }}
 
     - name: Extract Docker Metadata for ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
