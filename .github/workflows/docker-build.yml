@@ -135,6 +135,8 @@ jobs:
       run: |
         # Only write to the registry cache if the workflow is not running for a PR.
         echo "CACHE_TO=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache,mode=max' || echo '')" >> $GITHUB_ENV
+        # Load the image to the Docker daemon if it is required as a base image for the Jib build.
+        echo "LOAD_IMAGE=$([[ '${{ matrix.docker.task }}' != '' ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
 
     - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
@@ -143,7 +145,7 @@ jobs:
         context: ${{ matrix.docker.context }}
         file: ${{ matrix.docker.context }}/${{ matrix.docker.dockerfile }}
         push: ${{ !env.IS_PR }}
-        load: true
+        load: ${{ env.LOAD_IMAGE }}
         tags: ${{ steps.meta-base.outputs.tags }}
         labels: ${{ steps.meta-base.outputs.labels }}
         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache
