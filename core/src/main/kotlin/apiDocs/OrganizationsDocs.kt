@@ -27,18 +27,22 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
 val getOrganizationById: OpenApiRoute.() -> Unit = {
@@ -595,6 +599,54 @@ val deleteUserFromOrganizationGroup: OpenApiRoute.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "Organization or group not found."
+        }
+    }
+}
+
+val getOrtRunStatisticsByOrganizationId: OpenApiRoute.() -> Unit = {
+    operationId = "GetOrtRunStatisticsByOrganizationId"
+    summary = "Get statistics about ORT runs across the repositories of an organization."
+    tags = listOf("Organizations")
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The ID of an organization."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            jsonBody<OrtRunStatistics> {
+                example("Get run statistics across repositories of an organization") {
+                    value = OrtRunStatistics(
+                        issuesCount = 5,
+                        issuesCountBySeverity = mapOf(
+                            Severity.HINT to 0,
+                            Severity.WARNING to 4,
+                            Severity.ERROR to 1
+                        ),
+                        packagesCount = 452,
+                        ecosystems = listOf(
+                            EcosystemStats("Maven", 422),
+                            EcosystemStats("NPM", 30)
+                        ),
+                        vulnerabilitiesCount = 3,
+                        vulnerabilitiesCountByRating = mapOf(
+                            VulnerabilityRating.NONE to 0,
+                            VulnerabilityRating.LOW to 0,
+                            VulnerabilityRating.MEDIUM to 2,
+                            VulnerabilityRating.HIGH to 0,
+                            VulnerabilityRating.CRITICAL to 1
+                        ),
+                        ruleViolationsCount = 4,
+                        ruleViolationsCountBySeverity = mapOf(
+                            Severity.HINT to 3,
+                            Severity.WARNING to 1,
+                            Severity.ERROR to 0
+                        )
+                    )
+                }
+            }
         }
     }
 }
