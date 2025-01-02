@@ -1,7 +1,13 @@
 apiVersion: 1
- 
+
 datasources:
   - name: loki
     type: loki
     uid: P982945308D3682D1
     url: http://loki:3100
+  - name: graphite
+    type: graphite
+    uid: ee8sngde6uk8wa
+    url: http://graphite:8080
+    jsonData:
+      graphiteVersion: '1.1'
