@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
@@ -53,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByOr
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationProducts
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizations
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatisticsByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchInfrastructureServiceForOrganizationIdAndName
@@ -75,8 +77,13 @@ import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
+import org.eclipse.apoapsis.ortserver.services.PackageService
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
+import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.SecretService
+import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 
 import org.koin.ktor.ext.inject
 
@@ -85,6 +92,11 @@ fun Route.organizations() = route("organizations") {
     val organizationService by inject<OrganizationService>()
     val secretService by inject<SecretService>()
     val infrastructureServiceService by inject<InfrastructureServiceService>()
+    val repositoryService by inject<RepositoryService>()
+    val vulnerabilityService by inject<VulnerabilityService>()
+    val issueService by inject<IssueService>()
+    val ruleViolationService by inject<RuleViolationService>()
+    val packageService by inject<PackageService>()
 
     get(getOrganizations) {
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
@@ -348,6 +360,106 @@ fun Route.organizations() = route("organizations") {
 
                     organizationService.removeUserFromGroup(user.username, organizationId, groupId)
                     call.respond(HttpStatusCode.NoContent)
+                }
+            }
+        }
+
+        route("statistics") {
+            route("runs") {
+                get(getOrtRunStatisticsByOrganizationId) {
+                    requirePermission(OrganizationPermission.READ)
+
+                    val orgId = call.requireIdParameter("organizationId")
+
+                    val repositoryIds = organizationService.getRepositoryIdsForOrganization(orgId)
+
+                    val latestRunsWithAnalyzerJobInFinalState = repositoryIds.mapNotNull {
+                        repositoryService.getLatestOrtRunIdWithAnalyzerJobInFinalState(it)
+                    }.toLongArray()
+
+                    val issuesCount = if (latestRunsWithAnalyzerJobInFinalState.isNotEmpty()) {
+                        issueService.countForOrtRunIds(*latestRunsWithAnalyzerJobInFinalState)
+                    } else {
+                        null
+                    }
+
+                    val issuesBySeverity = if (latestRunsWithAnalyzerJobInFinalState.isNotEmpty()) {
+                        issueService
+                            .countBySeverityForOrtRunIds(*latestRunsWithAnalyzerJobInFinalState)
+                            .map
+                            .mapKeys { it.key.mapToApi() }
+                    } else {
+                        null
+                    }
+
+                    val latestRunsWithSuccessfulAnalyzerJob = repositoryIds.mapNotNull {
+                        repositoryService.getLatestOrtRunIdWithSuccessfulAnalyzerJob(it)
+                    }.toLongArray()
+
+                    val packagesCount = if (latestRunsWithSuccessfulAnalyzerJob.isNotEmpty()) {
+                        packageService.countForOrtRunIds(*latestRunsWithSuccessfulAnalyzerJob)
+                    } else {
+                        null
+                    }
+
+                    val ecosystems = if (latestRunsWithSuccessfulAnalyzerJob.isNotEmpty()) {
+                        packageService.countEcosystemsForOrtRunIds(*latestRunsWithSuccessfulAnalyzerJob)
+                            .map { it.mapToApi() }
+                    } else {
+                        null
+                    }
+
+                    val latestRunsWithSuccessfulAdvisorJob = repositoryIds.mapNotNull {
+                        repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(it)
+                    }.toLongArray()
+
+                    val vulnerabilitiesCount = if (latestRunsWithSuccessfulAdvisorJob.isNotEmpty()) {
+                        vulnerabilityService.countForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
+                    } else {
+                        null
+                    }
+
+                    val vulnerabilitiesByRating = if (latestRunsWithSuccessfulAdvisorJob.isNotEmpty()) {
+                        vulnerabilityService
+                            .countByRatingForOrtRunIds(*latestRunsWithSuccessfulAdvisorJob)
+                            .map
+                            .mapKeys { it.key.mapToApi() }
+                    } else {
+                        null
+                    }
+
+                    val latestRunsWithSuccessfulEvaluatorJob = repositoryIds.mapNotNull {
+                        repositoryService.getLatestOrtRunIdWithSuccessfulEvaluatorJob(it)
+                    }.toLongArray()
+
+                    val ruleViolationsCount = if (latestRunsWithSuccessfulEvaluatorJob.isNotEmpty()) {
+                        ruleViolationService.countForOrtRunIds(*latestRunsWithSuccessfulEvaluatorJob)
+                    } else {
+                        null
+                    }
+
+                    val ruleViolationsBySeverity = if (latestRunsWithSuccessfulEvaluatorJob.isNotEmpty()) {
+                        ruleViolationService
+                            .countBySeverityForOrtRunIds(*latestRunsWithSuccessfulEvaluatorJob)
+                            .map
+                            .mapKeys { it.key.mapToApi() }
+                    } else {
+                        null
+                    }
+
+                    call.respond(
+                        HttpStatusCode.OK,
+                        OrtRunStatistics(
+                            issuesCount = issuesCount,
+                            issuesCountBySeverity = issuesBySeverity,
+                            packagesCount = packagesCount,
+                            ecosystems = ecosystems,
+                            vulnerabilitiesCount = vulnerabilitiesCount,
+                            vulnerabilitiesCountByRating = vulnerabilitiesByRating,
+                            ruleViolationsCount = ruleViolationsCount,
+                            ruleViolationsCountBySeverity = ruleViolationsBySeverity
+                        )
+                    )
                 }
             }
         }

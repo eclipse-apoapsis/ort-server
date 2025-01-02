@@ -27,8 +27,10 @@ import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -49,25 +51,31 @@ import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
 
+import kotlinx.datetime.Clock
+
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
+import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
@@ -75,6 +83,9 @@ import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.addUserRole
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole.ADMIN
@@ -85,7 +96,18 @@ import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
 import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
@@ -1468,6 +1490,221 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
                     membersAfter.shouldBeEmpty()
                 }
+            }
+        }
+    }
+
+    "GET /organizations/{organizationId}/statistics/runs" should {
+        "return statistics for runs in repositories of an organization" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+                val prod1Id = dbExtension.fixtures.createProduct(organizationId = orgId).id
+                val prodId2 = dbExtension.fixtures.createProduct("Prod2", organizationId = orgId).id
+                val repo1Id = dbExtension.fixtures.createRepository(productId = prod1Id).id
+                val repo2Id = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/repo2.git",
+                    productId = prodId2
+                ).id
+
+                val pkg = Package(
+                    identifier = Identifier("Maven", "com.example", "example", "1.0"),
+                    purl = "pkg:maven/com.example/example@1.0",
+                    cpe = null,
+                    authors = emptySet(),
+                    declaredLicenses = emptySet(),
+                    processedDeclaredLicense = ProcessedDeclaredLicense(
+                        spdxExpression = null,
+                        mappedLicenses = emptyMap(),
+                        unmappedLicenses = emptySet(),
+                    ),
+                    description = "An example package",
+                    homepageUrl = "https://example.com",
+                    binaryArtifact = RemoteArtifact(
+                        "https://example.com/example-1.0.jar",
+                        "sha1:value",
+                        "SHA-1"
+                    ),
+                    sourceArtifact = RemoteArtifact(
+                        "https://example.com/example-1.0-sources.jar",
+                        "sha1:value",
+                        "SHA-1"
+                    ),
+                    vcs = VcsInfo(
+                        RepositoryType("GIT"),
+                        "https://example.com/git",
+                        "revision",
+                        "path"
+                    ),
+                    vcsProcessed = VcsInfo(
+                        RepositoryType("GIT"),
+                        "https://example.com/git",
+                        "revision",
+                        "path"
+                    ),
+                    isMetadataOnly = false,
+                    isModified = false
+                )
+
+                val repo1RunId = dbExtension.fixtures.createOrtRun(repo1Id).id
+
+                val anJob1Id = dbExtension.fixtures.createAnalyzerJob(repo1RunId).id
+                dbExtension.fixtures.createAnalyzerRun(
+                    anJob1Id,
+                    packages = setOf(pkg)
+                )
+                dbExtension.fixtures.analyzerJobRepository.update(
+                    anJob1Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+
+                val evJobId = dbExtension.fixtures.createEvaluatorJob(repo1RunId).id
+                dbExtension.fixtures.evaluatorRunRepository.create(
+                    evaluatorJobId = evJobId,
+                    startTime = Clock.System.now(),
+                    endTime = Clock.System.now(),
+                    violations = listOf(
+                        OrtRuleViolation(
+                            "rule1",
+                            null,
+                            null,
+                            null,
+                            Severity.HINT,
+                            "message",
+                            "how-to-fix"
+                        )
+                    )
+                )
+                dbExtension.fixtures.evaluatorJobRepository.update(
+                    evJobId,
+                    status = JobStatus.FINISHED_WITH_ISSUES.asPresent2()
+                )
+
+                val repo2RunId = dbExtension.fixtures.createOrtRun(repo2Id).id
+
+                val anJob2Id = dbExtension.fixtures.createAnalyzerJob(repo2RunId).id
+                dbExtension.fixtures.createAnalyzerRun(
+                    anJob2Id,
+                    packages = setOf(pkg),
+                    issues = listOf(
+                        Issue(
+                            timestamp = Clock.System.now(),
+                            source = "Analyzer",
+                            message = "Issue",
+                            severity = Severity.WARNING,
+                            affectedPath = "path"
+                        ),
+                    )
+                )
+                dbExtension.fixtures.analyzerJobRepository.update(
+                    anJob2Id,
+                    status = JobStatus.FINISHED_WITH_ISSUES.asPresent2()
+                )
+
+                val advJobId = dbExtension.fixtures.createAdvisorJob(repo2RunId).id
+                dbExtension.fixtures.createAdvisorRun(
+                    advJobId,
+                    mapOf(
+                        Identifier("Maven", "com.example", "example", "1.0") to
+                                listOf(
+                                    AdvisorResult(
+                                        advisorName = "advisor",
+                                        capabilities = listOf("vulnerabilities"),
+                                        startTime = Clock.System.now(),
+                                        endTime = Clock.System.now(),
+                                        issues = emptyList(),
+                                        defects = emptyList(),
+                                        vulnerabilities = listOf(
+                                            Vulnerability(
+                                                externalId = "CVE-2020-2346",
+                                                summary = "A vulnerability",
+                                                description = "A description",
+                                                references = listOf(
+                                                    VulnerabilityReference(
+                                                        url = "https://example.com",
+                                                        scoringSystem = "CVSS",
+                                                        severity = "MEDIUM",
+                                                        score = 5.1f,
+                                                        vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                ),
+                    )
+                )
+                dbExtension.fixtures.advisorJobRepository.update(advJobId, status = JobStatus.FINISHED.asPresent2())
+
+                val response = superuserClient.get("/api/v1/organizations/$orgId/statistics/runs")
+
+                response.status shouldBe HttpStatusCode.OK
+
+                val statistics = response.body<OrtRunStatistics>()
+
+                with(statistics) {
+                    issuesCount shouldBe 1
+                    issuesCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 0,
+                            ApiSeverity.WARNING to 1,
+                            ApiSeverity.ERROR to 0
+                        )
+                    )
+                    packagesCount shouldBe 1
+                    ecosystems?.shouldContainExactly(
+                        listOf(
+                            EcosystemStats("Maven", 1)
+                        )
+                    )
+                    vulnerabilitiesCount shouldBe 1
+                    vulnerabilitiesCountByRating?.shouldContainExactly(
+                        mapOf(
+                            VulnerabilityRating.NONE to 0,
+                            VulnerabilityRating.LOW to 0,
+                            VulnerabilityRating.MEDIUM to 1,
+                            VulnerabilityRating.HIGH to 0,
+                            VulnerabilityRating.CRITICAL to 0
+                        )
+                    )
+                    ruleViolationsCount shouldBe 1
+                    ruleViolationsCountBySeverity?.shouldContainExactly(
+                        mapOf(
+                            ApiSeverity.HINT to 1,
+                            ApiSeverity.WARNING to 0,
+                            ApiSeverity.ERROR to 0
+                        )
+                    )
+                }
+            }
+        }
+
+        "return nulls for counts if no valid runs are found" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val response = superuserClient.get("/api/v1/organizations/$orgId/statistics/runs")
+
+                response.status shouldBe HttpStatusCode.OK
+
+                val statistics = response.body<OrtRunStatistics>()
+
+                with(statistics) {
+                    issuesCount should beNull()
+                    issuesCountBySeverity should beNull()
+                    packagesCount should beNull()
+                    ecosystems should beNull()
+                    vulnerabilitiesCount should beNull()
+                    vulnerabilitiesCountByRating should beNull()
+                    ruleViolationsCount should beNull()
+                    ruleViolationsCountBySeverity should beNull()
+                }
+            }
+        }
+
+        "require OrganizationPermission.READ" {
+            val createdOrganization = createOrganization()
+            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrganization.id)) {
+                get("/api/v1/organizations/${createdOrganization.id}/statistics/runs")
             }
         }
     }
