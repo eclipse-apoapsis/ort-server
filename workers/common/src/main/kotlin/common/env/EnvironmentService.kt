@@ -59,66 +59,61 @@ class EnvironmentService(
     /** The helper object for loading the environment configuration file. */
     private val configLoader: EnvironmentConfigLoader
 ) {
-    /**
-     * Try to find the [InfrastructureService] that matches the current repository stored in the given [context]. This
-     * function is used to find the credentials for downloading the repository. The match is done based on the URL
-     * prefix. In case there are multiple matches, the longest match wins.
-     */
-    fun findInfrastructureServiceForRepository(context: WorkerContext): InfrastructureService? =
-        with(context.hierarchy) {
-            infrastructureServiceRepository.listForRepositoryUrl(repository.url, organization.id, product.id)
-                .filter { repository.url.startsWith(it.url) }
-                .maxByOrNull { it.url.length }
-        }
 
     /**
-     * Try to find the [InfrastructureService] that matches the current repository stored in the given [context],
-     * using the provided [config]. This function is used to find the credentials for downloading the repository.
-     * The match is done based on the URL prefix, and only services that support the [CredentialsType.NETRC_FILE]
-     * credential type are considered. In case of multiple matches, the longest match wins.
+     * Return a list of all [InfrastructureService]s that may be relevant for checking out the current repository
+     * defined by the given [context]. If specified, merge this list with the services from the given [config], so
+     * that the services from the [config] take priority over the ones from the database. The resulting services can
+     * then be added to the _.netrc_ file to make sure that all credentials are available, even if the repository
+     * contains submodules or other dependencies.
      */
-    fun findInfrastructureServiceForRepository(
+    fun findInfrastructureServicesForRepository(
         context: WorkerContext,
-        config: EnvironmentConfig
-    ): InfrastructureService? =
-        with(context.hierarchy) {
-            configLoader.resolve(config, context.hierarchy).infrastructureServices
-                .filter { CredentialsType.NETRC_FILE in it.credentialsTypes }
-                .filter { repository.url.startsWith(it.url) }
-                .maxByOrNull { it.url.length }
-        }
+        config: EnvironmentConfig?
+    ): List<InfrastructureService> {
+        val hierarchyServices = infrastructureServiceRepository.listForHierarchy(
+            context.hierarchy.organization.id,
+            context.hierarchy.product.id
+        ).netrcServices()
+
+        val configServices = config?.let {
+            configLoader.resolve(it, context.hierarchy).infrastructureServices
+        }.orEmpty().netrcServices()
+
+        return (hierarchyServices + configServices).values.toList()
+    }
 
     /**
      * Set up the analysis environment for the current repository defined by the given [context] that has been
      * checked out to the given [repositoryFolder]. The credentials of this repository - if any - are defined by the
-     * given [repositoryService]. If an optional [config] is provided, it will be merged with the parsed configuration.
+     * given [repositoryServices]. If an optional [config] is provided, it will be merged with the parsed configuration.
      * In case of overlapping entries, the provided [config] will take priority over the parsed configuration.
      */
     suspend fun setUpEnvironment(
         context: WorkerContext,
         repositoryFolder: File,
         config: EnvironmentConfig?,
-        repositoryService: InfrastructureService?
+        repositoryServices: List<InfrastructureService>
     ): ResolvedEnvironmentConfig {
         val environmentConfigPath = context.ortRun.environmentConfigPath
         val mergedConfig = configLoader.resolveAndParse(repositoryFolder, environmentConfigPath).merge(config)
         val resolvedConfig = configLoader.resolve(mergedConfig, context.hierarchy)
 
-        return setUpEnvironmentForConfig(context, resolvedConfig, repositoryService)
+        return setUpEnvironmentForConfig(context, resolvedConfig, repositoryServices)
     }
 
     /**
-     * Set up the analysis environment based on the given resolved [config]. Use the given [context]. If the repository
-     * has credentials, as defined by the given optional [repositoryService], take them into account as well.
+     * Set up the analysis environment based on the given resolved [config]. Use the given [context]. Also take the
+     * given [repositoryServices] into account that have been used to download the repository.
      */
     private suspend fun setUpEnvironmentForConfig(
         context: WorkerContext,
         config: ResolvedEnvironmentConfig,
-        repositoryService: InfrastructureService?
+        repositoryServices: List<InfrastructureService>
     ): ResolvedEnvironmentConfig {
         val environmentServices = config.environmentDefinitions.map { it.service }
         val infraServices = config.infrastructureServices.toMutableSet()
-        repositoryService?.let { infraServices += it }
+        infraServices += repositoryServices
 
         val unreferencedServices = infraServices.filterNot { it in environmentServices }
         val allEnvironmentDefinitions = config.environmentDefinitions +
@@ -211,3 +206,11 @@ internal fun EnvironmentConfig.merge(other: EnvironmentConfig?): EnvironmentConf
 
     return EnvironmentConfig(mergedInfrastructureService, mergedEnvironmentDefinitions, mergedEnvironmentVariables)
 }
+
+/**
+ * Filter this collection of [InfrastructureService]s for services to be added to the _.netrc_ file and return a
+ * [Map] with the services' URLs as keys that can be used to merge services from different sources.
+ */
+private fun Collection<InfrastructureService>.netrcServices(): Map<String, InfrastructureService> =
+    filter { CredentialsType.NETRC_FILE in it.credentialsTypes }
+        .associateBy(InfrastructureService::url)
