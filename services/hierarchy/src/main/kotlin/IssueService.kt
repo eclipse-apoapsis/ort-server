@@ -111,7 +111,7 @@ class IssueService(private val db: Database) {
 
     private fun createOrtRunIssuesQuery(ortRunId: Long): Query {
         val issuesIdentifiersJoin = OrtRunsIssuesTable
-            .innerJoin(IssuesTable, { issueId }, { IssuesTable.id })
+            .innerJoin(IssuesTable, { issueId }, { id })
             .join(IdentifiersTable, JoinType.LEFT, OrtRunsIssuesTable.identifierId, IdentifiersTable.id)
         return issuesIdentifiersJoin.select(
             OrtRunsIssuesTable.timestamp,
