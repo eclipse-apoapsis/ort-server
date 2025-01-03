@@ -193,11 +193,9 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
 
     override fun deleteByProduct(productId: Long): Int = db.blockingQuery {
         OrtRunsTable
-            .innerJoin(RepositoriesTable, { repositoryId }, { RepositoriesTable.id })
-            .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
-            .delete(OrtRunsTable) {
-                ProductsTable.id eq productId
-            }
+            .innerJoin(RepositoriesTable, { repositoryId }, { id })
+            .innerJoin(ProductsTable, { RepositoriesTable.productId }, { id })
+            .delete(OrtRunsTable) { ProductsTable.id eq productId }
     }
 }
 
