@@ -60,7 +60,7 @@ internal class WorkerScheduleContext(
      * jobs that have been run. With this flag, this mechanism can be overridden, which is necessary for workers that
      * do not spawn jobs like the Config worker.
      */
-    private val failed: Boolean = false
+    val failed: Boolean = false
 ) {
     /**
      * Return the [JobConfigurations] object for the current run. Prefer the resolved configurations if available;
@@ -88,19 +88,6 @@ internal class WorkerScheduleContext(
      */
     fun hasRunningJobs(): Boolean =
         jobs.values.any { !it.isCompleted() }
-
-    /**
-     * Return a flag whether the worker job for the given [endpoint] was scheduled for the current ORT run. It may
-     * still be running or have finished already.
-     */
-    fun wasScheduled(endpoint: Endpoint<*>): Boolean =
-        endpoint.configPrefix in jobs
-
-    /**
-     * Return a flag whether the worker job for the given [endpoint] has already completed.
-     */
-    fun isJobCompleted(endpoint: Endpoint<*>): Boolean =
-        jobs[endpoint.configPrefix]?.isCompleted() ?: false
 
     /**
      * Return a flag whether this [OrtRun] has failed, i.e. it has at least one job in failed state.

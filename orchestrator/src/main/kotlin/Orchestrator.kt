@@ -99,10 +99,7 @@ class Orchestrator(
                 "Repository '${ortRun.repositoryId}' not found."
             }
 
-            val context = WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, emptyMap())
-            context to listOf { scheduleConfigWorkerJob(ortRun, header, updateRun = true) }
-        }.onSuccess { (context, schedules) ->
-            scheduleCreatedJobs(context, schedules)
+            scheduleConfigWorkerJob(ortRun, header, updateRun = true)
         }.onFailure {
             log.warn("Failed to handle 'CreateOrtRun' message.", it)
         }
@@ -115,9 +112,9 @@ class Orchestrator(
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
             val ortRun = getOrtRun(configWorkerResult.ortRunId)
 
-            nextJobsToSchedule(ConfigEndpoint, ortRun.id, header, jobs = emptyMap())
-        }.onSuccess { (context, schedules) ->
-            scheduleCreatedJobs(context, schedules)
+            createWorkerScheduleContext(ortRun, header)
+        }.onSuccess { context ->
+            scheduleNextJobs(context)
         }.onFailure {
             log.warn("Failed to handle 'ConfigWorkerResult' message.", it)
         }
@@ -252,12 +249,11 @@ class Orchestrator(
                     "ORT run '$ortRunId' not found."
                 }
 
-                repository.tryComplete(job.id, Clock.System.now(), JobStatus.FAILED)?.let {
-                    nextJobsToSchedule(Endpoint.fromConfigPrefix(workerError.endpointName), job.ortRunId, header)
-                }
-            } ?: (createWorkerScheduleContext(getOrtRun(ortRunId), header, failed = true) to emptyList())
-        }.onSuccess { (context, schedules) ->
-            scheduleCreatedJobs(context, schedules)
+                repository.tryComplete(job.id, Clock.System.now(), JobStatus.FAILED)
+                createWorkerScheduleContext(getOrtRun(ortRunId), header)
+            } ?: createWorkerScheduleContext(getOrtRun(ortRunId), header, failed = true)
+        }.onSuccess { context ->
+            scheduleNextJobs(context)
         }.onFailure {
             log.warn("Failed to handle 'WorkerError' message.", it)
         }
@@ -274,13 +270,14 @@ class Orchestrator(
             val ortRun = getOrtRun(lostSchedule.ortRunId)
             val context = createWorkerScheduleContext(ortRun, header)
 
-            if (context.jobs.isNotEmpty()) {
-                fetchNextJobs(context)
+            if (context.jobs.isEmpty()) {
+                scheduleConfigWorkerJob(ortRun, header, updateRun = false)
+                null
             } else {
-                context to listOf { scheduleConfigWorkerJob(ortRun, header, updateRun = false) }
+                context
             }
-        }.onSuccess { (context, schedules) ->
-            scheduleCreatedJobs(context, schedules)
+        }.onSuccess { context ->
+            context?.let { scheduleNextJobs(context) }
         }.onFailure {
             log.warn("Failed to handle 'LostSchedule' message.", it)
         }
@@ -340,32 +337,12 @@ class Orchestrator(
             val job = workerJobRepositories.updateJobStatus(endpoint, message.jobId, status)
             if (issues.isNotEmpty()) ortRunRepository.update(job.ortRunId, issues = issues.asPresent())
 
-            nextJobsToSchedule(endpoint, job.ortRunId, header)
-        }.onSuccess { (context, schedules) ->
-            scheduleCreatedJobs(context, schedules)
+            createWorkerScheduleContext(getOrtRun(job.ortRunId), header)
+        }.onSuccess { context ->
+            scheduleNextJobs(context)
         }.onFailure {
             log.warn("Failed to handle '{}' message.", message::class.java.simpleName, it)
         }
-    }
-
-    /**
-     * Determine the next jobs that can be scheduled after a job for the given [endpoint] for the run with the given
-     * [ortRunId] has completed. Use the given [header] to send messages to the worker endpoints. Optionally,
-     * accept a map with the [jobs] that have been run. Return a list with the new jobs to schedule and the current
-     * [WorkerScheduleContext].
-     */
-    private fun nextJobsToSchedule(
-        endpoint: Endpoint<*>,
-        ortRunId: Long,
-        header: MessageHeader,
-        jobs: Map<String, WorkerJob>? = null
-    ): Pair<WorkerScheduleContext, List<JobScheduleFunc>> {
-        log.info("Handling a completed job for endpoint '{}' and ORT run {}.", endpoint.configPrefix, ortRunId)
-
-        val ortRun = getOrtRun(ortRunId)
-        val scheduleContext = createWorkerScheduleContext(ortRun, header, workerJobs = jobs)
-
-        return fetchNextJobs(scheduleContext)
     }
 
     /**
@@ -386,16 +363,36 @@ class Orchestrator(
         return WorkerScheduleContext(ortRun, workerJobRepositories, publisher, header, jobs, failed)
     }
 
-    /**
-     * Trigger the scheduling of the given new [createdJobs] for the ORT run contained in the given [context]. This
-     * also includes sending corresponding messages to the worker endpoints.
-     */
-    private fun scheduleCreatedJobs(context: WorkerScheduleContext, createdJobs: CreatedJobs) {
-        // TODO: Handle errors during job scheduling.
+    /** Schedule the next jobs for the current ORT run based on the current state of the run. */
+    private fun scheduleNextJobs(context: WorkerScheduleContext) {
+        val configuredJobs = WorkerScheduleInfo.entries.filterTo(mutableSetOf()) {
+            it.isConfigured(context.jobConfigs())
+        }
 
-        createdJobs.forEach { it() }
+        val jobInfos = configuredJobs.mapNotNull {
+            context.jobs[it.endpoint.configPrefix]?.let { job ->
+                it to WorkerJobInfo(job.id, job.status)
+            }
+        }.toMap()
 
-        if (createdJobs.isEmpty() && !context.hasRunningJobs()) {
+        val ortRunInfo = OrtRunInfo(context.ortRun.id, context.failed, configuredJobs, jobInfos)
+
+        val nextJobs = ortRunInfo.getNextJobs()
+
+        nextJobs.forEach { info ->
+            info.createJob(context)?.let { job ->
+                // TODO: Handle errors during job scheduling.
+                info.publishJob(context, job)
+                context.workerJobRepositories.updateJobStatus(
+                    info.endpoint,
+                    job.id,
+                    JobStatus.SCHEDULED,
+                    finished = false
+                )
+            }
+        }
+
+        if (nextJobs.isEmpty() && !context.hasRunningJobs()) {
             cleanupJobs(context.ortRun.id)
 
             val ortRunStatus = when {
@@ -461,11 +458,6 @@ class Orchestrator(
 }
 
 /**
- * Type definition to represent a list of jobs that have been created and must be scheduled.
- */
-typealias CreatedJobs = List<JobScheduleFunc>
-
-/**
  * Create an [Issue] object representing an error that occurred in any [Endpoint].
  */
 fun <T : Any> Endpoint<T>.createErrorIssue(): Issue = Issue(
@@ -474,12 +466,3 @@ fun <T : Any> Endpoint<T>.createErrorIssue(): Issue = Issue(
     message = "The $configPrefix worker failed due to an unexpected error.",
     severity = Severity.ERROR
 )
-
-/**
- * Return a [Pair] with the given [scheduleContext] and the list of jobs that can be scheduled in the current phase
- * of the affected ORT run.
- */
-private fun fetchNextJobs(
-    scheduleContext: WorkerScheduleContext
-): Pair<WorkerScheduleContext, List<JobScheduleFunc>> =
-    scheduleContext to WorkerScheduleInfo.entries.mapNotNull { it.createAndScheduleJobIfPossible(scheduleContext) }
