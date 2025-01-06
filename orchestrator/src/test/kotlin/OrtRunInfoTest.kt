@@ -144,7 +144,7 @@ class OrtRunInfoTest : WordSpec({
             ortRunInfo.getNextJobs() should containExactly(WorkerScheduleInfo.REPORTER)
         }
 
-        "return REPORTER if config worker failed" {
+        "return nothing if config worker failed" {
             val ortRunInfo = OrtRunInfo(
                 id = 1,
                 configWorkerFailed = true,
@@ -152,7 +152,7 @@ class OrtRunInfoTest : WordSpec({
                 jobInfos = emptyMap()
             )
 
-            ortRunInfo.getNextJobs() should containExactly(WorkerScheduleInfo.REPORTER)
+            ortRunInfo.getNextJobs() should beEmpty()
         }
 
         "return REPORTER if ANALYZER failed" {

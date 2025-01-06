@@ -125,7 +125,7 @@ internal enum class WorkerScheduleInfo(
             configs.evaluator != null
     },
 
-    REPORTER(ReporterEndpoint, runsAfter = listOf(EVALUATOR), runAfterFailure = true) {
+    REPORTER(ReporterEndpoint, dependsOn = listOf(ANALYZER), runsAfter = listOf(EVALUATOR), runAfterFailure = true) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().reporter?.let { config ->
                 context.workerJobRepositories.reporterJobRepository.create(context.ortRun.id, config)
