@@ -33,7 +33,6 @@ import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
 
 import kotlinx.datetime.Instant
-import kotlinx.serialization.encodeToString
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
