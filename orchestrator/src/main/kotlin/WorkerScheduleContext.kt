@@ -87,7 +87,7 @@ internal class WorkerScheduleContext(
      * Return a flag whether the current [OrtRun] has at least one running job.
      */
     fun hasRunningJobs(): Boolean =
-        jobs.values.any { !it.isCompleted() }
+        jobs.values.any { !it.status.final }
 
     /**
      * Return a flag whether the worker job for the given [endpoint] was scheduled for the current ORT run. It may
@@ -100,7 +100,7 @@ internal class WorkerScheduleContext(
      * Return a flag whether the worker job for the given [endpoint] has already completed.
      */
     fun isJobCompleted(endpoint: Endpoint<*>): Boolean =
-        jobs[endpoint.configPrefix]?.isCompleted() ?: false
+        jobs[endpoint.configPrefix]?.status?.final ?: false
 
     /**
      * Return a flag whether this [OrtRun] has failed, i.e., it has at least one job in failed state.
@@ -114,9 +114,3 @@ internal class WorkerScheduleContext(
     fun isFinishedWithIssues(): Boolean =
         !isFailed() && jobs.values.any { it.status == JobStatus.FINISHED_WITH_ISSUES }
 }
-
-/**
- * Return a flag whether this [WorkerJob] is already completed.
- */
-private fun WorkerJob.isCompleted(): Boolean =
-    status == JobStatus.FINISHED || status == JobStatus.FAILED || status == JobStatus.FINISHED_WITH_ISSUES
