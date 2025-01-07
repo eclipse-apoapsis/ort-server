@@ -29,8 +29,6 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.long
 
-import kotlinx.serialization.encodeToString
-
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 
 class InfoCommand(private val config: OrtServerOptions) : SuspendingCliktCommand(name = "info") {
