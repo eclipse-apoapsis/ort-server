@@ -36,11 +36,6 @@ class OrtServerClient(
      * The configured HTTP client for the interaction with the API.
      */
     client: HttpClient,
-
-    /**
-     * The configuration for the ORT server client.
-     */
-    config: OrtServerClientConfig
 ) {
     companion object {
         /**
@@ -87,7 +82,7 @@ class OrtServerClient(
                     }
                 }
             }
-            return OrtServerClient(client, config)
+            return OrtServerClient(client)
         }
     }
 
