@@ -132,6 +132,7 @@ const RunsComponent = () => {
           </div>
         );
       },
+      enableColumnFilter: false,
     }),
     columnHelper.accessor('createdAt', {
       header: 'Created At',
@@ -139,6 +140,7 @@ const RunsComponent = () => {
         <TimestampWithUTC timestamp={row.original.createdAt} />
       ),
       size: 95,
+      enableColumnFilter: false,
     }),
     columnHelper.accessor('finishedAt', {
       header: 'Finished At',
@@ -149,6 +151,7 @@ const RunsComponent = () => {
           <span className='italic'>Not finished yet</span>
         ),
       size: 95,
+      enableColumnFilter: false,
     }),
     columnHelper.accessor('status', {
       header: 'Run Status',
@@ -173,6 +176,7 @@ const RunsComponent = () => {
         />
       ),
       size: 100,
+      enableColumnFilter: false,
     }),
     columnHelper.display({
       id: 'duration',
@@ -184,6 +188,7 @@ const RunsComponent = () => {
         />
       ),
       size: 100,
+      enableColumnFilter: false,
     }),
     columnHelper.display({
       id: 'actions',
@@ -213,6 +218,7 @@ const RunsComponent = () => {
         </div>
       ),
       size: 90,
+      enableColumnFilter: false,
     }),
   ];
 

@@ -116,6 +116,7 @@ const RuleViolationsComponent = () => {
         );
       },
       enableSorting: false,
+      enableColumnFilter: false,
     }),
     columnHelper.accessor('severity', {
       header: 'Severity',
@@ -144,6 +145,7 @@ const RuleViolationsComponent = () => {
         cell: ({ getValue }) => {
           return <div className='font-semibold'>{getValue()}</div>;
         },
+        enableColumnFilter: false,
       }
     ),
     columnHelper.accessor('rule', {
@@ -153,6 +155,7 @@ const RuleViolationsComponent = () => {
           {row.original.rule}
         </Badge>
       ),
+      enableColumnFilter: false,
     }),
   ];
 

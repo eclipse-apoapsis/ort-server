@@ -97,6 +97,7 @@ const columns = [
       );
     },
     enableSorting: false,
+    enableColumnFilter: false,
   }),
   columnHelper.accessor(
     (vuln) => {
@@ -123,6 +124,7 @@ const columns = [
           rowB.getValue('rating')
         );
       },
+      enableColumnFilter: false,
     }
   ),
   columnHelper.accessor(
@@ -135,6 +137,7 @@ const columns = [
       cell: ({ row }) => {
         return <div className='font-semibold'>{row.getValue('package')}</div>;
       },
+      enableColumnFilter: false,
     }
   ),
   columnHelper.accessor('vulnerability.externalId', {
@@ -145,6 +148,7 @@ const columns = [
         {row.getValue('externalId')}
       </Badge>
     ),
+    enableColumnFilter: false,
   }),
   columnHelper.accessor(
     (row) => {
@@ -161,6 +165,7 @@ const columns = [
         );
       },
       enableSorting: false,
+      enableColumnFilter: false,
     }
   ),
 ];

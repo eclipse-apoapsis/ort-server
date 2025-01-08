@@ -116,6 +116,7 @@ const IssuesComponent = () => {
         );
       },
       enableSorting: false,
+      enableColumnFilter: false,
     }),
     columnHelper.accessor('severity', {
       header: 'Severity',
@@ -143,6 +144,7 @@ const IssuesComponent = () => {
         cell: ({ row }) => {
           return <div className='font-semibold'>{row.getValue('package')}</div>;
         },
+        enableColumnFilter: false,
       }
     ),
     columnHelper.accessor('affectedPath', {
@@ -151,10 +153,12 @@ const IssuesComponent = () => {
         <div className='break-all'>{row.original.affectedPath}</div>
       ),
       enableSorting: false,
+      enableColumnFilter: false,
     }),
     columnHelper.accessor('source', {
       header: 'Source',
       cell: ({ row }) => row.original.source,
+      enableColumnFilter: false,
     }),
   ];
 

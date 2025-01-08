@@ -86,10 +86,12 @@ const columns = [
       </Link>
     ),
     size: 50,
+    enableColumnFilter: false,
   }),
   columnHelper.accessor('createdAt', {
     header: 'Created At',
     cell: ({ row }) => <TimestampWithUTC timestamp={row.original.createdAt} />,
+    enableColumnFilter: false,
   }),
   columnHelper.accessor('status', {
     header: 'Run Status',
@@ -100,6 +102,7 @@ const columns = [
         {row.original.status}
       </Badge>
     ),
+    enableColumnFilter: false,
   }),
   columnHelper.display({
     id: 'jobStatuses',
@@ -113,6 +116,7 @@ const columns = [
         runIndex={row.original.index.toString()}
       />
     ),
+    enableColumnFilter: false,
   }),
   // TODO: Write this with an accessor as soon as I know how to do it.
   columnHelper.display({
@@ -124,6 +128,7 @@ const columns = [
         finishedAt={row.original.finishedAt ?? undefined}
       />
     ),
+    enableColumnFilter: false,
   }),
   columnHelper.display({
     id: 'actions',
@@ -226,6 +231,7 @@ const columns = [
         </div>
       );
     },
+    enableColumnFilter: false,
   }),
 ];
 

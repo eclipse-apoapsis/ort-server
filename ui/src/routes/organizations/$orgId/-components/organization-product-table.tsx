@@ -67,6 +67,7 @@ const columns = [
           </div>
         </>
       ),
+      enableColumnFilter: false,
     }
   ),
   columnHelper.display({
@@ -94,6 +95,7 @@ const columns = [
         return <TotalRuns repoId={data.data[0].id} />;
       else return <span>-</span>;
     },
+    enableColumnFilter: false,
   }),
   columnHelper.display({
     id: 'runStatus',
@@ -120,6 +122,7 @@ const columns = [
       else
         return <span>Contains {data.pagination.totalCount} repositories</span>;
     },
+    enableColumnFilter: false,
   }),
   columnHelper.display({
     id: 'lastRunDate',
@@ -145,6 +148,7 @@ const columns = [
         return <LastRunDate repoId={data.data[0].id} />;
       else return null;
     },
+    enableColumnFilter: false,
   }),
   columnHelper.display({
     id: 'jobStatus',
@@ -170,6 +174,7 @@ const columns = [
         return <LastJobStatus repoId={data.data[0].id} />;
       else return null;
     },
+    enableColumnFilter: false,
   }),
 ];
 

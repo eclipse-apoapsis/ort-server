@@ -160,14 +160,17 @@ const InfrastructureServices = () => {
     {
       accessorKey: 'name',
       header: 'Name',
+      enableColumnFilter: false,
     },
     {
       accessorKey: 'description',
       header: 'Description',
+      enableColumnFilter: false,
     },
     {
       accessorKey: 'url',
       header: 'URL',
+      enableColumnFilter: false,
     },
     {
       accessorKey: 'usernameSecretRef',
@@ -198,6 +201,7 @@ const InfrastructureServices = () => {
           </Tooltip>
         </div>
       ),
+      enableColumnFilter: false,
     },
     {
       accessorKey: 'passwordSecretRef',
@@ -228,6 +232,7 @@ const InfrastructureServices = () => {
           </Tooltip>
         </div>
       ),
+      enableColumnFilter: false,
     },
     {
       accessorKey: 'credentialsTypes',
@@ -240,10 +245,12 @@ const InfrastructureServices = () => {
 
         return inFiles?.join(', ');
       },
+      enableColumnFilter: false,
     },
     {
       id: 'actions',
       cell: ActionCell,
+      enableColumnFilter: false,
     },
   ];
 
