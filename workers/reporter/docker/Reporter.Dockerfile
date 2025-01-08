@@ -23,7 +23,7 @@
 FROM python:3.11-slim AS scancode-license-data-build
 
 # Keep in sync with Scanner.Dockerfile
-ARG SCANCODE_VERSION=32.2.1
+ARG SCANCODE_VERSION=32.3.1
 
 RUN apt-get update && apt-get install -y curl libgomp1 && rm -rf /var/lib/apt/lists/*
 
