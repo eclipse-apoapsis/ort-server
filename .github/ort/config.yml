@@ -9,7 +9,7 @@ ort:
     skipExcluded: true
   reporter:
     config:
-      CycloneDx:
+      CycloneDX:
         output.file.formats: JSON
       SpdxDocument:
         creationInfo.organization: Eclipse Apoapsis
