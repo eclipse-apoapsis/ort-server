@@ -74,6 +74,7 @@ const columns = [
       );
     },
     enableSorting: false,
+    enableColumnFilter: false,
   }),
   columnHelper.accessor(
     (pkg) => {
@@ -85,6 +86,7 @@ const columns = [
       cell: ({ row }) => {
         return <div className='font-semibold'>{row.getValue('package')}</div>;
       },
+      enableColumnFilter: false,
     }
   ),
   columnHelper.accessor(
@@ -97,6 +99,7 @@ const columns = [
       cell: ({ row }) => (
         <div className='break-all'>{row.getValue('declaredLicense')}</div>
       ),
+      enableColumnFilter: false,
     }
   ),
   columnHelper.accessor('homepageUrl', {
@@ -111,6 +114,7 @@ const columns = [
         {row.getValue('homepageUrl')}
       </a>
     ),
+    enableColumnFilter: false,
   }),
 ];
 

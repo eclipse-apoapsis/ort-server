@@ -133,14 +133,17 @@ const columns: ColumnDef<Secret>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
+    enableColumnFilter: false,
   },
   {
     accessorKey: 'description',
     header: 'Description',
+    enableColumnFilter: false,
   },
   {
     id: 'actions',
     cell: ActionCell,
+    enableColumnFilter: false,
   },
 ];
 

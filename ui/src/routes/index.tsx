@@ -66,6 +66,7 @@ const columns: ColumnDef<Organization>[] = [
         </div>
       </>
     ),
+    enableColumnFilter: false,
   },
 ];
 

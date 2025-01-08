@@ -67,6 +67,7 @@ const columns = [
           </div>
         </>
       ),
+      enableColumnFilter: false,
     }
   ),
   columnHelper.display({
@@ -86,21 +87,25 @@ const columns = [
         <TotalRuns repoId={row.original.id} />
       </Link>
     ),
+    enableColumnFilter: false,
   }),
   columnHelper.display({
     id: 'runStatus',
     header: 'Last Run Status',
     cell: ({ row }) => <LastRunStatus repoId={row.original.id} />,
+    enableColumnFilter: false,
   }),
   columnHelper.display({
     id: 'lastRunDate',
     header: 'Last Run Date',
     cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
+    enableColumnFilter: false,
   }),
   columnHelper.display({
     id: 'jobStatus',
     header: 'Last Job Status',
     cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
+    enableColumnFilter: false,
   }),
 ];
 
