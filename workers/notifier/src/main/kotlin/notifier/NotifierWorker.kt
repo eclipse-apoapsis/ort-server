@@ -22,11 +22,10 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.model.JobStatus
-import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 
@@ -35,8 +34,6 @@ import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(NotifierWorker::class.java)
-
-private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class NotifierWorker(
     private val db: Database,
@@ -89,12 +86,5 @@ internal class NotifierWorker(
     }
 
     private fun getValidNotifierJob(jobId: Long) =
-        ortRunService.getNotifierJob(jobId)?.validate()
-            ?: throw IllegalArgumentException("The notifier job '$jobId' does not exist.")
-
-    private fun NotifierJob.validate() = apply {
-        if (status in invalidStates) {
-            throw JobIgnoredException("Notifier job '$id' status is already set to '$status'")
-        }
-    }
+        ortRunService.getNotifierJob(jobId).validateForProcessing(jobId)
 }

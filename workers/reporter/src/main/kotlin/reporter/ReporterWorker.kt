@@ -22,13 +22,12 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.model.JobStatus
-import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
@@ -40,8 +39,6 @@ import org.ossreviewtoolkit.model.Repository
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(ReporterWorker::class.java)
-
-private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class ReporterWorker(
     private val contextFactory: WorkerContextFactory,
@@ -144,14 +141,7 @@ internal class ReporterWorker(
     }
 
     private fun getValidReporterJob(jobId: Long) =
-        ortRunService.getReporterJob(jobId)?.validate()
-            ?: throw IllegalArgumentException("The reporter job '$jobId' does not exist.")
-
-    private fun ReporterJob.validate() = apply {
-        if (status in invalidStates) {
-            throw JobIgnoredException("Reporter job '$id' status is already set to '$status'.")
-        }
-    }
+        ortRunService.getReporterJob(jobId).validateForProcessing(jobId)
 
     /**
      * Create a [Report] for the given [file] and [runId] together with a link to download it.

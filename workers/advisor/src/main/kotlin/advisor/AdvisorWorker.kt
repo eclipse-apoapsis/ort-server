@@ -20,10 +20,9 @@
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.model.AdvisorJob
-import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
@@ -36,8 +35,6 @@ import org.ossreviewtoolkit.model.Severity
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AdvisorWorker::class.java)
-
-private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class AdvisorWorker(
     private val db: Database,
@@ -97,12 +94,5 @@ internal class AdvisorWorker(
     }
 
     private fun getValidAdvisorJob(jobId: Long) =
-        ortRunService.getAdvisorJob(jobId)?.validate()
-            ?: throw IllegalArgumentException("The advisor job '$jobId' does not exist.")
-
-    private fun AdvisorJob.validate() = apply {
-        if (status in invalidStates) {
-            throw JobIgnoredException("Advisor job '$id' status is already set to '$status'.")
-        }
-    }
+        ortRunService.getAdvisorJob(jobId).validateForProcessing(jobId)
 }

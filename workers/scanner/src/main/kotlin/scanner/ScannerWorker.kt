@@ -20,11 +20,10 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.model.JobStatus
-import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
@@ -39,8 +38,6 @@ import org.ossreviewtoolkit.model.Severity
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(ScannerWorker::class.java)
-
-private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 class ScannerWorker(
     private val db: Database,
@@ -112,14 +109,7 @@ class ScannerWorker(
     }
 
     private fun getValidScannerJob(jobId: Long) =
-        ortRunService.getScannerJob(jobId)?.validate()
-            ?: throw IllegalArgumentException("The scanner job '$jobId' does not exist.")
-
-    private fun ScannerJob.validate() = apply {
-        if (status in invalidStates) {
-            throw JobIgnoredException("Scanner job '$id' status is already set to '$status'.")
-        }
-    }
+        ortRunService.getScannerJob(jobId).validateForProcessing(jobId)
 }
 
 private class ScannerException(message: String) : Exception(message)
