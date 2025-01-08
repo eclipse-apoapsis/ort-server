@@ -146,7 +146,7 @@ export type PackageManager = (typeof packageManagers)[number]['id'];
 
 export const reportFormats = [
   {
-    id: 'CycloneDx',
+    id: 'CycloneDX',
     label: 'CycloneDX SBOM',
   },
   {

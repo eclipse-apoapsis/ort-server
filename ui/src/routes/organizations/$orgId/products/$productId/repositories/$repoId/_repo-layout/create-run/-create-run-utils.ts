@@ -304,7 +304,7 @@ export function defaultValues(
       },
       reporter: {
         enabled: true,
-        formats: ['CycloneDx', 'SpdxDocument', 'WebApp'],
+        formats: ['CycloneDX', 'SpdxDocument', 'WebApp'],
       },
       notifier: {
         enabled: false,
