@@ -20,10 +20,9 @@
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
-import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
@@ -35,8 +34,6 @@ import org.ossreviewtoolkit.model.Severity
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(EvaluatorWorker::class.java)
-
-private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED)
 
 internal class EvaluatorWorker(
     private val db: Database,
@@ -84,12 +81,5 @@ internal class EvaluatorWorker(
     }
 
     private fun getValidEvaluatorJob(jobId: Long) =
-        ortRunService.getEvaluatorJob(jobId)?.validate()
-            ?: throw IllegalArgumentException("The evaluator job '$jobId' does not exist.")
-
-    private fun EvaluatorJob.validate() = apply {
-        if (status in invalidStates) {
-            throw JobIgnoredException("Evaluator job '$id' status is already set to '$status'")
-        }
-    }
+        ortRunService.getEvaluatorJob(jobId).validateForProcessing(jobId)
 }

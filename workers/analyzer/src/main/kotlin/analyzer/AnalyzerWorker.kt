@@ -20,11 +20,10 @@
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
-import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
@@ -37,8 +36,6 @@ import org.ossreviewtoolkit.model.Severity
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(AnalyzerWorker::class.java)
-
-private val invalidStates = setOf(JobStatus.FAILED, JobStatus.FINISHED, JobStatus.FINISHED_WITH_ISSUES)
 
 internal class AnalyzerWorker(
     private val db: Database,
@@ -124,14 +121,7 @@ internal class AnalyzerWorker(
     }
 
     private fun getValidAnalyzerJob(jobId: Long) =
-        ortRunService.getAnalyzerJob(jobId)?.validate()
-            ?: throw IllegalArgumentException("The analyzer job '$jobId' does not exist.")
-
-    private fun AnalyzerJob.validate() = apply {
-        if (status in invalidStates) {
-            throw JobIgnoredException("Analyzer job '$id' status is already set to '$status'.")
-        }
-    }
+        ortRunService.getAnalyzerJob(jobId).validateForProcessing(jobId)
 }
 
 private class AnalyzerException(message: String) : Exception(message)
