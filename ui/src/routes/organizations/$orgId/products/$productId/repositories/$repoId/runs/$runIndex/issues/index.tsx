@@ -67,74 +67,6 @@ const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<Issue>();
 
-const columns = [
-  columnHelper.display({
-    id: 'moreInfo',
-    header: 'Details',
-    size: 50,
-    cell: function CellComponent({ row }) {
-      return row.getCanExpand() ? (
-        <Button
-          variant='outline'
-          size='sm'
-          {...{
-            onClick: row.getToggleExpandedHandler(),
-            style: { cursor: 'pointer' },
-          }}
-        >
-          {row.getIsExpanded() ? (
-            <ChevronUp className='h-4 w-4' />
-          ) : (
-            <ChevronDown className='h-4 w-4' />
-          )}
-        </Button>
-      ) : (
-        'No info'
-      );
-    },
-    enableSorting: false,
-  }),
-  columnHelper.accessor('severity', {
-    header: 'Severity',
-    cell: ({ row }) => (
-      <Badge
-        className={`border ${getIssueSeverityBackgroundColor(row.original.severity)}`}
-      >
-        {row.original.severity}
-      </Badge>
-    ),
-    filterFn: (row, _columnId, filterValue): boolean => {
-      return filterValue.includes(row.original.severity);
-    },
-    sortingFn: (rowA, rowB) => {
-      return compareSeverity(rowA.original.severity, rowB.original.severity);
-    },
-  }),
-  columnHelper.accessor(
-    (issue) => {
-      return identifierToString(issue.identifier);
-    },
-    {
-      id: 'package',
-      header: 'Package ID',
-      cell: ({ row }) => {
-        return <div className='font-semibold'>{row.getValue('package')}</div>;
-      },
-    }
-  ),
-  columnHelper.accessor('affectedPath', {
-    header: 'Affected Path',
-    cell: ({ row }) => (
-      <div className='break-all'>{row.original.affectedPath}</div>
-    ),
-    enableSorting: false,
-  }),
-  columnHelper.accessor('source', {
-    header: 'Source',
-    cell: ({ row }) => row.original.source,
-  }),
-];
-
 const renderSubComponent = ({ row }: { row: Row<Issue> }) => {
   const issue = row.original;
 
@@ -157,6 +89,74 @@ const IssuesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+
+  const columns = [
+    columnHelper.display({
+      id: 'moreInfo',
+      header: 'Details',
+      size: 50,
+      cell: function CellComponent({ row }) {
+        return row.getCanExpand() ? (
+          <Button
+            variant='outline'
+            size='sm'
+            {...{
+              onClick: row.getToggleExpandedHandler(),
+              style: { cursor: 'pointer' },
+            }}
+          >
+            {row.getIsExpanded() ? (
+              <ChevronUp className='h-4 w-4' />
+            ) : (
+              <ChevronDown className='h-4 w-4' />
+            )}
+          </Button>
+        ) : (
+          'No info'
+        );
+      },
+      enableSorting: false,
+    }),
+    columnHelper.accessor('severity', {
+      header: 'Severity',
+      cell: ({ row }) => (
+        <Badge
+          className={`border ${getIssueSeverityBackgroundColor(row.original.severity)}`}
+        >
+          {row.original.severity}
+        </Badge>
+      ),
+      filterFn: (row, _columnId, filterValue): boolean => {
+        return filterValue.includes(row.original.severity);
+      },
+      sortingFn: (rowA, rowB) => {
+        return compareSeverity(rowA.original.severity, rowB.original.severity);
+      },
+    }),
+    columnHelper.accessor(
+      (issue) => {
+        return identifierToString(issue.identifier);
+      },
+      {
+        id: 'package',
+        header: 'Package ID',
+        cell: ({ row }) => {
+          return <div className='font-semibold'>{row.getValue('package')}</div>;
+        },
+      }
+    ),
+    columnHelper.accessor('affectedPath', {
+      header: 'Affected Path',
+      cell: ({ row }) => (
+        <div className='break-all'>{row.original.affectedPath}</div>
+      ),
+      enableSorting: false,
+    }),
+    columnHelper.accessor('source', {
+      header: 'Source',
+      cell: ({ row }) => row.original.source,
+    }),
+  ];
 
   // All of these need to be memoized to prevent unnecessary re-renders
   // and (at least for Firefox) the browser freezing up.

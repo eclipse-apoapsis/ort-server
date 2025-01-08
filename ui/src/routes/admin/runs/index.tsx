@@ -69,150 +69,152 @@ const pollInterval = config.pollInterval;
 
 const columnHelper = createColumnHelper<OrtRunSummary>();
 
-const columns = [
-  columnHelper.display({
-    id: 'repository',
-    header: 'Repository',
-    cell: function CellComponent({ row }) {
-      const { data: repo } = useRepositoriesServiceGetRepositoryById({
-        repositoryId: row.original.repositoryId,
-      });
-
-      const { data: org } = useOrganizationsServiceGetOrganizationById({
-        organizationId: row.original.organizationId,
-      });
-
-      const { data: prod } = useProductsServiceGetProductById({
-        productId: row.original.productId,
-      });
-
-      return (
-        <div>
-          <Link
-            className='block font-semibold text-blue-400 hover:underline'
-            to={
-              '/organizations/$orgId/products/$productId/repositories/$repoId'
-            }
-            params={{
-              orgId: row.original.organizationId.toString(),
-              productId: row.original.productId.toString(),
-              repoId: row.original.repositoryId.toString(),
-            }}
-          >
-            {repo?.url}
-          </Link>
-          <div className='text-xs italic text-slate-500'>
-            in{' '}
-            <Link
-              className='hover:underline'
-              to={'/organizations/$orgId'}
-              params={{ orgId: row.original.organizationId.toString() }}
-            >
-              {org?.name}
-            </Link>
-            /
-            <Link
-              className='hover:underline'
-              to={'/organizations/$orgId/products/$productId'}
-              params={{
-                orgId: row.original.organizationId.toString(),
-                productId: row.original.productId.toString(),
-              }}
-            >
-              {prod?.name}
-            </Link>
-          </div>
-        </div>
-      );
-    },
-  }),
-  columnHelper.accessor('createdAt', {
-    header: 'Created At',
-    cell: ({ row }) => <TimestampWithUTC timestamp={row.original.createdAt} />,
-    size: 95,
-  }),
-  columnHelper.accessor('finishedAt', {
-    header: 'Finished At',
-    cell: ({ row }) =>
-      row.original.finishedAt ? (
-        <TimestampWithUTC timestamp={row.original.finishedAt} />
-      ) : (
-        <span className='italic'>Not finished yet</span>
-      ),
-    size: 95,
-  }),
-  columnHelper.accessor('status', {
-    header: 'Run Status',
-    cell: ({ row }) => (
-      <Badge
-        className={`border ${getStatusBackgroundColor(row.original.status)}`}
-      >
-        {row.original.status}
-      </Badge>
-    ),
-  }),
-  columnHelper.display({
-    id: 'jobStatuses',
-    header: 'Job Status',
-    cell: ({ row }) => (
-      <OrtRunJobStatus
-        jobs={row.original.jobs}
-        orgId={row.original.organizationId.toString()}
-        productId={row.original.productId.toString()}
-        repoId={row.original.repositoryId.toString()}
-        runIndex={row.original.index.toString()}
-      />
-    ),
-    size: 100,
-  }),
-  columnHelper.display({
-    id: 'duration',
-    header: 'Duration',
-    cell: ({ row }) => (
-      <RunDuration
-        createdAt={row.original.createdAt}
-        finishedAt={row.original.finishedAt ?? undefined}
-      />
-    ),
-    size: 100,
-  }),
-  columnHelper.display({
-    id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) => (
-      <div className='flex gap-2'>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant='outline' asChild size='sm'>
-              <Link
-                to={
-                  '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-                }
-                params={{
-                  orgId: row.original.organizationId.toString(),
-                  productId: row.original.productId.toString(),
-                  repoId: row.original.repositoryId.toString(),
-                  runIndex: row.original.index.toString(),
-                }}
-              >
-                <View className='h-4 w-4' />
-              </Link>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>View the details of this run</TooltipContent>
-        </Tooltip>
-      </div>
-    ),
-    size: 90,
-  }),
-];
-
 const RunsComponent = () => {
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const status = search.status;
   const navigate = Route.useNavigate();
+
+  const columns = [
+    columnHelper.display({
+      id: 'repository',
+      header: 'Repository',
+      cell: function CellComponent({ row }) {
+        const { data: repo } = useRepositoriesServiceGetRepositoryById({
+          repositoryId: row.original.repositoryId,
+        });
+
+        const { data: org } = useOrganizationsServiceGetOrganizationById({
+          organizationId: row.original.organizationId,
+        });
+
+        const { data: prod } = useProductsServiceGetProductById({
+          productId: row.original.productId,
+        });
+
+        return (
+          <div>
+            <Link
+              className='block font-semibold text-blue-400 hover:underline'
+              to={
+                '/organizations/$orgId/products/$productId/repositories/$repoId'
+              }
+              params={{
+                orgId: row.original.organizationId.toString(),
+                productId: row.original.productId.toString(),
+                repoId: row.original.repositoryId.toString(),
+              }}
+            >
+              {repo?.url}
+            </Link>
+            <div className='text-xs italic text-slate-500'>
+              in{' '}
+              <Link
+                className='hover:underline'
+                to={'/organizations/$orgId'}
+                params={{ orgId: row.original.organizationId.toString() }}
+              >
+                {org?.name}
+              </Link>
+              /
+              <Link
+                className='hover:underline'
+                to={'/organizations/$orgId/products/$productId'}
+                params={{
+                  orgId: row.original.organizationId.toString(),
+                  productId: row.original.productId.toString(),
+                }}
+              >
+                {prod?.name}
+              </Link>
+            </div>
+          </div>
+        );
+      },
+    }),
+    columnHelper.accessor('createdAt', {
+      header: 'Created At',
+      cell: ({ row }) => (
+        <TimestampWithUTC timestamp={row.original.createdAt} />
+      ),
+      size: 95,
+    }),
+    columnHelper.accessor('finishedAt', {
+      header: 'Finished At',
+      cell: ({ row }) =>
+        row.original.finishedAt ? (
+          <TimestampWithUTC timestamp={row.original.finishedAt} />
+        ) : (
+          <span className='italic'>Not finished yet</span>
+        ),
+      size: 95,
+    }),
+    columnHelper.accessor('status', {
+      header: 'Run Status',
+      cell: ({ row }) => (
+        <Badge
+          className={`border ${getStatusBackgroundColor(row.original.status)}`}
+        >
+          {row.original.status}
+        </Badge>
+      ),
+    }),
+    columnHelper.display({
+      id: 'jobStatuses',
+      header: 'Job Status',
+      cell: ({ row }) => (
+        <OrtRunJobStatus
+          jobs={row.original.jobs}
+          orgId={row.original.organizationId.toString()}
+          productId={row.original.productId.toString()}
+          repoId={row.original.repositoryId.toString()}
+          runIndex={row.original.index.toString()}
+        />
+      ),
+      size: 100,
+    }),
+    columnHelper.display({
+      id: 'duration',
+      header: 'Duration',
+      cell: ({ row }) => (
+        <RunDuration
+          createdAt={row.original.createdAt}
+          finishedAt={row.original.finishedAt ?? undefined}
+        />
+      ),
+      size: 100,
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <div className='flex gap-2'>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant='outline' asChild size='sm'>
+                <Link
+                  to={
+                    '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+                  }
+                  params={{
+                    orgId: row.original.organizationId.toString(),
+                    productId: row.original.productId.toString(),
+                    repoId: row.original.repositoryId.toString(),
+                    runIndex: row.original.index.toString(),
+                  }}
+                >
+                  <View className='h-4 w-4' />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>View the details of this run</TooltipContent>
+          </Tooltip>
+        </div>
+      ),
+      size: 90,
+    }),
+  ];
 
   const { data, error } = useRunsServiceGetOrtRuns(
     {
