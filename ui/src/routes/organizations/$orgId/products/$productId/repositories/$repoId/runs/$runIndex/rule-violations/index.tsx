@@ -67,72 +67,6 @@ const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<RuleViolation>();
 
-const columns = [
-  columnHelper.display({
-    id: 'moreInfo',
-    header: 'Details',
-    size: 50,
-    cell: function CellComponent({ row }) {
-      return row.getCanExpand() ? (
-        <Button
-          variant='outline'
-          size='sm'
-          {...{
-            onClick: row.getToggleExpandedHandler(),
-            style: { cursor: 'pointer' },
-          }}
-        >
-          {row.getIsExpanded() ? (
-            <ChevronUp className='h-4 w-4' />
-          ) : (
-            <ChevronDown className='h-4 w-4' />
-          )}
-        </Button>
-      ) : (
-        'No info'
-      );
-    },
-    enableSorting: false,
-  }),
-  columnHelper.accessor('severity', {
-    header: 'Severity',
-    cell: ({ row }) => {
-      return (
-        <Badge
-          className={`${getRuleViolationSeverityBackgroundColor(row.original.severity)}`}
-        >
-          {row.original.severity}
-        </Badge>
-      );
-    },
-    filterFn: (row, _columnId, filterValue): boolean => {
-      return filterValue.includes(row.original.severity);
-    },
-    sortingFn: (rowA, rowB) => {
-      return compareSeverity(rowA.original.severity, rowB.original.severity);
-    },
-  }),
-  columnHelper.accessor(
-    (ruleViolation) => {
-      return identifierToString(ruleViolation.packageId);
-    },
-    {
-      header: 'Package',
-      cell: ({ getValue }) => {
-        return <div className='font-semibold'>{getValue()}</div>;
-      },
-    }
-  ),
-  columnHelper.accessor('rule', {
-    header: 'Rule',
-    cell: ({ row }) => (
-      <Badge className='whitespace-nowrap bg-blue-300'>
-        {row.original.rule}
-      </Badge>
-    ),
-  }),
-];
-
 const renderSubComponent = ({ row }: { row: Row<RuleViolation> }) => {
   const ruleViolation = row.original;
 
@@ -155,6 +89,72 @@ const RuleViolationsComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+
+  const columns = [
+    columnHelper.display({
+      id: 'moreInfo',
+      header: 'Details',
+      size: 50,
+      cell: function CellComponent({ row }) {
+        return row.getCanExpand() ? (
+          <Button
+            variant='outline'
+            size='sm'
+            {...{
+              onClick: row.getToggleExpandedHandler(),
+              style: { cursor: 'pointer' },
+            }}
+          >
+            {row.getIsExpanded() ? (
+              <ChevronUp className='h-4 w-4' />
+            ) : (
+              <ChevronDown className='h-4 w-4' />
+            )}
+          </Button>
+        ) : (
+          'No info'
+        );
+      },
+      enableSorting: false,
+    }),
+    columnHelper.accessor('severity', {
+      header: 'Severity',
+      cell: ({ row }) => {
+        return (
+          <Badge
+            className={`${getRuleViolationSeverityBackgroundColor(row.original.severity)}`}
+          >
+            {row.original.severity}
+          </Badge>
+        );
+      },
+      filterFn: (row, _columnId, filterValue): boolean => {
+        return filterValue.includes(row.original.severity);
+      },
+      sortingFn: (rowA, rowB) => {
+        return compareSeverity(rowA.original.severity, rowB.original.severity);
+      },
+    }),
+    columnHelper.accessor(
+      (ruleViolation) => {
+        return identifierToString(ruleViolation.packageId);
+      },
+      {
+        header: 'Package',
+        cell: ({ getValue }) => {
+          return <div className='font-semibold'>{getValue()}</div>;
+        },
+      }
+    ),
+    columnHelper.accessor('rule', {
+      header: 'Rule',
+      cell: ({ row }) => (
+        <Badge className='whitespace-nowrap bg-blue-300'>
+          {row.original.rule}
+        </Badge>
+      ),
+    }),
+  ];
 
   // Memoize the search parameters to prevent unnecessary re-rendering
 
