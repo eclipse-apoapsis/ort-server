@@ -20,7 +20,12 @@
 import { FieldErrors } from 'react-hook-form';
 import { z } from 'zod';
 
-import { AnalyzerJobConfiguration, CreateOrtRun, OrtRun } from '@/api/requests';
+import {
+  AnalyzerJobConfiguration,
+  CreateOrtRun,
+  OrtRun,
+  ReporterJobConfiguration,
+} from '@/api/requests';
 import { packageManagers } from '../../-types';
 
 const keyValueSchema = z.object({
@@ -401,8 +406,12 @@ export function defaultValues(
               ortRun.jobConfigs.reporter !== undefined &&
               ortRun.jobConfigs.reporter !== null,
             formats:
-              ortRun.jobConfigs.reporter?.formats ||
-              baseDefaults.jobConfigs.reporter.formats,
+              // To fix retriggering (with "Reuse" button) of old runs with wrong data
+              // ("CycloneDx" instead of "CycloneDX"), convert this to correct plugin
+              // configuration.
+              ortRun.jobConfigs.reporter?.formats?.map((format) =>
+                format === 'CycloneDx' ? 'CycloneDX' : format
+              ) || baseDefaults.jobConfigs.reporter.formats,
           },
           notifier: {
             enabled:
@@ -612,9 +621,49 @@ export function formValuesToPayload(
   // Reporter configuration
   //
 
+  // Check if CycloneDX, SPDX, and/or NOTICE file reports are enabled in the form,
+  // and configure them to use all output formats, accordingly.
+
+  const cycloneDxEnabled =
+    values.jobConfigs.reporter.formats.includes('CycloneDX');
+  const spdxDocumentEnabled =
+    values.jobConfigs.reporter.formats.includes('SpdxDocument');
+  const noticeFileEnabled =
+    values.jobConfigs.reporter.formats.includes('PlainTextTemplate');
+
+  const config: ReporterJobConfiguration['config'] = {};
+
+  if (spdxDocumentEnabled) {
+    config.SpdxDocument = {
+      options: {
+        outputFileFormats: 'YAML,JSON',
+      },
+      secrets: {},
+    };
+  }
+
+  if (cycloneDxEnabled) {
+    config.CycloneDX = {
+      options: {
+        outputFileFormats: 'XML,JSON',
+      },
+      secrets: {},
+    };
+  }
+
+  if (noticeFileEnabled) {
+    config.PlainTextTemplate = {
+      options: {
+        templateIds: 'NOTICE_DEFAULT,NOTICE_SUMMARY',
+      },
+      secrets: {},
+    };
+  }
+
   const reporterConfig = values.jobConfigs.reporter.enabled
     ? {
         formats: values.jobConfigs.reporter.formats,
+        config: Object.keys(config).length > 0 ? config : undefined,
       }
     : undefined;
 
