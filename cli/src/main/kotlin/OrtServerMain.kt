@@ -24,6 +24,7 @@ import com.github.ajalt.clikt.command.main
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
+import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 
@@ -57,7 +58,7 @@ class OrtServerOptions : OptionGroup(
         "--base-url",
         envvar = "ORT_SERVER_BASE_URL",
         help = "The base URL of the ORT Server instance."
-    ).required()
+    ).convert { it.ensureSuffix("/") }.required()
 
     val tokenUrl by option(
         "--token-url",
