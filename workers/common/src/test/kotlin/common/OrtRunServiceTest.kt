@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.common
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -30,6 +31,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
+import io.kotest.matchers.string.shouldContainIgnoringCase
 
 import io.mockk.mockk
 
@@ -46,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
@@ -83,7 +86,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerDetail
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.SnippetFinding
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
+import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
 import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
@@ -148,6 +153,43 @@ class OrtRunServiceTest : WordSpec({
             fixtures.scannerRunRepository,
             mockk()
         )
+    }
+
+    "validateForProcessing" should {
+        "throw an exception for a job that could not be resolved" {
+            val jobId = 42L
+            val job: AnalyzerJob? = null
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                job.validateForProcessing(jobId)
+            }
+
+            exception.message shouldContainIgnoringCase jobId.toString()
+        }
+
+        "succeed for jobs with valid states" {
+            val validStates = JobStatus.entries.filterNot { it.final }
+
+            validStates.forAll { status ->
+                val job = fixtures.analyzerJob.copy(status = status)
+
+                job.validateForProcessing(job.id)
+            }
+        }
+
+        "throw a JobIgnoredException for jobs with invalid states" {
+            val invalidStates = JobStatus.entries.filter { it.final }
+
+            invalidStates.forAll { status ->
+                val job = fixtures.analyzerJob.copy(status = status)
+
+                val exception = shouldThrow<JobIgnoredException> {
+                    job.validateForProcessing(job.id)
+                }
+
+                exception.message shouldContainIgnoringCase job.id.toString()
+            }
+        }
     }
 
     "createScannerRun" should {

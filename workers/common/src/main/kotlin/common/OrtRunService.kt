@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
+import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
@@ -100,6 +101,20 @@ class OrtRunService(
 ) {
     companion object {
         private const val RUN_ID_LABEL = "runId"
+
+        /**
+         * Validate this [WorkerJob] before it can be processed by the corresponding worker. Check whether the job
+         * exists and has a state that allows it to be processed.
+         */
+        inline fun <reified T : WorkerJob> T?.validateForProcessing(jobId: Long): T {
+            requireNotNull(this) { "The ${T::class.simpleName} '$jobId' does not exist in the database." }
+
+            if (status.final) {
+                throw JobIgnoredException("The ${T::class.simpleName} '$jobId' is in a final state.")
+            }
+
+            return this
+        }
     }
 
     /**
