@@ -44,37 +44,53 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
+import org.slf4j.MDC
+
 /**
  * A micrometer [MeterBinder] that provides metrics for ORT runs and jobs.
  */
 class JobMetrics(private val application: Application) : MeterBinder {
     override fun bindTo(registry: MeterRegistry) {
         application.monitor.subscribe(DatabaseReady) {
+            val component = MDC.get("component")
+
             OrtRunStatus.entries.forEach { status ->
-                Gauge.builder("runs.status.${status.name.lowercase()}") { countOrtRunStatus(status) }
-                    .description("The number of ORT runs with status '${status.name}'.")
+                Gauge.builder("runs.status.${status.name.lowercase()}") {
+                    MDC.put("component", component)
+                    countOrtRunStatus(status)
+                }.description("The number of ORT runs with status '${status.name}'.")
                     .register(registry)
             }
 
             JobStatus.entries.forEach { status ->
-                Gauge.builder("jobs.advisor.status.${status.name.lowercase()}") { countAdvisorJobs(status) }
-                    .description("The number of advisor jobs with status '${status.name}'.")
+                Gauge.builder("jobs.advisor.status.${status.name.lowercase()}") {
+                    MDC.put("component", component)
+                    countAdvisorJobs(status)
+                }.description("The number of advisor jobs with status '${status.name}'.")
                     .register(registry)
 
-                Gauge.builder("jobs.analyzer.status.${status.name.lowercase()}") { countAnalyzerJobs(status) }
-                    .description("The number of analyzer jobs with status '${status.name}'.")
+                Gauge.builder("jobs.analyzer.status.${status.name.lowercase()}") {
+                    MDC.put("component", component)
+                    countAnalyzerJobs(status)
+                }.description("The number of analyzer jobs with status '${status.name}'.")
                     .register(registry)
 
-                Gauge.builder("jobs.evaluator.status.${status.name.lowercase()}") { countEvaluatorJobs(status) }
-                    .description("The number of evaluator jobs with status '${status.name}'.")
+                Gauge.builder("jobs.evaluator.status.${status.name.lowercase()}") {
+                    MDC.put("component", component)
+                    countEvaluatorJobs(status)
+                }.description("The number of evaluator jobs with status '${status.name}'.")
                     .register(registry)
 
-                Gauge.builder("jobs.reporter.status.${status.name.lowercase()}") { countReporterJobs(status) }
-                    .description("The number of reporter jobs with status '${status.name}'.")
+                Gauge.builder("jobs.reporter.status.${status.name.lowercase()}") {
+                    MDC.put("component", component)
+                    countReporterJobs(status)
+                }.description("The number of reporter jobs with status '${status.name}'.")
                     .register(registry)
 
-                Gauge.builder("jobs.scanner.status.${status.name.lowercase()}") { countScannerJobs(status) }
-                    .description("The number of scanner jobs with status '${status.name}'.")
+                Gauge.builder("jobs.scanner.status.${status.name.lowercase()}") {
+                    MDC.put("component", component)
+                    countScannerJobs(status)
+                }.description("The number of scanner jobs with status '${status.name}'.")
                     .register(registry)
             }
         }
