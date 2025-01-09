@@ -172,6 +172,7 @@ services:
       GRAPHITE_HOST: "graphite"
       GRAPHITE_PORT: 2003
       GRAPHITE_PROTOCOL: PLAINTEXT
+      GRAPHITE_STEP: 30s
       CORE_SECRET_PROVIDER: secret-file
       CORE_SECRET_FILES: /mnt/secrets.properties
       LOG_FILE_PROVIDER_NAME: loki
