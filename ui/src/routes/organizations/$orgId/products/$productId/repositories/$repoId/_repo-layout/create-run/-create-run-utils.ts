@@ -539,6 +539,10 @@ export function formValuesToPayload(
     return Object.keys(options).length > 0 ? options : undefined;
   };
 
+  //
+  // Analyzer configuration
+  //
+
   // In ORT Server, running or not running a job for and ORT Run is decided
   // based on the presence or absence of the corresponding job configuration
   // in the request body. If a job is disabled in the UI, we pass "undefined"
@@ -562,12 +566,20 @@ export function formValuesToPayload(
     ),
   };
 
+  //
+  // Advisor configuration
+  //
+
   const advisorConfig = values.jobConfigs.advisor.enabled
     ? {
         skipExcluded: values.jobConfigs.advisor.skipExcluded,
         advisors: values.jobConfigs.advisor.advisors,
       }
     : undefined;
+
+  //
+  // Scanner configuration
+  //
 
   const scannerConfig = values.jobConfigs.scanner.enabled
     ? {
@@ -576,6 +588,10 @@ export function formValuesToPayload(
         skipExcluded: values.jobConfigs.scanner.skipExcluded,
       }
     : undefined;
+
+  //
+  // Evaluator configuration
+  //
 
   const evaluatorConfig = values.jobConfigs.evaluator.enabled
     ? {
@@ -592,11 +608,19 @@ export function formValuesToPayload(
       }
     : undefined;
 
+  //
+  // Reporter configuration
+  //
+
   const reporterConfig = values.jobConfigs.reporter.enabled
     ? {
         formats: values.jobConfigs.reporter.formats,
       }
     : undefined;
+
+  //
+  // Notifier configuration
+  //
 
   // Convert the recipient addresses back to an array of strings, as expected by the back-end.
   const addresses = values.jobConfigs.notifier.mail.recipientAddresses
@@ -641,6 +665,10 @@ export function formValuesToPayload(
         },
       }
     : undefined;
+
+  //
+  // Create the payload from worker configurations
+  //
 
   // Convert the parameters and labels arrays back to objects, as expected by the back-end.
   const parameters = values.jobConfigs.parameters
