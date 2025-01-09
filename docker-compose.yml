@@ -126,6 +126,10 @@ services:
       timeout: 5s
       retries: 15
       start_period: 60s
+    volumes:
+    - type: bind
+      source: ./scripts/compose/graphite/storage
+      target: /opt/graphite/storage
     logging:
       driver: gelf
       options:
