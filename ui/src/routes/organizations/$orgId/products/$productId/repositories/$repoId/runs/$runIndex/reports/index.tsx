@@ -104,17 +104,23 @@ const ReportComponent = () => {
       <CardContent>
         {ortRun.jobs.reporter?.reportFilenames &&
         ortRun.jobs.reporter?.reportFilenames.length > 0
-          ? ortRun.jobs.reporter.reportFilenames.map((filename) => (
-              <div key={filename} className='flex flex-col pb-2'>
-                <Button
-                  variant='outline'
-                  className='h-auto whitespace-normal font-semibold text-blue-400'
-                  onClick={() => handleDownload(ortRun.id, filename)}
-                >
-                  <div className='break-all'>{filename}</div>
-                </Button>
-              </div>
-            ))
+          ? ortRun.jobs.reporter.reportFilenames
+              .filter(
+                (filename) =>
+                  !filename.toLowerCase().includes('spdx') &&
+                  !filename.toLowerCase().includes('cyclonedx')
+              )
+              .map((filename) => (
+                <div key={filename} className='flex flex-col pb-2'>
+                  <Button
+                    variant='outline'
+                    className='h-auto whitespace-normal font-semibold text-blue-400'
+                    onClick={() => handleDownload(ortRun.id, filename)}
+                  >
+                    <div className='break-all'>{filename}</div>
+                  </Button>
+                </div>
+              ))
           : 'No reports available.'}
       </CardContent>
     </Card>
