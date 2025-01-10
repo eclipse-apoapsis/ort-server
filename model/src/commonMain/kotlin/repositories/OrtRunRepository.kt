@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.model.repositories
 
+import kotlinx.datetime.Instant
+
 import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -73,6 +75,11 @@ interface OrtRunRepository {
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: OrtRunFilters? = null
     ): ListQueryResult<OrtRun>
+
+    /**
+     * List all finished ORT runs before [before].
+     */
+    fun listRunsBefore(before: Instant): ListQueryResult<OrtRun>
 
     /**
      * List all ORT runs for a [repository][repositoryId] according to the given [parameters].

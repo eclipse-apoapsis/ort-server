@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import kotlinx.datetime.Instant
+
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
@@ -71,6 +73,22 @@ class OrtRunService(
 
         if (ortRunRepository.delete(ortRunId) == 0) {
             throw ResourceNotFoundException("ORT run with id '$ortRunId' not found.")
+        }
+    }
+
+    /**
+     * Delete all ORT runs that are older than the given [before] timestamp. Runs are deleted from the database and
+     * their reports are deleted from storage.
+     */
+    suspend fun deleteRunsCreatedBefore(before: Instant) {
+        val runs = ortRunRepository.listRunsBefore(before)
+
+        logger.info("Deleting ${runs.totalCount} ORT runs older than $before.")
+
+        runs.data.forEach { run ->
+            runCatching {
+                deleteOrtRun(run.id)
+            }
         }
     }
 }

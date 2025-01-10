@@ -34,6 +34,9 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 
+import kotlin.time.Duration.Companion.milliseconds
+
+import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -178,6 +181,64 @@ class OrtRunServiceTest : WordSpec() {
                 fixtures.ortRunRepository.get(ortRunId) shouldNotBe null
             }
         }
+
+        "deleteRunsCreatedBefore" should {
+            "delete all ORT runs older than the given timestamp" {
+                val (ortRunId1, ortRunId2, ortRunId3) = createOrtRuns()
+                val reporterjobId1 = createReporterJob(ortRunId1)
+                val reporterjobId2 = createReporterJob(ortRunId2)
+                val reporterjobId3 = createReporterJob(ortRunId3)
+
+                val mockReportStorageService = mockk<ReportStorageService> {
+                    coEvery { deleteReport(any() as Long, any() as String) } just Runs
+                }
+
+                val service = createService(mockReportStorageService)
+
+                fixtures.ortRunRepository.update(ortRunId1, OrtRunStatus.FINISHED.asPresent())
+                delay(1000)
+                fixtures.ortRunRepository.update(ortRunId2, OrtRunStatus.FINISHED.asPresent())
+                delay(1000)
+                fixtures.ortRunRepository.update(ortRunId3, OrtRunStatus.FINISHED.asPresent())
+
+                val finishedAt = fixtures.ortRunRepository.get(ortRunId3)?.finishedAt
+                finishedAt shouldNotBe null
+                finishedAt?.let {
+                    service.deleteRunsCreatedBefore(it.minus(500.milliseconds))
+                }
+
+                fixtures.ortRunRepository.get(ortRunId1) shouldBe null
+                fixtures.ortRunRepository.get(ortRunId2) shouldBe null
+                fixtures.ortRunRepository.get(ortRunId3) shouldNotBe null
+
+                fixtures.reporterRunRepository.getByJobId(reporterjobId1) shouldBe null
+                fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldBe null
+                fixtures.reporterRunRepository.getByJobId(reporterjobId3) shouldNotBe null
+            }
+
+            "delete only finished ORT runs older than the given timestamp" {
+                val (ortRunId1, ortRunId2, ortRunId3) = createOrtRuns()
+                val reporterjobId1 = createReporterJob(ortRunId1)
+                val reporterjobId2 = createReporterJob(ortRunId2)
+                val reporterjobId3 = createReporterJob(ortRunId3)
+
+                val mockReportStorageService = mockk<ReportStorageService> {
+                    coEvery { deleteReport(any() as Long, any() as String) } just Runs
+                }
+
+                val service = createService(mockReportStorageService)
+                service.deleteRunsCreatedBefore(Clock.System.now())
+
+                fixtures.ortRunRepository.get(ortRunId1) shouldBe null
+                fixtures.ortRunRepository.get(ortRunId2) shouldBe null
+                // Run 3 is active and should not be deleted
+                fixtures.ortRunRepository.get(ortRunId3) shouldNotBe null
+
+                fixtures.reporterRunRepository.getByJobId(reporterjobId1) shouldBe null
+                fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldBe null
+                fixtures.reporterRunRepository.getByJobId(reporterjobId3) shouldNotBe null
+            }
+        }
     }
 
     private fun createService(reportStorageService: ReportStorageService = mockk()) =
@@ -198,7 +259,7 @@ class OrtRunServiceTest : WordSpec() {
         return ortRunId
     }
 
-    private fun createOrtRuns() {
+    private fun createOrtRuns(): List<Long> {
         val repository1Id = createRepository("org1")
         val repository2Id = createRepository("org2")
 
@@ -210,6 +271,8 @@ class OrtRunServiceTest : WordSpec() {
         fixtures.ortRunRepository.update(ortRunId1, OrtRunStatus.FINISHED.asPresent())
         fixtures.ortRunRepository.update(ortRunId2, OrtRunStatus.FAILED.asPresent())
         fixtures.ortRunRepository.update(ortRunId3, OrtRunStatus.ACTIVE.asPresent())
+
+        return listOf(ortRunId1, ortRunId2, ortRunId3)
     }
 
     private fun createReporterJob(ortRunId: Long): Long {

@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.ortrun
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
@@ -119,6 +120,12 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
                 condition
             }
         }
+
+    override fun listRunsBefore(before: Instant): ListQueryResult<OrtRun> = db.blockingQuery {
+        OrtRunDao.listQuery(ListQueryParameters.DEFAULT.copy(limit = Int.MAX_VALUE), OrtRunDao::mapToModel) {
+            OrtRunsTable.finishedAt less before
+        }
+    }
 
     override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): ListQueryResult<OrtRun> =
         db.blockingQueryCatching {
