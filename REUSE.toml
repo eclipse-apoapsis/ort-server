@@ -176,6 +176,16 @@ SPDX-FileCopyrightText = "2017 The ORT Project Authors (see <https://github.com/
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "ui/src/assets/cyclonedx-logo*.svg"
+SPDX-FileCopyrightText = "2018 OWASP Foundation, Inc (see <https://cyclonedx.org/about/branding/>)"
+SPDX-License-Identifier = "CC-BY-ND-4.0"
+
+[[annotations]]
+path = "ui/src/assets/spdx-logo-color.svg"
+SPDX-FileCopyrightText = "2011 The Linux Foundation"
+SPDX-License-Identifier = "CC-BY-3.0"
+
+[[annotations]]
 path = "gradlew*"
 SPDX-FileCopyrightText = "2007-2021 The original author or authors <info@gradle.com>"
 SPDX-License-Identifier = "Apache-2.0"
