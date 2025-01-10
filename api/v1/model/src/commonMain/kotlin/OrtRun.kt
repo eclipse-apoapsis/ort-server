@@ -191,5 +191,6 @@ data class Jobs(
  */
 @Serializable
 data class OrtRunFilters(
-    val status: FilterOperatorAndValue<Set<OrtRunStatus>>? = null
+    val status: FilterOperatorAndValue<Set<OrtRunStatus>>? = null,
+    val finishedAt: FilterOperatorAndValue<Instant>? = null
 )

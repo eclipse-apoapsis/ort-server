@@ -163,5 +163,6 @@ enum class OrtRunStatus(
  * Object containing values to filter an ort run listing with.
  */
 data class OrtRunFilters(
-    val status: FilterOperatorAndValue<Set<OrtRunStatus>>? = null
+    val status: FilterOperatorAndValue<Set<OrtRunStatus>>? = null,
+    val finishedAt: FilterOperatorAndValue<Instant>? = null
 )

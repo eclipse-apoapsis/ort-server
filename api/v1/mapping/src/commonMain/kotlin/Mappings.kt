@@ -372,7 +372,8 @@ fun ApiOrtRunFilters.mapToModel(): OrtRunFilters =
     OrtRunFilters(
         status = status?.mapToModel { statusSet: Set<ApiOrtRunStatus> ->
             statusSet.map { it.mapToModel() }.toSet()
-        }
+        },
+        finishedAt = finishedAt?.mapToModel { it }
     )
 
 fun ApiComparisonOperator.mapToModel() = ComparisonOperator.valueOf(name)

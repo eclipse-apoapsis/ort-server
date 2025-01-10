@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -109,11 +110,21 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             OrtRunDao.listQuery(parameters, OrtRunDao::mapToModel) {
                 var condition: Op<Boolean> = Op.TRUE
 
-                filters?.status?.let { statusFilter ->
-                    condition = condition and OrtRunsTable.status.applyFilter(
-                        statusFilter.operator,
-                        statusFilter.value
-                    )
+                filters?.let {
+                    it.status?.let { statusFilter ->
+                        condition = condition and OrtRunsTable.status.applyFilter(
+                            statusFilter.operator,
+                            statusFilter.value
+                        )
+                    }
+                    it.finishedAt?.let { finishedAtFilter ->
+                        val comparisonClause = when (finishedAtFilter.operator) {
+                            ComparisonOperator.GREATER_THAN -> OrtRunsTable.finishedAt greater finishedAtFilter.value
+                            ComparisonOperator.LESS_THAN -> OrtRunsTable.finishedAt less finishedAtFilter.value
+                            else -> throw IllegalArgumentException("Unsupported operator for finisheAt value")
+                        }
+                        condition = condition and comparisonClause
+                    }
                 }
 
                 condition
