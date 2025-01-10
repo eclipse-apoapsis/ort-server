@@ -27,6 +27,7 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.options.versionOption
 
 import kotlin.system.exitProcess
 
@@ -34,6 +35,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClientConfig
+import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
 
 const val COMMAND_NAME = "ort-server"
 
@@ -47,6 +49,14 @@ class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
 
     init {
         subcommands(RunsCommand(ortServerConfig))
+
+        versionOption(
+            version = ORT_SERVER_VERSION,
+            names = setOf("--version", "-v"),
+            help = "Show the version and exit.",
+            // TODO: Also add the server version given by `baseUrl` to this output.
+            message = { "$commandName CLI version $it" }
+        )
     }
 }
 
