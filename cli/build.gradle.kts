@@ -46,6 +46,7 @@ application {
 dependencies {
     implementation(projects.api.v1.apiV1Client)
     implementation(projects.api.v1.apiV1Model)
+    implementation(projects.model)
 
     implementation(libs.clikt)
     implementation(libs.kotlinxCoroutines)
