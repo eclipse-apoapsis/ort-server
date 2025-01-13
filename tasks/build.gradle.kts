@@ -17,13 +17,25 @@
  * License-Filename: LICENSE
  */
 
+import com.google.cloud.tools.jib.gradle.JibTask
+
+val dockerImagePrefix: String by project
+val dockerImageTag: String by project
+
 plugins {
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
     id("ort-server-publication-conventions")
+
+    // Apply third-party plugins.
+    alias(libs.plugins.jib)
 }
 
 group = "org.eclipse.apoapsis.ortserver.tasks"
+
+tasks.withType<JibTask> {
+    notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")
+}
 
 dependencies {
     implementation(projects.config.configSpi)
@@ -39,4 +51,14 @@ dependencies {
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
+}
+
+jib {
+    from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
+    to.image = "${dockerImagePrefix}ort-server-maintenance-tasks:$dockerImageTag"
+
+    container {
+        mainClass = "org.eclipse.apoapsis.ortserver.tasks.TaskRunnerKt"
+        creationTime.set("USE_CURRENT_TIMESTAMP")
+    }
 }
