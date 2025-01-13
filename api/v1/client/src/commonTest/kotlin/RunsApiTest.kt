@@ -23,8 +23,11 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondError
 import io.ktor.http.HttpStatusCode
+import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.readText
 
 import kotlinx.datetime.Instant
 
@@ -72,6 +75,23 @@ class RunsApiTest : StringSpec({
             shouldThrow<OrtServerClientException> {
                 runsApi.getOrtRun(1)
             }
+        }
+    }
+
+    "downloadReport" should {
+        "Execute the streamTarget lambda with the content of the report" {
+            val mockResponseContent = "mock report content"
+            val mockEngine = MockEngine { respond(mockResponseContent) }
+            val client = createOrtHttpClient(engine = mockEngine)
+
+            val runsApi = RunsApi(client)
+
+            val receivedContent = StringBuilder()
+            runsApi.downloadReport(1, "report.txt") { channel ->
+                receivedContent.append(channel.readRemaining().readText())
+            }
+
+            receivedContent.toString() shouldBe mockResponseContent
         }
     }
 })

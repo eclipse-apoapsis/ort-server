@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ package org.eclipse.apoapsis.ortserver.cli
 import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 
-class RunsCommand(config: OrtServerOptions) : SuspendingNoOpCliktCommand(name = "runs") {
+class DownloadCommand(config: OrtServerOptions) : SuspendingNoOpCliktCommand(name = "download") {
     init {
-        subcommands(DownloadCommand(config), InfoCommand(config), StartCommand(config))
+        subcommands(ReportsCommand(config))
     }
 }

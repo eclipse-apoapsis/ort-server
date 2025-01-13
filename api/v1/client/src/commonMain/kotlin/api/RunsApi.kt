@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.client.api
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.utils.io.ByteReadChannel
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 
@@ -39,4 +41,14 @@ class RunsApi(
      */
     suspend fun getOrtRun(id: Long): OrtRun =
         client.get("api/v1/runs/$id").body()
+
+    /**
+     * Download the report file with the given [fileName] of the run with the given [runID]. The file is streamed to the
+     * [streamTarget] function to avoid loading the whole file into memory.
+     */
+    suspend fun downloadReport(runID: Long, fileName: String, streamTarget: suspend (ByteReadChannel) -> Unit) {
+        val response = client.get("api/v1/runs/$runID/reporter/$fileName")
+
+        streamTarget(response.bodyAsChannel())
+    }
 }
