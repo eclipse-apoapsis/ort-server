@@ -34,6 +34,9 @@ dependencies {
     implementation(libs.logback)
     implementation(libs.typesafeConfig)
 
+    testImplementation(testFixtures(projects.dao))
+
+    testImplementation(libs.koinTest)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }
