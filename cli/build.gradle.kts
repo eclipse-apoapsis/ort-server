@@ -51,6 +51,9 @@ dependencies {
     implementation(libs.clikt)
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxSerializationJson)
+    implementation(libs.ktorClientCore)
+    implementation(libs.ktorUtils)
+    implementation(libs.ortCommonUtils)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
