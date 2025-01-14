@@ -147,8 +147,8 @@ const SBOMComponent = () => {
                     >
                       <div className='break-all'>
                         {filename.includes('json')
-                          ? 'JSON format'
-                          : 'XML format'}
+                          ? 'JSON Format'
+                          : 'XML Format'}
                       </div>
                     </Button>
                   </div>
@@ -188,8 +188,8 @@ const SBOMComponent = () => {
                     >
                       <div className='break-all'>
                         {filename.includes('json')
-                          ? 'JSON format'
-                          : 'YAML format'}
+                          ? 'JSON Format'
+                          : 'YAML Format'}
                       </div>
                     </Button>
                   </div>
