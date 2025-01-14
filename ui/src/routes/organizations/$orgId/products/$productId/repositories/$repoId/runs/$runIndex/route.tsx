@@ -101,7 +101,7 @@ const Layout = () => {
           icon: () => <Scale className='h-4 w-4' />,
         },
         {
-          title: 'SBOM',
+          title: 'SBOMs',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/sbom',
           params,
           icon: () => <ListCheck className='h-4 w-4' />,
