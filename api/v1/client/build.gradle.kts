@@ -34,6 +34,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api(projects.model)
+
                 implementation(projects.api.v1.apiV1Model)
                 implementation(libs.ktorClientAuth)
                 implementation(libs.ktorClientContentNegotiation)
@@ -57,6 +59,7 @@ kotlin {
         jvmTest {
             dependencies {
                 implementation(libs.kotestRunnerJunit5)
+                implementation(libs.mockk)
             }
         }
     }

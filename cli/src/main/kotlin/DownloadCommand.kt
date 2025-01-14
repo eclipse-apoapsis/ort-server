@@ -24,6 +24,6 @@ import com.github.ajalt.clikt.core.subcommands
 
 class DownloadCommand(config: OrtServerOptions) : SuspendingNoOpCliktCommand(name = "download") {
     init {
-        subcommands(ReportsCommand(config))
+        subcommands(LogsCommand(config), ReportsCommand(config))
     }
 }

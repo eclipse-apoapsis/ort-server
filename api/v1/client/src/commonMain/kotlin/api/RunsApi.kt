@@ -26,6 +26,8 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.utils.io.ByteReadChannel
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.LogLevel
+import org.eclipse.apoapsis.ortserver.model.LogSource
 
 /**
  * A client for the runs API.
@@ -41,6 +43,27 @@ class RunsApi(
      */
     suspend fun getOrtRun(id: Long): OrtRun =
         client.get("api/v1/runs/$id").body()
+
+    /**
+     * Download the logs of the run with the given [runId] and optional [level] and [steps]. The logs are streamed to
+     * the [streamTarget] function to avoid loading the whole log into memory.
+     * If [level] or [steps] are not provided, the server defaults are used.
+     */
+    suspend fun downloadLogs(
+        runId: Long,
+        level: LogLevel? = null,
+        steps: List<LogSource> = emptyList(),
+        streamTarget: suspend (ByteReadChannel) -> Unit
+    ) {
+        val response = client.get("api/v1/runs/$runId/logs") {
+            url {
+                level?.let { parameters.append("level", it.name) }
+                steps.joinToString(",").takeIf { it.isNotEmpty() }?.let { parameters.append("steps", it) }
+            }
+        }
+
+        streamTarget(response.bodyAsChannel())
+    }
 
     /**
      * Download the report file with the given [fileName] of the run with the given [runID]. The file is streamed to the

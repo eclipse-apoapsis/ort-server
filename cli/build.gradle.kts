@@ -44,6 +44,8 @@ application {
 }
 
 dependencies {
+    api(projects.model)
+
     implementation(projects.api.v1.apiV1Client)
     implementation(projects.api.v1.apiV1Model)
     implementation(projects.model)
