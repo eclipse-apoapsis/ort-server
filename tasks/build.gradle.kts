@@ -41,11 +41,16 @@ dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.services.hierarchyService)
+    implementation(projects.services.reportStorageService)
+    implementation(projects.storage.storageSpi)
 
     implementation(libs.koinCore)
     implementation(libs.kotlinxCoroutines)
     implementation(libs.logback)
     implementation(libs.typesafeConfig)
+
+    runtimeOnly(platform(projects.storage))
+    runtimeOnly(platform(projects.config))
 
     testImplementation(testFixtures(projects.dao))
 
