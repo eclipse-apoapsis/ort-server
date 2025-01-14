@@ -113,9 +113,6 @@ const SBOMComponent = () => {
 
   return (
     <div className='flex flex-col gap-4'>
-      <h3 className='font-semibold leading-none tracking-tight'>
-        Download SBOM reports from run {ortRun.index}
-      </h3>
       <div className='grid grid-cols-2 gap-4'>
         <Card>
           <CardHeader className='text-center'>
