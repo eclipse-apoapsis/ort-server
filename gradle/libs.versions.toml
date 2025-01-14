@@ -175,6 +175,7 @@ schemaKeneratorJsonschema = { module = "io.github.smiley4:schema-kenerator-jsons
 schemaKeneratorReflection = { module = "io.github.smiley4:schema-kenerator-reflection", version.ref = "schemaKenerator" }
 schemaKeneratorSwagger = { module = "io.github.smiley4:schema-kenerator-swagger", version.ref = "schemaKenerator" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4jNop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4j" }
 sqs = { module = "aws.sdk.kotlin:sqs", version.ref = "awsSdk" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
