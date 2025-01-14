@@ -25,6 +25,8 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.should
+import io.kotest.matchers.types.beInstanceOf
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -41,6 +43,7 @@ import java.util.concurrent.ConcurrentMap
 import org.eclipse.apoapsis.ortserver.dao.test.mockDatabaseModule
 import org.eclipse.apoapsis.ortserver.dao.test.unmockDatabaseModule
 import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
+import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
@@ -90,6 +93,15 @@ class TaskRunnerTest : KoinTest, WordSpec() {
             "call runTasks with a database module" {
                 checkMain { koin ->
                     verifyDatabaseModuleIncluded()
+                }
+            }
+        }
+
+        "the task module" should {
+            "include a task to delete old ORT runs" {
+                checkMain { koin ->
+                    val task = koin.get<Task>(named("delete-old-ort-runs"))
+                    task should beInstanceOf<DeleteOldOrtRunsTask>()
                 }
             }
         }
