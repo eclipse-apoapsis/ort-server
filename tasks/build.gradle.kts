@@ -40,6 +40,7 @@ tasks.withType<JibTask> {
 dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.dao)
+    implementation(projects.services.hierarchyService)
 
     implementation(libs.koinCore)
     implementation(libs.kotlinxCoroutines)
