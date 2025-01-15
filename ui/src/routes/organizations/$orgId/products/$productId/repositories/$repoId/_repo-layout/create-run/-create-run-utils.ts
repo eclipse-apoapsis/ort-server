@@ -35,6 +35,16 @@ const keyValueSchema = z.object({
 
 const packageManagerOptionsSchema = z.object({
   enabled: z.boolean(),
+  mustRunAfter: z
+    .array(
+      z
+        .string()
+        // Only accept valid package manager IDs to the string array in the form.
+        .refine((pkgMgr): pkgMgr is PackageManagerId =>
+          packageManagers.some((pm) => pm.id === pkgMgr)
+        )
+    )
+    .optional(),
   options: z.array(keyValueSchema).optional(),
 });
 
@@ -237,17 +247,21 @@ export function defaultValues(
     if (ortRun) {
       return {
         enabled:
-          ortRun?.jobConfigs.analyzer?.enabledPackageManagers?.includes(
+          ortRun.jobConfigs.analyzer?.enabledPackageManagers?.includes(
             packageManagerId
           ) || false,
+        mustRunAfter:
+          (ortRun.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
+            ?.mustRunAfter as PackageManagerId[]) || [],
         options: convertMapToArray(
-          ortRun?.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
+          ortRun.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
             ?.options || {}
         ),
       };
     }
     return {
       enabled: enabledByDefault,
+      mustRunAfter: [],
       options: [],
     };
   };
@@ -537,12 +551,27 @@ export function formValuesToPayload(
     packageManagers: typeof values.jobConfigs.analyzer.packageManagers
   ) => {
     const options = Object.entries(packageManagers)
-      .filter(([, pm]) => pm.enabled && pm.options && pm.options.length > 0)
-      .map(([pmId, pm]) => ({
-        [pmId]: {
-          options: convertArrayToMap(pm.options || []),
-        },
-      }))
+      .filter(
+        // Skip package managers that are not enabled or have no extra options set.
+        ([, pm]) =>
+          pm.enabled &&
+          ((pm.options && pm.options.length > 0) ||
+            (pm.mustRunAfter && pm.mustRunAfter.length > 0))
+      )
+      .map(([pmId, pm]) => {
+        // Build the filtered options object, including only non-empty properties.
+        const filteredOptions = {
+          ...(pm.mustRunAfter?.length ? { mustRunAfter: pm.mustRunAfter } : {}),
+          ...(pm.options?.length
+            ? { options: convertArrayToMap(pm.options) }
+            : {}),
+        };
+        // Return the object only if it has valid options.
+        return Object.keys(filteredOptions).length > 0
+          ? { [pmId]: filteredOptions }
+          : {};
+      })
+      // Combine all package manager objects into a single result.
       .reduce((acc, pm) => ({ ...acc, ...pm }), {});
     // If no options are set, return undefined.
     return Object.keys(options).length > 0 ? options : undefined;
