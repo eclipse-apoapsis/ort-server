@@ -84,7 +84,22 @@ const config: Config = {
     ],
   ],
 
-  themes: ['@docusaurus/theme-mermaid', 'docusaurus-theme-openapi-docs'],
+  themes: [
+    '@docusaurus/theme-mermaid',
+    'docusaurus-theme-openapi-docs',
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        indexBlog: false,
+        docsDir: ['api', 'docs'],
+        docsRouteBasePath: ['/api', '/docs'],
+        searchResultLimits: 15,
+        searchResultContextMaxLength: 200,
+        explicitSearchResultPath: true,
+      },
+    ],
+  ],
 
   themeConfig: {
     image: 'img/social-card.png',
