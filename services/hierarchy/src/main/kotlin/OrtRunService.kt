@@ -85,10 +85,16 @@ class OrtRunService(
 
         logger.info("Deleting ${runIds.size} ORT runs older than $before.")
 
+        var failureCount = 0
         runIds.forEach { runId ->
             runCatching {
                 deleteOrtRun(runId)
-            }
+            }.onFailure { failureCount++ }
+        }
+
+        logger.info("Deleted ${runIds.size - failureCount} old ORT runs successfully.")
+        if (failureCount > 0) {
+            logger.warn("Failed to delete $failureCount old ORT runs.")
         }
     }
 }
