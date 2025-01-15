@@ -71,7 +71,7 @@ services:
         tag: "rabbitmq"
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0.8
+    image: quay.io/keycloak/keycloak:26.1.0
     restart: unless-stopped
     entrypoint: /opt/keycloak_init/init-keycloak.sh
     command:
