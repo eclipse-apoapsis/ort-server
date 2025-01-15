@@ -77,11 +77,6 @@ interface OrtRunRepository {
     ): ListQueryResult<OrtRun>
 
     /**
-     * List all finished ORT runs before [before].
-     */
-    fun listRunsBefore(before: Instant): ListQueryResult<OrtRun>
-
-    /**
      * List all ORT runs for a [repository][repositoryId] according to the given [parameters].
      */
     fun listForRepository(
@@ -103,6 +98,11 @@ interface OrtRunRepository {
      * `ACTIVE` and `CREATED`.
      */
     fun listActiveRuns(): List<ActiveOrtRun>
+
+    /**
+     * Return a [List] with the IDs of all ORT runs that have finished before [before].
+     */
+    fun findRunsBefore(before: Instant): List<Long>
 
     /**
      * Update an ORT run by [id] with the [present][OptionalValue.Present] values. If [issues] or [labels] are

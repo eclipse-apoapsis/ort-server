@@ -121,12 +121,6 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             }
         }
 
-    override fun listRunsBefore(before: Instant): ListQueryResult<OrtRun> = db.blockingQuery {
-        OrtRunDao.listQuery(ListQueryParameters.DEFAULT.copy(limit = Int.MAX_VALUE), OrtRunDao::mapToModel) {
-            OrtRunsTable.finishedAt less before
-        }
-    }
-
     override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): ListQueryResult<OrtRun> =
         db.blockingQueryCatching {
             OrtRunDao.listQuery(parameters, OrtRunDao::mapToModel) { OrtRunsTable.repositoryId eq repositoryId }
@@ -150,6 +144,12 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         OrtRunDao.find {
             OrtRunsTable.status inList activeRunStatuses
         }.map { ActiveOrtRun(it.id.value, it.createdAt, it.traceId) }
+    }
+
+    override fun findRunsBefore(before: Instant): List<Long> = db.blockingQuery {
+        OrtRunsTable.select(OrtRunsTable.id)
+            .where { OrtRunsTable.finishedAt less before }
+            .map { it[OrtRunsTable.id].value }
     }
 
     override fun update(
