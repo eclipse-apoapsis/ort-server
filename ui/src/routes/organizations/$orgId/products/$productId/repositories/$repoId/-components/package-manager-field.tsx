@@ -20,6 +20,7 @@
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
 
+import { MultiSelectField } from '@/components/form/multi-select-field';
 import {
   Accordion,
   AccordionContent,
@@ -261,7 +262,7 @@ const FieldWithOptions = ({ form, pmIndex, pmName }: FieldWithOptionsProps) => {
           ))}
           <Button
             size='sm'
-            className='mt-2'
+            className='mb-4 mt-2'
             variant='outline'
             type='button'
             onClick={() => {
@@ -271,6 +272,13 @@ const FieldWithOptions = ({ form, pmIndex, pmName }: FieldWithOptionsProps) => {
             Add option
             <PlusIcon className='ml-1 h-4 w-4' />
           </Button>
+          <MultiSelectField
+            form={form}
+            name={`jobConfigs.analyzer.packageManagers.${pmName}.mustRunAfter`}
+            label='Must run after'
+            description='A list of package manager names that this package manager must run after. For example, this can be used, if another package manager generates files that this package manager requires to run correctly.'
+            options={packageManagers.filter((pm) => pm.id !== pmName)}
+          />
           <Separator className='my-2' />
         </AccordionContent>
       </AccordionItem>
