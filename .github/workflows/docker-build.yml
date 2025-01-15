@@ -49,6 +49,8 @@ jobs:
           task: :orchestrator:jibDockerBuild
         - jibImage: kubernetes-jobmonitor
           task: :kubernetes:jobmonitor:jibDockerBuild
+        - jibImage: maintenance-tasks
+          task: :tasks:jibDockerBuild
         - jibImage: advisor-worker
           task: :workers:advisor:jibDockerBuild
         - image: analyzer-worker-base-image
