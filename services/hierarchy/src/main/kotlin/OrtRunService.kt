@@ -81,13 +81,13 @@ class OrtRunService(
      * their reports are deleted from storage.
      */
     suspend fun deleteRunsCreatedBefore(before: Instant) {
-        val runs = ortRunRepository.listRunsBefore(before)
+        val runIds = ortRunRepository.findRunsBefore(before)
 
-        logger.info("Deleting ${runs.totalCount} ORT runs older than $before.")
+        logger.info("Deleting ${runIds.size} ORT runs older than $before.")
 
-        runs.data.forEach { run ->
+        runIds.forEach { runId ->
             runCatching {
-                deleteOrtRun(run.id)
+                deleteOrtRun(runId)
             }
         }
     }

@@ -30,6 +30,12 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
+
+import kotlin.time.Duration.Companion.seconds
+
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
@@ -56,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
+@Suppress("LargeClass")
 class DaoOrtRunRepositoryTest : StringSpec({
     val dbExtension = extension(DatabaseTestExtension())
 
@@ -85,6 +92,10 @@ class DaoOrtRunRepositoryTest : StringSpec({
         organizationId = dbExtension.fixtures.organization.id
         productId = dbExtension.fixtures.product.id
         repositoryId = dbExtension.fixtures.repository.id
+    }
+
+    afterEach {
+        unmockkAll()
     }
 
     "create should create an entry in the database" {
@@ -449,6 +460,58 @@ class DaoOrtRunRepositoryTest : StringSpec({
             ActiveOrtRun(createdRun.id, createdRun.createdAt, createdRun.traceId),
             ActiveOrtRun(activeRun.id, activeRun.createdAt, activeRun.traceId)
         )
+    }
+
+    "findRunsBefore should return all runs before a given time" {
+        val refTime = Instant.parse("2025-01-15T08:34:48Z")
+        val finishedTimes = listOf(
+            refTime - 10.seconds,
+            refTime - 1.seconds,
+            refTime,
+            refTime + 1.seconds
+        )
+
+        // Mock the clock to have defined finishedAt times for the test ORT runs.
+        // For each run, the repository queries the clock twice: for the creation and the completion time.
+        val mockTimes = buildList {
+            finishedTimes.forEach {
+                add(it - 30.seconds)
+                add(it)
+            }
+        }
+        mockkObject(Clock.System)
+        every {
+            Clock.System.now()
+        } returnsMany mockTimes
+
+        fun createFinishedRun(): OrtRun =
+            ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                jobConfigurations,
+                null,
+                labelsMap,
+                traceId = "irrelevant",
+                null
+            ).run { ortRunRepository.update(id, status = OrtRunStatus.FINISHED.asPresent()) }
+
+        val runs = List(4) { createFinishedRun() }
+        ortRunRepository.create(
+            repositoryId,
+            "revision_active",
+            null,
+            jobConfigurations,
+            null,
+            labelsMap,
+            traceId = "irrelevant",
+            null
+        )
+
+        val runsBefore = ortRunRepository.findRunsBefore(refTime)
+
+        val expectedIds = runs.take(2).map(OrtRun::id)
+        runsBefore shouldContainExactlyInAnyOrder expectedIds
     }
 
     "update should update an entry in the database" {
