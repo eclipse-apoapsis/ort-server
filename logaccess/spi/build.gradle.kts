@@ -30,9 +30,11 @@ group = "org.eclipse.apoapsis.ortserver.logaccess"
 
 dependencies {
     api(projects.config.configSpi)
+    api(projects.model)
 
     api(libs.kotlinxDatetime)
 
+    implementation(projects.model)
     implementation(projects.utils.config)
 
     implementation(libs.kotlinxCoroutines)
@@ -46,5 +48,6 @@ dependencies {
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 
+    testFixturesImplementation(projects.model)
     testFixturesImplementation(projects.utils.config)
 }

@@ -40,8 +40,8 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProvider
-import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
-import org.eclipse.apoapsis.ortserver.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.model.LogLevel
+import org.eclipse.apoapsis.ortserver.model.LogSource
 
 import org.slf4j.LoggerFactory
 

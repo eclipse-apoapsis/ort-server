@@ -23,6 +23,9 @@ import java.io.File
 
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.model.LogLevel
+import org.eclipse.apoapsis.ortserver.model.LogSource
+
 /**
  * The Service Provider Interface for the log file provider abstraction.
  *

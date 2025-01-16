@@ -32,6 +32,7 @@ dependencies {
     api(libs.typesafeConfig)
 
     implementation(projects.logaccess.logaccessSpi)
+    implementation(projects.model)
     implementation(projects.utils.config)
 
     implementation(libs.ktorClientAuth)

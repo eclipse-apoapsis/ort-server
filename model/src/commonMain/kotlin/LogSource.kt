@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.logaccess
+package org.eclipse.apoapsis.ortserver.model
 
 /**
  * An enumeration class that defines the different sources for which log files can be downloaded. The sources
