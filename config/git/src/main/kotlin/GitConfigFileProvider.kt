@@ -32,7 +32,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 import org.ossreviewtoolkit.downloader.WorkingTree
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.Git
+import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitFactory
 
 import org.slf4j.LoggerFactory
 
@@ -69,7 +69,7 @@ class GitConfigFileProvider internal constructor(
     // Here, FQN is used deliberately to distinguish the regular top-level function from the extension function on Any.
     constructor(gitUrl: String) : this(gitUrl, org.ossreviewtoolkit.utils.ort.createOrtTempDir())
 
-    private val git = Git()
+    private val git = GitFactory.create()
 
     private lateinit var workingTree: WorkingTree
     private lateinit var unresolvedRevision: String
