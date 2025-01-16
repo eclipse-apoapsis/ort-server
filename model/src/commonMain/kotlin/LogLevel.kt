@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.logaccess
+package org.eclipse.apoapsis.ortserver.model
 
 import java.util.EnumSet
 

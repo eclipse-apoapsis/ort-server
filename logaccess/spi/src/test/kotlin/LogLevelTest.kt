@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.logaccess
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 
+import org.eclipse.apoapsis.ortserver.model.LogLevel
+
 class LogLevelTest : WordSpec({
     "levelOrHigher" should {
         "return a correct set for the ERROR level" {

@@ -39,6 +39,8 @@ import java.util.EnumSet
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.model.LogLevel
+import org.eclipse.apoapsis.ortserver.model.LogSource
 
 import org.ossreviewtoolkit.utils.common.unpack
 

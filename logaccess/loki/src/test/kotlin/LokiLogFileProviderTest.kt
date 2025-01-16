@@ -58,8 +58,8 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
-import org.eclipse.apoapsis.ortserver.logaccess.LogLevel
-import org.eclipse.apoapsis.ortserver.logaccess.LogSource
+import org.eclipse.apoapsis.ortserver.model.LogLevel
+import org.eclipse.apoapsis.ortserver.model.LogSource
 
 class LokiLogFileProviderTest : StringSpec() {
     private val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
