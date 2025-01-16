@@ -21,6 +21,7 @@ import { Link, LinkOptions } from '@tanstack/react-router';
 import { flexRender, GroupingState, HeaderGroup } from '@tanstack/react-table';
 import { ChevronDown, ChevronsUpDown, ChevronUp, Group } from 'lucide-react';
 
+import { DataTableFilter } from '@/components/data-table/data-table-filter';
 import { Button } from '@/components/ui/button';
 import { TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
@@ -69,16 +70,10 @@ export function DataTableHeader<TData>({
                   >
                     <Button
                       variant={column.getIsGrouped() ? 'secondary' : 'ghost'}
-                      className='-ml-2 px-2'
+                      className='px-1'
                       onClick={column.getToggleGroupingHandler()}
                     >
-                      <div className='flex items-center gap-2'>
-                        {flexRender(
-                          column.columnDef.header,
-                          header.getContext()
-                        )}
-                        <Group className='h-4 w-4' />
-                      </div>
+                      <Group className='h-4 w-4' />
                     </Button>
                   </Link>
                 </TooltipTrigger>
@@ -106,22 +101,16 @@ export function DataTableHeader<TData>({
                   >
                     <Button
                       variant='ghost'
-                      className='-ml-2 px-2'
+                      className='px-1'
                       onClick={column.getToggleSortingHandler()}
                     >
-                      <div className='flex items-center gap-2'>
-                        {flexRender(
-                          column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {column.getIsSorted() === 'asc' ? (
-                          <ChevronUp className='h-4 w-4' />
-                        ) : column.getIsSorted() === 'desc' ? (
-                          <ChevronDown className='h-4 w-4' />
-                        ) : (
-                          <ChevronsUpDown className='h-4 w-4' />
-                        )}
-                      </div>
+                      {column.getIsSorted() === 'asc' ? (
+                        <ChevronUp className='h-4 w-4' />
+                      ) : column.getIsSorted() === 'desc' ? (
+                        <ChevronDown className='h-4 w-4' />
+                      ) : (
+                        <ChevronsUpDown className='h-4 w-4' />
+                      )}
                     </Button>
                   </Link>
                 </TooltipTrigger>
@@ -143,18 +132,23 @@ export function DataTableHeader<TData>({
                 style={{ minWidth: column.columnDef.size }}
                 colSpan={header.colSpan}
               >
-                {header.isPlaceholder
-                  ? null
-                  : groupingEnabled &&
+                {header.isPlaceholder ? null : (
+                  <div className='flex items-center gap-2'>
+                    {flexRender(column.columnDef.header, header.getContext())}
+                    <div className='gap-1'>
+                      {groupingEnabled &&
                       setGroupingOptions &&
                       column.getCanGroup()
-                    ? renderGroupButton()
-                    : setSortingOptions && column.getCanSort()
-                      ? renderSortButton()
-                      : flexRender(
-                          column.columnDef.header,
-                          header.getContext()
-                        )}
+                        ? renderGroupButton()
+                        : setSortingOptions && column.getCanSort()
+                          ? renderSortButton()
+                          : null}
+                      {column.getCanFilter() && (
+                        <DataTableFilter column={column} />
+                      )}
+                    </div>
+                  </div>
+                )}
               </TableHead>
             );
           })}
