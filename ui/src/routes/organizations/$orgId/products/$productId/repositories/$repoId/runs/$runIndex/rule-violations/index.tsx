@@ -55,6 +55,7 @@ import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import {
+  packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   severitySchema,
   severitySearchParameterSchema,
@@ -157,11 +158,21 @@ const RuleViolationsComponent = () => {
         return identifierToString(ruleViolation.packageId);
       },
       {
+        id: 'packageIdentifier',
         header: 'Package',
         cell: ({ getValue }) => {
           return <div className='font-semibold'>{getValue()}</div>;
         },
-        enableColumnFilter: false,
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, pkgId: value },
+              });
+            },
+          },
+        },
       }
     ),
     columnHelper.accessor('rule', {
@@ -192,10 +203,22 @@ const RuleViolationsComponent = () => {
     [search.severity]
   );
 
-  const columnFilters = useMemo(
-    () => (severity ? [{ id: 'severity', value: severity }] : []),
-    [severity]
+  const packageIdentifier = useMemo(
+    () => (search.pkgId ? search.pkgId : undefined),
+    [search.pkgId]
   );
+
+  const columnFilters = useMemo(() => {
+    const filters = [];
+    if (severity) {
+      filters.push({ id: 'severity', value: severity });
+    }
+    if (packageIdentifier) {
+      filters.push({ id: 'packageIdentifier', value: packageIdentifier });
+    }
+    return filters;
+  }, [severity, packageIdentifier]);
+
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
     [search.sortBy]
@@ -278,6 +301,7 @@ export const Route = createFileRoute(
 )({
   validateSearch: paginationSearchParameterSchema
     .merge(severitySearchParameterSchema)
+    .merge(packageIdentifierSearchParameterSchema)
     .merge(sortingSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {

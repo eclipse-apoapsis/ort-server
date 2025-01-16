@@ -61,3 +61,7 @@ export const statusSearchParameterSchema = z.object({
 export const severitySearchParameterSchema = z.object({
   severity: z.array(severitySchema).optional(),
 });
+
+export const packageIdentifierSearchParameterSchema = z.object({
+  pkgId: z.string().optional(),
+});
