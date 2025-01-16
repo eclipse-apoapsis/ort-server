@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import { CheckIcon, PlusCircledIcon } from '@radix-ui/react-icons';
+import { CheckIcon } from '@radix-ui/react-icons';
+import { Filter } from 'lucide-react';
 import * as React from 'react';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -36,65 +36,35 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-interface FilterMultiSelectProps<T> {
+interface FilterMultiSelectProps<TValue> {
   title?: string;
   options: {
     label: string;
-    value: T;
+    value: TValue;
     icon?: React.ComponentType<{ className?: string }>;
   }[];
-  selected: T[];
-  setSelected: (selected: T[]) => void;
+  selected: TValue[];
+  setSelected: (selected: TValue[]) => void;
 }
 
-export function FilterMultiSelect<T extends string | number>({
+export function FilterMultiSelect<TValue>({
   title,
   options,
   selected,
   setSelected,
-}: FilterMultiSelectProps<T>) {
+}: FilterMultiSelectProps<TValue>) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant='outline' size='sm' className='h-8 border-dashed'>
-          <PlusCircledIcon className='mr-2 h-4 w-4' />
-          {title}
-          {selected.length > 0 && (
-            <>
-              <Separator orientation='vertical' className='mx-2 h-4' />
-              <Badge
-                variant='secondary'
-                className='rounded-sm px-1 font-normal lg:hidden'
-              >
-                {selected.length}
-              </Badge>
-              <div className='hidden space-x-1 lg:flex'>
-                {selected.length > 2 ? (
-                  <Badge
-                    variant='secondary'
-                    className='rounded-sm px-1 font-normal'
-                  >
-                    {selected.length} selected
-                  </Badge>
-                ) : (
-                  options
-                    .filter((option) => selected.includes(option.value))
-                    .map((option) => (
-                      <Badge
-                        variant='secondary'
-                        key={option.value.toString()}
-                        className='rounded-sm px-1 font-normal'
-                      >
-                        {option.label}
-                      </Badge>
-                    ))
-                )}
-              </div>
-            </>
-          )}
+        <Button variant='ghost' size='sm' className='px-1'>
+          <Filter
+            className={cn(
+              selected.length > 0 ? 'text-blue-500' : undefined,
+              'h-4 w-4'
+            )}
+          />
         </Button>
       </PopoverTrigger>
       <PopoverContent className='w-[200px] p-0' align='start'>
@@ -107,7 +77,7 @@ export function FilterMultiSelect<T extends string | number>({
                 const isSelected = selected.includes(option.value);
                 return (
                   <CommandItem
-                    key={option.value.toString()}
+                    key={String(option.value)}
                     onSelect={() => {
                       if (isSelected) {
                         setSelected(
@@ -144,7 +114,7 @@ export function FilterMultiSelect<T extends string | number>({
                     onSelect={() => setSelected([])}
                     className='justify-center text-center'
                   >
-                    Clear filters
+                    Clear selection
                   </CommandItem>
                 </CommandGroup>
               </>

@@ -32,10 +32,8 @@ import {
   useRunsServiceGetOrtRuns,
 } from '@/api/queries';
 import { prefetchUseRunsServiceGetOrtRuns } from '@/api/queries/prefetch';
-import { OrtRunSummary } from '@/api/requests';
+import { OrtRunStatus, OrtRunSummary } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
-import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
-import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
@@ -75,6 +73,8 @@ const RunsComponent = () => {
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const status = search.status;
   const navigate = Route.useNavigate();
+
+  const columnFilters = status ? [{ id: 'status', value: status }] : [];
 
   const columns = [
     columnHelper.display({
@@ -162,6 +162,24 @@ const RunsComponent = () => {
           {row.original.status}
         </Badge>
       ),
+      meta: {
+        filter: {
+          filterVariant: 'select',
+          selectOptions: runStatusSchema.options.map((status) => ({
+            label: status,
+            value: status,
+          })),
+          setSelected: (statuses: OrtRunStatus[]) => {
+            navigate({
+              search: {
+                ...search,
+                page: 1,
+                status: statuses.length === 0 ? undefined : statuses,
+              },
+            });
+          },
+        },
+      },
     }),
     columnHelper.display({
       id: 'jobStatuses',
@@ -243,9 +261,11 @@ const RunsComponent = () => {
         pageIndex,
         pageSize,
       },
+      columnFilters,
     },
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
+    manualFiltering: true,
   });
 
   if (error) {
@@ -269,34 +289,6 @@ const RunsComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTableToolbar
-          filters={
-            <FilterMultiSelect
-              title='Run Status'
-              options={runStatusSchema.options.map((status) => ({
-                label: status,
-                value: status,
-              }))}
-              selected={status || []}
-              setSelected={(statuses) => {
-                navigate({
-                  search: {
-                    ...search,
-                    page: 1,
-                    status: statuses.length === 0 ? undefined : statuses,
-                  },
-                });
-              }}
-            />
-          }
-          resetFilters={() => {
-            navigate({
-              search: { ...search, page: 1, status: undefined },
-            });
-          }}
-          resetBtnVisible={status !== undefined}
-          className='mb-2'
-        />
         <DataTable
           table={table}
           setCurrentPageOptions={(currentPage) => {

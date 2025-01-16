@@ -36,10 +36,8 @@ import {
   useRepositoriesServiceGetOrtRunByIndexSuspense,
   useRuleViolationsServiceGetRuleViolationsByRunIdSuspense,
 } from '@/api/queries/suspense';
-import { RuleViolation } from '@/api/requests';
+import { RuleViolation, Severity } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
-import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
-import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Badge } from '@/components/ui/badge';
@@ -135,6 +133,24 @@ const RuleViolationsComponent = () => {
       sortingFn: (rowA, rowB) => {
         return compareSeverity(rowA.original.severity, rowB.original.severity);
       },
+      meta: {
+        filter: {
+          filterVariant: 'select',
+          selectOptions: severitySchema.options.map((severity) => ({
+            label: severity,
+            value: severity,
+          })),
+          setSelected: (severities: Severity[]) => {
+            navigate({
+              search: {
+                ...search,
+                page: 1,
+                severity: severities.length === 0 ? undefined : severities,
+              },
+            });
+          },
+        },
+      },
     }),
     columnHelper.accessor(
       (ruleViolation) => {
@@ -227,34 +243,6 @@ const RuleViolationsComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTableToolbar
-          filters={
-            <FilterMultiSelect
-              title='Rule Violation Severity'
-              options={severitySchema.options.map((severity) => ({
-                label: severity,
-                value: severity,
-              }))}
-              selected={severity || []}
-              setSelected={(severities) => {
-                navigate({
-                  search: {
-                    ...search,
-                    page: 1,
-                    severity: severities.length === 0 ? undefined : severities,
-                  },
-                });
-              }}
-            />
-          }
-          resetFilters={() => {
-            navigate({
-              search: { ...search, page: 1, severity: undefined },
-            });
-          }}
-          resetBtnVisible={severity !== undefined}
-          className='mb-2'
-        />
         <DataTable
           table={table}
           renderSubComponent={renderSubComponent}
