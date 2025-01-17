@@ -76,8 +76,16 @@ data class AnalyzerJobConfiguration(
     /**
      * A flag indicating whether the submodules of the repository should be downloaded during the download process.
      * If set to `true`, submodules will be downloaded; if `false`, they will be ignored.
+     *
+     * Note: This attribute is deprecated and will be removed in a future release. Use [submoduleFetchStrategy] instead.
+     *
      */
     val recursiveCheckout: Boolean = true,
+
+    /**
+     * The strategy to use for fetching submodules.
+     */
+    val submoduleFetchStrategy: SubmoduleFetchStrategy? = null,
 
     /**
      * The list of package curation providers to use.
@@ -372,3 +380,24 @@ data class NotifierJobConfiguration(
      */
     val jira: JiraNotificationConfiguration? = null
 )
+
+@Serializable
+/**
+ * The strategy to use for fetching submodules.
+ */
+enum class SubmoduleFetchStrategy {
+    /**
+     * Don't fetch submodules at all.
+     */
+    DISABLED,
+
+    /**
+     * Only fetch the top level of submodules.
+     */
+    TOP_LEVEL_ONLY,
+
+    /**
+     * Fetch all nested submodules recursively.
+     */
+    FULLY_RECURSIVE
+}

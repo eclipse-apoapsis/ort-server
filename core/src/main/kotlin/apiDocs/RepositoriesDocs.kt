@@ -64,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy.FULLY_RECURSIVE
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
@@ -111,6 +112,7 @@ internal val fullJobConfigurations = JobConfigurations(
             )
         ),
         recursiveCheckout = true,
+        submoduleFetchStrategy = FULLY_RECURSIVE,
         skipExcluded = true
     ),
     advisor = AdvisorJobConfiguration(

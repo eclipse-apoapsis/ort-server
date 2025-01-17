@@ -21,8 +21,13 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import java.io.File
 
+import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
+
+import org.ossreviewtoolkit.downloader.VcsHost
 import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.model.VcsInfo
+import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.plugins.api.PluginConfig
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
@@ -34,22 +39,68 @@ class AnalyzerDownloader {
         repositoryUrl: String,
         revision: String,
         path: String = "",
-        recursiveCheckout: Boolean = true
+        recursiveCheckout: Boolean = true, // Deprecated: Will be removed in a future release
+        submoduleFetchStrategy: SubmoduleFetchStrategy? = null
     ): File {
         logger.info("Downloading repository '$repositoryUrl' revision '$revision'.")
 
         val outputDir = createOrtTempDir("analyzer-worker")
 
-        val vcs = VersionControlSystem.forUrl(repositoryUrl)
+        val config = buildCustomVcsPluginConfigMap(repositoryUrl, submoduleFetchStrategy)
+        val vcs = VersionControlSystem.forUrl(repositoryUrl, config)
         requireNotNull(vcs) { "Could not determine the VCS for URL '$repositoryUrl'." }
 
-        val vcsInfo = VcsInfo(vcs.type, repositoryUrl, revision, path)
+        val vcsInfo = VcsInfo(
+            type = vcs.type,
+            url = repositoryUrl,
+            revision = revision,
+            path = path
+        )
+
+        // The [submoduleFetchStrategy] parameter takes precedence over the deprecated [recursiveCheckout] parameter.
+        val combinedRecursiveCheckout = evaluateRecursiveCheckoutParameter(recursiveCheckout, submoduleFetchStrategy)
 
         val workingTree = vcs.initWorkingTree(outputDir, vcsInfo)
-        vcs.updateWorkingTree(workingTree, revision, recursive = recursiveCheckout).getOrThrow()
+        vcs.updateWorkingTree(workingTree, revision, recursive = combinedRecursiveCheckout).getOrThrow()
 
         logger.info("Finished downloading '$repositoryUrl' revision '$revision'.")
 
         return outputDir
     }
+
+    /**
+     * Build custom [PluginConfig] for Git VCS if the [submoduleFetchStrategy] is
+     * [SubmoduleFetchStrategy.TOP_LEVEL_ONLY].
+     */
+    internal fun buildCustomVcsPluginConfigMap(
+        repositoryUrl: String, submoduleFetchStrategy: SubmoduleFetchStrategy?
+    ) =
+        if (submoduleFetchStrategy == SubmoduleFetchStrategy.TOP_LEVEL_ONLY) {
+            val vcsType = VcsHost.parseUrl(repositoryUrl).type
+            require(vcsType == VcsType.GIT) {
+                "Submodule fetch strategy TOP_LEVEL_ONLY is only supported for Git repositories, " +
+                        "but got VCS type '$vcsType'."
+            }
+            mapOf(
+                VcsType.GIT.toString() to PluginConfig(
+                    options = mapOf("updateNestedSubmodules" to false.toString())
+                )
+            )
+        } else {
+            emptyMap()
+        }
+
+    /**
+     * Evaluate the [recursiveCheckout] and the [submoduleFetchStrategy] parameter to determine if the working tree
+     * should be checked out recursively. The [submoduleFetchStrategy] parameter takes precedence over the
+     * deprecated [recursiveCheckout] parameter.
+     */
+    internal fun evaluateRecursiveCheckoutParameter(
+        recursiveCheckout: Boolean, submoduleFetchStrategy: SubmoduleFetchStrategy?
+    ) =
+        if (submoduleFetchStrategy != null) {
+            submoduleFetchStrategy != SubmoduleFetchStrategy.DISABLED
+        } else {
+            recursiveCheckout
+        }
 }
