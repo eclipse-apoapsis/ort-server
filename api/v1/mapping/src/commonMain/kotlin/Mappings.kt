@@ -78,6 +78,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection as ApiSortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty as ApiSortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy as ApiSubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
@@ -122,6 +123,7 @@ import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
@@ -195,6 +197,7 @@ fun AnalyzerJobConfiguration.mapToApi() =
         enabledPackageManagers,
         environmentConfig?.mapToApi(),
         recursiveCheckout,
+        submoduleFetchStrategy?.mapToApi(),
         packageCurationProviders.map { it.mapToApi() },
         packageManagerOptions?.mapValues { it.value.mapToApi() },
         repositoryConfigPath,
@@ -208,6 +211,7 @@ fun ApiAnalyzerJobConfiguration.mapToModel() =
         enabledPackageManagers,
         environmentConfig?.mapToModel(),
         recursiveCheckout,
+        submoduleFetchStrategy?.mapToModel(),
         packageCurationProviders?.map { it.mapToModel() }.orEmpty(),
         packageManagerOptions?.mapValues { it.value.mapToModel() },
         repositoryConfigPath,
@@ -775,3 +779,15 @@ fun VulnerabilityWithAccumulatedData.mapToApi() = ApiProductVulnerability(
     ortRunIds = ortRunIds,
     repositoriesCount = repositoriesCount
 )
+
+fun SubmoduleFetchStrategy.mapToApi() = when (this) {
+    SubmoduleFetchStrategy.DISABLED -> ApiSubmoduleFetchStrategy.DISABLED
+    SubmoduleFetchStrategy.TOP_LEVEL_ONLY -> ApiSubmoduleFetchStrategy.TOP_LEVEL_ONLY
+    SubmoduleFetchStrategy.FULLY_RECURSIVE -> ApiSubmoduleFetchStrategy.FULLY_RECURSIVE
+}
+
+fun ApiSubmoduleFetchStrategy.mapToModel() = when (this) {
+    ApiSubmoduleFetchStrategy.DISABLED -> SubmoduleFetchStrategy.DISABLED
+    ApiSubmoduleFetchStrategy.TOP_LEVEL_ONLY -> SubmoduleFetchStrategy.TOP_LEVEL_ONLY
+    ApiSubmoduleFetchStrategy.FULLY_RECURSIVE -> SubmoduleFetchStrategy.FULLY_RECURSIVE
+}

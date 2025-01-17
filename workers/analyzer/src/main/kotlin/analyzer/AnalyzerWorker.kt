@@ -74,7 +74,8 @@ internal class AnalyzerWorker(
             repository.url,
             ortRun.revision,
             ortRun.path.orEmpty(),
-            job.configuration.recursiveCheckout
+            job.configuration.recursiveCheckout,
+            job.configuration.submoduleFetchStrategy
         )
 
         val resolvedEnvConfig = environmentService.setUpEnvironment(
