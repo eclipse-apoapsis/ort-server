@@ -19,8 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
-import org.eclipse.apoapsis.ortserver.dao.mapAndCompare
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
+
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicenseDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
@@ -31,7 +34,14 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.QueryBuilder
+import org.jetbrains.exposed.sql.alias
+import org.jetbrains.exposed.sql.andHaving
+import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.append
 
 /**
  * A table to represent a software package as a project.
@@ -49,20 +59,136 @@ object ProjectsTable : LongIdTable("projects") {
 
 class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<ProjectDao>(ProjectsTable) {
-        fun findByProject(project: Project): ProjectDao? =
-            find {
-                ProjectsTable.cpe eq project.cpe and
-                        (ProjectsTable.homepageUrl eq project.homepageUrl) and
-                        (ProjectsTable.definitionFilePath eq project.definitionFilePath)
-            }.firstOrNull {
-                it.identifier.mapToModel() == project.identifier &&
-                        mapAndCompare(it.authors, project.authors, AuthorDao::name) &&
-                        mapAndCompare(it.declaredLicenses, project.declaredLicenses, DeclaredLicenseDao::name) &&
-                        mapAndCompare(it.scopeNames, project.scopeNames, ProjectScopeDao::name) &&
-                        it.processedDeclaredLicense.mapToModel() == project.processedDeclaredLicense &&
-                        it.vcs.mapToModel() == project.vcs &&
-                        it.vcsProcessed.mapToModel() == project.vcsProcessed
+        fun findByProject(project: Project): ProjectDao? {
+            val vcsProcessed = VcsInfoTable.alias("vcs_processed_info")
+            val query = ProjectsTable
+                .leftJoin(IdentifiersTable)
+                .join(VcsInfoTable, JoinType.LEFT, onColumn = ProjectsTable.vcsId, otherColumn = VcsInfoTable.id)
+                .join(vcsProcessed, JoinType.LEFT, ProjectsTable.vcsProcessedId, vcsProcessed[VcsInfoTable.id])
+                .leftJoin(ProjectsAuthorsTable)
+                .leftJoin(AuthorsTable)
+                .leftJoin(ProjectsDeclaredLicensesTable)
+                .leftJoin(DeclaredLicensesTable)
+                .leftJoin(ProjectScopesTable)
+                .leftJoin(ProcessedDeclaredLicensesTable)
+                .leftJoin(ProcessedDeclaredLicensesMappedDeclaredLicensesTable)
+                .leftJoin(MappedDeclaredLicensesTable)
+                .leftJoin(ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable)
+                .leftJoin(UnmappedDeclaredLicensesTable)
+                .select(ProjectsTable.id)
+                .where { IdentifiersTable.type eq project.identifier.type }
+                .andWhere { IdentifiersTable.namespace eq project.identifier.namespace }
+                .andWhere { IdentifiersTable.name eq project.identifier.name }
+                .andWhere { IdentifiersTable.version eq project.identifier.version }
+                .andWhere { VcsInfoTable.type eq project.vcs.type.name }
+                .andWhere { VcsInfoTable.url eq project.vcs.url }
+                .andWhere { VcsInfoTable.revision eq project.vcs.revision }
+                .andWhere { VcsInfoTable.path eq project.vcs.path }
+                .andWhere { vcsProcessed[VcsInfoTable.type] eq project.vcsProcessed.type.name }
+                .andWhere { vcsProcessed[VcsInfoTable.url] eq project.vcsProcessed.url }
+                .andWhere { vcsProcessed[VcsInfoTable.revision] eq project.vcsProcessed.revision }
+                .andWhere { vcsProcessed[VcsInfoTable.path] eq project.vcsProcessed.path }
+                .groupBy(ProjectsTable.id, IdentifiersTable.id, VcsInfoTable.id, vcsProcessed[VcsInfoTable.id])
+                .having { ArrayAggDistinctEquals(AuthorsTable.name, project.authors) }
+                .andHaving { ArrayAggDistinctEquals(DeclaredLicensesTable.name, project.declaredLicenses) }
+                .andHaving { ArrayAggDistinctEquals(ProjectScopesTable.name, project.scopeNames) }
+                .andHaving {
+                    ArrayAggDistinctNullableEquals(
+                        ProcessedDeclaredLicensesTable.spdxExpression,
+                        setOf(project.processedDeclaredLicense.spdxExpression.toString())
+                    )
+                }
+                .andHaving {
+                    ArrayAggDistinctEquals(
+                        UnmappedDeclaredLicensesTable.unmappedLicense,
+                        project.processedDeclaredLicense.unmappedLicenses
+                    )
+                }
+                .andHaving {
+                    ArrayAggDistinctMultipleEquals(
+                        MappedDeclaredLicensesTable.declaredLicense,
+                        MappedDeclaredLicensesTable.mappedLicense,
+                        project.processedDeclaredLicense.mappedLicenses
+                    )
+                }
+
+            val id = query.firstOrNull()?.let { it[ProjectsTable.id] } ?: return null
+
+            return ProjectDao[id]
+        }
+
+        class ArrayAggDistinctMultipleEquals(
+            private val column1: Column<String>,
+            private val column2: Column<String>,
+            private val values: Map<String, String>
+        ) : Op<Boolean>() {
+            @OptIn(ExperimentalEncodingApi::class)
+            override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
+                val joinedValues = if (values.isEmpty()) {
+                    ":"
+                } else {
+                    values.entries.joinToString {
+                        "'${Base64.encode(it.key.toByteArray())}:${Base64.encode(it.value.toByteArray())}'"
+                    }
+                }
+
+                append("ARRAY_AGG(DISTINCT CONCAT(")
+                append("ENCODE(CONVERT_TO(", column1, ", 'UTF8'), 'base64'), ")
+                append("':', ")
+                append("ENCODE(CONVERT_TO(", column2, ", 'UTF8'), 'base64') ")
+                append(")) <@ ARRAY[", joinedValues, "]")
+                append(" AND ")
+                append("ARRAY_AGG(DISTINCT CONCAT(")
+                append("ENCODE(CONVERT_TO(", column1, ", 'UTF8'), 'base64'), ")
+                append("':', ")
+                append("ENCODE(CONVERT_TO(", column2, ", 'UTF8'), 'base64') ")
+                append(")) @> ARRAY[", joinedValues, "]")
             }
+        }
+
+        class ArrayAggDistinctEquals(
+            private val column: Column<String>,
+            private val value: Set<String>
+        ) : Op<Boolean>() {
+            @OptIn(ExperimentalEncodingApi::class)
+            override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
+                val joinedValue = if (value.isEmpty()) {
+                    "NULL"
+                } else {
+                    value.joinToString { "'${Base64.encode(it.toByteArray())}'" }
+                }
+
+                append("ARRAY_AGG(DISTINCT ")
+                append("ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64')")
+                append(") <@ ARRAY[", joinedValue, "]")
+                append(" AND ")
+                append("ARRAY_AGG(DISTINCT ")
+                append("ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64')")
+                append(") @> ARRAY[", joinedValue, "]")
+            }
+        }
+
+        class ArrayAggDistinctNullableEquals(
+            private val column: Column<String?>,
+            private val value: Set<String>
+        ) : Op<Boolean>() {
+            @OptIn(ExperimentalEncodingApi::class)
+            override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
+                val joinedValue = if (value.isEmpty()) {
+                    "NULL"
+                } else {
+                    value.joinToString { "'${Base64.encode(it.toByteArray())}'" }
+                }
+
+                append("ARRAY_AGG(DISTINCT ")
+                append("REPLACE(ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64'), E'\\n', '')")
+                append(") <@ ARRAY[", joinedValue, "]")
+                append(" AND ")
+                append("ARRAY_AGG(DISTINCT ")
+                append("REPLACE(ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64'), E'\\n', '')")
+                append(") @> ARRAY[", joinedValue, "]")
+            }
+        }
     }
 
     var identifier by IdentifierDao referencedOn ProjectsTable.identifierId
