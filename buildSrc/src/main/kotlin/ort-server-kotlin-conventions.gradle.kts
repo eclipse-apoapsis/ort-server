@@ -61,7 +61,7 @@ tasks.withType<Detekt>().configureEach {
 
 tasks.register("detektAll") {
     group = "Verification"
-    description = "Run all detekt tasks with and without type resolution."
+    description = "Run all detekt tasks with type resolution."
 
-    dependsOn(tasks.withType<Detekt>())
+    dependsOn(tasks.withType<Detekt>().filterNot { it.name == "detekt" })
 }
