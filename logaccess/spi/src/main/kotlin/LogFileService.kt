@@ -121,7 +121,7 @@ class LogFileService private constructor(
             downloadLogFiles(ortRunId, sources, level, startTime, endTime, downloadDir)
 
             val archiveFile = kotlin.io.path.createTempFile(tempDir, "logs", ".zip").toFile()
-            return downloadDir.packZip(archiveFile, overwrite = true)
+            return downloadDir.packZip(archiveFile, overwrite = true, fileFilter = { it.length() > 0 })
         } finally {
             downloadDir.safeDeleteRecursively()
         }
