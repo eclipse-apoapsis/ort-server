@@ -29,11 +29,20 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.services.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ReportStorageService
+import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.core.error.NoDefinitionFoundException
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -41,9 +50,19 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("TaskRunner")
 
+/**
+ * The main entry point of the task runner component.
+ *
+ * This function triggers the execution of the tasks whose names are specified in the configuration. The configuration
+ * is read from a section named `taskRunner`. It supports the following properties:
+ * - `tasks`: A comma-separated list of names for the tasks to be executed. This can be overridden using the `TASKS`
+ *   environment variable.
+ *
+ * The following tasks are available:
+ * - `delete-old-ort-runs`: Deletes old ORT runs according to the configured data retention policy.
+ */
 suspend fun main() {
-    // TODO: Add a module with the definitions of the tasks to execute.
-    runTasks(listOf(configModule(), databaseModule()))
+    runTasks(listOf(configModule(), databaseModule(), tasksModule()))
 }
 
 /**
@@ -90,6 +109,22 @@ internal suspend fun runTasks(modules: List<Module>) {
 internal fun configModule(): Module =
     module {
         single { ConfigManager.create(ConfigFactory.load()) }
+    }
+
+/**
+ * Create a [Module] for the standard tasks and their dependencies.
+ */
+private fun tasksModule(): Module =
+    module {
+        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+
+        single { Storage.create("reportStorage", get()) }
+
+        singleOf(::OrtRunService)
+        singleOf(::ReportStorageService)
+
+        single<Task>(named("delete-old-ort-runs")) { DeleteOldOrtRunsTask.create(get(), get()) }
     }
 
 /**
