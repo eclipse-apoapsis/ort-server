@@ -40,48 +40,21 @@ class ArrayAggColumnEquals(
 ) : Op<Boolean>() {
     @OptIn(ExperimentalEncodingApi::class)
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        val joinedValue = if (value.isEmpty()) {
-            "NULL"
+        if (value.isEmpty()) {
+            append("ARRAY_AGG(DISTINCT ")
+            append("ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64')")
+            append(") = ARRAY[NULL]")
         } else {
-            value.joinToString { "'${Base64.encode(it.toByteArray())}'" }
+            val joinedValue = value.joinToString { "'${Base64.encode(it.toByteArray())}'" }
+
+            append("ARRAY_AGG(DISTINCT ")
+            append("ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64')")
+            append(") <@ ARRAY[", joinedValue, "]")
+            append(" AND ")
+            append("ARRAY_AGG(DISTINCT ")
+            append("ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64')")
+            append(") @> ARRAY[", joinedValue, "]")
         }
-
-        append("ARRAY_AGG(DISTINCT ")
-        append("ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64')")
-        append(") <@ ARRAY[", joinedValue, "]")
-        append(" AND ")
-        append("ARRAY_AGG(DISTINCT ")
-        append("ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64')")
-        append(") @> ARRAY[", joinedValue, "]")
-    }
-}
-
-/**
- * A custom operation to check if the aggregated values of a nullable string column are equal to a set of values, to be
- * used in a WHERE or HAVING clause. This is useful for checking if a column contains a set of values, which is not
- * directly supported by Exposed.
- *
- * All values are encoded as base64 before comparison to handle special characters and to avoid SQL injection.
- */
-class ArrayAggNullableColumnEquals(
-    private val column: Column<String?>,
-    private val value: Set<String>
-) : Op<Boolean>() {
-    @OptIn(ExperimentalEncodingApi::class)
-    override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        val joinedValue = if (value.isEmpty()) {
-            "NULL"
-        } else {
-            value.joinToString { "'${Base64.encode(it.toByteArray())}'" }
-        }
-
-        append("ARRAY_AGG(DISTINCT ")
-        append("REPLACE(ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64'), E'\\n', '')")
-        append(") <@ ARRAY[", joinedValue, "]")
-        append(" AND ")
-        append("ARRAY_AGG(DISTINCT ")
-        append("REPLACE(ENCODE(CONVERT_TO(", column, ", 'UTF8'), 'base64'), E'\\n', '')")
-        append(") @> ARRAY[", joinedValue, "]")
     }
 }
 
