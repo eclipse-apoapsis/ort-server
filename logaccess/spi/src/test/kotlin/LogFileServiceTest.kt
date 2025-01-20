@@ -146,6 +146,42 @@ class LogFileServiceTest : WordSpec({
 
             archiveDir.walk().maxDepth(1).filter { it.isFile } should beEmpty()
         }
+
+        "exclude empty log files from the generated archive" {
+            val temp = tempdir()
+            val archiveDir = tempdir()
+
+            val logFileService = LogFileService.create(configManager, archiveDir.toPath())
+
+            LogFileProviderFactoryForTesting.addLogFile(
+                createLogFileCriteria(LogSource.CONFIG),
+                temp.createLogFile(LogSource.CONFIG)
+            )
+            LogFileProviderFactoryForTesting.addLogFile(
+                createLogFileCriteria(LogSource.EVALUATOR),
+                temp.createLogFile(LogSource.EVALUATOR, "")
+            )
+            LogFileProviderFactoryForTesting.addLogFile(
+                createLogFileCriteria(LogSource.REPORTER),
+                temp.createLogFile(LogSource.REPORTER)
+            )
+
+            val logArchive = logFileService.createLogFilesArchive(
+                RUN_ID,
+                EnumSet.of(LogSource.CONFIG, LogSource.EVALUATOR, LogSource.REPORTER),
+                LogLevel.WARN,
+                START_TIME,
+                END_TIME
+            )
+
+            logArchive.parentFile shouldBe archiveDir
+            val archiveContentDir = temp.resolve("archive")
+            logArchive.unpack(archiveContentDir)
+
+            val expectedLogFiles = listOf("config.log", "reporter.log")
+            archiveContentDir.walk().maxDepth(1).filter { it.isFile }
+                .mapTo(mutableListOf()) { it.name } shouldContainExactlyInAnyOrder expectedLogFiles
+        }
     }
 })
 
@@ -186,11 +222,11 @@ private fun createLogFileCriteria(
     LogFileCriteria(RUN_ID, source, levels, START_TIME, END_TIME)
 
 /**
- * Create a dummy log file under this directory for the given [source].
+ * Create a dummy log file under this directory for the given [source] with the given [content].
  */
-private fun File.createLogFile(source: LogSource): File {
+private fun File.createLogFile(source: LogSource, content: String = generateLog(source)): File {
     return resolve("${RUN_ID}_${source.name}.log").also {
-        it.writeText(generateLog(source))
+        it.writeText(content)
     }
 }
 
