@@ -26,7 +26,6 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggColumnEquals
-import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggNullableColumnEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggTwoColumnsEquals
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 
@@ -88,16 +87,13 @@ class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
                 .andWhere { vcsProcessed[VcsInfoTable.url] eq project.vcsProcessed.url }
                 .andWhere { vcsProcessed[VcsInfoTable.revision] eq project.vcsProcessed.revision }
                 .andWhere { vcsProcessed[VcsInfoTable.path] eq project.vcsProcessed.path }
+                .andWhere {
+                    ProcessedDeclaredLicensesTable.spdxExpression eq project.processedDeclaredLicense.spdxExpression
+                }
                 .groupBy(ProjectsTable.id, IdentifiersTable.id, VcsInfoTable.id, vcsProcessed[VcsInfoTable.id])
                 .having { ArrayAggColumnEquals(AuthorsTable.name, project.authors) }
                 .andHaving { ArrayAggColumnEquals(DeclaredLicensesTable.name, project.declaredLicenses) }
                 .andHaving { ArrayAggColumnEquals(ProjectScopesTable.name, project.scopeNames) }
-                .andHaving {
-                    ArrayAggNullableColumnEquals(
-                        ProcessedDeclaredLicensesTable.spdxExpression,
-                        setOf(project.processedDeclaredLicense.spdxExpression.toString())
-                    )
-                }
                 .andHaving {
                     ArrayAggColumnEquals(
                         UnmappedDeclaredLicensesTable.unmappedLicense,
