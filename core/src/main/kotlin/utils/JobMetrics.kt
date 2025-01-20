@@ -23,7 +23,20 @@ import io.ktor.server.application.Application
 
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import io.micrometer.core.instrument.binder.MeterBinder
+
+import java.util.concurrent.TimeUnit
+
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.core.plugins.DatabaseReady
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobDao
@@ -42,15 +55,35 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.transaction
 
 import org.slf4j.MDC
+
+private val TIMER_STEP = 30.seconds
 
 /**
  * A micrometer [MeterBinder] that provides metrics for ORT runs and jobs.
  */
 class JobMetrics(private val application: Application) : MeterBinder {
     override fun bindTo(registry: MeterRegistry) {
+        val analyzerTimer = Timer.builder("jobs.analyzer.duration")
+            .description("The duration of analyzer jobs.")
+            .register(registry)
+        val advisorTimer = Timer.builder("jobs.advisor.duration")
+            .description("The duration of advisor jobs.")
+            .register(registry)
+        val scannerTimer = Timer.builder("jobs.scanner.duration")
+            .description("The duration of scanner jobs.")
+            .register(registry)
+        val evaluatorTimer = Timer.builder("jobs.evaluator.duration")
+            .description("The duration of evaluator jobs.")
+            .register(registry)
+        val reporterTimer = Timer.builder("jobs.reporter.duration")
+            .description("The duration of reporter jobs.")
+            .register(registry)
+
         application.monitor.subscribe(DatabaseReady) {
             val component = MDC.get("component")
 
@@ -93,6 +126,33 @@ class JobMetrics(private val application: Application) : MeterBinder {
                 }.description("The number of scanner jobs with status '${status.name}'.")
                     .register(registry)
             }
+
+            CoroutineScope(Dispatchers.IO).launch {
+                while (true) {
+                    val now = Clock.System.now()
+                    getAnalyzerJobDurations(now - TIMER_STEP).forEach {
+                        analyzerTimer.record(it.inWholeSeconds, TimeUnit.SECONDS)
+                    }
+
+                    getAdvisorJobDurations(now - TIMER_STEP).forEach {
+                        advisorTimer.record(it.inWholeSeconds, TimeUnit.SECONDS)
+                    }
+
+                    getEvaluatorJobDurations(now - TIMER_STEP).forEach {
+                        evaluatorTimer.record(it.inWholeSeconds, TimeUnit.SECONDS)
+                    }
+
+                    getScannerJobDurations(now - TIMER_STEP).forEach {
+                        scannerTimer.record(it.inWholeSeconds, TimeUnit.SECONDS)
+                    }
+
+                    getReporterJobDurations(now - TIMER_STEP).forEach {
+                        reporterTimer.record(it.inWholeSeconds, TimeUnit.SECONDS)
+                    }
+
+                    delay(TIMER_STEP.inWholeMilliseconds)
+                }
+            }
         }
     }
 
@@ -113,4 +173,94 @@ class JobMetrics(private val application: Application) : MeterBinder {
 
     private fun countScannerJobs(status: JobStatus) =
         transaction { ScannerJobDao.count(ScannerJobsTable.status eq status).toDouble() }
+
+    private fun getAnalyzerJobDurations(timestamp: Instant): List<Duration> =
+        transaction {
+            AnalyzerJobsTable.select(AnalyzerJobsTable.startedAt, AnalyzerJobsTable.finishedAt).where {
+                    AnalyzerJobsTable.status eq JobStatus.FINISHED or
+                            (AnalyzerJobsTable.status eq JobStatus.FINISHED_WITH_ISSUES)
+                }.andWhere {
+                    AnalyzerJobsTable.startedAt.isNotNull()
+                }.andWhere {
+                    AnalyzerJobsTable.finishedAt.isNotNull()
+                }.andWhere {
+                    AnalyzerJobsTable.finishedAt greaterEq timestamp
+            }.mapNotNull {
+                val startedAt = it[AnalyzerJobsTable.startedAt] ?: return@mapNotNull null
+                val finishedAt = it[AnalyzerJobsTable.finishedAt] ?: return@mapNotNull null
+                finishedAt - startedAt
+            }
+        }
+
+    private fun getAdvisorJobDurations(timestamp: Instant): List<Duration> =
+        transaction {
+            AdvisorJobsTable.select(AdvisorJobsTable.startedAt, AdvisorJobsTable.finishedAt).where {
+                    AdvisorJobsTable.status eq JobStatus.FINISHED or
+                            (AdvisorJobsTable.status eq JobStatus.FINISHED_WITH_ISSUES)
+                }.andWhere {
+                    AdvisorJobsTable.startedAt.isNotNull()
+                }.andWhere {
+                    AdvisorJobsTable.finishedAt.isNotNull()
+                }.andWhere {
+                    AdvisorJobsTable.finishedAt greaterEq timestamp
+            }.mapNotNull {
+                val startedAt = it[AdvisorJobsTable.startedAt] ?: return@mapNotNull null
+                val finishedAt = it[AdvisorJobsTable.finishedAt] ?: return@mapNotNull null
+                finishedAt - startedAt
+            }
+        }
+
+    private fun getEvaluatorJobDurations(timestamp: Instant): List<Duration> =
+        transaction {
+            EvaluatorJobsTable.select(EvaluatorJobsTable.startedAt, EvaluatorJobsTable.finishedAt).where {
+                    EvaluatorJobsTable.status eq JobStatus.FINISHED or
+                            (EvaluatorJobsTable.status eq JobStatus.FINISHED_WITH_ISSUES)
+                }.andWhere {
+                    EvaluatorJobsTable.startedAt.isNotNull()
+                }.andWhere {
+                    EvaluatorJobsTable.finishedAt.isNotNull()
+                }.andWhere {
+                    EvaluatorJobsTable.finishedAt greaterEq timestamp
+            }.mapNotNull {
+                val startedAt = it[EvaluatorJobsTable.startedAt] ?: return@mapNotNull null
+                val finishedAt = it[EvaluatorJobsTable.finishedAt] ?: return@mapNotNull null
+                finishedAt - startedAt
+            }
+        }
+
+    private fun getScannerJobDurations(timestamp: Instant): List<Duration> =
+        transaction {
+            ScannerJobsTable.select(ScannerJobsTable.startedAt, ScannerJobsTable.finishedAt).where {
+                    ScannerJobsTable.status eq JobStatus.FINISHED or
+                            (ScannerJobsTable.status eq JobStatus.FINISHED_WITH_ISSUES)
+                }.andWhere {
+                    ScannerJobsTable.startedAt.isNotNull()
+                }.andWhere {
+                    ScannerJobsTable.finishedAt.isNotNull()
+                }.andWhere {
+                    ScannerJobsTable.finishedAt greaterEq timestamp
+            }.mapNotNull {
+                val startedAt = it[ScannerJobsTable.startedAt] ?: return@mapNotNull null
+                val finishedAt = it[ScannerJobsTable.finishedAt] ?: return@mapNotNull null
+                finishedAt - startedAt
+            }
+        }
+
+    private fun getReporterJobDurations(timestamp: Instant): List<Duration> =
+        transaction {
+            ReporterJobsTable.select(ReporterJobsTable.startedAt, ReporterJobsTable.finishedAt).where {
+                    ReporterJobsTable.status eq JobStatus.FINISHED or
+                            (ReporterJobsTable.status eq JobStatus.FINISHED_WITH_ISSUES)
+                }.andWhere {
+                    ReporterJobsTable.startedAt.isNotNull()
+                }.andWhere {
+                    ReporterJobsTable.finishedAt.isNotNull()
+                }.andWhere {
+                    ReporterJobsTable.finishedAt greaterEq timestamp
+            }.mapNotNull {
+                val startedAt = it[ReporterJobsTable.startedAt] ?: return@mapNotNull null
+                val finishedAt = it[ReporterJobsTable.finishedAt] ?: return@mapNotNull null
+                finishedAt - startedAt
+            }
+        }
 }
