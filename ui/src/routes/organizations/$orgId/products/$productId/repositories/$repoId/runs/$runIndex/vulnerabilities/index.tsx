@@ -300,15 +300,11 @@ const VulnerabilitiesComponent = () => {
           Vulnerabilities ({vulnerabilities.pagination.totalCount} in total)
         </CardTitle>
         <CardDescription>
-          These are the vulnerabilities found currently in the project. Please
-          note that the vulnerability status may change over time, as your
-          project dependencies change. Therefore, your project should be scanned
-          for vulnerabilities regularly.
-        </CardDescription>
-        <CardDescription>
-          By clicking on "References" you can see more information about the
-          vulnerability. The overall severity rating is calculated based on the
-          highest severity rating found in the references.
+          This view shows the vulnerabilities found in any of the packages used
+          as dependencies of a project. As vulnerabilities may be only
+          discovered over time, new vulnerabilities may arise even without
+          changes to the any of the projects or their dependencies. Therefore,
+          it is important to check for vulnerabilities on a regular basis.
         </CardDescription>
       </CardHeader>
       <CardContent>

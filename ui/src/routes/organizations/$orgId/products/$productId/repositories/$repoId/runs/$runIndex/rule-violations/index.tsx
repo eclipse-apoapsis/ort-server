@@ -261,10 +261,8 @@ const RuleViolationsComponent = () => {
           Rule violations ({ruleViolations.pagination.totalCount} in total)
         </CardTitle>
         <CardDescription>
-          These are the rule violations found from the ORT run. Please note that
-          the status may change over time, as your project dependencies change.
-          Therefore, your project should be scanned for rule violations
-          regularly.
+          This view shows all violations that go against the rules defined in
+          the configured policy.
         </CardDescription>
       </CardHeader>
       <CardContent>
