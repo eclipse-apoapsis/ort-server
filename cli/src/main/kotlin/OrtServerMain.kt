@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClientConfig
 import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
 
-const val COMMAND_NAME = "ort-server"
+const val COMMAND_NAME = "osc"
 
 suspend fun main(args: Array<String>) {
     OrtServerMain().main(args)

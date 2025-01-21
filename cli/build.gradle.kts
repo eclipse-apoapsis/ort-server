@@ -39,7 +39,7 @@ tasks.withType<JibTask> {
 }
 
 application {
-    applicationName = "ort-server"
+    applicationName = "osc"
     mainClass = "org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt"
 }
 
