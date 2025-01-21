@@ -27,8 +27,12 @@ import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
 import aws.smithy.kotlin.runtime.content.writeToFile
 
+import java.io.File
 import java.io.InputStream
+import java.security.MessageDigest
 
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.outputStream
@@ -36,6 +40,8 @@ import kotlin.io.path.outputStream
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.StorageEntry
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
+
+import org.ossreviewtoolkit.utils.common.calculateHash
 
 /**
  * Implementation of the [StorageProvider] interface that is backed by AWS S3 storage.
@@ -83,6 +89,7 @@ class S3StorageProvider(
                     body = ByteStream.fromFile(tempFile.toFile())
                     this.contentType = contentType
                     this.key = key.key
+                    checksumSha256 = calculateSha256Checksum(tempFile.toFile())
                 }
             )
         } finally {
@@ -116,3 +123,13 @@ class S3StorageProvider(
         false
     }
 }
+
+/** The algorithm used for checksum calculation. */
+private const val CHECKSUM_ALGORITHM = "SHA-256"
+
+/**
+ * Calculate a SHA256 checksum for the given [data] file. This is used to verify the integrity of uploaded data.
+ */
+@OptIn(ExperimentalEncodingApi::class)
+private fun calculateSha256Checksum(data: File): String =
+    Base64.encode(calculateHash(data, MessageDigest.getInstance(CHECKSUM_ALGORITHM)))
