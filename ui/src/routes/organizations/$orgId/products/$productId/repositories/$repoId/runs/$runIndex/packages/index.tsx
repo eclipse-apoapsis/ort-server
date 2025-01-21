@@ -244,7 +244,8 @@ const PackagesComponent = () => {
           Packages ({packages.pagination.totalCount} in total)
         </CardTitle>
         <CardDescription>
-          Table of deduplicated packages found as dependencies of the project.
+          This view shows the flat set of de-duplicated packages discovered for
+          all projects.
         </CardDescription>
       </CardHeader>
       <CardContent>

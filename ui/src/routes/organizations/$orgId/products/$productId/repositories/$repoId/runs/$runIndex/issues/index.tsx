@@ -261,7 +261,10 @@ const IssuesComponent = () => {
       <CardHeader>
         <CardTitle>Issues ({issues.pagination.totalCount} in total)</CardTitle>
         <CardDescription>
-          These are the technical issues that were found during the analysis.
+          This view shows any technical issues that were discovered by the
+          respective source. As technical issues might have an impact on the
+          completeness of metadata, it is highly recommended to resolve any
+          technical issues before acting on any compliance related findings.
         </CardDescription>
       </CardHeader>
       <CardContent>
