@@ -61,9 +61,8 @@ export function DataTablePagination({
   const navigate = useNavigate();
 
   return (
-    <div className='flex flex-col items-center justify-end gap-4 sm:flex-row sm:gap-6 lg:gap-8'>
+    <div className='flex flex-col items-center justify-between gap-4 sm:flex-row sm:gap-6 lg:gap-8'>
       <div className='flex items-center space-x-2'>
-        <p className='whitespace-nowrap text-sm font-medium'>Items per page</p>
         <Select
           value={`${pageSize}`}
           onValueChange={(value) => {
@@ -82,78 +81,81 @@ export function DataTablePagination({
             ))}
           </SelectContent>
         </Select>
-      </div>
-      <div className='flex items-center whitespace-nowrap text-sm font-medium'>
-        Page{' '}
-        <Input
-          type='number'
-          value={currentPage}
-          onChange={(event) => {
-            const value = Number(event.target.value);
-            const navigationOptions = setCurrentPageOptions(
-              value > totalPages ? totalPages : value < 1 ? 1 : value
-            );
-            navigate(navigationOptions);
-          }}
-          className='mx-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
-          max={totalPages}
-          min={1}
-        />{' '}
-        of {totalPages}
+        <p className='whitespace-nowrap text-sm font-medium'>items per page</p>
       </div>
       <div className='flex items-center space-x-2'>
-        <Link disabled={currentPage <= 1} {...setCurrentPageOptions(1)}>
-          <Button
-            aria-label='Go to first page'
-            variant='outline'
-            className='hidden size-8 p-0 lg:flex'
+        <div className='flex items-center whitespace-nowrap text-sm font-medium'>
+          Page{' '}
+          <Input
+            type='number'
+            value={currentPage}
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              const navigationOptions = setCurrentPageOptions(
+                value > totalPages ? totalPages : value < 1 ? 1 : value
+              );
+              navigate(navigationOptions);
+            }}
+            className='mx-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
+            max={totalPages}
+            min={1}
+          />{' '}
+          of {totalPages}
+        </div>
+        <div className='flex items-center space-x-2'>
+          <Link disabled={currentPage <= 1} {...setCurrentPageOptions(1)}>
+            <Button
+              aria-label='Go to first page'
+              variant='outline'
+              className='hidden size-8 p-0 lg:flex'
+              disabled={currentPage <= 1}
+            >
+              <DoubleArrowLeftIcon className='size-4' aria-hidden='true' />
+            </Button>
+          </Link>
+          <Link
             disabled={currentPage <= 1}
+            {...setCurrentPageOptions(currentPage - 1)}
           >
-            <DoubleArrowLeftIcon className='size-4' aria-hidden='true' />
-          </Button>
-        </Link>
-        <Link
-          disabled={currentPage <= 1}
-          {...setCurrentPageOptions(currentPage - 1)}
-        >
-          <Button
-            aria-label='Go to previous page'
-            variant='outline'
-            size='icon'
-            className='size-8'
-            disabled={currentPage <= 1}
-          >
-            <ChevronLeftIcon className='size-4' aria-hidden='true' />
-          </Button>
-        </Link>
-        <Link
-          disabled={currentPage >= totalPages}
-          {...setCurrentPageOptions(currentPage + 1)}
-        >
-          <Button
-            aria-label='Go to next page'
-            variant='outline'
-            size='icon'
-            className='size-8'
+            <Button
+              aria-label='Go to previous page'
+              variant='outline'
+              size='icon'
+              className='size-8'
+              disabled={currentPage <= 1}
+            >
+              <ChevronLeftIcon className='size-4' aria-hidden='true' />
+            </Button>
+          </Link>
+          <Link
             disabled={currentPage >= totalPages}
+            {...setCurrentPageOptions(currentPage + 1)}
           >
-            <ChevronRightIcon className='size-4' aria-hidden='true' />
-          </Button>
-        </Link>
-        <Link
-          disabled={currentPage >= totalPages}
-          {...setCurrentPageOptions(totalPages)}
-        >
-          <Button
-            aria-label='Go to last page'
-            variant='outline'
-            size='icon'
-            className='hidden size-8 lg:flex'
+            <Button
+              aria-label='Go to next page'
+              variant='outline'
+              size='icon'
+              className='size-8'
+              disabled={currentPage >= totalPages}
+            >
+              <ChevronRightIcon className='size-4' aria-hidden='true' />
+            </Button>
+          </Link>
+          <Link
             disabled={currentPage >= totalPages}
+            {...setCurrentPageOptions(totalPages)}
           >
-            <DoubleArrowRightIcon className='size-4' aria-hidden='true' />
-          </Button>
-        </Link>
+            <Button
+              aria-label='Go to last page'
+              variant='outline'
+              size='icon'
+              className='hidden size-8 lg:flex'
+              disabled={currentPage >= totalPages}
+            >
+              <DoubleArrowRightIcon className='size-4' aria-hidden='true' />
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
