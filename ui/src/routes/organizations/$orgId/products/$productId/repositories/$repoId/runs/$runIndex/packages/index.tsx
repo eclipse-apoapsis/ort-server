@@ -240,7 +240,9 @@ const PackagesComponent = () => {
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>Packages (ORT run global ID: {ortRun.id})</CardTitle>
+        <CardTitle>
+          Packages ({packages.pagination.totalCount} in total)
+        </CardTitle>
         <CardDescription>
           Table of deduplicated packages found as dependencies of the project.
         </CardDescription>
