@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
 import com.github.ajalt.clikt.command.main
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
@@ -58,6 +59,10 @@ class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
             message = { "$commandName CLI version $it" }
         )
     }
+
+    override fun help(context: Context) = """
+        The ORT Server Client (OSC) is a Command Line Interface (CLI) to interact with an ORT Server instance.
+    """.trimIndent()
 }
 
 class OrtServerOptions : OptionGroup(
