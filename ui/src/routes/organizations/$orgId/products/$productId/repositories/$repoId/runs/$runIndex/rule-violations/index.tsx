@@ -257,7 +257,9 @@ const RuleViolationsComponent = () => {
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>Rule violations (ORT run global ID: {ortRun.id})</CardTitle>
+        <CardTitle>
+          Rule violations ({ruleViolations.pagination.totalCount} in total)
+        </CardTitle>
         <CardDescription>
           These are the rule violations found from the ORT run. Please note that
           the status may change over time, as your project dependencies change.

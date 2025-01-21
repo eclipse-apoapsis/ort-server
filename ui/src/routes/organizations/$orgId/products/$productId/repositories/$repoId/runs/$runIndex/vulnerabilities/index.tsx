@@ -296,7 +296,9 @@ const VulnerabilitiesComponent = () => {
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>Vulnerabilities (ORT run global ID: {ortRun.id})</CardTitle>
+        <CardTitle>
+          Vulnerabilities ({vulnerabilities.pagination.totalCount} in total)
+        </CardTitle>
         <CardDescription>
           These are the vulnerabilities found currently in the project. Please
           note that the vulnerability status may change over time, as your

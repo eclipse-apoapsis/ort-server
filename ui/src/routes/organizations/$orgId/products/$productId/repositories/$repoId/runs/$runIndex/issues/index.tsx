@@ -259,7 +259,7 @@ const IssuesComponent = () => {
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>Issues (ORT run global ID: {ortRun.id})</CardTitle>
+        <CardTitle>Issues ({issues.pagination.totalCount} in total)</CardTitle>
         <CardDescription>
           These are the technical issues that were found during the analysis.
         </CardDescription>
