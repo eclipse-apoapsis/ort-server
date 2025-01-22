@@ -80,14 +80,61 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         dbEntry shouldBe expectedRun
     }
 
-    "create should deduplicate packages" {
+    "create should deduplicate packages with empty metadata" {
+        val pkg = Package(
+            identifier = Identifier("", "", "", ""),
+            purl = "",
+            cpe = null,
+            authors = emptySet(),
+            declaredLicenses = emptySet(),
+            processedDeclaredLicense = ProcessedDeclaredLicense(null, emptyMap(), emptySet()),
+            description = "",
+            homepageUrl = "",
+            binaryArtifact = RemoteArtifact("", "", ""),
+            sourceArtifact = RemoteArtifact("", "", ""),
+            vcs = VcsInfo(RepositoryType.UNKNOWN, "", "", ""),
+            vcsProcessed = VcsInfo(RepositoryType.UNKNOWN, "", "", "")
+        )
+
+        val analyzerRunWithEmptyPackage = analyzerRun.copy(packages = setOf(pkg))
+
+        analyzerRunRepository.create(analyzerJobId, analyzerRunWithEmptyPackage)
+        analyzerRunRepository.create(analyzerJobId, analyzerRunWithEmptyPackage)
+
+        dbExtension.db.dbQuery { PackagesTable.selectAll().count() } shouldBe 1
+    }
+
+    "create should deduplicate packages with full metadata" {
         analyzerRunRepository.create(analyzerJobId, analyzerRun)
         analyzerRunRepository.create(analyzerJobId, analyzerRun)
 
         dbExtension.db.dbQuery { PackagesTable.selectAll().count() } shouldBe 1
     }
 
-    "create should deduplicate projects" {
+    "create should deduplicate projects with empty metadata" {
+        val project = Project(
+            identifier = Identifier("", "", "", ""),
+            cpe = null,
+            definitionFilePath = "",
+            authors = emptySet(),
+            declaredLicenses = emptySet(),
+            processedDeclaredLicense = ProcessedDeclaredLicense(null, emptyMap(), emptySet()),
+            vcs = VcsInfo(RepositoryType.UNKNOWN, "", "", ""),
+            vcsProcessed = VcsInfo(RepositoryType.UNKNOWN, "", "", ""),
+            description = "",
+            homepageUrl = "",
+            scopeNames = emptySet()
+        )
+
+        val analyzerRunWithEmptyProject = analyzerRun.copy(projects = setOf(project))
+
+        analyzerRunRepository.create(analyzerJobId, analyzerRunWithEmptyProject)
+        analyzerRunRepository.create(analyzerJobId, analyzerRunWithEmptyProject)
+
+        dbExtension.db.dbQuery { ProjectsTable.selectAll().count() } shouldBe 1
+    }
+
+    "create should deduplicate projects with full metadata" {
         analyzerRunRepository.create(analyzerJobId, analyzerRun)
         analyzerRunRepository.create(analyzerJobId, analyzerRun)
 
