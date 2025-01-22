@@ -38,7 +38,6 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
-import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.dao.utils.utils.JsonHashFunction
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
@@ -175,24 +174,19 @@ class OrtServerScanResultStorage(
      * that matches the given [summary]. Create a new instance if necessary.
      */
     private fun getOrCreateScanSummaryDao(summary: ScanSummary): ScanSummaryDao {
-        val summaries = ScanSummaryDao.find {
-            (ScanSummariesTable.startTime eq summary.startTime.toKotlinInstant().toDatabasePrecision()) and
-                    (ScanSummariesTable.endTime eq summary.endTime.toKotlinInstant().toDatabasePrecision())
-        }.toList()
-
-        return summaries.takeUnless { it.isEmpty() }?.let { existingSummaries ->
-            existingSummaries.firstOrNull { compareScanSummaries(summary, it.mapToModel()) }
-        } ?: createScanSummaryDao(summary)
+        val summaryHash = calculateScanSummaryHash(summary)
+        return ScanSummaryDao.find { (ScanSummariesTable.hash eq summaryHash) }.firstOrNull()
+            ?: createScanSummaryDao(summary, summaryHash)
     }
 
     /**
-     * Create a new [ScanSummaryDao] for the given [summary].
+     * Create a new [ScanSummaryDao] for the given [summary] with the given [hash].
      */
-    private fun createScanSummaryDao(summary: ScanSummary): ScanSummaryDao {
+    private fun createScanSummaryDao(summary: ScanSummary, hash: String): ScanSummaryDao {
         val summaryDao = ScanSummaryDao.new {
             this.startTime = summary.startTime.toKotlinInstant()
             this.endTime = summary.endTime.toKotlinInstant()
-            this.hash = "" // TODO: Calculate a hash value for the summary.
+            this.hash = hash
         }
 
         summary.issues.forEach {
