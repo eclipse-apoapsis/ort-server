@@ -34,6 +34,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 object ScanSummariesTable : LongIdTable("scan_summaries") {
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
+    val hash = text("hash")
 }
 
 class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
@@ -41,6 +42,7 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
 
     var startTime by ScanSummariesTable.startTime.transformToDatabasePrecision()
     var endTime by ScanSummariesTable.endTime.transformToDatabasePrecision()
+    var hash by ScanSummariesTable.hash
     val licenseFindings by LicenseFindingDao referrersOn LicenseFindingsTable.scanSummaryId
     val copyrightFindings by CopyrightFindingDao referrersOn CopyrightFindingsTable.scanSummaryId
     val snippetFindings by SnippetFindingDao referrersOn SnippetFindingsTable.scanSummaryId
@@ -53,6 +55,7 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     fun mapToModel(withFindings: Boolean = true) = ScanSummary(
         startTime = startTime,
         endTime = endTime,
+        hash = hash,
         licenseFindings = if (withFindings) {
             licenseFindings.mapTo(mutableSetOf(), LicenseFindingDao::mapToModel)
         } else {

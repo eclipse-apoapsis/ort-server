@@ -26,6 +26,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 data class ScanSummary(
     val startTime: Instant,
     val endTime: Instant,
+
+    /**
+     * A hash value for this scan summary. The hash is calculated based on all properties and associated entities.
+     * It allows to detect if two scan summaries are equal without comparing all properties.
+     */
+    val hash: String,
+
     val licenseFindings: Set<LicenseFinding>,
     val copyrightFindings: Set<CopyrightFinding>,
     val snippetFindings: Set<SnippetFinding>,

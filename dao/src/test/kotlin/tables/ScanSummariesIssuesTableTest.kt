@@ -111,6 +111,7 @@ class ScanSummariesIssuesTableTest : WordSpec() {
             ScanSummaryDao.new {
                 startTime = Clock.System.now().minus(2.minutes).toDatabasePrecision()
                 endTime = Clock.System.now().toDatabasePrecision()
+                hash = Clock.System.now().toString()
             }
         }
 }

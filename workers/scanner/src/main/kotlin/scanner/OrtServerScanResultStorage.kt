@@ -192,6 +192,7 @@ class OrtServerScanResultStorage(
         val summaryDao = ScanSummaryDao.new {
             this.startTime = summary.startTime.toKotlinInstant()
             this.endTime = summary.endTime.toKotlinInstant()
+            this.hash = "" // TODO: Calculate a hash value for the summary.
         }
 
         summary.issues.forEach {

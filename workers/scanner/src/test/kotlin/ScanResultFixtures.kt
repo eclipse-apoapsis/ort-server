@@ -98,6 +98,7 @@ internal object ScanResultFixtures {
             summary = ScanSummary(
                 Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+                "hash-1",
                 setOf(
                     LicenseFinding(
                         "LicenseRef-23",
