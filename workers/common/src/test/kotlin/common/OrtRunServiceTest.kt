@@ -1235,6 +1235,7 @@ private fun createScanResults(): Set<ScanResult> {
             summary = ScanSummary(
                 startTime = Clock.System.now(),
                 endTime = Clock.System.now(),
+                hash = Clock.System.now().toString(),
                 licenseFindings = setOf(
                     LicenseFinding(
                         spdxLicense = "Apache-2.0",

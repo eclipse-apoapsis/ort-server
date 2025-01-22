@@ -288,6 +288,7 @@ private fun createScanResult(
     val scanSummary = ScanSummaryDao.new {
         this.startTime = Clock.System.now()
         this.endTime = Clock.System.now()
+        this.hash = "42"
     }
 
     ScanResultDao.new {

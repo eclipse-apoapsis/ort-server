@@ -437,6 +437,7 @@ class OrtServerMappingsTest : WordSpec({
                 summary = ScanSummary(
                     startTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                     endTime = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
+                    hash = "someHash",
                     licenseFindings = setOf(
                         LicenseFinding(
                             spdxLicense = "LicenseRef-detected-excluded",

@@ -525,6 +525,7 @@ fun OrtScanSummary.mapToModel() =
     ScanSummary(
         startTime = startTime.toKotlinInstant(),
         endTime = endTime.toKotlinInstant(),
+        hash = "", // ORT does not have a hash property, so there is no defined value here.
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), OrtLicenseFinding::mapToModel),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), OrtCopyrightFinding::mapToModel),
         snippetFindings = snippetFindings.mapTo(mutableSetOf(), OrtSnippetFinding::mapToModel),
