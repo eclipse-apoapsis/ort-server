@@ -20,30 +20,51 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.CopyrightFinding
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.LicenseFinding
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.Snippet
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.SnippetFinding
-import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createArtifactProvenance
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createIssue
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createRepositoryProvenance
-import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createServerScanResult
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createScanResult
+
+import org.ossreviewtoolkit.model.CopyrightFinding
+import org.ossreviewtoolkit.model.LicenseFinding
+import org.ossreviewtoolkit.model.ScanSummary
+import org.ossreviewtoolkit.model.Snippet
+import org.ossreviewtoolkit.model.SnippetFinding
+import org.ossreviewtoolkit.model.TextLocation
+import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 /**
  * Test class for testing the hash values generated for scan summaries. Since this functionality does not require
  * database access, it is tested by a separate class to speed up test execution.
  */
-class ScanSummaryCompareTest : WordSpec({
-    "compareScanSummaries" should {
-        "return false for scan summaries with different license findings" {
+class ScanSummaryHashTest : WordSpec({
+    "calculateScanSummariesHash" should {
+        "return different hashes for scan summaries with different start times" {
             val provenance = createRepositoryProvenance()
-            val summary1 = createServerScanResult("ScanCode", createIssue("source1"), provenance).summary.mapToOrt()
-            val summary2 = createServerScanResult("ScanCode", createIssue("source2"), provenance).summary
+            val summary1 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
+            val summary2 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
+                .copy(startTime = summary1.startTime.plusNanos(1))
+
+            calculateScanSummaryHash(summary1) shouldNotBe calculateScanSummaryHash(summary2)
+        }
+
+        "return different hashes for scan summaries with different end times" {
+            val provenance = createRepositoryProvenance()
+            val summary1 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
+            val summary2 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
+                .copy(startTime = summary1.endTime.plusNanos(1))
+
+            calculateScanSummaryHash(summary1) shouldNotBe calculateScanSummaryHash(summary2)
+        }
+
+        "return different hashes for scan summaries with different license findings" {
+            val provenance = createRepositoryProvenance()
+            val summary1 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
+            val summary2 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
                 .copy(
                     licenseFindings = setOf(
                         LicenseFinding(
@@ -54,26 +75,26 @@ class ScanSummaryCompareTest : WordSpec({
                     )
                 )
 
-            compareScanSummaries(summary1, summary2) shouldBe false
+            calculateScanSummaryHash(summary1) shouldNotBe calculateScanSummaryHash(summary2)
         }
 
-        "return false for scan summaries with different copyright findings" {
+        "return different hashes for scan summaries with different copyright findings" {
             val provenance = createRepositoryProvenance()
-            val summary1 = createServerScanResult("ScanCode", createIssue("source1"), provenance).summary.mapToOrt()
-            val summary2 = createServerScanResult("ScanCode", createIssue("source2"), provenance).summary
+            val summary1 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
+            val summary2 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
                 .copy(
                     copyrightFindings = setOf(
                         CopyrightFinding("(C)", TextLocation("/example/path", 1, 50))
                     )
                 )
 
-            compareScanSummaries(summary1, summary2) shouldBe false
+            calculateScanSummaryHash(summary1) shouldNotBe calculateScanSummaryHash(summary2)
         }
 
-        "return false for scan summaries with different snippet findings" {
+        "return different hashes for scan summaries with different snippet findings" {
             val provenance = createRepositoryProvenance()
-            val summary1 = createServerScanResult("ScanCode", createIssue("source1"), provenance).summary.mapToOrt()
-            val summary2 = createServerScanResult("ScanCode", createIssue("source2"), provenance).summary
+            val summary1 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
+            val summary2 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
                 .copy(
                     snippetFindings = setOf(
                         SnippetFinding(
@@ -82,9 +103,9 @@ class ScanSummaryCompareTest : WordSpec({
                                 Snippet(
                                     score = 1.0f,
                                     location = TextLocation("/example/path", 1, 50),
-                                    provenance = createArtifactProvenance(),
+                                    provenance = createArtifactProvenance().mapToOrt(),
                                     purl = "org.apache.logging.log4j:log4j-api:2.14.1",
-                                    spdxLicense = "LicenseRef-23",
+                                    license = "LicenseRef-23".toSpdx(),
                                     additionalData = mapOf("data" to "value")
                                 )
                             )
@@ -92,22 +113,20 @@ class ScanSummaryCompareTest : WordSpec({
                     )
                 )
 
-            compareScanSummaries(summary1, summary2) shouldBe false
+            calculateScanSummaryHash(summary1) shouldNotBe calculateScanSummaryHash(summary2)
         }
 
-        "return false for scan summaries with different issues" {
+        "return different hashes for scan summaries with different issues" {
             val provenance = createArtifactProvenance()
-            val summary1 = createServerScanResult("ScanCode", createIssue("source1"), provenance).summary.mapToOrt()
-            val summary2 = createServerScanResult("ScanCode", createIssue("source2"), provenance).summary
+            val summary1 = createScanResult("ScanCode", createIssue("source1"), provenance).summary
+            val summary2 = createScanResult("ScanCode", createIssue("source2"), provenance).summary
 
-            compareScanSummaries(summary1, summary2) shouldBe false
+            calculateScanSummaryHash(summary1) shouldNotBe calculateScanSummaryHash(summary2)
         }
 
-        "return true for equivalent scan summaries from ORT and ORT Server" {
-            val serverSummaries = listOf(
-                createServerScanResult("ScanCode", createIssue("source1"), createArtifactProvenance()).summary,
-                createServerScanResult("ScanCode", createIssue("source2"), createArtifactProvenance()).summary,
-                createServerScanResult("ScanCode", createIssue("source3"), createArtifactProvenance()).summary
+        "return the same hash for equivalent scan summaries" {
+            fun createComplexSummary(): ScanSummary =
+                createScanResult("ScanCode", createIssue("source3"), createArtifactProvenance()).summary
                     .copy(
                         licenseFindings = setOf(
                             LicenseFinding(
@@ -115,16 +134,10 @@ class ScanSummaryCompareTest : WordSpec({
                                 TextLocation("/example/path", 1, 50),
                                 Float.MIN_VALUE
                             )
-                        )
-                    ),
-                createServerScanResult("ScanCode", createIssue("source4"), createArtifactProvenance()).summary
-                    .copy(
+                        ),
                         copyrightFindings = setOf(
                             CopyrightFinding("(C)", TextLocation("/example/path", 1, 50))
-                        )
-                    ),
-                createServerScanResult("ScanCode", createIssue("source5"), createRepositoryProvenance()).summary
-                    .copy(
+                        ),
                         snippetFindings = setOf(
                             SnippetFinding(
                                 TextLocation("/example/path", 1, 50),
@@ -132,21 +145,20 @@ class ScanSummaryCompareTest : WordSpec({
                                     Snippet(
                                         score = 1.0f,
                                         location = TextLocation("/example/path", 1, 50),
-                                        provenance = createArtifactProvenance(),
+                                        provenance = createArtifactProvenance().mapToOrt(),
                                         purl = "org.apache.logging.log4j:log4j-api:2.14.1",
-                                        spdxLicense = "LicenseRef-23",
+                                        license = "LicenseRef-23".toSpdx(),
                                         additionalData = mapOf("data" to "value")
                                     )
                                 )
                             )
                         )
                     )
-            )
 
-            serverSummaries.forAll { summary ->
-                val ortSummary = summary.mapToOrt()
-                compareScanSummaries(ortSummary, summary) shouldBe true
-            }
+            val summary1 = createComplexSummary()
+            val summary2 = createComplexSummary()
+
+            calculateScanSummaryHash(summary1) shouldBe calculateScanSummaryHash(summary2)
         }
     }
 })
