@@ -92,7 +92,7 @@ class StartCommandTest : StringSpec({
                 "runs",
                 "start",
                 "--repository-id", "$repositoryId",
-                "--vcs-revision", revision
+                "--parameters", """{"revision": "$revision", "jobConfigs": {}}"""
             )
         )
 
@@ -160,7 +160,7 @@ class StartCommandTest : StringSpec({
                 "runs",
                 "start",
                 "--repository-id", "$repositoryId",
-                "--vcs-revision", revision,
+                "--parameters", """{"revision": "$revision", "jobConfigs": {}}""",
                 "--wait"
             )
         )
@@ -206,7 +206,7 @@ class StartCommandTest : StringSpec({
                     "runs",
                     "start",
                     "--repository-id", "$repositoryId",
-                    "--vcs-revision", revision
+                    "--parameters", """{"revision": "$revision", "jobConfigs": {}}"""
                 )
             )
 
