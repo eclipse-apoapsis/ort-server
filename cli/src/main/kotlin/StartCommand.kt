@@ -20,9 +20,13 @@
 package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
+import com.github.ajalt.clikt.parameters.groups.required
+import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.inputStream
 import com.github.ajalt.clikt.parameters.types.long
 
 import kotlin.time.Duration.Companion.milliseconds
@@ -31,7 +35,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
@@ -45,41 +48,33 @@ class StartCommand(private val config: OrtServerOptions) : SuspendingCliktComman
         help = "The ID of the repository."
     ).long().required()
 
-    private val revision by option(
-        "--vcs-revision",
-        envvar = "VCS_REVISION",
-        help = "Revision of the repository to start the run for."
-    ).required()
-
-    private val path by option(
-        "--vcs-sub-path",
-        envvar = "VCS_SUB_PATH",
-        help = "Optional VCS sub-path of the repository."
-    )
-
-    private val jobConfigContext by option(
-        "--job-config-context",
-        envvar = "JOB_CONFIG_CONTEXT",
-        help = "Configuration context to use for the run."
-    )
-
     private val wait by option(
         "--wait",
         envvar = "WAIT",
         help = "Wait for the run to finish."
     ).flag()
 
+    private val parameters by mutuallyExclusiveOptions(
+        option(
+            "--parameters-file",
+            envvar = "ORT_RUNS_START_PARAMETERS_FILE",
+            help = "The path to the Create ORT run configuration file!"
+        ).inputStream().convert { it.bufferedReader().readText() },
+        option(
+            "--parameters",
+            envvar = "ORT_RUNS_START_PARAMETERS",
+            help = "The Create ORT run configuration as a string."
+        )
+    ).required()
+
     override suspend fun run() {
+        val createOrtRun = json.decodeFromString(CreateOrtRun.serializer(), parameters)
+
         val client = OrtServerClient.create(config.toOrtServerClientConfig())
 
         var ortRun = client.repositories.createOrtRun(
             repositoryId = repositoryId,
-            ortRun = CreateOrtRun(
-                revision = revision,
-                path = path,
-                jobConfigs = JobConfigurations(),
-                jobConfigContext = jobConfigContext
-            )
+            ortRun = createOrtRun
         )
 
         echo(json.encodeToString(ortRun))
