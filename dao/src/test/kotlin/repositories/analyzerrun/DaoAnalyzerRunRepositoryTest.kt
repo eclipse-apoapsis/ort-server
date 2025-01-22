@@ -169,14 +169,14 @@ private val project = Project(
     vcs = VcsInfo(
         type = RepositoryType.GIT,
         url = "https://example.com/project.git",
-        revision = "",
-        path = ""
+        revision = "revision",
+        path = "path"
     ),
     vcsProcessed = VcsInfo(
         type = RepositoryType.GIT,
-        url = "https://example.com/project.git",
-        revision = "main",
-        path = ""
+        url = "https://example.com/projectProcessed.git",
+        revision = "revisionProcessed",
+        path = "pathProcessed"
     ),
     description = "description",
     homepageUrl = "https://example.com",
@@ -225,14 +225,14 @@ private fun createPackage(index: Int) = Package(
     vcs = VcsInfo(
         type = RepositoryType.GIT,
         url = "https://example.com/package$index.git",
-        revision = "",
-        path = ""
+        revision = "revision",
+        path = "path"
     ),
     vcsProcessed = VcsInfo(
         type = RepositoryType.GIT,
-        url = "https://example.com/package$index.git",
-        revision = "main",
-        path = ""
+        url = "https://example.com/package${index}Processed.git",
+        revision = "revisionProcessed",
+        path = "pathProcessed"
     )
 )
 
