@@ -31,7 +31,7 @@ kotlinxDatetime = "0.6.1"
 kotlinxSerialization = "1.8.0"
 mavenPublishPlugin = "0.30.0"
 rabbitMq = "5.24.0"
-versionsPlugin = "0.51.0"
+versionsPlugin = "0.52.0"
 
 # Gradle dependencies
 awsSdk = "1.4.2"
