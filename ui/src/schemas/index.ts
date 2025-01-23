@@ -35,6 +35,15 @@ export const severitySchema: z.ZodEnum<[Severity, ...Severity[]]> = z.enum([
   'ERROR',
 ]);
 
+// Enum schema and type for the possible values of the issue categories.
+export const issueCategorySchema = z.enum([
+  'Build System',
+  'Missing Data',
+  'Infrastructure',
+  'Other',
+]);
+export type IssueCategory = z.infer<typeof issueCategorySchema>;
+
 // Search parameter validation schemas
 
 export const paginationSearchParameterSchema = z.object({
@@ -64,4 +73,8 @@ export const severitySearchParameterSchema = z.object({
 
 export const packageIdentifierSearchParameterSchema = z.object({
   pkgId: z.string().optional(),
+});
+
+export const issueCategorySearchParameterSchema = z.object({
+  category: z.array(issueCategorySchema).optional(),
 });
