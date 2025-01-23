@@ -48,6 +48,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { getIssueCategory } from '@/helpers/get-issue-category';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-to-string';
@@ -55,6 +56,9 @@ import { compareSeverity } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import {
+  IssueCategory,
+  issueCategorySchema,
+  issueCategorySearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   severitySchema,
@@ -153,6 +157,39 @@ const IssuesComponent = () => {
     }),
     columnHelper.accessor(
       (issue) => {
+        return getIssueCategory(issue.message);
+      },
+      {
+        id: 'category',
+        header: 'Category',
+        cell: ({ getValue }) => {
+          return <div>{getValue()}</div>;
+        },
+        filterFn: (row, _columnId, filterValue): boolean => {
+          return filterValue.includes(getIssueCategory(row.original.message));
+        },
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: issueCategorySchema.options.map((category) => ({
+              label: category,
+              value: category,
+            })),
+            setSelected: (categories: IssueCategory[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  category: categories.length === 0 ? undefined : categories,
+                },
+              });
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor(
+      (issue) => {
         return identifierToString(issue.identifier);
       },
       {
@@ -206,6 +243,11 @@ const IssuesComponent = () => {
     [search.severity]
   );
 
+  const category = useMemo(
+    () => (search.category ? search.category : undefined),
+    [search.category]
+  );
+
   const packageIdentifier = useMemo(
     () => (search.pkgId ? search.pkgId : undefined),
     [search.pkgId]
@@ -216,11 +258,14 @@ const IssuesComponent = () => {
     if (severity) {
       filters.push({ id: 'severity', value: severity });
     }
+    if (category) {
+      filters.push({ id: 'category', value: category });
+    }
     if (packageIdentifier) {
       filters.push({ id: 'packageIdentifier', value: packageIdentifier });
     }
     return filters;
-  }, [severity, packageIdentifier]);
+  }, [severity, category, packageIdentifier]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
@@ -325,6 +370,7 @@ export const Route = createFileRoute(
   validateSearch: paginationSearchParameterSchema
     .merge(severitySearchParameterSchema)
     .merge(packageIdentifierSearchParameterSchema)
+    .merge(issueCategorySearchParameterSchema)
     .merge(sortingSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
