@@ -41,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createI
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createRepositoryProvenance
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createScanResult
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.scannerMatcher
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.withoutFindings
 
 import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 
@@ -80,8 +81,6 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(scanResult)
 
                 verifyAssociatedScanResults(scannerRun, scanResult)
-
-                scanResultStorage.read(provenance.mapToOrt(), scannerMatcher) shouldBe listOf(scanResult)
             }
 
             "create an artifact provenance scan result in the storage and associate it to the scanner run" {
@@ -90,8 +89,6 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(scanResult)
 
                 verifyAssociatedScanResults(scannerRun, scanResult)
-
-                scanResultStorage.read(provenance.mapToOrt(), scannerMatcher) shouldBe listOf(scanResult)
             }
 
             "not create duplicate scan results for repository provenances" {
@@ -260,7 +257,10 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 verifyAssociatedScanResults(scannerRun, scanResult1, scanResult2, scanResult3)
 
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
-                readResult shouldContainExactlyInAnyOrder listOf(scanResult1, scanResult2)
+                readResult shouldContainExactlyInAnyOrder listOf(
+                    scanResult1.withoutFindings(),
+                    scanResult2.withoutFindings()
+                )
                 readResult shouldNotContain scanResult3
             }
 
@@ -279,7 +279,10 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 verifyAssociatedScanResults(scannerRun, scanResult1, scanResult2, scanResult3)
 
                 val readResult = scanResultStorage.read(artifactProvenance.mapToOrt(), scannerMatcher)
-                readResult shouldContainExactlyInAnyOrder listOf(scanResult1, scanResult2)
+                readResult shouldContainExactlyInAnyOrder listOf(
+                    scanResult1.withoutFindings(),
+                    scanResult2.withoutFindings()
+                )
                 readResult shouldNotContain scanResult3
             }
 
@@ -319,7 +322,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(notMatchingScanResult)
 
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
-                readResult shouldContain matchingScanResult
+                readResult shouldContain matchingScanResult.withoutFindings()
                 readResult shouldNotContain notMatchingScanResult
             }
         }

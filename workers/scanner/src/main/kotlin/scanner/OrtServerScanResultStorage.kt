@@ -65,15 +65,21 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(OrtServerScanResultStorage::class.java)
 
 /**
- * A class providing access to scan results.
+ * A special [ProvenanceBasedScanStorage] implementation to integrate the ORT scanner with ORT Server.
  *
- * [ScanResult] are searched by details of a [KnownProvenance] which it is associated with. If the [KnownProvenance] is
- * an [ArtifactProvenance], the URL and the hash value must match. If the [KnownProvenance] is a [RepositoryProvenance],
- * the VCS type, URL and the resolved revision must match.
+ * The [ScannerWorker] creates an instance of this class and passes it to the ORT scanner. Via this instance, the
+ * scanner can then read already existing scan results from the ORT Server database and write new scan results to it.
+ * Read and written scan results are associated to the scanner run with the provided [scannerRunId]; this establishes
+ * the link to the current ORT run.
  *
- * Read and written scan results are associated to the scanner run with the provided [scannerRunId].
+ * [ScanResult]s are searched by details of a [KnownProvenance] which it is associated with. If the [KnownProvenance]
+ * is an [ArtifactProvenance], the URL and the hash value must match. If the [KnownProvenance] is a
+ * [RepositoryProvenance], the VCS type, URL and the resolved revision must match. Note that for read operations,
+ * only the basic properties of scan results are relevant. Based on this information, the ORT scanner decides for
+ * which packages already scan results are available. The actual findings do not need to be provided as they are
+ * already stored in the database.
  *
- * Throws a [ScanStorageException] if an error occurs while reading from the storage.
+ * Throws a [ScanStorageException] if an error occurs while accessing the storage.
  */
 class OrtServerScanResultStorage(
     private val db: Database,
@@ -102,7 +108,7 @@ class OrtServerScanResultStorage(
                             version = it.scannerVersion,
                             configuration = it.scannerConfiguration
                         ),
-                        summary = it.scanSummary.mapToModel().mapToOrt(),
+                        summary = it.scanSummary.mapToModel(withFindings = false).mapToOrt(),
                         additionalData = it.additionalScanResultData?.data.orEmpty()
                     )
                 }.filterValues { scannerMatcher?.matches(it.scanner) != false }

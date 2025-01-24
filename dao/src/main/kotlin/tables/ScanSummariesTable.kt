@@ -46,12 +46,28 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     val snippetFindings by SnippetFindingDao referrersOn SnippetFindingsTable.scanSummaryId
     val issues by ScanSummariesIssuesDao referrersOn ScanSummariesIssuesTable.scanSummaryId
 
-    fun mapToModel() = ScanSummary(
+    /**
+     * Map this DAO to a [ScanSummary] model object. Based on the [withFindings] flag, either include all findings
+     * or return a summary without findings.
+     */
+    fun mapToModel(withFindings: Boolean = true) = ScanSummary(
         startTime = startTime,
         endTime = endTime,
-        licenseFindings = licenseFindings.mapTo(mutableSetOf(), LicenseFindingDao::mapToModel),
-        copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), CopyrightFindingDao::mapToModel),
-        snippetFindings = snippetFindings.mapTo(mutableSetOf(), SnippetFindingDao::mapToModel),
+        licenseFindings = if (withFindings) {
+            licenseFindings.mapTo(mutableSetOf(), LicenseFindingDao::mapToModel)
+        } else {
+            emptySet()
+        },
+        copyrightFindings = if (withFindings) {
+            copyrightFindings.mapTo(mutableSetOf(), CopyrightFindingDao::mapToModel)
+        } else {
+            emptySet()
+        },
+        snippetFindings = if (withFindings) {
+            snippetFindings.mapTo(mutableSetOf(), SnippetFindingDao::mapToModel)
+        } else {
+            emptySet()
+        },
         issues = issues.map(ScanSummariesIssuesDao::mapToModel)
     )
 }
