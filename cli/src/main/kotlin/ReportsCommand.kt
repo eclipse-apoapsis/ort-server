@@ -38,11 +38,11 @@ import io.ktor.utils.io.copyTo
 
 import java.io.File
 
-import org.eclipse.apoapsis.ortserver.client.OrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 
 import org.ossreviewtoolkit.utils.common.expandTilde
 
-class ReportsCommand(private val config: OrtServerOptions) : SuspendingCliktCommand(name = "reports") {
+class ReportsCommand : SuspendingCliktCommand(name = "reports") {
     private val runId by option(
         "--run-id",
         envvar = "ORT_RUN_ID",
@@ -80,7 +80,7 @@ class ReportsCommand(private val config: OrtServerOptions) : SuspendingCliktComm
             throw UsageError("Either --run-id or --repository-id and --index must be provided.")
         }
 
-        val client = OrtServerClient.create(config.toOrtServerClientConfig())
+        val client = createOrtServerClient() ?: throw AuthenticationError()
         val resolvedOrtRunId = runId ?: ortRunByIndex?.let {
             client.repositories.getOrtRun(it.repositoryId, it.ortRunIndex).id
         } ?: throw ProgramResult(1)

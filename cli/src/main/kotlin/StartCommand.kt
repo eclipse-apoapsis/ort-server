@@ -38,11 +38,11 @@ import kotlinx.coroutines.delay
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.client.OrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 
 internal val POLL_INTERVAL = System.getProperty("POLL_INTERVAL")?.toLongOrNull()?.milliseconds ?: 60.seconds
 
-class StartCommand(private val config: OrtServerOptions) : SuspendingCliktCommand(name = "start") {
+class StartCommand : SuspendingCliktCommand(name = "start") {
     private val repositoryId by option(
         "--repository-id",
         envvar = "REPOSITORY_ID",
@@ -75,7 +75,7 @@ class StartCommand(private val config: OrtServerOptions) : SuspendingCliktComman
     override suspend fun run() {
         val createOrtRun = json.decodeFromString(CreateOrtRun.serializer(), parameters)
 
-        val client = OrtServerClient.create(config.toOrtServerClientConfig())
+        val client = createOrtServerClient() ?: throw AuthenticationError()
 
         var ortRun = client.repositories.createOrtRun(
             repositoryId = repositoryId,

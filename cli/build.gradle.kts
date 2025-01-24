@@ -30,6 +30,7 @@ plugins {
 
     // Apply third-party plugins.
     alias(libs.plugins.jib)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver.cli"
@@ -51,8 +52,10 @@ dependencies {
     implementation(projects.model)
 
     implementation(libs.clikt)
+    implementation(libs.kaml)
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxSerializationJson)
+    implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientCore)
     implementation(libs.ktorUtils)
     implementation(libs.ortCommonUtils)

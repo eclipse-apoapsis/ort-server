@@ -29,7 +29,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkConstructor
+import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 
 import kotlinx.datetime.Instant
@@ -40,8 +40,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
 import org.eclipse.apoapsis.ortserver.cli.json
+import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
-import org.eclipse.apoapsis.ortserver.client.OrtServerClientConfig
 import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
 import org.eclipse.apoapsis.ortserver.client.api.RunsApi
@@ -51,13 +51,6 @@ class InfoCommandTest : StringSpec({
 
     "info command should get ORT run by ID" {
         val ortRunId = 1L
-        val ortServerConfig = OrtServerClientConfig(
-            baseUrl = "http://localhost:8080",
-            tokenUrl = "http://localhost/token",
-            username = "testUser",
-            password = "testPassword",
-            clientId = "test-client-id"
-        )
 
         val ortRun = OrtRun(
             id = ortRunId,
@@ -78,20 +71,19 @@ class InfoCommandTest : StringSpec({
         val runsMock = mockk<RunsApi> {
             coEvery { getOrtRun(ortRunId) } returns ortRun
         }
-        mockkConstructor(OrtServerClient::class)
-        every { anyConstructed<OrtServerClient>().runs } returns runsMock
+        val ortServerClientMock = mockk<OrtServerClient> {
+            every { runs } returns runsMock
+        }
+        mockkStatic(::createOrtServerClient)
+        every { createOrtServerClient() } returns ortServerClientMock
 
         val command = OrtServerMain()
         val result = command.test(
             listOf(
-                "--base-url", ortServerConfig.baseUrl,
-                "--token-url", ortServerConfig.tokenUrl,
-                "--client-id", ortServerConfig.clientId,
-                "--username", ortServerConfig.username,
-                "--password", ortServerConfig.password,
                 "runs",
                 "info",
-                "--run-id", "$ortRunId"
+                "--run-id",
+                "$ortRunId"
             )
         )
 
@@ -106,13 +98,6 @@ class InfoCommandTest : StringSpec({
     "info command should get ORT run by index" {
         val repositoryId = 1L
         val ortRunIndex = 1L
-        val ortServerConfig = OrtServerClientConfig(
-            baseUrl = "http://localhost:8080",
-            tokenUrl = "http://localhost/token",
-            username = "testUser",
-            password = "testPassword",
-            clientId = "test-client-id"
-        )
 
         val ortRun = OrtRun(
             id = 1,
@@ -133,21 +118,21 @@ class InfoCommandTest : StringSpec({
         val repositoryMock = mockk<RepositoriesApi> {
             coEvery { getOrtRun(repositoryId, ortRunIndex) } returns ortRun
         }
-        mockkConstructor(OrtServerClient::class)
-        every { anyConstructed<OrtServerClient>().repositories } returns repositoryMock
+        val ortServerClientMock = mockk<OrtServerClient> {
+            every { repositories } returns repositoryMock
+        }
+        mockkStatic(::createOrtServerClient)
+        every { createOrtServerClient() } returns ortServerClientMock
 
         val command = OrtServerMain()
         val result = command.test(
             listOf(
-                "--base-url", ortServerConfig.baseUrl,
-                "--token-url", ortServerConfig.tokenUrl,
-                "--client-id", ortServerConfig.clientId,
-                "--username", ortServerConfig.username,
-                "--password", ortServerConfig.password,
                 "runs",
                 "info",
-                "--repository-id", "$repositoryId",
-                "--index", "$ortRunIndex"
+                "--repository-id",
+                "$repositoryId",
+                "--index",
+                "$ortRunIndex"
             )
         )
 
@@ -161,32 +146,24 @@ class InfoCommandTest : StringSpec({
 
     "info command should throw an exception if the ORT run does not exist" {
         val ortRunId = 1L
-        val ortServerConfig = OrtServerClientConfig(
-            baseUrl = "http://localhost:8080",
-            tokenUrl = "http://localhost/token",
-            username = "testUser",
-            password = "testPassword",
-            clientId = "test-client-id"
-        )
 
         val runsMock = mockk<RunsApi> {
             coEvery { getOrtRun(ortRunId) } throws OrtServerClientException("OrtRun not found")
         }
-        mockkConstructor(OrtServerClient::class)
-        every { anyConstructed<OrtServerClient>().runs } returns runsMock
+        val ortServerClientMock = mockk<OrtServerClient> {
+            every { runs } returns runsMock
+        }
+        mockkStatic(::createOrtServerClient)
+        every { createOrtServerClient() } returns ortServerClientMock
 
         val command = OrtServerMain()
         shouldThrow<OrtServerClientException> {
             val result = command.test(
                 listOf(
-                    "--base-url", ortServerConfig.baseUrl,
-                    "--token-url", ortServerConfig.tokenUrl,
-                    "--client-id", ortServerConfig.clientId,
-                    "--username", ortServerConfig.username,
-                    "--password", ortServerConfig.password,
                     "runs",
                     "info",
-                    "--run-id", "$ortRunId"
+                    "--run-id",
+                    "$ortRunId"
                 )
             )
 
@@ -199,22 +176,9 @@ class InfoCommandTest : StringSpec({
     }
 
     "info command should fail if no options are provided" {
-        val ortServerConfig = OrtServerClientConfig(
-            baseUrl = "http://localhost:8080",
-            tokenUrl = "http://localhost/token",
-            username = "testUser",
-            password = "testPassword",
-            clientId = "test-client-id"
-        )
-
         val command = OrtServerMain()
         val result = command.test(
             listOf(
-                "--base-url", ortServerConfig.baseUrl,
-                "--token-url", ortServerConfig.tokenUrl,
-                "--client-id", ortServerConfig.clientId,
-                "--username", ortServerConfig.username,
-                "--password", ortServerConfig.password,
                 "runs",
                 "info"
             )
@@ -224,27 +188,17 @@ class InfoCommandTest : StringSpec({
     }
 
     "info command should fail if both options are provided" {
-        val ortServerConfig = OrtServerClientConfig(
-            baseUrl = "http://localhost:8080",
-            tokenUrl = "http://localhost/token",
-            username = "testUser",
-            password = "testPassword",
-            clientId = "test-client-id"
-        )
-
         val command = OrtServerMain()
         val result = command.test(
             listOf(
-                "--base-url", ortServerConfig.baseUrl,
-                "--token-url", ortServerConfig.tokenUrl,
-                "--client-id", ortServerConfig.clientId,
-                "--username", ortServerConfig.username,
-                "--password", ortServerConfig.password,
                 "runs",
                 "info",
-                "--run-id", "1",
-                "--repository-id", "1",
-                "--index", "1"
+                "--run-id",
+                "1",
+                "--repository-id",
+                "1",
+                "--index",
+                "1"
             )
         )
 

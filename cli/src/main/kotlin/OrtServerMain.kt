@@ -20,14 +20,10 @@
 package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
-import com.github.ajalt.clikt.command.main
+import com.github.ajalt.clikt.command.parse
+import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.groups.OptionGroup
-import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.versionOption
 
 import kotlin.system.exitProcess
@@ -35,21 +31,36 @@ import kotlin.system.exitProcess
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
-import org.eclipse.apoapsis.ortserver.client.OrtServerClientConfig
+import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
+import org.eclipse.apoapsis.ortserver.client.auth.AuthenticationException
 import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
 
 const val COMMAND_NAME = "osc"
 
 suspend fun main(args: Array<String>) {
-    OrtServerMain().main(args)
+    val cli = OrtServerMain()
+
+    try {
+        cli.parse(args)
+    } catch (e: OrtServerClientException) {
+        when (e.cause) {
+            is AuthenticationException -> {
+                cli.echo("Authentication failed. Please run '${COMMAND_NAME} auth login' to authenticate.")
+            }
+        }
+
+        cli.currentContext.exitProcess(1)
+    } catch (e: CliktError) {
+        cli.echoFormattedHelp(e)
+        cli.currentContext.exitProcess(e.statusCode)
+    }
+
     exitProcess(0)
 }
 
 class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
-    private val ortServerConfig by OrtServerOptions()
-
     init {
-        subcommands(RunsCommand(ortServerConfig))
+        subcommands(AuthCommand(), RunsCommand())
 
         versionOption(
             version = ORT_SERVER_VERSION,
@@ -63,51 +74,6 @@ class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
     override fun help(context: Context) = """
         The ORT Server Client (OSC) is a Command Line Interface (CLI) to interact with an ORT Server instance.
     """.trimIndent()
-}
-
-class OrtServerOptions : OptionGroup(
-    name = "ORT Server Options",
-    help = "Configuration options for the ORT Server instance."
-) {
-    val baseUrl by option(
-        "--base-url",
-        envvar = "ORT_SERVER_BASE_URL",
-        help = "The base URL of the ORT Server instance."
-    ).convert { it.ensureSuffix("/") }.required()
-
-    val tokenUrl by option(
-        "--token-url",
-        envvar = "ORT_SERVER_TOKEN_URL",
-        help = "The URL to request a token for the ORT Server instance."
-    ).required()
-
-    val clientId by option(
-        "--client-id",
-        envvar = "ORT_SERVER_CLIENT_ID",
-        help = "The client ID to authenticate with the ORT Server instance."
-    ).required()
-
-    val username by option(
-        "--username",
-        envvar = "ORT_SERVER_USERNAME",
-        help = "The username to authenticate with the ORT Server instance."
-    ).required()
-
-    val password by option(
-        "--password",
-        envvar = "ORT_SERVER_PASSWORD",
-        help = "The password to authenticate with the ORT Server instance."
-    ).required()
-
-    fun toOrtServerClientConfig(): OrtServerClientConfig {
-        return OrtServerClientConfig(
-            baseUrl = baseUrl,
-            tokenUrl = tokenUrl,
-            clientId = clientId,
-            username = username,
-            password = password
-        )
-    }
 }
 
 internal val json = Json(OrtServerClient.JSON) { prettyPrint = true }
