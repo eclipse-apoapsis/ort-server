@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
+import kotlin.time.measureTimedValue
+
 import kotlinx.datetime.toKotlinInstant
 import kotlinx.serialization.json.Json
 
@@ -58,6 +60,10 @@ import org.ossreviewtoolkit.scanner.ProvenanceBasedScanStorage
 import org.ossreviewtoolkit.scanner.ScanStorageException
 import org.ossreviewtoolkit.scanner.ScannerMatcher
 
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger(OrtServerScanResultStorage::class.java)
+
 /**
  * A class providing access to scan results.
  *
@@ -75,36 +81,38 @@ class OrtServerScanResultStorage(
 ) : ProvenanceBasedScanStorage {
     override fun read(provenance: KnownProvenance, scannerMatcher: ScannerMatcher?): List<ScanResult> =
         db.blockingQuery {
-            val scanResultDaos = when (provenance) {
-                is ArtifactProvenance -> {
-                    ScanResultDao.find { matchesRemoteArtifact(provenance.sourceArtifact.mapToModel()) }
-                }
+            withLoggedTime("reading scan results for provenance '$provenance'.") {
+                val scanResultDaos = when (provenance) {
+                    is ArtifactProvenance -> {
+                        ScanResultDao.find { matchesRemoteArtifact(provenance.sourceArtifact.mapToModel()) }
+                    }
 
-                is RepositoryProvenance -> {
-                    ScanResultDao.find {
-                        matchesVcsInfo(provenance.vcsInfo.copy(revision = provenance.resolvedRevision).mapToModel())
+                    is RepositoryProvenance -> {
+                        ScanResultDao.find {
+                            matchesVcsInfo(provenance.vcsInfo.copy(revision = provenance.resolvedRevision).mapToModel())
+                        }
                     }
                 }
+
+                val matchingScanResults = scanResultDaos.associateWith {
+                    ScanResult(
+                        provenance = provenance,
+                        scanner = ScannerDetails(
+                            name = it.scannerName,
+                            version = it.scannerVersion,
+                            configuration = it.scannerConfiguration
+                        ),
+                        summary = it.scanSummary.mapToModel().mapToOrt(),
+                        additionalData = it.additionalScanResultData?.data.orEmpty()
+                    )
+                }.filterValues { scannerMatcher?.matches(it.scanner) != false }
+
+                matchingScanResults.forEach { (dao, _) ->
+                    associateScanResultWithScannerRun(dao)
+                }
+
+                matchingScanResults.values.toList()
             }
-
-            val matchingScanResults = scanResultDaos.associateWith {
-                ScanResult(
-                    provenance = provenance,
-                    scanner = ScannerDetails(
-                        name = it.scannerName,
-                        version = it.scannerVersion,
-                        configuration = it.scannerConfiguration
-                    ),
-                    summary = it.scanSummary.mapToModel().mapToOrt(),
-                    additionalData = it.additionalScanResultData?.data.orEmpty()
-                )
-            }.filterValues { scannerMatcher?.matches(it.scanner) != false }
-
-            matchingScanResults.forEach { (dao, _) ->
-                associateScanResultWithScannerRun(dao)
-            }
-
-            matchingScanResults.values.toList()
         }
 
     override fun write(scanResult: ScanResult) {
@@ -118,10 +126,12 @@ class OrtServerScanResultStorage(
             throw ScanStorageException("Repository provenances with a non-empty VCS path are not supported.")
         }
 
-        db.blockingQuery {
-            val resultDao = findExistingScanResult(scanResult) ?: createNewScanResult(scanResult, provenance)
+        withLoggedTime("writing scan result for provenance: '$provenance'.") {
+            db.blockingQuery {
+                val resultDao = findExistingScanResult(scanResult) ?: createNewScanResult(scanResult, provenance)
 
-            associateScanResultWithScannerRun(resultDao)
+                associateScanResultWithScannerRun(resultDao)
+            }
         }
     }
 
@@ -264,3 +274,17 @@ private fun ISqlExpressionBuilder.matchesBasicScanResultProperties(scanResult: S
                         )
                     )
             )
+
+/**
+ * Helper function to log the time taken for a given [action]. Execute the given [block], return its result, and log
+ * information about the execution time.
+ */
+private fun <T> withLoggedTime(action: String, block: () -> T): T {
+    logger.info("Start {}.", action)
+
+    val timedValue = measureTimedValue { block() }
+
+    logger.info("Finished {} in {}.", action, timedValue.duration)
+
+    return timedValue.value
+}
