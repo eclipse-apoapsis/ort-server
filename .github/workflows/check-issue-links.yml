@@ -1,0 +1,114 @@
+name: Check Issue Links
+
+on:
+  pull_request:
+    branch:
+    - main
+
+jobs:
+  check-issue-links:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      with:
+        fetch-depth: 0
+
+    - name: Extract commit messages
+      run: |
+        # Extract the commit messages of the commits in this PR.
+        git log --format='%B' origin/${{ github.event.pull_request.base.ref }}..origin/${{ github.event.pull_request.head.ref }} > commit_messages.txt
+        echo "Extracted commit messages:"
+        cat commit_messages.txt
+
+    - name: Extract referenced issues
+      run: |
+        # Extract issue references from commit messages.
+        referenced_issues=$(grep -Eio '\b(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #[0-9]+' commit_messages.txt \
+          | grep -Eo '#[0-9]+' \
+          | tr -d '#' \
+          | uniq | tr '\n' ',' | sed 's/,$//')
+
+        echo "Found referenced issues: referenced_issues"
+
+        # Export referenced issues as an environment variable.
+        echo "REFERENCED_ISSUES=$referenced_issues" >> $GITHUB_ENV
+    - name: Get currently linked issues
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Construct the GraphQL query.
+        query='
+        {
+          repository(owner: "${{ github.repository_owner }}", name: "${{ github.event.repository.name }}") {
+            pullRequest(number: ${{ github.event.pull_request.number }}) {
+              id
+              closingIssuesReferences(first: 50) {
+                edges {
+                  node {
+                    number
+                  }
+                }
+              }
+            }
+          }
+        }'
+        
+        # Send the GraphQL query using gh API.
+        response=$(gh api graphql -f query="$query")
+        
+        # Extract linked issues.
+        linked_issues=$(echo $response | jq -r '.data.repository.pullRequest.closingIssuesReferences.edges[].node.number' | sort | uniq)
+        echo "Found currently linked issues: $linked_issues"
+        
+        # Export linked issues as an environment variable.
+        echo "LINKED_ISSUES=$linked_issues" >> $GITHUB_ENV
+
+    - name: Check if issue references match linked issues
+      run: |
+        # Identify missing links.
+        missing_links=$(comm -23 <(echo "$REFERENCED_ISSUES" | tr ',' '\n' | sort) <(echo "$LINKED_ISSUES" | tr ',' '\n' | sort))
+        # Identify extra links.
+        extra_links=$(comm -13 <(echo "$REFERENCED_ISSUES" | tr ',' '\n' | sort) <(echo "$LINKED_ISSUES" | tr ',' '\n' | sort))
+
+        # Generate a PR comment.
+        comment_text=""
+
+        if [[ -n "$missing_links" || -n "$extra_links" ]]; then
+          comment_text+="Issues referenced in commit messages and issues linked to this PR are not in sync."
+        else
+          comment_text+="Issues referenced in commit messages and issues linked to this PR are in sync."
+        fi
+
+        if [[ -n "$missing_links" ]]; then
+          comment_text+="\nPlease manually link this PR to the following issues: $missing_links"
+        fi
+
+        if [[ -n "$extra_links" ]]; then
+          comment_text+="\nPlease manually unlink this PR from the following issues or reference the issues in a commit message: $extra_links"
+        fi
+
+        echo $comment_text
+        
+        # Export the comment text as an environment variable.
+        echo "COMMENT_TEXT=$comment_text" >> $GITHUB_ENV
+
+    - name: Add PR comment
+      if: always()
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Fetch all previous comments from this bot. 
+        existing_comments=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --jq '.[] | select(.user.login == "github-actions[bot]") | .id')
+        echo "existing comments: $existing_comments"
+
+        # Delete existing comments from this bot.
+        for comment_id in $existing_comments; do
+          echo "Deleting comment ID $comment_id"
+          gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$comment_id"
+        done
+      
+        # Add a comment to the PR.
+        gh pr comment ${{ github.event.pull_request.number }} --body "$(echo -e "${{ env.COMMENT_TEXT }}")"
