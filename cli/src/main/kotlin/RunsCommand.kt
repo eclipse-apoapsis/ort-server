@@ -20,10 +20,13 @@
 package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.subcommands
 
 class RunsCommand(config: OrtServerOptions) : SuspendingNoOpCliktCommand(name = "runs") {
     init {
         subcommands(DownloadCommand(config), InfoCommand(config), StartCommand(config))
     }
+
+    override fun help(context: Context) = "Commands to manage runs."
 }

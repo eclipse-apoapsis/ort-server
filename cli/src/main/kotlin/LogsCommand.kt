@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.MutuallyExclusiveGroupException
 import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.UsageError
@@ -75,6 +76,8 @@ class LogsCommand(private val config: OrtServerOptions) : SuspendingCliktCommand
     ).enum<LogSource>()
         .split(",")
         .default(emptyList())
+
+    override fun help(context: Context) = "Download a ZIP archive with logs for a run."
 
     override suspend fun run() {
         if (runId != null && ortRunByIndex != null) {

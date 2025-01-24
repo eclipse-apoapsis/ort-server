@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.MutuallyExclusiveGroupException
 import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.UsageError
@@ -67,6 +68,8 @@ class ReportsCommand(private val config: OrtServerOptions) : SuspendingCliktComm
         .file(mustExist = false, canBeFile = false, canBeDir = true, mustBeWritable = true, mustBeReadable = false)
         .convert { it.absoluteFile.normalize() }
         .required()
+
+    override fun help(context: Context) = "Download reports for a run."
 
     override suspend fun run() {
         if (runId != null && ortRunByIndex != null) {
