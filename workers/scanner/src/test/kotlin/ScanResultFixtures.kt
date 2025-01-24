@@ -149,4 +149,17 @@ internal object ScanResultFixtures {
         additionalData: Map<String, String> = mapOf("additional1" to "data1", "additional2" to "data2")
     ): OrtScanResult =
         createServerScanResult(scannerName, issue, provenance, scannerVersion, scannerConfig, additionalData).mapToOrt()
+
+    /**
+     * Return a copy of this [OrtScanResult] that does not contain any findings.
+     */
+    fun OrtScanResult.withoutFindings(): OrtScanResult {
+        val strippedSummary = summary.copy(
+            licenseFindings = emptySet(),
+            copyrightFindings = emptySet(),
+            snippetFindings = emptySet()
+        )
+
+        return copy(summary = strippedSummary)
+    }
 }
