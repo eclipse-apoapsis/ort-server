@@ -107,7 +107,7 @@ import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForT
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 @Suppress("LargeClass")
-class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
+class RepositoriesRouteIntegrationTest : AbstractAuthorizationTest({
     tags(Integration)
 
     lateinit var productService: ProductService

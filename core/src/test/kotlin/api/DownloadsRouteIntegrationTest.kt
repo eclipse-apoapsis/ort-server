@@ -45,7 +45,7 @@ import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
-class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
+class DownloadsRouteIntegrationTest : AbstractAuthorizationTest({
     tags(Integration)
 
     var repositoryId = -1L

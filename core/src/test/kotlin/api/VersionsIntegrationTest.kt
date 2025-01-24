@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.ossreviewtoolkit.utils.ort.Environment
 
-class VersionsIntegrationTest : AbstractIntegrationTest({
+class VersionsIntegrationTest : AbstractAuthorizationTest({
     tags(Integration)
 
     "/versions" should {

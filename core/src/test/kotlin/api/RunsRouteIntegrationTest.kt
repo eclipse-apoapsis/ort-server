@@ -130,7 +130,7 @@ import org.ossreviewtoolkit.utils.common.ArchiveType
 import org.ossreviewtoolkit.utils.common.unpack
 
 @Suppress("LargeClass")
-class RunsRouteIntegrationTest : AbstractIntegrationTest({
+class RunsRouteIntegrationTest : AbstractAuthorizationTest({
     tags(Integration)
 
     lateinit var ortRunRepository: OrtRunRepository

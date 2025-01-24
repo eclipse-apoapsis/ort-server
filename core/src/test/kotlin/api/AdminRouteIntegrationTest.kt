@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
-class AdminRouteIntegrationTest : AbstractIntegrationTest({
+class AdminRouteIntegrationTest : AbstractAuthorizationTest({
     tags(Integration)
 
     val testUsername = "test123"

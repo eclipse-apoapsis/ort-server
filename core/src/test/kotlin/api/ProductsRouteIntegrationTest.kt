@@ -109,7 +109,7 @@ import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 @Suppress("LargeClass")
-class ProductsRouteIntegrationTest : AbstractIntegrationTest({
+class ProductsRouteIntegrationTest : AbstractAuthorizationTest({
     tags(Integration)
 
     lateinit var organizationService: OrganizationService
