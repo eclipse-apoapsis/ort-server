@@ -56,7 +56,7 @@ class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
             names = setOf("--version", "-v"),
             help = "Show the version and exit.",
             // TODO: Also add the server version given by `baseUrl` to this output.
-            message = { "$commandName CLI version $it" }
+            message = { "$commandName version $it" }
         )
     }
 
