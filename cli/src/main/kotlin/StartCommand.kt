@@ -59,12 +59,14 @@ class StartCommand(private val config: OrtServerOptions) : SuspendingCliktComman
         option(
             "--parameters-file",
             envvar = "ORT_RUNS_START_PARAMETERS_FILE",
-            help = "The path to the Create ORT run configuration file!"
+            help = "The path to a JSON file containing the run configuration " +
+                    "(see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run)."
         ).inputStream().convert { it.bufferedReader().readText() },
         option(
             "--parameters",
             envvar = "ORT_RUNS_START_PARAMETERS",
-            help = "The Create ORT run configuration as a string."
+            help = "The run configuration as a JSON string " +
+                    "(see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run)."
         )
     ).required()
 
