@@ -19,16 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import kotlinx.datetime.Instant
-
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -41,7 +39,6 @@ import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Query
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.innerJoin
 
@@ -77,7 +74,7 @@ class IssueService(private val db: Database) {
             ?: orderedQuery
 
         ListQueryResult(
-            paginatedQuery.map(ResultRow::toIssue),
+            IssueDao.createFromQuery(paginatedQuery),
             parameters,
             totalCount
         )
@@ -126,34 +123,6 @@ class IssueService(private val db: Database) {
             OrtRunsIssuesTable.worker
         ).where { OrtRunsIssuesTable.ortRunId eq ortRunId }
     }
-}
-
-@Suppress("ComplexCondition")
-private fun ResultRow.toIssue(): Issue {
-    // The exposed library seems not to fully support fields on alias queries when unions are used.
-    // Use the field indexes in order to extract the values from the ResultRow instead of the field names.
-    // Disadvantage: More fragility, losing type safety at compile time.
-    val columns = fieldIndex.keys.toList()
-
-    val type = this[columns[5]] as String?
-    val name = this[columns[6]] as String?
-    val namespace = this[columns[7]] as String?
-    val version = this[columns[8]] as String?
-    val identifier = if (type == null || name == null || namespace == null || version == null) {
-        null
-    } else {
-        Identifier(type, namespace, name, version)
-    }
-
-    return Issue(
-        timestamp = this[columns[0]] as Instant,
-        source = this[columns[1]] as String,
-        message = this[columns[2]] as String,
-        severity = this[columns[3]] as Severity,
-        affectedPath = this[columns[4]] as String?,
-        worker = this[columns[9]] as String?,
-        identifier = identifier
-    )
 }
 
 /**
