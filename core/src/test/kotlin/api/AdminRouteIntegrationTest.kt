@@ -37,10 +37,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
-import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
-class AdminRouteIntegrationTest : AbstractAuthorizationTest({
+class AdminRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
     val testUsername = "test123"
@@ -53,14 +52,8 @@ class AdminRouteIntegrationTest : AbstractAuthorizationTest({
     "GET /admin/sync-roles" should {
         "start sync process for permissions and roles" {
             integrationTestApplication {
-                val response = superuserClient.get("/api/v1/admin/sync-roles")
+                val response = apiClient.get("/api/v1/admin/sync-roles")
                 response shouldHaveStatus HttpStatusCode.Accepted
-            }
-        }
-
-        "require superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Accepted) {
-                get("/api/v1/admin/sync-roles")
             }
         }
     }
@@ -68,7 +61,7 @@ class AdminRouteIntegrationTest : AbstractAuthorizationTest({
     "GET /admin/users" should {
         "return a list of users" {
             integrationTestApplication {
-                val response = superuserClient.get("/api/v1/admin/users")
+                val response = apiClient.get("/api/v1/admin/users")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 val users = Json.decodeFromString<Set<User>>(response.bodyAsText())
@@ -79,12 +72,6 @@ class AdminRouteIntegrationTest : AbstractAuthorizationTest({
                     lastName = SUPERUSER.lastName,
                     email = SUPERUSER.email
                 )
-            }
-        }
-
-        "require superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.OK) {
-                get("/api/v1/admin/users")
             }
         }
     }
@@ -101,7 +88,7 @@ class AdminRouteIntegrationTest : AbstractAuthorizationTest({
                     temporary = testTemporary
                 )
 
-                val response = superuserClient.post("/api/v1/admin/users") {
+                val response = apiClient.post("/api/v1/admin/users") {
                     setBody(user)
                 }
 
@@ -120,31 +107,14 @@ class AdminRouteIntegrationTest : AbstractAuthorizationTest({
                     temporary = testTemporary
                 )
 
-                superuserClient.post("/api/v1/admin/users") {
+                apiClient.post("/api/v1/admin/users") {
                     setBody(user)
                 }
-                val response = superuserClient.post("/api/v1/admin/users") {
+                val response = apiClient.post("/api/v1/admin/users") {
                     setBody(user)
                 }
 
                 response shouldHaveStatus HttpStatusCode.InternalServerError
-            }
-        }
-
-        "require superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Created) {
-                post("/api/v1/admin/users") {
-                    setBody(
-                        CreateUser(
-                            username = testUsername,
-                            firstName = testFirstName,
-                            lastName = testLastName,
-                            email = testEmail,
-                            password = testPassword,
-                            temporary = testTemporary
-                        )
-                    )
-                }
             }
         }
     }
@@ -152,7 +122,7 @@ class AdminRouteIntegrationTest : AbstractAuthorizationTest({
     "DELETE /admin/users" should {
         "delete a user" {
             integrationTestApplication {
-                val response = superuserClient.delete("/api/v1/admin/users") {
+                val response = apiClient.delete("/api/v1/admin/users") {
                     parameter("username", TEST_USER.username.value)
                 }
 
@@ -162,22 +132,14 @@ class AdminRouteIntegrationTest : AbstractAuthorizationTest({
 
         "respond with an internal error if the user doesn't exist" {
             integrationTestApplication {
-                superuserClient.delete("/api/v1/admin/users") {
+                apiClient.delete("/api/v1/admin/users") {
                     parameter("username", TEST_USER.username.value)
                 }
-                val response = superuserClient.delete("/api/v1/admin/users") {
+                val response = apiClient.delete("/api/v1/admin/users") {
                     parameter("username", TEST_USER.username.value)
                 }
 
                 response shouldHaveStatus HttpStatusCode.InternalServerError
-            }
-        }
-
-        "require superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.NoContent) {
-                delete("/api/v1/admin/users") {
-                    parameter("username", TEST_USER.username.value)
-                }
             }
         }
     }
