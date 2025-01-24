@@ -30,9 +30,9 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.long
 
-import org.eclipse.apoapsis.ortserver.client.OrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 
-class InfoCommand(private val config: OrtServerOptions) : SuspendingCliktCommand(name = "info") {
+class InfoCommand : SuspendingCliktCommand(name = "info") {
     private val runId by option(
         "--run-id",
         envvar = "ORT_RUN_ID",
@@ -52,7 +52,7 @@ class InfoCommand(private val config: OrtServerOptions) : SuspendingCliktCommand
             throw UsageError("Either --run-id or --repository-id and --index must be provided.")
         }
 
-        val client = OrtServerClient.create(config.toOrtServerClientConfig())
+        val client = createOrtServerClient() ?: throw AuthenticationError()
 
         val ortRun = runId?.let {
             client.runs.getOrtRun(it)

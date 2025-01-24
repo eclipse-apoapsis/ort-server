@@ -29,7 +29,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkConstructor
+import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 
 import kotlinx.datetime.Instant
@@ -40,8 +40,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
 import org.eclipse.apoapsis.ortserver.cli.json
+import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
-import org.eclipse.apoapsis.ortserver.client.OrtServerClientConfig
 import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
 
@@ -51,13 +51,6 @@ class StartCommandTest : StringSpec({
     "start command should create an ORT run without waiting" {
         val repositoryId = 1L
         val revision = "main"
-        val ortServerConfig = OrtServerClientConfig(
-            baseUrl = "http://localhost:8080",
-            tokenUrl = "http://localhost/token",
-            username = "testUser",
-            password = "testPassword",
-            clientId = "test-client-id"
-        )
 
         val ortRun = OrtRun(
             id = 1,
@@ -78,21 +71,22 @@ class StartCommandTest : StringSpec({
         val repositoryMock = mockk<RepositoriesApi> {
             coEvery { createOrtRun(repositoryId, any()) } returns ortRun
         }
-        mockkConstructor(OrtServerClient::class)
-        every { anyConstructed<OrtServerClient>().repositories } returns repositoryMock
+        val ortServerClientMock = mockk<OrtServerClient> {
+            every { repositories } returns repositoryMock
+        }
+
+        mockkStatic(::createOrtServerClient)
+        every { createOrtServerClient() } returns ortServerClientMock
 
         val command = OrtServerMain()
         val result = command.test(
             listOf(
-                "--base-url", ortServerConfig.baseUrl,
-                "--token-url", ortServerConfig.tokenUrl,
-                "--client-id", ortServerConfig.clientId,
-                "--username", ortServerConfig.username,
-                "--password", ortServerConfig.password,
                 "runs",
                 "start",
-                "--repository-id", "$repositoryId",
-                "--parameters", """{"revision": "$revision", "jobConfigs": {}}"""
+                "--repository-id",
+                "$repositoryId",
+                "--parameters",
+                """{"revision": "$revision", "jobConfigs": {}}"""
             )
         )
 
@@ -111,13 +105,6 @@ class StartCommandTest : StringSpec({
     "start command should create an ORT run and wait" {
         val repositoryId = 1L
         val revision = "main"
-        val ortServerConfig = OrtServerClientConfig(
-            baseUrl = "http://localhost:8080",
-            tokenUrl = "http://localhost/token",
-            username = "testUser",
-            password = "testPassword",
-            clientId = "test-client-id"
-        )
 
         val createdOrtRun = OrtRun(
             id = 1,
@@ -144,23 +131,23 @@ class StartCommandTest : StringSpec({
                     activeOrtRun andThen
                     finishedOrtRun
         }
-        mockkConstructor(OrtServerClient::class)
-        every { anyConstructed<OrtServerClient>().repositories } returns repositoryMock
+        val ortServerClientMock = mockk<OrtServerClient> {
+            every { repositories } returns repositoryMock
+        }
+        mockkStatic(::createOrtServerClient)
+        every { createOrtServerClient() } returns ortServerClientMock
 
         System.setProperty("POLL_INTERVAL", "1")
 
         val command = OrtServerMain()
         val result = command.test(
             listOf(
-                "--base-url", ortServerConfig.baseUrl,
-                "--token-url", ortServerConfig.tokenUrl,
-                "--client-id", ortServerConfig.clientId,
-                "--username", ortServerConfig.username,
-                "--password", ortServerConfig.password,
                 "runs",
                 "start",
-                "--repository-id", "$repositoryId",
-                "--parameters", """{"revision": "$revision", "jobConfigs": {}}""",
+                "--repository-id",
+                "$repositoryId",
+                "--parameters",
+                """{"revision": "$revision", "jobConfigs": {}}""",
                 "--wait"
             )
         )
@@ -180,33 +167,26 @@ class StartCommandTest : StringSpec({
     "start command should throw an exception if the ORT run cannot be created" {
         val repositoryId = 1L
         val revision = "main"
-        val ortServerConfig = OrtServerClientConfig(
-            baseUrl = "http://localhost:8080",
-            tokenUrl = "http://localhost/token",
-            username = "testUser",
-            password = "testPassword",
-            clientId = "test-client-id"
-        )
 
         val repositoryMock = mockk<RepositoriesApi> {
             coEvery { createOrtRun(repositoryId, any()) } throws OrtServerClientException("Invalid request")
         }
-        mockkConstructor(OrtServerClient::class)
-        every { anyConstructed<OrtServerClient>().repositories } returns repositoryMock
+        val ortServerClientMock = mockk<OrtServerClient> {
+            every { repositories } returns repositoryMock
+        }
+        mockkStatic(::createOrtServerClient)
+        every { createOrtServerClient() } returns ortServerClientMock
 
         val command = OrtServerMain()
         shouldThrow<OrtServerClientException> {
             val result = command.test(
                 listOf(
-                    "--base-url", ortServerConfig.baseUrl,
-                    "--token-url", ortServerConfig.tokenUrl,
-                    "--client-id", ortServerConfig.clientId,
-                    "--username", ortServerConfig.username,
-                    "--password", ortServerConfig.password,
                     "runs",
                     "start",
-                    "--repository-id", "$repositoryId",
-                    "--parameters", """{"revision": "$revision", "jobConfigs": {}}"""
+                    "--repository-id",
+                    "$repositoryId",
+                    "--parameters",
+                    """{"revision": "$revision", "jobConfigs": {}}"""
                 )
             )
 

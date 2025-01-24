@@ -21,12 +21,17 @@ package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.subcommands
 
-class DownloadCommand : SuspendingNoOpCliktCommand(name = "download") {
+class AuthCommand : SuspendingNoOpCliktCommand(name = "auth") {
     init {
-        subcommands(LogsCommand(), ReportsCommand())
+        subcommands(LoginCommand())
     }
 
-    override fun help(context: Context) = "Commands to download files for a run."
+    override fun help(context: Context) = "Commands for authentication with the ORT Server."
+}
+
+class AuthenticationError : ProgramResult(1) {
+    override val message = "Not authenticated. Please run '$COMMAND_NAME auth login'."
 }

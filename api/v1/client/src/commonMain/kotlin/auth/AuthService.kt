@@ -29,7 +29,7 @@ import io.ktor.http.isSuccess
 /**
  * A service to generate/refresh an OAuth token to authenticate with the ORT server.
  */
-internal class AuthService(
+class AuthService(
     private val client: HttpClient,
     private val tokenUrl: String,
     private val clientId: String

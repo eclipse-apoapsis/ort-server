@@ -28,13 +28,13 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.mockkConstructor
+import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.unmockkAll
 
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
+import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
-import org.eclipse.apoapsis.ortserver.client.OrtServerClientConfig
 import org.eclipse.apoapsis.ortserver.client.api.RunsApi
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
@@ -44,29 +44,18 @@ class LogsCommandTest : StringSpec({
 
     "download logs command" should {
         "download the requested logs" {
-            val ortServerConfig = OrtServerClientConfig(
-                baseUrl = "http://localhost:8080",
-                tokenUrl = "http://localhost/token",
-                username = "testUser",
-                password = "testPassword",
-                clientId = "test-client-id"
-            )
-
             val runsMock = mockk<RunsApi> {
                 coEvery { downloadLogs(any(), any(), any(), any()) } just runs
             }
-
-            mockkConstructor(OrtServerClient::class)
-            every { anyConstructed<OrtServerClient>().runs } returns runsMock
+            val ortServerClientMock = mockk<OrtServerClient> {
+                every { runs } returns runsMock
+            }
+            mockkStatic(::createOrtServerClient)
+            every { createOrtServerClient() } returns ortServerClientMock
 
             val command = OrtServerMain()
             val result = command.test(
                 listOf(
-                    "--base-url", ortServerConfig.baseUrl,
-                    "--token-url", ortServerConfig.tokenUrl,
-                    "--client-id", ortServerConfig.clientId,
-                    "--username", ortServerConfig.username,
-                    "--password", ortServerConfig.password,
                     "runs",
                     "download",
                     "logs",

@@ -38,13 +38,13 @@ import io.ktor.util.cio.use
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.copyTo
 
-import org.eclipse.apoapsis.ortserver.client.OrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
 
 import org.ossreviewtoolkit.utils.common.expandTilde
 
-class LogsCommand(private val config: OrtServerOptions) : SuspendingCliktCommand() {
+class LogsCommand : SuspendingCliktCommand() {
     private val runId by option(
         "--run-id",
         envvar = "ORT_RUN_ID",
@@ -88,7 +88,7 @@ class LogsCommand(private val config: OrtServerOptions) : SuspendingCliktCommand
             throw UsageError("Either --run-id or --repository-id and --index must be provided.")
         }
 
-        val client = OrtServerClient.create(config.toOrtServerClientConfig())
+        val client = createOrtServerClient() ?: throw AuthenticationError()
 
         val resolvedOrtRunId = runId ?: ortRunByIndex?.let {
             client.repositories.getOrtRun(it.repositoryId, it.ortRunIndex).id
