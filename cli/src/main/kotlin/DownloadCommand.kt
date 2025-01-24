@@ -20,10 +20,13 @@
 package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.subcommands
 
 class DownloadCommand(config: OrtServerOptions) : SuspendingNoOpCliktCommand(name = "download") {
     init {
         subcommands(LogsCommand(config), ReportsCommand(config))
     }
+
+    override fun help(context: Context) = "Commands to download files for a run."
 }
