@@ -24,6 +24,7 @@ import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -324,6 +325,41 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldContain matchingScanResult.withoutFindings()
                 readResult shouldNotContain notMatchingScanResult
+            }
+        }
+
+        "getAllIssues" should {
+            "return a map with all issues from newly added scan results" {
+                val artifactProvenance = createArtifactProvenance()
+                val repositoryProvenance = createRepositoryProvenance()
+                val issue1 = createIssue("source1")
+                val issue2 = createIssue("source2")
+                val scanResult1 = createScanResult("ScanCode", issue1, artifactProvenance)
+                val scanResult2 = createScanResult("FossID", issue2, repositoryProvenance)
+
+                scanResultStorage.write(scanResult1)
+                scanResultStorage.write(scanResult2)
+
+                val issues = scanResultStorage.getAllIssues()
+
+                issues[artifactProvenance.mapToOrt()] shouldContainExactlyInAnyOrder listOf(issue1.mapToOrt())
+                issues[repositoryProvenance.mapToOrt()] shouldContainExactlyInAnyOrder listOf(issue2.mapToOrt())
+
+                issues.keys shouldHaveSize 2
+            }
+
+            "include issues from referenced scan results" {
+                val provenance = createArtifactProvenance()
+                val issue = createIssue("source")
+                val scanResult = createScanResult("ScanCode", issue, provenance)
+                scanResultStorage.write(scanResult)
+
+                val storage2 = OrtServerScanResultStorage(dbExtension.db, scannerRun.id)
+                storage2.write(scanResult)
+
+                val issues = storage2.getAllIssues()
+
+                issues[provenance.mapToOrt()] shouldContainExactlyInAnyOrder listOf(issue.mapToOrt())
             }
         }
     }
