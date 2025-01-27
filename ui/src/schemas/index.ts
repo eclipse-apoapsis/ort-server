@@ -78,3 +78,9 @@ export const packageIdentifierSearchParameterSchema = z.object({
 export const issueCategorySearchParameterSchema = z.object({
   category: z.array(issueCategorySchema).optional(),
 });
+
+// This schema is used to validate the search parameter for the items marked for inspection
+// so the link can be shared.
+export const markedSearchParameterSchema = z.object({
+  marked: z.string().optional(),
+});
