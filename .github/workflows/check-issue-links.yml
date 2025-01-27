@@ -2,7 +2,7 @@ name: Check Issue Links
 
 on:
   pull_request:
-    branch:
+    branches:
     - main
 
 jobs:
