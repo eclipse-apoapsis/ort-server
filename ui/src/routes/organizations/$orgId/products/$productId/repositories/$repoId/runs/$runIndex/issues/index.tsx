@@ -20,6 +20,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
+  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
   getFilteredRowModel,
@@ -29,13 +30,14 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useIssuesServiceGetIssuesByRunId } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
 import { Issue, Severity } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { MarkItems } from '@/components/data-table/mark-items';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { ToastError } from '@/components/toast-error';
@@ -59,6 +61,7 @@ import {
   IssueCategory,
   issueCategorySchema,
   issueCategorySearchParameterSchema,
+  markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   severitySchema,
@@ -100,20 +103,36 @@ const IssuesComponent = () => {
       size: 50,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
-          <Button
-            variant='outline'
-            size='sm'
-            {...{
-              onClick: row.getToggleExpandedHandler(),
-              style: { cursor: 'pointer' },
-            }}
-          >
-            {row.getIsExpanded() ? (
-              <ChevronUp className='h-4 w-4' />
-            ) : (
-              <ChevronDown className='h-4 w-4' />
-            )}
-          </Button>
+          <div className='flex items-center gap-1'>
+            <Button
+              variant='outline'
+              size='sm'
+              {...{
+                onClick: row.getToggleExpandedHandler(),
+                style: { cursor: 'pointer' },
+              }}
+            >
+              {row.getIsExpanded() || row.id === search.marked ? (
+                <ChevronUp className='h-4 w-4' />
+              ) : (
+                <ChevronDown className='h-4 w-4' />
+              )}
+            </Button>
+            <MarkItems
+              row={row}
+              setMarked={(marked) => {
+                return {
+                  to: Route.to,
+                  search: {
+                    ...search,
+                    // If no items are marked for inspection, remove the "marked" parameter
+                    // from search parameters.
+                    marked: marked === '' ? undefined : marked,
+                  },
+                };
+              }}
+            />
+          </div>
         ) : (
           'No info'
         );
@@ -287,6 +306,14 @@ const IssuesComponent = () => {
     limit: ALL_ITEMS,
   });
 
+  // Control the expanded state of the subrows manually, so that when
+  // a user arrives at the table view via a URL link with search parameter
+  // "marked" set to an item, the item subrow is expanded by default, while
+  // still retaining full control of expanding/collapsing each subrow.
+  const [expanded, setExpanded] = useState<ExpandedState>(
+    search.marked ? { [search.marked]: true } : {}
+  );
+
   const table = useReactTable({
     data: issues?.data || [],
     columns,
@@ -297,7 +324,9 @@ const IssuesComponent = () => {
       },
       columnFilters,
       sorting: sortBy,
+      expanded: expanded,
     },
+    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -371,7 +400,8 @@ export const Route = createFileRoute(
     .merge(severitySearchParameterSchema)
     .merge(packageIdentifierSearchParameterSchema)
     .merge(issueCategorySearchParameterSchema)
-    .merge(sortingSearchParameterSchema),
+    .merge(sortingSearchParameterSchema)
+    .merge(markedSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
       repositoryId: Number.parseInt(params.repoId),
