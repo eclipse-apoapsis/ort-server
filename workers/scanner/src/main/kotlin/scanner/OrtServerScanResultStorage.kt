@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
+import java.util.concurrent.ConcurrentHashMap
+
 import kotlin.time.measureTimedValue
 
 import kotlinx.datetime.toKotlinInstant
@@ -50,7 +52,9 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.stringLiteral
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
+import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.KnownProvenance
+import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.ScanResult
 import org.ossreviewtoolkit.model.ScanSummary
@@ -84,6 +88,12 @@ class OrtServerScanResultStorage(
     private val db: Database,
     private val scannerRunId: Long
 ) : ProvenanceBasedScanStorage {
+    /**
+     * A [Map] to store the issues encountered for the scanned provenances. This is used to track issues that need to
+     * be associated with the current ORT run.
+     */
+    private val issuesMap = ConcurrentHashMap<Provenance, Set<Issue>>()
+
     override fun read(provenance: KnownProvenance, scannerMatcher: ScannerMatcher?): List<ScanResult> =
         db.blockingQuery {
             withLoggedTime("reading scan results for provenance '$provenance'.") {
@@ -122,6 +132,7 @@ class OrtServerScanResultStorage(
 
     override fun write(scanResult: ScanResult) {
         val provenance = scanResult.provenance
+        storeIssues(provenance, scanResult.summary)
 
         if (provenance !is KnownProvenance) {
             throw ScanStorageException("Scan result must have a known provenance, but it is $provenance.")
@@ -139,6 +150,11 @@ class OrtServerScanResultStorage(
             }
         }
     }
+
+    /**
+     * Return a [Map] with all issues that
+     */
+    fun getAllIssues(): Map<Provenance, Set<Issue>> = issuesMap
 
     /**
      * Create a new database entry for the given [scanResult] for the given [provenance].
@@ -226,6 +242,14 @@ class OrtServerScanResultStorage(
         }
 
         return summaryDao
+    }
+
+    /**
+     * Record the issues for the given [provenance] and [summary], so that they can be retrieved later via
+     * [getAllIssues].
+     */
+    private fun storeIssues(provenance: Provenance, summary: ScanSummary) {
+        issuesMap.put(provenance, summary.issues.toSet())
     }
 
     private fun associateScanResultWithScannerRun(scanResultDao: ScanResultDao) {
