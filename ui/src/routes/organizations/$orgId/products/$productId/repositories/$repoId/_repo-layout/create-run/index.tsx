@@ -362,10 +362,6 @@ const CreateRunPage = () => {
             <div className='text-sm text-gray-500'>
               Configure the jobs to be included in the ORT Run.
             </div>
-            <div className='text-sm text-gray-500'>
-              NOTE: Currently, the Analyzer needs to always run as part of an
-              ORT Run.
-            </div>
             <Accordion
               type='multiple'
               value={openAccordions}
