@@ -35,14 +35,14 @@ import org.slf4j.LoggerFactory
  * repository is only possible if the credentials are placed in a _.git-credentials_ file. This generator is able to
  * produce such a file, together with a Git configuration file that references it. It only processes infrastructure
  * services whose credentials types contain [CredentialsType.GIT_CREDENTIALS_FILE].
+ *
+ * There is a dependency to the [GitConfigGenerator] class, which generates a `credential` section in the Git
+ * configuration file _.gitconfig_ in order to reference the generated _.git-credentials_ file.
  */
 class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> {
     companion object {
         /** The name of the file storing the actual credentials. */
         private const val GIT_CREDENTIALS_FILE_NAME = ".git-credentials"
-
-        /** The name of the file with the Git configuration. */
-        private const val GIT_CONFIG_FILE_NAME = ".gitconfig"
 
         private val logger = LoggerFactory.getLogger(GitCredentialsGenerator::class.java)
 
@@ -73,7 +73,6 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
             CredentialsType.GIT_CREDENTIALS_FILE in it.credentialsTypes()
         }.takeUnless { it.isEmpty() }?.let {
             generateGitCredentials(builder, it)
-            generateGitConfig(builder)
         }
     }
 
@@ -87,17 +86,6 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
         builder.buildInUserHome(GIT_CREDENTIALS_FILE_NAME) {
             definitions.mapNotNull { it.service.urlWithCredentials(builder) }
                 .forEach(this::println)
-        }
-    }
-
-    /**
-     * Generate the (static) content of the _.gitconfig_ file using the given [builder]. In this file, only the
-     * credential store is enabled.
-     */
-    private suspend fun generateGitConfig(builder: ConfigFileBuilder) {
-        builder.buildInUserHome(GIT_CONFIG_FILE_NAME) {
-            println("[credential]")
-            println("\thelper = store")
         }
     }
 }

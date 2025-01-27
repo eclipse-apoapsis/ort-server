@@ -47,7 +47,7 @@ class GitCredentialsGeneratorTest : StringSpec({
 
         GitCredentialsGenerator().generate(mockBuilder.builder, listOf(definition))
 
-        mockBuilder.homeFileNames shouldContainExactlyInAnyOrder listOf(".git-credentials", ".gitconfig")
+        mockBuilder.homeFileNames shouldContainExactlyInAnyOrder listOf(".git-credentials")
     }
 
     "Files should only be generated if services with Git credentials exist" {
@@ -97,26 +97,6 @@ class GitCredentialsGeneratorTest : StringSpec({
         lines shouldContainExactlyInAnyOrder listOf(
             "https://${testSecretRef(secUser1)}:${testSecretRef(secPass1)}@repo1.example.org",
             "http://${testSecretRef(secUser2)}:${testSecretRef(secPass2)}@repo2.example.org:444/orga/repo.git"
-        )
-    }
-
-    "A correct .gitconfig file should be generated" {
-        val mockBuilder = MockConfigFileBuilder()
-        val definition = EnvironmentServiceDefinition(
-            createInfrastructureService(
-                "https://repo.example.org",
-                createSecret("s1"),
-                createSecret("s2"),
-                EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
-            )
-        )
-
-        GitCredentialsGenerator().generate(mockBuilder.builder, listOf(definition))
-        val lines = mockBuilder.generatedLinesFor(homeFileName = ".gitconfig")
-
-        lines shouldContainExactly listOf(
-            "[credential]",
-            "\thelper = store"
         )
     }
 
