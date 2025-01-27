@@ -19,7 +19,7 @@ jobs:
     - name: Extract commit messages
       run: |
         # Extract the commit messages of the commits in this PR.
-        git log --format='%B' origin/${{ github.event.pull_request.base.ref }}..origin/${{ github.event.pull_request.head.ref }} > commit_messages.txt
+        git log --format='%B' ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} > commit_messages.txt
         echo "Extracted commit messages:"
         cat commit_messages.txt
 
