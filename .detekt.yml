@@ -106,6 +106,7 @@ style:
 ORT:
   OrtImportOrder:
     active: true
+    autoCorrect: true
   OrtPackageNaming:
     # TODO: Implement package naming check for ort-server.
     active: false
