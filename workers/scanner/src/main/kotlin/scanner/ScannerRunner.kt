@@ -27,8 +27,11 @@ import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.downloader.DefaultWorkingTreeCache
+import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.PackageType
+import org.ossreviewtoolkit.model.Provenance
+import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.SourceCodeOrigin
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.PluginConfiguration
@@ -52,7 +55,7 @@ class ScannerRunner(
         ortResult: OrtResult,
         config: ScannerJobConfiguration,
         scannerRunId: Long
-    ): OrtResult {
+    ): OrtScannerResult {
         val pluginConfigs = context.resolvePluginConfigSecrets(config.config)
 
         val packageProvenanceCache = PackageProvenanceCache()
@@ -114,7 +117,9 @@ class ScannerRunner(
                 fileListStorage = fileListStorage
             )
 
-            return scanner.scan(ortResult, config.skipExcluded, emptyMap())
+            val result = scanner.scan(ortResult, config.skipExcluded, emptyMap()).scanner
+                ?: throw ScannerException("ORT Scanner failed to create a result.")
+            return OrtScannerResult(result, scanResultStorage.getAllIssues())
         } finally {
             workingTreeCache.shutdown()
         }
@@ -130,3 +135,17 @@ private fun createScanners(names: List<String>, config: Map<String, PluginConfig
         val pluginConfig = config?.get(it.type)
         it.create(pluginConfig?.options.orEmpty(), pluginConfig?.secrets.orEmpty())
     }
+
+/**
+ * A data class used by [ScannerRunner] to return information about the result obtained from the invocation of the
+ * ORT scanner.
+ */
+data class OrtScannerResult(
+    /** The [ScannerRun] object produced by ORT's scanner. */
+    val scannerRun: ScannerRun,
+
+    /** A map with all issues found by the scanner, grouped by their provenance. */
+    val issues: Map<Provenance, Set<Issue>>
+)
+
+internal class ScannerException(message: String) : Exception(message)

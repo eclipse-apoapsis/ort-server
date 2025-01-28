@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -27,6 +28,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkConstructor
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import io.mockk.verify
@@ -35,9 +37,14 @@ import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
+import org.ossreviewtoolkit.model.ArtifactProvenance
+import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.Provenance
+import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.scanner.CommandLinePathScannerWrapper
+import org.ossreviewtoolkit.scanner.Scanner
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 import org.ossreviewtoolkit.utils.spdx.SpdxConstants
 
@@ -53,7 +60,7 @@ class ScannerRunnerTest : WordSpec({
 
             val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
 
-            result.scanner shouldNotBeNull {
+            result.scannerRun shouldNotBeNull {
                 provenances shouldBe emptySet()
                 scanResults shouldBe emptySet()
             }
@@ -83,9 +90,9 @@ class ScannerRunnerTest : WordSpec({
 
             val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig, 0L)
 
-            result.scanner shouldNotBe null
+            result.scannerRun shouldNotBe null
 
-            result.scanner?.config shouldBe ScannerConfiguration(
+            result.scannerRun.config shouldBe ScannerConfiguration(
                 skipConcluded = true,
                 detectedLicenseMapping = detectedLicenseMapping,
                 ignorePatterns = ignorePatterns
@@ -100,9 +107,9 @@ class ScannerRunnerTest : WordSpec({
 
             val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig, 0L)
 
-            result.scanner shouldNotBe null
+            result.scannerRun shouldNotBe null
 
-            result.scanner?.config shouldBe ScannerConfiguration()
+            result.scannerRun.config shouldBe ScannerConfiguration()
         }
 
         "create the configured scanners with the correct options and secrets" {
@@ -144,6 +151,36 @@ class ScannerRunnerTest : WordSpec({
                 scanCodeFactory.create(scanCodeConfig.options, scanCodeSecrets)
                 licenseeFactory.create(licenseeConfig.options, licenseeSecrets)
             }
+        }
+
+        "throw an exception if no scanner run was created" {
+            val factory = mockScannerWrapperFactory("ScanCode")
+            mockScannerWrapperAll(listOf(factory))
+            mockkConstructor(Scanner::class)
+            coEvery { anyConstructed<Scanner>().scan(any(), any(), any()) } returns OrtResult.EMPTY
+
+            shouldThrow<ScannerException> {
+                runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
+            }
+        }
+
+        "return the issues from the scan result storage" {
+            val factory = mockScannerWrapperFactory("ScanCode")
+            mockScannerWrapperAll(listOf(factory))
+
+            mockkConstructor(OrtServerScanResultStorage::class)
+            val issuesMap = mapOf<Provenance, Set<Issue>>(
+                mockk<ArtifactProvenance>() to setOf(Issue(source = "source1", message = "message1")),
+                mockk<RepositoryProvenance>() to setOf(
+                    Issue(source = "source2", message = "message2"),
+                    Issue(source = "source3", message = "message3")
+                )
+            )
+            every { anyConstructed<OrtServerScanResultStorage>().getAllIssues() } returns issuesMap
+
+            val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
+
+            result.issues shouldBe issuesMap
         }
     }
 })

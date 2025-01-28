@@ -54,11 +54,16 @@ import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
+import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.Provenance
+import org.ossreviewtoolkit.model.ProvenanceResolutionResult
+import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.ScanResult
 import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerRun
@@ -121,14 +126,36 @@ class ScannerWorkerTest : StringSpec({
             ortIdentifier.name,
             ortIdentifier.version
         )
+
+        val provenance = mockk<ArtifactProvenance>(relaxed = true)
         val ortScannerRun = ScannerRun.EMPTY.copy(
-            scanners = mapOf(ortIdentifier to setOf("scanner1", "scanner2"))
+            scanners = mapOf(ortIdentifier to setOf("scanner1", "scanner2")),
+            scanResults = setOf(
+                ScanResult(
+                    provenance = provenance,
+                    scanner = mockk(relaxed = true),
+                    summary = ScanSummary(
+                        startTime = Instant.now(),
+                        endTime = Instant.now(),
+                        issues = emptyList()
+                    )
+                )
+            ),
+            provenances = setOf(
+                ProvenanceResolutionResult(packageProvenance = provenance, id = ortIdentifier)
+            )
         )
+        val issue = OrtIssue(
+            timestamp = Instant.now(),
+            source = "TestScanner",
+            message = "Test hint message",
+            severity = Severity.HINT,
+            affectedPath = "test/path"
+        )
+        val issuesMap = mapOf<Provenance, Set<OrtIssue>>(provenance to setOf(issue))
 
         val runner = mockk<ScannerRunner> {
-            coEvery { run(context, any(), any(), any()) } returns mockk {
-                every { scanner } returns ortScannerRun
-            }
+            coEvery { run(context, any(), any(), any()) } returns OrtScannerResult(ortScannerRun, issuesMap)
         }
 
         val environmentService = mockk<EnvironmentService> {
@@ -182,39 +209,85 @@ class ScannerWorkerTest : StringSpec({
             every { createContext(ORT_RUN_ID) } returns context
         }
 
-        val ortIdentifier = Identifier("type", "namespace", "name", "version")
-        val mappedIdentifier = org.eclipse.apoapsis.ortserver.model.runs.Identifier(
-            ortIdentifier.type,
-            ortIdentifier.namespace,
-            ortIdentifier.name,
-            ortIdentifier.version
-        )
-        val ortIssue = OrtIssue(
+        val provenance1 = mockk<ArtifactProvenance>(relaxed = true)
+        val provenance2 = mockk<RepositoryProvenance>(relaxed = true)
+        val provenance3 = mockk<RepositoryProvenance>(relaxed = true)
+        val ortIdentifier1 = Identifier("type", "namespace", "name", "version")
+        val ortIdentifier2 = Identifier("type2", "namespace2", "name2", "version2")
+        val ortIssue1 = OrtIssue(
             timestamp = Instant.now(),
             source = "TestScanner",
             message = "Test message",
             severity = Severity.WARNING,
             affectedPath = "test/path"
         )
-        val scanResult = ScanResult(
-            provenance = mockk(relaxed = true),
+        val ortIssue2 = OrtIssue(
+            timestamp = Instant.now(),
+            source = "TestScanner2",
+            message = "Test message 2",
+            severity = Severity.ERROR,
+            affectedPath = "test/path"
+        )
+        val ortIssue3 = OrtIssue(
+            timestamp = Instant.now(),
+            source = "TestScanner3",
+            message = "Test message 3",
+            severity = Severity.HINT,
+            affectedPath = "test/path"
+        )
+        val ortIssue4 = OrtIssue(
+            timestamp = Instant.now(),
+            source = "TestScanner4",
+            message = "Test message 4",
+            severity = Severity.HINT,
+            affectedPath = "test/path2"
+        )
+        val scanResult1 = ScanResult(
+            provenance = provenance1,
             scanner = mockk(relaxed = true),
             summary = ScanSummary(
                 startTime = Instant.now(),
                 endTime = Instant.now(),
-                issues = listOf(ortIssue)
+                issues = listOf(ortIssue1)
+            )
+        )
+        val scanResult2 = ScanResult(
+            provenance = provenance2,
+            scanner = mockk(relaxed = true),
+            summary = ScanSummary(
+                startTime = Instant.now(),
+                endTime = Instant.now(),
+                issues = listOf(ortIssue2, ortIssue3)
+            )
+        )
+        val scanResult3 = ScanResult(
+            provenance = provenance3,
+            scanner = mockk(relaxed = true),
+            summary = ScanSummary(
+                startTime = Instant.now(),
+                endTime = Instant.now(),
+                issues = listOf(ortIssue4)
             )
         )
         val ortScannerRun = mockk<ScannerRun>(relaxed = true) {
-            every { scanners } returns mapOf(ortIdentifier to setOf("scanner1", "scanner2"))
-            every { scanResults } returns setOf(scanResult)
-            every { getAllIssues() } returns mapOf(ortIdentifier to setOf(ortIssue))
+            every { scanners } returns mapOf(
+                ortIdentifier1 to setOf("scanner1", "scanner2"),
+                ortIdentifier2 to setOf("scanner3")
+            )
+            every { scanResults } returns setOf(scanResult1, scanResult2)
+            every { getAllScanResults() } returns mapOf(
+                ortIdentifier1 to listOf(scanResult1),
+                ortIdentifier2 to listOf(scanResult2, scanResult3),
+            )
         }
+        val issuesMap = mapOf<Provenance, Set<OrtIssue>>(
+            provenance1 to setOf(ortIssue1),
+            provenance2 to setOf(ortIssue2, ortIssue3),
+            provenance3 to setOf(ortIssue4)
+        )
 
         val runner = mockk<ScannerRunner> {
-            coEvery { run(context, any(), any(), any()) } returns mockk {
-                every { scanner } returns ortScannerRun
-            }
+            coEvery { run(context, any(), any(), any()) } returns OrtScannerResult(ortScannerRun, issuesMap)
         }
 
         val environmentService = mockk<EnvironmentService> {
@@ -229,22 +302,30 @@ class ScannerWorkerTest : StringSpec({
             result shouldBe RunResult.FinishedWithIssues
 
             val slotScannerRun = slot<org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun>()
-            val slotIssues = slot<Collection<org.eclipse.apoapsis.ortserver.model.runs.Issue>>()
+            val slotIssues = slot<Collection<Issue>>()
             verify(exactly = 1) {
                 ortRunService.finalizeScannerRun(capture(slotScannerRun), capture(slotIssues))
             }
-            slotScannerRun.captured.scanners shouldBe mapOf(mappedIdentifier to setOf("scanner1", "scanner2"))
-
-            val expectedIssue = Issue(
-                timestamp = ortIssue.timestamp.toKotlinInstant(),
-                source = ortIssue.source,
-                message = ortIssue.message,
-                severity = org.eclipse.apoapsis.ortserver.model.Severity.WARNING,
-                affectedPath = ortIssue.affectedPath,
-                identifier = mappedIdentifier,
-                worker = "scanner"
+            slotScannerRun.captured.scanners shouldBe mapOf(
+                ortIdentifier1.mapToModel() to setOf("scanner1", "scanner2"),
+                ortIdentifier2.mapToModel() to setOf("scanner3")
             )
-            slotIssues.captured shouldContainExactlyInAnyOrder listOf(expectedIssue)
+
+            val identifier2 = ortIdentifier2.mapToModel()
+            val expectedIssues = listOf(ortIssue1, ortIssue2, ortIssue3, ortIssue4)
+                .zip(listOf(ortIdentifier1.mapToModel(), identifier2, identifier2, identifier2))
+                .map { (issue, identifier) ->
+                    Issue(
+                        timestamp = issue.timestamp.toKotlinInstant(),
+                        source = issue.source,
+                        message = issue.message,
+                        severity = issue.severity.mapToModel(),
+                        affectedPath = issue.affectedPath,
+                        identifier = identifier,
+                        worker = "scanner"
+                    )
+                }
+            slotIssues.captured shouldContainExactlyInAnyOrder expectedIssues
 
             coVerify { environmentService.generateNetRcFileForCurrentRun(context) }
         }
@@ -298,10 +379,18 @@ class ScannerWorkerTest : StringSpec({
             every { createContext(ORT_RUN_ID) } returns context
         }
 
+        val provenance: Provenance =
+            OrtTestData.scannerRun.provenances.firstNotNullOf(ProvenanceResolutionResult::packageProvenance)
+        val issue = OrtIssue(
+            timestamp = Instant.now(),
+            source = "TestScanner",
+            message = "Test message",
+            severity = Severity.WARNING,
+            affectedPath = "test/path"
+        )
+        val issuesMap = mapOf(provenance to setOf(issue))
         val runner = mockk<ScannerRunner> {
-            coEvery { run(context, any(), any(), any()) } returns mockk {
-                every { scanner } returns OrtTestData.scannerRun
-            }
+            coEvery { run(context, any(), any(), any()) } returns OrtScannerResult(OrtTestData.scannerRun, issuesMap)
         }
 
         val environmentService = mockk<EnvironmentService> {
