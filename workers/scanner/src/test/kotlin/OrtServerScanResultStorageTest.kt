@@ -42,7 +42,7 @@ import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createI
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createRepositoryProvenance
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createScanResult
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.scannerMatcher
-import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.withoutFindings
+import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.withoutRelations
 
 import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 
@@ -259,8 +259,8 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldContainExactlyInAnyOrder listOf(
-                    scanResult1.withoutFindings(),
-                    scanResult2.withoutFindings()
+                    scanResult1.withoutRelations(),
+                    scanResult2.withoutRelations()
                 )
                 readResult shouldNotContain scanResult3
             }
@@ -281,8 +281,8 @@ class OrtServerScanResultStorageTest : WordSpec() {
 
                 val readResult = scanResultStorage.read(artifactProvenance.mapToOrt(), scannerMatcher)
                 readResult shouldContainExactlyInAnyOrder listOf(
-                    scanResult1.withoutFindings(),
-                    scanResult2.withoutFindings()
+                    scanResult1.withoutRelations(),
+                    scanResult2.withoutRelations()
                 )
                 readResult shouldNotContain scanResult3
             }
@@ -323,7 +323,7 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 scanResultStorage.write(notMatchingScanResult)
 
                 val readResult = scanResultStorage.read(repositoryProvenance.mapToOrt(), scannerMatcher)
-                readResult shouldContain matchingScanResult.withoutFindings()
+                readResult shouldContain matchingScanResult.withoutRelations()
                 readResult shouldNotContain notMatchingScanResult
             }
         }

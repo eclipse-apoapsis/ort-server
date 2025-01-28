@@ -49,28 +49,34 @@ class ScanSummaryDao(id: EntityID<Long>) : LongEntity(id) {
     val issues by ScanSummariesIssuesDao referrersOn ScanSummariesIssuesTable.scanSummaryId
 
     /**
-     * Map this DAO to a [ScanSummary] model object. Based on the [withFindings] flag, either include all findings
-     * or return a summary without findings.
+     * Map this DAO to a [ScanSummary] model object. If the [withRelations] flag is *true*, populate the collections
+     * for findings and issues. (Note that this may cause a larger number of SELECT statements issued to the database
+     * to load all these objects.) If the flag is *false*, only initialize the direct properties and leave the
+     * collections empty.
      */
-    fun mapToModel(withFindings: Boolean = true) = ScanSummary(
+    fun mapToModel(withRelations: Boolean = true) = ScanSummary(
         startTime = startTime,
         endTime = endTime,
         hash = hash,
-        licenseFindings = if (withFindings) {
+        licenseFindings = if (withRelations) {
             licenseFindings.mapTo(mutableSetOf(), LicenseFindingDao::mapToModel)
         } else {
             emptySet()
         },
-        copyrightFindings = if (withFindings) {
+        copyrightFindings = if (withRelations) {
             copyrightFindings.mapTo(mutableSetOf(), CopyrightFindingDao::mapToModel)
         } else {
             emptySet()
         },
-        snippetFindings = if (withFindings) {
+        snippetFindings = if (withRelations) {
             snippetFindings.mapTo(mutableSetOf(), SnippetFindingDao::mapToModel)
         } else {
             emptySet()
         },
-        issues = issues.map(ScanSummariesIssuesDao::mapToModel)
+        issues = if (withRelations) {
+            issues.map(ScanSummariesIssuesDao::mapToModel)
+        } else {
+            emptyList()
+        }
     )
 }
