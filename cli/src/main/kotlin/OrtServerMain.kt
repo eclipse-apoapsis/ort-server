@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
 import com.github.ajalt.clikt.command.parse
+import com.github.ajalt.clikt.completion.completionOption
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.subcommands
@@ -60,6 +61,8 @@ suspend fun main(args: Array<String>) {
 
 class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
     init {
+        completionOption()
+
         subcommands(AuthCommand(), RunsCommand())
 
         versionOption(
