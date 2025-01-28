@@ -608,7 +608,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     "maven" to listOf(mapOf("id" to "repositoryServer"))
                 )
                 val environmentVariables = listOf(
-                    ApiEnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret")
+                    ApiEnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret"),
+                    ApiEnvironmentVariableDeclaration("MY_OTHER_ENV_VAR", value = "nonSensitiveData")
                 )
                 val envConfig = EnvironmentConfig(
                     infrastructureServices = listOf(service),
@@ -663,7 +664,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     jobConfig.environmentDefinitions shouldBe environmentDefinitions
                     jobConfig.infrastructureServices shouldContainExactly listOf(serviceDeclaration)
                     jobConfig.environmentVariables shouldContainExactly listOf(
-                        EnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret")
+                        EnvironmentVariableDeclaration("MY_ENV_VAR", "mySecret"),
+                        EnvironmentVariableDeclaration("MY_OTHER_ENV_VAR", value = "nonSensitiveData")
                     )
                 }
 
