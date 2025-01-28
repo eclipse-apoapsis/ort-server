@@ -78,8 +78,6 @@ jobs:
 
         if [[ -n "$missing_links" || -n "$extra_links" ]]; then
           comment_text+="Issues referenced in commit messages and issues linked to this PR are not in sync."
-        else
-          comment_text+="Issues referenced in commit messages and issues linked to this PR are in sync."
         fi
 
         if [[ -n "$missing_links" ]]; then
@@ -90,11 +88,14 @@ jobs:
           comment_text+="\nPlease manually unlink this PR from the following issues or reference the issues in a commit message: $extra_links"
         fi
 
-        echo $comment_text
+        if [[ -n "$comment_text" ]]; then
+          echo $comment_text
 
-        # Export the comment text as an environment variable.
-        echo "COMMENT_TEXT=$comment_text" >> $GITHUB_ENV
-
+          # Export the comment text as an environment variable.
+          echo "COMMENT_TEXT=$comment_text" >> $GITHUB_ENV
+        else
+          echo "Issues referenced in commit messages and issues linked to this PR are in sync."
+        fi
     - name: Add PR comment
       if: always()
       env:
@@ -110,5 +111,7 @@ jobs:
           gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$comment_id"
         done
 
-        # Add a comment to the PR.
-        gh pr comment ${{ github.event.pull_request.number }} --body "$(echo -e "$COMMENT_TEXT")"
+        if [[ -n "$COMMENT_TEXT" ]]; then
+          # Add a comment to the PR.
+          gh pr comment ${{ github.event.pull_request.number }} --body "$(echo -e "$COMMENT_TEXT")"
+        fi
