@@ -19,19 +19,20 @@
 
 package org.eclipse.apoapsis.ortserver.cli
 
-import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
+import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.ProgramResult
-import com.github.ajalt.clikt.core.subcommands
 
-class AuthCommand : SuspendingNoOpCliktCommand(name = "auth") {
-    init {
-        subcommands(LoginCommand(), LogoutCommand())
+import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
+
+/**
+ * A command to logout from ORT Server instances.
+ */
+class LogoutCommand : SuspendingCliktCommand(name = "logout") {
+    override fun help(context: Context) = "Logout from all ORT Server instances."
+
+    override suspend fun run() {
+        AuthenticationStorage.clear()
+
+        echo("Successfully logged out.")
     }
-
-    override fun help(context: Context) = "Commands for authentication with the ORT Server."
-}
-
-class AuthenticationError : ProgramResult(1) {
-    override val message = "Not authenticated. Please run '$COMMAND_NAME auth login'."
 }
