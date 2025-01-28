@@ -152,13 +152,14 @@ internal object ScanResultFixtures {
         createServerScanResult(scannerName, issue, provenance, scannerVersion, scannerConfig, additionalData).mapToOrt()
 
     /**
-     * Return a copy of this [OrtScanResult] that does not contain any findings.
+     * Return a copy of this [OrtScanResult] that does not contain any objects from related tables.
      */
-    fun OrtScanResult.withoutFindings(): OrtScanResult {
+    fun OrtScanResult.withoutRelations(): OrtScanResult {
         val strippedSummary = summary.copy(
             licenseFindings = emptySet(),
             copyrightFindings = emptySet(),
-            snippetFindings = emptySet()
+            snippetFindings = emptySet(),
+            issues = emptyList()
         )
 
         return copy(summary = strippedSummary)
