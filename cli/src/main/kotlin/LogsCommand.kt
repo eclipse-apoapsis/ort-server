@@ -47,7 +47,7 @@ import org.ossreviewtoolkit.utils.common.expandTilde
 class LogsCommand : SuspendingCliktCommand() {
     private val runId by option(
         "--run-id",
-        envvar = "ORT_RUN_ID",
+        envvar = "OSC_RUN_ID",
         help = "The ID of the ORT run."
     ).long()
 
@@ -56,7 +56,7 @@ class LogsCommand : SuspendingCliktCommand() {
     private val outputDir by option(
         "--output-dir",
         "-o",
-        envvar = "ORT_DOWNLOAD_LOGS_OUTPUT_DIR",
+        envvar = "OSC_DOWNLOAD_LOGS_OUTPUT_DIR",
         help = "The directory to download the logs to."
     ).convert { it.expandTilde() }
         .file(mustExist = false, canBeFile = false, canBeDir = true, mustBeWritable = false, mustBeReadable = false)
@@ -65,13 +65,13 @@ class LogsCommand : SuspendingCliktCommand() {
 
     private val level by option(
         "--level",
-        envvar = "ORT_DOWNLOAD_LOGS_LEVEL",
+        envvar = "OSC_DOWNLOAD_LOGS_LEVEL",
         help = "The log level of the logs to download, one of ${LogLevel.entries.joinToString(", ")}."
     ).enum<LogLevel>()
 
     private val steps by option(
         "--steps",
-        envvar = "ORT_DOWNLOAD_LOGS_STEPS",
+        envvar = "OSC_DOWNLOAD_LOGS_STEPS",
         help = "The run steps for which logs are to be retrieved, separated by commas."
     ).enum<LogSource>()
         .split(",")

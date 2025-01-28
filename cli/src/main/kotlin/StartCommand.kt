@@ -45,26 +45,26 @@ internal val POLL_INTERVAL = System.getProperty("POLL_INTERVAL")?.toLongOrNull()
 class StartCommand : SuspendingCliktCommand(name = "start") {
     private val repositoryId by option(
         "--repository-id",
-        envvar = "REPOSITORY_ID",
+        envvar = "OSC_REPOSITORY_ID",
         help = "The ID of the repository."
     ).long().required()
 
     private val wait by option(
         "--wait",
-        envvar = "WAIT",
+        envvar = "OSC_RUNS_START_WAIT",
         help = "Wait for the run to finish."
     ).flag()
 
     private val parameters by mutuallyExclusiveOptions(
         option(
             "--parameters-file",
-            envvar = "ORT_RUNS_START_PARAMETERS_FILE",
+            envvar = "OSC_RUNS_START_PARAMETERS_FILE",
             help = "The path to a JSON file containing the run configuration " +
                     "(see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run)."
         ).inputStream().convert { it.bufferedReader().readText() },
         option(
             "--parameters",
-            envvar = "ORT_RUNS_START_PARAMETERS",
+            envvar = "OSC_RUNS_START_PARAMETERS",
             help = "The run configuration as a JSON string " +
                     "(see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run)."
         )
