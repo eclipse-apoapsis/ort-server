@@ -282,22 +282,22 @@ class EnvironmentConfigLoader(
         config: RepositoryEnvironmentConfig,
         failure: List<Result<EnvironmentServiceDefinition>>
     ) {
-        if (failure.isNotEmpty()) {
-            val message = buildString {
-                appendLine("Found invalid environment service definitions:")
+        if (failure.isEmpty()) return
 
-                failure.mapNotNull { result ->
-                    result.exceptionOrNull()?.message
-                }.forEach {
-                    appendLine(it)
-                }
-            }
+        val message = buildString {
+            appendLine("Found invalid environment service definitions:")
 
-            if (config.strict) {
-                throw EnvironmentConfigException(message)
-            } else {
-                logger.warn(message)
+            failure.mapNotNull { result ->
+                result.exceptionOrNull()?.message
+            }.forEach {
+                appendLine(it)
             }
+        }
+
+        if (config.strict) {
+            throw EnvironmentConfigException(message)
+        } else {
+            logger.warn(message)
         }
     }
 
@@ -346,20 +346,20 @@ class EnvironmentConfigLoader(
         config: RepositoryEnvironmentConfig,
         failures: List<RepositoryEnvironmentVariableDefinition>
     ) {
-        if (failures.isNotEmpty()) {
-            val message = buildString {
-                appendLine("Found invalid environment variable definitions:")
+        if (failures.isEmpty()) return
 
-                failures.forEach {
-                    appendLine(it)
-                }
-            }
+        val message = buildString {
+            appendLine("Found invalid environment variable definitions:")
 
-            if (config.strict) {
-                throw EnvironmentConfigException(message)
-            } else {
-                logger.warn(message)
+            failures.forEach {
+                appendLine(it)
             }
+        }
+
+        if (config.strict) {
+            throw EnvironmentConfigException(message)
+        } else {
+            logger.warn(message)
         }
     }
 }
