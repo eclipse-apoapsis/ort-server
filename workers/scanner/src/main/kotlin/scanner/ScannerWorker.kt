@@ -20,6 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
@@ -32,8 +34,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 
-import org.ossreviewtoolkit.model.ScannerRun
-import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.Provenance
 
 import org.slf4j.LoggerFactory
 
@@ -78,18 +79,18 @@ class ScannerWorker(
 
         val scannerRunId = ortRunService.createScannerRun(scannerJob.id).id
 
-        val scannerRun = runner.run(context, ortResult, scannerJob.configuration, scannerRunId).scanner
-            ?: throw ScannerException("ORT Scanner failed to create a result.")
+        val scannerRunResult = runner.run(context, ortResult, scannerJob.configuration, scannerRunId)
 
+        val issues = scannerRunResult.extractIssues()
         db.dbQuery {
             getValidScannerJob(scannerJob.id)
             ortRunService.finalizeScannerRun(
-                scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId),
-                scannerRun.extractIssues()
+                scannerRunResult.scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId),
+                issues
             )
         }
 
-        if (scannerRun.scanResults.flatMap { it.summary.issues }.any { it.severity >= Severity.WARNING }) {
+        if (issues.any { it.severity >= Severity.WARNING }) {
             RunResult.FinishedWithIssues
         } else {
             RunResult.Success
@@ -112,14 +113,20 @@ class ScannerWorker(
         ortRunService.getScannerJob(jobId).validateForProcessing(jobId)
 }
 
-private class ScannerException(message: String) : Exception(message)
-
 /**
- * Extract all [Issue]s from this [ScannerRun] and convert it to the ORT Server model.
+ * Extract all [Issue]s from this [OrtScannerResult] and convert it to the ORT Server model.
  */
-private fun ScannerRun.extractIssues(): List<Issue> =
-    getAllIssues().flatMap { (id, issues) ->
-        issues.map { issue ->
-            issue.mapToModel(identifier = id.mapToModel(), worker = "scanner")
+private fun OrtScannerResult.extractIssues(): List<Issue> {
+    val idsByProvenance = mutableMapOf<Provenance, Identifier>()
+    scannerRun.getAllScanResults().forEach { (id, results) ->
+        results.forEach { result ->
+            idsByProvenance[result.provenance] = id.mapToModel()
         }
     }
+
+    return issues.flatMap { (provenance, issues) ->
+        issues.map { issue ->
+            issue.mapToModel(identifier = idsByProvenance[provenance], worker = "scanner")
+        }
+    }
+}
