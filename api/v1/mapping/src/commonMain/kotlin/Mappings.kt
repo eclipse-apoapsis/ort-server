@@ -598,7 +598,7 @@ fun ApiInfrastructureService.mapToModel() =
 fun InfrastructureServiceDeclaration.mapToApi() =
     ApiInfrastructureService(name, url, description, usernameSecret, passwordSecret, credentialsTypes.mapToApi())
 
-fun ApiEnvironmentVariableDeclaration.mapToModel() = EnvironmentVariableDeclaration(name, secretName)
+fun ApiEnvironmentVariableDeclaration.mapToModel() = EnvironmentVariableDeclaration(name, secretName, value)
 
 fun EnvironmentVariableDeclaration.mapToApi() = ApiEnvironmentVariableDeclaration(name, secretName, value)
 
