@@ -45,7 +45,7 @@ import org.ossreviewtoolkit.utils.common.expandTilde
 class ReportsCommand : SuspendingCliktCommand(name = "reports") {
     private val runId by option(
         "--run-id",
-        envvar = "ORT_RUN_ID",
+        envvar = "OSC_RUN_ID",
         help = "The ID of the ORT run."
     ).long()
 
@@ -54,7 +54,7 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
     private val fileNames by option(
         "--file-names",
         "--filenames",
-        envvar = "ORT_DOWNLOAD_REPORTS_FILE_NAMES",
+        envvar = "OSC_DOWNLOAD_REPORTS_FILE_NAMES",
         help = "The names of the files to download, separated by commas."
     ).split(",")
         .required()
@@ -62,7 +62,7 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
     private val outputDir by option(
         "--output-dir",
         "-o",
-        envvar = "ORT_DOWNLOAD_REPORTS_OUTPUT_DIR",
+        envvar = "OSC_DOWNLOAD_REPORTS_OUTPUT_DIR",
         help = "The directory to download the reports to."
     ).convert { it.expandTilde() }
         .file(mustExist = false, canBeFile = false, canBeDir = true, mustBeWritable = true, mustBeReadable = false)

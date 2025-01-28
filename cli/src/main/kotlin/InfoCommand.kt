@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 class InfoCommand : SuspendingCliktCommand(name = "info") {
     private val runId by option(
         "--run-id",
-        envvar = "ORT_RUN_ID",
+        envvar = "OSC_RUN_ID",
         help = "The ID of the ORT run."
     ).long()
 
@@ -67,13 +67,13 @@ class InfoCommand : SuspendingCliktCommand(name = "info") {
 class OrtRunByIndexOptions : OptionGroup() {
     val repositoryId by option(
         "--repository-id",
-        envvar = "REPOSITORY_ID",
+        envvar = "OSC_REPOSITORY_ID",
         help = "The ID of the repository."
     ).long().required()
 
     val ortRunIndex by option(
         "--index",
-        envvar = "ORT_RUN_INDEX",
+        envvar = "OSC_RUN_INDEX",
         help = "The index of the ORT run."
     ).long().required()
 }
