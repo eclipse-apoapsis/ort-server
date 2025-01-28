@@ -284,14 +284,12 @@ class EnvironmentConfigLoader(
     ) {
         if (failure.isNotEmpty()) {
             val message = buildString {
-                append("Found invalid environment service definitions:")
-                append(System.lineSeparator())
+                appendLine("Found invalid environment service definitions:")
 
                 failure.mapNotNull { result ->
                     result.exceptionOrNull()?.message
                 }.forEach {
-                    append(it)
-                    append(System.lineSeparator())
+                    appendLine(it)
                 }
             }
 
