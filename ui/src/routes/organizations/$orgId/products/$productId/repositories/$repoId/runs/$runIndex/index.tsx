@@ -144,14 +144,16 @@ const RunComponent = () => {
               {ortRun.jobConfigContext && (
                 <div className='text-sm'>
                   <Label className='font-semibold'>
-                    Job configuration context:
+                    Configuration context:
                   </Label>{' '}
                   {ortRun.jobConfigContext}
                 </div>
               )}
               {ortRun.resolvedJobConfigContext && (
                 <div className='text-sm'>
-                  <Label className='font-semibold'>Resolved to:</Label>{' '}
+                  <Label className='font-semibold'>
+                    Resolved configuration context:
+                  </Label>{' '}
                   {ortRun.resolvedJobConfigContext}
                 </div>
               )}
