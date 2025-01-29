@@ -27,6 +27,7 @@ import { z } from 'zod';
 import { useRepositoriesServicePostOrtRun } from '@/api/queries';
 import { ApiError, RepositoriesService } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
+import { InlineCode } from '@/components/typography.tsx';
 import { Accordion } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import {
@@ -206,8 +207,8 @@ const CreateRunPage = () => {
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    The path to limit the analysis to, for example
-                    'path/to/source'.
+                    The path to limit the analysis to, for example{' '}
+                    <InlineCode>path/to/source</InlineCode>.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
