@@ -346,10 +346,7 @@ class EnvironmentConfigLoader(
 
         val message = buildString {
             appendLine("Found invalid environment variable definitions:")
-
-            failures.forEach {
-                appendLine(it)
-            }
+            failures.forEach(::appendLine)
         }
 
         if (config.strict) {
