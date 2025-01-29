@@ -17,13 +17,15 @@
  * License-Filename: LICENSE
  */
 
-import { UseFormReturn } from 'react-hook-form';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useFieldArray, UseFormReturn } from 'react-hook-form';
 
 import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
 import {
   FormControl,
   FormDescription,
@@ -48,6 +50,15 @@ export const AnalyzerFields = ({
   value,
   onToggle,
 }: AnalyzerFieldsProps) => {
+  const {
+    fields: environmentVariablesFields,
+    append: environmentVariablesAppend,
+    remove: environmentVariablesRemove,
+  } = useFieldArray({
+    name: 'jobConfigs.analyzer.environmentVariables',
+    control: form.control,
+  });
+
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -127,6 +138,69 @@ export const AnalyzerFields = ({
               </FormItem>
             )}
           />
+          <div className='flex flex-col gap-2'>
+            <h3>Environment variables</h3>
+            <div className='mb-2 text-sm text-gray-500'>
+              A set of environment variables (name, value) that the analyzer
+              needs to analyze the project.
+            </div>
+            {environmentVariablesFields.map((field, index) => (
+              <div key={field.id} className='flex flex-row items-end space-x-2'>
+                <div className='flex-auto'>
+                  {index === 0 && <FormLabel>Name</FormLabel>}
+                  <FormField
+                    control={form.control}
+                    name={`jobConfigs.analyzer.environmentVariables.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className='flex-auto'>
+                  {index === 0 && <FormLabel>Value</FormLabel>}
+                  <FormField
+                    control={form.control}
+                    name={`jobConfigs.analyzer.environmentVariables.${index}.value`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    environmentVariablesRemove(index);
+                  }}
+                >
+                  <TrashIcon className='h-4 w-4' />
+                </Button>
+              </div>
+            ))}
+            <Button
+              size='sm'
+              className='mt-2 w-min'
+              variant='outline'
+              type='button'
+              onClick={() => {
+                environmentVariablesAppend({ name: '', value: '' });
+              }}
+            >
+              Add environment variable
+              <PlusIcon className='ml-1 h-4 w-4' />
+            </Button>
+          </div>
           <PackageManagerField form={form} />
         </AccordionContent>
       </AccordionItem>
