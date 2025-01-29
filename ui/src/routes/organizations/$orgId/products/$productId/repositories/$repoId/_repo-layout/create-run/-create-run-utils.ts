@@ -48,6 +48,11 @@ const packageManagerOptionsSchema = z.object({
   options: z.array(keyValueSchema).optional(),
 });
 
+const environmentVariableSchema = z.object({
+  name: z.string(),
+  value: z.string().optional(),
+});
+
 export const createRunFormSchema = z.object({
   revision: z.string(),
   path: z.string(),
@@ -57,6 +62,7 @@ export const createRunFormSchema = z.object({
       repositoryConfigPath: z.string().optional(),
       allowDynamicVersions: z.boolean(),
       skipExcluded: z.boolean(),
+      environmentVariables: z.array(environmentVariableSchema).optional(),
       packageManagers: z
         .object({
           Bazel: packageManagerOptionsSchema,
@@ -276,6 +282,7 @@ export function defaultValues(
         repositoryConfigPath: '',
         allowDynamicVersions: true,
         skipExcluded: true,
+        environmentVariables: [{ name: '' }],
         packageManagers: {
           Bazel: defaultPackageManagerOptions('Bazel'),
           Bower: defaultPackageManagerOptions('Bower'),
@@ -375,6 +382,10 @@ export function defaultValues(
             // defaultPackageManagerOptions gets the options from the previous run already in the
             // baseDefaults object, so those values can be used here.
             packageManagers: baseDefaults.jobConfigs.analyzer.packageManagers,
+            environmentVariables:
+              ortRun.jobConfigs.analyzer?.environmentConfig
+                ?.environmentVariables ||
+              baseDefaults.jobConfigs.analyzer.environmentVariables,
           },
           advisor: {
             enabled:
@@ -591,6 +602,14 @@ export function formValuesToPayload(
     repositoryConfigPath:
       values.jobConfigs.analyzer.repositoryConfigPath || undefined,
     skipExcluded: values.jobConfigs.analyzer.skipExcluded,
+    environmentConfig: {
+      infrastructureServices: [],
+      environmentVariables:
+        values.jobConfigs.analyzer.environmentVariables &&
+        values.jobConfigs.analyzer.environmentVariables.length > 0
+          ? values.jobConfigs.analyzer.environmentVariables
+          : undefined,
+    },
     // Determine the enabled package managers by filtering the packageManagers object
     // and finding those for which 'enabled' is true.
     enabledPackageManagers: [
