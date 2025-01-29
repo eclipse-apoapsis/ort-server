@@ -267,7 +267,8 @@ val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
                                         )
                                     )
                                 ),
-                                identifier = Identifier("Maven", "org.namespace", "name", "1.0")
+                                identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
+                                rating = VulnerabilityRating.HIGH
                             )
                         ),
                         PagingData(

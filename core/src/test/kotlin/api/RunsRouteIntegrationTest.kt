@@ -590,7 +590,22 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                                         externalId = "CVE-2021-1234",
                                         summary = "A vulnerability",
                                         description = "A description",
-                                        references = emptyList()
+                                        references = listOf(
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "LOW",
+                                                score = 1.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            ),
+                                            VulnerabilityReference(
+                                                url = "https://example.com",
+                                                scoringSystem = "CVSS",
+                                                severity = "MEDIUM",
+                                                score = 4.2f,
+                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                            )
+                                        )
                                     )
                                 )
                             )
@@ -606,6 +621,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 with(vulnerabilities.data) {
                     shouldHaveSize(1)
                     first().vulnerability.externalId shouldBe "CVE-2021-1234"
+                    first().rating shouldBe VulnerabilityRating.MEDIUM
 
                     with(first().identifier) {
                         type shouldBe "Maven"
