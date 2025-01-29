@@ -86,6 +86,22 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                     {jobConfigs.enabledPackageManagers.join(', ')}
                   </div>
                 )}
+                {jobConfigs.environmentConfig?.environmentVariables && (
+                  <div>
+                    <Label className='font-semibold'>
+                      Environment variables:
+                    </Label>{' '}
+                    {jobConfigs.environmentConfig.environmentVariables.map(
+                      (env) => (
+                        <div className='ml-2 flex gap-1'>
+                          <div>{env.name}</div>
+                          <div>=</div>
+                          <div>{env.value}</div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
                 {jobConfigs.packageManagerOptions && (
                   <div className='space-y-2'>
                     <Label className='font-semibold'>
