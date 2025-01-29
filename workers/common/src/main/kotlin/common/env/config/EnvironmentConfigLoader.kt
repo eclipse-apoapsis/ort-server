@@ -260,38 +260,34 @@ class EnvironmentConfigLoader(
     ): List<EnvironmentServiceDefinition> {
         val serviceResolver = ServiceResolver(hierarchy, serviceRepository, configServices)
 
-        val (success, failure) = config.environmentDefinitions.entries.flatMap { entry ->
+        val definitionResults = config.environmentDefinitions.entries.flatMap { entry ->
             entry.value.map { definition ->
                 serviceResolver.resolveService(definition).mapCatching { service ->
                     definitionFactory.createDefinition(entry.key, service, definition).getOrThrow()
                 }
             }
-        }.partition { it.isSuccess }
+        }
 
-        handleInvalidDefinitions(config, failure)
+        val (successes, failures) = definitionResults.partition { it.isSuccess }.run {
+            first.mapNotNull { it.getOrNull() } to second.mapNotNull { it.exceptionOrNull() }
+        }
 
-        return success.mapNotNull { it.getOrNull() }
+        handleInvalidDefinitions(config, failures)
+
+        return successes
     }
 
     /**
      * Check whether there are invalid environment service definitions in the given [config] based on the given
-     * [failure] list. If so, generate a meaningful message and either throw an exception (in strict mode) or log a
+     * [failures] list. If so, generate a meaningful message and either throw an exception (in strict mode) or log a
      * warning.
      */
-    private fun handleInvalidDefinitions(
-        config: RepositoryEnvironmentConfig,
-        failure: List<Result<EnvironmentServiceDefinition>>
-    ) {
-        if (failure.isEmpty()) return
+    private fun handleInvalidDefinitions(config: RepositoryEnvironmentConfig, failures: List<Throwable>) {
+        if (failures.isEmpty()) return
 
         val message = buildString {
             appendLine("Found invalid environment service definitions:")
-
-            failure.mapNotNull { result ->
-                result.exceptionOrNull()?.message
-            }.forEach {
-                appendLine(it)
-            }
+            failures.forEach(::appendLine)
         }
 
         if (config.strict) {
