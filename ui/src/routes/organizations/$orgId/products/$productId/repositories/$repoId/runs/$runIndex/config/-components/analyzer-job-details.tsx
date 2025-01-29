@@ -56,7 +56,7 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                 Resolved job configuration:
               </Label>
               <div className='ml-2 space-y-2'>
-                {jobConfigs?.repositoryConfigPath && (
+                {jobConfigs.repositoryConfigPath && (
                   <div>
                     <Label className='font-semibold'>
                       Repository configuration path:
@@ -64,7 +64,7 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                     {jobConfigs.repositoryConfigPath}
                   </div>
                 )}
-                {jobConfigs?.allowDynamicVersions && (
+                {jobConfigs.allowDynamicVersions && (
                   <div>
                     <Label className='font-semibold'>
                       Allow dynamic versions:
@@ -72,13 +72,13 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                     {jobConfigs.allowDynamicVersions.toString()}
                   </div>
                 )}
-                {jobConfigs?.skipExcluded && (
+                {jobConfigs.skipExcluded && (
                   <div>
                     <Label className='font-semibold'>Skip excluded: </Label>
                     {jobConfigs.skipExcluded.toString()}
                   </div>
                 )}
-                {jobConfigs?.enabledPackageManagers && (
+                {jobConfigs.enabledPackageManagers && (
                   <div>
                     <Label className='font-semibold'>
                       Enabled package managers:
@@ -86,7 +86,7 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                     {jobConfigs.enabledPackageManagers.join(', ')}
                   </div>
                 )}
-                {jobConfigs?.packageManagerOptions && (
+                {jobConfigs.packageManagerOptions && (
                   <div className='space-y-2'>
                     <Label className='font-semibold'>
                       Package manager options:
@@ -94,6 +94,15 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                     {Object.keys(jobConfigs.packageManagerOptions).map((pm) => (
                       <div className='ml-2' key={pm}>
                         <Label className='font-semibold'>{pm}:</Label>
+                        {jobConfigs.packageManagerOptions?.[pm]
+                          ?.mustRunAfter && (
+                          <div className='ml-2'>
+                            <Label>Must run after:</Label>{' '}
+                            {jobConfigs.packageManagerOptions?.[
+                              pm
+                            ].mustRunAfter.join(', ')}
+                          </div>
+                        )}
                         {jobConfigs.packageManagerOptions?.[pm]?.options && (
                           <div className='ml-2'>
                             <div className='ml-2'>
