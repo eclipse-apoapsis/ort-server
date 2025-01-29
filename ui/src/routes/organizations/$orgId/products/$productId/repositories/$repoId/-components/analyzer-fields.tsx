@@ -20,6 +20,7 @@
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
 
+import { InlineCode } from '@/components/typography.tsx';
 import {
   AccordionContent,
   AccordionItem,
@@ -141,8 +142,21 @@ export const AnalyzerFields = ({
           <div className='flex flex-col gap-2'>
             <h3>Environment variables</h3>
             <div className='mb-2 text-sm text-gray-500'>
-              A set of environment variables (name, value) that the analyzer
-              needs to analyze the project.
+              A map of key-value pairs to set as environment variables during
+              analysis. Use this to specify environment variables that are
+              required by the build process. In case of Gradle, this can also be
+              used to{' '}
+              <a
+                className='text-blue-400 hover:underline'
+                href={
+                  'https://docs.gradle.org/current/userguide/build_environment.html#setting_a_project_property'
+                }
+                target='_blank'
+              >
+                set Gradle properties by prefixing them with{' '}
+                <InlineCode>ORG_GRADLE_PROJECT_</InlineCode>
+              </a>
+              .
             </div>
             {environmentVariablesFields.map((field, index) => (
               <div key={field.id} className='flex flex-row items-end space-x-2'>
