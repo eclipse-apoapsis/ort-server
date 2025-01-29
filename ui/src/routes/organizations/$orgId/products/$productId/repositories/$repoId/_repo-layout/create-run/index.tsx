@@ -237,9 +237,11 @@ const CreateRunPage = () => {
               )}
             />
 
-            <h3 className='mt-4'>Parameters</h3>
+            <h3 className='mt-4'>Configuration parameters</h3>
             <div className='text-sm text-gray-500'>
-              A map with custom parameters for the whole run.
+              A map of key-value pairs that serve as input parameters for the
+              configuration's validation script. The script can use these
+              parameters to alter specific job configurations.
             </div>
             {parametersFields.map((field, index) => (
               <div
