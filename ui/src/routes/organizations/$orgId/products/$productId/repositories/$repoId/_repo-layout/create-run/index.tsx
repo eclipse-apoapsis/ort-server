@@ -219,14 +219,18 @@ const CreateRunPage = () => {
               name='jobConfigContext'
               render={({ field }) => (
                 <FormItem className='pt-4'>
-                  <FormLabel>Job configuration context</FormLabel>
+                  <FormLabel>Configuration context</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    The context to use when obtaining configuration for this
-                    run. The meaning of the context is up for interpretation by
-                    the implementation of the configuration provider.
+                    The context to pass to the configuration provider in use.
+                    The configuration provider is responsible for obtaining
+                    configuration for this run and uses the context in an
+                    implementation-specific way. For example, if the{' '}
+                    <InlineCode>GitHubConfigFileProvider</InlineCode> is in use,
+                    the context defines the Git revision of the configuration to
+                    check out.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
