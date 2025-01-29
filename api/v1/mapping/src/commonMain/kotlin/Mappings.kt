@@ -515,7 +515,7 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
 fun Secret.mapToApi() = ApiSecret(name, description)
 
 fun VulnerabilityWithIdentifier.mapToApi() =
-    ApiVulnerabilityWithIdentifier(vulnerability.mapToApi(), identifier.mapToApi())
+    ApiVulnerabilityWithIdentifier(vulnerability.mapToApi(), identifier.mapToApi(), rating.mapToApi())
 
 fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description, references.map { it.mapToApi() })
 
