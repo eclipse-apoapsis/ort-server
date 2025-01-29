@@ -303,8 +303,12 @@ const CreateRunPage = () => {
               <PlusIcon className='ml-1 h-4 w-4' />
             </Button>
 
-            <h3 className='mt-4'>Labels</h3>
-            <div className='text-sm text-gray-500'>The labels of this run.</div>
+            <h3 className='mt-4'>ORT labels</h3>
+            <div className='text-sm text-gray-500'>
+              A map of key-value pairs to store as labels in ORT results. ORT
+              does not interpret labels by itself, but leaves interpretation to
+              custom configuration, like evaluator rules.
+            </div>
             {labelsFields.map((field, index) => (
               <div
                 key={field.id}
