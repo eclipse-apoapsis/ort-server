@@ -111,7 +111,6 @@ internal val fullJobConfigurations = JobConfigurations(
                 options = mapOf("gradleVersion" to "8.1.1")
             )
         ),
-        recursiveCheckout = true,
         submoduleFetchStrategy = FULLY_RECURSIVE,
         skipExcluded = true
     ),
