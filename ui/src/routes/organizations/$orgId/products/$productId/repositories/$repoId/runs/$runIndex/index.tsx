@@ -85,7 +85,7 @@ const RunComponent = () => {
                         rerunIndex: ortRun.index,
                       }}
                     >
-                      Rerun
+                      Rerun...
                       <Repeat className='ml-1 h-4 w-4' />
                     </Link>
                   </Button>
