@@ -19,16 +19,16 @@
 
 import { IssueCategory } from '@/schemas';
 
-// These regular expressions are used to categorize the issues
-// and they will be expanded as new cases are discovered.
-const infrastructureRegEx = new RegExp(
-  'The .* worker failed due to an unexpected error.*' +
-    "|ERROR: Timeout after .* seconds while scanning file '.*'\\."
-);
-const missingDataRegEx = new RegExp(
-  'IOException: Could not resolve provenance for .*'
-);
-const buildSystemRegEx = new RegExp('.* failed to resolve dependencies for .*');
+// A map where the key is the issue category and the value is an array of regular expressions.
+const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
+  Infrastructure: [
+    /The .* worker failed due to an unexpected error.*/,
+    /ERROR: Timeout after .* seconds while scanning file '.*'\./,
+  ],
+  'Missing Data': [/IOException: Could not resolve provenance for .*/],
+  'Build System': [/.* failed to resolve dependencies for .*/],
+  Other: [],
+};
 
 /**
  * Use regular expressions to categorize an issue based on its message.
@@ -37,14 +37,14 @@ const buildSystemRegEx = new RegExp('.* failed to resolve dependencies for .*');
  * @returns The issue category
  */
 export const getIssueCategory = (message: string): IssueCategory => {
-  if (infrastructureRegEx.test(message)) {
-    return 'Infrastructure';
-  }
-  if (missingDataRegEx.test(message)) {
-    return 'Missing Data';
-  }
-  if (buildSystemRegEx.test(message)) {
-    return 'Build System';
+  for (const category in issueCategoryMap) {
+    if (
+      issueCategoryMap[category as IssueCategory].some((regex) =>
+        regex.test(message)
+      )
+    ) {
+      return category as IssueCategory;
+    }
   }
   return 'Other';
 };
