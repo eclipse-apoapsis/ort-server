@@ -111,4 +111,4 @@ jobs:
         done
 
         # Add a comment to the PR.
-        gh pr comment ${{ github.event.pull_request.number }} --body "$(echo -e "${{ env.COMMENT_TEXT }}")"
+        gh pr comment ${{ github.event.pull_request.number }} --body "$(echo -e "$COMMENT_TEXT")"
