@@ -206,15 +206,12 @@ const ProductSettingsPage = () => {
           <div className='flex justify-between'>
             <div>Delete this product</div>
             <DeleteDialog
-              description={
-                <>
-                  Are you sure you want to delete the product{' '}
-                  <span className='font-bold'>{product.name}</span>?
-                </>
+              thingName={'product'}
+              thingId={product.name}
+              uiComponent={
+                <Button variant='destructive'>Delete product</Button>
               }
-              confirmationText={product.name}
               onDelete={handleDelete}
-              trigger={<Button variant='destructive'>Delete product</Button>}
             />
           </div>
         </CardContent>

@@ -39,29 +39,38 @@ import {
 } from '@/components/ui/tooltip';
 
 interface DeleteDialogProps {
-  description: ReactNode;
-  onDelete: () => void | Promise<void>;
   /**
-   * Optional confirmation text to be required before deletion. If the text is provided, the user is
-   * required to type the text in an input field to confirm the deletion. If the text is not
-   * provided, the user can delete the item without any additional confirmation.
+   * The name of the thing to delete. This is used as part of the description.
    */
-  confirmationText?: string;
-  trigger: ReactNode;
+  thingName: ReactNode;
+
+  /**
+   * An optional ID for the thing to delete. If set, this is used to confirm the
+   * deletion by the user by entering the ID.
+   */
+  thingId?: string;
+
+  /**
+   * The UI component to show as part of the delete dialog.
+   */
+  uiComponent: ReactNode;
+
+  /**
+   * The action to perform on deletion.
+   */
+  onDelete: () => void | Promise<void>;
 }
 
 export const DeleteDialog = ({
+  thingName,
+  thingId,
+  uiComponent,
   onDelete,
-  description,
-  confirmationText,
-  trigger,
 }: DeleteDialogProps) => {
   const [input, setInput] = useState('');
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const isDeleteDisabled = confirmationText
-    ? input !== confirmationText
-    : false;
+  const isDeleteDisabled = thingId ? input !== thingId : false;
 
   // Reset the input field whenever the dialog is opened/closed
   useEffect(() => {
@@ -74,7 +83,7 @@ export const DeleteDialog = ({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
-          <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+          <AlertDialogTrigger asChild>{uiComponent}</AlertDialogTrigger>
         </TooltipTrigger>
         <TooltipContent>Delete</TooltipContent>
       </Tooltip>
@@ -88,17 +97,16 @@ export const DeleteDialog = ({
         </AlertDialogHeader>
         <AlertDialogDescription>
           <div className='flex flex-col gap-2'>
-            <div>{description}</div>
             <div>
-              Deleting might have unwanted results and side effects, and the
-              deletion is irreversible.
+              Note that deletion is irreversible and might have unwanted side
+              effects.
             </div>
-            {confirmationText && (
+            {thingId && (
               <>
                 <div>
-                  Please type{' '}
-                  <span className='font-bold'>{confirmationText}</span> below to
-                  confirm deletion.
+                  If you are sure to delete the {thingName}{' '}
+                  <span className='font-bold'>{thingId}</span>, enter the bold
+                  text below for confirmation.
                 </div>
                 <Input
                   autoFocus

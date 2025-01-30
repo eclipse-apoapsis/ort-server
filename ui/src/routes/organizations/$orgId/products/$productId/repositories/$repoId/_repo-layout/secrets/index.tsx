@@ -116,19 +116,14 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
       </Tooltip>
 
       <DeleteDialog
-        description={
-          <>
-            Are you sure you want to delete the secret{' '}
-            <span className='font-bold'>{row.original.name}</span>?
-          </>
-        }
+        thingName={'secret'}
+        uiComponent={<DeleteIconButton />}
         onDelete={async () =>
           await deleteSecret({
             repositoryId: repo.id,
             secretName: row.original.name,
           })
         }
-        trigger={<DeleteIconButton />}
       />
     </div>
   );
