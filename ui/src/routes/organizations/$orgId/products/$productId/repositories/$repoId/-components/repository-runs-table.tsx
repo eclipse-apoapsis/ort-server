@@ -217,16 +217,16 @@ const columns = [
             </TooltipContent>
           </Tooltip>
           <DeleteDialog
-            description={
+            thingName={
               <>
-                Please confirm the deletion of the run with index{' '}
-                <span className='font-bold'>{row.original.index}</span> from
-                repository{' '}
-                <span className='font-bold'>{repository.data.url}</span>.
+                run with index{' '}
+                <span className='font-bold'>{row.original.index}</span>
+                from repository{' '}
+                <span className='font-bold'>{repository.data.url}</span>
               </>
             }
+            uiComponent={<DeleteIconButton className='text-red-500' />}
             onDelete={handleDelete}
-            trigger={<DeleteIconButton className='text-red-500' />}
           />
         </div>
       );

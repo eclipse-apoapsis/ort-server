@@ -106,15 +106,10 @@ const columns = [
       return (
         <div className='flex justify-end'>
           <DeleteDialog
+            thingName={'user'}
+            thingId={row.original.username}
+            uiComponent={<DeleteIconButton />}
             onDelete={() => delUser({ username: row.original.username })}
-            confirmationText={row.original.username}
-            description={
-              <>
-                Are you sure you want to delete the user{' '}
-                <span className='font-bold'>{row.original.username}</span>?
-              </>
-            }
-            trigger={<DeleteIconButton />}
           />
         </div>
       );

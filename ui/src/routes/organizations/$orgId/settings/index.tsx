@@ -208,17 +208,12 @@ const OrganizationSettingsPage = () => {
           <div className='flex justify-between'>
             <div>Delete this organization</div>
             <DeleteDialog
-              description={
-                <>
-                  Are you sure you want to delete the organization{' '}
-                  <span className='font-bold'>{organization.name}</span>?
-                </>
-              }
-              confirmationText={organization.name}
-              onDelete={handleDelete}
-              trigger={
+              thingName={'organization'}
+              thingId={organization.name}
+              uiComponent={
                 <Button variant='destructive'>Delete organization</Button>
               }
+              onDelete={handleDelete}
             />
           </div>
         </CardContent>
