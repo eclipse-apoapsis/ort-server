@@ -55,14 +55,14 @@ jobs:
             }
           }
         }'
-        
+
         # Send the GraphQL query using gh API.
         response=$(gh api graphql -f query="$query")
-        
+
         # Extract linked issues.
         linked_issues=$(echo $response | jq -r '.data.repository.pullRequest.closingIssuesReferences.edges[].node.number' | sort | uniq)
         echo "Found currently linked issues: $linked_issues"
-        
+
         # Export linked issues as an environment variable.
         echo "LINKED_ISSUES=$linked_issues" >> $GITHUB_ENV
 
@@ -91,7 +91,7 @@ jobs:
         fi
 
         echo $comment_text
-        
+
         # Export the comment text as an environment variable.
         echo "COMMENT_TEXT=$comment_text" >> $GITHUB_ENV
 
@@ -109,6 +109,6 @@ jobs:
           echo "Deleting comment ID $comment_id"
           gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$comment_id"
         done
-      
+
         # Add a comment to the PR.
         gh pr comment ${{ github.event.pull_request.number }} --body "$(echo -e "${{ env.COMMENT_TEXT }}")"
