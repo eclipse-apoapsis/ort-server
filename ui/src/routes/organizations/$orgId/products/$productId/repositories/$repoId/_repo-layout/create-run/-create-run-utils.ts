@@ -48,9 +48,15 @@ const packageManagerOptionsSchema = z.object({
   options: z.array(keyValueSchema).optional(),
 });
 
+// Ensure that when environment variables are used, the name and value
+// are both non-empty strings, otherwise the Analyzer job will fail.
+//
+// "value" field must be made both nullable and optional, to conform with
+// the API's EnvironmentVariableDeclaration, which defines the value as
+// string | null | undefined.
 const environmentVariableSchema = z.object({
-  name: z.string(),
-  value: z.string().optional(),
+  name: z.string().min(1),
+  value: z.string().min(1).nullable().optional(),
 });
 
 export const createRunFormSchema = z.object({
@@ -282,7 +288,6 @@ export function defaultValues(
         repositoryConfigPath: '',
         allowDynamicVersions: true,
         skipExcluded: true,
-        environmentVariables: [{ name: '' }],
         packageManagers: {
           Bazel: defaultPackageManagerOptions('Bazel'),
           Bower: defaultPackageManagerOptions('Bower'),
@@ -384,8 +389,7 @@ export function defaultValues(
             packageManagers: baseDefaults.jobConfigs.analyzer.packageManagers,
             environmentVariables:
               ortRun.jobConfigs.analyzer?.environmentConfig
-                ?.environmentVariables ||
-              baseDefaults.jobConfigs.analyzer.environmentVariables,
+                ?.environmentVariables || undefined,
           },
           advisor: {
             enabled:

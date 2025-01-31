@@ -183,7 +183,7 @@ export const AnalyzerFields = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value ?? undefined} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
