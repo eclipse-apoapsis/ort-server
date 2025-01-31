@@ -61,7 +61,7 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
             envvar = "OSC_RUNS_START_PARAMETERS_FILE",
             help = "The path to a JSON file containing the run configuration " +
                     "(see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run)."
-        ).inputStream().convert { it.bufferedReader().readText() },
+        ).inputStream().convert { stream -> stream.use { it.bufferedReader().readText() } },
         option(
             "--parameters",
             envvar = "OSC_RUNS_START_PARAMETERS",
