@@ -55,7 +55,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { calcOverallVulnerability } from '@/helpers/calc-overall-vulnerability';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-to-string';
@@ -99,34 +98,25 @@ const columns = [
     enableSorting: false,
     enableColumnFilter: false,
   }),
-  columnHelper.accessor(
-    (vuln) => {
-      const ratings = vuln.vulnerability.references.map(
-        (reference) => reference.severity
+  columnHelper.accessor('rating', {
+    header: 'Rating',
+    cell: ({ row }) => {
+      return (
+        <Badge
+          className={`${getVulnerabilityRatingBackgroundColor(row.getValue('rating'))}`}
+        >
+          {row.getValue('rating')}
+        </Badge>
       );
-      return calcOverallVulnerability(ratings);
     },
-    {
-      id: 'rating',
-      header: 'Rating',
-      cell: ({ row }) => {
-        return (
-          <Badge
-            className={`${getVulnerabilityRatingBackgroundColor(row.getValue('rating'))}`}
-          >
-            {row.getValue('rating')}
-          </Badge>
-        );
-      },
-      sortingFn: (rowA, rowB) => {
-        return compareVulnerabilityRating(
-          rowA.getValue('rating'),
-          rowB.getValue('rating')
-        );
-      },
-      enableColumnFilter: false,
-    }
-  ),
+    sortingFn: (rowA, rowB) => {
+      return compareVulnerabilityRating(
+        rowA.getValue('rating'),
+        rowB.getValue('rating')
+      );
+    },
+    enableColumnFilter: false,
+  }),
   columnHelper.accessor(
     (vuln) => {
       return identifierToString(vuln.identifier);
