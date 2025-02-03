@@ -36,7 +36,7 @@ internal val configDir: File
         val fallbackDir = Os.userHomeDirectory.resolve(".config/$COMMAND_NAME")
 
         val dir = when {
-            Os.isLinux || Os.isMac -> Os.env["XDG_CONFIG_HOME"]?.let { File(it) } ?: fallbackDir
+            Os.isLinux || Os.isMac -> Os.env["XDG_CONFIG_HOME"]?.let { File(it).resolve(COMMAND_NAME) } ?: fallbackDir
 
             Os.isWindows -> Os.env["XDG_CONFIG_HOME"]?.let { File(it) }
                 ?: Os.env["LOCALAPPDATA"]?.let { File(it) }
