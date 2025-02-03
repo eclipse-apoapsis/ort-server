@@ -77,7 +77,8 @@ private fun createOrtServerClient(authDetails: HostAuthenticationDetails): OrtSe
                         }
                     }.getOrElse {
                         throw AuthenticationException(
-                            "Authentication refresh failed.$it Please run '$COMMAND_NAME auth login'."
+                            "Authentication token refresh failed. Please run '$COMMAND_NAME auth login'.",
+                            it
                         )
                     }
 
