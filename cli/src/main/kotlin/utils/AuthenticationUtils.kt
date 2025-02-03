@@ -27,6 +27,7 @@ import io.ktor.client.plugins.defaultRequest
 import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
 import org.eclipse.apoapsis.ortserver.cli.model.HostAuthenticationDetails
+import org.eclipse.apoapsis.ortserver.cli.model.Tokens
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient.Companion.JSON
 import org.eclipse.apoapsis.ortserver.client.auth.AuthService
@@ -67,7 +68,13 @@ private fun createOrtServerClient(authDetails: HostAuthenticationDetails): OrtSe
                             clientId = authDetails.clientId
                         )
 
-                        auth.refreshToken(authDetails.tokens.refresh)
+                        auth.refreshToken(authDetails.tokens.refresh).also {
+                            val updatedAuthDetails = authDetails.copy(
+                                tokens = Tokens(it.accessToken, it.refreshToken)
+                            )
+
+                            AuthenticationStorage.store(updatedAuthDetails)
+                        }
                     }.getOrElse {
                         throw AuthenticationException(
                             "Authentication refresh failed.$it Please run '$COMMAND_NAME auth login'."
