@@ -81,4 +81,4 @@ class AuthService(
 /**
  * An exception to indicate an authentication error.
  */
-class AuthenticationException(message: String) : Exception(message)
+class AuthenticationException(message: String, cause: Throwable? = null) : Exception(message, cause)
