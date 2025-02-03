@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.orchestrator
 
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
-import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
@@ -37,11 +36,6 @@ import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 
 /**
- * Type definition for a function that schedules another worker job.
- */
-typealias JobScheduleFunc = () -> Unit
-
-/**
  * An enumeration class with constants that describe if and when a job for a specific worker should be scheduled.
  *
  * This class enables a declarative approach to scheduling worker jobs. Instead of defining conditional logic, a
@@ -50,24 +44,24 @@ typealias JobScheduleFunc = () -> Unit
  */
 internal enum class WorkerScheduleInfo(
     /** The endpoint of the worker represented by this schedule info. */
-    private val endpoint: Endpoint<*>,
+    val endpoint: Endpoint<*>,
 
     /**
      * A list defining the worker jobs that this job depends on. This job will only be executed after all the
      * dependencies have been successfully completed.
      */
-    private val dependsOn: List<Endpoint<*>> = emptyList(),
+    val dependsOn: List<WorkerScheduleInfo> = emptyList(),
 
     /**
      * A list defining the worker jobs that must run before this job. The difference to [dependsOn] is that this job
      * can also run if these other jobs will not be executed. It is only guaranteed that it runs after all of them.
      */
-    private val runsAfter: List<Endpoint<*>> = emptyList(),
+    val runsAfter: List<WorkerScheduleInfo> = emptyList(),
 
     /**
      * A flag determining whether the represented worker should be run even if previous workers have already failed.
      */
-    private val runAfterFailure: Boolean = false
+    val runAfterFailure: Boolean = false
 ) {
     ANALYZER(AnalyzerEndpoint) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob =
@@ -83,7 +77,7 @@ internal enum class WorkerScheduleInfo(
         override fun isConfigured(configs: JobConfigurations): Boolean = true
     },
 
-    ADVISOR(AdvisorEndpoint, dependsOn = listOf(AnalyzerEndpoint)) {
+    ADVISOR(AdvisorEndpoint, dependsOn = listOf(ANALYZER)) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().advisor?.let { config ->
                 context.workerJobRepositories.advisorJobRepository.create(context.ortRun.id, config)
@@ -97,7 +91,7 @@ internal enum class WorkerScheduleInfo(
             configs.advisor != null
     },
 
-    SCANNER(ScannerEndpoint, dependsOn = listOf(AnalyzerEndpoint)) {
+    SCANNER(ScannerEndpoint, dependsOn = listOf(ANALYZER)) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().scanner?.let { config ->
                 context.workerJobRepositories.scannerJobRepository.create(context.ortRun.id, config)
@@ -111,7 +105,7 @@ internal enum class WorkerScheduleInfo(
             configs.scanner != null
     },
 
-    EVALUATOR(EvaluatorEndpoint, runsAfter = listOf(AdvisorEndpoint, ScannerEndpoint)) {
+    EVALUATOR(EvaluatorEndpoint, runsAfter = listOf(ADVISOR, SCANNER)) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().evaluator?.let { config ->
                 context.workerJobRepositories.evaluatorJobRepository.create(context.ortRun.id, config)
@@ -125,7 +119,7 @@ internal enum class WorkerScheduleInfo(
             configs.evaluator != null
     },
 
-    REPORTER(ReporterEndpoint, runsAfter = listOf(EvaluatorEndpoint), runAfterFailure = true) {
+    REPORTER(ReporterEndpoint, dependsOn = listOf(ANALYZER), runsAfter = listOf(EVALUATOR), runAfterFailure = true) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().reporter?.let { config ->
                 context.workerJobRepositories.reporterJobRepository.create(context.ortRun.id, config)
@@ -139,7 +133,7 @@ internal enum class WorkerScheduleInfo(
             configs.reporter != null
     },
 
-    NOTIFIER(NotifierEndpoint, dependsOn = listOf(ReporterEndpoint), runAfterFailure = true) {
+    NOTIFIER(NotifierEndpoint, dependsOn = listOf(REPORTER), runAfterFailure = true) {
         override fun createJob(context: WorkerScheduleContext): WorkerJob? =
             context.jobConfigs().notifier?.let { config ->
                 context.workerJobRepositories.notifierJobRepository.create(context.ortRun.id, config)
@@ -153,82 +147,28 @@ internal enum class WorkerScheduleInfo(
             configs.notifier != null
     };
 
-    companion object {
-        private val entriesByPrefix = entries.associateBy { it.endpoint.configPrefix }
-
-        operator fun get(endpoint: Endpoint<*>): WorkerScheduleInfo = entriesByPrefix.getValue(endpoint.configPrefix)
-    }
-
     /**
      * Return the transitive set of the workers that must complete before this one can run. This is necessary to
      * determine whether this worker can be started in the current phase of an ORT run. Note that it is assumed that
      * no cycles exist in the dependency graph of workers; otherwise, the scheduler algorithm would have a severe
      * problem.
      */
-    private val runsAfterTransitively: Set<Endpoint<*>>
-        get() = (runsAfter + dependsOn).flatMapTo(mutableSetOf()) { WorkerScheduleInfo[it].runsAfterTransitively + it }
-
-    /**
-     * Check whether a job for the represented worker can be scheduled now based on the given [context]. If so, create
-     * the job in the database and return a function that schedules the job.
-     */
-    fun createAndScheduleJobIfPossible(context: WorkerScheduleContext): JobScheduleFunc? {
-        if (!canRun(context)) return null
-
-        return createJob(context)?.let { job ->
-            {
-                publishJob(context, job)
-
-                context.workerJobRepositories.updateJobStatus(endpoint, job.id, JobStatus.SCHEDULED, finished = false)
-            }
-        }
-    }
+    val runsAfterTransitively: Set<WorkerScheduleInfo>
+        get() = (runsAfter + dependsOn).flatMapTo(mutableSetOf()) { it.runsAfterTransitively + it }
 
     /**
      * Create a new job for this worker based on the information in the given [context].
      */
-    protected abstract fun createJob(context: WorkerScheduleContext): WorkerJob?
+    abstract fun createJob(context: WorkerScheduleContext): WorkerJob?
 
     /**
      * Publish a message to the worker endpoint to schedule the given [job] based on the information in the given
      * [context].
      */
-    protected abstract fun publishJob(context: WorkerScheduleContext, job: WorkerJob)
+    abstract fun publishJob(context: WorkerScheduleContext, job: WorkerJob)
 
     /**
      * Return a flag whether this worker is configured to run for the current ORT run based on the given [configs].
      */
-    protected abstract fun isConfigured(configs: JobConfigurations): Boolean
-
-    /**
-     * Return a flag whether a job for the represented worker can be started now based on the given [context].
-     * This function checks whether this worker is configured to run and whether the jobs it depends on have been
-     * completed.
-     */
-    private fun canRun(context: WorkerScheduleContext): Boolean =
-        isConfigured(context.jobConfigs()) &&
-                !context.wasScheduled(endpoint) &&
-                canRunWithFailureState(context) &&
-                dependsOn.all { context.isJobCompleted(it) } &&
-                runsAfterTransitively.none { WorkerScheduleInfo[it].isPending(context) }
-
-    /**
-     * Check whether the represented worker is pending for the current ORT run based on the given [context]. This
-     * means that the worker has not yet run, but - given the current state - is supposed to run later.
-     */
-    private fun isPending(context: WorkerScheduleContext): Boolean =
-        isConfigured(context.jobConfigs()) &&
-                !context.isJobCompleted(endpoint) &&
-                canRunWithFailureState(context) &&
-                dependsOn.all {
-                    context.wasScheduled(it) ||
-                            WorkerScheduleInfo[it].isPending(context)
-                }
-
-    /**
-     * Check whether the represented worker can be executed for the failure state stored in the given [context]. Here
-     * a worker can decide whether it can always run or only if all previous workers were successful.
-     */
-    private fun canRunWithFailureState(context: WorkerScheduleContext) =
-        runAfterFailure || !context.isFailed()
+    abstract fun isConfigured(configs: JobConfigurations): Boolean
 }
