@@ -45,7 +45,9 @@ class AuthLoginCommandTest : StringSpec({
     "Auth login command" should {
         "store the authentication information in a local file" {
             mockkConstructor(AuthService::class)
-            coEvery { anyConstructed<AuthService>().generateToken("testUser", "testPassword") } returns TokenInfo(
+            coEvery {
+                anyConstructed<AuthService>().generateToken("testUser", "testPassword", setOf("offline_access"))
+            } returns TokenInfo(
                 accessToken = "testAccessToken",
                 refreshToken = "testRefreshToken",
                 expiresInSeconds = 3600

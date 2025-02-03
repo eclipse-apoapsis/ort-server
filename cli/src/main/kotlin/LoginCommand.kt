@@ -75,7 +75,7 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
             clientId = clientId
         )
 
-        val tokenInfo = authService.generateToken(username, password)
+        val tokenInfo = authService.generateToken(username, password, setOf("offline_access"))
 
         AuthenticationStorage.store(
             HostAuthenticationDetails(

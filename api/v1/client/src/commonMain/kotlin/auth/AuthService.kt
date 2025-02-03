@@ -35,9 +35,9 @@ class AuthService(
     private val clientId: String
 ) {
     /**
-     * Generate a token for the given [username] and [password].
+     * Generate a token for the given [username] and [password] using password grant type with optional [scopes].
      */
-    suspend fun generateToken(username: String, password: String): TokenInfo =
+    suspend fun generateToken(username: String, password: String, scopes: Set<String> = emptySet()): TokenInfo =
         client.submitForm(
             url = tokenUrl,
             formParameters = Parameters.build {
@@ -45,6 +45,9 @@ class AuthService(
                 append("username", username)
                 append("password", password)
                 append("grant_type", "password")
+                if (scopes.isNotEmpty()) {
+                    append("scope", scopes.joinToString(" "))
+                }
             }
         ).let { response ->
             if (!response.status.isSuccess()) {
@@ -57,15 +60,18 @@ class AuthService(
         }
 
     /**
-     * Refresh the token for the given [refreshToken].
+     * Refresh the tokens for the given [refreshToken] with optional [scopes].
      */
-    suspend fun refreshToken(refreshToken: String): TokenInfo =
+    suspend fun refreshToken(refreshToken: String, scopes: Set<String> = emptySet()): TokenInfo =
         client.submitForm(
             url = tokenUrl,
             formParameters = Parameters.build {
                 append("client_id", clientId)
                 append("refresh_token", refreshToken)
                 append("grant_type", "refresh_token")
+                if (scopes.isNotEmpty()) {
+                    append("scope", scopes.joinToString(" "))
+                }
             }
         ).let { response ->
             if (!response.status.isSuccess()) {
