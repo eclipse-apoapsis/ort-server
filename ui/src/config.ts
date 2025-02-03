@@ -48,8 +48,13 @@ const oidcConfig = {
   automaticSilentRenew: true,
   loadUserInfo: true,
   onSigninCallback: () => {
-    // This removes the query parameters from the URL after a successful login.
-    window.history.replaceState({}, document.title, window.location.pathname);
+    // This removes the Keycloak related query parameters from the URL after a successful login.
+    const url = new URL(window.location.href);
+    url.searchParams.delete('state');
+    url.searchParams.delete('session_state');
+    url.searchParams.delete('iss');
+    url.searchParams.delete('code');
+    window.history.replaceState({}, document.title, url.pathname + url.search);
   },
 } satisfies AuthProviderProps;
 
