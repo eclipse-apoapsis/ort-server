@@ -68,7 +68,7 @@ private fun createOrtServerClient(authDetails: HostAuthenticationDetails): OrtSe
                             clientId = authDetails.clientId
                         )
 
-                        auth.refreshToken(authDetails.tokens.refresh).also {
+                        auth.refreshToken(authDetails.tokens.refresh, setOf("offline_access")).also {
                             val updatedAuthDetails = authDetails.copy(
                                 tokens = Tokens(it.accessToken, it.refreshToken)
                             )
