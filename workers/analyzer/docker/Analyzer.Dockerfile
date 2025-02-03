@@ -205,7 +205,8 @@ RUN . $NVM_DIR/nvm.sh \
     && nvm alias default "$NODEJS_VERSION" \
     && nvm use default \
     && npm install --global npm@$NPM_VERSION bower@$BOWER_VERSION \
-    && corepack enable
+    && corepack enable \
+    && corepack prepare pnpm@9.15.4 --activate
 
 FROM scratch AS node
 COPY --from=nodebuild $NVM_DIR $NVM_DIR
