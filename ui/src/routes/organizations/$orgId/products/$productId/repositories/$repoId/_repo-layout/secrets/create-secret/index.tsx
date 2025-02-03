@@ -25,6 +25,7 @@ import { z } from 'zod';
 
 import { useSecretsServicePostSecretForRepository } from '@/api/queries';
 import { ApiError } from '@/api/requests';
+import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -121,7 +122,7 @@ const CreateRepositorySecretPage = () => {
                 <FormItem>
                   <FormLabel>Value</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <PasswordInput {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

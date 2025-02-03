@@ -25,6 +25,7 @@ import { z } from 'zod';
 
 import { useSecretsServicePostSecretForProduct } from '@/api/queries';
 import { ApiError } from '@/api/requests';
+import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -117,7 +118,7 @@ const CreateProductSecretPage = () => {
                 <FormItem>
                   <FormLabel>Value</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <PasswordInput {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

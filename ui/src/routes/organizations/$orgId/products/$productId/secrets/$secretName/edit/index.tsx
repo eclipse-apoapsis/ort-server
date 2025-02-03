@@ -29,6 +29,7 @@ import {
   useSecretsServicePatchSecretByProductIdAndName,
 } from '@/api/queries';
 import { ApiError, SecretsService } from '@/api/requests';
+import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -148,7 +149,7 @@ const EditProductSecretPage = () => {
                 <FormItem className='mt-0'>
                   <FormLabel>Value</FormLabel>
                   <FormControl autoFocus>
-                    <Input {...field} />
+                    <PasswordInput {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
