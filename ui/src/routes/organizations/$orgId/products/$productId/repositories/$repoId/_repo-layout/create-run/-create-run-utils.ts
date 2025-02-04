@@ -26,7 +26,7 @@ import {
   OrtRun,
   ReporterJobConfiguration,
 } from '@/api/requests';
-import { packageManagers } from '../../-types';
+import { PackageManagerId, packageManagers } from '../../-types';
 
 const keyValueSchema = z.object({
   key: z.string(),
@@ -233,9 +233,6 @@ export const flattenErrors = (
 
   return result;
 };
-
-// Derive the type of packageManagerId from the ids of packageManagers
-export type PackageManagerId = (typeof packageManagers)[number]['id'];
 
 /**
  * Get the default values for the create run form. The form can be provided with a previously run

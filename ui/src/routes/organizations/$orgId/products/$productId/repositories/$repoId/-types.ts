@@ -142,7 +142,7 @@ export const packageManagers = [
 
 // To make sure the package manager ids are used type-safely elsewhere,
 // export them as a type.
-export type PackageManager = (typeof packageManagers)[number]['id'];
+export type PackageManagerId = (typeof packageManagers)[number]['id'];
 
 export const reportFormats = [
   {

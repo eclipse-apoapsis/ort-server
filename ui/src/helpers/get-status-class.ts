@@ -23,7 +23,7 @@ import {
   Severity,
   VulnerabilityRating,
 } from '@/api/requests';
-import { PackageManager } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-types';
+import { PackageManagerId } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-types';
 
 // Combine statuses reported either by ORT Runs or the individual jobs within them.
 export type Status = JobStatus | OrtRunStatus | undefined;
@@ -165,7 +165,7 @@ export function getIssueSeverityBackgroundColor(severity: Severity): string {
 // 3. Package managers which belong to the same group are chosen from inside
 //    these 14 color palettes in a way that the colors are visually distinct.
 export function getEcosystemBackgroundColor(
-  ecosystem: PackageManager | string
+  ecosystem: PackageManagerId | string
 ): string {
   switch (ecosystem) {
     case 'Bazel':
