@@ -39,7 +39,7 @@ import { LastRunDate } from '../products/$productId/-components/last-run-date';
 import { LastRunStatus } from '../products/$productId/-components/last-run-status';
 import { TotalRuns } from '../products/$productId/-components/total-runs';
 
-const defaultPageSize = 5;
+const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<Product>();
 
