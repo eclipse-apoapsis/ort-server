@@ -26,7 +26,7 @@ import io.ktor.server.application.ApplicationStarted
 import javax.sql.DataSource
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.dao.DatabaseConfig
+import org.eclipse.apoapsis.ortserver.dao.DataSourceConfig
 import org.eclipse.apoapsis.ortserver.dao.connect
 import org.eclipse.apoapsis.ortserver.dao.createDataSource
 import org.eclipse.apoapsis.ortserver.dao.migrate
@@ -56,7 +56,7 @@ fun Application.configureDatabase() {
 private fun Application.createDataSource(): DataSource {
     val configManager: ConfigManager by inject()
 
-    val dataSourceConfig = DatabaseConfig.create(configManager)
+    val dataSourceConfig = DataSourceConfig.create(configManager)
 
     return createDataSource(dataSourceConfig)
 }

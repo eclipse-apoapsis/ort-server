@@ -71,7 +71,7 @@ private fun getFlywayConfig(dataSource: DataSource) = FluentConfiguration()
     .createSchemas(true)
     .baselineOnMigrate(true)
 
-fun createDataSource(config: DatabaseConfig): DataSource {
+fun createDataSource(config: DataSourceConfig): DataSource {
     val dataSourceConfig = HikariConfig().apply {
         driverClassName = "org.postgresql.Driver"
         jdbcUrl = "jdbc:postgresql://${config.host}:${config.port}/${config.name}"
@@ -112,7 +112,7 @@ fun createDataSource(config: DatabaseConfig): DataSource {
  * Depending on the [startEager] parameter, the database connection is established either eagerly or lazily.
  */
 fun databaseModule(startEager: Boolean = true): Module = module {
-    single { DatabaseConfig.create(get()) }
+    single { DataSourceConfig.create(get()) }
 
     single(createdAtStart = startEager) { createDataSource(get()).connect() }
 }

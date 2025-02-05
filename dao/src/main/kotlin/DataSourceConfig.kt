@@ -27,7 +27,7 @@ import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
  * A holder for the database configuration, used to set up the
  * [Hikari connection pool](https://github.com/brettwooldridge/HikariCP).
  */
-data class DatabaseConfig(
+data class DataSourceConfig(
     /** The host of the database, for example 'localhost'. */
     val host: String,
 
@@ -116,9 +116,9 @@ data class DatabaseConfig(
 ) {
     companion object {
         /**
-         * Create a [DatabaseConfig] object from the provided [config].
+         * Create a [DataSourceConfig] object from the provided [config].
          */
-        fun create(config: ConfigManager) = DatabaseConfig(
+        fun create(config: ConfigManager) = DataSourceConfig(
             host = config.getString("database.host"),
             port = config.getInt("database.port"),
             name = config.getString("database.name"),

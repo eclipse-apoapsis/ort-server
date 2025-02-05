@@ -47,7 +47,7 @@ class DatabaseTest : WordSpec({
 
     "databaseModule" should {
         "return a module that connects to the database" {
-            val dbConfig = DatabaseConfig(
+            val dbConfig = DataSourceConfig(
                 host = "host",
                 port = 5432,
                 name = "myTestDataSource",
