@@ -25,7 +25,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { FormControl, FormField } from '@/components/ui/form';
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { reportFormats } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-types';
 import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
@@ -68,6 +74,37 @@ export const ReporterFields = ({
             }
             options={reportFormats}
           />
+          {form.getValues('jobConfigs.reporter.formats').includes('WebApp') && (
+            <FormField
+              control={form.control}
+              name='jobConfigs.reporter.deduplicateDependencyTree'
+              render={({ field }) => (
+                <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
+                  <div className='space-y-0.5'>
+                    <FormLabel>Deduplicate dependency tree</FormLabel>
+                    <FormDescription>
+                      A flag to control whether subtrees occurring multiple
+                      times in the dependency tree are stripped.
+                    </FormDescription>
+                    <FormDescription>
+                      This will significantly reduce memory consumption of the
+                      Reporter and might alleviate some out-of-memory issues.
+                    </FormDescription>
+                    <FormDescription>
+                      NOTE: This option is currently effective only for the
+                      WebApp report format.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
         </AccordionContent>
       </AccordionItem>
     </div>

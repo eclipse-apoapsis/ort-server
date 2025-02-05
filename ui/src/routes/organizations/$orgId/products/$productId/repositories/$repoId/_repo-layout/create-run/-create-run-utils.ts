@@ -122,6 +122,7 @@ export const createRunFormSchema = z.object({
     reporter: z.object({
       enabled: z.boolean(),
       formats: z.array(z.string()),
+      deduplicateDependencyTree: z.boolean().optional(),
     }),
     notifier: z.object({
       enabled: z.boolean(),
@@ -275,6 +276,16 @@ export function defaultValues(
     };
   };
 
+  // Find out if any of the reporters had their options.deduplicateDependencyTree set to true in the previous run.
+  // This is used to set the default value for the deduplicateDependencyTree toggle in the UI.
+  const deduplicateDependencyTreeEnabled = ortRun
+    ? ortRun.jobConfigs.reporter?.config &&
+      Object.keys(ortRun.jobConfigs.reporter.config ?? {}).some((key) => {
+        const config = ortRun.jobConfigs.reporter?.config?.[key];
+        return config?.options?.deduplicateDependencyTree === 'true';
+      })
+    : false;
+
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults = {
     revision: 'main',
@@ -333,6 +344,7 @@ export function defaultValues(
       reporter: {
         enabled: true,
         formats: ['CycloneDX', 'SpdxDocument', 'WebApp'],
+        deduplicateDependencyTree: false,
       },
       notifier: {
         enabled: false,
@@ -438,6 +450,8 @@ export function defaultValues(
               ortRun.jobConfigs.reporter?.formats?.map((format) =>
                 format === 'CycloneDx' ? 'CycloneDX' : format
               ) || baseDefaults.jobConfigs.reporter.formats,
+            deduplicateDependencyTree:
+              deduplicateDependencyTreeEnabled || undefined,
           },
           notifier: {
             enabled:
@@ -704,6 +718,18 @@ export function formValuesToPayload(
     config.PlainTextTemplate = {
       options: {
         templateIds: 'NOTICE_DEFAULT,NOTICE_SUMMARY',
+      },
+      secrets: {},
+    };
+  }
+
+  // If WebApp and the deduplicateDependencyTree option are enabled, add the configuration.
+
+  const webAppEnabled = values.jobConfigs.reporter.formats.includes('WebApp');
+  if (webAppEnabled && values.jobConfigs.reporter.deduplicateDependencyTree) {
+    config.WebApp = {
+      options: {
+        deduplicateDependencyTree: 'true',
       },
       secrets: {},
     };
