@@ -31,5 +31,5 @@
     <logger name="org.eclipse.apoapsis" level="DEBUG"/>
     <logger name="org.eclipse.jgit.internal.storage.file.FileSnapshot" level="ERROR" />
     <logger name="org.ossreviewtoolkit" level="DEBUG"/>
-    <logger name="Exposed" level="DEBUG"/>
+    <logger name="Exposed" level="TRACE"/>
 </configuration>

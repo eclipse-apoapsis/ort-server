@@ -27,4 +27,5 @@
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
+    <logger name="Exposed" level="TRACE"/> <!-- Log SQL statements executed by Exposed -->
 </configuration>

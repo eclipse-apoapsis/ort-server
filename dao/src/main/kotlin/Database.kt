@@ -38,6 +38,7 @@ import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.DatabaseConfig
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SizedIterable
@@ -56,7 +57,15 @@ private val logger = LoggerFactory.getLogger(DataSource::class.java)
 /**
  * Connect the database.
  */
-fun DataSource.connect() = Database.connect(this)
+fun DataSource.connect() = Database.connect(
+    datasource = this,
+    databaseConfig = getDatabaseConfig()
+)
+
+private fun getDatabaseConfig(): DatabaseConfig =
+    DatabaseConfig {
+        sqlLogger = SqlQueryTraceLogger
+    }
 
 /**
  * Run the database migrations.

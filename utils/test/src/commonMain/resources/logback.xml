@@ -32,4 +32,5 @@
     <logger name="org.apache.http.headers" level="ERROR"/>
     <logger name="org.apache.http.wire" level="ERROR"/>
     <logger name="org.eclipse.jgit.internal.storage.file.FileSnapshot" level="ERROR"/>
+    <logger name="Exposed" level="TRACE"/> <!-- Log SQL statements executed by Exposed -->
 </configuration>
