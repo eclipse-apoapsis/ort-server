@@ -25,6 +25,8 @@ import { z } from 'zod';
 
 import { useAdminServicePostUsers } from '@/api/queries';
 import { ApiError } from '@/api/requests';
+import { asOptionalField } from '@/components/form/as-optional-field';
+import { OptionalInput } from '@/components/form/optional-input';
 import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -48,11 +50,11 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  username: z.string(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  email: z.string().email().optional(),
-  password: z.string().optional(),
+  username: z.string().min(1),
+  firstName: asOptionalField(z.string().min(1)),
+  lastName: asOptionalField(z.string().min(1)),
+  email: asOptionalField(z.string().email()),
+  password: asOptionalField(z.string().min(1)),
   temporary: z.boolean(),
 });
 
@@ -129,7 +131,7 @@ const CreateUser = () => {
                 <FormItem>
                   <FormLabel>First name</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder='(optional)' />
+                    <OptionalInput {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -142,7 +144,7 @@ const CreateUser = () => {
                 <FormItem>
                   <FormLabel>Last name</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder='(optional)' />
+                    <OptionalInput {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,7 +157,7 @@ const CreateUser = () => {
                 <FormItem>
                   <FormLabel>Email address</FormLabel>
                   <FormControl>
-                    <Input type='email' {...field} placeholder='(optional)' />
+                    <OptionalInput type='email' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
