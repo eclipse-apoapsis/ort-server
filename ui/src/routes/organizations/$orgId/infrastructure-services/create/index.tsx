@@ -91,7 +91,6 @@ const CreateInfrastructureServicePage = () => {
     defaultValues: {
       name: '',
       url: '',
-      description: '',
       usernameSecretRef: '',
       passwordSecretRef: '',
       credentialsTypes: ['NETRC_FILE'],
