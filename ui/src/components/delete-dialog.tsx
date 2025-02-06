@@ -95,28 +95,26 @@ export const DeleteDialog = ({
             <AlertDialogTitle>Confirm deletion</AlertDialogTitle>
           </div>
         </AlertDialogHeader>
-        <AlertDialogDescription>
-          <div className='flex flex-col gap-2'>
-            <div>
-              Note that deletion is irreversible and might have unwanted side
-              effects.
-            </div>
-            {thingId && (
-              <>
-                <div>
-                  If you are sure to delete the {thingName}{' '}
-                  <span className='font-bold'>{thingId}</span>, enter the bold
-                  text below for confirmation.
-                </div>
-                <Input
-                  autoFocus
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                />
-              </>
-            )}
-          </div>
-        </AlertDialogDescription>
+        <div className='flex flex-col gap-2'>
+          <AlertDialogDescription>
+            Note that deletion is irreversible and might have unwanted side
+            effects.
+          </AlertDialogDescription>
+          {thingId && (
+            <>
+              <AlertDialogDescription>
+                If you are sure to delete the {thingName}{' '}
+                <span className='font-bold'>{thingId}</span>, enter the bold
+                text below for confirmation.
+              </AlertDialogDescription>
+              <Input
+                autoFocus
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
+            </>
+          )}
+        </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <Button
