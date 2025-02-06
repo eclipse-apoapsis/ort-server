@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.PackageType
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
+import org.ossreviewtoolkit.model.SourceCodeOrigin
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.licenses.LicenseCategorization
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
@@ -67,7 +68,13 @@ data class SourceCodeBundleReporterConfig(
      * The type of package to include in the source code bundle. Allowed values are "PROJECT" and "PACKAGE".
      */
     @OrtPluginOption(defaultValue = "PROJECT", aliases = ["packageType"])
-    val packageTypes: List<String>
+    val packageTypes: List<String>,
+
+    /**
+     * The source code origins to use, ordered by priority. The list must not be empty or contain any duplicates. If
+     * `null`, the default order of [SourceCodeOrigin.ARTIFACT] and [SourceCodeOrigin.VCS] is used.
+     */
+    val sourceCodeOrigins: List<String>?
 )
 
 /**
@@ -87,7 +94,16 @@ class SourceCodeBundleReporter(
     constructor(
         descriptor: PluginDescriptor = SourceCodeBundleReporterFactory.descriptor,
         config: SourceCodeBundleReporterConfig
-    ) : this(descriptor, config, Downloader(DownloaderConfiguration()))
+    ) : this(
+        descriptor,
+        config,
+        Downloader(
+            DownloaderConfiguration(
+                sourceCodeOrigins = config.sourceCodeOrigins?.map { SourceCodeOrigin.valueOf(it) }?.distinct()
+                    ?: listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
+            )
+        )
+    )
 
     companion object {
         /**

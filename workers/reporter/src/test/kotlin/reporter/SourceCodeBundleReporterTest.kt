@@ -34,9 +34,13 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beInstanceOf
 
+import io.mockk.EqMatcher
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkConstructor
 import io.mockk.slot
+import io.mockk.unmockkAll
+import io.mockk.verify
 
 import java.io.File
 import java.nio.file.Files
@@ -52,8 +56,10 @@ import org.ossreviewtoolkit.model.PackageReference
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.Scope
+import org.ossreviewtoolkit.model.SourceCodeOrigin
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.licenses.LicenseCategorization
 import org.ossreviewtoolkit.model.licenses.LicenseCategory
 import org.ossreviewtoolkit.model.licenses.LicenseClassifications
@@ -76,9 +82,13 @@ private const val TEST_CONTENT_TRAVIS = "testContentTravis"
 private const val TEST_CONTENT_CHANGELOG = "testContentChangelog"
 private const val TEST_CONTENT_POM = "testContentPom"
 
-private val DEFAULT_CONFIG = SourceCodeBundleReporterConfig(null, listOf("PROJECT"))
+private val DEFAULT_CONFIG = SourceCodeBundleReporterConfig(null, listOf("PROJECT"), null)
 
 class SourceCodeBundleReporterTest : WordSpec({
+    afterEach {
+        unmockkAll()
+    }
+
     "The SourceCodeBundleReporter" should {
         "download source files and create a bundle with a correct name" {
             val projectContent = mapOf(
@@ -170,7 +180,8 @@ class SourceCodeBundleReporterTest : WordSpec({
             val reporter = SourceCodeBundleReporter(
                 config = SourceCodeBundleReporterConfig(
                     includedLicenseCategories = listOf("include-in-source-code-bundle"),
-                    packageTypes = listOf("PROJECT", "PACKAGE")
+                    packageTypes = listOf("PROJECT", "PACKAGE"),
+                    sourceCodeOrigins = null
                 ),
                 downloader = downloader
             )
@@ -219,7 +230,8 @@ class SourceCodeBundleReporterTest : WordSpec({
             val reporter = SourceCodeBundleReporter(
                 config = SourceCodeBundleReporterConfig(
                     includedLicenseCategories = null,
-                    packageTypes = listOf("PACKAGE")
+                    packageTypes = listOf("PACKAGE"),
+                    sourceCodeOrigins = null
                 ),
                 downloader = downloader
             )
@@ -264,7 +276,8 @@ class SourceCodeBundleReporterTest : WordSpec({
             val reporter = SourceCodeBundleReporter(
                 config = SourceCodeBundleReporterConfig(
                     includedLicenseCategories = null,
-                    packageTypes = listOf("PACKAGE")
+                    packageTypes = listOf("PACKAGE"),
+                    sourceCodeOrigins = null
                 ),
                 downloader = downloader
             )
@@ -288,6 +301,50 @@ class SourceCodeBundleReporterTest : WordSpec({
                     packageContents shouldContainNFiles 1
                     packageContents.resolve(subPath).readText() shouldBe TEST_CONTENT_SRC
                 }
+            }
+        }
+
+        "use Downloader with configured source code origins" {
+            val sourceCodeOrigins = listOf(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
+            val config = SourceCodeBundleReporterConfig(
+                includedLicenseCategories = emptyList(),
+                packageTypes = listOf("PACKAGE"),
+                sourceCodeOrigins = sourceCodeOrigins.map { it.name }
+            )
+
+            mockkConstructor(Downloader::class)
+
+            val reporter = SourceCodeBundleReporter(config = config)
+            val input = getReporterInput()
+            val outputDir = tempdir()
+
+            reporter.generateReport(input, outputDir)
+
+            verify {
+                constructedWith<Downloader>(EqMatcher(DownloaderConfiguration(sourceCodeOrigins = sourceCodeOrigins)))
+                    .download(any(), any())
+            }
+        }
+
+        "use Downloader with default source code origins" {
+            val sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
+            val config = SourceCodeBundleReporterConfig(
+                includedLicenseCategories = emptyList(),
+                packageTypes = listOf("PACKAGE"),
+                sourceCodeOrigins = null
+            )
+
+            mockkConstructor(Downloader::class)
+
+            val reporter = SourceCodeBundleReporter(config = config)
+            val input = getReporterInput()
+            val outputDir = tempdir()
+
+            reporter.generateReport(input, outputDir)
+
+            verify {
+                constructedWith<Downloader>(EqMatcher(DownloaderConfiguration(sourceCodeOrigins = sourceCodeOrigins)))
+                    .download(any(), any())
             }
         }
     }
