@@ -76,6 +76,9 @@ const CreateOrganizationPage = () => {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+    },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {

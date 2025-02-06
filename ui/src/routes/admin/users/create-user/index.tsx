@@ -83,6 +83,7 @@ const CreateUser = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      username: '',
       temporary: true,
     },
   });
