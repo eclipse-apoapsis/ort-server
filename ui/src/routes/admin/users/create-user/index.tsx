@@ -25,6 +25,7 @@ import { z } from 'zod';
 
 import { useAdminServicePostUsers } from '@/api/queries';
 import { ApiError } from '@/api/requests';
+import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -166,11 +167,7 @@ const CreateUser = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type='password'
-                      {...field}
-                      placeholder='(optional)'
-                    />
+                    <PasswordInput {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
