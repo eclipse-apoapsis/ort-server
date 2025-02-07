@@ -30,12 +30,11 @@ import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { toast } from '@/lib/toast';
+import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { LastJobStatus } from './last-job-status';
 import { LastRunDate } from './last-run-date';
 import { LastRunStatus } from './last-run-status';
 import { TotalRuns } from './total-runs';
-
-const defaultPageSize = 5;
 
 const columnHelper = createColumnHelper<Repository>();
 
@@ -112,10 +111,11 @@ const columns = [
 const routeApi = getRouteApi('/organizations/$orgId/products/$productId/');
 
 export const ProductRepositoryTable = () => {
+  const repoPageSize = useTablePrefsStore((state) => state.repoPageSize);
   const params = routeApi.useParams();
   const search = routeApi.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const pageSize = search.pageSize ? search.pageSize : repoPageSize;
 
   const {
     data: repositories,
@@ -144,17 +144,25 @@ export const ProductRepositoryTable = () => {
     return;
   }
 
-  return <ProductRepositoryTableInner repositories={repositories} />;
+  return (
+    <ProductRepositoryTableInner
+      repositories={repositories}
+      repoPageSize={repoPageSize}
+    />
+  );
 };
 
 const ProductRepositoryTableInner = ({
   repositories,
+  repoPageSize,
 }: {
   repositories: PagedResponse_Repository;
+  repoPageSize: number;
 }) => {
+  const setRepoPageSize = useTablePrefsStore((state) => state.setRepoPageSize);
   const search = routeApi.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const pageSize = search.pageSize ? search.pageSize : repoPageSize;
 
   const table = useReactTable({
     data: repositories?.data || [],
@@ -179,6 +187,7 @@ const ProductRepositoryTableInner = ({
         };
       }}
       setPageSizeOptions={(size) => {
+        setRepoPageSize(size);
         return {
           search: { ...search, page: 1, pageSize: size },
         };
