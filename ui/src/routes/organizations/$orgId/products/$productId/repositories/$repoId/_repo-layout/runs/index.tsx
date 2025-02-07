@@ -42,15 +42,17 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
+import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { RepositoryRunsTable } from '../../-components/repository-runs-table';
 
-const defaultPageSize = 10;
+const defaultPageSize = useTablePrefsStore.getState().repoPageSize;
 
 const RepositoryRunsComponent = () => {
+  const runPageSize = useTablePrefsStore.getState().runPageSize;
   const params = Route.useParams();
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const pageSize = search.pageSize ? search.pageSize : runPageSize;
 
   const {
     data: repo,

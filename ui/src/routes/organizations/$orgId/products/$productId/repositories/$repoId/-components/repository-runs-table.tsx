@@ -51,6 +51,7 @@ import {
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
+import { useTablePrefsStore } from '@/store/table-prefs.store';
 
 type RepositoryTableProps = {
   repoId: string;
@@ -241,6 +242,7 @@ export const RepositoryRunsTable = ({
   pageSize,
   search,
 }: RepositoryTableProps) => {
+  const setRunPageSize = useTablePrefsStore((state) => state.setRunPageSize);
   const {
     data: runs,
     error: runsError,
@@ -298,6 +300,7 @@ export const RepositoryRunsTable = ({
         };
       }}
       setPageSizeOptions={(size) => {
+        setRunPageSize(size);
         return {
           search: { ...search, page: 1, pageSize: size },
         };
