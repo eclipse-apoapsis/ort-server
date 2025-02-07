@@ -34,12 +34,11 @@ import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { toast } from '@/lib/toast';
+import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { LastJobStatus } from '../products/$productId/-components/last-job-status';
 import { LastRunDate } from '../products/$productId/-components/last-run-date';
 import { LastRunStatus } from '../products/$productId/-components/last-run-status';
 import { TotalRuns } from '../products/$productId/-components/total-runs';
-
-const defaultPageSize = 5;
 
 const columnHelper = createColumnHelper<Product>();
 
@@ -181,10 +180,11 @@ const columns = [
 const routeApi = getRouteApi('/organizations/$orgId/');
 
 export const OrganizationProductTable = () => {
+  const prodPageSize = useTablePrefsStore((state) => state.prodPageSize);
   const params = routeApi.useParams();
   const search = routeApi.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const pageSize = search.pageSize ? search.pageSize : prodPageSize;
 
   const {
     data: products,
@@ -213,17 +213,25 @@ export const OrganizationProductTable = () => {
     return;
   }
 
-  return <OrganizationProductTableInner products={products} />;
+  return (
+    <OrganizationProductTableInner
+      products={products}
+      prodPageSize={prodPageSize}
+    />
+  );
 };
 
 const OrganizationProductTableInner = ({
   products,
+  prodPageSize,
 }: {
   products: PagedResponse_Product;
+  prodPageSize: number;
 }) => {
+  const setProdPageSize = useTablePrefsStore((state) => state.setProdPageSize);
   const search = routeApi.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const pageSize = search.pageSize ? search.pageSize : prodPageSize;
 
   const table = useReactTable({
     data: products?.data || [],
@@ -248,6 +256,7 @@ const OrganizationProductTableInner = ({
         };
       }}
       setPageSizeOptions={(size) => {
+        setProdPageSize(size);
         return {
           search: { ...search, page: 1, pageSize: size },
         };
