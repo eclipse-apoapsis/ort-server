@@ -44,8 +44,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { paginationSearchParameterSchema } from '@/schemas';
+import { useTablePrefsStore } from '@/store/table-prefs.store';
 
-const defaultPageSize = 10;
+// Fetch the default page size to loader from the store.
+const defaultPageSize = useTablePrefsStore.getState().orgPageSize;
 
 const columns: ColumnDef<Organization>[] = [
   {
@@ -71,9 +73,11 @@ const columns: ColumnDef<Organization>[] = [
 ];
 
 export const IndexPage = () => {
+  const orgPageSize = useTablePrefsStore((state) => state.orgPageSize);
+  const setOrgPageSize = useTablePrefsStore((state) => state.setOrgPageSize);
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const pageSize = search.pageSize ? search.pageSize : orgPageSize;
 
   const { data } = useOrganizationsServiceGetOrganizationsSuspense({
     limit: pageSize,
@@ -127,6 +131,8 @@ export const IndexPage = () => {
             };
           }}
           setPageSizeOptions={(size) => {
+            // Persist the user preference for page size to local storage.
+            setOrgPageSize(size);
             return {
               to: Route.to,
               search: { ...search, page: 1, pageSize: size },
