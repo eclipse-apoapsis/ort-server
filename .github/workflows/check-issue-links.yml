@@ -15,12 +15,13 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       with:
         fetch-depth: 0
+        repository: ${{ github.event.pull_request.repo.full_name }}
+        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Extract commit messages
       run: |
         # Extract the commit messages of the commits in this PR.
-        git fetch origin ${{ github.event.pull_request.base.ref }}
-        git log --format='%B' ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} > commit_messages.txt
+        git log --format='%B' HEAD~${{ github.event.pull_request.commits }}..HEAD > commit_messages.txt
         echo "Extracted commit messages:"
         cat commit_messages.txt
 
