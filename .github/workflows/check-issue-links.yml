@@ -33,7 +33,7 @@ jobs:
           | tr -d '#' \
           | uniq | tr '\n' ',' | sed 's/,$//')
 
-        echo "Found referenced issues: referenced_issues"
+        echo "Found referenced issues: $referenced_issues"
 
         # Export referenced issues as an environment variable.
         echo "REFERENCED_ISSUES=$referenced_issues" >> $GITHUB_ENV
