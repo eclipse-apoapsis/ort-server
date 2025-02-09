@@ -128,7 +128,7 @@ importers:
         version: 1.6.1(commander@12.1.0)(glob@10.4.5)(ts-morph@22.0.0)(typescript@5.7.3)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.2.1
-        version: 4.4.1(prettier@3.4.2)
+        version: 4.4.1(prettier@3.5.0)
       '@tailwindcss/typography':
         specifier: ^0.5.15
         version: 0.5.16(tailwindcss@3.4.17)
@@ -173,10 +173,10 @@ importers:
         version: 8.5.1
       prettier:
         specifier: ^3.2.5
-        version: 3.4.2
+        version: 3.5.0
       prettier-plugin-tailwindcss:
         specifier: ^0.6.0
-        version: 0.6.11(@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.4.2))(prettier@3.4.2)
+        version: 0.6.11(@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.5.0))(prettier@3.5.0)
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.17
@@ -2713,8 +2713,8 @@ packages:
       prettier-plugin-svelte:
         optional: true
 
-  prettier@3.4.2:
-    resolution: {integrity: sha512-e9MewbtFo+Fevyuxn/4rrcDAaq0IYxPGLvObpQjiZBMAzB9IGmzlnG9RZy3FFas+eBMu2vA0CszMeduow5dIuQ==}
+  prettier@3.5.0:
+    resolution: {integrity: sha512-quyMrVt6svPS7CjQ9gKb3GLEX/rl3BCL2oa/QkNcXv4YNVBC9olt3s+H7ukto06q7B1Qz46PbrKLO34PR6vXcA==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3711,13 +3711,13 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.4.2)':
+  '@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.5.0)':
     dependencies:
       '@babel/generator': 7.26.5
       '@babel/parser': 7.26.5
       '@babel/traverse': 7.26.5
       '@babel/types': 7.26.5
-      prettier: 3.4.2
+      prettier: 3.5.0
       semver: 7.6.3
     transitivePeerDependencies:
       - supports-color
@@ -4415,7 +4415,7 @@ snapshots:
   '@tanstack/router-generator@1.99.0(@tanstack/react-router@1.99.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0))':
     dependencies:
       '@tanstack/virtual-file-routes': 1.99.0
-      prettier: 3.4.2
+      prettier: 3.5.0
       tsx: 4.19.2
       zod: 3.24.1
     optionalDependencies:
@@ -5849,13 +5849,13 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-tailwindcss@0.6.11(@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.4.2))(prettier@3.4.2):
+  prettier-plugin-tailwindcss@0.6.11(@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.5.0))(prettier@3.5.0):
     dependencies:
-      prettier: 3.4.2
+      prettier: 3.5.0
     optionalDependencies:
-      '@ianvs/prettier-plugin-sort-imports': 4.4.1(prettier@3.4.2)
+      '@ianvs/prettier-plugin-sort-imports': 4.4.1(prettier@3.5.0)
 
-  prettier@3.4.2: {}
+  prettier@3.5.0: {}
 
   property-information@6.5.0: {}
 
