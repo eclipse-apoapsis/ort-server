@@ -21,6 +21,10 @@ package org.eclipse.apoapsis.ortserver.cli.model
 
 import com.charleskorn.kaml.Yaml
 
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.PosixFilePermissions
+
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -74,9 +78,15 @@ internal object AuthenticationStorage {
         authFile.writeText(Yaml.default.encodeToString(listOf(storage)))
 
         // Ensure file permissions 600, as this file contains security relevant information.
-        authFile.setReadable(true, true)
-        authFile.setWritable(true, true)
-        authFile.setExecutable(false, false)
+        Files.setPosixFilePermissions(
+            authFile.toPath(),
+            PosixFilePermissions.asFileAttribute(
+                setOf(
+                    PosixFilePermission.OWNER_READ,
+                    PosixFilePermission.OWNER_WRITE
+                )
+            ).value()
+        )
     }
 }
 
