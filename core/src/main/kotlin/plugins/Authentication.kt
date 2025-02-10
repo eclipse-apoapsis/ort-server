@@ -41,7 +41,7 @@ import org.koin.ktor.ext.inject
 
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger(Application::class.java)
+private val logger = LoggerFactory.getLogger(OrtPrincipal::class.java)
 
 /**
  * Configure the authentication for this server application.
