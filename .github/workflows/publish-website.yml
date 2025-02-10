@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.repository == 'eclipse-apoapsis/ort-server'
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
@@ -51,6 +52,7 @@ jobs:
         path: website/build
 
   deploy:
+    if: github.repository == 'eclipse-apoapsis/ort-server'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
