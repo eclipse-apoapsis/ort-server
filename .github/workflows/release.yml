@@ -17,6 +17,7 @@ env:
 
 jobs:
   publish:
+    if: github.repository == 'eclipse-apoapsis/ort-server'
     env:
       ORT_SERVER_VERSION: ${{ inputs.tag || github.ref_name }}
     permissions:
