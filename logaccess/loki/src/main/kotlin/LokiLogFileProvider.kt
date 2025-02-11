@@ -159,7 +159,7 @@ class LokiLogFileProvider(
         source: LogSource,
         levels: Set<LogLevel>
     ): String {
-        val levelCriterion = levels.joinToString("|") { it.name }
+        val levelCriterion = levels.joinToString(separator = "|", prefix = "(", postfix = ")") { it.name }
         return """{namespace="${config.namespace}",component="${source.component}"}""" +
                 """ |~ "level=$levelCriterion" |~ "ortRunId=$ortRunId""""
     }
