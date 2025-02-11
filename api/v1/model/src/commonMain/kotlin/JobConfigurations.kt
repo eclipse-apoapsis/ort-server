@@ -74,18 +74,9 @@ data class AnalyzerJobConfiguration(
     val environmentConfig: EnvironmentConfig? = null,
 
     /**
-     * A flag indicating whether the submodules of the repository should be downloaded during the download process.
-     * If set to `true`, submodules will be downloaded; if `false`, they will be ignored.
-     *
-     * Note: This attribute is deprecated and will be removed in a future release. Use [submoduleFetchStrategy] instead.
-     *
-     */
-    val recursiveCheckout: Boolean = true,
-
-    /**
      * The strategy to use for fetching submodules.
      */
-    val submoduleFetchStrategy: SubmoduleFetchStrategy? = null,
+    val submoduleFetchStrategy: SubmoduleFetchStrategy? = SubmoduleFetchStrategy.FULLY_RECURSIVE,
 
     /**
      * The list of package curation providers to use.

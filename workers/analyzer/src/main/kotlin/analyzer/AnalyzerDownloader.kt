@@ -39,8 +39,7 @@ class AnalyzerDownloader {
         repositoryUrl: String,
         revision: String,
         path: String = "",
-        recursiveCheckout: Boolean = true, // Deprecated: Will be removed in a future release
-        submoduleFetchStrategy: SubmoduleFetchStrategy? = null
+        submoduleFetchStrategy: SubmoduleFetchStrategy? = SubmoduleFetchStrategy.FULLY_RECURSIVE
     ): File {
         logger.info("Downloading repository '$repositoryUrl' revision '$revision'.")
 
@@ -57,11 +56,9 @@ class AnalyzerDownloader {
             path = path
         )
 
-        // The [submoduleFetchStrategy] parameter takes precedence over the deprecated [recursiveCheckout] parameter.
-        val combinedRecursiveCheckout = evaluateRecursiveCheckoutParameter(recursiveCheckout, submoduleFetchStrategy)
-
         val workingTree = vcs.initWorkingTree(outputDir, vcsInfo)
-        vcs.updateWorkingTree(workingTree, revision, recursive = combinedRecursiveCheckout).getOrThrow()
+        val recursiveCheckout = submoduleFetchStrategy != SubmoduleFetchStrategy.DISABLED
+        vcs.updateWorkingTree(workingTree, revision, recursive = recursiveCheckout).getOrThrow()
 
         logger.info("Finished downloading '$repositoryUrl' revision '$revision'.")
 
@@ -88,19 +85,5 @@ class AnalyzerDownloader {
             )
         } else {
             emptyMap()
-        }
-
-    /**
-     * Evaluate the [recursiveCheckout] and the [submoduleFetchStrategy] parameter to determine if the working tree
-     * should be checked out recursively. The [submoduleFetchStrategy] parameter takes precedence over the
-     * deprecated [recursiveCheckout] parameter.
-     */
-    internal fun evaluateRecursiveCheckoutParameter(
-        recursiveCheckout: Boolean, submoduleFetchStrategy: SubmoduleFetchStrategy?
-    ) =
-        if (submoduleFetchStrategy != null) {
-            submoduleFetchStrategy != SubmoduleFetchStrategy.DISABLED
-        } else {
-            recursiveCheckout
         }
 }
