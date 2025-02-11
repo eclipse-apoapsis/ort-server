@@ -21,8 +21,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ChevronDownIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
+import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { OpenAPI } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -47,10 +47,13 @@ const ReportComponent = () => {
   const [level, setLevel] = useState('INFO');
   const [isPending, setIsPending] = useState(false);
 
-  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
-    repositoryId: Number.parseInt(params.repoId),
-    ortRunIndex: Number.parseInt(params.runIndex),
-  });
+  const { data: ortRun } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
 
   const downloadLogs = async (
     runId: number,
@@ -186,10 +189,13 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/logs/'
 )({
   loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: Number.parseInt(params.runIndex),
-    });
+    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+      context.queryClient,
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
   },
   component: ReportComponent,
   pendingComponent: LoadingIndicator,

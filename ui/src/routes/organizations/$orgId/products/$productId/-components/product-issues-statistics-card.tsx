@@ -19,7 +19,7 @@
 
 import { Bug } from 'lucide-react';
 
-import { useProductsServiceGetOrtRunStatisticsByProductIdSuspense } from '@/api/queries/suspense';
+import { useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense } from '@/api/queries/suspense';
 import { Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
@@ -34,9 +34,10 @@ export const ProductIssuesStatisticsCard = ({
   productId,
   className,
 }: ProductIssuesStatisticsCardProps) => {
-  const data = useProductsServiceGetOrtRunStatisticsByProductIdSuspense({
-    productId: productId,
-  });
+  const data =
+    useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense({
+      productId: productId,
+    });
 
   const total = data.data.issuesCount;
   const counts = data.data.issuesCountBySeverity;

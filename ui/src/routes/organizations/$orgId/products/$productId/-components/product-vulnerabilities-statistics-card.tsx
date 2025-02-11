@@ -19,7 +19,7 @@
 
 import { ShieldQuestion } from 'lucide-react';
 
-import { useProductsServiceGetOrtRunStatisticsByProductIdSuspense } from '@/api/queries/suspense';
+import { useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense } from '@/api/queries/suspense';
 import { VulnerabilityRating } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
@@ -34,9 +34,10 @@ export const ProductVulnerabilitiesStatisticsCard = ({
   productId,
   className,
 }: ProductVulnerabilitiesStatisticsCardProps) => {
-  const data = useProductsServiceGetOrtRunStatisticsByProductIdSuspense({
-    productId: productId,
-  });
+  const data =
+    useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense({
+      productId: productId,
+    });
 
   const total = data.data.vulnerabilitiesCount;
   const counts = data.data.vulnerabilitiesCountByRating;

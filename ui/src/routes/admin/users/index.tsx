@@ -28,11 +28,11 @@ import {
 import { UserPlus } from 'lucide-react';
 
 import {
-  useAdminServiceDeleteUserByUsername,
-  useAdminServiceGetUsersKey,
+  useAdminServiceDeleteApiV1AdminUsers,
+  useAdminServiceGetApiV1AdminUsersKey,
 } from '@/api/queries';
-import { prefetchUseAdminServiceGetUsers } from '@/api/queries/prefetch';
-import { useAdminServiceGetUsersSuspense } from '@/api/queries/suspense';
+import { prefetchUseAdminServiceGetApiV1AdminUsers } from '@/api/queries/prefetch';
+import { useAdminServiceGetApiV1AdminUsersSuspense } from '@/api/queries/suspense';
 import { ApiError, User } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -82,13 +82,13 @@ const columns = [
     cell: function CellComponent({ row }) {
       const queryClient = useQueryClient();
 
-      const { mutateAsync: delUser } = useAdminServiceDeleteUserByUsername({
+      const { mutateAsync: delUser } = useAdminServiceDeleteApiV1AdminUsers({
         onSuccess() {
           toast.info('Delete User', {
             description: `User "${row.original.username}" deleted successfully.`,
           });
           queryClient.invalidateQueries({
-            queryKey: [useAdminServiceGetUsersKey],
+            queryKey: [useAdminServiceGetApiV1AdminUsersKey],
           });
         },
         onError(error: ApiError) {
@@ -122,7 +122,7 @@ const Users = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const { data: users } = useAdminServiceGetUsersSuspense();
+  const { data: users } = useAdminServiceGetApiV1AdminUsersSuspense();
 
   const table = useReactTable({
     data: users || [],
@@ -190,7 +190,7 @@ const Users = () => {
 export const Route = createFileRoute('/admin/users/')({
   validateSearch: paginationSearchParameterSchema,
   loader: async ({ context }) => {
-    prefetchUseAdminServiceGetUsers(context.queryClient);
+    prefetchUseAdminServiceGetApiV1AdminUsers(context.queryClient);
   },
   component: Users,
   pendingComponent: LoadingIndicator,

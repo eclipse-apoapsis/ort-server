@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useAdminServicePostUsers } from '@/api/queries';
+import { useAdminServicePostApiV1AdminUsers } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
@@ -61,7 +61,7 @@ const formSchema = z.object({
 const CreateUser = () => {
   const navigate = useNavigate();
 
-  const { mutateAsync, isPending } = useAdminServicePostUsers({
+  const { mutateAsync, isPending } = useAdminServicePostApiV1AdminUsers({
     onSuccess() {
       toast.info('Add User', {
         description: `User "${form.getValues().username}" added successfully to the server.`,

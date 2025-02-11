@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useProductsServicePostProduct } from '@/api/queries';
+import { useProductsServicePostApiV1OrganizationsByOrganizationIdProducts } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -54,27 +54,28 @@ const CreateProductPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { mutateAsync, isPending } = useProductsServicePostProduct({
-    onSuccess(data) {
-      toast.info('Add Product', {
-        description: `Product "${data.name}" added successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId/products/$productId',
-        params: { orgId: params.orgId, productId: data.id.toString() },
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
+  const { mutateAsync, isPending } =
+    useProductsServicePostApiV1OrganizationsByOrganizationIdProducts({
+      onSuccess(data) {
+        toast.info('Add Product', {
+          description: `Product "${data.name}" added successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId/products/$productId',
+          params: { orgId: params.orgId, productId: data.id.toString() },
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

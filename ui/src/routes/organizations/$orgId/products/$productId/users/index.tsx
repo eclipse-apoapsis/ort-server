@@ -24,11 +24,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useGroupsServiceDeleteUserFromGroupProduct,
-  useGroupsServicePutUserToGroupProduct,
+  useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
+  useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId,
 } from '@/api/queries';
-import { prefetchUseProductsServiceGetProductById } from '@/api/queries/prefetch';
-import { useProductsServiceGetProductByIdSuspense } from '@/api/queries/suspense';
+import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
+import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -75,12 +75,13 @@ const ManageUsers = () => {
     },
   });
 
-  const { data: product } = useProductsServiceGetProductByIdSuspense({
-    productId: Number.parseInt(params.productId),
-  });
+  const { data: product } =
+    useProductsServiceGetApiV1ProductsByProductIdSuspense({
+      productId: Number.parseInt(params.productId),
+    });
 
   const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useGroupsServicePutUserToGroupProduct({
+    useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId({
       onSuccess() {
         toast.info('Add User', {
           description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
@@ -99,7 +100,7 @@ const ManageUsers = () => {
     });
 
   const { mutateAsync: removeUser, isPending: isRemoveUserPending } =
-    useGroupsServiceDeleteUserFromGroupProduct({
+    useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId({
       onSuccess() {
         toast.info('Remove User', {
           description: `User "${form.getValues().username}" removed successfully from group "${form.getValues().groupId.toUpperCase()}".`,
@@ -241,9 +242,12 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/users/'
 )({
   loader: async ({ context, params }) => {
-    await prefetchUseProductsServiceGetProductById(context.queryClient, {
-      productId: Number.parseInt(params.productId),
-    });
+    await prefetchUseProductsServiceGetApiV1ProductsByProductId(
+      context.queryClient,
+      {
+        productId: Number.parseInt(params.productId),
+      }
+    );
   },
   component: ManageUsers,
 });

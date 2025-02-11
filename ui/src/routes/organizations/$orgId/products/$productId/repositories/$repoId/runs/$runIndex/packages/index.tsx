@@ -27,9 +27,9 @@ import {
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-import { usePackagesServiceGetPackagesByRunId } from '@/api/queries';
-import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
+import { usePackagesServiceGetApiV1RunsByRunIdPackages } from '@/api/queries';
+import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { Package } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -189,17 +189,20 @@ const PackagesComponent = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
-    repositoryId: Number.parseInt(params.repoId),
-    ortRunIndex: Number.parseInt(params.runIndex),
-  });
+  const { data: ortRun } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
 
   const {
     data: packages,
     isPending,
     isError,
     error,
-  } = usePackagesServiceGetPackagesByRunId({
+  } = usePackagesServiceGetApiV1RunsByRunIdPackages({
     runId: ortRun.id,
     limit: pageSize,
     offset: pageIndex * pageSize,
@@ -275,10 +278,13 @@ export const Route = createFileRoute(
 )({
   validateSearch: paginationSearchParameterSchema,
   loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: Number.parseInt(params.runIndex),
-    });
+    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+      context.queryClient,
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
   },
   component: PackagesComponent,
   pendingComponent: LoadingIndicator,

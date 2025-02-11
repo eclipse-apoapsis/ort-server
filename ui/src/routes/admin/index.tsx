@@ -21,8 +21,8 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { AudioWaveform, List, ListVideo, Loader2 } from 'lucide-react';
 
 import {
-  useOrganizationsServiceGetOrganizations,
-  useRunsServiceGetOrtRuns,
+  useOrganizationsServiceGetApiV1Organizations,
+  useRunsServiceGetApiV1Runs,
 } from '@/api/queries';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -34,7 +34,7 @@ const OverviewContent = () => {
     data: orgs,
     isLoading: orgsIsLoading,
     error: orgIsError,
-  } = useOrganizationsServiceGetOrganizations({
+  } = useOrganizationsServiceGetApiV1Organizations({
     limit: 1,
   });
 
@@ -42,7 +42,7 @@ const OverviewContent = () => {
     data: runs,
     isLoading: runsIsLoading,
     error: runsIsError,
-  } = useRunsServiceGetOrtRuns({
+  } = useRunsServiceGetApiV1Runs({
     limit: 1,
   });
 
@@ -50,7 +50,7 @@ const OverviewContent = () => {
     data: activeRuns,
     isLoading: activeRunsIsLoading,
     error: activeRunsIsError,
-  } = useRunsServiceGetOrtRuns({
+  } = useRunsServiceGetApiV1Runs({
     limit: 1,
     status: 'active',
   });

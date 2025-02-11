@@ -19,8 +19,8 @@
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import { prefetchUseProductsServiceGetProductById } from '@/api/queries/prefetch';
-import { useProductsServiceGetProductByIdSuspense } from '@/api/queries/suspense';
+import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
+import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   Card,
@@ -38,9 +38,10 @@ import { ProductVulnerabilityTable } from './-components/product-vulnerability-t
 const ProductVulnerabilitiesComponent = () => {
   const params = Route.useParams();
 
-  const { data: product } = useProductsServiceGetProductByIdSuspense({
-    productId: Number.parseInt(params.productId),
-  });
+  const { data: product } =
+    useProductsServiceGetApiV1ProductsByProductIdSuspense({
+      productId: Number.parseInt(params.productId),
+    });
 
   return (
     <Card className='h-fit'>
@@ -72,9 +73,12 @@ export const Route = createFileRoute(
     sortingSearchParameterSchema
   ),
   loader: async ({ context, params }) => {
-    await prefetchUseProductsServiceGetProductById(context.queryClient, {
-      productId: Number.parseInt(params.productId),
-    });
+    await prefetchUseProductsServiceGetApiV1ProductsByProductId(
+      context.queryClient,
+      {
+        productId: Number.parseInt(params.productId),
+      }
+    );
   },
   component: ProductVulnerabilitiesComponent,
   pendingComponent: LoadingIndicator,

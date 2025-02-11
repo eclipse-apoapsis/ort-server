@@ -27,11 +27,11 @@ import {
 import { Repeat, View } from 'lucide-react';
 
 import {
-  useRepositoriesServiceDeleteOrtRunByIndex,
-  useRepositoriesServiceGetOrtRunsByRepositoryId,
-  useRepositoriesServiceGetOrtRunsByRepositoryIdKey,
+  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsKey,
 } from '@/api/queries';
-import { useRepositoriesServiceGetRepositoryByIdSuspense } from '@/api/queries/suspense';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { ApiError, OrtRunSummary } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -137,34 +137,37 @@ const columns = [
     cell: function Row({ row }) {
       const queryClient = useQueryClient();
 
-      const repository = useRepositoriesServiceGetRepositoryByIdSuspense({
-        repositoryId: row.original.repositoryId,
-      });
+      const repository =
+        useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense({
+          repositoryId: row.original.repositoryId,
+        });
 
       const { mutateAsync: deleteRun } =
-        useRepositoriesServiceDeleteOrtRunByIndex({
-          onSuccess() {
-            toast.info('Delete ORT Run', {
-              description: `ORT Run "${row.original.index}" deleted successfully.`,
-            });
-            queryClient.invalidateQueries({
-              queryKey: [
-                useRepositoriesServiceGetOrtRunsByRepositoryIdKey,
-                row.original.repositoryId,
-              ],
-            });
-          },
-          onError(error: ApiError) {
-            toast.error(error.message, {
-              description: <ToastError error={error} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
-          },
-        });
+        useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+          {
+            onSuccess() {
+              toast.info('Delete ORT Run', {
+                description: `ORT Run "${row.original.index}" deleted successfully.`,
+              });
+              queryClient.invalidateQueries({
+                queryKey: [
+                  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsKey,
+                  row.original.repositoryId,
+                ],
+              });
+            },
+            onError(error: ApiError) {
+              toast.error(error.message, {
+                description: <ToastError error={error} />,
+                duration: Infinity,
+                cancel: {
+                  label: 'Dismiss',
+                  onClick: () => {},
+                },
+              });
+            },
+          }
+        );
 
       async function handleDelete() {
         await deleteRun({
@@ -248,7 +251,7 @@ export const RepositoryRunsTable = ({
     error: runsError,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetOrtRunsByRepositoryId(
+  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
     {
       repositoryId: Number.parseInt(repoId),
       limit: pageSize,

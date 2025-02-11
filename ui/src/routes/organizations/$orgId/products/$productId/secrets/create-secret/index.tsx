@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useSecretsServicePostSecretForProduct } from '@/api/queries';
+import { useSecretsServicePostApiV1ProductsByProductIdSecrets } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
@@ -55,27 +55,28 @@ const CreateProductSecretPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { mutateAsync, isPending } = useSecretsServicePostSecretForProduct({
-    onSuccess(data) {
-      toast.info('Create Product Secret', {
-        description: `New product secret "${data.name}" created successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId/products/$productId/secrets',
-        params: { orgId: params.orgId, productId: params.productId },
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
+  const { mutateAsync, isPending } =
+    useSecretsServicePostApiV1ProductsByProductIdSecrets({
+      onSuccess(data) {
+        toast.info('Create Product Secret', {
+          description: `New product secret "${data.name}" created successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId/products/$productId/secrets',
+          params: { orgId: params.orgId, productId: params.productId },
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

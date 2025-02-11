@@ -24,11 +24,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useGroupsServiceDeleteUserFromGroupOrganization,
-  useGroupsServicePutUserToGroupOrganization,
+  useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
 } from '@/api/queries';
-import { prefetchUseOrganizationsServiceGetOrganizationById } from '@/api/queries/prefetch';
-import { useOrganizationsServiceGetOrganizationByIdSuspense } from '@/api/queries/suspense';
+import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -76,12 +76,12 @@ const ManageUsers = () => {
   });
 
   const { data: organization } =
-    useOrganizationsServiceGetOrganizationByIdSuspense({
+    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense({
       organizationId: Number.parseInt(params.orgId),
     });
 
   const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useGroupsServicePutUserToGroupOrganization({
+    useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId({
       onSuccess() {
         toast.info('Add User', {
           description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
@@ -100,7 +100,7 @@ const ManageUsers = () => {
     });
 
   const { mutateAsync: removeUser, isPending: isRemoveUserPending } =
-    useGroupsServiceDeleteUserFromGroupOrganization({
+    useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId({
       onSuccess() {
         toast.info('Remove User', {
           description: `User "${form.getValues().username}" removed successfully from group "${form.getValues().groupId.toUpperCase()}".`,
@@ -243,7 +243,7 @@ const ManageUsers = () => {
 
 export const Route = createFileRoute('/organizations/$orgId/users/')({
   loader: async ({ context, params }) => {
-    await prefetchUseOrganizationsServiceGetOrganizationById(
+    await prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
       context.queryClient,
       {
         organizationId: Number.parseInt(params.orgId),

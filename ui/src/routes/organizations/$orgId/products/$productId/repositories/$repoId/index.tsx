@@ -19,7 +19,7 @@
 
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import { UseRepositoriesServiceGetOrtRunsByRepositoryIdKeyFn } from '@/api/queries';
+import { UseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsKeyFn } from '@/api/queries';
 import { RepositoriesService } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 
@@ -27,16 +27,17 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/'
 )({
   loader: async ({ params, context: { queryClient }, preload }) => {
-    const queryKey = UseRepositoriesServiceGetOrtRunsByRepositoryIdKeyFn({
-      repositoryId: Number.parseInt(params.repoId),
-      limit: 1,
-      sort: '-index',
-    });
+    const queryKey =
+      UseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsKeyFn({
+        repositoryId: Number.parseInt(params.repoId),
+        limit: 1,
+        sort: '-index',
+      });
 
     const { data } = await queryClient.fetchQuery({
       queryKey,
       queryFn: () =>
-        RepositoriesService.getOrtRunsByRepositoryId({
+        RepositoriesService.getApiV1RepositoriesByRepositoryIdRuns({
           repositoryId: Number.parseInt(params.repoId),
           limit: 1,
           sort: '-index',

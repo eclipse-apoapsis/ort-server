@@ -19,8 +19,8 @@
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
+import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { OpenAPI } from '@/api/requests';
 import CycloneDXDark from '@/assets/cyclonedx-logo-black.svg';
 import CycloneDXLight from '@/assets/cyclonedx-logo-white.svg';
@@ -45,10 +45,13 @@ const SBOMComponent = () => {
   // based on the current theme.
   const { activeTheme } = useTheme();
 
-  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
-    repositoryId: Number.parseInt(params.repoId),
-    ortRunIndex: Number.parseInt(params.runIndex),
-  });
+  const { data: ortRun } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
 
   const downloadZipFile = async ({
     runId,
@@ -211,10 +214,13 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/sbom/'
 )({
   loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: Number.parseInt(params.runIndex),
-    });
+    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+      context.queryClient,
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
   },
   component: SBOMComponent,
   pendingComponent: LoadingIndicator,

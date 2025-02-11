@@ -19,12 +19,12 @@
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import { useVersionsServiceGetVersionsSuspense } from '@/api/queries/suspense';
+import { useVersionsServiceGetApiV1VersionsSuspense } from '@/api/queries/suspense';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
 export const About = () => {
-  const { data: versionData } = useVersionsServiceGetVersionsSuspense();
+  const { data: versionData } = useVersionsServiceGetApiV1VersionsSuspense();
 
   return (
     <Card className='mx-auto w-full max-w-4xl'>

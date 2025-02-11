@@ -24,11 +24,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useProductsServiceDeleteProductById,
-  UseProductsServiceGetProductByIdKeyFn,
-  useProductsServicePatchProductById,
+  useProductsServiceDeleteApiV1ProductsByProductId,
+  UseProductsServiceGetApiV1ProductsByProductIdKeyFn,
+  useProductsServicePatchApiV1ProductsByProductId,
 } from '@/api/queries';
-import { useProductsServiceGetProductByIdSuspense } from '@/api/queries/suspense';
+import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { ApiError, ProductsService } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
@@ -62,31 +62,33 @@ const ProductSettingsPage = () => {
 
   const productId = Number.parseInt(params.productId);
 
-  const { data: product } = useProductsServiceGetProductByIdSuspense({
-    productId,
-  });
+  const { data: product } =
+    useProductsServiceGetApiV1ProductsByProductIdSuspense({
+      productId,
+    });
 
-  const { mutateAsync, isPending } = useProductsServicePatchProductById({
-    onSuccess(data) {
-      toast.info('Edit Product', {
-        description: `Product "${data.name}" updated successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId/products/$productId',
-        params: { orgId: params.orgId, productId: params.productId },
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
+  const { mutateAsync, isPending } =
+    useProductsServicePatchApiV1ProductsByProductId({
+      onSuccess(data) {
+        toast.info('Edit Product', {
+          description: `Product "${data.name}" updated successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId/products/$productId',
+          params: { orgId: params.orgId, productId: params.productId },
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -106,27 +108,28 @@ const ProductSettingsPage = () => {
     });
   }
 
-  const { mutateAsync: deleteProduct } = useProductsServiceDeleteProductById({
-    onSuccess() {
-      toast.info('Delete Product', {
-        description: `Product "${product.name}" deleted successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId',
-        params: { orgId: params.orgId },
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
+  const { mutateAsync: deleteProduct } =
+    useProductsServiceDeleteApiV1ProductsByProductId({
+      onSuccess() {
+        toast.info('Delete Product', {
+          description: `Product "${product.name}" deleted successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId',
+          params: { orgId: params.orgId },
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   async function handleDelete() {
     await deleteProduct({
@@ -226,9 +229,11 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     const productId = Number.parseInt(params.productId);
     await context.queryClient.prefetchQuery({
-      queryKey: UseProductsServiceGetProductByIdKeyFn({ productId }),
+      queryKey: UseProductsServiceGetApiV1ProductsByProductIdKeyFn({
+        productId,
+      }),
       queryFn: () =>
-        ProductsService.getProductById({
+        ProductsService.getApiV1ProductsByProductId({
           productId,
         }),
     });

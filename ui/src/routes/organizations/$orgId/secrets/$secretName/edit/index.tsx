@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetSecretByOrganizationIdAndNameKey,
-  useSecretsServicePatchSecretByOrganizationIdAndName,
+  useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
+  useSecretsServicePatchApiV1OrganizationsByOrganizationIdSecretsBySecretName,
 } from '@/api/queries';
 import { ApiError, SecretsService } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
@@ -66,12 +66,12 @@ const EditOrganizationSecretPage = () => {
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetSecretByOrganizationIdAndNameKey,
+      useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
       params.orgId,
       params.secretName,
     ],
     queryFn: () =>
-      SecretsService.getSecretByOrganizationIdAndName({
+      SecretsService.getApiV1OrganizationsByOrganizationIdSecretsBySecretName({
         organizationId: Number.parseInt(params.orgId),
         secretName: params.secretName,
       }),
@@ -87,27 +87,29 @@ const EditOrganizationSecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } =
-    useSecretsServicePatchSecretByOrganizationIdAndName({
-      onSuccess(data) {
-        toast.info('Edit organization secret', {
-          description: `Secret "${data.name}" updated successfully.`,
-        });
-        navigate({
-          to: search.returnTo || '/organizations/$orgId/secrets',
-          params: { orgId: params.orgId },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+    useSecretsServicePatchApiV1OrganizationsByOrganizationIdSecretsBySecretName(
+      {
+        onSuccess(data) {
+          toast.info('Edit organization secret', {
+            description: `Secret "${data.name}" updated successfully.`,
+          });
+          navigate({
+            to: search.returnTo || '/organizations/$orgId/secrets',
+            params: { orgId: params.orgId },
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      }
+    );
 
   const onSubmit = (values: EditSecretFormValues) => {
     editSecret({
@@ -218,15 +220,17 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useSecretsServiceGetSecretByOrganizationIdAndNameKey,
+        useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
         params.orgId,
         params.secretName,
       ],
       queryFn: () =>
-        SecretsService.getSecretByOrganizationIdAndName({
-          organizationId: Number.parseInt(params.orgId),
-          secretName: params.secretName,
-        }),
+        SecretsService.getApiV1OrganizationsByOrganizationIdSecretsBySecretName(
+          {
+            organizationId: Number.parseInt(params.orgId),
+            secretName: params.secretName,
+          }
+        ),
     });
   },
   component: EditOrganizationSecretPage,

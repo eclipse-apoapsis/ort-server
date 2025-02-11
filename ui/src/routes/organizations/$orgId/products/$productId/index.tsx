@@ -21,8 +21,8 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 
-import { useProductsServiceGetProductById } from '@/api/queries';
-import { prefetchUseProductsServiceGetProductById } from '@/api/queries/prefetch';
+import { useProductsServiceGetApiV1ProductsByProductId } from '@/api/queries';
+import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -53,7 +53,7 @@ const ProductComponent = () => {
     error: prodError,
     isPending: prodIsPending,
     isError: prodIsError,
-  } = useProductsServiceGetProductById({
+  } = useProductsServiceGetApiV1ProductsByProductId({
     productId: Number.parseInt(params.productId),
   });
 
@@ -170,9 +170,12 @@ export const Route = createFileRoute(
     sortingSearchParameterSchema
   ),
   loader: async ({ context, params }) => {
-    await prefetchUseProductsServiceGetProductById(context.queryClient, {
-      productId: Number.parseInt(params.productId),
-    });
+    await prefetchUseProductsServiceGetApiV1ProductsByProductId(
+      context.queryClient,
+      {
+        productId: Number.parseInt(params.productId),
+      }
+    );
   },
   component: ProductComponent,
   pendingComponent: LoadingIndicator,

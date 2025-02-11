@@ -19,7 +19,7 @@
 
 import { Scale } from 'lucide-react';
 
-import { useOrganizationsServiceGetOrtRunStatisticsByOrganizationIdSuspense } from '@/api/queries/suspense';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdStatisticsRunsSuspense } from '@/api/queries/suspense';
 import { Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
@@ -35,9 +35,11 @@ export const OrganizationViolationsStatisticsCard = ({
   className,
 }: OrganizationViolationsStatisticsCardProps) => {
   const data =
-    useOrganizationsServiceGetOrtRunStatisticsByOrganizationIdSuspense({
-      organizationId: organizationId,
-    });
+    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdStatisticsRunsSuspense(
+      {
+        organizationId: organizationId,
+      }
+    );
 
   const total = data.data.ruleViolationsCount;
   const counts = data.data.ruleViolationsCountBySeverity;

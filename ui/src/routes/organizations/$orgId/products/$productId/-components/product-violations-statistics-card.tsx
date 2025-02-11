@@ -19,7 +19,7 @@
 
 import { Scale } from 'lucide-react';
 
-import { useProductsServiceGetOrtRunStatisticsByProductIdSuspense } from '@/api/queries/suspense';
+import { useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense } from '@/api/queries/suspense';
 import { Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
@@ -34,9 +34,10 @@ export const ProductViolationsStatisticsCard = ({
   productId,
   className,
 }: ProductViolationsStatisticsCardProps) => {
-  const data = useProductsServiceGetOrtRunStatisticsByProductIdSuspense({
-    productId: productId,
-  });
+  const data =
+    useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense({
+      productId: productId,
+    });
 
   const total = data.data.ruleViolationsCount;
   const counts = data.data.ruleViolationsCountBySeverity;

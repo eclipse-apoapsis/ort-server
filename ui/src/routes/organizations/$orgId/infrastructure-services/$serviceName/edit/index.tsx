@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
-  useInfrastructureServicesServicePatchInfrastructureServiceForOrganizationIdAndName,
+  useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+  useInfrastructureServicesServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
 } from '@/api/queries';
 import { ApiError, InfrastructureServicesService } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
@@ -74,14 +74,16 @@ const EditInfrastructureServicePage = () => {
    */
   const { data: infrastructureServices } = useSuspenseQuery({
     queryKey: [
-      useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
+      useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
       params.orgId,
     ],
     queryFn: () =>
-      InfrastructureServicesService.getInfrastructureServicesByOrganizationId({
-        organizationId: Number.parseInt(params.orgId),
-        limit: ALL_ITEMS,
-      }),
+      InfrastructureServicesService.getApiV1OrganizationsByOrganizationIdInfrastructureServices(
+        {
+          organizationId: Number.parseInt(params.orgId),
+          limit: ALL_ITEMS,
+        }
+      ),
   });
 
   const service = infrastructureServices?.data.find(
@@ -89,7 +91,7 @@ const EditInfrastructureServicePage = () => {
   );
 
   const { mutateAsync, isPending } =
-    useInfrastructureServicesServicePatchInfrastructureServiceForOrganizationIdAndName(
+    useInfrastructureServicesServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
       {
         onSuccess(data) {
           toast.info('Edit Infrastructure Service', {
@@ -317,11 +319,11 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
+        useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
         params.orgId,
       ],
       queryFn: () =>
-        InfrastructureServicesService.getInfrastructureServicesByOrganizationId(
+        InfrastructureServicesService.getApiV1OrganizationsByOrganizationIdInfrastructureServices(
           {
             organizationId: Number.parseInt(params.orgId),
             limit: ALL_ITEMS,

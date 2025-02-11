@@ -24,11 +24,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useRepositoriesServiceDeleteRepositoryById,
-  UseRepositoriesServiceGetRepositoryByIdKeyFn,
-  useRepositoriesServicePatchRepositoryById,
+  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryId,
+  UseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdKeyFn,
+  useRepositoriesServicePatchApiV1RepositoriesByRepositoryId,
 } from '@/api/queries';
-import { useRepositoriesServiceGetRepositoryByIdSuspense } from '@/api/queries/suspense';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { $RepositoryType, ApiError, RepositoriesService } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
@@ -69,35 +69,37 @@ const RepositorySettingsPage = () => {
 
   const repositoryId = Number.parseInt(params.repoId);
 
-  const { data: repository } = useRepositoriesServiceGetRepositoryByIdSuspense({
-    repositoryId,
-  });
+  const { data: repository } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense({
+      repositoryId,
+    });
 
-  const { mutateAsync, isPending } = useRepositoriesServicePatchRepositoryById({
-    onSuccess(data) {
-      toast.info('Edit repository', {
-        description: `Repository "${data.url}" updated successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-        params: {
-          orgId: params.orgId,
-          productId: params.productId,
-          repoId: params.repoId,
-        },
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
+  const { mutateAsync, isPending } =
+    useRepositoriesServicePatchApiV1RepositoriesByRepositoryId({
+      onSuccess(data) {
+        toast.info('Edit repository', {
+          description: `Repository "${data.url}" updated successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+          params: {
+            orgId: params.orgId,
+            productId: params.productId,
+            repoId: params.repoId,
+          },
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -118,7 +120,7 @@ const RepositorySettingsPage = () => {
   }
 
   const { mutateAsync: deleteRepository } =
-    useRepositoriesServiceDeleteRepositoryById({
+    useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryId({
       onSuccess() {
         toast.info('Delete Repository', {
           description: `Repository "${repository?.url}" deleted successfully.`,
@@ -256,9 +258,11 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     const repositoryId = Number.parseInt(params.repoId);
     await context.queryClient.prefetchQuery({
-      queryKey: UseRepositoriesServiceGetRepositoryByIdKeyFn({ repositoryId }),
+      queryKey: UseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdKeyFn({
+        repositoryId,
+      }),
       queryFn: () =>
-        RepositoriesService.getRepositoryById({
+        RepositoriesService.getApiV1RepositoriesByRepositoryId({
           repositoryId,
         }),
     });

@@ -20,7 +20,7 @@
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { BookLock, Eye, Settings, ShieldQuestion, User } from 'lucide-react';
 
-import { useProductsServiceGetProductByIdKey } from '@/api/queries';
+import { useProductsServiceGetApiV1ProductsByProductIdKey } from '@/api/queries';
 import { ProductsService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
@@ -88,9 +88,12 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context, params }) => {
     const product = await context.queryClient.ensureQueryData({
-      queryKey: [useProductsServiceGetProductByIdKey, params.productId],
+      queryKey: [
+        useProductsServiceGetApiV1ProductsByProductIdKey,
+        params.productId,
+      ],
       queryFn: () =>
-        ProductsService.getProductById({
+        ProductsService.getApiV1ProductsByProductId({
           productId: Number.parseInt(params.productId),
         }),
     });

@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetSecretByProductIdAndNameKey,
-  useSecretsServicePatchSecretByProductIdAndName,
+  useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
+  useSecretsServicePatchApiV1ProductsByProductIdSecretsBySecretName,
 } from '@/api/queries';
 import { ApiError, SecretsService } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
@@ -65,12 +65,12 @@ const EditProductSecretPage = () => {
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetSecretByProductIdAndNameKey,
+      useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
       params.productId,
       params.secretName,
     ],
     queryFn: () =>
-      SecretsService.getSecretByProductIdAndName({
+      SecretsService.getApiV1ProductsByProductIdSecretsBySecretName({
         productId: Number.parseInt(params.productId),
         secretName: params.secretName,
       }),
@@ -86,7 +86,7 @@ const EditProductSecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } =
-    useSecretsServicePatchSecretByProductIdAndName({
+    useSecretsServicePatchApiV1ProductsByProductIdSecretsBySecretName({
       onSuccess(data) {
         toast.info('Edit Product Secret', {
           description: `Secret "${data.name}" updated successfully.`,
@@ -207,12 +207,12 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useSecretsServiceGetSecretByProductIdAndNameKey,
+        useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
         params.productId,
         params.secretName,
       ],
       queryFn: () =>
-        SecretsService.getSecretByProductIdAndName({
+        SecretsService.getApiV1ProductsByProductIdSecretsBySecretName({
           productId: Number.parseInt(params.productId),
           secretName: params.secretName,
         }),

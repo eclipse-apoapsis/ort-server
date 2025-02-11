@@ -28,16 +28,16 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
-  useOrganizationsServiceGetOrganizationById,
-  useSecretsServiceDeleteSecretByOrganizationIdAndName,
-  useSecretsServiceGetSecretsByOrganizationId,
-  useSecretsServiceGetSecretsByOrganizationIdKey,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
+  useSecretsServiceDeleteApiV1OrganizationsByOrganizationIdSecretsBySecretName,
+  useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
+  useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsKey,
 } from '@/api/queries';
 import {
-  prefetchUseOrganizationsServiceGetOrganizationById,
-  prefetchUseSecretsServiceGetSecretsByOrganizationId,
+  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
+  prefetchUseSecretsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
 } from '@/api/queries/prefetch';
-import { useOrganizationsServiceGetOrganizationByIdSuspense } from '@/api/queries/suspense';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
 import { ApiError, Secret } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -69,31 +69,35 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const queryClient = useQueryClient();
 
   const { data: organization } =
-    useOrganizationsServiceGetOrganizationByIdSuspense({
+    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense({
       organizationId: Number.parseInt(params.orgId),
     });
 
   const { mutateAsync: delSecret } =
-    useSecretsServiceDeleteSecretByOrganizationIdAndName({
-      onSuccess() {
-        toast.info('Delete Secret', {
-          description: `Secret "${row.original.name}" deleted successfully.`,
-        });
-        queryClient.invalidateQueries({
-          queryKey: [useSecretsServiceGetSecretsByOrganizationIdKey],
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+    useSecretsServiceDeleteApiV1OrganizationsByOrganizationIdSecretsBySecretName(
+      {
+        onSuccess() {
+          toast.info('Delete Secret', {
+            description: `Secret "${row.original.name}" deleted successfully.`,
+          });
+          queryClient.invalidateQueries({
+            queryKey: [
+              useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsKey,
+            ],
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      }
+    );
 
   return (
     <div className='flex justify-end gap-1'>
@@ -153,7 +157,7 @@ const OrganizationSecrets = () => {
     error: orgError,
     isPending: orgIsPending,
     isError: orgIsError,
-  } = useOrganizationsServiceGetOrganizationById({
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
     organizationId: Number.parseInt(params.orgId),
   });
 
@@ -162,7 +166,7 @@ const OrganizationSecrets = () => {
     error: secretsError,
     isPending: secretsIsPending,
     isError: secretsIsError,
-  } = useSecretsServiceGetSecretsByOrganizationId({
+  } = useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecrets({
     organizationId: Number.parseInt(params.orgId),
     limit: pageSize,
     offset: pageIndex * pageSize,
@@ -250,14 +254,20 @@ export const Route = createFileRoute('/organizations/$orgId/secrets/')({
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      prefetchUseOrganizationsServiceGetOrganizationById(context.queryClient, {
-        organizationId: Number.parseInt(params.orgId),
-      }),
-      prefetchUseSecretsServiceGetSecretsByOrganizationId(context.queryClient, {
-        organizationId: Number.parseInt(params.orgId),
-        limit: pageSize || defaultPageSize,
-        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-      }),
+      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
+        context.queryClient,
+        {
+          organizationId: Number.parseInt(params.orgId),
+        }
+      ),
+      prefetchUseSecretsServiceGetApiV1OrganizationsByOrganizationIdSecrets(
+        context.queryClient,
+        {
+          organizationId: Number.parseInt(params.orgId),
+          limit: pageSize || defaultPageSize,
+          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        }
+      ),
     ]);
   },
   component: OrganizationSecrets,

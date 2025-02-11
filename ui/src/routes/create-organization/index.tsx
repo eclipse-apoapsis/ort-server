@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useOrganizationsServicePostOrganizations } from '@/api/queries';
+import { useOrganizationsServicePostApiV1Organizations } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -52,27 +52,28 @@ const formSchema = z.object({
 const CreateOrganizationPage = () => {
   const navigate = useNavigate();
 
-  const { mutateAsync, isPending } = useOrganizationsServicePostOrganizations({
-    onSuccess(data) {
-      toast.info('Add Organization', {
-        description: `Organization "${data.name}" added successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId',
-        params: { orgId: data.id.toString() },
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
+  const { mutateAsync, isPending } =
+    useOrganizationsServicePostApiV1Organizations({
+      onSuccess(data) {
+        toast.info('Add Organization', {
+          description: `Organization "${data.name}" added successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId',
+          params: { orgId: data.id.toString() },
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

@@ -24,11 +24,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useOrganizationsServiceDeleteOrganizationById,
-  UseOrganizationsServiceGetOrganizationByIdKeyFn,
-  useOrganizationsServicePatchOrganizationById,
+  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationId,
+  UseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKeyFn,
+  useOrganizationsServicePatchApiV1OrganizationsByOrganizationId,
 } from '@/api/queries';
-import { useOrganizationsServiceGetOrganizationByIdSuspense } from '@/api/queries/suspense';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
 import { ApiError, OrganizationsService } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
@@ -63,12 +63,12 @@ const OrganizationSettingsPage = () => {
   const organizationId = Number.parseInt(params.orgId);
 
   const { data: organization } =
-    useOrganizationsServiceGetOrganizationByIdSuspense({
+    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense({
       organizationId,
     });
 
   const { mutateAsync, isPending } =
-    useOrganizationsServicePatchOrganizationById({
+    useOrganizationsServicePatchApiV1OrganizationsByOrganizationId({
       onSuccess(data) {
         toast.info('Edit Organization', {
           description: `Organization "${data.name}" updated successfully.`,
@@ -109,7 +109,7 @@ const OrganizationSettingsPage = () => {
   }
 
   const { mutateAsync: deleteOrganization } =
-    useOrganizationsServiceDeleteOrganizationById({
+    useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationId({
       onSuccess() {
         toast.info('Delete Organization', {
           description: `Organization "${organization.name}" deleted successfully.`,
@@ -226,11 +226,12 @@ export const Route = createFileRoute('/organizations/$orgId/settings/')({
   loader: async ({ context, params }) => {
     const organizationId = Number.parseInt(params.orgId);
     await context.queryClient.prefetchQuery({
-      queryKey: UseOrganizationsServiceGetOrganizationByIdKeyFn({
-        organizationId,
-      }),
+      queryKey:
+        UseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKeyFn({
+          organizationId,
+        }),
       queryFn: () =>
-        OrganizationsService.getOrganizationById({
+        OrganizationsService.getApiV1OrganizationsByOrganizationId({
           organizationId,
         }),
     });

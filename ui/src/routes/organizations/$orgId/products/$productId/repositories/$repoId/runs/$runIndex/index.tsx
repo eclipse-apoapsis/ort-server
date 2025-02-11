@@ -20,8 +20,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Repeat } from 'lucide-react';
 
-import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
+import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
@@ -41,24 +41,25 @@ const RunComponent = () => {
   const params = Route.useParams();
   const pollInterval = config.pollInterval;
 
-  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense(
-    {
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: Number.parseInt(params.runIndex),
-    },
-    undefined,
-    {
-      refetchInterval: (run) => {
-        if (
-          run.state.data?.status === 'FINISHED' ||
-          run.state.data?.status === 'FINISHED_WITH_ISSUES' ||
-          run.state.data?.status === 'FAILED'
-        )
-          return false;
-        return pollInterval;
+  const { data: ortRun } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
       },
-    }
-  );
+      undefined,
+      {
+        refetchInterval: (run) => {
+          if (
+            run.state.data?.status === 'FINISHED' ||
+            run.state.data?.status === 'FINISHED_WITH_ISSUES' ||
+            run.state.data?.status === 'FAILED'
+          )
+            return false;
+          return pollInterval;
+        },
+      }
+    );
 
   return (
     <>
@@ -138,6 +139,7 @@ const RunComponent = () => {
               </div>
               {ortRun.path && (
                 <div className='text-sm'>
+                  prefetchUseRepositoriesServiceGetOrtRunByIndex
                   <Label className='font-semibold'>Path:</Label> {ortRun.path}
                 </div>
               )}
@@ -268,10 +270,13 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/'
 )({
   loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: Number.parseInt(params.runIndex),
-    });
+    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+      context.queryClient,
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
   },
   component: RunComponent,
   pendingComponent: LoadingIndicator,

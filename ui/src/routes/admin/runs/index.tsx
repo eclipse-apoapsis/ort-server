@@ -26,12 +26,12 @@ import {
 import { View } from 'lucide-react';
 
 import {
-  useOrganizationsServiceGetOrganizationById,
-  useProductsServiceGetProductById,
-  useRepositoriesServiceGetRepositoryById,
-  useRunsServiceGetOrtRuns,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
+  useProductsServiceGetApiV1ProductsByProductId,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
+  useRunsServiceGetApiV1Runs,
 } from '@/api/queries';
-import { prefetchUseRunsServiceGetOrtRuns } from '@/api/queries/prefetch';
+import { prefetchUseRunsServiceGetApiV1Runs } from '@/api/queries/prefetch';
 import { OrtRunStatus, OrtRunSummary } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -81,15 +81,17 @@ const RunsComponent = () => {
       id: 'repository',
       header: 'Repository',
       cell: function CellComponent({ row }) {
-        const { data: repo } = useRepositoriesServiceGetRepositoryById({
-          repositoryId: row.original.repositoryId,
-        });
+        const { data: repo } =
+          useRepositoriesServiceGetApiV1RepositoriesByRepositoryId({
+            repositoryId: row.original.repositoryId,
+          });
 
-        const { data: org } = useOrganizationsServiceGetOrganizationById({
-          organizationId: row.original.organizationId,
-        });
+        const { data: org } =
+          useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
+            organizationId: row.original.organizationId,
+          });
 
-        const { data: prod } = useProductsServiceGetProductById({
+        const { data: prod } = useProductsServiceGetApiV1ProductsByProductId({
           productId: row.original.productId,
         });
 
@@ -240,7 +242,7 @@ const RunsComponent = () => {
     }),
   ];
 
-  const { data, error } = useRunsServiceGetOrtRuns(
+  const { data, error } = useRunsServiceGetApiV1Runs(
     {
       limit: pageSize,
       offset: pageIndex * pageSize,
@@ -319,7 +321,7 @@ export const Route = createFileRoute('/admin/runs/')({
     status,
   }),
   loader: async ({ context, deps: { page, pageSize, status } }) => {
-    await prefetchUseRunsServiceGetOrtRuns(context.queryClient, {
+    await prefetchUseRunsServiceGetApiV1Runs(context.queryClient, {
       limit: pageSize || defaultPageSize,
       offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
       status: status?.join(','),

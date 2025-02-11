@@ -32,9 +32,9 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import { useIssuesServiceGetIssuesByRunId } from '@/api/queries';
-import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
+import { useIssuesServiceGetApiV1RunsByRunIdIssues } from '@/api/queries';
+import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { Issue, Severity } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -146,6 +146,7 @@ const IssuesComponent = () => {
         <Badge
           className={`border ${getIssueSeverityBackgroundColor(row.original.severity)}`}
         >
+          useIssuesServiceGetApiV1RunsByRunIdIssues
           {row.original.severity}
         </Badge>
       ),
@@ -291,17 +292,20 @@ const IssuesComponent = () => {
     [search.sortBy]
   );
 
-  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
-    repositoryId: Number.parseInt(params.repoId),
-    ortRunIndex: Number.parseInt(params.runIndex),
-  });
+  const { data: ortRun } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
 
   const {
     data: issues,
     isPending,
     isError,
     error,
-  } = useIssuesServiceGetIssuesByRunId({
+  } = useIssuesServiceGetApiV1RunsByRunIdIssues({
     runId: ortRun.id,
     limit: ALL_ITEMS,
   });
@@ -403,10 +407,13 @@ export const Route = createFileRoute(
     .merge(sortingSearchParameterSchema)
     .merge(markedSearchParameterSchema),
   loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: Number.parseInt(params.runIndex),
-    });
+    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+      context.queryClient,
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
   },
   component: IssuesComponent,
   pendingComponent: LoadingIndicator,

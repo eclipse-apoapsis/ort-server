@@ -20,7 +20,7 @@
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { BookLock, Eye, ServerCog, Settings, User } from 'lucide-react';
 
-import { useOrganizationsServiceGetOrganizationByIdKey } from '@/api/queries';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKey } from '@/api/queries';
 import { OrganizationsService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
@@ -81,9 +81,12 @@ const Layout = () => {
 export const Route = createFileRoute('/organizations/$orgId')({
   loader: async ({ context, params }) => {
     const organization = await context.queryClient.ensureQueryData({
-      queryKey: [useOrganizationsServiceGetOrganizationByIdKey, params.orgId],
+      queryKey: [
+        useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKey,
+        params.orgId,
+      ],
       queryFn: () =>
-        OrganizationsService.getOrganizationById({
+        OrganizationsService.getApiV1OrganizationsByOrganizationId({
           organizationId: Number.parseInt(params.orgId),
         }),
     });

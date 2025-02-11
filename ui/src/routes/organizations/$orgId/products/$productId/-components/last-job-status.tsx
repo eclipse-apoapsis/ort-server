@@ -19,7 +19,7 @@
 
 import { Loader2 } from 'lucide-react';
 
-import { useRepositoriesServiceGetOrtRunsByRepositoryId } from '@/api/queries';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { config } from '@/config';
 
@@ -28,7 +28,7 @@ export const LastJobStatus = ({ repoId }: { repoId: number }) => {
     data: runs,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetOrtRunsByRepositoryId(
+  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
     {
       repositoryId: repoId,
       limit: 1,

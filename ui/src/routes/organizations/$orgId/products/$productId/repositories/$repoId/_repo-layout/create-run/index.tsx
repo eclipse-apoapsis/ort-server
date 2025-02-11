@@ -24,7 +24,7 @@ import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useRepositoriesServicePostOrtRun } from '@/api/queries';
+import { useRepositoriesServicePostApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { ApiError, RepositoriesService } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { InlineCode } from '@/components/typography.tsx';
@@ -87,31 +87,32 @@ const CreateRunPage = () => {
     );
   };
 
-  const { mutateAsync, isPending } = useRepositoriesServicePostOrtRun({
-    onSuccess() {
-      toast.info('Create ORT Run', {
-        description: 'New ORT run created successfully for this repository.',
-      });
-      navigate({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-        params: {
-          orgId: params.orgId,
-          productId: params.productId,
-          repoId: params.repoId,
-        },
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
+  const { mutateAsync, isPending } =
+    useRepositoriesServicePostApiV1RepositoriesByRepositoryIdRuns({
+      onSuccess() {
+        toast.info('Create ORT Run', {
+          description: 'New ORT run created successfully for this repository.',
+        });
+        navigate({
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+          params: {
+            orgId: params.orgId,
+            productId: params.productId,
+            repoId: params.repoId,
+          },
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   const form = useForm<CreateRunFormValues>({
     resolver: zodResolver(createRunFormSchema),
@@ -459,10 +460,13 @@ export const Route = createFileRoute(
     if (rerunIndex === undefined) {
       return null;
     }
-    const ortRun = await RepositoriesService.getOrtRunByIndex({
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: rerunIndex,
-    });
+    const ortRun =
+      await RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+        {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: rerunIndex,
+        }
+      );
     return ortRun;
   },
   component: CreateRunPage,

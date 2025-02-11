@@ -19,7 +19,7 @@
 
 import { Boxes } from 'lucide-react';
 
-import { useProductsServiceGetOrtRunStatisticsByProductIdSuspense } from '@/api/queries/suspense';
+import { useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense } from '@/api/queries/suspense';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getEcosystemBackgroundColor } from '@/helpers/get-status-class';
 import { cn } from '@/lib/utils';
@@ -33,9 +33,10 @@ export const ProductPackagesStatisticsCard = ({
   productId,
   className,
 }: ProductPackagesStatisticsCardProps) => {
-  const data = useProductsServiceGetOrtRunStatisticsByProductIdSuspense({
-    productId: productId,
-  });
+  const data =
+    useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense({
+      productId: productId,
+    });
 
   const total = data.data.packagesCount;
   const counts = data.data.ecosystems;

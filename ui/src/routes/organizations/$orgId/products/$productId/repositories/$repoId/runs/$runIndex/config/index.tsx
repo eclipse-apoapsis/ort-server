@@ -19,8 +19,8 @@
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
+import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { AdvisorJobDetails } from './-components/advisor-job-details';
 import { AnalyzerJobDetails } from './-components/analyzer-job-details';
@@ -32,10 +32,13 @@ import { ScannerJobDetails } from './-components/scanner-job-details';
 const ConfigComponent = () => {
   const params = Route.useParams();
 
-  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
-    repositoryId: Number.parseInt(params.repoId),
-    ortRunIndex: Number.parseInt(params.runIndex),
-  });
+  const { data: ortRun } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
 
   return (
     <div className='flex flex-col gap-4'>
@@ -63,10 +66,13 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config/'
 )({
   loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: Number.parseInt(params.runIndex),
-    });
+    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+      context.queryClient,
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
   },
   component: ConfigComponent,
   pendingComponent: LoadingIndicator,

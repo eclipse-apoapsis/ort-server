@@ -19,7 +19,7 @@
 
 import { Loader2 } from 'lucide-react';
 
-import { useRepositoriesServiceGetOrtRunsByRepositoryId } from '@/api/queries';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { Badge } from '@/components/ui/badge';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
@@ -29,7 +29,7 @@ export const LastRunStatus = ({ repoId }: { repoId: number }) => {
     data: runs,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetOrtRunsByRepositoryId(
+  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
     {
       repositoryId: repoId,
       limit: 1,

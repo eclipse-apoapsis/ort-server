@@ -19,7 +19,7 @@
 
 import { Loader2 } from 'lucide-react';
 
-import { useRepositoriesServiceGetOrtRunsByRepositoryId } from '@/api/queries';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { config } from '@/config';
 
@@ -28,7 +28,7 @@ export const LastRunDate = ({ repoId }: { repoId: number }) => {
     data: runs,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetOrtRunsByRepositoryId(
+  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
     {
       repositoryId: repoId,
       limit: 1,

@@ -28,14 +28,14 @@ import {
 import { EditIcon, Pencil, PlusIcon } from 'lucide-react';
 
 import {
-  useInfrastructureServicesServiceDeleteInfrastructureServiceForOrganizationIdAndName,
-  useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
-  useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
-  useOrganizationsServiceGetOrganizationById,
+  useInfrastructureServicesServiceDeleteApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
+  useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices,
+  useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
 } from '@/api/queries';
 import {
-  prefetchUseInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId,
-  prefetchUseOrganizationsServiceGetOrganizationById,
+  prefetchUseInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices,
+  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
 } from '@/api/queries/prefetch';
 import { ApiError, InfrastructureService } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
@@ -68,7 +68,7 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
   const queryClient = useQueryClient();
 
   const { mutateAsync: delService } =
-    useInfrastructureServicesServiceDeleteInfrastructureServiceForOrganizationIdAndName(
+    useInfrastructureServicesServiceDeleteApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
       {
         onSuccess() {
           toast.info('Delete Infrastructure Service', {
@@ -76,7 +76,7 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
           });
           queryClient.invalidateQueries({
             queryKey: [
-              useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationIdKey,
+              useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
             ],
           });
         },
@@ -134,7 +134,7 @@ const InfrastructureServices = () => {
     error: orgError,
     isPending: orgIsPending,
     isError: orgIsError,
-  } = useOrganizationsServiceGetOrganizationById({
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
     organizationId: Number.parseInt(params.orgId),
   });
 
@@ -143,7 +143,7 @@ const InfrastructureServices = () => {
     error: infraError,
     isPending: infraIsPending,
     isError: infraIsError,
-  } = useInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId(
+  } = useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices(
     {
       organizationId: Number.parseInt(params.orgId),
       limit: pageSize,
@@ -335,10 +335,13 @@ export const Route = createFileRoute(
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      prefetchUseOrganizationsServiceGetOrganizationById(context.queryClient, {
-        organizationId: Number.parseInt(params.orgId),
-      }),
-      prefetchUseInfrastructureServicesServiceGetInfrastructureServicesByOrganizationId(
+      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
+        context.queryClient,
+        {
+          organizationId: Number.parseInt(params.orgId),
+        }
+      ),
+      prefetchUseInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices(
         context.queryClient,
         {
           organizationId: Number.parseInt(params.orgId),

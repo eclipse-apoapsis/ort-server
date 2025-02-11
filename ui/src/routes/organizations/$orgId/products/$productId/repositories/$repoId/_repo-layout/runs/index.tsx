@@ -20,10 +20,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { PlusIcon } from 'lucide-react';
 
-import { useRepositoriesServiceGetRepositoryById } from '@/api/queries';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryId } from '@/api/queries';
 import {
-  prefetchUseRepositoriesServiceGetOrtRunsByRepositoryId,
-  prefetchUseRepositoriesServiceGetRepositoryById,
+  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
+  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns,
 } from '@/api/queries/prefetch';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -59,7 +59,7 @@ const RepositoryRunsComponent = () => {
     error: repoError,
     isPending: repoIsPending,
     isError: repoIsError,
-  } = useRepositoriesServiceGetRepositoryById({
+  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryId({
     repositoryId: Number.parseInt(params.repoId),
   });
 
@@ -126,10 +126,13 @@ export const Route = createFileRoute(
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      prefetchUseRepositoriesServiceGetRepositoryById(context.queryClient, {
-        repositoryId: Number.parseInt(params.repoId),
-      }),
-      prefetchUseRepositoriesServiceGetOrtRunsByRepositoryId(
+      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId(
+        context.queryClient,
+        {
+          repositoryId: Number.parseInt(params.repoId),
+        }
+      ),
+      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
         context.queryClient,
         {
           repositoryId: Number.parseInt(params.repoId),

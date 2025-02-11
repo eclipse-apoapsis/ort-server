@@ -31,10 +31,10 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
+import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import {
-  useRepositoriesServiceGetOrtRunByIndexSuspense,
-  useRuleViolationsServiceGetRuleViolationsByRunIdSuspense,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense,
+  useRuleViolationsServiceGetApiV1RunsByRunIdRuleViolationsSuspense,
 } from '@/api/queries/suspense';
 import { RuleViolation, Severity } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
@@ -224,13 +224,16 @@ const RuleViolationsComponent = () => {
     [search.sortBy]
   );
 
-  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
-    repositoryId: Number.parseInt(params.repoId),
-    ortRunIndex: Number.parseInt(params.runIndex),
-  });
+  const { data: ortRun } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
 
   const { data: ruleViolations } =
-    useRuleViolationsServiceGetRuleViolationsByRunIdSuspense({
+    useRuleViolationsServiceGetApiV1RunsByRunIdRuleViolationsSuspense({
       runId: ortRun.id,
       limit: ALL_ITEMS,
     });
@@ -304,10 +307,13 @@ export const Route = createFileRoute(
     .merge(packageIdentifierSearchParameterSchema)
     .merge(sortingSearchParameterSchema),
   loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: Number.parseInt(params.runIndex),
-    });
+    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+      context.queryClient,
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
   },
   component: RuleViolationsComponent,
   pendingComponent: LoadingIndicator,

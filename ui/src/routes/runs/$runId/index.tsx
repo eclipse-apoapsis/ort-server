@@ -25,7 +25,7 @@ export const Route = createFileRoute('/runs/$runId/')({
   beforeLoad: async ({ params }) => {
     let organizationId, productId, repositoryId, index;
     try {
-      const ortRun = await RunsService.getOrtRunById({
+      const ortRun = await RunsService.getApiV1RunsByRunId({
         runId: Number.parseInt(params.runId),
       });
       organizationId = ortRun.organizationId.toString();

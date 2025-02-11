@@ -19,7 +19,7 @@
 
 import { ShieldQuestion } from 'lucide-react';
 
-import { useRunsServiceGetOrtRunStatistics } from '@/api/queries';
+import { useRunsServiceGetApiV1RunsByRunIdStatistics } from '@/api/queries';
 import { JobStatus, VulnerabilityRating } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
@@ -41,11 +41,10 @@ export const VulnerabilitiesStatisticsCard = ({
   status,
   runId,
 }: VulnerabilitiesStatisticsCardProps) => {
-  const { data, isPending, isError, error } = useRunsServiceGetOrtRunStatistics(
-    {
+  const { data, isPending, isError, error } =
+    useRunsServiceGetApiV1RunsByRunIdStatistics({
       runId: runId,
-    }
-  );
+    });
 
   if (isPending) {
     return (

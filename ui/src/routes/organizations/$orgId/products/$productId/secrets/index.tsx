@@ -28,16 +28,16 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
-  useProductsServiceGetProductById,
-  useSecretsServiceDeleteSecretByProductIdAndName,
-  useSecretsServiceGetSecretsByProductId,
-  useSecretsServiceGetSecretsByProductIdKey,
+  useProductsServiceGetApiV1ProductsByProductId,
+  useSecretsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName,
+  useSecretsServiceGetApiV1ProductsByProductIdSecrets,
+  useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
 } from '@/api/queries';
 import {
-  prefetchUseProductsServiceGetProductById,
-  prefetchUseSecretsServiceGetSecretsByProductId,
+  prefetchUseProductsServiceGetApiV1ProductsByProductId,
+  prefetchUseSecretsServiceGetApiV1ProductsByProductIdSecrets,
 } from '@/api/queries/prefetch';
-import { useProductsServiceGetProductByIdSuspense } from '@/api/queries/suspense';
+import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { ApiError, Secret } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -68,18 +68,21 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
-  const { data: product } = useProductsServiceGetProductByIdSuspense({
-    productId: Number.parseInt(params.productId),
-  });
+  const { data: product } =
+    useProductsServiceGetApiV1ProductsByProductIdSuspense({
+      productId: Number.parseInt(params.productId),
+    });
 
   const { mutateAsync: deleteSecret } =
-    useSecretsServiceDeleteSecretByProductIdAndName({
+    useSecretsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName({
       onSuccess() {
         toast.info('Delete Secret', {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
-          queryKey: [useSecretsServiceGetSecretsByProductIdKey],
+          queryKey: [
+            useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
+          ],
         });
       },
       onError(error: ApiError) {
@@ -156,7 +159,7 @@ const ProductSecrets = () => {
     error: prodError,
     isPending: prodIsPending,
     isError: prodIsError,
-  } = useProductsServiceGetProductById({
+  } = useProductsServiceGetApiV1ProductsByProductId({
     productId: Number.parseInt(params.productId),
   });
 
@@ -165,7 +168,7 @@ const ProductSecrets = () => {
     error: secretsError,
     isPending: secretsIsPending,
     isError: secretsIsError,
-  } = useSecretsServiceGetSecretsByProductId({
+  } = useSecretsServiceGetApiV1ProductsByProductIdSecrets({
     productId: Number(params.productId),
     limit: pageSize,
     offset: pageIndex * pageSize,
@@ -256,14 +259,20 @@ export const Route = createFileRoute(
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      prefetchUseProductsServiceGetProductById(context.queryClient, {
-        productId: Number.parseInt(params.productId),
-      }),
-      prefetchUseSecretsServiceGetSecretsByProductId(context.queryClient, {
-        productId: Number(params.productId),
-        limit: pageSize || defaultPageSize,
-        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-      }),
+      prefetchUseProductsServiceGetApiV1ProductsByProductId(
+        context.queryClient,
+        {
+          productId: Number.parseInt(params.productId),
+        }
+      ),
+      prefetchUseSecretsServiceGetApiV1ProductsByProductIdSecrets(
+        context.queryClient,
+        {
+          productId: Number(params.productId),
+          limit: pageSize || defaultPageSize,
+          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        }
+      ),
     ]);
   },
   component: ProductSecrets,

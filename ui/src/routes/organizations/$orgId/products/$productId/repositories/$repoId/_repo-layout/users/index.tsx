@@ -24,11 +24,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useGroupsServiceDeleteUserFromGroupRepository,
-  useGroupsServicePutUserToGroupRepository,
+  useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
+  useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
 } from '@/api/queries';
-import { prefetchUseRepositoriesServiceGetRepositoryById } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetRepositoryByIdSuspense } from '@/api/queries/suspense';
+import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -75,12 +75,13 @@ const ManageUsers = () => {
     },
   });
 
-  const { data: repository } = useRepositoriesServiceGetRepositoryByIdSuspense({
-    repositoryId: Number.parseInt(params.repoId),
-  });
+  const { data: repository } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense({
+      repositoryId: Number.parseInt(params.repoId),
+    });
 
   const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useGroupsServicePutUserToGroupRepository({
+    useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId({
       onSuccess() {
         toast.info('Add User', {
           description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
@@ -99,7 +100,7 @@ const ManageUsers = () => {
     });
 
   const { mutateAsync: removeUser, isPending: isRemoveUserPending } =
-    useGroupsServiceDeleteUserFromGroupRepository({
+    useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId({
       onSuccess() {
         toast.info('Remove User', {
           description: `User "${form.getValues().username}" removed successfully from group "${form.getValues().groupId.toUpperCase()}".`,
@@ -241,9 +242,12 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users/'
 )({
   loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetRepositoryById(context.queryClient, {
-      repositoryId: Number.parseInt(params.repoId),
-    });
+    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId(
+      context.queryClient,
+      {
+        repositoryId: Number.parseInt(params.repoId),
+      }
+    );
   },
   component: ManageUsers,
 });

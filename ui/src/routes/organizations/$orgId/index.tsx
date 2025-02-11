@@ -21,8 +21,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 
-import { useOrganizationsServiceGetOrganizationById } from '@/api/queries';
-import { prefetchUseOrganizationsServiceGetOrganizationById } from '@/api/queries/prefetch';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries';
+import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -50,7 +50,7 @@ const OrganizationComponent = () => {
     error: orgError,
     isPending: orgIsPending,
     isError: orgIsError,
-  } = useOrganizationsServiceGetOrganizationById({
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
     organizationId: Number.parseInt(params.orgId),
   });
 
@@ -155,7 +155,7 @@ const OrganizationComponent = () => {
 export const Route = createFileRoute('/organizations/$orgId/')({
   validateSearch: paginationSearchParameterSchema,
   loader: async ({ context, params }) => {
-    await prefetchUseOrganizationsServiceGetOrganizationById(
+    await prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
       context.queryClient,
       {
         organizationId: Number.parseInt(params.orgId),

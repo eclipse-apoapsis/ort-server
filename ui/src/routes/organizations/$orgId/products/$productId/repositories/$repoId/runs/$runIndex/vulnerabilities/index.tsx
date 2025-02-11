@@ -30,9 +30,9 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { useVulnerabilitiesServiceGetVulnerabilitiesByRunId } from '@/api/queries';
-import { prefetchUseRepositoriesServiceGetOrtRunByIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetOrtRunByIndexSuspense } from '@/api/queries/suspense';
+import { useVulnerabilitiesServiceGetApiV1RunsByRunIdVulnerabilities } from '@/api/queries';
+import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { VulnerabilityWithIdentifier } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -218,7 +218,6 @@ const VulnerabilitiesComponent = () => {
 
   // All of these need to be memoized to prevent unnecessary re-renders
   // and (at least for Firefox) the browser freezing up.
-
   const pageIndex = useMemo(
     () => (search.page ? search.page - 1 : 0),
     [search.page]
@@ -234,17 +233,20 @@ const VulnerabilitiesComponent = () => {
     [search.sortBy]
   );
 
-  const { data: ortRun } = useRepositoriesServiceGetOrtRunByIndexSuspense({
-    repositoryId: Number.parseInt(params.repoId),
-    ortRunIndex: Number.parseInt(params.runIndex),
-  });
+  const { data: ortRun } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
 
   const {
     data: vulnerabilities,
     isPending,
     isError,
     error,
-  } = useVulnerabilitiesServiceGetVulnerabilitiesByRunId({
+  } = useVulnerabilitiesServiceGetApiV1RunsByRunIdVulnerabilities({
     runId: ortRun.id,
     limit: ALL_ITEMS,
   });
@@ -335,10 +337,13 @@ export const Route = createFileRoute(
     sortingSearchParameterSchema
   ),
   loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetOrtRunByIndex(context.queryClient, {
-      repositoryId: Number.parseInt(params.repoId),
-      ortRunIndex: Number.parseInt(params.runIndex),
-    });
+    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+      context.queryClient,
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
   },
   component: VulnerabilitiesComponent,
   pendingComponent: LoadingIndicator,

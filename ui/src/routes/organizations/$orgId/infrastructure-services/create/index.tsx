@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useInfrastructureServicesServicePostInfrastructureServiceForOrganization } from '@/api/queries';
+import { useInfrastructureServicesServicePostApiV1OrganizationsByOrganizationIdInfrastructureServices } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { ToastError } from '@/components/toast-error';
@@ -64,27 +64,29 @@ const CreateInfrastructureServicePage = () => {
   const params = Route.useParams();
 
   const { mutateAsync, isPending } =
-    useInfrastructureServicesServicePostInfrastructureServiceForOrganization({
-      onSuccess(data) {
-        toast.info('Create Infrastructure Service', {
-          description: `New infrastructure service "${data.name}" created successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/infrastructure-services',
-          params: { orgId: params.orgId },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+    useInfrastructureServicesServicePostApiV1OrganizationsByOrganizationIdInfrastructureServices(
+      {
+        onSuccess(data) {
+          toast.info('Create Infrastructure Service', {
+            description: `New infrastructure service "${data.name}" created successfully.`,
+          });
+          navigate({
+            to: '/organizations/$orgId/infrastructure-services',
+            params: { orgId: params.orgId },
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      }
+    );
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),

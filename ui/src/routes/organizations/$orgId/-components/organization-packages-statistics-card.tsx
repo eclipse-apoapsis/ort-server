@@ -19,7 +19,7 @@
 
 import { Boxes } from 'lucide-react';
 
-import { useOrganizationsServiceGetOrtRunStatisticsByOrganizationIdSuspense } from '@/api/queries/suspense';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdStatisticsRunsSuspense } from '@/api/queries/suspense';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getEcosystemBackgroundColor } from '@/helpers/get-status-class';
 import { cn } from '@/lib/utils';
@@ -34,9 +34,11 @@ export const OrganizationPackagesStatisticsCard = ({
   className,
 }: OrganizationPackagesStatisticsCardProps) => {
   const data =
-    useOrganizationsServiceGetOrtRunStatisticsByOrganizationIdSuspense({
-      organizationId: organizationId,
-    });
+    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdStatisticsRunsSuspense(
+      {
+        organizationId: organizationId,
+      }
+    );
 
   const total = data.data.packagesCount;
   const counts = data.data.ecosystems;

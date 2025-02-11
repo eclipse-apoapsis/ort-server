@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetSecretByRepositoryIdAndNameKey,
-  useSecretsServicePatchSecretByRepositoryIdAndName,
+  useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
+  useSecretsServicePatchApiV1RepositoriesByRepositoryIdSecretsBySecretName,
 } from '@/api/queries';
 import { ApiError, SecretsService } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
@@ -65,12 +65,12 @@ const EditRepositorySecretPage = () => {
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetSecretByRepositoryIdAndNameKey,
+      useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
       params.repoId,
       params.secretName,
     ],
     queryFn: () =>
-      SecretsService.getSecretByRepositoryIdAndName({
+      SecretsService.getApiV1RepositoriesByRepositoryIdSecretsBySecretName({
         repositoryId: Number.parseInt(params.repoId),
         secretName: params.secretName,
       }),
@@ -86,7 +86,7 @@ const EditRepositorySecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } =
-    useSecretsServicePatchSecretByRepositoryIdAndName({
+    useSecretsServicePatchApiV1RepositoriesByRepositoryIdSecretsBySecretName({
       onSuccess(data) {
         toast.info('Edit Repository Secret', {
           description: `Secret "${data.name}" updated successfully.`,
@@ -215,12 +215,12 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useSecretsServiceGetSecretByRepositoryIdAndNameKey,
+        useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
         params.repoId,
         params.secretName,
       ],
       queryFn: () =>
-        SecretsService.getSecretByRepositoryIdAndName({
+        SecretsService.getApiV1RepositoriesByRepositoryIdSecretsBySecretName({
           repositoryId: Number.parseInt(params.repoId),
           secretName: params.secretName,
         }),

@@ -25,8 +25,8 @@ import {
 } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 
-import { prefetchUseOrganizationsServiceGetOrganizations } from '@/api/queries/prefetch';
-import { useOrganizationsServiceGetOrganizationsSuspense } from '@/api/queries/suspense';
+import { prefetchUseOrganizationsServiceGetApiV1Organizations } from '@/api/queries/prefetch';
+import { useOrganizationsServiceGetApiV1OrganizationsSuspense } from '@/api/queries/suspense';
 import { Organization } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -79,7 +79,7 @@ export const IndexPage = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : orgPageSize;
 
-  const { data } = useOrganizationsServiceGetOrganizationsSuspense({
+  const { data } = useOrganizationsServiceGetApiV1OrganizationsSuspense({
     limit: pageSize,
     offset: pageIndex * pageSize,
   });
@@ -148,7 +148,7 @@ export const Route = createFileRoute('/')({
   validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, deps: { page, pageSize } }) => {
-    prefetchUseOrganizationsServiceGetOrganizations(context.queryClient, {
+    prefetchUseOrganizationsServiceGetApiV1Organizations(context.queryClient, {
       limit: pageSize || defaultPageSize,
       offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
     });

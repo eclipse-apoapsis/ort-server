@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useRepositoriesServiceCreateRepository } from '@/api/queries';
+import { useRepositoriesServicePostApiV1ProductsByProductIdRepositories } from '@/api/queries';
 import { $RepositoryType, ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -61,31 +61,32 @@ const CreateRepositoryPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { mutateAsync, isPending } = useRepositoriesServiceCreateRepository({
-    onSuccess(data) {
-      toast.info('Add Repository', {
-        description: `Repository ${data.url} added successfully.`,
-      });
-      navigate({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-        params: {
-          orgId: params.orgId,
-          productId: params.productId,
-          repoId: data.id.toString(),
-        },
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
+  const { mutateAsync, isPending } =
+    useRepositoriesServicePostApiV1ProductsByProductIdRepositories({
+      onSuccess(data) {
+        toast.info('Add Repository', {
+          description: `Repository ${data.url} added successfully.`,
+        });
+        navigate({
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+          params: {
+            orgId: params.orgId,
+            productId: params.productId,
+            repoId: data.id.toString(),
+          },
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

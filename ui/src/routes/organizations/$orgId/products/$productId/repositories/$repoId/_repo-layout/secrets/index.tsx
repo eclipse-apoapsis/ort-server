@@ -28,16 +28,16 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
-  useRepositoriesServiceGetRepositoryById,
-  useSecretsServiceDeleteSecretByRepositoryIdAndName,
-  useSecretsServiceGetSecretsByRepositoryId,
-  useSecretsServiceGetSecretsByRepositoryIdKey,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
+  useSecretsServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName,
+  useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecrets,
+  useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
 } from '@/api/queries';
 import {
-  prefetchUseRepositoriesServiceGetRepositoryById,
-  prefetchUseSecretsServiceGetSecretsByRepositoryId,
+  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
+  prefetchUseSecretsServiceGetApiV1RepositoriesByRepositoryIdSecrets,
 } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetRepositoryByIdSuspense } from '@/api/queries/suspense';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { ApiError, Secret } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -68,18 +68,21 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
-  const { data: repo } = useRepositoriesServiceGetRepositoryByIdSuspense({
-    repositoryId: Number.parseInt(params.repoId),
-  });
+  const { data: repo } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense({
+      repositoryId: Number.parseInt(params.repoId),
+    });
 
   const { mutateAsync: deleteSecret } =
-    useSecretsServiceDeleteSecretByRepositoryIdAndName({
+    useSecretsServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName({
       onSuccess() {
         toast.info('Delete Secret', {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
-          queryKey: [useSecretsServiceGetSecretsByRepositoryIdKey],
+          queryKey: [
+            useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
+          ],
         });
       },
       onError(error: ApiError) {
@@ -158,7 +161,7 @@ const RepositorySecrets = () => {
     error: repoError,
     isPending: repoIsPending,
     isError: repoIsError,
-  } = useRepositoriesServiceGetRepositoryById({
+  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryId({
     repositoryId: Number.parseInt(params.repoId),
   });
 
@@ -167,7 +170,7 @@ const RepositorySecrets = () => {
     error: secretsError,
     isPending: secretsIsPending,
     isError: secretsIsError,
-  } = useSecretsServiceGetSecretsByRepositoryId({
+  } = useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecrets({
     repositoryId: Number.parseInt(params.repoId),
     limit: pageSize,
     offset: pageIndex * pageSize,
@@ -259,14 +262,20 @@ export const Route = createFileRoute(
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context, params, deps: { page, pageSize } }) => {
     await Promise.allSettled([
-      prefetchUseRepositoriesServiceGetRepositoryById(context.queryClient, {
-        repositoryId: Number.parseInt(params.repoId),
-      }),
-      prefetchUseSecretsServiceGetSecretsByRepositoryId(context.queryClient, {
-        repositoryId: Number.parseInt(params.repoId),
-        limit: pageSize || defaultPageSize,
-        offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-      }),
+      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId(
+        context.queryClient,
+        {
+          repositoryId: Number.parseInt(params.repoId),
+        }
+      ),
+      prefetchUseSecretsServiceGetApiV1RepositoriesByRepositoryIdSecrets(
+        context.queryClient,
+        {
+          repositoryId: Number.parseInt(params.repoId),
+          limit: pageSize || defaultPageSize,
+          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        }
+      ),
     ]);
   },
   component: RepositorySecrets,
