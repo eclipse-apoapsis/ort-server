@@ -457,4 +457,4 @@ private fun LogData.isContainedInLogFile(file: File): Boolean {
  * Generate a query string for the given [source] and [log level criterion][levelCriterion].
  */
 private fun generateQuery(source: LogSource, levelCriterion: String): String =
-    """{namespace="$NAMESPACE",component="${source.component}"} |~ "level=$levelCriterion" |~ "ortRunId=$RUN_ID""""
+    """{namespace="$NAMESPACE",component="${source.component}"} |~ "level=($levelCriterion)" |~ "ortRunId=$RUN_ID""""
