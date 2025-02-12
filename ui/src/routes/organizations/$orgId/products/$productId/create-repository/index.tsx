@@ -53,7 +53,7 @@ import {
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  url: z.string(),
+  url: z.string().url(),
   type: z.enum($RepositoryType.enum),
 });
 
