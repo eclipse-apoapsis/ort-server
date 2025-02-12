@@ -146,7 +146,6 @@ const IssuesComponent = () => {
         <Badge
           className={`border ${getIssueSeverityBackgroundColor(row.original.severity)}`}
         >
-          useIssuesServiceGetApiV1RunsByRunIdIssues
           {row.original.severity}
         </Badge>
       ),
