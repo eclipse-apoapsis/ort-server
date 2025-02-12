@@ -115,7 +115,7 @@ export const NotifierFields = ({
             </Label>
           </div>
 
-          <div className='pl-4 pt-4'>
+          <div className='pt-4 pl-4'>
             <div>
               <Label className='font-semibold'>Recipient addresses</Label>
             </div>
@@ -266,7 +266,7 @@ export const NotifierFields = ({
             </Label>
           </div>
 
-          <div className='pl-4 pt-4'>
+          <div className='pt-4 pl-4'>
             <FormField
               control={form.control}
               name='jobConfigs.notifier.jira.jiraRestClientConfiguration.serverUrl'

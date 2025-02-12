@@ -61,7 +61,7 @@ const columns = [
           >
             {row.original.url}
           </Link>
-          <div className='text-sm text-muted-foreground md:inline'>
+          <div className='text-muted-foreground text-sm md:inline'>
             {row.original.type}
           </div>
         </>

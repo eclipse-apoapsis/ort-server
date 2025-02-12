@@ -63,7 +63,7 @@ export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
           return (
             <div key={index} className='w-full'>
               {section.label && (
-                <Label className='mb-1 text-sm text-muted-foreground'>
+                <Label className='text-muted-foreground mb-1 text-sm'>
                   {section.label}
                 </Label>
               )}

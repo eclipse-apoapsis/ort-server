@@ -93,7 +93,7 @@ const OrganizationComponent = () => {
                 <ShieldQuestion className='h-4 w-4 text-orange-500' />
               )}
               value={<LoadingIndicator />}
-              className='h-full hover:bg-muted/50'
+              className='hover:bg-muted/50 h-full'
             />
           }
         >
@@ -108,7 +108,7 @@ const OrganizationComponent = () => {
               title='Issues'
               icon={() => <Bug className='h-4 w-4 text-orange-500' />}
               value={<LoadingIndicator />}
-              className='h-full hover:bg-muted/50'
+              className='hover:bg-muted/50 h-full'
             />
           }
         >
@@ -120,7 +120,7 @@ const OrganizationComponent = () => {
               title='Rule Violations'
               icon={() => <Scale className='h-4 w-4 text-orange-500' />}
               value={<LoadingIndicator />}
-              className='h-full hover:bg-muted/50'
+              className='hover:bg-muted/50 h-full'
             />
           }
         >
@@ -134,7 +134,7 @@ const OrganizationComponent = () => {
               title='Packages'
               icon={() => <Boxes className='h-4 w-4 text-orange-500' />}
               value={<LoadingIndicator />}
-              className='h-full hover:bg-muted/50'
+              className='hover:bg-muted/50 h-full'
             />
           }
         >

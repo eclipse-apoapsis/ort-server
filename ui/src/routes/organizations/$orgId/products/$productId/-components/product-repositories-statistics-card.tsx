@@ -56,7 +56,7 @@ export const ProductRepositoriesStatisticsCard = ({
         title='Repositories'
         icon={() => <Files className='h-4 w-4 text-orange-500' />}
         value={<LoadingIndicator />}
-        className='h-full hover:bg-muted/50'
+        className='hover:bg-muted/50 h-full'
       />
     );
   }

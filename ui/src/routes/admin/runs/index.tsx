@@ -110,7 +110,7 @@ const RunsComponent = () => {
             >
               {repo?.url}
             </Link>
-            <div className='text-xs italic text-slate-500'>
+            <div className='text-xs text-slate-500 italic'>
               in{' '}
               <Link
                 className='hover:underline'

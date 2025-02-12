@@ -415,7 +415,7 @@ const CreateRunPage = () => {
           </CardContent>
           <CardFooter className='flex flex-col items-start gap-4'>
             {Object.keys(form.formState.errors).length > 0 && (
-              <p className='text-[0.8rem] font-medium text-destructive'>
+              <p className='text-destructive text-[0.8rem] font-medium'>
                 {flattenErrors(form.formState.errors).map(
                   ({ path, message }) => (
                     <div key={path}>

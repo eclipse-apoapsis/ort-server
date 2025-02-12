@@ -178,7 +178,7 @@ const RuleViolationsComponent = () => {
     columnHelper.accessor('rule', {
       header: 'Rule',
       cell: ({ row }) => (
-        <Badge className='whitespace-nowrap bg-blue-300'>
+        <Badge className='bg-blue-300 whitespace-nowrap'>
           {row.original.rule}
         </Badge>
       ),

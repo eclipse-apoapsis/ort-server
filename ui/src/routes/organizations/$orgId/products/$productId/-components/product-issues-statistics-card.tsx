@@ -56,7 +56,7 @@ export const ProductIssuesStatisticsCard = ({
             }))
           : []
       }
-      className={cn('h-full hover:bg-muted/50', className)}
+      className={cn('hover:bg-muted/50 h-full', className)}
     />
   );
 };

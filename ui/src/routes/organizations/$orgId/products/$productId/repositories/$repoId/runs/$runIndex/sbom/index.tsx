@@ -144,7 +144,7 @@ const SBOMComponent = () => {
                   <div key={filename}>
                     <Button
                       variant='outline'
-                      className='h-auto whitespace-normal font-semibold text-blue-400'
+                      className='h-auto font-semibold whitespace-normal text-blue-400'
                       onClick={() => handleDownload(ortRun.id, filename)}
                     >
                       <div className='break-all'>
@@ -158,7 +158,7 @@ const SBOMComponent = () => {
               : 'No CycloneDX reports available.'}
           </div>
 
-          <CardContent className='text-sm text-muted-foreground'>
+          <CardContent className='text-muted-foreground text-sm'>
             CycloneDX is a standard format for creating software Bill of
             Materials (SBOMs) to improve software supply chain transparency and
             security.
@@ -185,7 +185,7 @@ const SBOMComponent = () => {
                   <div key={filename}>
                     <Button
                       variant='outline'
-                      className='h-auto whitespace-normal font-semibold text-blue-400'
+                      className='h-auto font-semibold whitespace-normal text-blue-400'
                       onClick={() => handleDownload(ortRun.id, filename)}
                     >
                       <div className='break-all'>
@@ -199,7 +199,7 @@ const SBOMComponent = () => {
               : 'No SPDX reports available.'}
           </div>
 
-          <CardContent className='text-sm text-muted-foreground'>
+          <CardContent className='text-muted-foreground text-sm'>
             System Package Data Exchange (SPDX) is an open standard capable of
             representing systems with software components as SBOMs (Software
             Bill of Materials).

@@ -89,7 +89,7 @@ const OverviewContent = () => {
                 orgs?.pagination.totalCount
               )
             }
-            className='h-full hover:bg-muted/50'
+            className='hover:bg-muted/50 h-full'
           />
         </Link>
         <Link to='/admin/runs'>

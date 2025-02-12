@@ -164,11 +164,11 @@ const RunComponent = () => {
                   <Label className='font-semibold'>Labels:</Label>{' '}
                   {Object.entries(ortRun.labels).map(([key, value]) => (
                     <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
-                      <div className='col-span-3 break-all text-left'>
+                      <div className='col-span-3 text-left break-all'>
                         {key}
                       </div>
                       <div className='col-span-1 text-center'>=</div>
-                      <div className='col-span-8 break-all text-left'>
+                      <div className='col-span-8 text-left break-all'>
                         {value}
                       </div>
                     </div>
@@ -181,11 +181,11 @@ const RunComponent = () => {
                   {Object.entries(ortRun.jobConfigs.parameters).map(
                     ([key, value]) => (
                       <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
-                        <div className='col-span-3 break-all text-left'>
+                        <div className='col-span-3 text-left break-all'>
                           {key}
                         </div>
                         <div className='col-span-1 text-center'>=</div>
-                        <div className='col-span-8 break-all text-left'>
+                        <div className='col-span-8 text-left break-all'>
                           {value}
                         </div>
                       </div>

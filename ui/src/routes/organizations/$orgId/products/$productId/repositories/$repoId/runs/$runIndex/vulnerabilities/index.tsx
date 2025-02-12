@@ -134,7 +134,7 @@ const columns = [
     id: 'externalId',
     header: 'External ID',
     cell: ({ row }) => (
-      <Badge className='whitespace-nowrap bg-blue-300'>
+      <Badge className='bg-blue-300 whitespace-nowrap'>
         {row.getValue('externalId')}
       </Badge>
     ),
@@ -149,7 +149,7 @@ const columns = [
       header: 'Summary',
       cell: ({ row }) => {
         return (
-          <div className='italic text-muted-foreground'>
+          <div className='text-muted-foreground italic'>
             {row.getValue('summary')}
           </div>
         );
@@ -196,7 +196,7 @@ const renderSubComponent = ({
               <TableCell>
                 {
                   <Link
-                    className='break-all font-semibold text-blue-400 hover:underline'
+                    className='font-semibold break-all text-blue-400 hover:underline'
                     to={reference.url}
                     target='_blank'
                   >

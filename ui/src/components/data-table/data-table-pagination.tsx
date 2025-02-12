@@ -81,10 +81,10 @@ export function DataTablePagination({
             ))}
           </SelectContent>
         </Select>
-        <p className='whitespace-nowrap text-sm font-medium'>items per page</p>
+        <p className='text-sm font-medium whitespace-nowrap'>items per page</p>
       </div>
       <div className='flex items-center space-x-2'>
-        <div className='flex items-center whitespace-nowrap text-sm font-medium'>
+        <div className='flex items-center text-sm font-medium whitespace-nowrap'>
           Page{' '}
           <Input
             type='number'

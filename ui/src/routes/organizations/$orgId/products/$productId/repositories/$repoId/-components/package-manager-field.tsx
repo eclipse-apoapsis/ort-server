@@ -123,7 +123,7 @@ export const PackageManagerField = ({
             const enabled = field.value?.[pm.id]?.enabled;
 
             return (
-              <div key={pm.id} className='flex items-start space-x-3 space-y-0'>
+              <div key={pm.id} className='flex items-start space-y-0 space-x-3'>
                 <FormItem>
                   <FormControl>
                     <Checkbox
@@ -262,7 +262,7 @@ const FieldWithOptions = ({ form, pmIndex, pmName }: FieldWithOptionsProps) => {
           ))}
           <Button
             size='sm'
-            className='mb-4 mt-2'
+            className='mt-2 mb-4'
             variant='outline'
             type='button'
             onClick={() => {

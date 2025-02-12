@@ -180,7 +180,7 @@ const CreateUser = () => {
               control={form.control}
               name='temporary'
               render={({ field }) => (
-                <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4'>
+                <FormItem className='flex flex-row items-start space-y-0 space-x-3 rounded-md border p-4'>
                   <FormControl>
                     <Checkbox
                       checked={field.value}

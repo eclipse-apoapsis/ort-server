@@ -63,7 +63,7 @@ const columns: ColumnDef<Organization>[] = [
           {row.original.name}
         </Link>
 
-        <div className='hidden text-sm text-muted-foreground md:inline'>
+        <div className='text-muted-foreground hidden text-sm md:inline'>
           {row.original.description}
         </div>
       </>

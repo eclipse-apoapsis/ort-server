@@ -263,7 +263,7 @@ const CreateInfrastructureServicePage = () => {
                   label: 'Git Credentials File',
                 },
               ]}
-              className='!mt-4'
+              className='mt-4!'
             />
           </CardContent>
           <CardFooter>

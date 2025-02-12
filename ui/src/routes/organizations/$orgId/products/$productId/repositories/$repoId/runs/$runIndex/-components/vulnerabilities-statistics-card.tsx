@@ -54,7 +54,7 @@ export const VulnerabilitiesStatisticsCard = ({
           <ShieldQuestion className={`h-4 w-4 ${getStatusFontColor(status)}`} />
         )}
         value={<LoadingIndicator />}
-        className='h-full hover:bg-muted/50'
+        className='hover:bg-muted/50 h-full'
       />
     );
   }
@@ -105,7 +105,7 @@ export const VulnerabilitiesStatisticsCard = ({
             }))
           : []
       }
-      className='h-full hover:bg-muted/50'
+      className='hover:bg-muted/50 h-full'
     />
   );
 };

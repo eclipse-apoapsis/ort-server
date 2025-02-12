@@ -26,13 +26,13 @@ type MarkdownRendererProps = {
 export const MarkdownRenderer = ({ markdown }: MarkdownRendererProps) => {
   return (
     <Markdown
-      className='prose text-sm dark:prose-invert'
+      className='prose dark:prose-invert text-sm'
       components={{
         h1: ({ children }) => (
           <p
             role='heading'
             aria-level={1}
-            className='mb-6 mt-6 text-xl font-semibold'
+            className='mt-6 mb-6 text-xl font-semibold'
           >
             {children}
           </p>
@@ -41,13 +41,13 @@ export const MarkdownRenderer = ({ markdown }: MarkdownRendererProps) => {
           <p
             role='heading'
             aria-level={2}
-            className='mb-4 mt-4 text-lg font-semibold'
+            className='mt-4 mb-4 text-lg font-semibold'
           >
             {children}
           </p>
         ),
         h3: ({ children }) => (
-          <p role='heading' aria-level={3} className='mb-2 mt-2 font-semibold'>
+          <p role='heading' aria-level={3} className='mt-2 mb-2 font-semibold'>
             {children}
           </p>
         ),
@@ -68,7 +68,7 @@ export const MarkdownRenderer = ({ markdown }: MarkdownRendererProps) => {
         ),
         pre: ({ children }) => {
           return (
-            <pre className='rounded bg-gray-800 p-1 dark:bg-muted/100'>
+            <pre className='dark:bg-muted/100 rounded bg-gray-800 p-1'>
               {children}
             </pre>
           );

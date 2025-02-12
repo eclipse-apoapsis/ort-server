@@ -113,7 +113,7 @@ export const Header = () => {
   }, [organizationMatch, productMatch, repoMatch]);
 
   return (
-    <header className='sticky top-0 z-50 flex h-16 justify-between gap-4 border-b bg-background px-4 md:px-6'>
+    <header className='bg-background sticky top-0 z-50 flex h-16 justify-between gap-4 border-b px-4 md:px-6'>
       <div className='flex flex-row items-center gap-4'>
         <nav className='hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6'>
           <Link
