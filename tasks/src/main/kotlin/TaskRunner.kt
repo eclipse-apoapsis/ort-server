@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
 
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -125,6 +126,7 @@ private fun tasksModule(): Module =
         singleOf(::ReportStorageService)
 
         single<Task>(named("delete-old-ort-runs")) { DeleteOldOrtRunsTask.create(get(), get()) }
+        single<Task>(named("delete-orphaned-entities")) { DeleteOrphanedEntitiesTask.create(get()) }
     }
 
 /**
