@@ -25,6 +25,8 @@ import { z } from 'zod';
 
 import { useOrganizationsServicePostApiV1Organizations } from '@/api/queries';
 import { ApiError } from '@/api/requests';
+import { asOptionalField } from '@/components/form/as-optional-field';
+import { OptionalInput } from '@/components/form/optional-input';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,8 +47,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
+  name: z.string().min(1),
+  description: asOptionalField(z.string().min(1)),
 });
 
 const CreateOrganizationPage = () => {
@@ -117,7 +119,7 @@ const CreateOrganizationPage = () => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder='(optional)' />
+                    <OptionalInput {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

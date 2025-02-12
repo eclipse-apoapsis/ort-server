@@ -52,7 +52,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1),
   description: z.string().optional(),
 });
 
