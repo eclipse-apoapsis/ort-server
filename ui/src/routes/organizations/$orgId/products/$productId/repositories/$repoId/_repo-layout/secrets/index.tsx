@@ -98,7 +98,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
     });
 
   return (
-    <div className='flex justify-end gap-1'>
+    <div className='flex items-center justify-end gap-1'>
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
@@ -109,7 +109,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
               repoId: params.repoId,
               secretName: row.original.name,
             }}
-            className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
+            className={cn(buttonVariants({ variant: 'outline' }), 'h-8 px-2')}
           >
             <span className='sr-only'>Edit</span>
             <EditIcon size={16} />
