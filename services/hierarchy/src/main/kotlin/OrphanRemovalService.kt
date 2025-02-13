@@ -52,8 +52,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInSubQuery
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.union
@@ -66,6 +65,10 @@ import org.slf4j.LoggerFactory
 class OrphanRemovalService(
     private val db: Database
 ) {
+    companion object {
+        private const val DELETION_BATCH_SIZE = 100
+    }
+
     private val logger = LoggerFactory.getLogger(OrphanRemovalService::class.java)
 
     /**
@@ -86,220 +89,324 @@ class OrphanRemovalService(
         logger.info("Deleting orphaned children of ORT runs finished.")
     }
 
-    private suspend fun deleteOrphanedPackages() =
-        db.dbQuery {
-            PackagesTable.deleteWhere {
-                id notInSubQuery (
-                    PackagesAnalyzerRunsTable
-                        .select(PackagesAnalyzerRunsTable.packageId.alias("id"))
-                        .where(PackagesAnalyzerRunsTable.packageId.isNotNull())
-                    )
+    private suspend fun deleteOrphanedPackages(): Int {
+        var deletedRecords = 0
+        while (true) {
+            var recordsDeletedInIteration = 0
+            db.dbQuery {
+                PackagesTable.select(PackagesTable.id).where {
+                    PackagesTable.id notInSubQuery (
+                        PackagesAnalyzerRunsTable
+                            .select(PackagesAnalyzerRunsTable.packageId.alias("id"))
+                            .where(PackagesAnalyzerRunsTable.packageId.isNotNull())
+                        )
+                }.limit(DELETION_BATCH_SIZE).forEach {
+                    val packageId = it[PackagesTable.id]
+                    PackagesTable.deleteWhere { PackagesTable.id eq packageId }
+                    recordsDeletedInIteration++
+                }
+            }
+            deletedRecords += recordsDeletedInIteration
+            if (recordsDeletedInIteration == 0) {
+                break
             }
         }
+        return deletedRecords
+    }
 
-    private suspend fun deleteOrphanedProjects() =
-        db.dbQuery {
-            ProjectsTable.deleteWhere {
-                id notInSubQuery (
-                    ProjectsAnalyzerRunsTable
-                        .select(ProjectsAnalyzerRunsTable.projectId.alias("id"))
-                        .where(ProjectsAnalyzerRunsTable.projectId.isNotNull())
-                    )
+    private suspend fun deleteOrphanedProjects(): Int {
+        var deletedRecords = 0
+        while (true) {
+            var recordsDeletedInIteration = 0
+            db.dbQuery {
+                ProjectsTable.select(ProjectsTable.id).where {
+                    ProjectsTable.id notInSubQuery (
+                        ProjectsAnalyzerRunsTable
+                            .select(ProjectsAnalyzerRunsTable.projectId.alias("id"))
+                            .where(ProjectsAnalyzerRunsTable.projectId.isNotNull())
+                        )
+                }.limit(DELETION_BATCH_SIZE).forEach {
+                    val projectId = it[ProjectsTable.id]
+                    ProjectsTable.deleteWhere { ProjectsTable.id eq projectId }
+                    recordsDeletedInIteration++
+                }
+            }
+            deletedRecords += recordsDeletedInIteration
+            if (recordsDeletedInIteration == 0) {
+                break
             }
         }
+        return deletedRecords
+    }
 
-    private suspend fun deleteOrphanedAuthors() =
-        db.dbQuery {
-            AuthorsTable.deleteWhere {
-                id notInSubQuery (
-                    PackagesAuthorsTable
-                        .select(PackagesAuthorsTable.authorId.alias("id"))
-                        .where(PackagesAuthorsTable.authorId.isNotNull())
-                        .union(
-                            ProjectsAuthorsTable
-                                .select(ProjectsAuthorsTable.authorId.alias("id"))
-                                .where(ProjectsAuthorsTable.authorId.isNotNull())
+    private suspend fun deleteOrphanedAuthors(): Int {
+        var deletedRecords = 0
+        while (true) {
+            var recordsDeletedInIteration = 0
+            db.dbQuery {
+                AuthorsTable.select(AuthorsTable.id).where {
+                    AuthorsTable.id notInSubQuery (
+                        PackagesAuthorsTable
+                            .select(PackagesAuthorsTable.authorId.alias("id"))
+                            .where(PackagesAuthorsTable.authorId.isNotNull())
+                            .union(
+                                ProjectsAuthorsTable
+                                    .select(ProjectsAuthorsTable.authorId.alias("id"))
+                                    .where(ProjectsAuthorsTable.authorId.isNotNull())
+                            )
+                            .union(
+                                PackageCurationDataAuthors
+                                    .select(PackageCurationDataAuthors.authorId.alias("id"))
+                                    .where(PackageCurationDataAuthors.authorId.isNotNull())
+                            )
                         )
-                        .union(
-                            PackageCurationDataAuthors
-                                .select(PackageCurationDataAuthors.authorId.alias("id"))
-                                .where(PackageCurationDataAuthors.authorId.isNotNull())
-                        )
-                    )
+                }.limit(DELETION_BATCH_SIZE).forEach {
+                    val authorId = it[AuthorsTable.id]
+                    AuthorsTable.deleteWhere { AuthorsTable.id eq authorId }
+                    recordsDeletedInIteration++
+                }
+            }
+            deletedRecords += recordsDeletedInIteration
+            if (recordsDeletedInIteration == 0) {
+                break
             }
         }
+        return deletedRecords
+    }
 
-    private suspend fun deleteOrphanedDeclaredLicenses() =
-        db.dbQuery {
-            DeclaredLicensesTable.deleteWhere {
-                id notInSubQuery (
-                    PackagesDeclaredLicensesTable
-                        .select(PackagesDeclaredLicensesTable.declaredLicenseId.alias("id"))
-                        .where(PackagesDeclaredLicensesTable.declaredLicenseId.isNotNull())
-                        .union(
-                            ProjectsDeclaredLicensesTable
-                                .select(ProjectsDeclaredLicensesTable.declaredLicenseId.alias("id"))
-                                .where(ProjectsDeclaredLicensesTable.declaredLicenseId.isNotNull())
-                        )
-                    )
-            }
-        }
+    private suspend fun deleteOrphanedDeclaredLicenses(): Int {
+        var deletedRecords = 0
+        while (true) {
+            var recordsDeletedInIteration = 0
 
-    private suspend fun deleteOrphanedIdentifiers() =
-        db.dbQuery {
-            IdentifiersTable.deleteWhere {
-                id notInSubQuery (
-                    ProjectsTable
-                        .select(ProjectsTable.identifierId.alias("id"))
-                        .where(ProjectsTable.identifierId.isNotNull())
-                        .union(
-                            PackagesTable
-                                .select(PackagesTable.identifierId.alias("id"))
-                                .where(PackagesTable.identifierId.isNotNull())
+            db.dbQuery {
+                DeclaredLicensesTable.select(DeclaredLicensesTable.id).where {
+                    DeclaredLicensesTable.id notInSubQuery (
+                        PackagesDeclaredLicensesTable
+                            .select(PackagesDeclaredLicensesTable.declaredLicenseId.alias("id"))
+                            .where(PackagesDeclaredLicensesTable.declaredLicenseId.isNotNull())
+                            .union(
+                                ProjectsDeclaredLicensesTable
+                                    .select(ProjectsDeclaredLicensesTable.declaredLicenseId.alias("id"))
+                                    .where(ProjectsDeclaredLicensesTable.declaredLicenseId.isNotNull())
+                            )
                         )
-                        .union(
-                            IdentifiersIssuesTable
-                                .select(IdentifiersIssuesTable.identifierId.alias("id"))
-                                .where(IdentifiersIssuesTable.identifierId.isNotNull())
-                        )
-                        .union(
-                            AdvisorRunsIdentifiersTable
-                                .select(AdvisorRunsIdentifiersTable.identifierId.alias("id"))
-                                .where(AdvisorRunsIdentifiersTable.identifierId.isNotNull())
-                        )
-                        .union(
-                            PackageProvenancesTable
-                                .select(PackageProvenancesTable.identifierId.alias("id"))
-                                .where(PackageProvenancesTable.identifierId.isNotNull())
-                        )
-                        .union(
-                            RuleViolationsTable
-                                .select(RuleViolationsTable.packageIdentifierId.alias("id"))
-                                .where(RuleViolationsTable.packageIdentifierId.isNotNull())
-                        )
-                        .union(
-                            PackageCurationsTable
-                                .select(PackageCurationsTable.identifierId.alias("id"))
-                                .where(PackageCurationsTable.identifierId.isNotNull())
-                        )
-                        .union(
-                            PackageConfigurationsTable
-                                .select(PackageConfigurationsTable.identifierId.alias("id"))
-                                .where(PackageConfigurationsTable.identifierId.isNotNull())
-                        )
-                        .union(
-                            PackageLicenseChoicesTable
-                                .select(PackageLicenseChoicesTable.identifierId.alias("id"))
-                                .where(PackageLicenseChoicesTable.identifierId.isNotNull())
-                        )
-                        .union(
-                            ScannerRunsScannersTable
-                                .select(ScannerRunsScannersTable.identifierId.alias("id"))
-                                .where(ScannerRunsScannersTable.identifierId.isNotNull())
-                        )
-                        .union(
-                            OrtRunsIssuesTable
-                                .select(OrtRunsIssuesTable.identifierId.alias("id"))
-                                .where(OrtRunsIssuesTable.identifierId.isNotNull())
-                        )
-                    )
+                }.limit(DELETION_BATCH_SIZE).forEach {
+                    val declaredLicenseId = it[DeclaredLicensesTable.id]
+                    DeclaredLicensesTable.deleteWhere { DeclaredLicensesTable.id eq declaredLicenseId }
+                    recordsDeletedInIteration++
+                }
+            }
+            deletedRecords += recordsDeletedInIteration
+            if (recordsDeletedInIteration == 0) {
+                break
             }
         }
+        return deletedRecords
+    }
 
-    private suspend fun deleteOrphanedVcsInfo() =
-        db.dbQuery {
-            VcsInfoTable.deleteWhere {
-                VcsInfoTable.id notInSubQuery (
-                    OrtRunsTable
-                        .select(OrtRunsTable.vcsId.alias("vcs_id"))
-                        .where(OrtRunsTable.vcsId.isNotNull())
-                        .union(
-                            OrtRunsTable
-                                .select(OrtRunsTable.vcsProcessedId.alias("vcs_id"))
-                                .where(OrtRunsTable.vcsProcessedId.isNotNull())
-                        )
-                        .union(
-                            ProjectsTable
-                                .select(ProjectsTable.vcsId.alias("vcs_id"))
-                                .where(ProjectsTable.vcsId.isNotNull())
-                        )
-                        .union(
-                            ProjectsTable
-                                .select(ProjectsTable.vcsProcessedId.alias("vcs_id"))
-                                .where(ProjectsTable.vcsProcessedId.isNotNull())
-                        )
-                        .union(
-                            PackagesTable
-                                .select(PackagesTable.vcsId.alias("vcs_id"))
-                                .where(PackagesTable.vcsId.isNotNull())
-                        )
-                        .union(
-                            PackagesTable
-                                .select(PackagesTable.vcsProcessedId.alias("id"))
-                                .where(PackagesTable.vcsProcessedId.isNotNull())
-                        )
-                        .union(
-                            NestedProvenancesTable
-                                .select(NestedProvenancesTable.rootVcsId.alias("id"))
-                                .where(NestedProvenancesTable.rootVcsId.isNotNull())
-                        )
-                        .union(
-                            NestedProvenanceSubRepositoriesTable
-                                .select(NestedProvenanceSubRepositoriesTable.vcsId.alias("id"))
-                                .where(NestedProvenanceSubRepositoriesTable.vcsId.isNotNull())
-                        )
-                        .union(
-                            PackageProvenancesTable
-                                .select(PackageProvenancesTable.vcsId.alias("id"))
-                                .where(PackageProvenancesTable.vcsId.isNotNull())
-                        )
-                        .union(
-                            NestedRepositoriesTable
-                                .select(NestedRepositoriesTable.vcsId.alias("id"))
-                                .where(NestedRepositoriesTable.vcsId.isNotNull())
-                        )
-                        .union(
-                            SnippetsTable
-                                .select(SnippetsTable.vcsId.alias("id"))
-                                .where(SnippetsTable.vcsId.isNotNull())
-                        )
-                    )
-            }
-        }
+    @Suppress("LongMethod")
+    private suspend fun deleteOrphanedIdentifiers(): Int {
+        var deletedRecords = 0
+        while (true) {
+            var recordsDeletedInIteration = 0
 
-    private suspend fun deleteOrphanedRemoteArtifacts() =
-        db.dbQuery {
-            RemoteArtifactsTable.deleteWhere {
-                id notInSubQuery (
-                    PackagesTable
-                        .select(PackagesTable.binaryArtifactId.alias("id"))
-                        .where(PackagesTable.binaryArtifactId.isNotNull())
-                        .union(
-                            PackagesTable
-                                .select(PackagesTable.sourceArtifactId.alias("id"))
-                                .where(PackagesTable.sourceArtifactId.isNotNull())
+            db.dbQuery {
+                IdentifiersTable.select(IdentifiersTable.id).where {
+                    IdentifiersTable.id notInSubQuery (
+                        ProjectsTable
+                            .select(ProjectsTable.identifierId.alias("id"))
+                            .where(ProjectsTable.identifierId.isNotNull())
+                            .union(
+                                PackagesTable
+                                    .select(PackagesTable.identifierId.alias("id"))
+                                    .where(PackagesTable.identifierId.isNotNull())
+                            )
+                            .union(
+                                IdentifiersIssuesTable
+                                    .select(IdentifiersIssuesTable.identifierId.alias("id"))
+                                    .where(IdentifiersIssuesTable.identifierId.isNotNull())
+                            )
+                            .union(
+                                AdvisorRunsIdentifiersTable
+                                    .select(AdvisorRunsIdentifiersTable.identifierId.alias("id"))
+                                    .where(AdvisorRunsIdentifiersTable.identifierId.isNotNull())
+                            )
+                            .union(
+                                PackageProvenancesTable
+                                    .select(PackageProvenancesTable.identifierId.alias("id"))
+                                    .where(PackageProvenancesTable.identifierId.isNotNull())
+                            )
+                            .union(
+                                RuleViolationsTable
+                                    .select(RuleViolationsTable.packageIdentifierId.alias("id"))
+                                    .where(RuleViolationsTable.packageIdentifierId.isNotNull())
+                            )
+                            .union(
+                                PackageCurationsTable
+                                    .select(PackageCurationsTable.identifierId.alias("id"))
+                                    .where(PackageCurationsTable.identifierId.isNotNull())
+                            )
+                            .union(
+                                PackageConfigurationsTable
+                                    .select(PackageConfigurationsTable.identifierId.alias("id"))
+                                    .where(PackageConfigurationsTable.identifierId.isNotNull())
+                            )
+                            .union(
+                                PackageLicenseChoicesTable
+                                    .select(PackageLicenseChoicesTable.identifierId.alias("id"))
+                                    .where(PackageLicenseChoicesTable.identifierId.isNotNull())
+                            )
+                            .union(
+                                ScannerRunsScannersTable
+                                    .select(ScannerRunsScannersTable.identifierId.alias("id"))
+                                    .where(ScannerRunsScannersTable.identifierId.isNotNull())
+                            )
+                            .union(
+                                OrtRunsIssuesTable
+                                    .select(OrtRunsIssuesTable.identifierId.alias("id"))
+                                    .where(OrtRunsIssuesTable.identifierId.isNotNull())
+                            )
                         )
-                        .union(
-                            PackageProvenancesTable
-                                .select(PackageProvenancesTable.artifactId.alias("id"))
-                                .where(PackageProvenancesTable.artifactId.isNotNull())
-                        )
-                        .union(
-                            PackageCurationDataTable
-                                .select(PackageCurationDataTable.binaryArtifactId.alias("id"))
-                                .where(PackageCurationDataTable.binaryArtifactId.isNotNull())
-                        )
-                        .union(
-                            PackageCurationDataTable
-                                .select(PackageCurationDataTable.sourceArtifactId.alias("id"))
-                                .where(PackageCurationDataTable.sourceArtifactId.isNotNull())
-                        )
-                        .union(
-                            SnippetsTable
-                                .select(SnippetsTable.artifactId.alias("id"))
-                                .where(SnippetsTable.artifactId.isNotNull())
-                        )
-                    )
+                }.limit(DELETION_BATCH_SIZE).forEach {
+                    val identifierId = it[IdentifiersTable.id]
+                    IdentifiersTable.deleteWhere { IdentifiersTable.id eq identifierId }
+                    recordsDeletedInIteration++
+                }
+            }
+            deletedRecords += recordsDeletedInIteration
+            if (recordsDeletedInIteration == 0) {
+                break
             }
         }
+        return deletedRecords
+    }
+
+    @Suppress("LongMethod")
+    private suspend fun deleteOrphanedVcsInfo(): Int {
+        var deletedRecords = 0
+        while (true) {
+            var recordsDeletedInIteration = 0
+
+            db.dbQuery {
+                VcsInfoTable.select(VcsInfoTable.id).where {
+                    VcsInfoTable.id notInSubQuery (
+                        OrtRunsTable
+                            .select(OrtRunsTable.vcsId.alias("vcs_id"))
+                            .where(OrtRunsTable.vcsId.isNotNull())
+                            .union(
+                                OrtRunsTable
+                                    .select(OrtRunsTable.vcsProcessedId.alias("vcs_id"))
+                                    .where(OrtRunsTable.vcsProcessedId.isNotNull())
+                            )
+                            .union(
+                                ProjectsTable
+                                    .select(ProjectsTable.vcsId.alias("vcs_id"))
+                                    .where(ProjectsTable.vcsId.isNotNull())
+                            )
+                            .union(
+                                ProjectsTable
+                                    .select(ProjectsTable.vcsProcessedId.alias("vcs_id"))
+                                    .where(ProjectsTable.vcsProcessedId.isNotNull())
+                            )
+                            .union(
+                                PackagesTable
+                                    .select(PackagesTable.vcsId.alias("vcs_id"))
+                                    .where(PackagesTable.vcsId.isNotNull())
+                            )
+                            .union(
+                                PackagesTable
+                                    .select(PackagesTable.vcsProcessedId.alias("id"))
+                                    .where(PackagesTable.vcsProcessedId.isNotNull())
+                            )
+                            .union(
+                                NestedProvenancesTable
+                                    .select(NestedProvenancesTable.rootVcsId.alias("id"))
+                                    .where(NestedProvenancesTable.rootVcsId.isNotNull())
+                            )
+                            .union(
+                                NestedProvenanceSubRepositoriesTable
+                                    .select(NestedProvenanceSubRepositoriesTable.vcsId.alias("id"))
+                                    .where(NestedProvenanceSubRepositoriesTable.vcsId.isNotNull())
+                            )
+                            .union(
+                                PackageProvenancesTable
+                                    .select(PackageProvenancesTable.vcsId.alias("id"))
+                                    .where(PackageProvenancesTable.vcsId.isNotNull())
+                            )
+                            .union(
+                                NestedRepositoriesTable
+                                    .select(NestedRepositoriesTable.vcsId.alias("id"))
+                                    .where(NestedRepositoriesTable.vcsId.isNotNull())
+                            )
+                            .union(
+                                SnippetsTable
+                                    .select(SnippetsTable.vcsId.alias("id"))
+                                    .where(SnippetsTable.vcsId.isNotNull())
+                            )
+                        )
+                }.limit(DELETION_BATCH_SIZE).forEach {
+                    val vcsId = it[VcsInfoTable.id]
+                    VcsInfoTable.deleteWhere { VcsInfoTable.id eq vcsId }
+                    recordsDeletedInIteration++
+                }
+            }
+            deletedRecords += recordsDeletedInIteration
+            if (recordsDeletedInIteration == 0) {
+                break
+            }
+        }
+        return deletedRecords
+    }
+
+    private suspend fun deleteOrphanedRemoteArtifacts(): Int {
+        var deletedRecords = 0
+        while (true) {
+            var recordsDeletedInIteration = 0
+
+            db.dbQuery {
+                RemoteArtifactsTable.select(RemoteArtifactsTable.id).where {
+                    RemoteArtifactsTable.id notInSubQuery (
+                        PackagesTable
+                            .select(PackagesTable.binaryArtifactId.alias("id"))
+                            .where(PackagesTable.binaryArtifactId.isNotNull())
+                            .union(
+                                PackagesTable
+                                    .select(PackagesTable.sourceArtifactId.alias("id"))
+                                    .where(PackagesTable.sourceArtifactId.isNotNull())
+                            )
+                            .union(
+                                PackageProvenancesTable
+                                    .select(PackageProvenancesTable.artifactId.alias("id"))
+                                    .where(PackageProvenancesTable.artifactId.isNotNull())
+                            )
+                            .union(
+                                PackageCurationDataTable
+                                    .select(PackageCurationDataTable.binaryArtifactId.alias("id"))
+                                    .where(PackageCurationDataTable.binaryArtifactId.isNotNull())
+                            )
+                            .union(
+                                PackageCurationDataTable
+                                    .select(PackageCurationDataTable.sourceArtifactId.alias("id"))
+                                    .where(PackageCurationDataTable.sourceArtifactId.isNotNull())
+                            )
+                            .union(
+                                SnippetsTable
+                                    .select(SnippetsTable.artifactId.alias("id"))
+                                    .where(SnippetsTable.artifactId.isNotNull())
+                            )
+                        )
+                }.limit(DELETION_BATCH_SIZE).forEach {
+                    val artifactId = it[RemoteArtifactsTable.id]
+                    RemoteArtifactsTable.deleteWhere { RemoteArtifactsTable.id eq artifactId }
+                    recordsDeletedInIteration++
+                }
+            }
+            deletedRecords += recordsDeletedInIteration
+            if (recordsDeletedInIteration == 0) {
+                break
+            }
+        }
+        return deletedRecords
+    }
 }
