@@ -31,7 +31,7 @@ import {
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
   useSecretsServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName,
   useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecrets,
-  useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
+  useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsKey,
 } from '@/api/queries';
 import {
   prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
@@ -81,7 +81,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         });
         queryClient.invalidateQueries({
           queryKey: [
-            useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
+            useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsKey,
           ],
         });
       },

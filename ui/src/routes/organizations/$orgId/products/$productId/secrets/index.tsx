@@ -31,7 +31,7 @@ import {
   useProductsServiceGetApiV1ProductsByProductId,
   useSecretsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName,
   useSecretsServiceGetApiV1ProductsByProductIdSecrets,
-  useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
+  useSecretsServiceGetApiV1ProductsByProductIdSecretsKey,
 } from '@/api/queries';
 import {
   prefetchUseProductsServiceGetApiV1ProductsByProductId,
@@ -80,9 +80,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
-          queryKey: [
-            useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
-          ],
+          queryKey: [useSecretsServiceGetApiV1ProductsByProductIdSecretsKey],
         });
       },
       onError(error: ApiError) {
