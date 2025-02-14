@@ -39,10 +39,12 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
+import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
@@ -60,7 +62,8 @@ class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository
         projects: Set<Project>,
         packages: Set<Package>,
         issues: List<Issue>,
-        dependencyGraphs: Map<String, DependencyGraph>
+        dependencyGraphs: Map<String, DependencyGraph>,
+        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>>
     ): AnalyzerRun {
         return db.blockingQuery {
             val jobDao = AnalyzerJobDao[analyzerJobId]
@@ -76,8 +79,23 @@ class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository
 
             createAnalyzerConfiguration(analyzerRun, config)
 
-            projects.forEach { createProject(analyzerRun, it) }
-            packages.forEach { createPackage(analyzerRun, it) }
+            val projectsMap = projects.associate { it.identifier to createProject(analyzerRun, it) }
+
+            packages.forEach {
+                val pkgDao = createPackage(analyzerRun, it)
+
+                shortestDependencyPaths[it.identifier]?.forEach { shortestDependencyPath ->
+                    projectsMap[shortestDependencyPath.projectIdentifier]?.also { projectDao ->
+                        ShortestDependencyPathDao.new {
+                            this.pkg = pkgDao
+                            this.analyzerRun = analyzerRun
+                            this.project = projectDao
+                            this.scope = shortestDependencyPath.scope
+                            this.path = shortestDependencyPath.path
+                        }
+                    }
+                }
+            }
 
             issues.forEach {
                 val analyzerIssue = it.copy(worker = AnalyzerRunDao.ISSUE_WORKER_TYPE)

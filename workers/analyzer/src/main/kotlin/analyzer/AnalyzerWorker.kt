@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
@@ -96,9 +98,20 @@ internal class AnalyzerWorker(
                     "with '${analyzerRun.result.issues.values.size}' issues."
         )
 
+        val shortestPathsByIdentifier = mutableMapOf<Identifier, MutableList<ShortestDependencyPath>>()
+
+        analyzerRun.result.projects.forEach { project ->
+            getIdentifierToShortestPathsMap(
+                project.id.mapToModel(),
+                ortResult.dependencyNavigator.getShortestPaths(project)
+            ).forEach { (identifier, path) ->
+                shortestPathsByIdentifier.getOrPut(identifier) { mutableListOf() } += path
+            }
+        }
+
         db.dbQuery {
             getValidAnalyzerJob(jobId)
-            ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId))
+            ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
         }
 
         if (analyzerRun.result.issues.values.flatten().any { it.severity >= Severity.WARNING }) {

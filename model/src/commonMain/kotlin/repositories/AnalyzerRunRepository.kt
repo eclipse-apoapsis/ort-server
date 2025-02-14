@@ -25,9 +25,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.Project
+import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 
 /**
  * A repository of [analyzer runs][AnalyzerRun].
@@ -45,7 +47,8 @@ interface AnalyzerRunRepository {
         projects: Set<Project>,
         packages: Set<Package>,
         issues: List<Issue>,
-        dependencyGraphs: Map<String, DependencyGraph>
+        dependencyGraphs: Map<String, DependencyGraph>,
+        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
     ): AnalyzerRun
 
     /**
