@@ -100,7 +100,7 @@ class PackageServiceTest : WordSpec() {
                                 mappedLicenses = mapOf(
                                     "License 1" to "Mapped License 1",
                                     "License 2" to "Mapped License 2",
-                                    ),
+                                ),
                                 unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
                             ),
                         )
@@ -196,7 +196,7 @@ class PackageServiceTest : WordSpec() {
 
                 service.countForOrtRunIds(ortRun1Id, ortRun2Id) shouldBe 3
             }
-    }
+        }
 
         "countEcosystemsForOrtRunIds" should {
             "list package types and counts for packages found in an ORT run" {
