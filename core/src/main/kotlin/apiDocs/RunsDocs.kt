@@ -47,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
+import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo
@@ -379,8 +380,8 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
                     value = PagedResponse(
                         listOf(
                             Package(
-                                identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
-                                purl = "pkg:maven/org.namespace/name@1.0",
+                                identifier = Identifier("Maven", "org.example", "name", "1.0"),
+                                purl = "pkg:maven/org.example/name@1.0",
                                 cpe = null,
                                 authors = setOf("author1", "author2"),
                                 declaredLicenses = setOf("license1", "license2"),
@@ -397,6 +398,16 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
                                 vcsProcessed = VcsInfo(RepositoryType.GIT.name, "url", "revision", "path"),
                                 isMetadataOnly = false,
                                 isModified = false,
+                                shortestDependencyPaths = listOf(
+                                    ShortestDependencyPath(
+                                        scope = "productionRuntimeClasspath",
+                                        projectIdentifier = Identifier("Gradle", "", "project-name", "1.0"),
+                                        path = listOf(
+                                            Identifier("Maven", "org.example", "some", "1.0"),
+                                            Identifier("Maven", "org.example", "other", "1.0")
+                                        )
+                                    )
+                                )
                             )
                         ),
                         PagingData(
