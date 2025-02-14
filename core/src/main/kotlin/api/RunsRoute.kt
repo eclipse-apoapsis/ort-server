@@ -26,7 +26,6 @@ import io.ktor.http.ContentDisposition
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondFile
@@ -73,7 +72,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
-import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
 import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.PackageService
@@ -233,9 +232,10 @@ fun Route.runs() = route("runs") {
 
                     val pagingOptions = call.pagingOptions(SortProperty("purl", SortDirection.ASCENDING))
 
-                    val packagesForOrtRun = packageService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+                    val packagesForOrtRun = packageService
+                        .listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
 
-                    val pagedResponse = packagesForOrtRun.mapToApi(Package::mapToApi)
+                    val pagedResponse = packagesForOrtRun.mapToApi(PackageWithShortestDependencyPaths::mapToApi)
 
                     call.respond(HttpStatusCode.OK, pagedResponse)
                 }

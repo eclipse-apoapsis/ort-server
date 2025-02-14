@@ -26,6 +26,7 @@ import io.kotest.assertions.ktor.client.haveHeader
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.engine.spec.tempdir
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.file.aFile
@@ -112,6 +113,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
@@ -906,6 +908,10 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     configuration = AnalyzerJobConfiguration()
                 )
 
+                val project = dbExtension.fixtures.getProject()
+                val identifier1 = Identifier("Maven", "com.example", "example", "1.0")
+                val identifier2 = Identifier("Maven", "com.example", "example2", "1.0")
+
                 dbExtension.fixtures.analyzerRunRepository.create(
                     analyzerJobId = analyzerJob.id,
                     startTime = Clock.System.now().toDatabasePrecision(),
@@ -926,10 +932,10 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         packageManagers = emptyMap(),
                         skipExcluded = true
                     ),
-                    projects = emptySet(),
+                    projects = setOf(project),
                     packages = setOf(
                         Package(
-                            Identifier("Maven", "com.example", "example", "1.0"),
+                            identifier1,
                             purl = "pkg:maven/com.example/example@1.0",
                             cpe = null,
                             authors = setOf("Author One", "Author Two"),
@@ -970,12 +976,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             isModified = false
                         ),
                         Package(
-                            Identifier(
-                                type = "Maven",
-                                namespace = "com.example",
-                                name = "example2",
-                                version = "1.0"
-                            ),
+                            identifier2,
                             purl = "pkg:maven/com.example/example2@1.0",
                             cpe = null,
                             authors = emptySet(),
@@ -1014,7 +1015,23 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         )
                     ),
                     issues = emptyList(),
-                    dependencyGraphs = emptyMap()
+                    dependencyGraphs = emptyMap(),
+                    shortestDependencyPaths = mapOf(
+                        identifier1 to listOf(
+                            ShortestDependencyPath(
+                                project.identifier,
+                                "compileClassPath",
+                                emptyList()
+                            )
+                        ),
+                        identifier2 to listOf(
+                            ShortestDependencyPath(
+                                project.identifier,
+                                "compileClassPath",
+                                listOf(identifier1)
+                            )
+                        )
+                    )
                 )
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/packages")
@@ -1024,11 +1041,26 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 with(packages.data) {
                     shouldHaveSize(2)
-                    first().identifier.name shouldBe "example"
-                    first().authors shouldHaveSize 2
-                    first().declaredLicenses shouldHaveSize 3
-                    first().processedDeclaredLicense.mappedLicenses shouldHaveSize 2
-                    first().processedDeclaredLicense.unmappedLicenses shouldHaveSize 4
+
+                    with(first()) {
+                        identifier.name shouldBe "example"
+                        authors shouldHaveSize 2
+                        declaredLicenses shouldHaveSize 3
+                        processedDeclaredLicense.mappedLicenses shouldHaveSize 2
+                        processedDeclaredLicense.unmappedLicenses shouldHaveSize 4
+
+                        shortestDependencyPaths.shouldBeSingleton {
+                            it.projectIdentifier shouldBe project.identifier.mapToApi()
+                            it.scope shouldBe "compileClassPath"
+                            it.path shouldBe emptyList()
+                        }
+                    }
+
+                    last().shortestDependencyPaths.shouldBeSingleton {
+                        it.projectIdentifier shouldBe project.identifier.mapToApi()
+                        it.scope shouldBe "compileClassPath"
+                        it.path shouldBe listOf(identifier1.mapToApi())
+                    }
                     last().identifier.name shouldBe "example2"
                 }
             }
