@@ -196,7 +196,7 @@ class PackageServiceTest : WordSpec() {
 
                 service.countForOrtRunIds(ortRun1Id, ortRun2Id) shouldBe 3
             }
-    }
+        }
 
         "countEcosystemsForOrtRunIds" should {
             "list package types and counts for packages found in an ORT run" {
