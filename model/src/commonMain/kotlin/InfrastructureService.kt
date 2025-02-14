@@ -23,8 +23,6 @@ import io.konform.validation.Invalid
 import io.konform.validation.Validation
 import io.konform.validation.constraints.pattern
 
-import java.util.EnumSet
-
 import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
 /**
@@ -67,7 +65,7 @@ data class InfrastructureService(
      * by explicitly removing the [CredentialsType.NETRC_FILE] constant from this set. It is also possible to add other
      * constants if a special treatment of the credentials is required.
      */
-    val credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
+    val credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE)
 ) {
     companion object {
         val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
