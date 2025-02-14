@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
 import org.jetbrains.exposed.sql.selectAll
@@ -153,12 +154,32 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         }.awaitAll()
     }
 
+    "create should save shortest dependency path for package" {
+        val shortestPaths = mapOf(
+            pkg.identifier to listOf(
+                ShortestDependencyPath(
+                    projectIdentifier = project.identifier,
+                    scope = "compile",
+                    path = emptyList()
+                )
+            )
+        )
+
+        analyzerRunRepository.create(analyzerJobId, analyzerRun, shortestPaths)
+
+        dbExtension.db.dbQuery { ShortestDependencyPathsTable.selectAll().count() } shouldBe 1
+    }
+
     "get should return null" {
         analyzerRunRepository.get(1L).shouldBeNull()
     }
 })
 
-private fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: AnalyzerRun) = create(
+private fun DaoAnalyzerRunRepository.create(
+    analyzerJobId: Long,
+    analyzerRun: AnalyzerRun,
+    shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
+) = create(
     analyzerJobId = analyzerJobId,
     startTime = analyzerRun.startTime,
     endTime = analyzerRun.endTime,
@@ -167,7 +188,8 @@ private fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: An
     projects = analyzerRun.projects,
     packages = analyzerRun.packages,
     issues = analyzerRun.issues,
-    dependencyGraphs = analyzerRun.dependencyGraphs
+    dependencyGraphs = analyzerRun.dependencyGraphs,
+    shortestDependencyPaths = shortestDependencyPaths
 )
 
 private val analyzerConfiguration = AnalyzerConfiguration(
