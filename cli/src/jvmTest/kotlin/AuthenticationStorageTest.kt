@@ -27,17 +27,20 @@ import io.mockk.unmockkAll
 
 import kotlin.io.path.createTempDirectory
 
+import okio.Path.Companion.toOkioPath
+
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
 import org.eclipse.apoapsis.ortserver.cli.model.HostAuthenticationDetails
 import org.eclipse.apoapsis.ortserver.cli.model.Tokens
 import org.eclipse.apoapsis.ortserver.cli.utils.configDir
+import org.eclipse.apoapsis.ortserver.cli.utils.delete
 
 class AuthenticationStorageTest : StringSpec({
-    val tmpConfigDir = createTempDirectory("osc-auth-test").toFile()
+    val tmpConfigDir = createTempDirectory("osc-auth-test").toOkioPath()
     val tmpAuthFile = tmpConfigDir.resolve("auth.yml")
 
     beforeSpec {
-        mockkStatic("org.eclipse.apoapsis.ortserver.cli.utils.ConfigDirHelperKt")
+        mockkStatic("org.eclipse.apoapsis.ortserver.cli.utils.ConfigDirHelper_jvmKt")
         every { configDir } returns tmpConfigDir
     }
 
@@ -47,7 +50,7 @@ class AuthenticationStorageTest : StringSpec({
         tmpAuthFile.delete()
     }
 
-    afterSpec { tmpConfigDir.deleteRecursively() }
+    afterSpec { tmpConfigDir.delete() }
 
     "Authentication Storage" should {
         "be able to store and retrieve authentication information" {

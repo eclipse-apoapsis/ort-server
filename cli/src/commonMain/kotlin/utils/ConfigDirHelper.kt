@@ -19,32 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.cli.utils
 
-import java.io.File
-
-import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
+import okio.Path
 
 /**
  * The directory where the configuration files are stored, respecting the XDG Base Directory specification [1].
  *
  * [1]: https://specifications.freedesktop.org/basedir-spec/latest/
  */
-internal val configDir: File
-    get() {
-        val osName = System.getProperty("os.name").lowercase()
-        val fallbackDir = File(System.getProperty("user.home")).resolve(".config/$COMMAND_NAME")
-
-        val dir = when {
-            osName.contains("linux") || osName.contains("mac") ->
-                System.getenv("XDG_CONFIG_HOME")?.let { File(it).resolve(COMMAND_NAME) }
-                    ?: fallbackDir
-
-            osName.contains("windows") -> System.getenv("XDG_CONFIG_HOME")?.let { File(it) }
-                ?: System.getenv("LOCALAPPDATA")?.let { File(it) } ?: fallbackDir
-
-            else -> fallbackDir
-        }
-
-        if (!dir.exists()) dir.mkdirs()
-
-        return dir
-    }
+internal expect val configDir: Path

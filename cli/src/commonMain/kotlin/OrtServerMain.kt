@@ -26,8 +26,7 @@ import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.versionOption
-
-import kotlin.system.exitProcess
+import com.github.ajalt.mordant.platform.MultiplatformSystem.exitProcess
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -40,11 +39,15 @@ import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
 
 const val COMMAND_NAME = "osc"
 
-suspend fun main(args: Array<String>) {
+fun main(args: Array<String>) {
     val cli = OrtServerMain()
 
     try {
-        cli.parse(args)
+        // Kotlin native does not support suspending entrypoints, see
+        // https://youtrack.jetbrains.com/issue/KT-52753/Native-Support-suspending-entrypoints.
+        runBlocking {
+            cli.parse(args)
+        }
     } catch (e: OrtServerClientException) {
         when (e.cause) {
             is AuthenticationException -> {

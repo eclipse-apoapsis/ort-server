@@ -17,20 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.cli
+package org.eclipse.apoapsis.ortserver.cli.utils
 
-/**
- * Add a trailing slash to this [String] if it is missing.
- */
-fun String.ensureSuffix(suffix: String): String = takeIf { endsWith(suffix) } ?: "$this$suffix"
+import okio.Path.Companion.toPath
 
-/**
- * Expand a leading tilde in this [String] to the user's home directory, if the caller is in a `SHELL` environment.
- * Otherwise, return the [String] as is.
- */
-fun String.expandTilde() =
-    if (System.getenv("SHELL") != null) {
-        replace("^~".toRegex(), Regex.escapeReplacement(System.getProperty("user.home")))
-    } else {
-        this
-    }
+import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
+import org.eclipse.apoapsis.ortserver.cli.getEnv
+
+internal actual val configDir =
+    getEnv("XDG_CONFIG_HOME")?.toPath()?.resolve(COMMAND_NAME) ?: getHomeDirectory().resolve(".config")
+        .resolve(COMMAND_NAME)
