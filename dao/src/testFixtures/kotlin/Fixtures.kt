@@ -63,7 +63,10 @@ import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
+import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
+import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
@@ -221,12 +224,31 @@ class Fixtures(private val db: Database) {
         howToFix = "how to fix"
     )
 
+    fun getProject(identifier: Identifier = Identifier("Gradle", "", "project", "1.0")) =
+        Project(
+            identifier = identifier,
+            definitionFilePath = "build.gradle.kts",
+            authors = emptySet(),
+            declaredLicenses = emptySet(),
+            processedDeclaredLicense = ProcessedDeclaredLicense(
+                null,
+                emptyMap(),
+                emptySet()
+            ),
+            vcs = VcsInfo(RepositoryType.GIT, "https://example.com/git", "revision", ""),
+            vcsProcessed = VcsInfo(RepositoryType.GIT, "https://example.com/git", "revision", ""),
+            description = "",
+            homepageUrl = "https://example.com",
+            scopeNames = setOf("compileClasspath", "runtimeClasspath")
+        )
+
     fun createAnalyzerRun(
         analyzerJobId: Long = analyzerJob.id,
         projects: Set<Project> = emptySet(),
         packages: Set<Package> = emptySet(),
         issues: List<Issue> = emptyList(),
-        dependencyGraphs: Map<String, DependencyGraph> = emptyMap()
+        dependencyGraphs: Map<String, DependencyGraph> = emptyMap(),
+        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
     ) = analyzerRunRepository.create(
         analyzerJobId = analyzerJobId,
         startTime = Clock.System.now(),
@@ -250,7 +272,8 @@ class Fixtures(private val db: Database) {
         projects = projects,
         packages = packages,
         issues = issues,
-        dependencyGraphs = dependencyGraphs
+        dependencyGraphs = dependencyGraphs,
+        shortestDependencyPaths = shortestDependencyPaths
     )
 
     fun createAdvisorRun(

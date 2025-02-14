@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,15 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
+/** The shortest dependency path for a Package. */
 @Serializable
-data class Package(
-    val identifier: Identifier,
-    val purl: String,
-    val cpe: String? = null,
-    val authors: Set<String>,
-    val declaredLicenses: Set<String>,
-    val processedDeclaredLicense: ProcessedDeclaredLicense,
-    val description: String,
-    val homepageUrl: String,
-    val binaryArtifact: RemoteArtifact,
-    val sourceArtifact: RemoteArtifact,
-    val vcs: VcsInfo,
-    val vcsProcessed: VcsInfo,
-    val isMetadataOnly: Boolean = false,
-    val isModified: Boolean = false,
-    val shortestDependencyPaths: List<ShortestDependencyPath>
+data class ShortestDependencyPath(
+    /** The identifier of the root project of this path. */
+    val projectIdentifier: Identifier,
+
+    /** The scope in which this shortest path of the dependency is found in. */
+    val scope: String,
+
+    /** Path of dependency identifiers to the dependency. */
+    val path: List<Identifier>
 )

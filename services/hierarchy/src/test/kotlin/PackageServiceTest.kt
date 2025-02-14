@@ -26,20 +26,18 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import kotlinx.datetime.Clock
-
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -83,7 +81,7 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(setOf(pkg1, pkg2)).id
 
-                service.listForOrtRunId(ortRunId).data should containExactlyInAnyOrder(pkg1, pkg2)
+                service.listForOrtRunId(ortRunId).data.map { it.pkg } should containExactlyInAnyOrder(pkg1, pkg2)
             }
 
             "return non-empty maps and sets for authors, declared licenses, and mapped and unmapped licenses" {
@@ -111,7 +109,7 @@ class PackageServiceTest : WordSpec() {
 
                 results shouldHaveSize 1
 
-                with(results.first()) {
+                with(results.first().pkg) {
                     authors shouldHaveSize 3
                     authors shouldBe setOf("Author One", "Author Two", "Author Three")
                     declaredLicenses shouldHaveSize 4
@@ -148,13 +146,8 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 2
                 results.totalCount shouldBe 3
 
-                with(results.data.first()) {
-                    identifier.name shouldBe "example3"
-                }
-
-                with(results.data.last()) {
-                    identifier.name shouldBe "example2"
-                }
+                results.data.first().pkg.identifier.name shouldBe "example3"
+                results.data.last().pkg.identifier.name shouldBe "example2"
             }
 
             "return an empty list if no packages were found in an ORT run" {
@@ -165,6 +158,79 @@ class PackageServiceTest : WordSpec() {
                 val results = service.listForOrtRunId(ortRun.id).data
 
                 results should beEmpty()
+            }
+
+            "return the shortest dependency paths for packages" {
+                val service = PackageService(db)
+
+                val project1 = fixtures.getProject()
+                val project2 = fixtures.getProject(Identifier("Gradle", "", "project2", "1.0"))
+
+                val identifier1 = Identifier("Maven", "com.example", "example", "1.0")
+                val identifier2 = Identifier("Maven", "com.example", "example2", "1.0")
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    projects = setOf(project1, project2),
+                    packages = setOf(
+                        generatePackage(identifier1),
+                        generatePackage(identifier2)
+                    ),
+                    shortestPaths = mapOf(
+                        identifier1 to listOf(
+                            ShortestDependencyPath(
+                                project1.identifier,
+                                "compileClassPath",
+                                emptyList()
+                            ),
+                            ShortestDependencyPath(
+                                project2.identifier,
+                                "compileClassPath",
+                                emptyList()
+                            )
+                        ),
+                        identifier2 to listOf(
+                            ShortestDependencyPath(
+                                project1.identifier,
+                                "compileClassPath",
+                                listOf(identifier1)
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("purl", OrderDirection.DESCENDING)))
+                )
+
+                results.data shouldHaveSize 2
+
+                with(results.data.first()) {
+                    pkg.identifier shouldBe identifier2
+                    shortestDependencyPaths shouldBe listOf(
+                        ShortestDependencyPath(
+                            project1.identifier,
+                            "compileClassPath",
+                            listOf(identifier1)
+                        )
+                    )
+                }
+
+                with(results.data.last()) {
+                    pkg.identifier shouldBe identifier1
+                    shortestDependencyPaths shouldBe listOf(
+                        ShortestDependencyPath(
+                            project1.identifier,
+                            "compileClassPath",
+                            emptyList()
+                        ),
+                        ShortestDependencyPath(
+                            project2.identifier,
+                            "compileClassPath",
+                            emptyList()
+                        )
+                    )
+                }
             }
         }
 
@@ -256,7 +322,9 @@ class PackageServiceTest : WordSpec() {
 
     private fun createAnalyzerRunWithPackages(
         packages: Set<Package>,
-        repositoryId: Long = fixtures.createRepository().id
+        repositoryId: Long = fixtures.createRepository().id,
+        projects: Set<Project> = emptySet(),
+        shortestPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
     ): OrtRun {
         val ortRun = fixtures.createOrtRun(
             repositoryId = repositoryId,
@@ -269,30 +337,11 @@ class PackageServiceTest : WordSpec() {
             configuration = AnalyzerJobConfiguration(),
         )
 
-        fixtures.analyzerRunRepository.create(
+        fixtures.createAnalyzerRun(
             analyzerJobId = analyzerJob.id,
-            startTime = Clock.System.now(),
-            endTime = Clock.System.now(),
-            environment = Environment(
-                ortVersion = "1.0",
-                javaVersion = "11.0.16",
-                os = "Linux",
-                processors = 8,
-                maxMemory = 8321499136,
-                variables = emptyMap(),
-                toolVersions = emptyMap()
-            ),
-            config = AnalyzerConfiguration(
-                allowDynamicVersions = true,
-                enabledPackageManagers = emptyList(),
-                disabledPackageManagers = emptyList(),
-                packageManagers = emptyMap(),
-                skipExcluded = true
-            ),
-            projects = emptySet(),
+            projects = projects,
             packages = packages,
-            issues = emptyList(),
-            dependencyGraphs = emptyMap()
+            shortestDependencyPaths = shortestPaths
         )
 
         return ortRun
