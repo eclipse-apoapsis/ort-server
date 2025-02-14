@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-import java.util.EnumSet
-
 import kotlinx.serialization.Serializable
 
 /**
@@ -53,5 +51,5 @@ data class InfrastructureServiceDeclaration(
     val passwordSecret: String,
 
     /** The set of [CredentialsType]s for this infrastructure service. */
-    val credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
+    val credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE)
 )
