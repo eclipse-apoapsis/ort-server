@@ -23,3 +23,14 @@ package org.eclipse.apoapsis.ortserver.cli
  * Add a trailing slash to this [String] if it is missing.
  */
 fun String.ensureSuffix(suffix: String): String = takeIf { endsWith(suffix) } ?: "$this$suffix"
+
+/**
+ * Expand a leading tilde in this [String] to the user's home directory, if the caller is in a `SHELL` environment.
+ * Otherwise, return the [String] as is.
+ */
+fun String.expandTilde() =
+    if (System.getenv("SHELL") != null) {
+        replace("^~".toRegex(), Regex.escapeReplacement(System.getProperty("user.home")))
+    } else {
+        this
+    }

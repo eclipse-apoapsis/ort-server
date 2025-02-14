@@ -42,8 +42,6 @@ import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
 
-import org.ossreviewtoolkit.utils.common.expandTilde
-
 class LogsCommand : SuspendingCliktCommand() {
     private val runId by option(
         "--run-id",

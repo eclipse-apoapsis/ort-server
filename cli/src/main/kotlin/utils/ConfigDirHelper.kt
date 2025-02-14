@@ -23,9 +23,6 @@ import java.io.File
 
 import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
 
-import org.ossreviewtoolkit.utils.common.Os
-import org.ossreviewtoolkit.utils.common.safeMkdirs
-
 /**
  * The directory where the configuration files are stored, respecting the XDG Base Directory specification [1].
  *
@@ -33,19 +30,21 @@ import org.ossreviewtoolkit.utils.common.safeMkdirs
  */
 internal val configDir: File
     get() {
-        val fallbackDir = Os.userHomeDirectory.resolve(".config/$COMMAND_NAME")
+        val osName = System.getProperty("os.name").lowercase()
+        val fallbackDir = File(System.getProperty("user.home")).resolve(".config/$COMMAND_NAME")
 
         val dir = when {
-            Os.isLinux || Os.isMac -> Os.env["XDG_CONFIG_HOME"]?.let { File(it).resolve(COMMAND_NAME) } ?: fallbackDir
+            osName.contains("linux") || osName.contains("mac") ->
+                System.getenv("XDG_CONFIG_HOME")?.let { File(it).resolve(COMMAND_NAME) }
+                    ?: fallbackDir
 
-            Os.isWindows -> Os.env["XDG_CONFIG_HOME"]?.let { File(it) }
-                ?: Os.env["LOCALAPPDATA"]?.let { File(it) }
-                ?: fallbackDir
+            osName.contains("windows") -> System.getenv("XDG_CONFIG_HOME")?.let { File(it) }
+                ?: System.getenv("LOCALAPPDATA")?.let { File(it) } ?: fallbackDir
 
             else -> fallbackDir
         }
 
-        if (!dir.exists()) dir.safeMkdirs()
+        if (!dir.exists()) dir.mkdirs()
 
         return dir
     }

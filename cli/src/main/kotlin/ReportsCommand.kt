@@ -40,8 +40,6 @@ import java.io.File
 
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 
-import org.ossreviewtoolkit.utils.common.expandTilde
-
 class ReportsCommand : SuspendingCliktCommand(name = "reports") {
     private val runId by option(
         "--run-id",

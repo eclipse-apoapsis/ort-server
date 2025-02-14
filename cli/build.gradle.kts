@@ -58,7 +58,6 @@ dependencies {
     implementation(libs.ktorClientAuth)
     implementation(libs.ktorClientCore)
     implementation(libs.ktorUtils)
-    implementation(libs.ortCommonUtils)
     implementation(libs.slf4jNop)
 
     testImplementation(libs.kotestAssertionsCore)
