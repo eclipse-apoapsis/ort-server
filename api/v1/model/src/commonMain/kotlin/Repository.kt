@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import io.konform.validation.Validation
 
-import java.net.URI
+import io.ktor.http.parseUrl
 
 import kotlinx.serialization.Serializable
 
@@ -50,9 +50,9 @@ data class Repository(
         const val INVALID_URL_MESSAGE = "The repository URL is malformed."
         const val USER_INFO_MESSAGE = "The repository URL must not contain userinfo."
 
-        fun isValidUrl(url: String): Boolean = runCatching { URI.create(url) }.isSuccess
+        fun isValidUrl(url: String): Boolean = parseUrl(url) != null
 
-        fun hasUserInfo(url: String): Boolean = runCatching { URI.create(url) }.getOrNull()?.userInfo != null
+        fun hasUserInfo(url: String): Boolean = parseUrl(url)?.user != null
     }
 }
 

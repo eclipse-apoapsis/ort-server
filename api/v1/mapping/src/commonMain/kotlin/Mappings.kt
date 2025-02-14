@@ -21,8 +21,6 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.mapping
 
-import java.util.EnumSet
-
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob as ApiAdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob as ApiAnalyzerJob
@@ -602,13 +600,11 @@ fun ApiEnvironmentConfig.mapToModel() =
 
 fun CredentialsType.mapToApi() = ApiCredentialsType.valueOf(name)
 
-fun Set<CredentialsType>.mapToApi(): Set<ApiCredentialsType> =
-    mapTo(EnumSet.noneOf(ApiCredentialsType::class.java)) { it.mapToApi() }
+fun Set<CredentialsType>.mapToApi(): Set<ApiCredentialsType> = mapTo(mutableSetOf()) { it.mapToApi() }
 
 fun ApiCredentialsType.mapToModel() = CredentialsType.valueOf(name)
 
-fun Set<ApiCredentialsType>.mapToModel(): Set<CredentialsType> =
-    mapTo(EnumSet.noneOf(CredentialsType::class.java)) { it.mapToModel() }
+fun Set<ApiCredentialsType>.mapToModel(): Set<CredentialsType> = mapTo(mutableSetOf()) { it.mapToModel() }
 
 fun PackageManagerConfiguration.mapToApi() =
     ApiPackageManagerConfiguration(mustRunAfter = mustRunAfter, options = options)

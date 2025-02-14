@@ -36,6 +36,7 @@ kotlin {
                 api(libs.konform)
 
                 implementation(libs.kotlinxSerializationJson)
+                implementation(libs.ktorHttp)
             }
         }
     }
