@@ -19,13 +19,13 @@
 
 import com.google.cloud.tools.jib.gradle.JibTask
 
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
 val dockerImagePrefix: String by project
 val dockerImageTag: String by project
 
 plugins {
-    application
-
-    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-kotlin-multiplatform-conventions")
     id("ort-server-publication-conventions")
 
     // Apply third-party plugins.
@@ -39,31 +39,73 @@ tasks.withType<JibTask> {
     notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")
 }
 
-application {
-    applicationName = "osc"
-    mainClass = "org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt"
+kotlin {
+    jvm {
+        // Include Java sources into the JVM target's compilations, to make them available for the Jib plugin.
+        withJava()
+    }
+    linuxX64()
+    macosArm64()
+    macosX64()
+
+    applyDefaultHierarchyTemplate()
+
+    targets.withType<KotlinNativeTarget> {
+        binaries {
+            executable {
+                entryPoint = "org.eclipse.apoapsis.ortserver.cli.main"
+            }
+        }
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                api(projects.model)
+
+                implementation(projects.api.v1.apiV1Client)
+                implementation(projects.api.v1.apiV1Model)
+                implementation(projects.model)
+
+                implementation(libs.clikt)
+                implementation(libs.kaml)
+                implementation(libs.kotlinxCoroutines)
+                implementation(libs.kotlinxSerializationJson)
+                implementation(libs.ktorClientAuth)
+                implementation(libs.ktorClientCore)
+                implementation(libs.ktorUtils)
+                implementation(libs.okio)
+            }
+        }
+
+        jvmMain {
+            dependencies {
+                implementation(libs.ortCommonUtils)
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                implementation(libs.kotestAssertionsCore)
+                implementation(libs.kotestRunnerJunit5)
+                implementation(libs.mockk)
+            }
+        }
+    }
 }
 
-dependencies {
-    api(projects.model)
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
 
-    implementation(projects.api.v1.apiV1Client)
-    implementation(projects.api.v1.apiV1Model)
-    implementation(projects.model)
-
-    implementation(libs.clikt)
-    implementation(libs.kaml)
-    implementation(libs.kotlinxCoroutines)
-    implementation(libs.kotlinxSerializationJson)
-    implementation(libs.ktorClientAuth)
-    implementation(libs.ktorClientCore)
-    implementation(libs.ktorUtils)
-    implementation(libs.ortCommonUtils)
-    implementation(libs.slf4jNop)
-
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.mockk)
+    testLogging {
+        events = setOf(
+            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+        )
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showExceptions = true
+        showStandardStreams = true
+    }
 }
 
 jib {

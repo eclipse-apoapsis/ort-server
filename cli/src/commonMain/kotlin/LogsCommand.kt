@@ -31,18 +31,20 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.enum
-import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.long
 
-import io.ktor.util.cio.use
-import io.ktor.util.cio.writeChannel
-import io.ktor.utils.io.copyTo
+import io.ktor.utils.io.readAvailable
+
+import okio.FileSystem
+import okio.Path.Companion.toPath
+import okio.SYSTEM
+import okio.buffer
+import okio.use
 
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
-
-import org.ossreviewtoolkit.utils.common.expandTilde
 
 class LogsCommand : SuspendingCliktCommand() {
     private val runId by option(
@@ -58,9 +60,7 @@ class LogsCommand : SuspendingCliktCommand() {
         "-o",
         envvar = "OSC_DOWNLOAD_LOGS_OUTPUT_DIR",
         help = "The directory to download the logs to."
-    ).convert { it.expandTilde() }
-        .file(mustExist = false, canBeFile = false, canBeDir = true, mustBeWritable = false, mustBeReadable = false)
-        .convert { it.absoluteFile.normalize() }
+    ).convert { it.expandTilde().toPath() }
         .required()
 
     private val level by option(
@@ -97,12 +97,17 @@ class LogsCommand : SuspendingCliktCommand() {
         outputDir.mkdirs()
         val resolvedLogLevel = level ?: LogLevel.INFO
         val outputFile = outputDir.resolve("run-$resolvedOrtRunId-$resolvedLogLevel.logs.zip")
-        outputFile.writeChannel().use {
-            client.runs.downloadLogs(resolvedOrtRunId, level, steps) { channel ->
-                channel.copyTo(this)
+
+        FileSystem.SYSTEM.sink(outputFile).buffer().use { sink ->
+            client.runs.downloadLogs(resolvedOrtRunId, resolvedLogLevel, steps) { channel ->
+                val buffer = ByteArray(8192) // 8KiB buffer.
+                var bytesRead: Int
+                while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
+                    sink.write(buffer, 0, bytesRead)
+                }
             }
         }
 
-        echo(outputFile.absolutePath)
+        echo(outputFile.toString())
     }
 }

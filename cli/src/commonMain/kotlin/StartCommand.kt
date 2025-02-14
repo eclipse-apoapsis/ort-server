@@ -27,20 +27,21 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.types.inputStream
 import com.github.ajalt.clikt.parameters.types.long
 
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.delay
+
+import okio.Path.Companion.toPath
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.read
 
-internal val POLL_INTERVAL = System.getProperty("POLL_INTERVAL")?.toLongOrNull()?.milliseconds ?: 60.seconds
+internal val POLL_INTERVAL = getEnv("POLL_INTERVAL")?.toLongOrNull()?.seconds ?: 60.seconds
 
 class StartCommand : SuspendingCliktCommand(name = "start") {
     private val repositoryId by option(
@@ -61,7 +62,7 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
             envvar = "OSC_RUNS_START_PARAMETERS_FILE",
             help = "The path to a JSON file containing the run configuration " +
                     "(see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run)."
-        ).inputStream().convert { stream -> stream.use { it.bufferedReader().readText() } },
+        ).convert { it.expandTilde().toPath().read() },
         option(
             "--parameters",
             envvar = "OSC_RUNS_START_PARAMETERS",
