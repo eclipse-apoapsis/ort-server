@@ -19,6 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
+
 import org.ossreviewtoolkit.model.FileList
 import org.ossreviewtoolkit.model.KnownProvenance
 import org.ossreviewtoolkit.scanner.utils.FileListResolver
@@ -36,11 +42,15 @@ fun enableOrtStackTraces() {
  * available for a provenance, it is ignored and not included in the result.
  */
 internal fun getFileLists(fileListResolver: FileListResolver, provenances: Set<KnownProvenance>) =
-    provenances
-        .mapNotNull { provenance -> fileListResolver.get(provenance)?.let { provenance to it } }
-        .mapTo(mutableSetOf()) { (provenance, fileList) ->
-            FileList(
-                provenance,
-                fileList.files.mapTo(mutableSetOf()) { FileList.Entry(it.path, it.sha1) }
-            )
+    runBlocking(Dispatchers.IO.limitedParallelism(20)) {
+        provenances.map { provenance ->
+            async { provenance to fileListResolver.get(provenance) }
+        }.awaitAll().mapNotNull { (provenance, fileList) ->
+            fileList?.let {
+                FileList(
+                    provenance,
+                    it.files.mapTo(mutableSetOf()) { file -> FileList.Entry(file.path, file.sha1) }
+                )
+            }
         }
+    }
