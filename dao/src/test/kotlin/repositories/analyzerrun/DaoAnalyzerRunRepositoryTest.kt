@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -49,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
 import org.jetbrains.exposed.sql.selectAll
@@ -153,12 +155,42 @@ class DaoAnalyzerRunRepositoryTest : StringSpec({
         }.awaitAll()
     }
 
+    "create should save shortest dependency path for package" {
+        val shortestPaths = mapOf(
+            pkg.identifier to listOf(
+                ShortestDependencyPath(
+                    projectIdentifier = project.identifier,
+                    scope = "compile",
+                    path = emptyList()
+                )
+            )
+        )
+
+        analyzerRunRepository.create(analyzerJobId, analyzerRun, shortestPaths)
+
+        val result = dbExtension.db.dbQuery {
+            ShortestDependencyPathsTable
+                .selectAll()
+                .map { ShortestDependencyPathDao.wrapRow(it).mapToModel() }
+        }
+
+        result.shouldBeSingleton {
+            it.projectIdentifier shouldBe project.identifier
+            it.scope shouldBe "compile"
+            it.path shouldBe emptyList()
+        }
+    }
+
     "get should return null" {
         analyzerRunRepository.get(1L).shouldBeNull()
     }
 })
 
-private fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: AnalyzerRun) = create(
+private fun DaoAnalyzerRunRepository.create(
+    analyzerJobId: Long,
+    analyzerRun: AnalyzerRun,
+    shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
+) = create(
     analyzerJobId = analyzerJobId,
     startTime = analyzerRun.startTime,
     endTime = analyzerRun.endTime,
@@ -167,7 +199,8 @@ private fun DaoAnalyzerRunRepository.create(analyzerJobId: Long, analyzerRun: An
     projects = analyzerRun.projects,
     packages = analyzerRun.packages,
     issues = analyzerRun.issues,
-    dependencyGraphs = analyzerRun.dependencyGraphs
+    dependencyGraphs = analyzerRun.dependencyGraphs,
+    shortestDependencyPaths = shortestDependencyPaths
 )
 
 private val analyzerConfiguration = AnalyzerConfiguration(
