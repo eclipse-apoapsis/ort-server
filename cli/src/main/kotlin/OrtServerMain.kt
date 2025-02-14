@@ -29,8 +29,10 @@ import com.github.ajalt.clikt.parameters.options.versionOption
 
 import kotlin.system.exitProcess
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
+import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
 import org.eclipse.apoapsis.ortserver.client.auth.AuthenticationException
@@ -68,15 +70,32 @@ class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
         versionOption(
             version = ORT_SERVER_VERSION,
             names = setOf("--version", "-v"),
-            help = "Show the version and exit.",
-            // TODO: Also add the server version given by `baseUrl` to this output.
-            message = { "$commandName version $it" }
+            help = "Show the version of the CLI and the ORT Server if authenticated.",
+            message = { runBlocking { buildVersionInformation(it) } }
         )
     }
 
     override fun help(context: Context) = """
         The ORT Server Client (OSC) is a Command Line Interface (CLI) to interact with an ORT Server instance.
     """.trimIndent()
+
+    /**
+     * Build the version information for the CLI and (if authenticated) for the ORT Server.
+     */
+    private suspend fun buildVersionInformation(cliVersion: String): String {
+        val serverVersions = runCatching { createOrtServerClient()?.versions?.getVersions() }.getOrNull()
+
+        return buildString {
+            appendLine("$commandName version $cliVersion")
+            if (serverVersions != null) {
+                val serverVersion = serverVersions["ORT Server"]
+                val ortVersion = serverVersions["ORT Core"]
+
+                appendLine("Server version ${serverVersion ?: "<unknown>"}")
+                appendLine("ORT Core version ${ortVersion ?: "<unknown>"}")
+            }
+        }
+    }
 }
 
 internal val json = Json(OrtServerClient.JSON) { prettyPrint = true }
