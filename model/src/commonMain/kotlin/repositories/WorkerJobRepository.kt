@@ -102,7 +102,7 @@ interface WorkerJobRepository<T : WorkerJob> {
 
     /** Return the status of a job by [id] or throw an [IllegalArgumentException] if the job is not found. */
     private fun getStatus(id: Long): JobStatus =
-        requireNotNull(get(id)?.status) { "${javaClass.simpleName}: Job '$id' not found." }
+        requireNotNull(get(id)?.status) { "${this::class.simpleName}: Job '$id' not found." }
 }
 
 /**

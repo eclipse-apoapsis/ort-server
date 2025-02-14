@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-import java.util.EnumSet
-
 /**
  * An enumeration class defining the supported log levels in ORT Server log files.
  *
@@ -48,6 +46,6 @@ enum class LogLevel {
          * level [INFO] contains logs with the levels [WARN] and [ERROR] as well. This function can be used to obtain
          * all the levels to be taken into account when applying such a filter.
          */
-        fun levelOrHigher(level: LogLevel): Set<LogLevel> = EnumSet.range(level, ERROR)
+        fun levelOrHigher(level: LogLevel): Set<LogLevel> = entries.filter { it.ordinal >= level.ordinal }.toSet()
     }
 }

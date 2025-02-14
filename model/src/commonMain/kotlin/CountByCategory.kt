@@ -25,5 +25,5 @@ data class CountByCategory<T>(
     val map: Map<T, Long>
 ) {
     /** Get the count for the given [key]. */
-    fun getCount(key: T): Long = map.getOrDefault(key, 0)
+    fun getCount(key: T): Long = map[key] ?: 0L
 }
