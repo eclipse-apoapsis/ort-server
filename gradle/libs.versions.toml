@@ -61,6 +61,7 @@ log4j = "2.24.3"
 logback = "1.5.16"
 micrometer = "1.14.4"
 mockk = "1.13.16"
+okio = "3.10.2"
 ort = "52.0.0"
 postgres = "42.7.5"
 qpidJmsClient = "2.7.0"
@@ -117,6 +118,8 @@ kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serializati
 ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktorClientCore = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktorClientCurl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktorClientDarwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktorClientMock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktorClientOkHttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktorHttp = { module = "io.ktor:ktor-http", version.ref = "ktor" }
@@ -145,6 +148,7 @@ log4jToSlf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 micrometerRegistryGraphite = { module = "io.micrometer:micrometer-registry-graphite", version.ref = "micrometer" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 ortAdvisor = { module = "org.ossreviewtoolkit:advisor", version.ref = "ort" }
 ortAdvisors = { module = "org.ossreviewtoolkit.plugins:advisors", version.ref = "ort" }
 ortAnalyzer = { module = "org.ossreviewtoolkit:analyzer", version.ref = "ort" }
@@ -166,8 +170,8 @@ ortScanners = { module = "org.ossreviewtoolkit.plugins:scanners", version.ref = 
 ortScriptingUtils = { module = "org.ossreviewtoolkit.utils:scripting-utils", version.ref = "ort" }
 ortTestUtils = { module = "org.ossreviewtoolkit.utils:test-utils", version.ref = "ort" }
 ortUtils = { module = "org.ossreviewtoolkit.utils:ort-utils", version.ref = "ort" }
-ortVersionControlSystems = { module = "org.ossreviewtoolkit.plugins:version-control-systems", version.ref = "ort" }
 ortVersionControlSystemGit = { module = "org.ossreviewtoolkit.plugins.versioncontrolsystems:git-version-control-system", version.ref = "ort" }
+ortVersionControlSystems = { module = "org.ossreviewtoolkit.plugins:version-control-systems", version.ref = "ort" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 qpidJmsClient = { module = "org.apache.qpid:qpid-jms-client", version.ref = "qpidJmsClient" }
 rabbitMqAmqpClient = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitMq" }

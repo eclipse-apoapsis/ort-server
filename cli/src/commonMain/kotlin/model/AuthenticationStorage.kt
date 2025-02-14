@@ -21,15 +21,16 @@ package org.eclipse.apoapsis.ortserver.cli.model
 
 import com.charleskorn.kaml.Yaml
 
-import java.nio.file.Files
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.attribute.PosixFilePermissions
-
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 
 import org.eclipse.apoapsis.ortserver.cli.utils.configDir
+import org.eclipse.apoapsis.ortserver.cli.utils.delete
+import org.eclipse.apoapsis.ortserver.cli.utils.exists
+import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
+import org.eclipse.apoapsis.ortserver.cli.utils.setPermissionsToOwnerReadWrite
+import org.eclipse.apoapsis.ortserver.cli.utils.toSource
+import org.eclipse.apoapsis.ortserver.cli.utils.write
 
 private const val AUTH_FILE_NAME = "auth.yml"
 
@@ -44,8 +45,8 @@ internal object AuthenticationStorage {
     private var storage: HostAuthenticationDetails? = null
 
     init {
-        if (authFile.isFile) {
-            val savedAuth = Yaml.default.decodeFromString<List<HostAuthenticationDetails>>(authFile.readText())
+        if (authFile.exists()) {
+            val savedAuth = Yaml.default.decodeFromSource<List<HostAuthenticationDetails>>(authFile.toSource())
 
             storage = savedAuth.firstOrNull()
         }
@@ -75,18 +76,11 @@ internal object AuthenticationStorage {
     }
 
     private fun saveToFile() {
-        authFile.writeText(Yaml.default.encodeToString(listOf(storage)))
+        if (authFile.parent?.exists() == false) authFile.parent?.mkdirs()
 
-        // Ensure file permissions 600, as this file contains security relevant information.
-        Files.setPosixFilePermissions(
-            authFile.toPath(),
-            PosixFilePermissions.asFileAttribute(
-                setOf(
-                    PosixFilePermission.OWNER_READ,
-                    PosixFilePermission.OWNER_WRITE
-                )
-            ).value()
-        )
+        authFile.write(Yaml.default.encodeToString(listOf(storage)))
+
+        authFile.setPermissionsToOwnerReadWrite()
     }
 }
 
