@@ -53,7 +53,9 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
@@ -409,7 +411,10 @@ class OrtRunService(
     /**
      * Store the provided [analyzerRun].
      */
-    fun storeAnalyzerRun(analyzerRun: AnalyzerRun) {
+    fun storeAnalyzerRun(
+        analyzerRun: AnalyzerRun,
+        shortestDependencyPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
+    ) {
         analyzerRunRepository.create(
             analyzerJobId = analyzerRun.analyzerJobId,
             startTime = analyzerRun.startTime,
@@ -419,7 +424,8 @@ class OrtRunService(
             projects = analyzerRun.projects,
             packages = analyzerRun.packages,
             issues = analyzerRun.issues,
-            dependencyGraphs = analyzerRun.dependencyGraphs
+            dependencyGraphs = analyzerRun.dependencyGraphs,
+            shortestDependencyPaths = shortestDependencyPaths
         )
     }
 
