@@ -29,6 +29,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
 import org.eclipse.apoapsis.ortserver.client.api.RunsApi
+import org.eclipse.apoapsis.ortserver.client.api.VersionsApi
 import org.eclipse.apoapsis.ortserver.client.auth.AuthService
 
 class OrtServerClient(
@@ -95,4 +96,9 @@ class OrtServerClient(
      * Provide access to the runs API, allowing operations on runs in the ORT server.
      */
     val runs = RunsApi(client)
+
+    /**
+     * Provide access to the versions API.
+     */
+    val versions = VersionsApi(client)
 }
