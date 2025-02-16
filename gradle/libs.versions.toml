@@ -34,7 +34,7 @@ rabbitMq = "5.25.0"
 versionsPlugin = "0.52.0"
 
 # Gradle dependencies
-awsSdk = "1.4.16"
+awsSdk = "1.4.22"
 azureIdentity = "1.15.2"
 azureSecurityKeyvaultSecrets = "4.9.2"
 azureStorageBlob = "12.29.0"
