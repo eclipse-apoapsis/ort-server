@@ -44,13 +44,13 @@ fun enableOrtStackTraces() {
 internal fun getFileLists(fileListResolver: FileListResolver, provenances: Set<KnownProvenance>) =
     runBlocking(Dispatchers.IO.limitedParallelism(20)) {
         provenances.map { provenance ->
-            async { provenance to fileListResolver.get(provenance) }
-        }.awaitAll().mapNotNull { (provenance, fileList) ->
-            fileList?.let {
-                FileList(
-                    provenance,
-                    it.files.mapTo(mutableSetOf()) { file -> FileList.Entry(file.path, file.sha1) }
-                )
+            async {
+                fileListResolver.get(provenance)?.let { fileList ->
+                    FileList(
+                        provenance,
+                        fileList.files.mapTo(mutableSetOf()) { FileList.Entry(it.path, it.sha1) }
+                    )
+                }
             }
-        }
+        }.awaitAll().filterNotNull()
     }
