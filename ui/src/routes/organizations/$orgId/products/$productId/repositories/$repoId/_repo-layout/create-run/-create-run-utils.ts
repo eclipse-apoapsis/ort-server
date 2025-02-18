@@ -288,7 +288,7 @@ export function defaultValues(
 
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults = {
-    revision: 'main',
+    revision: '',
     path: '',
     jobConfigs: {
       analyzer: {
