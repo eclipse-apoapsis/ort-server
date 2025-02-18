@@ -59,7 +59,7 @@ class NotifierComponent : EndpointComponent<NotifierRequest>(NotifierEndpoint) {
 
                 is RunResult.Failed -> {
                     logger.error("Notifier job '$notifierJobId' failed.", result.error)
-                    Message(message.header, NotifierWorkerError(notifierJobId))
+                    Message(message.header, NotifierWorkerError(notifierJobId, result.error.message))
                 }
 
                 is RunResult.Ignored -> null

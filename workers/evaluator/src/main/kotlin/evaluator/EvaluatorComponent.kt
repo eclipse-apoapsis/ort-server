@@ -64,7 +64,7 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
 
                 is RunResult.Failed -> {
                     logger.error("Evaluator job '$evaluatorJobId' failed.", result.error)
-                    Message(message.header, EvaluatorWorkerError(evaluatorJobId))
+                    Message(message.header, EvaluatorWorkerError(evaluatorJobId, result.error.message))
                 }
 
                 is RunResult.Ignored -> null

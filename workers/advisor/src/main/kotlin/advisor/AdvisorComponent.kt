@@ -71,7 +71,7 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
 
                 is RunResult.Failed -> {
                     logger.error("Advisor job '$advisorJobId' failed.", result.error)
-                    Message(message.header, AdvisorWorkerError(advisorJobId))
+                    Message(message.header, AdvisorWorkerError(advisorJobId, result.error.message))
                 }
 
                 is RunResult.Ignored -> null

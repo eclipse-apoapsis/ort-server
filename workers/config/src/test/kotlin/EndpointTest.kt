@@ -95,7 +95,7 @@ class EndpointTest : KoinTest, StringSpec() {
 
                 val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 resultMessage.header shouldBe messageHeader
-                resultMessage.payload shouldBe ConfigWorkerError(RUN_ID)
+                resultMessage.payload shouldBe ConfigWorkerError(RUN_ID, "Test exception")
             }
         }
     }

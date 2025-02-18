@@ -24,6 +24,14 @@ import kotlinx.serialization.Serializable
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 
 /**
+ * A common interface for worker errors that may provide an error message. This is used to forward original exception
+ * messages to the orchestrator to create issues with meaningful messages.
+ */
+interface WorkerErrorMessage {
+    val errorMessage: String?
+}
+
+/**
  * Base class for the hierarchy of messages that can be processed by the Orchestrator component.
  */
 @Serializable
@@ -44,8 +52,10 @@ data class ConfigWorkerResult(
 @Serializable
 data class ConfigWorkerError(
     /** The ID of the ORT run on which the worker failed. */
-    val ortRunId: Long
-) : OrchestratorMessage()
+    val ortRunId: Long,
+    /** The message of the error, if any. */
+    override val errorMessage: String? = null
+) : OrchestratorMessage(), WorkerErrorMessage
 
 /**
  * A common interface for messages that are sent by workers to the Orchestrator. The interface allows access to the
@@ -73,8 +83,10 @@ data class AnalyzerWorkerResult(
 @Serializable
 data class AnalyzerWorkerError(
     /** The ID of the Analyzer job, as it is stored in the database. */
-    override val jobId: Long
-) : OrchestratorMessage(), WorkerMessage
+    override val jobId: Long,
+    /** The message of the error, if any. */
+    override val errorMessage: String? = null
+) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Advisor Worker.
@@ -93,8 +105,10 @@ data class AdvisorWorkerResult(
 @Serializable
 data class AdvisorWorkerError(
     /** The ID of the Advisor job, as it is stored in the database. */
-    override val jobId: Long
-) : OrchestratorMessage(), WorkerMessage
+    override val jobId: Long,
+    /** The message of the error, if any. */
+    override val errorMessage: String? = null
+) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Scanner Worker.
@@ -113,8 +127,10 @@ data class ScannerWorkerResult(
 @Serializable
 data class ScannerWorkerError(
     /** The ID of the Scanner job, as it is stored in the database. */
-    override val jobId: Long
-) : OrchestratorMessage(), WorkerMessage
+    override val jobId: Long,
+    /** The message of the error, if any. */
+    override val errorMessage: String? = null
+) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Evaluator Worker.
@@ -133,8 +149,10 @@ data class EvaluatorWorkerResult(
 @Serializable
 data class EvaluatorWorkerError(
     /** The ID of the Evaluator job, as it is stored in the database. */
-    override val jobId: Long
-) : OrchestratorMessage(), WorkerMessage
+    override val jobId: Long,
+    /** The message of the error, if any. */
+    override val errorMessage: String? = null
+) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Reporter Worker.
@@ -153,8 +171,10 @@ data class ReporterWorkerResult(
 @Serializable
 data class ReporterWorkerError(
     /** The ID of the Reporter job, as it is stored in the database. */
-    override val jobId: Long
-) : OrchestratorMessage(), WorkerMessage
+    override val jobId: Long,
+    /** The message of the error, if any. */
+    override val errorMessage: String? = null
+) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a result produced by the Notifier Worker.
@@ -171,8 +191,10 @@ data class NotifierWorkerResult(
 @Serializable
 data class NotifierWorkerError(
     /** The ID of the Notifier job, as it is stored in the database. */
-    override val jobId: Long
-) : OrchestratorMessage(), WorkerMessage
+    override val jobId: Long,
+    /** The message of the error, if any. */
+    override val errorMessage: String? = null
+) : OrchestratorMessage(), WorkerMessage, WorkerErrorMessage
 
 /**
  * A message notifying the Orchestrator about a new ORT run.

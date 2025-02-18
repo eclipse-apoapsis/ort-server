@@ -97,7 +97,7 @@ class EvaluatorEndpointTest : KoinTest, StringSpec() {
 
                 val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 resultMessage.header shouldBe messageHeader
-                resultMessage.payload shouldBe EvaluatorWorkerError(EVALUATOR_JOB_ID)
+                resultMessage.payload shouldBe EvaluatorWorkerError(EVALUATOR_JOB_ID, "Test Exception")
             }
         }
 

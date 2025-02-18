@@ -64,7 +64,7 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
 
                 is RunResult.Failed -> {
                     logger.error("Analyzer job '$jobId' failed.", result.error)
-                    Message(message.header, AnalyzerWorkerError(jobId))
+                    Message(message.header, AnalyzerWorkerError(jobId, result.error.message))
                 }
 
                 is RunResult.Ignored -> null
