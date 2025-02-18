@@ -203,6 +203,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    ports:
+      - "5010:5010"
     environment:
       DB_URL: "jdbc:postgresql://postgres:5432"
       DB_HOST: "postgres"
@@ -266,6 +268,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    ports:
+      - "5020:5020"
     environment:
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
@@ -309,6 +313,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    ports:
+      - "5030:5030"
     environment:
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
