@@ -139,7 +139,6 @@ const RunComponent = () => {
               </div>
               {ortRun.path && (
                 <div className='text-sm'>
-                  prefetchUseRepositoriesServiceGetOrtRunByIndex
                   <Label className='font-semibold'>Path:</Label> {ortRun.path}
                 </div>
               )}
