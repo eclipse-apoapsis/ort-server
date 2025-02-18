@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesMappedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectScopesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAuthorsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsDeclaredLicensesTable
@@ -207,11 +208,15 @@ class OrphanRemovalServiceTest : WordSpec() {
                         ).value
                     )
 
-                    // Orphan entries - should be deleted by removal process
-                    createProjectsTableEntry(homepageUrl = "to.delete.5")
-                    createProjectsTableEntry(homepageUrl = "to.delete.6")
+                    createProjectScopesTableEntry(
+                        createProjectsTableEntry(homepageUrl = "to.delete.5").value
+                    )
 
-                    ProjectsTable.selectAll().count() shouldBe 8
+                    // Orphan entries - should be deleted by removal process
+                    createProjectsTableEntry(homepageUrl = "to.delete.6")
+                    createProjectsTableEntry(homepageUrl = "to.delete.7")
+
+                    ProjectsTable.selectAll().count() shouldBe 9
                     ProcessedDeclaredLicensesTable.selectAll().count() shouldBe 2
                     UnmappedDeclaredLicensesTable.selectAll().count() shouldBe 1
                 }
@@ -939,4 +944,13 @@ class OrphanRemovalServiceTest : WordSpec() {
     ) = UnmappedDeclaredLicensesTable.insert {
         it[this.unmappedLicense] = unmappedLicense
     } get UnmappedDeclaredLicensesTable.id
+
+    private fun createProjectScopesTableEntry(
+        projectId: Long = createProjectsTableEntry().value,
+        name: String = "name_" + Random.nextInt(0, 10000)
+    ) =
+        ProjectScopesTable.insert {
+            it[this.projectId] = projectId
+            it[this.name] = name
+        } get ProjectScopesTable.id
 }
