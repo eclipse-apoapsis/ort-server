@@ -69,8 +69,8 @@ const STATUS_CLASS: {
 } = {
   CREATED: 'w-3 h-3 rounded-full',
   SCHEDULED: 'w-3 h-3 rounded-full',
-  RUNNING: 'w-4 h-4 rounded-full animate-pulse border border-black',
-  ACTIVE: 'w-4 h-4 rounded-full animate-pulse border border-black',
+  RUNNING: 'w-3 h-3 rounded-full animate-pulse',
+  ACTIVE: 'w-3 h-3 rounded-full animate-pulse',
   FAILED: 'w-3 h-3 rounded-full',
   FINISHED: 'w-3 h-3 rounded-full',
   FINISHED_WITH_ISSUES: 'w-3 h-3 rounded-full',
