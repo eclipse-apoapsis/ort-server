@@ -78,6 +78,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
+import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
@@ -112,6 +113,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
@@ -1080,6 +1082,111 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}/packages")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/projects" should {
+        "show the projects found in an ORT run" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRun.id,
+                    configuration = AnalyzerJobConfiguration()
+                )
+
+                dbExtension.fixtures.analyzerRunRepository.create(
+                    analyzerJobId = analyzerJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = Environment(
+                        ortVersion = "1.0",
+                        javaVersion = "11.0.16",
+                        os = "Linux",
+                        processors = 8,
+                        maxMemory = 8321499136,
+                        variables = emptyMap(),
+                        toolVersions = emptyMap()
+                    ),
+                    config = AnalyzerConfiguration(
+                        allowDynamicVersions = true,
+                        enabledPackageManagers = emptyList(),
+                        disabledPackageManagers = emptyList(),
+                        packageManagers = emptyMap(),
+                        skipExcluded = true
+                    ),
+                    projects = setOf(
+                        Project(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            null,
+                            "pom.xml",
+                            setOf("Author One", "Author Two"),
+                            declaredLicenses = setOf("License1", "License2", "License3"),
+                            ProcessedDeclaredLicense(
+                                spdxExpression = "Expression",
+                                mappedLicenses = mapOf(
+                                    "License 1" to "Mapped License 1",
+                                    "License 2" to "Mapped License 2",
+                                ),
+                                unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
+                            ),
+                            VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            VcsInfo(
+                                RepositoryType("GIT"),
+                                "https://example.com/git",
+                                "revision",
+                                "path"
+                            ),
+                            "ExampleDescription",
+                            "https://example.com",
+                            emptySet(),
+                        )
+                    ),
+                    packages = emptySet(),
+                    issues = emptyList(),
+                    dependencyGraphs = emptyMap()
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/projects")
+
+                response.status shouldBe HttpStatusCode.OK
+                val projects = response.body<PagedResponse<ApiProject>>()
+
+                with(projects.data) {
+                    shouldHaveSize(1)
+                    first().identifier.name shouldBe "example"
+                    first().authors shouldHaveSize 2
+                    first().declaredLicenses shouldHaveSize 3
+                    first().processedDeclaredLicense.mappedLicenses shouldHaveSize 2
+                    first().processedDeclaredLicense.unmappedLicenses shouldHaveSize 4
+                }
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val run = ortRunRepository.create(
+                repositoryId,
+                "revision",
+                null,
+                JobConfigurations(),
+                null,
+                labelsMap,
+                traceId = "test-trace-id",
+                null
+            )
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/${run.id}/projects")
             }
         }
     }
