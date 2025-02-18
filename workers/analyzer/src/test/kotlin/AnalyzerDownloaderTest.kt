@@ -33,7 +33,6 @@ import io.kotest.matchers.shouldNot
 
 import io.mockk.every
 import io.mockk.mockkObject
-import io.mockk.unmockkAll
 
 import java.io.IOException
 
@@ -46,10 +45,6 @@ import org.ossreviewtoolkit.plugins.api.PluginConfig
 
 class AnalyzerDownloaderTest : WordSpec({
     val downloader = AnalyzerDownloader()
-
-    afterEach {
-        unmockkAll()
-    }
 
     "downloadRepository" should {
         "not recursively clone a Git repository if submoduleFetchStrategy is DISABLED" {
@@ -158,11 +153,12 @@ class AnalyzerDownloaderTest : WordSpec({
         }
 
         "throw an exception if the VCS type cannot be determined from the URL" {
-            mockkObject(VersionControlSystem)
-            every { VersionControlSystem.forUrl(any(), any()) } returns null
+            mockkObject(VersionControlSystem) {
+                every { VersionControlSystem.forUrl(any(), any()) } returns null
 
-            shouldThrow<IllegalArgumentException> {
-                downloader.downloadRepository("https://example.com", "revision")
+                shouldThrow<IllegalArgumentException> {
+                    downloader.downloadRepository("https://example.com", "revision")
+                }
             }
         }
 
