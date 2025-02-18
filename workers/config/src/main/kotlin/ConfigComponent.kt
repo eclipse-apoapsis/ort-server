@@ -55,7 +55,7 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
 
             is RunResult.Failed -> {
                 logger.error("Config worker job failed for run '$runId'.", result.error)
-                ConfigWorkerError(runId)
+                ConfigWorkerError(runId, result.error.message)
             }
 
             else -> {

@@ -108,7 +108,7 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
 
                 val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 resultMessage.header shouldBe messageHeader
-                resultMessage.payload shouldBe AdvisorWorkerError(ADVISOR_JOB_ID)
+                resultMessage.payload shouldBe AdvisorWorkerError(ADVISOR_JOB_ID, "Test exception")
             }
         }
 

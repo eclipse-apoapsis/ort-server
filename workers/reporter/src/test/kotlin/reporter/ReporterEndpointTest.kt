@@ -103,7 +103,7 @@ class ReporterEndpointTest : KoinTest, StringSpec() {
 
                 val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 resultMessage.header shouldBe messageHeader
-                resultMessage.payload shouldBe ReporterWorkerError(REPORTER_JOB_ID)
+                resultMessage.payload shouldBe ReporterWorkerError(REPORTER_JOB_ID, "Test Exception")
             }
         }
 

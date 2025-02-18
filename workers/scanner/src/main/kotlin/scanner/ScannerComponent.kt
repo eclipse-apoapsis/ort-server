@@ -66,7 +66,7 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
 
                 is RunResult.Failed -> {
                     logger.error("Scanner job '$scannerJobId' failed.", result.error)
-                    Message(message.header, ScannerWorkerError(scannerJobId))
+                    Message(message.header, ScannerWorkerError(scannerJobId, result.error.message))
                 }
 
                 is RunResult.Ignored -> null

@@ -232,7 +232,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
 
                 val resultMessage = MessageSenderFactoryForTesting.expectMessage(OrchestratorEndpoint)
                 resultMessage.header shouldBe messageHeader
-                resultMessage.payload shouldBe AnalyzerWorkerError(JOB_ID)
+                resultMessage.payload shouldBe AnalyzerWorkerError(JOB_ID, "Test exception")
             }
         }
 

@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerError
+import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerErrorMessage
 import org.eclipse.apoapsis.ortserver.model.orchestrator.WorkerMessage
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
@@ -127,7 +128,7 @@ class Orchestrator(
             ortRunRepository.update(
                 id = configWorkerError.ortRunId,
                 status = OrtRunStatus.FAILED.asPresent(),
-                issues = listOf(ConfigEndpoint.createErrorIssue()).asPresent()
+                issues = listOf(ConfigEndpoint.createErrorIssue(configWorkerError)).asPresent()
             )
         }.onFailure {
             log.warn("Failed to handle 'ConfigWorkerError' message.", it)
@@ -305,7 +306,7 @@ class Orchestrator(
      * Handle the given [error] message with the given [header] from a worker of the given [endpoint].
      */
     private fun handleWorkerError(endpoint: Endpoint<*>, header: MessageHeader, error: WorkerMessage) {
-        handleCompletedJob(endpoint, header, error, JobStatus.FAILED, listOf(endpoint.createErrorIssue()))
+        handleCompletedJob(endpoint, header, error, JobStatus.FAILED, listOf(endpoint.createErrorIssue(error)))
     }
 
     /**
@@ -472,12 +473,13 @@ class Orchestrator(
 typealias CreatedJobs = List<JobScheduleFunc>
 
 /**
- * Create an [Issue] object representing an error that occurred in any [Endpoint].
+ * Create an [Issue] representing the [error] that occurred in an [Endpoint].
  */
-fun <T : Any> Endpoint<T>.createErrorIssue(): Issue = Issue(
+fun <T : Any> Endpoint<T>.createErrorIssue(error: Any): Issue = Issue(
     timestamp = Clock.System.now(),
     source = configPrefix,
-    message = "The $configPrefix worker failed due to an unexpected error.",
+    message = (error as? WorkerErrorMessage)?.errorMessage
+        ?: "The $configPrefix worker failed due to an unexpected error.",
     severity = Severity.ERROR
 )
 

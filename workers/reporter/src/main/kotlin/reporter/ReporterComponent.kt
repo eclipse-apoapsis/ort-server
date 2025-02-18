@@ -109,7 +109,7 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
 
                 is RunResult.Failed -> {
                     logger.error("Reporter job '$reporterJobId' failed.", result.error)
-                    Message(message.header, ReporterWorkerError(reporterJobId))
+                    Message(message.header, ReporterWorkerError(reporterJobId, result.error.message))
                 }
 
                 is RunResult.Ignored -> null
