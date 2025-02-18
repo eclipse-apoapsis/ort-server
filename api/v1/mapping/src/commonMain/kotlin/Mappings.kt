@@ -61,6 +61,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfiguration as ApiPlu
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability as ApiProductVulnerability
+import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration as ApiProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact as ApiRemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterAsset as ApiReporterAsset
@@ -133,6 +134,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
@@ -792,4 +794,18 @@ fun PackageWithShortestDependencyPaths.mapToApi() = ApiPackage(
     pkg.isMetadataOnly,
     pkg.isModified,
     shortestDependencyPaths.map { it.mapToApi() }
+)
+
+fun Project.mapToApi() = ApiProject(
+    identifier.mapToApi(),
+    cpe,
+    definitionFilePath,
+    authors,
+    declaredLicenses,
+    processedDeclaredLicense.mapToApi(),
+    vcs.mapToApi(),
+    vcsProcessed.mapToApi(),
+    description,
+    homepageUrl,
+    scopeNames
 )

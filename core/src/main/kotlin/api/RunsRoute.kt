@@ -53,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatistics
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRuns
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getPackagesByRunId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getProjectsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuleViolationsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
@@ -73,9 +74,11 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
+import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.PackageService
+import org.eclipse.apoapsis.ortserver.services.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.RuleViolationService
@@ -94,6 +97,7 @@ fun Route.runs() = route("runs") {
     val vulnerabilityService by inject<VulnerabilityService>()
     val ruleViolationService by inject<RuleViolationService>()
     val packageService by inject<PackageService>()
+    val projectService by inject<ProjectService>()
     val ortRunService by inject<OrtRunService>()
 
     get(getOrtRuns) {
@@ -332,6 +336,22 @@ fun Route.runs() = route("runs") {
                             ruleViolationsCountBySeverity = ruleViolationsBySeverity
                         )
                     )
+                }
+            }
+        }
+
+        route("projects") {
+            get(getProjectsByRunId) {
+                call.forRun(ortRunRepository) { ortRun ->
+                    requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                    val pagingOptions = call.pagingOptions(SortProperty("id", SortDirection.ASCENDING))
+
+                    val projectsForOrtRun = projectService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+
+                    val pagedResponse = projectsForOrtRun.mapToApi(Project::mapToApi)
+
+                    call.respond(HttpStatusCode.OK, pagedResponse)
                 }
             }
         }
