@@ -192,7 +192,8 @@ const CreateRunPage = () => {
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    The repository revision to use.
+                    The repository revision to use. Can be a branch, tag, or
+                    commit. Uses the default branch if left empty.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
