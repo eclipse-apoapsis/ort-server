@@ -22,6 +22,12 @@ package org.eclipse.apoapsis.ortserver.transport
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
+import java.io.File
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 import org.koin.core.component.KoinComponent
@@ -44,6 +50,10 @@ import org.slf4j.LoggerFactory
  *   [EndpointHandler] function defined by this instance is invoked for incoming messages.
  * - A dependency injection container is initialized. It already contains some default objects, but derived classes
  *   can add their own modules via the [customModules] function.
+ *
+ *  Implementations of this [EndpointComponent] can use the shared methods [sleepWhileKeepAliveFileExists] and
+ *  [generateKeepAliveFile] to make the pod stay alive after its work is done. This allows manual problem analysis
+ *  directly in the pod's execution environment by opening a terminal session.
  */
 abstract class EndpointComponent<T : Any>(
     /** The ORT server endpoint implemented by this component. */
@@ -52,6 +62,33 @@ abstract class EndpointComponent<T : Any>(
     /** The configuration for this endpoint wrapped in a [ConfigManager]. */
     val configManager: ConfigManager = ConfigManager.create(ConfigFactory.load())
 ) : KoinComponent {
+    companion object {
+        private const val CHECK_INTERVAL_SECONDS = 60L
+        private const val KEEP_ALIVE_FILE_NAME = "keep-alive.lock"
+        private val logger: Logger = LoggerFactory.getLogger(EndpointComponent::class.java)
+
+        /**
+         * Get the keep-alive file in the user's home directory.
+         */
+        private fun getKeepAliveFile(): File = File(System.getProperty("user.home"), KEEP_ALIVE_FILE_NAME)
+
+        /**
+         * Sleep while a keep-alive file exists. This is helpful in case a user terminal session is opened in the
+         * Kubernetes pod, and the pod should not terminate immediately after its work is done, giving the user
+         * arbitrary extra time for detailed problem analysis directly in the pod's execution environment.
+         */
+        suspend fun sleepWhileKeepAliveFileExists() {
+            val file = getKeepAliveFile()
+            while (file.exists()) {
+                logger.info(
+                    "Delete keep-alive lock file ${file.absolutePath} to continue. " +
+                        "Next check in $CHECK_INTERVAL_SECONDS seconds."
+                )
+                delay(CHECK_INTERVAL_SECONDS * 1000)
+            }
+        }
+    }
+
     abstract val endpointHandler: EndpointHandler<T>
 
     protected val logger: Logger = LoggerFactory.getLogger(this::class.java)

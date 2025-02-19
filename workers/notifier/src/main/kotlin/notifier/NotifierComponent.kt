@@ -65,6 +65,9 @@ class NotifierComponent : EndpointComponent<NotifierRequest>(NotifierEndpoint) {
                 is RunResult.Ignored -> null
             }
 
+            // Check if there is a demand to keep the pod alive for manual problem analysis.
+            sleepWhileKeepAliveFileExists()
+
             if (response != null) publisher.publish(OrchestratorEndpoint, response)
         }
     }
