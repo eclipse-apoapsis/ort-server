@@ -22,6 +22,7 @@ import {
   createColumnHelper,
   getCoreRowModel,
   getExpandedRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   Row,
@@ -62,6 +63,7 @@ import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import {
+  packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
@@ -69,96 +71,6 @@ import {
 const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<VulnerabilityWithIdentifier>();
-
-const columns = [
-  columnHelper.display({
-    id: 'moreInfo',
-    header: 'Details',
-    size: 50,
-    cell: ({ row }) => {
-      return row.getCanExpand() ? (
-        <Button
-          variant='outline'
-          size='sm'
-          {...{
-            onClick: row.getToggleExpandedHandler(),
-            style: { cursor: 'pointer' },
-          }}
-        >
-          {row.getIsExpanded() ? (
-            <ChevronUp className='h-4 w-4' />
-          ) : (
-            <ChevronDown className='h-4 w-4' />
-          )}
-        </Button>
-      ) : (
-        'No info'
-      );
-    },
-    enableSorting: false,
-    enableColumnFilter: false,
-  }),
-  columnHelper.accessor('rating', {
-    header: 'Rating',
-    cell: ({ row }) => {
-      return (
-        <Badge
-          className={`${getVulnerabilityRatingBackgroundColor(row.getValue('rating'))}`}
-        >
-          {row.getValue('rating')}
-        </Badge>
-      );
-    },
-    sortingFn: (rowA, rowB) => {
-      return compareVulnerabilityRating(
-        rowA.getValue('rating'),
-        rowB.getValue('rating')
-      );
-    },
-    enableColumnFilter: false,
-  }),
-  columnHelper.accessor(
-    (vuln) => {
-      return identifierToString(vuln.identifier);
-    },
-    {
-      id: 'package',
-      header: 'Package',
-      cell: ({ row }) => {
-        return <div className='font-semibold'>{row.getValue('package')}</div>;
-      },
-      enableColumnFilter: false,
-    }
-  ),
-  columnHelper.accessor('vulnerability.externalId', {
-    id: 'externalId',
-    header: 'External ID',
-    cell: ({ row }) => (
-      <Badge className='bg-blue-300 whitespace-nowrap'>
-        {row.getValue('externalId')}
-      </Badge>
-    ),
-    enableColumnFilter: false,
-  }),
-  columnHelper.accessor(
-    (row) => {
-      return row.vulnerability.summary;
-    },
-    {
-      id: 'summary',
-      header: 'Summary',
-      cell: ({ row }) => {
-        return (
-          <div className='text-muted-foreground italic'>
-            {row.getValue('summary')}
-          </div>
-        );
-      },
-      enableSorting: false,
-      enableColumnFilter: false,
-    }
-  ),
-];
 
 const renderSubComponent = ({
   row,
@@ -215,6 +127,106 @@ const renderSubComponent = ({
 const VulnerabilitiesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+
+  const columns = [
+    columnHelper.display({
+      id: 'moreInfo',
+      header: 'Details',
+      size: 50,
+      cell: ({ row }) => {
+        return row.getCanExpand() ? (
+          <Button
+            variant='outline'
+            size='sm'
+            {...{
+              onClick: row.getToggleExpandedHandler(),
+              style: { cursor: 'pointer' },
+            }}
+          >
+            {row.getIsExpanded() ? (
+              <ChevronUp className='h-4 w-4' />
+            ) : (
+              <ChevronDown className='h-4 w-4' />
+            )}
+          </Button>
+        ) : (
+          'No info'
+        );
+      },
+      enableSorting: false,
+      enableColumnFilter: false,
+    }),
+    columnHelper.accessor('rating', {
+      header: 'Rating',
+      cell: ({ row }) => {
+        return (
+          <Badge
+            className={`${getVulnerabilityRatingBackgroundColor(row.getValue('rating'))}`}
+          >
+            {row.getValue('rating')}
+          </Badge>
+        );
+      },
+      sortingFn: (rowA, rowB) => {
+        return compareVulnerabilityRating(
+          rowA.getValue('rating'),
+          rowB.getValue('rating')
+        );
+      },
+      enableColumnFilter: false,
+    }),
+    columnHelper.accessor(
+      (vuln) => {
+        return identifierToString(vuln.identifier);
+      },
+      {
+        id: 'packageIdentifier',
+        header: 'Package',
+        cell: ({ getValue }) => {
+          return <div className='font-semibold'>{getValue()}</div>;
+        },
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, pkgId: value },
+              });
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor('vulnerability.externalId', {
+      id: 'externalId',
+      header: 'External ID',
+      cell: ({ row }) => (
+        <Badge className='bg-blue-300 whitespace-nowrap'>
+          {row.getValue('externalId')}
+        </Badge>
+      ),
+      enableColumnFilter: false,
+    }),
+    columnHelper.accessor(
+      (row) => {
+        return row.vulnerability.summary;
+      },
+      {
+        id: 'summary',
+        header: 'Summary',
+        cell: ({ row }) => {
+          return (
+            <div className='text-muted-foreground italic'>
+              {row.getValue('summary')}
+            </div>
+          );
+        },
+        enableSorting: false,
+        enableColumnFilter: false,
+      }
+    ),
+  ];
 
   // All of these need to be memoized to prevent unnecessary re-renders
   // and (at least for Firefox) the browser freezing up.
@@ -227,6 +239,19 @@ const VulnerabilitiesComponent = () => {
     () => (search.pageSize ? search.pageSize : defaultPageSize),
     [search.pageSize]
   );
+
+  const packageIdentifier = useMemo(
+    () => (search.pkgId ? search.pkgId : undefined),
+    [search.pkgId]
+  );
+
+  const columnFilters = useMemo(() => {
+    const filters = [];
+    if (packageIdentifier) {
+      filters.push({ id: 'packageIdentifier', value: packageIdentifier });
+    }
+    return filters;
+  }, [packageIdentifier]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
@@ -259,10 +284,12 @@ const VulnerabilitiesComponent = () => {
         pageIndex,
         pageSize,
       },
+      columnFilters,
       sorting: sortBy,
     },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
@@ -333,9 +360,9 @@ const VulnerabilitiesComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities/'
 )({
-  validateSearch: paginationSearchParameterSchema.merge(
-    sortingSearchParameterSchema
-  ),
+  validateSearch: paginationSearchParameterSchema
+    .merge(sortingSearchParameterSchema)
+    .merge(packageIdentifierSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
       context.queryClient,
