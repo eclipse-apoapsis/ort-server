@@ -29,8 +29,6 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.api.v1"
 
 kotlin {
-    jvm()
-
     sourceSets {
         commonMain {
             dependencies {
