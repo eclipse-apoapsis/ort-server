@@ -27,6 +27,10 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
 }
 
+kotlin {
+    jvm()
+}
+
 tasks.named<Detekt>("detekt") {
     dependsOn("detektMetadataMain")
 }
