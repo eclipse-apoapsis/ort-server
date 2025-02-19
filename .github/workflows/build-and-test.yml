@@ -26,6 +26,25 @@ jobs:
     - name: Build all classes
       run: ./gradlew --stacktrace classes
 
+  build-cli:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: [
+          { name: 'Linux x64', task: 'linkReleaseExecutableLinuxX64' },
+          { name: 'macOS arm64', task: 'linkReleaseExecutableMacosArm64' },
+          { name: 'macOS x64', task: 'linkReleaseExecutableMacosX64' }
+        ]
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@94baf225fe0a508e581a564467443d0e2379123b # v4
+
+    - name: Build CLI - ${{ matrix.target.name }}
+      run: ./gradlew --stacktrace cli:${{ matrix.target.task }}
+
   build-ui:
     runs-on: ubuntu-24.04
     steps:
