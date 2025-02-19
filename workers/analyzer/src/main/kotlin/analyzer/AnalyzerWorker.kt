@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
@@ -59,8 +60,12 @@ internal class AnalyzerWorker(
         logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
 
         val context = contextFactory.createContext(job.ortRunId)
-        val envConfigFromJob = job.configuration.environmentConfig
 
+        if (job.configuration.keepAliveWorker == true) {
+            EndpointComponent.generateKeepAliveFile()
+        }
+
+        val envConfigFromJob = job.configuration.environmentConfig
         val repositoryServices = environmentService.findInfrastructureServicesForRepository(context, envConfigFromJob)
         if (repositoryServices.isNotEmpty()) {
             logger.info(
