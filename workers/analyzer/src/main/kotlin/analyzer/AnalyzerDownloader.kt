@@ -52,15 +52,15 @@ class AnalyzerDownloader {
         val vcsInfo = VcsInfo(
             type = vcs.type,
             url = repositoryUrl,
-            revision = revision,
+            revision = revision.takeUnless { it.isEmpty() } ?: vcs.getDefaultBranchName(repositoryUrl),
             path = path
         )
 
         val workingTree = vcs.initWorkingTree(outputDir, vcsInfo)
         val recursiveCheckout = submoduleFetchStrategy != SubmoduleFetchStrategy.DISABLED
-        vcs.updateWorkingTree(workingTree, revision, recursive = recursiveCheckout).getOrThrow()
+        vcs.updateWorkingTree(workingTree, vcsInfo.revision, recursive = recursiveCheckout).getOrThrow()
 
-        logger.info("Finished downloading '$repositoryUrl' revision '$revision'.")
+        logger.info("Finished downloading '$repositoryUrl' revision '${vcsInfo.revision}'.")
 
         return outputDir
     }
