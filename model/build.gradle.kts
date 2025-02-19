@@ -23,10 +23,15 @@ plugins {
     id("ort-server-publication-conventions")
 
     // Apply third-party plugins.
+    alias(libs.plugins.buildConfig)
     alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver"
+
+buildConfig {
+    buildConfigField("ORT_SERVER_VERSION", provider { "${project.version}" })
+}
 
 kotlin {
     sourceSets {
