@@ -21,6 +21,7 @@
 eclipseTemurin = "21.0.4_7-jdk-jammy@sha256:0472478e22da0f66043fa6acd8cd30126592349f47937adafc2340794e5bf06a"
 
 # Gradle plugins
+buildConfig = "5.5.1"
 dependencyAnalysisPlugin = "2.10.0"
 detektPlugin = "1.23.7"
 gitSemverPlugin = "0.15.0"
@@ -70,6 +71,7 @@ typesafeConfig = "1.4.3"
 wiremock = "3.0.1"
 
 [plugins]
+buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
 gitSemver = { id = "com.github.jmongard.git-semver-plugin", version.ref = "gitSemverPlugin" }
 jib = { id = "com.google.cloud.tools.jib", version.ref = "jibPlugin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
