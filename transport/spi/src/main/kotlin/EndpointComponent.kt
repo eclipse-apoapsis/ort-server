@@ -22,6 +22,9 @@ package org.eclipse.apoapsis.ortserver.transport
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
+import java.io.File
+import java.util.concurrent.TimeUnit
+
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 import org.koin.core.component.KoinComponent
@@ -52,6 +55,27 @@ abstract class EndpointComponent<T : Any>(
     /** The configuration for this endpoint wrapped in a [ConfigManager]. */
     val configManager: ConfigManager = ConfigManager.create(ConfigFactory.load())
 ) : KoinComponent {
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(EndpointComponent::class.java)
+
+        /**
+         * Sleep while a keep-alive file exists. This is helpful in case a user terminal session is opened in the
+         * Kubernetes pod, and the pod should not terminate immediately after its work is done, giving the user
+         * arbitrary extra time for detailed problem analysis directly in the pod's execution environment.
+         */
+        fun sleepWhileKeepAliveFileExists() {
+            val checkIntervalSeconds = 60L
+            val file = File(System.getProperty("user.home"), "keep-alive.lock")
+            while (file.exists()) {
+                logger.info(
+                    "Keep alive lock file ${file.absolutePath} exists. " +
+                        "Sleeping for $checkIntervalSeconds seconds until next check ..."
+                )
+                TimeUnit.SECONDS.sleep(checkIntervalSeconds)
+            }
+        }
+    }
+
     abstract val endpointHandler: EndpointHandler<T>
 
     protected val logger: Logger = LoggerFactory.getLogger(this::class.java)

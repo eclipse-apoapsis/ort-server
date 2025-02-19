@@ -64,6 +64,9 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
             }
         }
 
+        // Check if there is a demand to keep the pod alive for manual problem analysis.
+        sleepWhileKeepAliveFileExists()
+
         publisher.publish(OrchestratorEndpoint, Message(message.header, responsePayload))
     }
 
