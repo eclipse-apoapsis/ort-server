@@ -96,3 +96,9 @@ plugins {
     // Gradle cannot access the version catalog from here, so hard-code the dependency.
     id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
 }
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
