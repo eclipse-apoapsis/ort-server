@@ -29,6 +29,7 @@ import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.maps.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
 import io.mockk.every
@@ -42,11 +43,22 @@ import org.ossreviewtoolkit.downloader.VersionControlSystem
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.api.PluginConfig
+import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitCommand
 
 class AnalyzerDownloaderTest : WordSpec({
     val downloader = AnalyzerDownloader()
 
     "downloadRepository" should {
+        "use the default branch if an empty revision is given" {
+            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
+
+            val outputDir = downloader.downloadRepository(repositoryUrl, revision = "")
+
+            with(GitCommand.run(outputDir, "branch", "--show-current").requireSuccess()) {
+                stdout.trim() shouldBe "main"
+            }
+        }
+
         "not recursively clone a Git repository if submoduleFetchStrategy is DISABLED" {
             val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-git-submodules.git"
             val revision = "fcea94bab5835172e826afddb9f6427274c983b9"
