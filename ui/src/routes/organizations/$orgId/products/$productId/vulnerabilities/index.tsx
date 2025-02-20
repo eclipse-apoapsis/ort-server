@@ -33,6 +33,7 @@ import {
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
+  vulnerabilityRatingSearchParameterSchema,
 } from '@/schemas';
 import { ProductVulnerabilityTable } from './-components/product-vulnerability-table';
 
@@ -72,7 +73,8 @@ export const Route = createFileRoute(
 )({
   validateSearch: paginationSearchParameterSchema
     .merge(sortingSearchParameterSchema)
-    .merge(packageIdentifierSearchParameterSchema),
+    .merge(packageIdentifierSearchParameterSchema)
+    .merge(vulnerabilityRatingSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseProductsServiceGetApiV1ProductsByProductId(
       context.queryClient,
