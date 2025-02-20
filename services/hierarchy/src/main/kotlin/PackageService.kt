@@ -19,16 +19,18 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackageDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQuery
+import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQueryCustomOrders
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -36,7 +38,9 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 
 /**
@@ -47,11 +51,31 @@ class PackageService(private val db: Database) {
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<PackageWithShortestDependencyPaths> = db.dbQuery {
-        val listQueryResult = PackageDao.listCustomQuery(parameters, ResultRow::toPackageWithShortestDependencyPaths) {
-            PackagesTable.joinAnalyzerTables()
-                .select(PackagesTable.columns)
-                .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+        val orders = mutableListOf<Pair<Expression<*>, SortOrder>>()
+
+        parameters.sortFields.forEach {
+            val sortOrder = it.direction.toSortOrder()
+            when (it.name) {
+                "identifier" -> {
+                    orders += IdentifiersTable.type to sortOrder
+                    orders += IdentifiersTable.namespace to sortOrder
+                    orders += IdentifiersTable.name to sortOrder
+                    orders += IdentifiersTable.version to sortOrder
+                }
+                "purl" -> orders += PackagesTable.purl to sortOrder
+                "processedDeclaredLicense" -> orders += ProcessedDeclaredLicensesTable.spdxExpression to sortOrder
+                else -> throw QueryParametersException("Unsupported field for sorting: '${it.name}'.")
+            }
         }
+
+        val listQueryResult =
+            listCustomQueryCustomOrders(parameters, orders, ResultRow::toPackageWithShortestDependencyPaths) {
+                PackagesTable.joinAnalyzerTables()
+                    .innerJoin(IdentifiersTable)
+                    .innerJoin(ProcessedDeclaredLicensesTable)
+                    .select(PackagesTable.columns)
+                    .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+            }
 
         val data = listQueryResult.data.map { pkg ->
             val shortestPaths = ShortestDependencyPathsTable
