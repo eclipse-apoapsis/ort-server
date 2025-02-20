@@ -23,13 +23,20 @@ plugins {
     id("ort-server-publication-conventions")
 
     // Apply third-party plugins.
+    alias(libs.plugins.buildConfig)
     alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver"
 
+buildConfig {
+    buildConfigField("ORT_SERVER_VERSION", provider { "${project.version}" })
+}
+
 kotlin {
-    jvm()
+    linuxX64()
+    macosArm64()
+    macosX64()
 
     sourceSets {
         commonMain {
@@ -38,12 +45,6 @@ kotlin {
 
                 implementation(libs.konform)
                 implementation(libs.kotlinxSerializationJson)
-            }
-        }
-
-        commonTest {
-            dependencies {
-                implementation(projects.utils.test)
             }
         }
     }

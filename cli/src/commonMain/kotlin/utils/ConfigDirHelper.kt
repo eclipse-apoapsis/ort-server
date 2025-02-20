@@ -17,9 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.cli
+package org.eclipse.apoapsis.ortserver.cli.utils
+
+import okio.Path
 
 /**
- * Add a trailing slash to this [String] if it is missing.
+ * The directory where the configuration files are stored, respecting the XDG Base Directory specification [1].
+ *
+ * [1]: https://specifications.freedesktop.org/basedir-spec/latest/
  */
-fun String.ensureSuffix(suffix: String): String = takeIf { endsWith(suffix) } ?: "$this$suffix"
+internal expect val configDir: Path

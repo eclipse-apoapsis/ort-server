@@ -22,4 +22,4 @@ package org.eclipse.apoapsis.ortserver.model
 /**
  * The version of the ORT Server as a string.
  */
-val ORT_SERVER_VERSION by lazy { object {}::class.java.`package`.implementationVersion ?: "IDE-SNAPSHOT" }
+val ORT_SERVER_VERSION = BuildConfig.ORT_SERVER_VERSION

@@ -29,7 +29,11 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.api.v1"
 
 kotlin {
-    jvm()
+    linuxX64()
+    macosArm64()
+    macosX64()
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         commonMain {
@@ -53,6 +57,18 @@ kotlin {
         jvmMain {
             dependencies {
                 implementation(libs.ktorClientOkHttp)
+            }
+        }
+
+        linuxMain {
+            dependencies {
+                implementation(libs.ktorClientCurl)
+            }
+        }
+
+        macosMain {
+            dependencies {
+                implementation(libs.ktorClientDarwin)
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import io.gitlab.arturbosch.detekt.Detekt
+package org.eclipse.apoapsis.ortserver.cli
 
-plugins {
-    // Apply precompiled plugins.
-    id("ort-server-kotlin-conventions")
-
-    // Apply third-party plugins.
-    id("org.jetbrains.kotlin.multiplatform")
-}
-
-kotlin {
-    jvm()
-}
-
-tasks.named<Detekt>("detekt") {
-    dependsOn("detektMetadataMain")
-}
+actual fun getEnv(name: String): String? = System.getenv(name)

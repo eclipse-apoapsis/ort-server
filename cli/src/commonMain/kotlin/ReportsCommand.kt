@@ -29,18 +29,18 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.split
-import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.long
 
-import io.ktor.util.cio.use
-import io.ktor.util.cio.writeChannel
-import io.ktor.utils.io.copyTo
+import io.ktor.utils.io.readAvailable
 
-import java.io.File
+import okio.FileSystem
+import okio.Path.Companion.toPath
+import okio.SYSTEM
+import okio.buffer
+import okio.use
 
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
-
-import org.ossreviewtoolkit.utils.common.expandTilde
+import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
 
 class ReportsCommand : SuspendingCliktCommand(name = "reports") {
     private val runId by option(
@@ -64,9 +64,7 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
         "-o",
         envvar = "OSC_DOWNLOAD_REPORTS_OUTPUT_DIR",
         help = "The directory to download the reports to."
-    ).convert { it.expandTilde() }
-        .file(mustExist = false, canBeFile = false, canBeDir = true, mustBeWritable = true, mustBeReadable = false)
-        .convert { it.absoluteFile.normalize() }
+    ).convert { it.expandTilde().toPath() }
         .required()
 
     override fun help(context: Context) = "Download reports for a run."
@@ -88,14 +86,19 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
         outputDir.mkdirs()
 
         fileNames.forEach { fileName ->
-            val reportFile = File(outputDir, fileName)
-            reportFile.writeChannel().use {
+            val reportFile = outputDir.resolve(fileName)
+
+            FileSystem.SYSTEM.sink(reportFile).buffer().use { sink ->
                 client.runs.downloadReport(resolvedOrtRunId, fileName) { channel ->
-                    channel.copyTo(this)
+                    val buffer = ByteArray(8192) // 8KiB buffer.
+                    var bytesRead: Int
+                    while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
+                        sink.write(buffer, 0, bytesRead)
+                    }
                 }
             }
 
-            echo(reportFile.absolutePath)
+            echo(reportFile.toString())
         }
     }
 }

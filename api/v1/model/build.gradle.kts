@@ -29,7 +29,9 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.api.v1"
 
 kotlin {
-    jvm()
+    linuxX64()
+    macosArm64()
+    macosX64()
 
     sourceSets {
         commonMain {
@@ -38,13 +40,29 @@ kotlin {
                 api(libs.konform)
 
                 implementation(libs.kotlinxSerializationJson)
+                implementation(libs.ktorHttp)
             }
         }
 
-        commonTest {
+        jvmTest {
             dependencies {
-                implementation(projects.utils.test)
+                implementation(libs.kotestAssertionsCore)
+                implementation(libs.kotestRunnerJunit5)
             }
         }
+    }
+}
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+
+    testLogging {
+        events = setOf(
+            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+        )
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showExceptions = true
+        showStandardStreams = true
     }
 }
