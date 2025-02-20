@@ -50,11 +50,16 @@ data class Repository(
         const val INVALID_URL_MESSAGE = "The repository URL is malformed."
         const val USER_INFO_MESSAGE = "The repository URL must not contain userinfo."
 
-        fun isValidUrl(url: String): Boolean = parseUrl(url) != null
+        fun isValidUrl(url: String): Boolean = parseUrl(url)?.host?.isValidHost() ?: false
 
         fun hasUserInfo(url: String): Boolean = parseUrl(url)?.user != null
     }
 }
+
+/**
+ * Check if there are only valid characters in the host.
+ */
+private fun String.isValidHost() = all { it.isLetterOrDigit() || it == '.' || it == '-' }
 
 /**
  * Request object for the create repository endpoint.
