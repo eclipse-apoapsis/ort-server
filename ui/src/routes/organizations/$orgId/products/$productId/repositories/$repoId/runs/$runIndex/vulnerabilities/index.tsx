@@ -34,7 +34,10 @@ import { useMemo } from 'react';
 import { useVulnerabilitiesServiceGetApiV1RunsByRunIdVulnerabilities } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
-import { VulnerabilityWithIdentifier } from '@/api/requests';
+import {
+  VulnerabilityRating,
+  VulnerabilityWithIdentifier,
+} from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -66,6 +69,8 @@ import {
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
+  vulnerabilityRatingSchema,
+  vulnerabilityRatingSearchParameterSchema,
 } from '@/schemas';
 
 const defaultPageSize = 10;
@@ -159,14 +164,17 @@ const VulnerabilitiesComponent = () => {
     }),
     columnHelper.accessor('rating', {
       header: 'Rating',
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <Badge
-            className={`${getVulnerabilityRatingBackgroundColor(row.getValue('rating'))}`}
+            className={`${getVulnerabilityRatingBackgroundColor(getValue())}`}
           >
-            {row.getValue('rating')}
+            {getValue()}
           </Badge>
         );
+      },
+      filterFn: (row, _columnId, filterValue): boolean => {
+        return filterValue.includes(row.original.rating);
       },
       sortingFn: (rowA, rowB) => {
         return compareVulnerabilityRating(
@@ -174,7 +182,24 @@ const VulnerabilitiesComponent = () => {
           rowB.getValue('rating')
         );
       },
-      enableColumnFilter: false,
+      meta: {
+        filter: {
+          filterVariant: 'select',
+          selectOptions: vulnerabilityRatingSchema.options.map((rating) => ({
+            label: rating,
+            value: rating,
+          })),
+          setSelected: (ratings: VulnerabilityRating[]) => {
+            navigate({
+              search: {
+                ...search,
+                page: 1,
+                rating: ratings.length === 0 ? undefined : ratings,
+              },
+            });
+          },
+        },
+      },
     }),
     columnHelper.accessor(
       (vuln) => {
@@ -245,13 +270,21 @@ const VulnerabilitiesComponent = () => {
     [search.pkgId]
   );
 
+  const rating = useMemo(
+    () => (search.rating ? search.rating : undefined),
+    [search.rating]
+  );
+
   const columnFilters = useMemo(() => {
     const filters = [];
     if (packageIdentifier) {
       filters.push({ id: 'packageIdentifier', value: packageIdentifier });
     }
+    if (rating) {
+      filters.push({ id: 'rating', value: rating });
+    }
     return filters;
-  }, [packageIdentifier]);
+  }, [packageIdentifier, rating]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
@@ -362,7 +395,8 @@ export const Route = createFileRoute(
 )({
   validateSearch: paginationSearchParameterSchema
     .merge(sortingSearchParameterSchema)
-    .merge(packageIdentifierSearchParameterSchema),
+    .merge(packageIdentifierSearchParameterSchema)
+    .merge(vulnerabilityRatingSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
       context.queryClient,
