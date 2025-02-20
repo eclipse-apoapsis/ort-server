@@ -123,17 +123,16 @@ const renderSubComponent = ({ row }: { row: Row<Package> }) => {
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='text-lg font-semibold'>Details</div>
-      <div className='flex flex-col gap-2'>
-        <div>
-          <div className='font-semibold'>Description</div>
-          <div className='break-all'>
-            {pkg.description || 'No description available'}
-          </div>
+      <div>
+        <div className='font-semibold'>Description</div>
+        <div className='ml-2 break-all'>
+          {pkg.description || 'No description available.'}
         </div>
-        <div>
-          <div className='font-semibold'>Repository</div>
-          <div className='ml-2'>
+      </div>
+      <div>
+        <div className='font-semibold'>Repository</div>
+        <div className='ml-2'>
+          {pkg.vcsProcessed.url && (
             <div className='flex gap-2'>
               <div className='font-semibold'>URL:</div>
               <a
@@ -145,39 +144,41 @@ const renderSubComponent = ({ row }: { row: Row<Package> }) => {
                 {pkg.vcsProcessed.url}
               </a>
             </div>
-            {pkg.vcsProcessed.type && (
-              <div className='flex gap-2'>
-                <div className='font-semibold'>Type:</div>
-                <div>{pkg.vcsProcessed.type}</div>
-              </div>
-            )}
-            {pkg.vcsProcessed.revision && (
-              <div className='flex gap-2'>
-                <div className='font-semibold'>Revision:</div>
-                <div>{pkg.vcsProcessed.revision}</div>
-              </div>
-            )}
-            {pkg.vcsProcessed.path && (
-              <div className='flex gap-2'>
-                <div className='font-semibold'>Path:</div>
-                <div>{pkg.vcsProcessed.path} </div>
-              </div>
-            )}
-          </div>
-        </div>
-        <div>
-          <div className='font-semibold'>Source Artifact</div>
-          {pkg.isMetadataOnly ? (
-            'This is a metadata-only package.'
-          ) : (
-            <a
-              href={pkg.sourceArtifact.url}
-              className='text-blue-400 hover:underline'
-            >
-              {pkg.sourceArtifact.url}
-            </a>
+          )}
+          {pkg.vcsProcessed.type && (
+            <div className='flex gap-2'>
+              <div className='font-semibold'>Type:</div>
+              <div>{pkg.vcsProcessed.type}</div>
+            </div>
+          )}
+          {pkg.vcsProcessed.revision && (
+            <div className='flex gap-2'>
+              <div className='font-semibold'>Revision:</div>
+              <div>{pkg.vcsProcessed.revision}</div>
+            </div>
+          )}
+          {pkg.vcsProcessed.path && (
+            <div className='flex gap-2'>
+              <div className='font-semibold'>Path:</div>
+              <div>{pkg.vcsProcessed.path} </div>
+            </div>
           )}
         </div>
+      </div>
+      <div>
+        <div className='font-semibold'>Source Artifact</div>
+        {pkg.isMetadataOnly ? (
+          <div className='ml-2'>This is a metadata-only package.</div>
+        ) : pkg.sourceArtifact.url.length > 0 ? (
+          <a
+            href={pkg.sourceArtifact.url}
+            className='ml-2 text-blue-400 hover:underline'
+          >
+            {pkg.sourceArtifact.url}
+          </a>
+        ) : (
+          <div className='ml-2'>No source artifact found.</div>
+        )}
       </div>
     </div>
   );
