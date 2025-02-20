@@ -50,4 +50,14 @@ class RepositoryTest : StringSpec({
             invalidUrls.forAll { Repository.isValidUrl(it) shouldBe false }
         }
     }
+
+    "hasUserInfo()" should {
+        "detect user info in the URL" {
+            Repository.hasUserInfo("https://user:password@example.com") shouldBe true
+            Repository.hasUserInfo("https://user@example.com") shouldBe true
+            Repository.hasUserInfo("https://127.0.0.1") shouldBe false
+            Repository.hasUserInfo("https://user@127.0.0.1") shouldBe true
+            Repository.hasUserInfo("https://example.com") shouldBe false
+        }
+    }
 })
