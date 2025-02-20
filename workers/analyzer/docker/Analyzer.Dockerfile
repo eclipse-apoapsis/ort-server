@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.13
+# syntax=docker/dockerfile:1.14
 
 # This Dockerfile is the base image for the Analyzer Docker image. It contains all the tooling required to run the
 # Analyzer.
