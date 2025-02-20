@@ -43,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense
+import org.eclipse.apoapsis.ortserver.api.v1.model.Project
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
@@ -408,6 +409,61 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
                                         )
                                     )
                                 )
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 1,
+                            sortProperties = listOf(SortProperty("purl", SortDirection.ASCENDING))
+                        )
+                    )
+                }
+            }
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The ORT run does not exist."
+        }
+    }
+}
+
+val getProjectsByRunId: OpenApiRoute.() -> Unit = {
+    operationId = "GetProjectsByRunId"
+    summary = "Get the projects found in an ORT run."
+    tags = listOf("Projects")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success."
+            jsonBody<PagedResponse<Project>> {
+                example("Get project for an ORT run") {
+                    value = PagedResponse(
+                        listOf(
+                            Project(
+                                identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
+                                cpe = null,
+                                definitionFilePath = "path/to/definition",
+                                authors = setOf("author1", "author2"),
+                                declaredLicenses = setOf("license1", "license2"),
+                                processedDeclaredLicense = ProcessedDeclaredLicense(
+                                    spdxExpression = "Expression",
+                                    mappedLicenses = emptyMap(),
+                                    unmappedLicenses = emptySet()
+                                ),
+                                vcs = VcsInfo(RepositoryType.GIT.name, "url", "revision", "path"),
+                                vcsProcessed = VcsInfo(RepositoryType.GIT.name, "url", "revision", "path"),
+                                description = "A description",
+                                homepageUrl = "https://example.com/namespace/name",
+                                scopeNames = setOf("scope1", "scope2")
                             )
                         ),
                         PagingData(

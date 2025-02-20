@@ -27,12 +27,12 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggColumnEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggTwoColumnsEquals
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
+import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 
 import org.jetbrains.exposed.dao.LongEntity
-import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.andHaving
@@ -41,7 +41,8 @@ import org.jetbrains.exposed.sql.andWhere
 /**
  * A table to represent a software package as a project.
  */
-object ProjectsTable : LongIdTable("projects") {
+object ProjectsTable : SortableTable("projects") {
+    val sortableId = id.sortable()
     val identifierId = reference("identifier_id", IdentifiersTable)
     val vcsId = reference("vcs_id", VcsInfoTable)
     val vcsProcessedId = reference("vcs_processed_id", VcsInfoTable)
@@ -53,7 +54,7 @@ object ProjectsTable : LongIdTable("projects") {
 }
 
 class ProjectDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<ProjectDao>(ProjectsTable) {
+    companion object : SortableEntityClass<ProjectDao>(ProjectsTable) {
         fun findByProject(project: Project): ProjectDao? {
             val vcsProcessed = VcsInfoTable.alias("vcs_processed_info")
             val query = ProjectsTable
