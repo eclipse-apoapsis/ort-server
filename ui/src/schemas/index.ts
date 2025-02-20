@@ -19,7 +19,7 @@
 
 import z from 'zod';
 
-import { OrtRunStatus, Severity } from '@/api/requests';
+import { OrtRunStatus, Severity, VulnerabilityRating } from '@/api/requests';
 
 // Enum schema for the groupId parameter of the Groups endpoints
 export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
@@ -34,6 +34,11 @@ export const severitySchema: z.ZodEnum<[Severity, ...Severity[]]> = z.enum([
   'WARNING',
   'ERROR',
 ]);
+
+// Enum schema for the possible values of the advisory overall vulnerability ratings
+export const vulnerabilityRatingSchema: z.ZodEnum<
+  [VulnerabilityRating, ...VulnerabilityRating[]]
+> = z.enum(['NONE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
 
 // Enum schema and type for the possible values of the issue categories.
 export const issueCategorySchema = z.enum([
@@ -77,6 +82,10 @@ export const packageIdentifierSearchParameterSchema = z.object({
 
 export const issueCategorySearchParameterSchema = z.object({
   category: z.array(issueCategorySchema).optional(),
+});
+
+export const vulnerabilityRatingSearchParameterSchema = z.object({
+  rating: z.array(vulnerabilityRatingSchema).optional(),
 });
 
 // This schema is used to validate the search parameter for the items marked for inspection
