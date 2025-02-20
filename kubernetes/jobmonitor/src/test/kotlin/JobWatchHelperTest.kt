@@ -109,7 +109,7 @@ class JobWatchHelperTest : StringSpec({
                 success = false
                 bookmarkEvent
             } else {
-                throw IOException("test exception")
+                throw IOException("Test exception")
             }
         }
 
