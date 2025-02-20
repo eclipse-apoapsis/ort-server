@@ -32,6 +32,7 @@ import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByO
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { Package } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { DependencyPaths } from '@/components/dependency-paths';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -180,6 +181,12 @@ const renderSubComponent = ({ row }: { row: Row<Package> }) => {
           <div className='ml-2'>No source artifact found.</div>
         )}
       </div>
+      {pkg.shortestDependencyPaths.length > 0 && (
+        <div>
+          <div className='font-semibold'>Shortest dependency paths</div>
+          <DependencyPaths pkg={pkg} className='flex flex-col gap-2' />
+        </div>
+      )}
     </div>
   );
 };
