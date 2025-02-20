@@ -213,7 +213,7 @@ const IssuesComponent = () => {
       },
       {
         id: 'packageIdentifier',
-        header: 'Package',
+        header: 'Package ID',
         cell: ({ getValue }) => {
           return <div className='font-semibold'>{getValue()}</div>;
         },
