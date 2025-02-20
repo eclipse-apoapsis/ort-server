@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.services
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -148,6 +149,87 @@ class PackageServiceTest : WordSpec() {
 
                 results.data.first().pkg.identifier.name shouldBe "example3"
                 results.data.last().pkg.identifier.name shouldBe "example2"
+            }
+
+            "allow sorting by identifier" {
+                val service = PackageService(db)
+
+                val identifier1 = Identifier("NPM", "", "which", "2.0.2")
+                val identifier2 = Identifier("Maven", "com.fasterxml.jackson.core", "jackson-databind", "2.9.6")
+                val identifier3 = Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                val identifier4 = Identifier("Maven", "com.fasterxml.jackson.core", "jackson-annotations", "2.17.1")
+                val identifier5 = Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.5")
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        generatePackage(identifier1),
+                        generatePackage(identifier2),
+                        generatePackage(identifier3),
+                        generatePackage(identifier4),
+                        generatePackage(identifier5)
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.DESCENDING)))
+                )
+
+                results.data shouldHaveSize 5
+                results.totalCount shouldBe 5
+
+                results.data.map { it.pkg.identifier } shouldContainInOrder listOf(
+                    identifier1,
+                    identifier5,
+                    identifier3,
+                    identifier2,
+                    identifier4
+                )
+            }
+
+            "allow sorting by processed declared license" {
+                val service = PackageService(db)
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        generatePackage(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        generatePackage(
+                            Identifier("Maven", "com.example", "example2", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        generatePackage(
+                            Identifier("Maven", "com.example", "example3", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "EPL-1.0 OR LGPL-2.1-or-later",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("processedDeclaredLicense", OrderDirection.ASCENDING)))
+                )
+
+                results.data shouldHaveSize 3
+                results.totalCount shouldBe 3
+
+                results.data[0].pkg.processedDeclaredLicense.spdxExpression shouldBe "Apache-2.0"
+                results.data[1].pkg.processedDeclaredLicense.spdxExpression shouldBe "EPL-1.0 OR LGPL-2.1-or-later"
+                results.data[2].pkg.processedDeclaredLicense.spdxExpression shouldBe "MIT"
             }
 
             "return an empty list if no packages were found in an ORT run" {
