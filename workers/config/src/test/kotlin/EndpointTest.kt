@@ -88,7 +88,7 @@ class EndpointTest : KoinTest, StringSpec() {
         "A failure result should be sent back if the worker execution is not successful" {
             runEndpointTest {
                 declareMock<ConfigWorker> {
-                    coEvery { run(RUN_ID) } returns RunResult.Failed(IllegalStateException("test exception"))
+                    coEvery { run(RUN_ID) } returns RunResult.Failed(IllegalStateException("Test exception"))
                 }
 
                 sendConfigRequest()
