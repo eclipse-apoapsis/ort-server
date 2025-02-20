@@ -30,6 +30,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
@@ -69,9 +70,9 @@ const ProductVulnerabilitiesComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/vulnerabilities/'
 )({
-  validateSearch: paginationSearchParameterSchema.merge(
-    sortingSearchParameterSchema
-  ),
+  validateSearch: paginationSearchParameterSchema
+    .merge(sortingSearchParameterSchema)
+    .merge(packageIdentifierSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseProductsServiceGetApiV1ProductsByProductId(
       context.queryClient,
