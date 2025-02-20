@@ -353,11 +353,16 @@ const IssuesComponent = () => {
     });
     return;
   }
+  const filtersInUse = table.getState().columnFilters.length > 0;
+  const matching = `, ${table.getPrePaginationRowModel().rows.length} matching filters`;
 
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>Issues ({issues.pagination.totalCount} in total)</CardTitle>
+        <CardTitle>
+          Issues ({issues.pagination.totalCount} in total
+          {filtersInUse && matching})
+        </CardTitle>
         <CardDescription>
           This view shows any technical issues that were discovered by the
           respective source. As technical issues might have an impact on the

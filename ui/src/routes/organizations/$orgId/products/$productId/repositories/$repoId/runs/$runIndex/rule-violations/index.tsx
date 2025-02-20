@@ -256,12 +256,15 @@ const RuleViolationsComponent = () => {
     getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
   });
+  const filtersInUse = table.getState().columnFilters.length > 0;
+  const matching = `, ${table.getPrePaginationRowModel().rows.length} matching filters`;
 
   return (
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Rule violations ({ruleViolations.pagination.totalCount} in total)
+          Rule violations ({ruleViolations.pagination.totalCount} in total
+          {filtersInUse && matching})
         </CardTitle>
         <CardDescription>
           This view shows all violations that go against the rules defined in
