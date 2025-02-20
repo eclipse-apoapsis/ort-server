@@ -37,6 +37,7 @@ import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.model.utils.FileArchiver
+import org.ossreviewtoolkit.plugins.api.PluginConfig
 import org.ossreviewtoolkit.scanner.ScanStorages
 import org.ossreviewtoolkit.scanner.Scanner
 import org.ossreviewtoolkit.scanner.ScannerWrapper
@@ -132,8 +133,8 @@ private fun createScanners(names: List<String>, config: Map<String, PluginConfig
             "Scanner '$it' is not one of ${ScannerWrapperFactory.ALL.keys.joinToString()}"
         )
     }.map {
-        val pluginConfig = config?.get(it.type)
-        it.create(pluginConfig?.options.orEmpty(), pluginConfig?.secrets.orEmpty())
+        val pluginConfig = config?.get(it.descriptor.id)
+        it.create(PluginConfig(pluginConfig?.options.orEmpty(), pluginConfig?.secrets.orEmpty()))
     }
 
 /**

@@ -43,7 +43,8 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
-import org.ossreviewtoolkit.scanner.CommandLinePathScannerWrapper
+import org.ossreviewtoolkit.plugins.api.PluginConfig
+import org.ossreviewtoolkit.scanner.LocalPathScannerWrapper
 import org.ossreviewtoolkit.scanner.Scanner
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 import org.ossreviewtoolkit.utils.spdx.SpdxConstants
@@ -148,8 +149,8 @@ class ScannerRunnerTest : WordSpec({
             runner.run(context, OrtResult.EMPTY, jobConfig, 0L)
 
             verify(exactly = 1) {
-                scanCodeFactory.create(scanCodeConfig.options, scanCodeSecrets)
-                licenseeFactory.create(licenseeConfig.options, licenseeSecrets)
+                scanCodeFactory.create(PluginConfig(scanCodeConfig.options, scanCodeSecrets))
+                licenseeFactory.create(PluginConfig(licenseeConfig.options, licenseeSecrets))
             }
         }
 
@@ -186,28 +187,27 @@ class ScannerRunnerTest : WordSpec({
 })
 
 private fun mockScannerWrapperFactory(scannerName: String) =
-    mockk<ScannerWrapperFactory<*>> {
-        every { type } returns scannerName
+    mockk<ScannerWrapperFactory> {
+        every { descriptor.id } returns scannerName
 
         every {
-            create(any<Map<String, String>>(), any<Map<String, String>>())
-        } returns mockk<CommandLinePathScannerWrapper> {
+            create(any())
+        } returns mockk<LocalPathScannerWrapper> {
             every { matcher } returns mockk {
                 every { matches(any()) } returns true
             }
             every { details } returns mockk {
                 every { name } returns scannerName
             }
-            every { name } returns scannerName
+            every { descriptor.id } returns scannerName
             every { readFromStorage } returns true
             every { writeToStorage } returns true
-            every { getVersion(any()) } returns "1.0.0"
         }
     }
 
-private fun mockScannerWrapperAll(scanners: List<ScannerWrapperFactory<*>>) {
+private fun mockScannerWrapperAll(scanners: List<ScannerWrapperFactory>) {
     mockkObject(ScannerWrapperFactory)
-    every { ScannerWrapperFactory.ALL } returns scanners.associateByTo(sortedMapOf()) { it.type }
+    every { ScannerWrapperFactory.ALL } returns scanners.associateByTo(sortedMapOf()) { it.descriptor.id }
 }
 
 /**
