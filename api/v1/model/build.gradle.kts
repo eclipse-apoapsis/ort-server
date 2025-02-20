@@ -38,11 +38,5 @@ kotlin {
                 implementation(libs.kotlinxSerializationJson)
             }
         }
-
-        commonTest {
-            dependencies {
-                implementation(projects.utils.test)
-            }
-        }
     }
 }
