@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
@@ -78,6 +79,10 @@ class ScannerWorker(
         environmentService.generateNetRcFileForCurrentRun(context)
 
         val scannerRunId = ortRunService.createScannerRun(scannerJob.id).id
+
+        if (scannerJob.configuration.keepAliveWorker == true) {
+            EndpointComponent.generateKeepAliveFile()
+        }
 
         val scannerRunResult = runner.run(context, ortResult, scannerJob.configuration, scannerRunId)
 

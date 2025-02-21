@@ -172,10 +172,20 @@ fun AdvisorJob.mapToApiSummary() =
     )
 
 fun AdvisorJobConfiguration.mapToApi() =
-    ApiAdvisorJobConfiguration(advisors, skipExcluded, config?.mapValues { it.value.mapToApi() })
+    ApiAdvisorJobConfiguration(
+        advisors,
+        skipExcluded,
+        config?.mapValues { it.value.mapToApi() },
+        keepAliveWorker
+    )
 
 fun ApiAdvisorJobConfiguration.mapToModel() =
-    AdvisorJobConfiguration(advisors, skipExcluded, config?.mapValues { it.value.mapToModel() })
+    AdvisorJobConfiguration(
+        advisors,
+        skipExcluded,
+        config?.mapValues { it.value.mapToModel() },
+        keepAliveWorker
+    )
 
 fun AnalyzerJob.mapToApi() =
     ApiAnalyzerJob(
@@ -206,7 +216,8 @@ fun AnalyzerJobConfiguration.mapToApi() =
         packageCurationProviders.map { it.mapToApi() },
         packageManagerOptions?.mapValues { it.value.mapToApi() },
         repositoryConfigPath,
-        skipExcluded
+        skipExcluded,
+        keepAliveWorker
     )
 
 fun ApiAnalyzerJobConfiguration.mapToModel() =
@@ -219,7 +230,8 @@ fun ApiAnalyzerJobConfiguration.mapToModel() =
         packageCurationProviders?.map { it.mapToModel() }.orEmpty(),
         packageManagerOptions?.mapValues { it.value.mapToModel() },
         repositoryConfigPath,
-        skipExcluded
+        skipExcluded,
+        keepAliveWorker
     )
 
 fun EvaluatorJob.mapToApi() =
@@ -247,7 +259,8 @@ fun EvaluatorJobConfiguration.mapToApi() =
         licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToApi() },
         resolutionsFile,
-        ruleSet
+        ruleSet,
+        keepAliveWorker
     )
 
 fun ApiEvaluatorJobConfiguration.mapToModel() =
@@ -256,7 +269,8 @@ fun ApiEvaluatorJobConfiguration.mapToModel() =
         licenseClassificationsFile,
         packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
         resolutionsFile,
-        ruleSet
+        ruleSet,
+        keepAliveWorker
     )
 
 fun Issue.mapToApi() =
@@ -440,7 +454,8 @@ fun ReporterJobConfiguration.mapToApi() =
         customLicenseTextDir,
         assetFiles.map { it.mapToApi() },
         assetDirectories.map { it.mapToApi() },
-        config?.mapValues { it.value.mapToApi() }
+        config?.mapValues { it.value.mapToApi() },
+        keepAliveWorker = keepAliveWorker
     )
 
 fun NotifierJob.mapToApi() =
@@ -458,7 +473,8 @@ fun NotifierJobConfiguration.mapToApi() =
         notifierRules = notifierRules,
         resolutionsFile = resolutionsFile,
         mail = mail?.mapToApi(),
-        jira = jira?.mapToApi()
+        jira = jira?.mapToApi(),
+        keepAliveWorker = keepAliveWorker
     )
 
 fun ApiNotifierJobConfiguration.mapToModel() =
@@ -466,7 +482,8 @@ fun ApiNotifierJobConfiguration.mapToModel() =
         notifierRules = notifierRules,
         resolutionsFile = resolutionsFile,
         mail = mail?.mapToModel(),
-        jira = jira?.mapToModel()
+        jira = jira?.mapToModel(),
+        keepAliveWorker = keepAliveWorker
     )
 
 fun ApiReporterJobConfiguration.mapToModel() =
@@ -480,7 +497,8 @@ fun ApiReporterJobConfiguration.mapToModel() =
         customLicenseTextDir,
         assetFiles?.map { it.mapToModel() }.orEmpty(),
         assetDirectories?.map { it.mapToModel() }.orEmpty(),
-        config?.mapValues { it.value.mapToModel() }
+        config?.mapValues { it.value.mapToModel() },
+        keepAliveWorker = keepAliveWorker
     )
 
 fun ScannerJob.mapToApi() =
@@ -510,7 +528,8 @@ fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
     skipConcluded,
     skipExcluded,
     sourceCodeOrigins?.map { it.mapToApi() },
-    config?.mapValues { it.value.mapToApi() }
+    config?.mapValues { it.value.mapToApi() },
+    keepAliveWorker
 )
 
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
@@ -521,7 +540,8 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     skipConcluded,
     skipExcluded,
     sourceCodeOrigins?.map { it.mapToModel() },
-    config?.mapValues { it.value.mapToModel() }
+    config?.mapValues { it.value.mapToModel() },
+    keepAliveWorker
 )
 
 fun Secret.mapToApi() = ApiSecret(name, description)

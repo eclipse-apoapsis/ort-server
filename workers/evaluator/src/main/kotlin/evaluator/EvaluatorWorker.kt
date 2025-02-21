@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
@@ -49,6 +50,10 @@ internal class EvaluatorWorker(
         job = ortRunService.startEvaluatorJob(job.id)
             ?: throw IllegalArgumentException("The evaluator job with id '$jobId' could not be started.")
         logger.debug("Evaluator job with id '{}' started at {}.", job.id, job.startedAt)
+
+        if (job.configuration.keepAliveWorker == true) {
+            EndpointComponent.generateKeepAliveFile()
+        }
 
         val ortResult = ortRunService.generateOrtResult(ortRun)
 

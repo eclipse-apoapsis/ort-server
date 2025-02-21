@@ -87,6 +87,18 @@ abstract class EndpointComponent<T : Any>(
                 delay(CHECK_INTERVAL_SECONDS * 1000)
             }
         }
+
+        /**
+         * Generate a keep-alive file in the user's home directory.
+         * See also [sleepWhileKeepAliveFileExists].
+         */
+        suspend fun generateKeepAliveFile() =
+            withContext(Dispatchers.IO) {
+                val file = getKeepAliveFile()
+                file.createNewFile().let {
+                    logger.info("Keep-alive lock file ${file.absolutePath} created.")
+            }
+        }
     }
 
     abstract val endpointHandler: EndpointHandler<T>

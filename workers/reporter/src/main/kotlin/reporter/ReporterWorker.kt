@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
@@ -58,6 +59,10 @@ internal class ReporterWorker(
         job = ortRunService.startReporterJob(job.id)
             ?: throw IllegalArgumentException("The reporter job with id '$jobId' could not be started.")
         logger.debug("Reporter job with id '{}' started at {}.", job.id, job.startedAt)
+
+        if (job.configuration.keepAliveWorker == true) {
+            EndpointComponent.generateKeepAliveFile()
+        }
 
         /**
          * The setup of environment is only needed by a reporter that creates source code bundles.
