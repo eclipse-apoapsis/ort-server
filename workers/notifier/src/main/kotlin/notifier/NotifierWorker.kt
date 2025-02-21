@@ -23,6 +23,7 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
@@ -50,6 +51,10 @@ internal class NotifierWorker(
         job = ortRunService.startNotifierJob(job.id)
             ?: throw IllegalArgumentException("The notifier job '$jobId' does not exist.")
         logger.debug("Notifier job with id '{}' started at '{}'.", jobId, job.startedAt)
+
+        if (job.configuration.keepAliveWorker == true) {
+            EndpointComponent.generateKeepAliveFile()
+        }
 
         val ortResult = ortResultGenerator.generateOrtResult(ortRun, job)
 

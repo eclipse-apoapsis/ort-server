@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService.Companion.validateForProcessing
@@ -46,6 +47,10 @@ internal class AdvisorWorker(
         var job = getValidAdvisorJob(jobId)
         val workerContext = contextFactory.createContext(job.ortRunId)
         val ortRun = workerContext.ortRun
+
+        if (job.configuration.keepAliveWorker == true) {
+            EndpointComponent.generateKeepAliveFile()
+        }
 
         val repository = ortRunService.getOrtRepositoryInformation(ortRun)
         val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
