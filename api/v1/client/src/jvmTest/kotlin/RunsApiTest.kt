@@ -36,13 +36,13 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
 import org.eclipse.apoapsis.ortserver.client.api.RunsApi
 import org.eclipse.apoapsis.ortserver.client.createOrtHttpClient
-import org.eclipse.apoapsis.ortserver.model.LogLevel
-import org.eclipse.apoapsis.ortserver.model.LogSource
 
 class RunsApiTest : StringSpec({
     "getOrtRun" should {
