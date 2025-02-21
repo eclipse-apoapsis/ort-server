@@ -338,7 +338,6 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     productId = product.id,
                     repositoryId = repository.id,
                     revision = "main",
-                    path = null,
                     createdAt = Instant.parse("2023-06-27T05:17:02Z"),
                     finishedAt = null,
                     jobConfigs = JobConfigurations(),
@@ -352,7 +351,6 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     issues = emptyList(),
                     jobConfigContext = null,
                     resolvedJobConfigContext = null,
-                    environmentConfigPath = null,
                     traceId = "trace-id",
                 )
             }
