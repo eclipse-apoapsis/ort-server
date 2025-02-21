@@ -109,15 +109,15 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     resolvedJobConfigs = JobConfigurations(),
                     status = OrtRunStatus.CREATED,
                     labels = mapOf("label key" to "label value"),
-                    null,
-                    null,
-                    emptyMap(),
-                    null,
-                    emptyList(),
-                    null,
-                    null,
+                    vcsId = null,
+                    vcsProcessedId = null,
+                    nestedRepositoryIds = emptyMap(),
+                    repositoryConfigId = null,
+                    issues = emptyList(),
+                    jobConfigContext = null,
+                    resolvedJobConfigContext = null,
                     environmentConfigPath = null,
-                    "trace-id"
+                    traceId = "trace-id"
                 )
             )
             val message = Message(msgHeader, createOrtRun)

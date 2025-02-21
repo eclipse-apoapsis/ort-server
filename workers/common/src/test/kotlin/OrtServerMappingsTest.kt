@@ -137,16 +137,16 @@ class OrtServerMappingsTest : WordSpec({
                 jobConfigs = JobConfigurations(),
                 resolvedJobConfigs = JobConfigurations(),
                 status = OrtRunStatus.CREATED,
-                mapOf("label key" to "label value"),
-                null,
-                null,
-                emptyMap(),
-                null,
-                listOf(runIssue),
-                "default",
-                "c80ef3bcd2bec428da923a188dd0870b1153995c",
-                null,
-                "trace-4321"
+                labels = mapOf("label key" to "label value"),
+                vcsId = null,
+                vcsProcessedId = null,
+                nestedRepositoryIds = emptyMap(),
+                repositoryConfigId = null,
+                issues = listOf(runIssue),
+                jobConfigContext = "default",
+                resolvedJobConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c",
+                environmentConfigPath = null,
+                traceId = "trace-4321"
             )
 
             val analyzerJob = AnalyzerJob(
