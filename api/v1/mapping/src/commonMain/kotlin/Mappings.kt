@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummari
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary as ApiJobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs as ApiJobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel as ApiLogLevel
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource as ApiLogSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.MailNotificationConfiguration as ApiMailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.MailServerConfiguration as ApiMailServerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJob as ApiNotifierJob
@@ -104,6 +105,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.LogLevel
+import org.eclipse.apoapsis.ortserver.model.LogSource
 import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
@@ -323,6 +325,10 @@ fun Jobs.mapToApiSummary() =
 fun LogLevel.mapToApi() = ApiLogLevel.valueOf(name)
 
 fun ApiLogLevel.mapToModel() = LogLevel.valueOf(name)
+
+fun LogSource.mapToApi() = ApiLogSource.valueOf(name)
+
+fun ApiLogSource.mapToModel() = LogSource.valueOf(name)
 
 fun Organization.mapToApi() = ApiOrganization(id, name, description)
 
