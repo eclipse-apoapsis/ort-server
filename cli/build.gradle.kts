@@ -61,11 +61,9 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(projects.model)
-
                 implementation(projects.api.v1.apiV1Client)
                 implementation(projects.api.v1.apiV1Model)
-                implementation(projects.model)
+                implementation(projects.utils.system)
 
                 implementation(libs.clikt)
                 implementation(libs.kaml)
