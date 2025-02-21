@@ -59,6 +59,11 @@ data class OrtRunSummary(
     val revision: String,
 
     /**
+     * The revision resolved from [revision].
+     */
+    val resolvedRevision: String? = null,
+
+    /**
      * The optional VCS sub-path of the project repository, which should be downloaded instead of the whole repository.
      * If this is not specified, the entire repository will be downloaded.
      */

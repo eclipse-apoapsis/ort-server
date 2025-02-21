@@ -558,6 +558,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
         )
 
         val resolvedContext = "theResolvedConfigContext"
+        val resolvedRevision = "0123456789abcdef0123456789abcdef01234567"
         val updateStatus = OrtRunStatus.ACTIVE.asPresent()
 
         val updateResult = ortRunRepository.update(
@@ -566,6 +567,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
             jobConfigurations.asPresent(),
             resolvedJobConfigurations.asPresent(),
             resolvedContext.asPresent(),
+            resolvedRevision.asPresent(),
             listOf(issue1, issue2, issue3).asPresent(),
             mapOf("label2" to label2Value, "label3" to label3Value).asPresent()
         )
@@ -574,6 +576,7 @@ class DaoOrtRunRepositoryTest : StringSpec({
             status = updateStatus.value,
             resolvedJobConfigs = resolvedJobConfigurations,
             resolvedJobConfigContext = resolvedContext,
+            resolvedRevision = resolvedRevision,
             issues = listOf(issue1, issue2, issue3),
             labels = mapOf("label1" to labelsMap.getValue("label1"), "label2" to label2Value, "label3" to label3Value)
         )
