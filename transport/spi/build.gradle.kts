@@ -33,6 +33,7 @@ group = "org.eclipse.apoapsis.ortserver.transport"
 
 dependencies {
     implementation(projects.model)
+    implementation(projects.utils.system)
 
     implementation(libs.ktorKotlinxSerialization)
 

@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.transport
 
-import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
+import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
 import org.slf4j.Logger
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,24 +23,19 @@ plugins {
     id("ort-server-publication-conventions")
 
     // Apply third-party plugins.
-    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.buildConfig)
 }
 
-group = "org.eclipse.apoapsis.ortserver"
+group = "org.eclipse.apoapsis.ortserver.utils"
+
+buildConfig {
+    buildConfigField("ORT_SERVER_VERSION", provider { "${project.version}" })
+}
 
 kotlin {
     linuxX64()
     macosArm64()
     macosX64()
 
-    sourceSets {
-        commonMain {
-            dependencies {
-                api(libs.kotlinxDatetime)
-
-                implementation(libs.konform)
-                implementation(libs.kotlinxSerializationJson)
-            }
-        }
-    }
+    applyDefaultHierarchyTemplate()
 }

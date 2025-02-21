@@ -46,7 +46,7 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
+import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
 import org.koin.ktor.ext.inject
 

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.model
+package org.eclipse.apoapsis.ortserver.utils.system
 
 /**
  * The version of the ORT Server as a string.

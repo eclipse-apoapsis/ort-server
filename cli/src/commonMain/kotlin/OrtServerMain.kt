@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
 import org.eclipse.apoapsis.ortserver.client.auth.AuthenticationException
-import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
+import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
 const val COMMAND_NAME = "osc"
 
