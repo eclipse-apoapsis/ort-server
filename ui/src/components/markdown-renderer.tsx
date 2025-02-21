@@ -25,70 +25,75 @@ type MarkdownRendererProps = {
 
 export const MarkdownRenderer = ({ markdown }: MarkdownRendererProps) => {
   return (
-    <Markdown
-      className='prose dark:prose-invert text-sm'
-      components={{
-        h1: ({ children }) => (
-          <p
-            role='heading'
-            aria-level={1}
-            className='mt-6 mb-6 text-xl font-semibold'
-          >
-            {children}
-          </p>
-        ),
-        h2: ({ children }) => (
-          <p
-            role='heading'
-            aria-level={2}
-            className='mt-4 mb-4 text-lg font-semibold'
-          >
-            {children}
-          </p>
-        ),
-        h3: ({ children }) => (
-          <p role='heading' aria-level={3} className='mt-2 mb-2 font-semibold'>
-            {children}
-          </p>
-        ),
-        h4: ({ children }) => (
-          <p role='heading' aria-level={4} className='mt-2 font-semibold'>
-            {children}
-          </p>
-        ),
-        h5: ({ children }) => (
-          <p role='heading' aria-level={5} className='mt-2 font-semibold'>
-            {children}
-          </p>
-        ),
-        h6: ({ children }) => (
-          <p role='heading' aria-level={6} className='mt-2 font-semibold'>
-            {children}
-          </p>
-        ),
-        pre: ({ children }) => {
-          return (
-            <pre className='dark:bg-muted/100 rounded bg-gray-800 p-1'>
+    <div className='prose dark:prose-invert text-sm'>
+      <Markdown
+        components={{
+          h1: ({ children }) => (
+            <p
+              role='heading'
+              aria-level={1}
+              className='mt-6 mb-6 text-xl font-semibold'
+            >
               {children}
-            </pre>
-          );
-        },
-        code: ({ children }) => {
-          return <code className='p-1'>{children}</code>;
-        },
-        a: ({ children, href }) => (
-          <a
-            href={href}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='font-semibold text-blue-400 hover:underline'
-          >
-            {children}
-          </a>
-        ),
-      }}
-    >
-      {markdown}
-    </Markdown>
+            </p>
+          ),
+          h2: ({ children }) => (
+            <p
+              role='heading'
+              aria-level={2}
+              className='mt-4 mb-4 text-lg font-semibold'
+            >
+              {children}
+            </p>
+          ),
+          h3: ({ children }) => (
+            <p
+              role='heading'
+              aria-level={3}
+              className='mt-2 mb-2 font-semibold'
+            >
+              {children}
+            </p>
+          ),
+          h4: ({ children }) => (
+            <p role='heading' aria-level={4} className='mt-2 font-semibold'>
+              {children}
+            </p>
+          ),
+          h5: ({ children }) => (
+            <p role='heading' aria-level={5} className='mt-2 font-semibold'>
+              {children}
+            </p>
+          ),
+          h6: ({ children }) => (
+            <p role='heading' aria-level={6} className='mt-2 font-semibold'>
+              {children}
+            </p>
+          ),
+          pre: ({ children }) => {
+            return (
+              <pre className='dark:bg-muted/100 rounded bg-gray-800 p-1'>
+                {children}
+              </pre>
+            );
+          },
+          code: ({ children }) => {
+            return <code className='p-1'>{children}</code>;
+          },
+          a: ({ children, href }) => (
+            <a
+              href={href}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='font-semibold text-blue-400 hover:underline'
+            >
+              {children}
+            </a>
+          ),
+        }}
+      >
+        {markdown}
+      </Markdown>
+    </div>
   );
 };
