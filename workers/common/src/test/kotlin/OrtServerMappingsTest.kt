@@ -131,7 +131,6 @@ class OrtServerMappingsTest : WordSpec({
                 productId = 1L,
                 repositoryId = repository.id,
                 revision = OrtTestData.projectRevision,
-                path = null,
                 createdAt = Instant.fromEpochSeconds(TIME_STAMP_SECONDS),
                 finishedAt = null,
                 jobConfigs = JobConfigurations(),
@@ -145,7 +144,6 @@ class OrtServerMappingsTest : WordSpec({
                 issues = listOf(runIssue),
                 jobConfigContext = "default",
                 resolvedJobConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c",
-                environmentConfigPath = null,
                 traceId = "trace-4321"
             )
 

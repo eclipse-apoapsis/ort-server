@@ -102,7 +102,6 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     productId = 1,
                     repositoryId = 120,
                     revision = "main",
-                    path = null,
                     createdAt = Instant.fromEpochSeconds(0),
                     finishedAt = null,
                     jobConfigs = JobConfigurations(),
@@ -116,7 +115,6 @@ class OrchestratorEndpointTest : KoinTest, StringSpec() {
                     issues = emptyList(),
                     jobConfigContext = null,
                     resolvedJobConfigContext = null,
-                    environmentConfigPath = null,
                     traceId = "trace-id"
                 )
             )
