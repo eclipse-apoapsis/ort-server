@@ -22,4 +22,4 @@ package org.eclipse.apoapsis.ortserver.utils.system
 /**
  * The version of the ORT Server as a string.
  */
-val ORT_SERVER_VERSION = BuildConfig.ORT_SERVER_VERSION
+const val ORT_SERVER_VERSION = BuildConfig.ORT_SERVER_VERSION
