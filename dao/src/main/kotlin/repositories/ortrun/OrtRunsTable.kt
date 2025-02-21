@@ -63,6 +63,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
 
     val index = long("index").sortable()
     val revision = text("revision").sortable()
+    val resolvedRevision = text("resolved_revision").nullable()
     val createdAt = timestamp("created_at").sortable("createdAt")
 
     // TODO: Create a proper database representation for configurations, JSON is only used because of the expected
@@ -88,6 +89,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
 
     var index by OrtRunsTable.index
     var revision by OrtRunsTable.revision
+    var resolvedRevision by OrtRunsTable.resolvedRevision
     var path by OrtRunsTable.path
     var traceId by OrtRunsTable.traceId
     var createdAt by OrtRunsTable.createdAt.transformToDatabasePrecision()
@@ -119,6 +121,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         productId = repository.product.id.value,
         repositoryId = repository.id.value,
         revision = revision,
+        resolvedRevision = resolvedRevision,
         path = path,
         createdAt = createdAt,
         jobConfigs = jobConfigs,
@@ -157,6 +160,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
             productId = repository.product.id.value,
             repositoryId = repository.id.value,
             revision = revision,
+            resolvedRevision = resolvedRevision,
             path = path,
             createdAt = createdAt,
             finishedAt = finishedAt,

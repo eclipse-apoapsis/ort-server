@@ -114,6 +114,7 @@ interface OrtRunRepository {
         jobConfigs: OptionalValue<JobConfigurations> = OptionalValue.Absent,
         resolvedJobConfigs: OptionalValue<JobConfigurations> = OptionalValue.Absent,
         resolvedJobConfigContext: OptionalValue<String?> = OptionalValue.Absent,
+        resolvedRevision: OptionalValue<String?> = OptionalValue.Absent,
         issues: OptionalValue<Collection<Issue>> = OptionalValue.Absent,
         labels: OptionalValue<Map<String, String>> = OptionalValue.Absent
     ): OrtRun
