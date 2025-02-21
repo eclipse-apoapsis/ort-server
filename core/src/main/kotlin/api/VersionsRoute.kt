@@ -25,7 +25,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVersions
-import org.eclipse.apoapsis.ortserver.model.ORT_SERVER_VERSION
+import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
 import org.ossreviewtoolkit.utils.ort.Environment
 

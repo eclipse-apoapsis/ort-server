@@ -64,6 +64,7 @@ dependencies {
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.logging)
+    implementation(projects.utils.system)
 
     implementation(libs.jsonSchemaSerialization)
     implementation(libs.koinKtor)
