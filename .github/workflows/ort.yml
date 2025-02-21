@@ -77,7 +77,7 @@ jobs:
         fi
 
     - name: Upload Evaluator Result
-      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
       with:
         name: evaluation-result
         path: ort-results/evaluation-result.yml
@@ -93,7 +93,7 @@ jobs:
         fi
 
     - name: Upload ORT Reports
-      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
       with:
         name: reports
         path: ort-reports
