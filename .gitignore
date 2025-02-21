@@ -1,9 +1,12 @@
-/.idea/
 /.kotlin/
 .gradle/
 build/
 out/
 /*.iml
+
+# Intellij IDEA
+/.idea/*
+!.idea/copyright/
 
 # Kotest temporary directory
 .kotest/

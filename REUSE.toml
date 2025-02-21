@@ -36,6 +36,11 @@ SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = ".idea/copyright/*"
+SPDX-FileCopyrightText = "2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = ".mailmap"
 SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
