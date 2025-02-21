@@ -83,6 +83,8 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
             ortRun = createOrtRun
         )
 
+        ContextStorage.saveLatestRunId(ortRun.id)
+
         echo(json.encodeToString(ortRun))
 
         if (wait) {
