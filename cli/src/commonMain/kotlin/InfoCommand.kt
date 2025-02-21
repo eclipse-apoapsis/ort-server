@@ -38,6 +38,7 @@ class InfoCommand : SuspendingCliktCommand(name = "info") {
         envvar = "OSC_RUN_ID",
         help = "The ID of the ORT run."
     ).long()
+        .withFallback(ContextStorage.get().run?.latestId)
 
     private val ortRunByIndex by OrtRunByIndexOptions().cooccurring()
 

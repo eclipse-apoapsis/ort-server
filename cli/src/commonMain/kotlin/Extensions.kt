@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.cli
 
+import com.github.ajalt.clikt.parameters.options.NullableOption
+import com.github.ajalt.clikt.parameters.options.transformAll
+
 import org.eclipse.apoapsis.ortserver.cli.utils.getHomeDirectory
 
 /**
@@ -41,3 +44,9 @@ fun String.expandTilde() =
     } else {
         this
     }
+
+/**
+ * If no option is given, fall back to the [fallback] value, return null if the [fallback] is null.
+ */
+fun <EachT : Any, ValueT> NullableOption<EachT, ValueT>.withFallback(fallback: EachT?): NullableOption<EachT, ValueT> =
+    transformAll { it.lastOrNull() ?: fallback }
