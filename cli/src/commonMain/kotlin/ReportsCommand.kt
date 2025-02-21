@@ -46,8 +46,9 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
     private val runId by option(
         "--run-id",
         envvar = "OSC_RUN_ID",
-        help = "The ID of the ORT run."
+        help = "The ID of the ORT run, or the latest one started via $COMMAND_NAME."
     ).long()
+        .withFallback(ContextStorage.get().run?.latestId)
 
     private val ortRunByIndex by OrtRunByIndexOptions().cooccurring()
 
