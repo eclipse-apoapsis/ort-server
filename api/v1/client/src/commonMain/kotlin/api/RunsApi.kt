@@ -25,9 +25,9 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.utils.io.ByteReadChannel
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
-import org.eclipse.apoapsis.ortserver.model.LogLevel
-import org.eclipse.apoapsis.ortserver.model.LogSource
 
 /**
  * A client for the runs API.
