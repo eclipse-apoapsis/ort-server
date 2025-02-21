@@ -31,7 +31,7 @@ import org.jetbrains.exposed.sql.and
  * A table to represent a vulnerability.
  */
 object VulnerabilitiesTable : SortableTable("vulnerabilities") {
-    val externalId = text("external_id").sortable()
+    val externalId = text("external_id").sortable("externalId")
     val summary = text("summary").nullable()
     val description = text("description").nullable()
 }

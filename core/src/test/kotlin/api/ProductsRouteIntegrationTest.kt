@@ -1030,7 +1030,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val response =
-                    superuserClient.get("/api/v1/products/$productId/vulnerabilities?sort=-rating,-repositories_count")
+                    superuserClient.get("/api/v1/products/$productId/vulnerabilities?sort=-rating,-repositoriesCount")
 
                 response.status shouldBe HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
@@ -1063,7 +1063,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         totalCount = 3,
                         sortProperties = listOf(
                             SortProperty("rating", SortDirection.DESCENDING),
-                            SortProperty("repositories_count", SortDirection.DESCENDING)
+                            SortProperty("repositoriesCount", SortDirection.DESCENDING)
                         )
                     )
                 )

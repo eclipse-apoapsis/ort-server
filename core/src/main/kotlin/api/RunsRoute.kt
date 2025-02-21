@@ -198,7 +198,7 @@ fun Route.runs() = route("runs") {
                 call.forRun(ortRunRepository) { ortRun ->
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
-                    val pagingOptions = call.pagingOptions(SortProperty("external_id", SortDirection.ASCENDING))
+                    val pagingOptions = call.pagingOptions(SortProperty("externalId", SortDirection.ASCENDING))
 
                     val vulnerabilitiesForOrtRun =
                         vulnerabilityService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
