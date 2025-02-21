@@ -202,13 +202,13 @@ class OrchestratorTest : WordSpec() {
             "transport.kubernetes.kubeprop" to "kubeval",
             "transport.rabbitmq.rabbitprop" to "rabbitval"
         ),
-        null,
-        null,
-        emptyMap(),
-        null,
-        emptyList(),
-        null,
-        null,
+        vcsId = null,
+        vcsProcessedId = null,
+        nestedRepositoryIds = emptyMap(),
+        repositoryConfigId = null,
+        issues = emptyList(),
+        jobConfigContext = null,
+        resolvedJobConfigContext = null,
         traceId = msgHeader.traceId
     )
 
@@ -232,13 +232,13 @@ class OrchestratorTest : WordSpec() {
         resolvedJobConfigs = null,
         status = OrtRunStatus.CREATED,
         labels = ortRun.labels,
-        null,
-        null,
-        emptyMap(),
-        null,
-        emptyList(),
-        null,
-        null,
+        vcsId = null,
+        vcsProcessedId = null,
+        nestedRepositoryIds = emptyMap(),
+        repositoryConfigId = null,
+        issues = emptyList(),
+        jobConfigContext = null,
+        resolvedJobConfigContext = null,
         traceId = null
     )
 
