@@ -86,6 +86,8 @@ kotlin {
 
         jvmTest {
             dependencies {
+                implementation(projects.api.v1.apiV1Model)
+
                 implementation(libs.kotestAssertionsCore)
                 implementation(libs.kotestRunnerJunit5)
                 implementation(libs.mockk)

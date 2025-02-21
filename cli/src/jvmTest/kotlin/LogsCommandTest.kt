@@ -32,12 +32,12 @@ import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.unmockkAll
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.api.RunsApi
-import org.eclipse.apoapsis.ortserver.model.LogLevel
-import org.eclipse.apoapsis.ortserver.model.LogSource
 
 class LogsCommandTest : StringSpec({
     afterEach { unmockkAll() }

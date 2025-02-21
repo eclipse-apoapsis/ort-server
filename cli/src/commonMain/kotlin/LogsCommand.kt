@@ -41,10 +41,10 @@ import okio.SYSTEM
 import okio.buffer
 import okio.use
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
-import org.eclipse.apoapsis.ortserver.model.LogLevel
-import org.eclipse.apoapsis.ortserver.model.LogSource
 
 class LogsCommand : SuspendingCliktCommand() {
     private val runId by option(
