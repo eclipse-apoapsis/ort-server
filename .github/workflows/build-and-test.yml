@@ -33,12 +33,21 @@ jobs:
           - name: 'Linux x64'
             os: ubuntu-24.04
             task: 'linkReleaseExecutableLinuxX64'
+            artifact: 'osc-cli-linux-x64'
+            buildPath: 'cli/build/bin/linuxX64/releaseExecutable/osc.kexe'
+            binName: 'osc'
           - name: 'macOS arm64'
             os: macos-15
             task: 'linkReleaseExecutableMacosArm64'
+            artifact: 'osc-cli-macos-arm64'
+            buildPath: 'cli/build/bin/macosArm64/releaseExecutable/osc.kexe'
+            binName: 'osc'
           - name: 'macOS x64'
             os: macos-13
             task: 'linkReleaseExecutableMacosX64'
+            artifact: 'osc-cli-macos-x64'
+            buildPath: 'cli/build/bin/macosX64/releaseExecutable/osc.kexe'
+            binName: 'osc'
     runs-on: ${{ matrix.target.os }}
     steps:
     - name: Checkout Repository
@@ -49,6 +58,18 @@ jobs:
 
     - name: Build CLI - ${{ matrix.target.name }}
       run: ./gradlew --stacktrace cli:${{ matrix.target.task }}
+
+    - name: Rename CLI binary
+      run: |
+        mkdir -p ${{ matrix.target.artifact }}
+        mv ${{ matrix.target.buildPath }} ${{ matrix.target.artifact }}/${{ matrix.target.binName }}
+
+    - name: Upload CLI binary
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+      with:
+        name: ${{ matrix.target.artifact }}
+        path: ${{ matrix.target.artifact }}/${{ matrix.target.binName }}
+        retention-days: 7
 
   build-ui:
     runs-on: ubuntu-24.04
