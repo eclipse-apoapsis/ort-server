@@ -27,14 +27,19 @@ jobs:
       run: ./gradlew --stacktrace classes
 
   build-cli:
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        target: [
-          { name: 'Linux x64', task: 'linkReleaseExecutableLinuxX64' },
-          { name: 'macOS arm64', task: 'linkReleaseExecutableMacosArm64' },
-          { name: 'macOS x64', task: 'linkReleaseExecutableMacosX64' }
-        ]
+        target:
+          - name: 'Linux x64'
+            os: ubuntu-24.04
+            task: 'linkReleaseExecutableLinuxX64'
+          - name: 'macOS arm64'
+            os: macos-15
+            task: 'linkReleaseExecutableMacosArm64'
+          - name: 'macOS x64'
+            os: macos-13
+            task: 'linkReleaseExecutableMacosX64'
+    runs-on: ${{ matrix.target.os }}
     steps:
     - name: Checkout Repository
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
