@@ -24,6 +24,11 @@ const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
   Infrastructure: [
     /The .* worker failed due to an unexpected error.*/,
     /ERROR: Timeout after .* seconds while scanning file '.*'\./,
+    /Missing scan results response body\./,
+    /Unable to get an upload URL for '.*'\./,
+    /Uploading '.*' to .* failed\./,
+    /Failed to add scan job for the following packages:/,
+    /Scan failed for job with ID '.*'/,
   ],
   'Missing Data': [/IOException: Could not resolve provenance for .*/],
   'Build System': [/.* failed to resolve dependencies for .*/],
@@ -57,12 +62,19 @@ if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest;
 
   it('correctly categorizes an infrastructure issue', () => {
-    const message1 = 'The analyzer worker failed due to an unexpected error.';
-    expect(getIssueCategory(message1)).toBe('Infrastructure');
+    const messages = [
+      'The analyzer worker failed due to an unexpected error.',
+      "ERROR: Timeout after 30 seconds while scanning file 'example.txt'.",
+      'Missing scan results response body.',
+      "Unable to get an upload URL for 'foo.txt'.",
+      "Uploading 'foo.txt' to http:\\foo.com failed.",
+      'Failed to add scan job for the following packages:',
+      "Scan failed for job with ID 'djeh4gh3g39372':",
+    ];
 
-    const message2 =
-      "ERROR: Timeout after 30 seconds while scanning file 'example.txt'.";
-    expect(getIssueCategory(message2)).toBe('Infrastructure');
+    messages.forEach((message) => {
+      expect(getIssueCategory(message)).toBe('Infrastructure');
+    });
   });
 
   it('correctly categorizes a missing data issue', () => {
