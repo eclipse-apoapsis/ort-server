@@ -48,6 +48,13 @@ jobs:
             artifact: 'osc-cli-macos-x64'
             buildPath: 'cli/build/bin/macosX64/releaseExecutable/osc.kexe'
             binName: 'osc'
+          - name: 'Windows x64'
+            os: windows-2022
+            task: 'linkReleaseExecutableMingwX64'
+            artifact: 'osc-cli-windows-x64'
+            buildPath: 'cli/build/bin/mingwX64/releaseExecutable/osc.exe'
+            binName: 'osc.exe'
+
     runs-on: ${{ matrix.target.os }}
     steps:
     - name: Checkout Repository

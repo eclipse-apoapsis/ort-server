@@ -17,24 +17,21 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply precompiled plugins.
-    id("ort-server-kotlin-multiplatform-conventions")
-    id("ort-server-publication-conventions")
+package org.eclipse.apoapsis.ortserver.cli.utils
 
-    // Apply third-party plugins.
-    alias(libs.plugins.buildConfig)
+import okio.Path
+import okio.Path.Companion.toPath
+
+import org.eclipse.apoapsis.ortserver.cli.getEnv
+
+import platform.posix.S_IRUSR as READ_USER
+import platform.posix.S_IWUSR as WRITE_USER
+import platform.posix.chmod
+
+actual fun getHomeDirectory(): Path = requireNotNull(getEnv("USERPROFILE")?.toPath() ?: getEnv("HOME")?.toPath()) {
+    "Could not determine the home directory."
 }
 
-group = "org.eclipse.apoapsis.ortserver.utils"
-
-buildConfig {
-    buildConfigField("ORT_SERVER_VERSION", provider { "${project.version}" })
-}
-
-kotlin {
-    linuxX64()
-    macosArm64()
-    macosX64()
-    mingwX64()
+internal actual fun Path.setPermissionsToOwnerReadWrite() {
+    chmod(toString(), READ_USER or WRITE_USER)
 }

@@ -17,24 +17,16 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply precompiled plugins.
-    id("ort-server-kotlin-multiplatform-conventions")
-    id("ort-server-publication-conventions")
+package org.eclipse.apoapsis.ortserver.cli.utils
 
-    // Apply third-party plugins.
-    alias(libs.plugins.buildConfig)
-}
+import okio.Path
 
-group = "org.eclipse.apoapsis.ortserver.utils"
+import okio.Path.Companion.toPath
 
-buildConfig {
-    buildConfigField("ORT_SERVER_VERSION", provider { "${project.version}" })
-}
+import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
+import org.eclipse.apoapsis.ortserver.cli.getEnv
 
-kotlin {
-    linuxX64()
-    macosArm64()
-    macosX64()
-    mingwX64()
-}
+internal actual val configDir: Path =
+    getEnv("XDG_CONFIG_HOME")?.toPath()?.resolve(COMMAND_NAME)
+        ?: getEnv("LOCALAPPDATA")?.toPath()?.resolve(COMMAND_NAME)
+        ?: getHomeDirectory().resolve(".config").resolve(COMMAND_NAME)

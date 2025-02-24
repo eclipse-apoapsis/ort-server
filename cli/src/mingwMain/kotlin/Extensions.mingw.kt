@@ -17,24 +17,12 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply precompiled plugins.
-    id("ort-server-kotlin-multiplatform-conventions")
-    id("ort-server-publication-conventions")
+package org.eclipse.apoapsis.ortserver.cli
 
-    // Apply third-party plugins.
-    alias(libs.plugins.buildConfig)
-}
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.toKString
 
-group = "org.eclipse.apoapsis.ortserver.utils"
+import platform.posix.getenv
 
-buildConfig {
-    buildConfigField("ORT_SERVER_VERSION", provider { "${project.version}" })
-}
-
-kotlin {
-    linuxX64()
-    macosArm64()
-    macosX64()
-    mingwX64()
-}
+@OptIn(ExperimentalForeignApi::class)
+actual fun getEnv(name: String) = getenv(name)?.toKString()

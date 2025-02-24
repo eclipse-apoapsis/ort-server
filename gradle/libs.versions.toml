@@ -124,6 +124,7 @@ ktorClientCurl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
 ktorClientDarwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktorClientMock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktorClientOkHttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktorClientWinhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
 ktorHttp = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 ktorIo = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktorKotlinxSerialization = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
