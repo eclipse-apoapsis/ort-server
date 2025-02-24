@@ -29,10 +29,6 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver"
 
 kotlin {
-    linuxX64()
-    macosArm64()
-    macosX64()
-
     sourceSets {
         commonMain {
             dependencies {
