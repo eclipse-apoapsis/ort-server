@@ -14,12 +14,35 @@ on:
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
+  ORT_SERVER_VERSION: ${{ inputs.tag || github.ref_name }}
 
 jobs:
-  publish:
+  release-notes:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      with:
+        ref: ${{ env.ORT_SERVER_VERSION }}
+        fetch-depth: 0
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@94baf225fe0a508e581a564467443d0e2379123b # v4
+      with:
+        dependency-graph: generate-and-submit
+
+    - name: Generate Release Notes
+      run: ./gradlew -q printChangeLog > RELEASE_NOTES.md
+
+    - name: Upload Release Notes
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-notes
+        path: RELEASE_NOTES.md
+        retention-days: 7
+
+  publish-server:
     if: github.repository == 'eclipse-apoapsis/ort-server'
-    env:
-      ORT_SERVER_VERSION: ${{ inputs.tag || github.ref_name }}
     permissions:
       contents: write
     runs-on: ubuntu-24.04
@@ -47,8 +70,20 @@ jobs:
         SONATYPE_CONNECT_TIMEOUT_SECONDS: 300
       run: ./gradlew --stacktrace --no-configuration-cache publishAndReleaseToMavenCentral
 
-    - name: Generate Release Notes
-      run: ./gradlew -q printChangeLog > RELEASE_NOTES.md
+  create-release:
+    needs: [publish-server, release-notes]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      with:
+        ref: ${{ env.ORT_SERVER_VERSION }}
+        fetch-depth: 0
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
 
     - name: Create GitHub Release
       env:
@@ -57,4 +92,4 @@ jobs:
         if [[ "$ORT_SERVER_VERSION" =~ -RC[0-9]+ ]]; then
           PRERELEASE_ARG="--prerelease"
         fi
-        gh release create $ORT_SERVER_VERSION --notes-file RELEASE_NOTES.md $PRERELEASE_ARG
+        gh release create $ORT_SERVER_VERSION --notes-file release-notes/RELEASE_NOTES.md $PRERELEASE_ARG
