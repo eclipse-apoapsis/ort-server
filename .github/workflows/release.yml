@@ -70,8 +70,63 @@ jobs:
         SONATYPE_CONNECT_TIMEOUT_SECONDS: 300
       run: ./gradlew --stacktrace --no-configuration-cache publishAndReleaseToMavenCentral
 
+  build-cli:
+    strategy:
+      matrix:
+        target:
+        - name: "Linux x64"
+          os: ubuntu-24.04
+          task: :cli:linkReleaseExecutableLinuxX64
+          artifact: osc-cli-linux-x64
+          buildPath: cli/build/bin/linuxX64/releaseExecutable/osc.kexe
+          binName: osc
+        - name: "macOS arm64"
+          os: macos-15
+          task: :cli:linkReleaseExecutableMacosArm64
+          artifact: osc-cli-macos-arm64
+          buildPath: cli/build/bin/macosArm64/releaseExecutable/osc.kexe
+          binName: osc
+        - name: "macOS x64"
+          os: macos-13
+          task: :cli:linkReleaseExecutableMacosX64
+          artifact: osc-cli-macos-x64
+          buildPath: cli/build/bin/macosX64/releaseExecutable/osc.kexe
+          binName: osc
+    runs-on: ${{ matrix.target.os }}
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      with:
+        ref: ${{ env.ORT_SERVER_VERSION }}
+        fetch-depth: 0
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@94baf225fe0a508e581a564467443d0e2379123b # v4
+      with:
+        dependency-graph: generate-and-submit
+
+    - name: Build CLI
+      run: ./gradlew --stacktrace ${{ matrix.target.task }}
+
+    - name: Rename binaries
+      run: |
+        mkdir -p ${{ matrix.target.artifact }}
+        mv ${{ matrix.target.buildPath }} ${{ matrix.target.artifact }}/${{ matrix.target.binName }}
+
+    # Compress the binaries to reduce the size of the artifacts, to keep `osc` as the binary name, and to ensure that
+    # the executable permissions are preserved.
+    - name: Compress binaries
+      run: |
+        tar -czf ${{ matrix.target.artifact }}.tar.gz -C ${{ matrix.target.artifact }} ${{ matrix.target.binName }}
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+      with:
+        name: ${{ matrix.target.artifact }}
+        path: ${{ matrix.target.artifact }}.tar.gz
+        retention-days: 7
+
   create-release:
-    needs: [publish-server, release-notes]
+    needs: [build-cli, publish-server, release-notes]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -84,6 +139,8 @@ jobs:
 
     - name: Download Artifacts
       uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
 
     - name: Create GitHub Release
       env:
@@ -92,4 +149,8 @@ jobs:
         if [[ "$ORT_SERVER_VERSION" =~ -RC[0-9]+ ]]; then
           PRERELEASE_ARG="--prerelease"
         fi
-        gh release create $ORT_SERVER_VERSION --notes-file release-notes/RELEASE_NOTES.md $PRERELEASE_ARG
+
+        gh release create $ORT_SERVER_VERSION --notes-file ./artifacts/release-notes/RELEASE_NOTES.md $PRERELEASE_ARG \
+          './artifacts/osc-cli-linux-x64/osc-cli-linux-x64.tar.gz#osc-cli-linux-x64' \
+          './artifacts/osc-cli-macos-arm64/osc-cli-macos-arm64.tar.gz#osc-cli-macos-arm64' \
+          './artifacts/osc-cli-macos-x64/osc-cli-macos-x64.tar.gz#osc-cli-macos-x64'
