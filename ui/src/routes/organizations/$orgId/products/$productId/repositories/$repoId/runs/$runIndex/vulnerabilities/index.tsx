@@ -245,7 +245,7 @@ const VulnerabilitiesComponent = () => {
         cell: ({ row }) => {
           return (
             <div className='text-muted-foreground italic'>
-              {row.getValue('summary')}
+              {row.original.vulnerability.summary}
             </div>
           );
         },
