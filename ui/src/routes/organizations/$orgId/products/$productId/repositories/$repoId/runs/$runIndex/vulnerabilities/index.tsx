@@ -104,25 +104,27 @@ const renderSubComponent = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {vulnerability.references.map((reference, index) => (
-            <TableRow key={index}>
-              <TableCell>{reference.severity || '-'}</TableCell>
-              <TableCell>{reference.scoringSystem || '-'}</TableCell>
-              <TableCell>{reference.score || '-'}</TableCell>
-              <TableCell>{reference.vector || '-'}</TableCell>
-              <TableCell>
-                {
-                  <Link
-                    className='font-semibold break-all text-blue-400 hover:underline'
-                    to={reference.url}
-                    target='_blank'
-                  >
-                    {reference.url}
-                  </Link>
-                }
-              </TableCell>
-            </TableRow>
-          ))}
+          {vulnerability.references
+            .sort((refA, refB) => (refB.score ?? 0) - (refA.score ?? 0))
+            .map((reference, index) => (
+              <TableRow key={index}>
+                <TableCell>{reference.severity || '-'}</TableCell>
+                <TableCell>{reference.scoringSystem || '-'}</TableCell>
+                <TableCell>{reference.score || '-'}</TableCell>
+                <TableCell>{reference.vector || '-'}</TableCell>
+                <TableCell>
+                  {
+                    <Link
+                      className='font-semibold break-all text-blue-400 hover:underline'
+                      to={reference.url}
+                      target='_blank'
+                    >
+                      {reference.url}
+                    </Link>
+                  }
+                </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
     </div>
