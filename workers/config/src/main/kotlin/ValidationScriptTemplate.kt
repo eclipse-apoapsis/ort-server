@@ -56,6 +56,7 @@ class ValidationScriptCompilationConfiguration : ScriptCompilationConfiguration(
         defaultImports(
             "org.eclipse.apoapsis.ortserver.model.*",
             "org.eclipse.apoapsis.ortserver.model.runs.*",
+            "org.eclipse.apoapsis.ortserver.utils.system.*",
             "org.eclipse.apoapsis.ortserver.workers.config.*"
         )
     }
