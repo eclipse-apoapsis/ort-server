@@ -142,6 +142,10 @@ jobs:
       with:
         path: artifacts/
 
+    - name: Create checksums
+      run: |
+        shasum --algorithm 256 ./artifacts/osc-cli-*/*.tar.gz | sed 's|./artifacts/osc-cli-[^/]*/||' > checksums.txt
+
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -153,4 +157,5 @@ jobs:
         gh release create $ORT_SERVER_VERSION --notes-file ./artifacts/release-notes/RELEASE_NOTES.md $PRERELEASE_ARG \
           './artifacts/osc-cli-linux-x64/osc-cli-linux-x64.tar.gz#osc-cli-linux-x64' \
           './artifacts/osc-cli-macos-arm64/osc-cli-macos-arm64.tar.gz#osc-cli-macos-arm64' \
-          './artifacts/osc-cli-macos-x64/osc-cli-macos-x64.tar.gz#osc-cli-macos-x64'
+          './artifacts/osc-cli-macos-x64/osc-cli-macos-x64.tar.gz#osc-cli-macos-x64' \
+          'checksums.txt#checksums'
