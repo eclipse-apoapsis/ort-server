@@ -49,7 +49,7 @@ function EclipseIncubation() {
           <p className='hero__subtitle'>
             The ORT Server is the reference implementation of the{' '}
             <a href='https://projects.eclipse.org/projects/technology.apoapsis'>
-              Eclipse Apoapsis
+              Eclipse Apoapsis™
             </a>{' '}
             project which is currently in the{' '}
             <a href='https://www.eclipse.org/projects/handbook/#incubation'>
