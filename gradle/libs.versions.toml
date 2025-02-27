@@ -25,6 +25,7 @@ buildConfig = "5.5.1"
 dependencyAnalysisPlugin = "2.10.1"
 detektPlugin = "1.23.8"
 gitSemverPlugin = "0.15.0"
+jakartaMigrationPlugin = "0.24.0"
 jibPlugin = "3.4.4"
 kotlinPlugin = "2.1.10"
 kotlinxCoroutines = "1.10.1"
@@ -74,6 +75,7 @@ wiremock = "3.0.1"
 [plugins]
 buildConfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildConfig" }
 gitSemver = { id = "com.github.jmongard.git-semver-plugin", version.ref = "gitSemverPlugin" }
+jakartaMigration = { id = "com.netflix.nebula.jakartaee-migration", version.ref = "jakartaMigrationPlugin" }
 jib = { id = "com.google.cloud.tools.jib", version.ref = "jibPlugin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
