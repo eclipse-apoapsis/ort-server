@@ -55,6 +55,7 @@ kotlin {
             executable {
                 entryPoint = "org.eclipse.apoapsis.ortserver.cli.main"
                 baseName = "osc"
+                optimized = true
             }
         }
     }
