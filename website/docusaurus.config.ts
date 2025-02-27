@@ -162,8 +162,28 @@ const config: Config = {
           title: 'Eclipse Foundation',
           items: [
             {
-              label: 'Eclipse Project Site',
+              label: 'Eclipse Apoapsis Project Site',
               href: 'https://projects.eclipse.org/projects/technology.apoapsis',
+            },
+            {
+              label: 'Eclipse Foundation Website',
+              href: 'http://www.eclipse.org/',
+            },
+            {
+              label: 'Privacy policy',
+              href: 'http://www.eclipse.org/legal/privacy.php',
+            },
+            {
+              label: 'Terms of use',
+              href: 'http://www.eclipse.org/legal/termsofuse.php',
+            },
+            {
+              label: 'Copyright agent',
+              href: 'http://www.eclipse.org/legal/copyright.php',
+            },
+            {
+              label: 'Legal',
+              href: 'http://www.eclipse.org/legal',
             },
           ],
         },
