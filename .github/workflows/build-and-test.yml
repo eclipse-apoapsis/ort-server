@@ -67,6 +67,7 @@ jobs:
       run: ./gradlew --stacktrace cli:${{ matrix.target.task }}
 
     - name: Rename CLI binary
+      shell: bash
       run: |
         mkdir -p ${{ matrix.target.artifact }}
         mv ${{ matrix.target.buildPath }} ${{ matrix.target.artifact }}/${{ matrix.target.binName }}
