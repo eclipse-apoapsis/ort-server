@@ -80,24 +80,41 @@ jobs:
           artifact: osc-cli-linux-x64
           buildPath: cli/build/bin/linuxX64/releaseExecutable/osc.kexe
           binName: osc
+          archiveExt: tar.gz
         - name: "macOS arm64"
           os: macos-15
           task: :cli:linkReleaseExecutableMacosArm64
           artifact: osc-cli-macos-arm64
           buildPath: cli/build/bin/macosArm64/releaseExecutable/osc.kexe
           binName: osc
+          archiveExt: tar.gz
         - name: "macOS x64"
           os: macos-13
           task: :cli:linkReleaseExecutableMacosX64
           artifact: osc-cli-macos-x64
           buildPath: cli/build/bin/macosX64/releaseExecutable/osc.kexe
           binName: osc
+          archiveExt: tar.gz
+        - name: "Windows x64"
+          os: windows-2022
+          task: :cli:linkReleaseExecutableMingwX64
+          artifact: osc-cli-windows-x64
+          buildPath: cli/build/bin/mingwX64/releaseExecutable/osc.exe
+          binName: osc.exe
+          archiveExt: zip
     runs-on: ${{ matrix.target.os }}
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       with:
         ref: ${{ env.ORT_SERVER_VERSION }}
         fetch-depth: 0
+
+    - name: Setup Java
+      if: runner.os == 'Windows'
+      uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@94baf225fe0a508e581a564467443d0e2379123b # v4
@@ -108,6 +125,7 @@ jobs:
       run: ./gradlew --stacktrace ${{ matrix.target.task }}
 
     - name: Rename binaries
+      shell: bash
       run: |
         mkdir -p ${{ matrix.target.artifact }}
         mv ${{ matrix.target.buildPath }} ${{ matrix.target.artifact }}/${{ matrix.target.binName }}
@@ -115,14 +133,19 @@ jobs:
     # Compress the binaries to reduce the size of the artifacts, to keep `osc` as the binary name, and to ensure that
     # the executable permissions are preserved.
     - name: Compress binaries
+      shell: bash
       run: |
-        tar -czf ${{ matrix.target.artifact }}.tar.gz -C ${{ matrix.target.artifact }} ${{ matrix.target.binName }}
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          powershell Compress-Archive -Path ${{ matrix.target.artifact }}/${{ matrix.target.binName }} -DestinationPath ${{ matrix.target.artifact }}.${{ matrix.target.archiveExt }}
+        else
+          tar -czf ${{ matrix.target.artifact }}.${{ matrix.target.archiveExt }} -C ${{ matrix.target.artifact }} ${{ matrix.target.binName }}
+        fi
 
     - name: Upload binaries
       uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
       with:
         name: ${{ matrix.target.artifact }}
-        path: ${{ matrix.target.artifact }}.tar.gz
+        path: ${{ matrix.target.artifact }}.${{ matrix.target.archiveExt }}
         retention-days: 7
 
   create-release:
@@ -143,8 +166,9 @@ jobs:
         path: artifacts/
 
     - name: Create checksums
+      shell: bash
       run: |
-        shasum --algorithm 256 ./artifacts/osc-cli-*/*.tar.gz | sed 's|./artifacts/osc-cli-[^/]*/||' > checksums.txt
+        shasum --algorithm 256 ./artifacts/osc-cli-*/*.{tar.gz,zip} | sed 's|./artifacts/osc-cli-[^/]*/||' > checksums.txt
 
     - name: Create GitHub Release
       env:
@@ -158,4 +182,5 @@ jobs:
           './artifacts/osc-cli-linux-x64/osc-cli-linux-x64.tar.gz#osc-cli-linux-x64' \
           './artifacts/osc-cli-macos-arm64/osc-cli-macos-arm64.tar.gz#osc-cli-macos-arm64' \
           './artifacts/osc-cli-macos-x64/osc-cli-macos-x64.tar.gz#osc-cli-macos-x64' \
+          './artifacts/osc-cli-windows-x64/osc-cli-windows-x64.zip#osc-cli-windows-x64' \
           'checksums.txt#checksums'
