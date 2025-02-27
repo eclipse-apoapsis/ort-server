@@ -17,9 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
 import { ApiError, RunsService } from '@/api/requests';
+import { NotFoundError } from '@/components/not-found-error';
 
 export const Route = createFileRoute('/runs/$runId/')({
   beforeLoad: async ({ params }) => {
@@ -34,7 +35,7 @@ export const Route = createFileRoute('/runs/$runId/')({
       index = ortRun.index.toString();
     } catch (error) {
       if (error instanceof ApiError) {
-        throw notFound();
+        throw new NotFoundError(params.runId);
       }
     }
     if (organizationId && productId && repositoryId && index) {
@@ -49,7 +50,11 @@ export const Route = createFileRoute('/runs/$runId/')({
       });
     }
   },
-  notFoundComponent: () => {
-    return <div>ORT run not found!</div>;
+  errorComponent: ({ error }) => {
+    if (error instanceof NotFoundError) {
+      return <>There is no run with ID {error.message}.</>;
+    }
+
+    throw error;
   },
 });
