@@ -168,6 +168,12 @@ const config: Config = {
           ],
         },
       ],
+      logo: {
+        alt: 'Eclipse Foundation',
+        src: 'img/eclipse-foundation.svg',
+        href: 'https://www.eclipse.org',
+        height: 150,
+      },
       copyright: `Copyright © ${new Date().getFullYear()} The ORT Server Authors. Built with Docusaurus.`,
     },
     prism: {
