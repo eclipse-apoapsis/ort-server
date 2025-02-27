@@ -35,7 +35,7 @@ jobs:
       run: ./gradlew -q printChangeLog > RELEASE_NOTES.md
 
     - name: Upload Release Notes
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
       with:
         name: release-notes
         path: RELEASE_NOTES.md
@@ -138,7 +138,7 @@ jobs:
         fetch-depth: 0
 
     - name: Download Artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
       with:
         path: artifacts/
 
