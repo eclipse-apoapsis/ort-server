@@ -145,6 +145,10 @@ const config: Config = {
           title: 'Community',
           items: [
             {
+              label: 'GitHub',
+              href: 'https://github.com/eclipse-apoapsis/ort-server',
+            },
+            {
               label: 'Matrix Chat',
               href: 'https://matrix.to/#/#apoapsis:matrix.eclipse.org',
             },
@@ -160,10 +164,6 @@ const config: Config = {
             {
               label: 'Eclipse Project Site',
               href: 'https://projects.eclipse.org/projects/technology.apoapsis',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/eclipse-apoapsis/ort-server',
             },
           ],
         },
