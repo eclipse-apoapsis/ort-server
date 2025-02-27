@@ -194,7 +194,10 @@ const config: Config = {
         href: 'https://www.eclipse.org',
         height: 150,
       },
-      copyright: `Copyright © ${new Date().getFullYear()} The ORT Server Authors. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} The ORT Server Authors.<br/><br/>
+                  Eclipse Apoapsis and the Eclipse Foundation logo are Trademarks of The Eclipse Foundation.<br/>
+                  Other names may be trademarks of their respective owners.<br/><br/>
+                  Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
