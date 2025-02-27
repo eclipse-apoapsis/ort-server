@@ -33,7 +33,13 @@ plugins {
     id("ort-server-publication-conventions")
 
     // Apply third-party plugins.
+    alias(libs.plugins.jakartaMigration)
     alias(libs.plugins.jib)
+}
+
+jakartaeeMigration {
+    includeTransform("com.atlassian.jira:jira-rest-java-client-core")
+    configurations.filterNot { it.isCanBeDeclared }.forEach(::transform)
 }
 
 group = "org.eclipse.apoapsis.ortserver.workers"
