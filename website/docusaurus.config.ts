@@ -159,7 +159,7 @@ const config: Config = {
           ],
         },
         {
-          title: 'More',
+          title: 'Eclipse Foundation',
           items: [
             {
               label: 'Eclipse Project Site',
