@@ -48,8 +48,6 @@ kotlin {
     macosArm64()
     macosX64()
 
-    applyDefaultHierarchyTemplate()
-
     targets.withType<KotlinNativeTarget> {
         binaries {
             executable {
