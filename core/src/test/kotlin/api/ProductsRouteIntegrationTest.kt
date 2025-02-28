@@ -1070,10 +1070,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "require ProductPermission.READ_REPOSITORIES" {
+        "require ProductPermission.READ" {
             val createdProduct = createProduct()
-            requestShouldRequireRole(ProductPermission.READ_REPOSITORIES.roleName(createdProduct.id)) {
-                get("/api/v1/products/${createdProduct.id}/repositories")
+            requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
+                get("/api/v1/products/${createdProduct.id}/vulnerabilities")
             }
         }
     }
