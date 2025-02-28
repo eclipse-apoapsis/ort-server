@@ -1070,7 +1070,7 @@ class OrtRunServiceTest : WordSpec({
     }
 
     "generateOrtResult" should {
-        "should return repository information" {
+        "return repository information" {
 
             val vcsInfo = createVcsInfo("https://example.com/repo.git")
             val processedVcsInfo = createVcsInfo("https://example.com/repo-processed.git")
