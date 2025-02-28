@@ -194,3 +194,18 @@ fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, valu
         else -> throw IllegalArgumentException("Unsupported operator for collections")
     }
 }
+
+/**
+ * Apply the given [operator] and filter [values] to filter this column by. This is an overload of the
+ * applyFilter function for collections that supports nullable columns.
+ */
+fun <T : Comparable<T>> Column<T?>.applyFilterNullable(
+    operator: ComparisonOperator,
+    values: Collection<T>
+): Op<Boolean> {
+    return when (operator) {
+        ComparisonOperator.IN -> this inList values
+        ComparisonOperator.NOT_IN -> this notInList values
+        else -> throw IllegalArgumentException("Unsupported operator for collections")
+    }
+}
