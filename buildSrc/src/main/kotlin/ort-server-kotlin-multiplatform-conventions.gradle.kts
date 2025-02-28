@@ -29,6 +29,14 @@ plugins {
 
 kotlin {
     jvm()
+
+    sourceSets {
+        jvmTest {
+            dependencies {
+                implementation(project(":utils:test"))
+            }
+        }
+    }
 }
 
 tasks.named<Detekt>("detekt") {

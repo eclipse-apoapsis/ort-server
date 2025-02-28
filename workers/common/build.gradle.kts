@@ -60,7 +60,6 @@ dependencies {
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.storage.storageSpi))
-    testImplementation(projects.utils.test)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

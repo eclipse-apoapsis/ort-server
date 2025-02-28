@@ -75,7 +75,6 @@ dependencies {
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.storage.storageSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
-    testImplementation(projects.utils.test)
     testImplementation(testFixtures(projects.workers.common))
 
     testImplementation(libs.koinTest)

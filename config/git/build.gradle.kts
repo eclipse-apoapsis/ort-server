@@ -36,7 +36,6 @@ dependencies {
     implementation(projects.utils.config)
 
     testImplementation(testFixtures(projects.config.configSpi))
-    testImplementation(projects.utils.test)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

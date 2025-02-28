@@ -71,7 +71,6 @@ dependencies {
     testImplementation(testFixtures(projects.storage.storageSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
     testImplementation(testFixtures(projects.workers.common))
-    testImplementation(projects.utils.test)
 
     testImplementation(libs.jacksonModuleKotlin)
     testImplementation(libs.koinTest)

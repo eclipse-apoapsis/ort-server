@@ -37,7 +37,6 @@ dependencies {
 
     testImplementation(testFixtures(projects.clients.keycloak))
     testImplementation(testFixtures(projects.dao))
-    testImplementation(projects.utils.test)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

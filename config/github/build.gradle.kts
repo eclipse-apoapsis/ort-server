@@ -38,7 +38,6 @@ dependencies {
     implementation(libs.ktorKotlinxSerialization)
 
     testImplementation(testFixtures(projects.config.configSpi))
-    testImplementation(projects.utils.test)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

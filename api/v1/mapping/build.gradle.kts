@@ -33,11 +33,5 @@ kotlin {
                 api(projects.model)
             }
         }
-
-        commonTest {
-            dependencies {
-                implementation(projects.utils.test)
-            }
-        }
     }
 }

@@ -33,8 +33,6 @@ dependencies {
 
     implementation(projects.utils.config)
 
-    testImplementation(projects.utils.test)
-
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)

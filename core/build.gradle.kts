@@ -100,7 +100,6 @@ dependencies {
     testImplementation(testFixtures(projects.logaccess.logaccessSpi))
     testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
-    testImplementation(projects.utils.test)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
