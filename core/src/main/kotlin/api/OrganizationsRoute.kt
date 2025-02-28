@@ -26,7 +26,6 @@ import io.github.smiley4.ktorswaggerui.dsl.routing.post
 import io.github.smiley4.ktorswaggerui.dsl.routing.put
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -57,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatisticsByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByOrganizationId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepositoriesByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByOrganizationIdAndName
@@ -75,6 +75,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.IssueService
@@ -361,6 +362,28 @@ fun Route.organizations() = route("organizations") {
                     organizationService.removeUserFromGroup(user.username, organizationId, groupId)
                     call.respond(HttpStatusCode.NoContent)
                 }
+            }
+        }
+
+        route("vulnerabilities") {
+            get(getVulnerabilitiesAcrossRepositoriesByOrganizationId) {
+                requirePermission(OrganizationPermission.READ)
+
+                val organizationId = call.requireIdParameter("organizationId")
+                val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
+
+                val repositoryIds = organizationService.getRepositoryIdsForOrganization(organizationId)
+
+                val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
+                    repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
+                }
+
+                val vulnerabilities =
+                    vulnerabilityService.listForOrtRuns(ortRunIds, pagingOptions.mapToModel())
+
+                val pagedResponse = vulnerabilities.mapToApi(VulnerabilityWithAccumulatedData::mapToApi)
+
+                call.respond(HttpStatusCode.OK, pagedResponse)
             }
         }
 

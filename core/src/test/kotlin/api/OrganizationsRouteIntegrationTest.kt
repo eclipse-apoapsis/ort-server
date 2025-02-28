@@ -64,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrganizationVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
@@ -1496,6 +1497,233 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
+    "GET /organizations/{organizationId}/vulnerabilities" should {
+        "return vulnerabilities across repositories in the organization found in latest successful advisor jobs" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val prod1Id = dbExtension.fixtures.createProduct(organizationId = orgId).id
+                val prod2Id = dbExtension.fixtures.createProduct("Prod2", organizationId = orgId).id
+
+                val repo11Id = dbExtension.fixtures.createRepository(productId = prod1Id).id
+                val repo12Id = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/repo12.git",
+                    productId = prod1Id
+                ).id
+                val repo21Id = dbExtension.fixtures.createRepository(productId = prod2Id).id
+                val repo22Id = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/repo22.git",
+                    productId = prod2Id
+                ).id
+
+                val commonVulnerability1 = Vulnerability(
+                    externalId = "CVE-2020-0123",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "Medium",
+                            score = 4.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                val commonVulnerability2 = Vulnerability(
+                    externalId = "CVE-2021-1234",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "Medium",
+                            score = 4.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                val identifier1 = Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                val identifier2 = Identifier("Maven", "org.apache.logging.log4j", "log4j-api", "2.14.0")
+                val identifier3 = Identifier("Maven", "org.apache.logging.log4j", "log4j-slf4j-impl", "2.14.0")
+
+                val run1Id = dbExtension.fixtures.createOrtRun(repo11Id).id
+                val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(run1Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob1Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run1Vulnerability = Vulnerability(
+                    externalId = "CVE-2022-2345",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "LOW",
+                            score = 1.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob1Id,
+                    mapOf(
+                        identifier1 to listOf(
+                            generateAdvisorResult(
+                                listOf(
+                                    commonVulnerability1,
+                                    run1Vulnerability
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val run2Id = dbExtension.fixtures.createOrtRun(repo11Id).id
+                val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(run2Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob2Id,
+                    status = JobStatus.FAILED.asPresent2()
+                )
+
+                val run3Id = dbExtension.fixtures.createOrtRun(repo12Id).id
+                val advisorJob3Id = dbExtension.fixtures.createAdvisorJob(run3Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob3Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob3Id,
+                    mapOf(
+                        identifier1 to listOf(generateAdvisorResult(listOf(commonVulnerability1))),
+                        identifier2 to listOf(generateAdvisorResult(listOf(commonVulnerability2)))
+                    )
+                )
+
+                val run4Id = dbExtension.fixtures.createOrtRun(repo21Id).id
+                val advisorJob4Id = dbExtension.fixtures.createAdvisorJob(run4Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob4Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run4Vulnerability = Vulnerability(
+                    externalId = "CVE-2023-3456",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "LOW",
+                            score = 1.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob4Id,
+                    mapOf(
+                        identifier1 to listOf(
+                            generateAdvisorResult(
+                                listOf(
+                                    commonVulnerability1,
+                                    run4Vulnerability
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val run5Id = dbExtension.fixtures.createOrtRun(repo21Id).id
+                val advisorJob5Id = dbExtension.fixtures.createAdvisorJob(run5Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob5Id,
+                    status = JobStatus.FAILED.asPresent2()
+                )
+
+                val run6Id = dbExtension.fixtures.createOrtRun(repo22Id).id
+                val advisorJob6Id = dbExtension.fixtures.createAdvisorJob(run6Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob6Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob6Id,
+                    mapOf(
+                        identifier1 to listOf(generateAdvisorResult(listOf(commonVulnerability1))),
+                        identifier2 to listOf(generateAdvisorResult(listOf(commonVulnerability2))),
+                        identifier3 to listOf(generateAdvisorResult(listOf(commonVulnerability2)))
+                    )
+                )
+
+                val response =
+                    superuserClient.get(
+                        "/api/v1/organizations/$orgId/vulnerabilities?sort=-rating,-repositoriesCount"
+                    )
+
+                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        OrganizationVulnerability(
+                            vulnerability = commonVulnerability1.mapToApi(),
+                            identifier = identifier1.mapToApi(),
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run1Id, run3Id, run4Id, run6Id),
+                            repositoriesCount = 4
+                        ),
+                        OrganizationVulnerability(
+                            vulnerability = commonVulnerability2.mapToApi(),
+                            identifier = identifier2.mapToApi(),
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run3Id, run6Id),
+                            repositoriesCount = 2
+                        ),
+                        OrganizationVulnerability(
+                            vulnerability = commonVulnerability2.mapToApi(),
+                            identifier = identifier3.mapToApi(),
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run6Id),
+                            repositoriesCount = 1
+                        ),
+                        OrganizationVulnerability(
+                            vulnerability = run1Vulnerability.mapToApi(),
+                            identifier = identifier1.mapToApi(),
+                            rating = VulnerabilityRating.LOW,
+                            ortRunIds = listOf(run1Id),
+                            repositoriesCount = 1
+                        ),
+                        OrganizationVulnerability(
+                            vulnerability = run4Vulnerability.mapToApi(),
+                            identifier = identifier1.mapToApi(),
+                            rating = VulnerabilityRating.LOW,
+                            ortRunIds = listOf(run4Id),
+                            repositoriesCount = 1
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 5,
+                        sortProperties = listOf(
+                            SortProperty("rating", SortDirection.DESCENDING),
+                            SortProperty("repositoriesCount", SortDirection.DESCENDING)
+                        )
+                    )
+                )
+            }
+        }
+
+        "require OrganizationPermission.READ" {
+            val createdOrganization = createOrganization()
+            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrganization.id)) {
+                get("/api/v1/organizations/${createdOrganization.id}/vulnerabilities")
+            }
+        }
+    }
+
     "GET /organizations/{organizationId}/statistics/runs" should {
         "return statistics for runs in repositories of an organization" {
             integrationTestApplication {
@@ -1711,3 +1939,13 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 })
+
+private fun generateAdvisorResult(vulnerabilities: List<Vulnerability>) = AdvisorResult(
+    advisorName = "advisor",
+    capabilities = listOf("vulnerabilities"),
+    startTime = Clock.System.now(),
+    endTime = Clock.System.now(),
+    issues = emptyList(),
+    defects = emptyList(),
+    vulnerabilities = vulnerabilities
+)
