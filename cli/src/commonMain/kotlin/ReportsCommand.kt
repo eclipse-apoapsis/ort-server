@@ -41,6 +41,7 @@ import okio.use
 
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
+import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
 class ReportsCommand : SuspendingCliktCommand(name = "reports") {
     private val runId by option(
@@ -89,17 +90,23 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
         fileNames.forEach { fileName ->
             val reportFile = outputDir.resolve(fileName)
 
-            FileSystem.SYSTEM.sink(reportFile).buffer().use { sink ->
-                client.runs.downloadReport(resolvedOrtRunId, fileName) { channel ->
-                    val buffer = ByteArray(8192) // 8KiB buffer.
-                    var bytesRead: Int
-                    while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
-                        sink.write(buffer, 0, bytesRead)
+            try {
+                FileSystem.SYSTEM.sink(reportFile).buffer().use { sink ->
+                    client.runs.downloadReport(resolvedOrtRunId, fileName) { channel ->
+                        val buffer = ByteArray(8192) // 8KiB buffer.
+                        var bytesRead: Int
+                        while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
+                            sink.write(buffer, 0, bytesRead)
+                        }
                     }
                 }
+            } catch (e: NotFoundException) {
+                throw ReportNotFoundException("Report '$fileName' not found for run '$resolvedOrtRunId'.", e)
             }
 
             echo(reportFile.toString())
         }
     }
 }
+
+private class ReportNotFoundException(message: String, cause: Throwable) : NotFoundException(message, cause)
