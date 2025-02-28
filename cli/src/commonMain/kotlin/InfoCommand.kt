@@ -31,6 +31,7 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.long
 
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
 class InfoCommand : SuspendingCliktCommand(name = "info") {
     private val runId by option(
@@ -56,9 +57,20 @@ class InfoCommand : SuspendingCliktCommand(name = "info") {
         val client = createOrtServerClient() ?: throw AuthenticationError()
 
         val ortRun = runId?.let {
-            client.runs.getOrtRun(it)
+            try {
+                client.runs.getOrtRun(it)
+            } catch (e: NotFoundException) {
+                throw RunNotFoundException("Run with ID '$it' not found.", e)
+            }
         } ?: ortRunByIndex?.let {
-            client.repositories.getOrtRun(it.repositoryId, it.ortRunIndex)
+            try {
+                client.repositories.getOrtRun(it.repositoryId, it.ortRunIndex)
+            } catch (e: NotFoundException) {
+                throw RunNotFoundException(
+                    "Run with index '${it.ortRunIndex}' for repository '${it.repositoryId}' not found.",
+                    e
+                )
+            }
         } ?: throw ProgramResult(1)
 
         echo(json.encodeToString(ortRun))
@@ -78,3 +90,6 @@ class OrtRunByIndexOptions : OptionGroup() {
         help = "The index of the ORT run."
     ).long().required()
 }
+
+/** Exception thrown if an ORT run is not found. */
+private class RunNotFoundException(message: String, cause: Throwable?) : NotFoundException(message, cause)

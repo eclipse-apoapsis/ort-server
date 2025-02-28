@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
+import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
 class LogsCommand : SuspendingCliktCommand() {
     private val runId by option(
@@ -99,16 +100,23 @@ class LogsCommand : SuspendingCliktCommand() {
         val resolvedLogLevel = level ?: LogLevel.INFO
         val outputFile = outputDir.resolve("run-$resolvedOrtRunId-$resolvedLogLevel.logs.zip")
 
-        FileSystem.SYSTEM.sink(outputFile).buffer().use { sink ->
-            client.runs.downloadLogs(resolvedOrtRunId, resolvedLogLevel, steps) { channel ->
-                val buffer = ByteArray(8192) // 8KiB buffer.
-                var bytesRead: Int
-                while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
-                    sink.write(buffer, 0, bytesRead)
+        try {
+            FileSystem.SYSTEM.sink(outputFile).buffer().use { sink ->
+                client.runs.downloadLogs(resolvedOrtRunId, resolvedLogLevel, steps) { channel ->
+                    val buffer = ByteArray(8192) // 8KiB buffer.
+                    var bytesRead: Int
+                    while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
+                        sink.write(buffer, 0, bytesRead)
+                    }
                 }
             }
+        } catch (e: NotFoundException) {
+            throw LogsNotFoundException("Logs not found for run '$resolvedOrtRunId'.", e)
         }
 
         echo(outputFile.toString())
     }
 }
+
+/** Exception thrown when the logs for a run are not found. */
+private class LogsNotFoundException(message: String, cause: Throwable) : NotFoundException(message, cause)
