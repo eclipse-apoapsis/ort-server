@@ -136,6 +136,9 @@ const RunComponent = () => {
               <div className='text-sm'>
                 <Label className='font-semibold'>Revision:</Label>{' '}
                 {ortRun.revision}
+                {ortRun.resolvedRevision &&
+                  ortRun.revision !== ortRun.resolvedRevision &&
+                  ` ({ortRun.resolvedRevision})`}
               </div>
               {ortRun.path && (
                 <div className='text-sm'>
