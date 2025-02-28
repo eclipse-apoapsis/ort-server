@@ -1057,6 +1057,18 @@ class OrtRunServiceTest : WordSpec({
         }
     }
 
+    "updateResolvedRevision" should {
+        "update the resolved revision" {
+            val ortRun = fixtures.ortRun
+            val resolvedRevision = "0123456789abcdef0123456789abcdef01234567"
+
+            service.updateResolvedRevision(ortRun.id, resolvedRevision)
+
+            val updatedOrtRun = fixtures.ortRunRepository.get(ortRun.id).shouldNotBeNull()
+            updatedOrtRun.resolvedRevision shouldBe resolvedRevision
+        }
+    }
+
     "generateOrtResult" should {
         "should return repository information" {
 

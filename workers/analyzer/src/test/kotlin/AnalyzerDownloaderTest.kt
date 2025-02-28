@@ -44,6 +44,7 @@ import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.api.PluginConfig
 import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitCommand
+import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitFactory
 
 class AnalyzerDownloaderTest : WordSpec({
     val downloader = AnalyzerDownloader()
@@ -52,11 +53,19 @@ class AnalyzerDownloaderTest : WordSpec({
         "use the default branch if an empty revision is given" {
             val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
 
-            val outputDir = downloader.downloadRepository(repositoryUrl, revision = "")
+            val outputDir = downloader.downloadRepository(repositoryUrl, revision = "").directory
 
             with(GitCommand.run(outputDir, "branch", "--show-current").requireSuccess()) {
                 stdout.trim() shouldBe "main"
             }
+        }
+
+        "return the resolved revision" {
+            val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
+
+            val result = downloader.downloadRepository(repositoryUrl, revision = "")
+
+            result.resolvedRevision shouldBe GitFactory.create().getWorkingTree(result.directory).getRevision()
         }
 
         "not recursively clone a Git repository if submoduleFetchStrategy is DISABLED" {
@@ -65,7 +74,7 @@ class AnalyzerDownloaderTest : WordSpec({
 
             val outputDir = downloader.downloadRepository(
                 repositoryUrl, revision, submoduleFetchStrategy = SubmoduleFetchStrategy.DISABLED
-            )
+            ).directory
 
             outputDir shouldContainFile "LICENSE"
             outputDir shouldContainFile "README.md"
@@ -84,7 +93,7 @@ class AnalyzerDownloaderTest : WordSpec({
 
             val outputDir = downloader.downloadRepository(
                 repositoryUrl, revision, submoduleFetchStrategy = SubmoduleFetchStrategy.TOP_LEVEL_ONLY
-            )
+            ).directory
 
             outputDir shouldContainFile "LICENSE"
             outputDir shouldContainFile "README.md"
@@ -114,7 +123,7 @@ class AnalyzerDownloaderTest : WordSpec({
 
             val outputDir = downloader.downloadRepository(
                 repositoryUrl, revision, submoduleFetchStrategy = SubmoduleFetchStrategy.FULLY_RECURSIVE
-            )
+            ).directory
 
             outputDir shouldContainFile "LICENSE"
             outputDir shouldContainFile "README.md"
@@ -153,7 +162,7 @@ class AnalyzerDownloaderTest : WordSpec({
             val revision = "63b81fda7961c7426672469caaf4fb350a9d4ee0"
             val subPath = "pkg1"
 
-            val outputDir = downloader.downloadRepository(repositoryUrl, revision, subPath)
+            val outputDir = downloader.downloadRepository(repositoryUrl, revision, subPath).directory
 
             outputDir shouldContainFile "LICENSE"
             outputDir shouldContainFile "README.md"

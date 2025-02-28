@@ -40,7 +40,7 @@ class AnalyzerDownloader {
         revision: String,
         path: String = "",
         submoduleFetchStrategy: SubmoduleFetchStrategy? = SubmoduleFetchStrategy.FULLY_RECURSIVE
-    ): File {
+    ): DownloadResult {
         logger.info("Downloading repository '$repositoryUrl' revision '$revision'.")
 
         val outputDir = createOrtTempDir("analyzer-worker")
@@ -60,9 +60,14 @@ class AnalyzerDownloader {
         val recursiveCheckout = submoduleFetchStrategy != SubmoduleFetchStrategy.DISABLED
         vcs.updateWorkingTree(workingTree, vcsInfo.revision, recursive = recursiveCheckout).getOrThrow()
 
-        logger.info("Finished downloading '$repositoryUrl' revision '${vcsInfo.revision}'.")
+        val resolvedRevision = vcs.getWorkingTree(outputDir).getRevision()
 
-        return outputDir
+        logger.info(
+            "Finished downloading '$repositoryUrl' revision '${vcsInfo.revision}' which was resolved to " +
+                    "'$resolvedRevision'."
+        )
+
+        return DownloadResult(outputDir, resolvedRevision)
     }
 
     /**
@@ -87,3 +92,11 @@ class AnalyzerDownloader {
             emptyMap()
         }
 }
+
+data class DownloadResult(
+    /** The directory to which the repository was downloaded. */
+    val directory: File,
+
+    /** The resolved revision of the repository. */
+    val resolvedRevision: String
+)

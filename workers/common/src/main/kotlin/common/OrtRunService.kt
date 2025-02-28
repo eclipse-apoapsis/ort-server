@@ -539,6 +539,12 @@ class OrtRunService(
         }
     }
 
+    fun updateResolvedRevision(ortRunId: Long, resolvedRevision: String) {
+        db.blockingQuery {
+            ortRunRepository.update(ortRunId, resolvedRevision = resolvedRevision.asPresent())
+        }
+    }
+
     /**
      * Convert [ORT Server ScanResults][ScanResult] to [ORT ScanResults][OrtScanResult] and filter out any
      * results that are not within the VCS paths of the provenances.
