@@ -62,13 +62,6 @@ fun createOrtHttpClient(
 ): HttpClient =
     createDefaultHttpClient(json, engine).config {
         HttpResponseValidator {
-            handleResponseExceptionWithRequest { cause, request ->
-                throw OrtServerClientException(
-                    "Request to ${request.url} failed with exception: ${cause.message}",
-                    cause
-                )
-            }
-
             validateResponse { response ->
                 if (!response.status.isSuccess()) {
                     throw OrtServerClientException(
