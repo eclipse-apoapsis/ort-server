@@ -41,8 +41,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
 import org.eclipse.apoapsis.ortserver.cli.json
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.client.NotFoundException
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
-import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
 import org.eclipse.apoapsis.ortserver.client.api.RunsApi
 
@@ -148,7 +148,7 @@ class InfoCommandTest : StringSpec({
         val ortRunId = 1L
 
         val runsMock = mockk<RunsApi> {
-            coEvery { getOrtRun(ortRunId) } throws OrtServerClientException("OrtRun not found")
+            coEvery { getOrtRun(ortRunId) } throws NotFoundException("OrtRun not found")
         }
         val ortServerClientMock = mockk<OrtServerClient> {
             every { runs } returns runsMock
@@ -157,7 +157,7 @@ class InfoCommandTest : StringSpec({
         every { createOrtServerClient() } returns ortServerClientMock
 
         val command = OrtServerMain()
-        shouldThrow<OrtServerClientException> {
+        shouldThrow<NotFoundException> {
             val result = command.test(
                 listOf(
                     "runs",

@@ -32,7 +32,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
+import org.eclipse.apoapsis.ortserver.client.NotFoundException
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
 import org.eclipse.apoapsis.ortserver.client.createOrtHttpClient
 
@@ -74,7 +74,7 @@ class RepositoriesApiTest : StringSpec({
 
             val repositoriesApi = RepositoriesApi(client)
 
-            shouldThrow<OrtServerClientException> {
+            shouldThrow<NotFoundException> {
                 repositoriesApi.createOrtRun(
                     repositoryId = 1,
                     ortRun = CreateOrtRun(revision = "main", jobConfigs = JobConfigurations())
@@ -117,7 +117,7 @@ class RepositoriesApiTest : StringSpec({
 
             val repositoriesApi = RepositoriesApi(client)
 
-            shouldThrow<OrtServerClientException> {
+            shouldThrow<NotFoundException> {
                 repositoriesApi.getOrtRun(1L, 1L)
             }
         }

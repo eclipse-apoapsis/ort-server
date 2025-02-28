@@ -41,8 +41,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
 import org.eclipse.apoapsis.ortserver.cli.json
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.client.NotFoundException
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
-import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
 
 class StartCommandTest : StringSpec({
@@ -169,7 +169,7 @@ class StartCommandTest : StringSpec({
         val revision = "main"
 
         val repositoryMock = mockk<RepositoriesApi> {
-            coEvery { createOrtRun(repositoryId, any()) } throws OrtServerClientException("Invalid request")
+            coEvery { createOrtRun(repositoryId, any()) } throws NotFoundException("Invalid request")
         }
         val ortServerClientMock = mockk<OrtServerClient> {
             every { repositories } returns repositoryMock
@@ -178,7 +178,7 @@ class StartCommandTest : StringSpec({
         every { createOrtServerClient() } returns ortServerClientMock
 
         val command = OrtServerMain()
-        shouldThrow<OrtServerClientException> {
+        shouldThrow<NotFoundException> {
             val result = command.test(
                 listOf(
                     "runs",

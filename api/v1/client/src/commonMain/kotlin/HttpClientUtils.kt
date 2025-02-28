@@ -26,7 +26,13 @@ import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
@@ -64,9 +70,19 @@ fun createOrtHttpClient(
         HttpResponseValidator {
             validateResponse { response ->
                 if (!response.status.isSuccess()) {
-                    throw OrtServerClientException(
-                        "Request failed with status ${response.status.value}: ${response.bodyAsText()}"
-                    )
+                    when (response.status) {
+                        BadRequest -> throw BadRequestException("Request is invalid.")
+                        Unauthorized -> throw UnauthorizedException(
+                            "Authentication required for ${response.request.url}."
+                        )
+                        Forbidden -> throw ForbiddenException("Access to '${response.request.url}' is forbidden.")
+                        NotFound -> throw NotFoundException("Resource not found.")
+                        InternalServerError -> throw InternalServerException("Internal server error.")
+                        else -> throw ResponseException(
+                            "Request failed with status ${response.status.value}: ${response.bodyAsText()}",
+                            response.status
+                        )
+                    }
                 }
             }
         }
