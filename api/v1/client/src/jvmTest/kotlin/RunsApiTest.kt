@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
+import org.eclipse.apoapsis.ortserver.client.NotFoundException
 import org.eclipse.apoapsis.ortserver.client.api.RunsApi
 import org.eclipse.apoapsis.ortserver.client.createOrtHttpClient
 
@@ -77,7 +77,7 @@ class RunsApiTest : StringSpec({
 
             val runsApi = RunsApi(client)
 
-            shouldThrow<OrtServerClientException> {
+            shouldThrow<NotFoundException> {
                 runsApi.getOrtRun(1)
             }
         }
