@@ -21,9 +21,6 @@ plugins {
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
     id("ort-server-publication-conventions")
-
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver.transport"
@@ -33,7 +30,6 @@ dependencies {
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
-    implementation(libs.kotlinxSerializationJson)
     implementation(libs.kubernetesClient)
     implementation(libs.kubernetesClientExtended)
 
@@ -42,5 +38,4 @@ dependencies {
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-    testImplementation(libs.ortTestUtils)
 }
