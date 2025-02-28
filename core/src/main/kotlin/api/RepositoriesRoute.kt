@@ -125,20 +125,22 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             requirePermission(RepositoryPermission.TRIGGER_ORT_RUN)
 
             val repositoryId = call.requireIdParameter("repositoryId")
-            val createOrtRun = call.receive<CreateOrtRun>()
 
-            call.respond(
-                HttpStatusCode.Created,
-                orchestratorService.createOrtRun(
-                    repositoryId,
-                    createOrtRun.revision,
-                    createOrtRun.path,
-                    createOrtRun.jobConfigs.mapToModel(),
-                    createOrtRun.jobConfigContext,
-                    createOrtRun.labels,
-                    createOrtRun.environmentConfigPath
-                ).mapToApi(Jobs())
-            )
+            repositoryService.getRepository(repositoryId)?.let {
+                val createOrtRun = call.receive<CreateOrtRun>()
+                call.respond(
+                    HttpStatusCode.Created,
+                    orchestratorService.createOrtRun(
+                        repositoryId,
+                        createOrtRun.revision,
+                        createOrtRun.path,
+                        createOrtRun.jobConfigs.mapToModel(),
+                        createOrtRun.jobConfigContext,
+                        createOrtRun.labels,
+                        createOrtRun.environmentConfigPath
+                    ).mapToApi(Jobs())
+                )
+            } ?: call.respond(HttpStatusCode.NotFound)
         }
 
         route("{ortRunIndex}") {
