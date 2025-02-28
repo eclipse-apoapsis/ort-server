@@ -89,8 +89,3 @@ fun createOrtHttpClient(
 
         config()
     }
-
-/**
- * An exception thrown by the ORT server client.
- */
-class OrtServerClientException(message: String, cause: Throwable? = null) : Exception(message, cause)
