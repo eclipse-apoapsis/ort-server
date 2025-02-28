@@ -32,7 +32,6 @@ plugins {
 
     // Apply third-party plugins.
     alias(libs.plugins.jib)
-    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver.kubernetes"
@@ -45,15 +44,12 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.transport.transportSpi)
-    implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
     implementation(libs.koinCore)
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxCoroutinesSlf4j)
-    implementation(libs.kotlinxSerializationJson)
     implementation(libs.kubernetesClient)
-    implementation(libs.kubernetesClientExtended)
     implementation(libs.typesafeConfig)
 
     runtimeOnly(projects.config.secretFile)
@@ -67,7 +63,6 @@ dependencies {
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-    testImplementation(libs.ortTestUtils)
 }
 
 jib {
