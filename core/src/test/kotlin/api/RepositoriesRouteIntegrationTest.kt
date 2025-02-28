@@ -715,6 +715,24 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 responses.forAll { it shouldHaveStatus HttpStatusCode.Created }
             }
         }
+
+        "respond with \"Not Found\" if repository doesn't exist" {
+            integrationTestApplication {
+                val nonExistingRepositoryId = 999
+                val createRun = CreateOrtRun(
+                    "main",
+                    null,
+                    ApiJobConfigurations(),
+                    emptyMap()
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/$nonExistingRepositoryId/runs") {
+                    setBody(createRun)
+                }
+
+                response.status shouldBe HttpStatusCode.NotFound
+            }
+        }
     }
 
     "GET /repositories/{repositoryId}/secrets" should {
