@@ -36,6 +36,10 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
 }
 
+dependencies {
+    testImplementation(project(":utils:test"))
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(javaLanguageVersion)

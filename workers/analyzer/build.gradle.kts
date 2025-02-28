@@ -91,7 +91,6 @@ dependencies {
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.transport.transportSpi))
     testImplementation(testFixtures(projects.workers.common))
-    testImplementation(projects.utils.test)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.koinTest)

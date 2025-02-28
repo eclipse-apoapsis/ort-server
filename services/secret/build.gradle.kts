@@ -35,8 +35,6 @@ dependencies {
 
     runtimeOnly(libs.logback)
 
-    testImplementation(projects.utils.test)
-
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

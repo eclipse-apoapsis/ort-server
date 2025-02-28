@@ -41,8 +41,6 @@ dependencies {
     implementation(libs.ortCommonUtils)
     implementation(libs.slf4j)
 
-    testImplementation(projects.utils.test)
-
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
