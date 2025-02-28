@@ -77,20 +77,22 @@ internal class AnalyzerWorker(
             environmentService.generateNetRcFile(context, repositoryServices)
         }
 
-        val sourcesDir = downloader.downloadRepository(
+        val downloadResult = downloader.downloadRepository(
             repository.url,
             ortRun.revision,
             ortRun.path.orEmpty(),
             job.configuration.submoduleFetchStrategy
         )
 
+        ortRunService.updateResolvedRevision(ortRun.id, downloadResult.resolvedRevision)
+
         val resolvedEnvConfig = environmentService.setUpEnvironment(
             context,
-            sourcesDir,
+            downloadResult.directory,
             envConfigFromJob,
             repositoryServices
         )
-        val ortResult = runner.run(context, sourcesDir, job.configuration, resolvedEnvConfig)
+        val ortResult = runner.run(context, downloadResult.directory, job.configuration, resolvedEnvConfig)
 
         ortRunService.storeRepositoryInformation(ortRun.id, ortResult.repository)
         ortRunService.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)

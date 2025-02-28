@@ -123,12 +123,13 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
             // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
             // the repository is not cloned.
-            every { downloadRepository(any(), any()) } returns projectDir
+            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
         }
 
         val context = mockk<WorkerContext> {
@@ -163,6 +164,7 @@ class AnalyzerWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             verify(exactly = 1) {
+                ortRunService.updateResolvedRevision(ortRun.id, "resolvedRevision")
                 ortRunService.storeAnalyzerRun(withArg { it.analyzerJobId shouldBe JOB_ID }, any())
                 ortRunService.storeRepositoryInformation(any(), any())
             }
@@ -184,12 +186,13 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
             // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
             // the repository is not cloned.
-            every { downloadRepository(any(), any()) } returns projectDir
+            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
         }
 
         val context = mockk<WorkerContext> {
@@ -246,10 +249,11 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
-            every { downloadRepository(any(), any()) } returns projectDir
+            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
         }
 
         val context = mockk<WorkerContext> {
@@ -304,10 +308,11 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
-            every { downloadRepository(any(), any()) } returns projectDir
+            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
         }
 
         val context = mockk<WorkerContext>()
@@ -352,10 +357,11 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
-            every { downloadRepository(any(), any()) } returns projectDir
+            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
         }
 
         val context = mockk<WorkerContext>()
@@ -445,12 +451,13 @@ class AnalyzerWorkerTest : StringSpec({
             every { storeAnalyzerRun(any(), any()) } just runs
             every { storeRepositoryInformation(any(), any()) } just runs
             every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
         }
 
         val downloader = mockk<AnalyzerDownloader> {
             // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
             // the repository is not cloned.
-            every { downloadRepository(any(), any()) } returns projectDir
+            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
         }
 
         val context = mockk<WorkerContext> {
