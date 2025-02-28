@@ -139,6 +139,10 @@ const config: Config = {
               label: 'Introduction',
               to: '/docs/intro',
             },
+            {
+              label: 'Search',
+              to: '/search',
+            },
           ],
         },
         {
