@@ -28,8 +28,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
+import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrganizationVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
@@ -42,7 +44,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
 val getOrganizationById: OpenApiRoute.() -> Unit = {
@@ -599,6 +603,59 @@ val deleteUserFromOrganizationGroup: OpenApiRoute.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "Organization or group not found."
+        }
+    }
+}
+
+val getVulnerabilitiesAcrossRepositoriesByOrganizationId: OpenApiRoute.() -> Unit = {
+    operationId = "GetVulnerabilitiesAcrossRepositoriesByOrganizationId"
+    summary = "Get the vulnerabilities from latest successful advisor runs across the repositories in an organization."
+    tags = listOf("Vulnerabilities")
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The organization's ID."
+        }
+
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            jsonBody<PagedResponse<OrganizationVulnerability>> {
+                example("Get vulnerabilities for organization") {
+                    value = PagedResponse(
+                        listOf(
+                            OrganizationVulnerability(
+                                vulnerability = Vulnerability(
+                                    externalId = "CVE-2021-1234",
+                                    summary = "A vulnerability",
+                                    description = "A description",
+                                    references = listOf(
+                                        VulnerabilityReference(
+                                            "https://example.com",
+                                            "CVSS3",
+                                            "HIGH",
+                                            9.8f,
+                                            "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                                        )
+                                    )
+                                ),
+                                identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
+                                rating = VulnerabilityRating.HIGH,
+                                ortRunIds = listOf(40, 53),
+                                repositoriesCount = 2
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 1,
+                            sortProperties = listOf(SortProperty("rating", SortDirection.DESCENDING))
+                        )
+                    )
+                }
+            }
         }
     }
 }
