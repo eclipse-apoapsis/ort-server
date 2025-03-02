@@ -36,6 +36,7 @@ import io.mockk.verify
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
@@ -73,6 +74,7 @@ class KubernetesMessageReceiverFactoryTest : StringSpec({
             var receivedMessage: Message<AnalyzerRequest>? = null
             KubernetesMessageReceiverFactory().createReceiver(AnalyzerEndpoint, configManager) { message ->
                 receivedMessage = message
+                EndpointHandlerResult.CONTINUE
             }
 
             receivedMessage.shouldNotBeNull {

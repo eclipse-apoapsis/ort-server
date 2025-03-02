@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
 import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessagePublisher
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
@@ -65,6 +66,8 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
         }
 
         publisher.publish(OrchestratorEndpoint, Message(message.header, responsePayload))
+
+        EndpointHandlerResult.CONTINUE
     }
 
     override fun customModules(): List<Module> = listOf(configModule(), databaseModule(), workerContextModule())

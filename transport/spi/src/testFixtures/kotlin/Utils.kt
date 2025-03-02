@@ -34,6 +34,7 @@ import kotlinx.coroutines.runBlocking
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
@@ -69,8 +70,9 @@ fun createConfigManager(
 fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<OrchestratorMessage>> {
     val queue = LinkedBlockingQueue<Message<OrchestratorMessage>>()
 
-    fun handler(message: Message<OrchestratorMessage>) {
+    fun handler(message: Message<OrchestratorMessage>): EndpointHandlerResult {
         queue.offer(message)
+        return EndpointHandlerResult.CONTINUE
     }
 
     thread {
