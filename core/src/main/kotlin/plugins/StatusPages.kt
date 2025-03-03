@@ -41,6 +41,8 @@ import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
+import org.ossreviewtoolkit.utils.common.collectMessages
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("StatusPages")
@@ -54,11 +56,9 @@ fun Application.configureStatusPages() {
             call.respond(HttpStatusCode.Forbidden)
         }
         exception<BadRequestException> { call, e ->
-            val detailedMessage = e.cause?.message ?: e.message
-
             call.respond(
                 HttpStatusCode.BadRequest,
-                ErrorResponse(message = "Invalid request body.", detailedMessage)
+                ErrorResponse(message = "Invalid request body.", e.collectMessages())
             )
         }
         exception<EntityNotFoundException> { call, _ ->
@@ -115,7 +115,7 @@ fun Application.configureStatusPages() {
             logger.error("Internal Server Error", e)
             call.respond(
                 HttpStatusCode.InternalServerError,
-                ErrorResponse("Error when processing the request.", e.message)
+                ErrorResponse("Error when processing the request.", e.collectMessages())
             )
         }
     }
