@@ -38,6 +38,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldStartWith
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -333,8 +334,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Invalid request body."
-                body.cause shouldBe "Failed to convert request body to class " +
+                body.cause shouldStartWith "BadRequestException: Failed to convert request body to class " +
                         "org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization"
+                body.cause shouldContain "Caused by: JsonDecodingException: Unexpected JSON token at offset 53"
 
                 organizationService.getOrganization(1)?.mapToApi().shouldBeNull()
             }

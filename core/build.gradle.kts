@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.ktorSwaggerUi)
     implementation(libs.ktorValidation)
     implementation(libs.micrometerRegistryGraphite)
+    implementation(libs.ortCommonUtils)
     implementation(libs.ortUtils)
     implementation(libs.bundles.schemaKenerator)
 
