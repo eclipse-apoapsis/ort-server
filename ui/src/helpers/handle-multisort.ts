@@ -68,12 +68,32 @@ export const updateColumnSorting = (
   return updatedSort.length > 0 ? updatedSort : undefined;
 };
 
+/**
+ * Convert the sorting state to a string format for the backend.
+ *
+ * @param sorting The current sorting state of the table.
+ * @returns The sorting state as a string for the backend.
+ */
+export const convertToBackendSorting = (
+  sorting: SortingState | undefined
+): string | undefined => {
+  if (!sorting || sorting.length === 0) {
+    return undefined;
+  }
+
+  return sorting
+    .map((sort) => (sort.desc ? `-${sort.id}` : `${sort.id}`))
+    .join(',');
+};
+
 //
-// Unit tests for the updateColumnSorting() function
+// Unit tests for multisorting
 //
 
 if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest;
+
+  // Test the updateColumnSorting() function
 
   it('adds a new column to an empty sorting state', () => {
     const columns = undefined;
@@ -122,5 +142,22 @@ if (import.meta.vitest) {
       { id: 'column1', desc: false },
       { id: 'column3', desc: false },
     ]);
+  });
+
+  // Test the convertToBackendSorting() function
+
+  it('converts sorting state to backend format', () => {
+    const sorting: SortingState = [
+      { id: 'column1', desc: false },
+      { id: 'column2', desc: true },
+    ];
+
+    expect(convertToBackendSorting(sorting)).toEqual('column1,-column2');
+  });
+
+  it('returns undefined for empty sorting state', () => {
+    const sorting: SortingState = [];
+
+    expect(convertToBackendSorting(sorting)).toEqual(undefined);
   });
 }
