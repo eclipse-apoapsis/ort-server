@@ -25,6 +25,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
 
 internal val json = Json {
+    ignoreUnknownKeys = true
     namingStrategy = JsonNamingStrategy.SnakeCase
 }
 
