@@ -103,7 +103,7 @@ internal data class EphemeralPolicy(
     val timeToLive: String? = null,
 
     /** Set to true if the secret expires after a single user access. */
-    val expiresOnceAccessed: Boolean,
+    val expiresOnceAccessed: Boolean? = null,
 
     /** The action to perform when a version of the secret expires. */
     val action: ExpirationAction
