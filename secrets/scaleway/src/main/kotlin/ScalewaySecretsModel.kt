@@ -165,6 +165,12 @@ internal data class ScalewaySecret(
     /** Location of the secret in the directory structure. */
     val path: String,
 
+    /** List of Scaleway resources that can access and manage the secret. */
+    val usedBy: List<String>,
+
+    /** Returns the time at which deletion was requested. (RFC 3339 format) */
+    val deletionRequestedAt: String?,
+
     /** Policy that defines whether / when a secret's version expires. Applies to all the versions by default. */
     val ephemeralPolicy: EphemeralPolicy?,
 
