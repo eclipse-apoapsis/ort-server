@@ -266,7 +266,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with NotFound if no organization exists" {
+        "respond with 'NotFound' if no organization exists" {
             integrationTestApplication {
                 superuserClient.get("/api/v1/organizations/999999") shouldHaveStatus HttpStatusCode.NotFound
             }
@@ -359,7 +359,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with CONFLICT if the organization already exists" {
+        "respond with 'Conflict' if the organization already exists" {
             integrationTestApplication {
                 createOrganization()
 
@@ -708,7 +708,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with NotFound if no secret exists" {
+        "respond with 'NotFound' if no secret exists" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
 
@@ -748,7 +748,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with CONFLICT if the secret already exists" {
+        "respond with 'Conflict' if the secret already exists" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
                 val secret = CreateSecret(secretName, secretValue, secretDescription)
@@ -878,7 +878,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "respond with Conflict when secret is in use" {
+        "respond with 'Conflict' when secret is in use" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
 
