@@ -43,9 +43,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  convertToBackendSorting,
+  updateColumnSorting,
+} from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { toast } from '@/lib/toast';
-import { paginationSearchParameterSchema } from '@/schemas';
+import {
+  declaredLicenseSearchParameterSchema,
+  packageIdentifierSearchParameterSchema,
+  paginationSearchParameterSchema,
+  sortingSearchParameterSchema,
+} from '@/schemas';
 
 const defaultPageSize = 10;
 
@@ -82,10 +91,12 @@ const columns = [
       return identifierToString(pkg.identifier);
     },
     {
-      id: 'package',
+      id: 'identifier',
       header: 'Package ID',
       cell: ({ row }) => {
-        return <div className='font-semibold'>{row.getValue('package')}</div>;
+        return (
+          <div className='font-semibold'>{row.getValue('identifier')}</div>
+        );
       },
       enableColumnFilter: false,
     }
@@ -95,10 +106,12 @@ const columns = [
       return row.processedDeclaredLicense.spdxExpression;
     },
     {
-      id: 'declaredLicense',
+      id: 'processedDeclaredLicense',
       header: 'Declared License',
       cell: ({ row }) => (
-        <div className='break-all'>{row.getValue('declaredLicense')}</div>
+        <div className='break-all'>
+          {row.getValue('processedDeclaredLicense')}
+        </div>
       ),
       enableColumnFilter: false,
     }
@@ -116,6 +129,7 @@ const columns = [
       </a>
     ),
     enableColumnFilter: false,
+    enableSorting: false,
   }),
 ];
 
@@ -214,6 +228,7 @@ const PackagesComponent = () => {
     runId: ortRun.id,
     limit: pageSize,
     offset: pageIndex * pageSize,
+    sort: convertToBackendSorting(search.sortBy),
   });
 
   const table = useReactTable({
@@ -225,6 +240,7 @@ const PackagesComponent = () => {
         pageIndex,
         pageSize,
       },
+      sorting: search.sortBy,
     },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
@@ -275,6 +291,15 @@ const PackagesComponent = () => {
               search: { ...search, page: 1, pageSize: size },
             };
           }}
+          setSortingOptions={(sortBy) => {
+            return {
+              to: Route.to,
+              search: {
+                ...search,
+                sortBy: updateColumnSorting(search.sortBy, sortBy),
+              },
+            };
+          }}
         />
       </CardContent>
     </Card>
@@ -284,7 +309,10 @@ const PackagesComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages/'
 )({
-  validateSearch: paginationSearchParameterSchema,
+  validateSearch: paginationSearchParameterSchema
+    .merge(sortingSearchParameterSchema)
+    .merge(packageIdentifierSearchParameterSchema)
+    .merge(declaredLicenseSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
       context.queryClient,
