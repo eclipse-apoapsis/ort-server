@@ -80,6 +80,10 @@ export const packageIdentifierSearchParameterSchema = z.object({
   pkgId: z.string().optional(),
 });
 
+export const declaredLicenseSearchParameterSchema = z.object({
+  declaredLicense: z.string().optional(),
+});
+
 export const issueCategorySearchParameterSchema = z.object({
   category: z.array(issueCategorySchema).optional(),
 });
