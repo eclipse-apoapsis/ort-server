@@ -242,6 +242,16 @@ const RunsComponent = () => {
     }),
   ];
 
+  const { data: runs } = useRunsServiceGetApiV1Runs(
+    {
+      limit: 1,
+    },
+    undefined,
+    {
+      refetchInterval: pollInterval,
+    }
+  );
+
   const { data, error } = useRunsServiceGetApiV1Runs(
     {
       limit: pageSize,
@@ -281,11 +291,17 @@ const RunsComponent = () => {
     });
     return;
   }
+  const totalRuns = runs?.pagination.totalCount;
+  const filteredRuns = data?.pagination.totalCount;
+  const filtersInUse = filteredRuns !== totalRuns;
+  const matching = `, ${filteredRuns} matching filters`;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Runs</CardTitle>
+        <CardTitle>
+          Runs ({totalRuns} in total{filtersInUse && matching})
+        </CardTitle>
         <CardDescription className='sr-only'>
           A list of all runs.
         </CardDescription>
