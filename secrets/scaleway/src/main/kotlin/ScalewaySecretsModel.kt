@@ -70,6 +70,9 @@ internal data class SecretCreateRequest(
     val protected: Boolean = false
 )
 
+/**
+ * See https://www.scaleway.com/en/docs/secret-manager/concepts/#secret-types.
+ */
 @Serializable
 internal enum class SecretType {
     /** Unknown type. */
@@ -118,6 +121,9 @@ internal enum class ExpirationAction {
     @SerialName("disable") DISABLE
 }
 
+/**
+ * The response returned from https://www.scaleway.com/en/developers/api/secret-manager/#path-secrets-list-secrets.
+ */
 @Serializable
 internal data class ScalewaySecret(
     /** ID of the secret. (UUID format) */
