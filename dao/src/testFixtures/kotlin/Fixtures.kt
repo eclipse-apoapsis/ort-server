@@ -65,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
+import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
@@ -301,5 +302,55 @@ class Fixtures(private val db: Database) {
             )
         ),
         results = results
+    )
+
+    fun generatePackage(
+        identifier: Identifier,
+        authors: Set<String> = emptySet(),
+        declaredLicenses: Set<String> = emptySet(),
+        processedDeclaredLicense: ProcessedDeclaredLicense = ProcessedDeclaredLicense(
+            spdxExpression = null,
+            mappedLicenses = emptyMap(),
+            unmappedLicenses = emptySet()
+        ),
+        description: String = "Example package",
+        homepageUrl: String = "https://example.com",
+        binaryArtifact: RemoteArtifact = RemoteArtifact(
+            "https://example.com/example-1.0.jar",
+            "sha1:value",
+            "SHA-1"
+        ),
+        sourceArtifact: RemoteArtifact = RemoteArtifact(
+            "https://example.com/example-1.0-sources.jar",
+            "sha1:value",
+            "SHA-1"
+        ),
+        vcs: VcsInfo = VcsInfo(
+            RepositoryType("GIT"),
+            "https://example.com/git",
+            "revision",
+            "path"
+        ),
+        vcsProcessed: VcsInfo = VcsInfo(
+            RepositoryType("GIT"),
+            "https://example.com/git",
+            "revision",
+            "path"
+        )
+    ) = Package(
+        identifier = identifier,
+        purl = "pkg:${identifier.type}/${identifier.namespace}/${identifier.name}@${identifier.version}",
+        cpe = null,
+        authors = authors,
+        declaredLicenses = declaredLicenses,
+        processedDeclaredLicense = processedDeclaredLicense,
+        description = description,
+        homepageUrl = homepageUrl,
+        binaryArtifact = binaryArtifact,
+        sourceArtifact = sourceArtifact,
+        vcs = vcs,
+        vcsProcessed = vcsProcessed,
+        isMetadataOnly = false,
+        isModified = false
     )
 }
