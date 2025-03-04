@@ -23,72 +23,54 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 
-import java.security.MessageDigest
-
-import kotlin.random.Random
-
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsIdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.MappedDeclaredLicensesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAuthorsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesMappedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectScopesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAnalyzerRunsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAuthorsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.UnmappedDeclaredLicensesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageConfigurationsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataAuthors
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageLicenseChoicesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VcsInfoCurationDataTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VcsMatchersTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScannersTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
-import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.JobConfigurations
-import org.eclipse.apoapsis.ortserver.model.JobStatus
-import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createAdvisorRunsIdentifiersTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createAnalyzerRunTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createAuthorsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createDeclaredLicensesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createIdentifierTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createIdentifiersIssuesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createMappedDeclaredLicenseTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createNestedRepositoriesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createOrtRunTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createOrtRunsIssuesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageAnalyzerRunsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageConfigurationsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageCurationDataAuthorsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageCurationDataTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageCurationsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageLicenseChoicesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageProvenancesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackagesAuthorsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackagesDeclaredLicensesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackagesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createProcessedDeclaredLicensesMappedDeclaredLicensesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createProcessedDeclaredLicensesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createProcessedDeclaredLicensesUnmappedDeclaredLicensesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createProjectScopesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createProjectsAnalyzerRunsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createProjectsAuthorsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createProjectsDeclaredLicensesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createProjectsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createRemoteArtifactsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createRuleViolationsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createScannerRunsScannersTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createSnippetsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createUnmappedDeclaredLicenseTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createVcsInfoTableEntry
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 
 @Suppress("LargeClass")
@@ -504,453 +486,4 @@ class OrphanRemovalServiceTest : WordSpec() {
             }
         }
     }
-
-    @Suppress("LongParameterList")
-    private fun createOrtRunTableEntry(
-        index: Long = Random.nextLong(1, 10000),
-        repositoryId: Long = createRepositoryTableEntry().value,
-        revision: String = "rev1",
-        createdAt: Instant = Clock.System.now(),
-        jobConfigs: JobConfigurations = JobConfigurations(),
-        status: OrtRunStatus = OrtRunStatus.CREATED,
-        vcsId: Long? = null,
-        vcsProcessedId: Long? = null
-    ) = OrtRunsTable.insert {
-        it[this.index] = index
-        it[this.repositoryId] = repositoryId
-        it[this.revision] = revision
-        it[this.createdAt] = createdAt
-        it[this.jobConfigs] = jobConfigs
-        it[this.status] = status
-        it[this.vcsId] = vcsId
-        it[this.vcsProcessedId] = vcsProcessedId
-    } get OrtRunsTable.id
-
-    private fun createVcsInfoTableEntry(
-        type: String = "type_" + Random.nextLong(1, 10000),
-        url: String = "url_" + Random.nextLong(1, 10000),
-        revision: String = "rev_" + Random.nextLong(1, 10000),
-        path: String = "path/" + Random.nextLong(1, 10000)
-    ) = VcsInfoTable.insert {
-        it[this.type] = type
-        it[this.url] = url
-        it[this.revision] = revision
-        it[this.path] = path
-    } get VcsInfoTable.id
-
-    private fun createRepositoryTableEntry(
-        type: String = "GIT",
-        url: String = "http://some.%d.url".format(Random.nextInt(0, 10000)),
-        productId: Long = createProductTableEntry().value
-    ) = RepositoriesTable.insert {
-        it[this.type] = type
-        it[this.url] = url
-        it[this.productId] = productId
-    } get RepositoriesTable.id
-
-    private fun createProductTableEntry(
-        name: String = "Prodct_" + Random.nextInt(0, 10000),
-        organizationId: Long = createOrganizationsTableEntry().value
-    ) = ProductsTable.insert {
-        it[this.name] = name
-        it[this.organizationId] = organizationId
-    } get ProductsTable.id
-
-    private fun createOrganizationsTableEntry(
-        name: String = "Org_" + Random.nextInt(0, 10000)
-    ) = OrganizationsTable.insert {
-        it[this.name] = name
-    } get OrganizationsTable.id
-
-    private fun createProjectsTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value,
-        vcsId: Long = createVcsInfoTableEntry().value,
-        vcsProcessedId: Long = createVcsInfoTableEntry().value,
-        homepageUrl: String = "http://homepage.%d.url".format(Random.nextInt(0, 10000)),
-        definitionFilePath: String = "path_" + Random.nextInt(0, 10000)
-    ) = ProjectsTable.insert {
-        it[this.identifierId] = identifierId
-        it[this.vcsId] = vcsId
-        it[this.vcsProcessedId] = vcsProcessedId
-        it[this.homepageUrl] = homepageUrl
-        it[this.definitionFilePath] = definitionFilePath
-    } get ProjectsTable.id
-
-    private fun createAuthorsTableEntry(
-        name: String = "author_" + Random.nextInt(0, 10000)
-    ) = AuthorsTable.insert {
-        it[this.name] = name
-    } get AuthorsTable.id
-
-    private fun createProjectsAuthorsTableEntry(
-        projectId: Long = createProjectsTableEntry().value,
-        authorId: Long = createAuthorsTableEntry().value
-    ) = ProjectsAuthorsTable.insert {
-        it[this.projectId] = projectId
-        it[this.authorId] = authorId
-    }
-
-    private fun createPackagesAuthorsTableEntry(
-        authorId: Long = createAuthorsTableEntry().value,
-        packageId: Long = createPackagesTableEntry().value
-    ) = PackagesAuthorsTable.insert {
-        it[this.authorId] = authorId
-        it[this.packageId] = packageId
-    }
-
-    private fun createPackageCurationDataAuthorsTableEntry(
-        authorId: Long = createAuthorsTableEntry().value,
-        packageCurationDataId: Long = createPackageCurationDataTableEntry().value
-    ) = PackageCurationDataAuthors.insert {
-        it[this.authorId] = authorId
-        it[this.packageCurationDataId] = packageCurationDataId
-    }
-
-    private fun createPackageCurationDataTableEntry() =
-        PackageCurationDataTable.insert {
-            it[this.binaryArtifactId] = createRemoteArtifactsTableEntry()
-            it[this.sourceArtifactId] = createRemoteArtifactsTableEntry()
-        } get PackageCurationDataTable.id
-
-    private fun createProjectsAnalyzerRunsTableEntry(
-        projectId: Long = createProjectsTableEntry().value,
-        analyzerRunId: Long = createAnalyzerRunTableEntry().value
-    ) = ProjectsAnalyzerRunsTable.insert {
-        it[this.projectId] = projectId
-        it[this.analyzerRunId] = analyzerRunId
-    }
-
-    private fun createIdentifierTableEntry(
-        type: String = "type_" + Random.nextInt(0, 10000),
-        namespace: String = "namespace_" + Random.nextInt(0, 10000),
-        name: String = "name_" + Random.nextInt(0, 10000),
-        version: String = "version_" + Random.nextInt(0, 10000)
-    ) = IdentifiersTable.insert {
-        it[this.type] = type
-        it[this.namespace] = namespace
-        it[this.name] = name
-        it[this.version] = version
-    } get IdentifiersTable.id
-
-    private fun createIdentifiersIssuesTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value,
-        issueId: Long = createIssuesTableEntry().value
-    ) = IdentifiersIssuesTable.insert {
-        it[this.identifierId] = identifierId
-        it[this.issueId] = issueId
-    } get IdentifiersIssuesTable.id
-
-    private fun createIssuesTableEntry() =
-        IssuesTable.insert {
-            it[this.issueSource] = "src_" + Random.nextInt(0, 10000)
-            it[this.message] = "msg_" + Random.nextInt(0, 10000)
-            it[this.severity] = Severity.ERROR
-            it[this.affectedPath] = "path/" + Random.nextInt(0, 10000)
-        } get IssuesTable.id
-
-    private fun createAdvisorRunsIdentifiersTableEntry(
-        advisorRunId: Long = createAdvisorRunsTableEntry().value,
-        identifierId: Long = createIdentifierTableEntry().value,
-    ) = AdvisorRunsIdentifiersTable.insert {
-        it[this.advisorRunId] = advisorRunId
-        it[this.identifierId] = identifierId
-    }
-
-    private fun createAdvisorRunsTableEntry() =
-        AdvisorRunsTable.insert {
-            it[this.advisorJobId] = createAdvisorJobsTableEntry().value
-            it[this.environmentId] = createEnvironmentTableEntry().value
-            it[this.startTime] = Clock.System.now()
-            it[this.endTime] = Clock.System.now()
-        } get AdvisorRunsTable.id
-
-    private fun createAdvisorJobsTableEntry() =
-        AdvisorJobsTable.insert {
-            it[this.ortRunId] = createOrtRunTableEntry().value
-            it[this.createdAt] = Clock.System.now()
-            it[this.configuration] = AdvisorJobConfiguration()
-            it[this.status] = JobStatus.FINISHED
-        } get AdvisorJobsTable.id
-
-    private fun createPackageProvenancesTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value,
-        artifactId: Long = createRemoteArtifactsTableEntry().value,
-        vcsId: Long = createVcsInfoTableEntry().value
-    ) = PackageProvenancesTable.insert {
-        it[this.identifierId] = identifierId
-        it[this.artifactId] = artifactId
-        it[this.vcsId] = vcsId
-    } get PackageProvenancesTable.id
-
-    private fun createRuleViolationsTableEntry(
-        rule: String = "rule_" + Random.nextInt(0, 10000),
-        packageIdentifierId: Long = createIdentifierTableEntry().value,
-        severity: Severity = Severity.WARNING,
-        message: String = "msg_" + Random.nextInt(0, 10000),
-        howToFix: String = "howhow_" + Random.nextInt(0, 10000)
-
-    ) = RuleViolationsTable.insert {
-        it[this.rule] = rule
-        it[this.packageIdentifierId] = packageIdentifierId
-        it[this.severity] = severity
-        it[this.message] = message
-        it[this.howToFix] = howToFix
-    } get RuleViolationsTable.id
-
-    private fun createPackageCurationsTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value,
-        packageCurationDataId: Long = createPackageCurationDataTableEntry().value
-    ) = PackageCurationsTable.insert {
-        it[this.identifierId] = identifierId
-        it[this.packageCurationDataId] = packageCurationDataId
-    } get PackageCurationsTable.id
-
-    private fun createPackageCurationDataTableEntry(
-        binaryArtifactId: Long = createRemoteArtifactsTableEntry().value,
-        sourceArtifactId: Long = createRemoteArtifactsTableEntry().value,
-        vcsInfoCurationDataId: Long = createVcsInfoCurationDataTableEntry().value,
-        hasAuthors: Boolean = false,
-    ) = PackageCurationDataTable.insert {
-        it[this.binaryArtifactId] = binaryArtifactId
-        it[this.sourceArtifactId] = sourceArtifactId
-        it[this.vcsInfoCurationDataId] = vcsInfoCurationDataId
-        it[this.hasAuthors] = hasAuthors
-    } get PackageCurationDataTable.id
-
-    private fun createVcsInfoCurationDataTableEntry() =
-        VcsInfoCurationDataTable.insert {
-            it[this.type] = "type_" + Random.nextInt(0, 10000)
-            it[this.url] = "http://homepage.%d.url".format(Random.nextInt(0, 10000))
-            it[this.revision] = "rev_" + Random.nextInt(0, 10000)
-            it[this.path] = "path/" + Random.nextInt(0, 10000)
-        } get VcsInfoCurationDataTable.id
-
-    private fun createPackageConfigurationsTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value,
-        vcsMatcherId: Long = createVcsMatchersTableEntry().value
-    ) = PackageConfigurationsTable.insert {
-        it[this.identifierId] = identifierId
-        it[this.vcsMatcherId] = vcsMatcherId
-    } get PackageConfigurationsTable.id
-
-    private fun createVcsMatchersTableEntry() =
-        VcsMatchersTable.insert {
-            it[this.type] = "type_" + Random.nextInt(0, 10000)
-            it[this.url] = "http://homepage.%d.url".format(Random.nextInt(0, 10000))
-            it[this.revision] = "rev_" + Random.nextInt(0, 10000)
-        } get VcsMatchersTable.id
-
-    private fun createPackageLicenseChoicesTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value
-    ) = PackageLicenseChoicesTable.insert {
-        it[this.identifierId] = identifierId
-    } get PackageLicenseChoicesTable.id
-
-    private fun createScannerRunsScannersTableEntry(
-        scannerRunId: Long = createScannerRunsTableEntry().value,
-        identifierId: Long = createIdentifierTableEntry().value,
-        scannerName: String = "name_" + Random.nextInt(0, 10000)
-    ) = ScannerRunsScannersTable.insert {
-        it[this.scannerRunId] = scannerRunId
-        it[this.identifierId] = identifierId
-        it[this.scannerName] = scannerName
-    } get ScannerRunsScannersTable.id
-
-    private fun createScannerRunsTableEntry() =
-        ScannerRunsTable.insert {
-            it[this.scannerJobId] = createScannerJobsTableEntry()
-            it[this.environmentId] = createEnvironmentTableEntry()
-        } get ScannerRunsTable.id
-
-    private fun createScannerJobsTableEntry() =
-        ScannerJobsTable.insert {
-            it[this.ortRunId] = createOrtRunTableEntry()
-            it[this.createdAt] = Clock.System.now()
-            it[this.configuration] = ScannerJobConfiguration()
-            it[this.status] = JobStatus.CREATED
-        } get ScannerJobsTable.id
-
-    private fun createOrtRunsIssuesTableEntry(
-        ortRunId: Long = createOrtRunTableEntry().value,
-        issueId: Long = createIssuesTableEntry().value,
-        identifierId: Long = createIdentifierTableEntry().value
-    ) = OrtRunsIssuesTable.insert {
-        it[this.ortRunId] = ortRunId
-        it[this.issueId] = issueId
-        it[this.identifierId] = identifierId
-        it[this.timestamp] = Clock.System.now()
-    } get OrtRunsIssuesTable.id
-
-    @Suppress("LongParameterList")
-    private fun createPackagesTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value,
-        vcsId: Long = createVcsInfoTableEntry().value,
-        vcsProcessedId: Long = createVcsInfoTableEntry().value,
-        binaryArtifactId: Long = createRemoteArtifactsTableEntry().value,
-        sourceArtifactId: Long = createRemoteArtifactsTableEntry().value,
-        purl: String = "purl_" + Random.nextInt(0, 10000),
-        cpe: String = "cpe_" + Random.nextInt(0, 10000),
-        description: String = "description_" + Random.nextInt(0, 10000),
-        homepageUrl: String = "some.nome_%d.url".format(Random.nextInt(0, 10000)),
-        isMetadataOnly: Boolean = false,
-        isModified: Boolean = false
-    ) = PackagesTable.insert {
-        it[this.identifierId] = identifierId
-        it[this.vcsId] = vcsId
-        it[this.vcsProcessedId] = vcsProcessedId
-        it[this.binaryArtifactId] = binaryArtifactId
-        it[this.sourceArtifactId] = sourceArtifactId
-        it[this.purl] = purl
-        it[this.cpe] = cpe
-        it[this.description] = description
-        it[this.homepageUrl] = homepageUrl
-        it[this.isMetadataOnly] = isMetadataOnly
-        it[this.isModified] = isModified
-    } get PackagesTable.id
-
-    private fun createProcessedDeclaredLicensesTableEntry(
-        packageId: Long = createPackagesTableEntry().value,
-        projectId: Long = createProjectsTableEntry().value,
-        spdxExpression: String = "spdx_expression_" + Random.nextInt(0, 10000)
-    ) = ProcessedDeclaredLicensesTable.insert {
-        it[this.packageId] = packageId
-        it[this.projectId] = projectId
-        it[this.spdxExpression] = spdxExpression
-    } get ProcessedDeclaredLicensesTable.id
-
-    private fun createPackageAnalyzerRunsTableEntry(
-        packageId: Long,
-        analyzerRunId: Long
-    ) = PackagesAnalyzerRunsTable.insert {
-        it[this.packageId] = packageId
-        it[this.analyzerRunId] = analyzerRunId
-    }
-
-    private fun createAnalyzerJobTableEntry() =
-        AnalyzerJobsTable.insert {
-            it[this.ortRunId] = createOrtRunTableEntry()
-            it[this.createdAt] = Clock.System.now()
-            it[this.configuration] = AnalyzerJobConfiguration()
-            it[this.status] = JobStatus.CREATED
-        } get AnalyzerJobsTable.id
-
-    private fun createAnalyzerRunTableEntry() =
-        AnalyzerRunsTable.insert {
-            it[this.analyzerJobId] = createAnalyzerJobTableEntry()
-            it[this.environmentId] = createEnvironmentTableEntry()
-            it[this.startTime] = Clock.System.now()
-            it[this.endTime] = Clock.System.now()
-            it[this.dependencyGraphs] = DependencyGraphsWrapper(emptyMap())
-        } get AnalyzerRunsTable.id
-
-    private fun createEnvironmentTableEntry() =
-        EnvironmentsTable.insert {
-            it[this.ortVersion] = "ver_" + Random.nextInt(0, 10000)
-            it[this.javaVersion] = "22"
-            it[this.os] = "Linux"
-            it[this.processors] = 1
-            it[this.maxMemory] = Random.nextLong(100, 10000)
-        } get EnvironmentsTable.id
-
-    private fun createNestedRepositoriesTableEntry(
-        ortRunId: Long = createOrtRunTableEntry().value,
-        path: String = "path/" + Random.nextInt(0, 10000),
-        vcsId: Long = createVcsInfoTableEntry().value
-    ) = NestedRepositoriesTable.insert {
-        it[this.ortRunId] = ortRunId
-        it[this.path] = path
-        it[this.vcsId] = vcsId
-    } get NestedRepositoriesTable.id
-
-    @Suppress("LongParameterList")
-    private fun createSnippetsTableEntry(
-        purl: String = "purl_" + Random.nextInt(0, 10000),
-        artifactId: Long = createRemoteArtifactsTableEntry().value,
-        vcsId: Long = createVcsInfoTableEntry().value,
-        path: String = "path/" + Random.nextInt(0, 10000),
-        startLine: Int = Random.nextInt(0, 10000),
-        endLine: Int = Random.nextInt(0, 10000),
-        license: String = "Lic_" + Random.nextInt(0, 10000),
-        score: Float = Random.nextFloat()
-    ) = SnippetsTable.insert {
-        it[this.purl] = purl
-        it[this.artifactId] = artifactId
-        it[this.vcsId] = vcsId
-        it[this.path] = path
-        it[this.startLine] = startLine
-        it[this.endLine] = endLine
-        it[this.license] = license
-        it[this.score] = score
-    } get SnippetsTable.id
-
-    private fun createRemoteArtifactsTableEntry(
-        url: String = "git.someurl.org",
-        hashValue: String = MessageDigest.getInstance("SHA-1").digest(url.toByteArray()).toString(),
-        hashAlgorithm: String = "SHA1"
-    ) = RemoteArtifactsTable.insert {
-        it[this.url] = url
-        it[this.hashValue] = hashValue
-        it[this.hashAlgorithm] = hashAlgorithm
-    } get RemoteArtifactsTable.id
-
-    private fun createDeclaredLicensesTableEntry(
-        name: String = "name_" + Random.nextInt(0, 10000)
-    ) = DeclaredLicensesTable.insert {
-        it[this.name] = name
-    } get DeclaredLicensesTable.id
-
-    private fun createPackagesDeclaredLicensesTableEntry(
-        packageId: Long = createPackagesTableEntry().value,
-        declaredLicenseId: Long = createDeclaredLicensesTableEntry().value
-    ) = PackagesDeclaredLicensesTable.insert {
-        it[this.packageId] = packageId
-        it[this.declaredLicenseId] = declaredLicenseId
-    }
-
-    private fun createProjectsDeclaredLicensesTableEntry(
-        projectId: Long = createProjectsTableEntry().value,
-        declaredLicenseId: Long = createDeclaredLicensesTableEntry().value
-    ) = ProjectsDeclaredLicensesTable.insert {
-        it[this.projectId] = projectId
-        it[this.declaredLicenseId] = declaredLicenseId
-    }
-
-    private fun createProcessedDeclaredLicensesMappedDeclaredLicensesTableEntry(
-        mappedDeclaredLicenseId: Long = createMappedDeclaredLicenseTableEntry().value,
-        processedDeclaredLicenseId: Long = createProcessedDeclaredLicensesTableEntry().value
-    ) = ProcessedDeclaredLicensesMappedDeclaredLicensesTable.insert {
-        it[this.mappedDeclaredLicenseId] = mappedDeclaredLicenseId
-        it[this.processedDeclaredLicenseId] = processedDeclaredLicenseId
-    }
-
-    private fun createProcessedDeclaredLicensesUnmappedDeclaredLicensesTableEntry(
-        unmappedDeclaredLicenseId: Long = createUnmappedDeclaredLicenseTableEntry().value,
-        processedDeclaredLicenseId: Long = createProcessedDeclaredLicensesTableEntry().value
-    ) = ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable.insert {
-        it[this.unmappedDeclaredLicenseId] = unmappedDeclaredLicenseId
-        it[this.processedDeclaredLicenseId] = processedDeclaredLicenseId
-    }
-
-    private fun createMappedDeclaredLicenseTableEntry(
-        declaredLicense: String = "license_" + Random.nextInt(0, 10000),
-        mappedLicense: String = "license_" + Random.nextInt(0, 10000)
-    ) = MappedDeclaredLicensesTable.insert {
-        it[this.declaredLicense] = declaredLicense
-        it[this.mappedLicense] = mappedLicense
-    } get MappedDeclaredLicensesTable.id
-
-    private fun createUnmappedDeclaredLicenseTableEntry(
-        unmappedLicense: String = "license_" + Random.nextInt(0, 10000)
-    ) = UnmappedDeclaredLicensesTable.insert {
-        it[this.unmappedLicense] = unmappedLicense
-    } get UnmappedDeclaredLicensesTable.id
-
-    private fun createProjectScopesTableEntry(
-        projectId: Long = createProjectsTableEntry().value,
-        name: String = "name_" + Random.nextInt(0, 10000)
-    ) =
-        ProjectScopesTable.insert {
-            it[this.projectId] = projectId
-            it[this.name] = name
-        } get ProjectScopesTable.id
 }
