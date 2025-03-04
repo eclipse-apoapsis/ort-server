@@ -56,13 +56,20 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.P
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageLicenseChoicesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VcsInfoCurationDataTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VcsMatchersTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScannersTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.AdditionalScanResultData
+import org.eclipse.apoapsis.ortserver.dao.tables.CopyrightFindingsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsSnippetsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsTable
@@ -302,18 +309,6 @@ internal object OrphanRemovalServiceTestFixtures {
         it[this.identifierId] = identifierId
         it[this.packageCurationDataId] = packageCurationDataId
     } get PackageCurationsTable.id
-
-    internal fun createVcsInfoCurationDataTableEntry(
-        type: String = "type_" + Random.nextInt(0, 10000),
-        url: String = "http://homepage.%d.url".format(Random.nextInt(0, 10000)),
-        revision: String = "rev_" + Random.nextInt(0, 10000),
-        path: String = "path/" + Random.nextInt(0, 10000)
-    ) = VcsInfoCurationDataTable.insert {
-        it[this.type] = type
-        it[this.url] = url
-        it[this.revision] = revision
-        it[this.path] = path
-    } get VcsInfoCurationDataTable.id
 
     internal fun createPackageConfigurationsTableEntry(
         identifierId: Long = createIdentifierTableEntry().value,
@@ -565,4 +560,100 @@ internal object OrphanRemovalServiceTestFixtures {
         it[this.projectId] = projectId
         it[this.name] = name
     } get ProjectScopesTable.id
+
+    internal fun createScanSummaryTableEntry(
+        startTime: Instant = Clock.System.now(),
+        endTime: Instant = Clock.System.now(),
+        hash: String = MessageDigest.getInstance("SHA-1").digest(startTime.toString().toByteArray()).toString()
+    ) = ScanSummariesTable.insert {
+        it[this.startTime] = startTime
+        it[this.endTime] = endTime
+        it[this.hash] = hash
+    } get ScanSummariesTable.id
+
+    @Suppress("LongParameterList")
+    internal fun createScanResultsTableEntry(
+        artifactUrl: String = "http://some.%d.url".format(Random.nextInt(0, 10000)),
+        artifactHash: String = MessageDigest.getInstance("SHA-1").digest(artifactUrl.toByteArray()).toString(),
+        artifactHashAlgorithm: String = "SHA-1",
+        vcsType: String = "GIT",
+        vcsUrl: String = "http://some.%d.url".format(Random.nextInt(0, 10000)),
+        vcsRevision: String = "rev_" + Random.nextInt(0, 10000),
+        scanSummaryId: Long = createScanSummaryTableEntry().value,
+        scannerName: String = "scanner_" + Random.nextInt(0, 1000),
+        scannerVersion: String = "v." + Random.nextFloat(),
+        scannerConfiguration: String = "config_" + Random.nextInt(0, 10000),
+        additionalScanResultData: AdditionalScanResultData = AdditionalScanResultData(emptyMap())
+    ) = ScanResultsTable.insert {
+        it[this.artifactUrl] = artifactUrl
+        it[this.artifactHash] = artifactHash
+        it[this.artifactHashAlgorithm] = artifactHashAlgorithm
+        it[this.vcsType] = vcsType
+        it[this.vcsUrl] = vcsUrl
+        it[this.vcsRevision] = vcsRevision
+        it[this.scanSummaryId] = scanSummaryId
+        it[this.scannerName] = scannerName
+        it[this.scannerVersion] = scannerVersion
+        it[this.scannerConfiguration] = scannerConfiguration
+        it[this.additionalScanResultData] = additionalScanResultData
+    } get ScanResultsTable.id
+
+    internal fun createCopyrightFindingsTableEntry(
+        statement: String = "statement_" + Random.nextInt(0, 10000),
+        path: String = "path_" + Random.nextInt(0, 10000),
+        startLine: Int = Random.nextInt(0, 10000),
+        endLine: Int = Random.nextInt(10001, 20000),
+        scanSummaryId: Long = createScanSummaryTableEntry().value
+    ) = CopyrightFindingsTable.insert {
+        it[this.statement] = statement
+        it[this.path] = path
+        it[this.startLine] = startLine
+        it[this.endLine] = endLine
+        it[this.scanSummaryId] = scanSummaryId
+    }
+
+    @Suppress("LongParameterList")
+    internal fun createLicenseFindingsTableEntry(
+        license: String = "license_" + Random.nextInt(0, 10000),
+        path: String = "path_" + Random.nextInt(0, 10000),
+        startLine: Int = Random.nextInt(0, 10000),
+        endLine: Int = Random.nextInt(10001, 20000),
+        score: Float = Random.nextFloat(),
+        scanSummaryId: Long = createScanSummaryTableEntry().value
+    ) = LicenseFindingsTable.insert {
+        it[this.license] = license
+        it[this.path] = path
+        it[this.startLine] = startLine
+        it[this.endLine] = endLine
+        it[this.score] = score
+        it[this.scanSummaryId] = scanSummaryId
+    } get LicenseFindingsTable.id
+
+    internal fun createSnippetFindingsTableEntry(
+        path: String = "path_" + Random.nextInt(0, 10000),
+        startLine: Int = Random.nextInt(0, 10000),
+        endLine: Int = Random.nextInt(10001, 20000),
+        scanSummaryId: Long = createScanSummaryTableEntry().value
+    ) = SnippetFindingsTable.insert {
+        it[this.path] = path
+        it[this.startLine] = startLine
+        it[this.endLine] = endLine
+        it[this.scanSummaryId] = scanSummaryId
+    } get SnippetFindingsTable.id
+
+    internal fun createSnippetFindingsSnippetsTableEntry(
+        snippetFindingId: Long = createSnippetFindingsTableEntry().value,
+        snippetId: Long = createSnippetsTableEntry().value
+    ) = SnippetFindingsSnippetsTable.insert {
+        it[this.snippetFindingId] = snippetFindingId
+        it[this.snippetId] = snippetId
+    }
+
+    internal fun createScannerRunsScanResultsTableEntry(
+        scannerRunId: Long = createScannerRunsTableEntry().value,
+        scanResultId: Long = createScanResultsTableEntry().value
+    ) = ScannerRunsScanResultsTable.insert {
+        it[this.scannerRunId] = scannerRunId
+        it[this.scanResultId] = scanResultId
+    }
 }
