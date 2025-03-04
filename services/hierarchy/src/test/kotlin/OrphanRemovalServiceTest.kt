@@ -30,6 +30,13 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.UnmappedDeclaredLicensesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.CopyrightFindingsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.LicenseFindingsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsSnippetsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
@@ -38,13 +45,15 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createAdvisorRunsIdentifiersTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createAnalyzerRunTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createAuthorsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createCopyrightFindingsTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createDeclaredLicensesTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createIdentifierTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createIdentifiersIssuesTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createLicenseFindingsTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createMappedDeclaredLicenseTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createNestedRepositoriesTableEntry
-import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createOrtRunsIssuesTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createOrtRunTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createOrtRunsIssuesTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageAnalyzerRunsTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageConfigurationsTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createPackageCurationDataAuthorsTableEntry
@@ -65,7 +74,12 @@ import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createProjectsTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createRemoteArtifactsTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createRuleViolationsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createScanResultsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createScanSummaryTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createScannerRunsScanResultsTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createScannerRunsScannersTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createSnippetFindingsSnippetsTableEntry
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createSnippetFindingsTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createSnippetsTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createUnmappedDeclaredLicenseTableEntry
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalServiceTestFixtures.createVcsInfoTableEntry
@@ -481,6 +495,105 @@ class OrphanRemovalServiceTest : WordSpec() {
                     RemoteArtifactsTable.selectAll().count() shouldBe 6
                     RemoteArtifactsTable.selectAll().toList().forEach {
                         it[RemoteArtifactsTable.url] shouldStartWith "not.to.delete"
+                    }
+                }
+            }
+
+            "delete findings, snippets and scan summaries not related to any other entity" {
+                db.dbQuery {
+
+                    // Create scan result not related to scan run.
+                    val scanSummaryId = createScanSummaryTableEntry(hash = "to.delete.1").value
+                    createScanResultsTableEntry(artifactUrl = "to.delete.1", scanSummaryId = scanSummaryId)
+                    createCopyrightFindingsTableEntry(scanSummaryId = scanSummaryId, path = "to.delete.2")
+                    createCopyrightFindingsTableEntry(scanSummaryId = scanSummaryId, path = "to.delete.3")
+                    createLicenseFindingsTableEntry(scanSummaryId = scanSummaryId, path = "to.delete.4")
+                    createLicenseFindingsTableEntry(scanSummaryId = scanSummaryId, path = "to.delete.5")
+
+                    createSnippetFindingsSnippetsTableEntry(
+                        snippetFindingId = createSnippetFindingsTableEntry(
+                            scanSummaryId = scanSummaryId,
+                            path = "to.delete.6"
+                        ).value,
+                        snippetId = createSnippetsTableEntry(purl = "to.delete.7").value
+                    )
+
+                    createSnippetFindingsSnippetsTableEntry(
+                        snippetFindingId = createSnippetFindingsTableEntry(
+                            scanSummaryId = scanSummaryId,
+                            path = "to.delete.8"
+                        ).value,
+                        snippetId = createSnippetsTableEntry(purl = "to.delete.9").value
+                    )
+
+                    // Create scan result related to scan run.
+                    val scanSummary2Id = createScanSummaryTableEntry(hash = "not.to.delete.1").value
+                    createCopyrightFindingsTableEntry(scanSummaryId = scanSummary2Id, path = "not.to.delete.2")
+                    createCopyrightFindingsTableEntry(scanSummaryId = scanSummary2Id, path = "not.to.delete.3")
+                    createLicenseFindingsTableEntry(scanSummaryId = scanSummary2Id, path = "not.to.delete.4")
+                    createLicenseFindingsTableEntry(scanSummaryId = scanSummary2Id, path = "not.to.delete.5")
+
+                    createSnippetFindingsSnippetsTableEntry(
+                        snippetFindingId = createSnippetFindingsTableEntry(
+                            scanSummaryId = scanSummary2Id,
+                            path = "not.to.delete.6"
+                        ).value,
+                        snippetId = createSnippetsTableEntry(purl = "not.to.delete.7").value
+                    )
+
+                    createSnippetFindingsSnippetsTableEntry(
+                        snippetFindingId = createSnippetFindingsTableEntry(
+                            scanSummaryId = scanSummary2Id,
+                            path = "not.to.delete.8"
+                        ).value,
+                        snippetId = createSnippetsTableEntry(purl = "not.to.delete.9").value
+                    )
+
+                    createScannerRunsScanResultsTableEntry(
+                        scannerRunId = createScannerRunsScannersTableEntry().value,
+                        scanResultId = createScanResultsTableEntry(
+                            artifactUrl = "not.to.delete.8", scanSummaryId = scanSummary2Id
+                        ).value
+                    )
+                }
+
+                db.dbQuery {
+                    ScanSummariesTable.selectAll().count() shouldBe 2
+                    ScanResultsTable.selectAll().count() shouldBe 2
+                    SnippetFindingsTable.selectAll().count() shouldBe 4
+                    LicenseFindingsTable.selectAll().count() shouldBe 4
+                    CopyrightFindingsTable.selectAll().count() shouldBe 4
+                    SnippetsTable.selectAll().count() shouldBe 4
+                }
+
+                service.deleteRunsOrphanedEntities()
+
+                db.dbQuery {
+                    ScanSummariesTable.selectAll().count() shouldBe 1
+                    ScanSummariesTable.selectAll().forEach {
+                        it[ScanSummariesTable.hash] shouldStartWith "not.to.delete"
+                    }
+                    ScanResultsTable.selectAll().count() shouldBe 1
+                    ScanResultsTable.selectAll().forEach {
+                        it[ScanResultsTable.artifactUrl] shouldStartWith "not.to.delete"
+                    }
+                    SnippetFindingsSnippetsTable.selectAll().count() shouldBe 2
+
+                    SnippetFindingsTable.selectAll().count() shouldBe 2
+                    SnippetFindingsTable.selectAll().forEach {
+                        it[SnippetFindingsTable.path] shouldStartWith "not.to.delete"
+                    }
+                    LicenseFindingsTable.selectAll().count() shouldBe 2
+                    LicenseFindingsTable.selectAll().forEach {
+                        it[LicenseFindingsTable.path] shouldStartWith "not.to.delete"
+                    }
+                    CopyrightFindingsTable.selectAll().count() shouldBe 2
+                    CopyrightFindingsTable.selectAll().forEach {
+                        it[CopyrightFindingsTable.path] shouldStartWith "not.to.delete"
+                    }
+                    SnippetsTable.selectAll().count() shouldBe 2
+                    SnippetsTable.selectAll().forEach {
+                        it[SnippetsTable.purl] shouldStartWith "not.to.delete"
                     }
                 }
             }
