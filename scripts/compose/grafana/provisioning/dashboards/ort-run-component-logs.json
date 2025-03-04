@@ -1,0 +1,790 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "description": "With this dashboard, you can filter with the run ID and log levels for each individual component (orchestrator, core, config_worker, analyzer_worker, advisor_worker, scanner_worker, evaluator_worker and reporter_worker).",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 7,
+    "links": [],
+    "panels": [
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "P982945308D3682D1"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 0
+        },
+        "id": 2,
+        "options": {
+          "dedupStrategy": "none",
+          "enableInfiniteScrolling": false,
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": false,
+          "sortOrder": "Descending",
+          "wrapLogMessage": true
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "P982945308D3682D1"
+            },
+            "direction": "backward",
+            "editorMode": "code",
+            "expr": "{component=\"orchestrator\"} | logfmt |~ `(?P<level>level=($orchestrator_log_levels))` | regexp `message=\"(?P<msg>[^\"]+)\"` | line_format `{{.time}} {{.msg}}` | label_format level=level_extracted",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Orchestrator",
+        "type": "logs"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "P982945308D3682D1"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 0
+        },
+        "id": 1,
+        "options": {
+          "dedupStrategy": "none",
+          "enableInfiniteScrolling": false,
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": false,
+          "sortOrder": "Descending",
+          "wrapLogMessage": true
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "P982945308D3682D1"
+            },
+            "direction": "backward",
+            "editorMode": "code",
+            "expr": "{component=\"core\"} | logfmt |~ `(?P<level>level=($core_log_levels))` | regexp `message=\"(?P<msg>[^\"]+)\"` | line_format `{{.time}} {{.msg}}` | label_format level=level_extracted",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Core",
+        "type": "logs"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "P982945308D3682D1"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 0
+        },
+        "id": 3,
+        "options": {
+          "dedupStrategy": "none",
+          "enableInfiniteScrolling": false,
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": false,
+          "sortOrder": "Descending",
+          "wrapLogMessage": true
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "P982945308D3682D1"
+            },
+            "direction": "backward",
+            "editorMode": "code",
+            "expr": "{component=\"config-worker\"} | logfmt |~ `(?P<run_id>ortRunId=$run_id)` |~ `(?P<level>level=($config_log_levels))` | regexp `message=\"(?P<msg>[^\"]+)\"` | line_format `{{.time}} {{.msg}}` | label_format level=level_extracted",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Config",
+        "type": "logs"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "P982945308D3682D1"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        },
+        "id": 4,
+        "options": {
+          "dedupStrategy": "none",
+          "enableInfiniteScrolling": false,
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": false,
+          "sortOrder": "Descending",
+          "wrapLogMessage": true
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "P982945308D3682D1"
+            },
+            "direction": "backward",
+            "editorMode": "code",
+            "expr": "{component=\"analyzer-worker\"} | logfmt |~ `(?P<run_id>ortRunId=$run_id)` |~ `(?P<level>level=($analyzer_log_levels))` | regexp `message=\"(?P<msg>[^\"]+)\"` | line_format `{{.time}} {{.msg}}` | label_format level=level_extracted",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Analyzer",
+        "type": "logs"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "P982945308D3682D1"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        },
+        "id": 5,
+        "options": {
+          "dedupStrategy": "none",
+          "enableInfiniteScrolling": false,
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": false,
+          "sortOrder": "Descending",
+          "wrapLogMessage": true
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "P982945308D3682D1"
+            },
+            "direction": "backward",
+            "editorMode": "code",
+            "expr": "{component=\"advisor-worker\"} | logfmt |~ `(?P<run_id>ortRunId=$run_id)` |~ `(?P<level>level=($advisor_log_levels))` | regexp `message=\"(?P<msg>[^\"]+)\"` | line_format `{{.time}} {{.msg}}` | label_format level=level_extracted",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Advisor",
+        "type": "logs"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "P982945308D3682D1"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        },
+        "id": 6,
+        "options": {
+          "dedupStrategy": "none",
+          "enableInfiniteScrolling": false,
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": false,
+          "sortOrder": "Descending",
+          "wrapLogMessage": true
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "P982945308D3682D1"
+            },
+            "direction": "backward",
+            "editorMode": "code",
+            "expr": "{component=\"scanner-worker\"} | logfmt |~ `(?P<run_id>ortRunId=$run_id)` |~ `(?P<level>level=($scanner_log_levels))` | regexp `message=\"(?P<msg>[^\"]+)\"` | line_format `{{.time}} {{.msg}}` | label_format level=level_extracted",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Scanner",
+        "type": "logs"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "P982945308D3682D1"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 32
+        },
+        "id": 7,
+        "options": {
+          "dedupStrategy": "none",
+          "enableInfiniteScrolling": false,
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": false,
+          "sortOrder": "Descending",
+          "wrapLogMessage": true
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "P982945308D3682D1"
+            },
+            "direction": "backward",
+            "editorMode": "code",
+            "expr": "{component=\"evaluator-worker\"} | logfmt |~ `(?P<run_id>ortRunId=$run_id)` |~ `(?P<level>level=($evaluator_log_levels))` | regexp `message=\"(?P<msg>[^\"]+)\"` | line_format `{{.time}} {{.msg}}` | label_format level=level_extracted",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Evaluator",
+        "type": "logs"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "P982945308D3682D1"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 40
+        },
+        "id": 8,
+        "options": {
+          "dedupStrategy": "none",
+          "enableInfiniteScrolling": false,
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": false,
+          "sortOrder": "Descending",
+          "wrapLogMessage": true
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "P982945308D3682D1"
+            },
+            "direction": "backward",
+            "editorMode": "code",
+            "expr": "{component=\"reporter-worker\"} | logfmt |~ `(?P<run_id>ortRunId=$run_id)` |~ `(?P<level>level=($reporter_log_levels))` | regexp `message=\"(?P<msg>[^\"]+)\"` | line_format `{{.time}} {{.msg}}` | label_format level=level_extracted",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Reporter",
+        "type": "logs"
+      }
+    ],
+    "preload": false,
+    "refresh": "auto",
+    "schemaVersion": 40,
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "text": "60",
+            "value": "60"
+          },
+          "label": "Run ID",
+          "name": "run_id",
+          "options": [
+            {
+              "selected": true,
+              "text": "60",
+              "value": "60"
+            }
+          ],
+          "query": "60",
+          "type": "textbox"
+        },
+        {
+          "current": {
+            "text": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ],
+            "value": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ]
+          },
+          "includeAll": true,
+          "label": "Orchestrator",
+          "multi": true,
+          "name": "orchestrator_log_levels",
+          "options": [
+            {
+              "selected": true,
+              "text": "ERROR",
+              "value": "ERROR"
+            },
+            {
+              "selected": true,
+              "text": "WARN",
+              "value": "WARN"
+            },
+            {
+              "selected": true,
+              "text": "INFO",
+              "value": "INFO"
+            },
+            {
+              "selected": false,
+              "text": "DEBUG",
+              "value": "DEBUG"
+            },
+            {
+              "selected": false,
+              "text": "TRACE",
+              "value": "TRACE"
+            }
+          ],
+          "query": "ERROR,WARN,INFO,DEBUG,TRACE",
+          "type": "custom"
+        },
+        {
+          "current": {
+            "text": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ],
+            "value": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ]
+          },
+          "includeAll": true,
+          "label": "Core",
+          "multi": true,
+          "name": "core_log_levels",
+          "options": [
+            {
+              "selected": true,
+              "text": "ERROR",
+              "value": "ERROR"
+            },
+            {
+              "selected": true,
+              "text": "WARN",
+              "value": "WARN"
+            },
+            {
+              "selected": true,
+              "text": "INFO",
+              "value": "INFO"
+            },
+            {
+              "selected": false,
+              "text": "DEBUG",
+              "value": "DEBUG"
+            },
+            {
+              "selected": false,
+              "text": "TRACE",
+              "value": "TRACE"
+            }
+          ],
+          "query": "ERROR,WARN,INFO,DEBUG,TRACE",
+          "type": "custom"
+        },
+        {
+          "current": {
+            "text": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ],
+            "value": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ]
+          },
+          "includeAll": true,
+          "label": "Config",
+          "multi": true,
+          "name": "config_log_levels",
+          "options": [
+            {
+              "selected": true,
+              "text": "ERROR",
+              "value": "ERROR"
+            },
+            {
+              "selected": true,
+              "text": "WARN",
+              "value": "WARN"
+            },
+            {
+              "selected": true,
+              "text": "INFO",
+              "value": "INFO"
+            },
+            {
+              "selected": false,
+              "text": "DEBUG",
+              "value": "DEBUG"
+            },
+            {
+              "selected": false,
+              "text": "TRACE",
+              "value": "TRACE"
+            }
+          ],
+          "query": "ERROR,WARN,INFO,DEBUG,TRACE",
+          "type": "custom"
+        },
+        {
+          "current": {
+            "text": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ],
+            "value": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ]
+          },
+          "includeAll": true,
+          "label": "Analyzer",
+          "multi": true,
+          "name": "analyzer_log_levels",
+          "options": [
+            {
+              "selected": true,
+              "text": "ERROR",
+              "value": "ERROR"
+            },
+            {
+              "selected": true,
+              "text": "WARN",
+              "value": "WARN"
+            },
+            {
+              "selected": true,
+              "text": "INFO",
+              "value": "INFO"
+            },
+            {
+              "selected": false,
+              "text": "DEBUG",
+              "value": "DEBUG"
+            },
+            {
+              "selected": false,
+              "text": "TRACE",
+              "value": "TRACE"
+            }
+          ],
+          "query": "ERROR,WARN,INFO,DEBUG,TRACE",
+          "type": "custom"
+        },
+        {
+          "current": {
+            "text": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ],
+            "value": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ]
+          },
+          "includeAll": true,
+          "label": "Advisor",
+          "multi": true,
+          "name": "advisor_log_levels",
+          "options": [
+            {
+              "selected": true,
+              "text": "ERROR",
+              "value": "ERROR"
+            },
+            {
+              "selected": true,
+              "text": "WARN",
+              "value": "WARN"
+            },
+            {
+              "selected": true,
+              "text": "INFO",
+              "value": "INFO"
+            },
+            {
+              "selected": false,
+              "text": "DEBUG",
+              "value": "DEBUG"
+            },
+            {
+              "selected": false,
+              "text": "TRACE",
+              "value": "TRACE"
+            }
+          ],
+          "query": "ERROR,WARN,INFO,DEBUG,TRACE",
+          "type": "custom"
+        },
+        {
+          "current": {
+            "text": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ],
+            "value": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ]
+          },
+          "includeAll": true,
+          "label": "Scanner",
+          "multi": true,
+          "name": "scanner_log_levels",
+          "options": [
+            {
+              "selected": true,
+              "text": "ERROR",
+              "value": "ERROR"
+            },
+            {
+              "selected": true,
+              "text": "WARN",
+              "value": "WARN"
+            },
+            {
+              "selected": true,
+              "text": "INFO",
+              "value": "INFO"
+            },
+            {
+              "selected": false,
+              "text": "DEBUG",
+              "value": "DEBUG"
+            },
+            {
+              "selected": false,
+              "text": "TRACE",
+              "value": "TRACE"
+            }
+          ],
+          "query": "ERROR,WARN,INFO,DEBUG,TRACE",
+          "type": "custom"
+        },
+        {
+          "current": {
+            "text": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ],
+            "value": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ]
+          },
+          "includeAll": true,
+          "label": "Evaluator",
+          "multi": true,
+          "name": "evaluator_log_levels",
+          "options": [
+            {
+              "selected": true,
+              "text": "ERROR",
+              "value": "ERROR"
+            },
+            {
+              "selected": true,
+              "text": "WARN",
+              "value": "WARN"
+            },
+            {
+              "selected": true,
+              "text": "INFO",
+              "value": "INFO"
+            },
+            {
+              "selected": false,
+              "text": "DEBUG",
+              "value": "DEBUG"
+            },
+            {
+              "selected": false,
+              "text": "TRACE",
+              "value": "TRACE"
+            }
+          ],
+          "query": "ERROR,WARN,INFO,DEBUG,TRACE",
+          "type": "custom"
+        },
+        {
+          "current": {
+            "text": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ],
+            "value": [
+              "ERROR",
+              "WARN",
+              "INFO"
+            ]
+          },
+          "includeAll": true,
+          "label": "Reporter",
+          "multi": true,
+          "name": "reporter_log_levels",
+          "options": [
+            {
+              "selected": true,
+              "text": "ERROR",
+              "value": "ERROR"
+            },
+            {
+              "selected": true,
+              "text": "WARN",
+              "value": "WARN"
+            },
+            {
+              "selected": true,
+              "text": "INFO",
+              "value": "INFO"
+            },
+            {
+              "selected": false,
+              "text": "DEBUG",
+              "value": "DEBUG"
+            },
+            {
+              "selected": false,
+              "text": "TRACE",
+              "value": "TRACE"
+            }
+          ],
+          "query": "ERROR,WARN,INFO,DEBUG,TRACE",
+          "type": "custom"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-7d",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "ORT Run Component Logs",
+    "uid": "bedq01p4fng1sa3",
+    "version": 13,
+    "weekStart": ""
+  }
+  
