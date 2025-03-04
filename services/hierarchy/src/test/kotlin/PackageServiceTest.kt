@@ -32,14 +32,12 @@ import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
-import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
-import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -62,9 +60,9 @@ class PackageServiceTest : WordSpec() {
             "return the packages for the given ORT run id" {
                 val service = PackageService(db)
 
-                val pkg1 = generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
+                val pkg1 = fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
 
-                val pkg2 = generatePackage(
+                val pkg2 = fixtures.generatePackage(
                     identifier = Identifier("Maven", "com.example", "example2", "1.0"),
                     description = "Another example package",
                     homepageUrl = "https://example2.com",
@@ -90,7 +88,7 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        generatePackage(
+                        fixtures.generatePackage(
                             identifier = Identifier("Maven", "com.example", "example", "1.0"),
                             authors = setOf("Author One", "Author Two", "Author Three"),
                             declaredLicenses = setOf("License 1", "License 2", "License 3", "License 4"),
@@ -133,9 +131,9 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
-                        generatePackage(Identifier("Maven", "com.example", "example2", "1.0")),
-                        generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example2", "1.0")),
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
                     )
                 ).id
 
@@ -162,11 +160,11 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        generatePackage(identifier1),
-                        generatePackage(identifier2),
-                        generatePackage(identifier3),
-                        generatePackage(identifier4),
-                        generatePackage(identifier5)
+                        fixtures.generatePackage(identifier1),
+                        fixtures.generatePackage(identifier2),
+                        fixtures.generatePackage(identifier3),
+                        fixtures.generatePackage(identifier4),
+                        fixtures.generatePackage(identifier5)
                     )
                 ).id
 
@@ -192,7 +190,7 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        generatePackage(
+                        fixtures.generatePackage(
                             Identifier("Maven", "com.example", "example", "1.0"),
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "MIT",
@@ -200,7 +198,7 @@ class PackageServiceTest : WordSpec() {
                                 emptySet()
                             )
                         ),
-                        generatePackage(
+                        fixtures.generatePackage(
                             Identifier("Maven", "com.example", "example2", "1.0"),
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "Apache-2.0",
@@ -208,7 +206,7 @@ class PackageServiceTest : WordSpec() {
                                 emptySet()
                             )
                         ),
-                        generatePackage(
+                        fixtures.generatePackage(
                             Identifier("Maven", "com.example", "example3", "1.0"),
                             processedDeclaredLicense = ProcessedDeclaredLicense(
                                 "EPL-1.0 OR LGPL-2.1-or-later",
@@ -254,8 +252,8 @@ class PackageServiceTest : WordSpec() {
                 val ortRunId = createAnalyzerRunWithPackages(
                     projects = setOf(project1, project2),
                     packages = setOf(
-                        generatePackage(identifier1),
-                        generatePackage(identifier2)
+                        fixtures.generatePackage(identifier1),
+                        fixtures.generatePackage(identifier2)
                     ),
                     shortestPaths = mapOf(
                         identifier1 to listOf(
@@ -322,8 +320,8 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
-                        generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        fixtures.generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
                     )
                 ).id
 
@@ -335,9 +333,9 @@ class PackageServiceTest : WordSpec() {
 
                 val repositoryId = fixtures.createRepository().id
 
-                val pkg1 = generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
-                val pkg2 = generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
-                val pkg3 = generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
+                val pkg1 = fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
+                val pkg2 = fixtures.generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
+                val pkg3 = fixtures.generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
 
                 val ortRun1Id = createAnalyzerRunWithPackages(setOf(pkg1, pkg2), repositoryId).id
                 val ortRun2Id = createAnalyzerRunWithPackages(setOf(pkg1, pkg3), repositoryId).id
@@ -352,9 +350,9 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
-                        generatePackage(Identifier("NPM", "com.example", "example2", "1.0")),
-                        generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        fixtures.generatePackage(Identifier("NPM", "com.example", "example2", "1.0")),
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
                     )
                 ).id
 
@@ -374,18 +372,18 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRun1Id = createAnalyzerRunWithPackages(
                     setOf(
-                        generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
-                        generatePackage(Identifier("NPM", "com.example", "example2", "1.0")),
-                        generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        fixtures.generatePackage(Identifier("NPM", "com.example", "example2", "1.0")),
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
                     ),
                     repositoryId
                 ).id
 
                 val ortRun2Id = createAnalyzerRunWithPackages(
                     setOf(
-                        generatePackage(Identifier("Maven", "com.example", "example4", "1.0")),
-                        generatePackage(Identifier("NPM", "com.example", "example2", "1.0")),
-                        generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example4", "1.0")),
+                        fixtures.generatePackage(Identifier("NPM", "com.example", "example2", "1.0")),
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example3", "1.0"))
                     ),
                     repositoryId
                 ).id
@@ -428,54 +426,4 @@ class PackageServiceTest : WordSpec() {
 
         return ortRun
     }
-
-    private fun generatePackage(
-        identifier: Identifier,
-        authors: Set<String> = emptySet(),
-        declaredLicenses: Set<String> = emptySet(),
-        processedDeclaredLicense: ProcessedDeclaredLicense = ProcessedDeclaredLicense(
-            spdxExpression = null,
-            mappedLicenses = emptyMap(),
-            unmappedLicenses = emptySet()
-        ),
-        description: String = "Example package",
-        homepageUrl: String = "https://example.com",
-        binaryArtifact: RemoteArtifact = RemoteArtifact(
-            "https://example.com/example-1.0.jar",
-            "sha1:value",
-            "SHA-1"
-        ),
-        sourceArtifact: RemoteArtifact = RemoteArtifact(
-            "https://example.com/example-1.0-sources.jar",
-            "sha1:value",
-            "SHA-1"
-        ),
-        vcs: VcsInfo = VcsInfo(
-            RepositoryType("GIT"),
-            "https://example.com/git",
-            "revision",
-            "path"
-        ),
-        vcsProcessed: VcsInfo = VcsInfo(
-            RepositoryType("GIT"),
-            "https://example.com/git",
-            "revision",
-            "path"
-        )
-    ) = Package(
-        identifier = identifier,
-        purl = "pkg:${identifier.type}/${identifier.namespace}/${identifier.name}@${identifier.version}",
-        cpe = null,
-        authors = authors,
-        declaredLicenses = declaredLicenses,
-        processedDeclaredLicense = processedDeclaredLicense,
-        description = description,
-        homepageUrl = homepageUrl,
-        binaryArtifact = binaryArtifact,
-        sourceArtifact = sourceArtifact,
-        vcs = vcs,
-        vcsProcessed = vcsProcessed,
-        isMetadataOnly = false,
-        isModified = false
-    )
 }
