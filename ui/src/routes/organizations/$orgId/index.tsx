@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 
@@ -85,23 +85,35 @@ const OrganizationComponent = () => {
         />
       </div>
       <div className='grid grid-cols-4 gap-2'>
-        <Suspense
-          fallback={
-            <StatisticsCard
-              title='Vulnerabilities'
-              icon={() => (
-                <ShieldQuestion className='h-4 w-4 text-orange-500' />
-              )}
-              value={<LoadingIndicator />}
-              className='hover:bg-muted/50 h-full'
-            />
-          }
+        <Link
+          to='/organizations/$orgId/vulnerabilities'
+          params={{
+            orgId: params.orgId,
+          }}
+          search={{
+            sortBy: [
+              { id: 'rating', desc: true },
+              { id: 'repositoriesCount', desc: true },
+            ],
+          }}
         >
-          <OrganizationVulnerabilitiesStatisticsCard
-            organizationId={organization.id}
-          />
-        </Suspense>
-
+          <Suspense
+            fallback={
+              <StatisticsCard
+                title='Vulnerabilities'
+                icon={() => (
+                  <ShieldQuestion className='h-4 w-4 text-orange-500' />
+                )}
+                value={<LoadingIndicator />}
+                className='hover:bg-muted/50 h-full'
+              />
+            }
+          >
+            <OrganizationVulnerabilitiesStatisticsCard
+              organizationId={organization.id}
+            />
+          </Suspense>
+        </Link>
         <Suspense
           fallback={
             <StatisticsCard
