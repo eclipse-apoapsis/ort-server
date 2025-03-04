@@ -18,7 +18,14 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
-import { BookLock, Eye, ServerCog, Settings, User } from 'lucide-react';
+import {
+  BookLock,
+  Eye,
+  ServerCog,
+  Settings,
+  ShieldQuestion,
+  User,
+} from 'lucide-react';
 
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKey } from '@/api/queries';
 import { OrganizationsService } from '@/api/requests';
@@ -35,6 +42,17 @@ const Layout = () => {
       title: 'Overview',
       to: '/organizations/$orgId',
       icon: () => <Eye className='h-4 w-4' />,
+    },
+    {
+      title: 'Vulnerabilities',
+      to: '/organizations/$orgId/vulnerabilities',
+      search: {
+        sortBy: [
+          { id: 'rating', desc: true },
+          { id: 'repositoriesCount', desc: true },
+        ],
+      },
+      icon: () => <ShieldQuestion className='h-4 w-4' />,
     },
     {
       title: 'Secrets',
