@@ -20,6 +20,10 @@
 import { IssueCategory } from '@/schemas';
 
 // A map where the key is the issue category and the value is an array of regular expressions.
+// Upon finding a new issue that is not categorized properly, please extend this map, and
+// provide a unit test for it in the same file.
+// Unit tests can be run from the /ui folder with:
+//   pnpm test
 const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
   Infrastructure: [
     /The .* worker failed due to an unexpected error.*/,
@@ -29,6 +33,7 @@ const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
     /Uploading '.*' to .* failed\./,
     /Failed to add scan job for the following packages:/,
     /Scan failed for job with ID '.*'/,
+    /StreamResetException: stream was reset*/,
   ],
   'Missing Data': [/IOException: Could not resolve provenance for .*/],
   'Build System': [/.* failed to resolve dependencies for .*/],
@@ -70,6 +75,7 @@ if (import.meta.vitest) {
       "Uploading 'foo.txt' to http:\\foo.com failed.",
       'Failed to add scan job for the following packages:',
       "Scan failed for job with ID 'djeh4gh3g39372':",
+      'StreamResetException: stream was reset: INTERNAL_ERROR',
     ];
 
     messages.forEach((message) => {
