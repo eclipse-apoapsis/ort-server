@@ -135,7 +135,7 @@ export function DataTableHeader<TData>({
                 {header.isPlaceholder ? null : (
                   <div className='flex items-center gap-2'>
                     {flexRender(column.columnDef.header, header.getContext())}
-                    <div className='gap-1'>
+                    <div className='flex items-center gap-1'>
                       {groupingEnabled &&
                       setGroupingOptions &&
                       column.getCanGroup()
