@@ -47,6 +47,7 @@ interface FilterMultiSelectProps<TValue> {
   }[];
   selected: TValue[];
   setSelected: (selected: TValue[]) => void;
+  align?: 'start' | 'end' | 'center';
 }
 
 export function FilterMultiSelect<TValue>({
@@ -54,6 +55,7 @@ export function FilterMultiSelect<TValue>({
   options,
   selected,
   setSelected,
+  align = 'start',
 }: FilterMultiSelectProps<TValue>) {
   return (
     <Popover>
@@ -67,7 +69,7 @@ export function FilterMultiSelect<TValue>({
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className='w-[200px] p-0' align='start'>
+      <PopoverContent className='w-[200px] p-0' align={align}>
         <Command>
           {options.length > 5 && <CommandInput placeholder={title} />}
           <CommandList>
