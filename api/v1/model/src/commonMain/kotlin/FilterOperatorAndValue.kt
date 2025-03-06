@@ -39,7 +39,7 @@ enum class ComparisonOperator {
     NOT_EQUALS,
     IN,
     NOT_IN,
-    LIKE,
+    ILIKE,
     GREATER_THAN,
     LESS_THAN,
     GREATER_OR_EQUAL,
