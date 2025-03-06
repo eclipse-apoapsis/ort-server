@@ -80,8 +80,20 @@ export const packageIdentifierSearchParameterSchema = z.object({
   pkgId: z.string().optional(),
 });
 
+export const projectIdentifierSearchParameterSchema = z.object({
+  projectId: z.string().optional(),
+});
+
+export const definitionFilePathSearchParameterSchema = z.object({
+  definitionFilePath: z.string().optional(),
+});
+
+// Refine validates that the license texts are unique.
 export const declaredLicenseSearchParameterSchema = z.object({
-  declaredLicense: z.string().optional(),
+  declaredLicense: z
+    .array(z.string())
+    .refine((items) => new Set(items).size === items.length)
+    .optional(),
 });
 
 export const issueCategorySearchParameterSchema = z.object({
