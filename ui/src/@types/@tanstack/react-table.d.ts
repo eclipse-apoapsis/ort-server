@@ -43,6 +43,7 @@ declare module '@tanstack/react-table' {
       icon?: React.ComponentType<{ className?: string }>;
     }[];
     setSelected: (selected: TValue[]) => void;
+    align?: 'start' | 'end' | 'center';
   };
 
   // Define the Filter type as a union of the filter variants

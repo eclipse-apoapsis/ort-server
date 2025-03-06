@@ -45,6 +45,7 @@ export function DataTableFilter<TData, TValue>({
   if (filterVariant === 'select') {
     const { selectOptions, setSelected } = column.columnDef.meta
       ?.filter as SelectFilter<TValue>;
+    const align = column.columnDef.meta?.filter?.align;
 
     return (
       <FilterMultiSelect
@@ -52,6 +53,7 @@ export function DataTableFilter<TData, TValue>({
         options={selectOptions}
         selected={(columnFilterValue as TValue[]) ?? []}
         setSelected={setSelected}
+        align={align}
       />
     );
   }
