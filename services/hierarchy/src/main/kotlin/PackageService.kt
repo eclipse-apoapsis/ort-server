@@ -30,18 +30,26 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDecl
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
+import org.eclipse.apoapsis.ortserver.dao.utils.applyFilterNullable
+import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQueryCustomOrders
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
+import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
+import org.jetbrains.exposed.sql.Case
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Expression
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.concat
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.stringLiteral
 
 /**
  * A service to interact with packages.
@@ -49,7 +57,8 @@ import org.jetbrains.exposed.sql.and
 class PackageService(private val db: Database) {
     suspend fun listForOrtRunId(
         ortRunId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filters: PackageFilters = PackageFilters()
     ): ListQueryResult<PackageWithShortestDependencyPaths> = db.dbQuery {
         val orders = mutableListOf<Pair<Expression<*>, SortOrder>>()
 
@@ -68,13 +77,46 @@ class PackageService(private val db: Database) {
             }
         }
 
+        var condition: Op<Boolean> = Op.TRUE
+
+        filters.purl?.let {
+            condition = condition and PackagesTable.purl.applyILike(it.value)
+        }
+
+        filters.identifier?.let {
+            val namespaceWithSlash = Case()
+                .When(
+                    IdentifiersTable.namespace neq stringLiteral(""),
+                    concat(IdentifiersTable.namespace, stringLiteral("/"))
+                )
+                .Else(stringLiteral(""))
+
+            val concatenatedIdentifier = concat(
+                IdentifiersTable.type,
+                stringLiteral(":"),
+                namespaceWithSlash,
+                IdentifiersTable.name,
+                stringLiteral("@"),
+                IdentifiersTable.version
+            )
+
+            condition = condition and concatenatedIdentifier.applyILike(it.value)
+        }
+
+        filters.processedDeclaredLicense?.let {
+            condition = condition and ProcessedDeclaredLicensesTable.spdxExpression.applyFilterNullable(
+                it.operator,
+                it.value
+            )
+        }
+
         val listQueryResult =
             listCustomQueryCustomOrders(parameters, orders, ResultRow::toPackageWithShortestDependencyPaths) {
                 PackagesTable.joinAnalyzerTables()
                     .innerJoin(IdentifiersTable)
                     .innerJoin(ProcessedDeclaredLicensesTable)
                     .select(PackagesTable.columns)
-                    .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+                    .where { (AnalyzerJobsTable.ortRunId eq ortRunId) and condition }
             }
 
         val data = listQueryResult.data.map { pkg ->
