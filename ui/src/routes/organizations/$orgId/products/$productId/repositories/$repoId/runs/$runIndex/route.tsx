@@ -24,6 +24,7 @@ import {
   Bug,
   Eye,
   FileText,
+  FolderKanban,
   History,
   ListCheck,
   ListTree,
@@ -64,6 +65,12 @@ const Layout = () => {
     {
       label: 'Compliance',
       items: [
+        {
+          title: 'Projects',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects',
+          params,
+          icon: () => <FolderKanban className='h-4 w-4' />,
+        },
         {
           title: 'Packages',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages',
