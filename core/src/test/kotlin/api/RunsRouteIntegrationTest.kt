@@ -76,6 +76,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
@@ -1039,7 +1040,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/packages")
 
                 response.status shouldBe HttpStatusCode.OK
-                val packages = response.body<PagedResponse<ApiPackage>>()
+                val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
 
                 with(packages.data) {
                     shouldHaveSize(2)
@@ -1065,6 +1066,134 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     }
                     last().identifier.name shouldBe "example2"
                 }
+            }
+        }
+
+        "allow filtering by processed declared license and identifier" {
+            integrationTestApplication {
+                val ortRunId = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                ).id
+
+                val analyzerJobId = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRunId,
+                    configuration = AnalyzerJobConfiguration()
+                ).id
+
+                val identifier1 = Identifier("Maven", "com.example", "example", "1.0")
+                val identifier2 = Identifier("Maven", "com.example", "example2", "1.0")
+                val identifier3 = Identifier("Maven", "com.example", "example3", "1.0")
+                val identifier4 = Identifier("NPM", "com.example", "example4", "1.0")
+
+                dbExtension.fixtures.createAnalyzerRun(
+                    analyzerJobId,
+                    packages = setOf(
+                        dbExtension.fixtures.generatePackage(
+                            identifier1,
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0 OR LGPL-2.1-or-later",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        dbExtension.fixtures.generatePackage(
+                            identifier2,
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        dbExtension.fixtures.generatePackage(
+                            identifier3,
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        dbExtension.fixtures.generatePackage(
+                            identifier4,
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/$ortRunId/packages") {
+                    url {
+                        parameters.append("processedDeclaredLicense", "-,Apache-2.0 OR LGPL-2.1-or-later,MIT")
+                        parameters.append("identifier", "example3")
+                    }
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
+
+                packages.data.size shouldBe 1
+                packages.data.first().processedDeclaredLicense.spdxExpression shouldBe "Apache-2.0"
+                packages.data.first().identifier shouldBe identifier3.mapToApi()
+
+                packages.filters shouldBe PackageFilters(
+                    processedDeclaredLicense = FilterOperatorAndValue(
+                        ComparisonOperator.NOT_IN,
+                        setOf("Apache-2.0 OR LGPL-2.1-or-later", "MIT")
+                    ),
+                    identifier = FilterOperatorAndValue(ComparisonOperator.ILIKE, "example3")
+                )
+            }
+        }
+
+        "allow filtering by purl" {
+            integrationTestApplication {
+                val ortRunId = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                ).id
+
+                val analyzerJobId = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRunId,
+                    configuration = AnalyzerJobConfiguration()
+                ).id
+
+                val identifier1 = Identifier("Maven", "com.example", "example", "1.0")
+                val identifier2 = Identifier("Maven", "com.example", "example2", "1.0")
+                val identifier3 = Identifier("NPM", "com.example", "example3", "1.0")
+
+                dbExtension.fixtures.createAnalyzerRun(
+                    analyzerJobId,
+                    packages = setOf(
+                        dbExtension.fixtures.generatePackage(identifier1),
+                        dbExtension.fixtures.generatePackage(identifier2),
+                        dbExtension.fixtures.generatePackage(identifier3)
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/$ortRunId/packages") {
+                    url {
+                        parameters.append("purl", "pkg:Maven/com.example/example")
+                    }
+                }
+
+                response.status shouldBe HttpStatusCode.OK
+                val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
+
+                packages.data.size shouldBe 2
+
+                packages.data.first().purl shouldBe "pkg:Maven/com.example/example@1.0"
+                packages.data.last().purl shouldBe "pkg:Maven/com.example/example2@1.0"
+
+                packages.filters shouldBe PackageFilters(
+                    purl = FilterOperatorAndValue(
+                        ComparisonOperator.ILIKE, "pkg:Maven/com.example/example"
+                    )
+                )
             }
         }
 

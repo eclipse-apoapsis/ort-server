@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
@@ -370,15 +371,31 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
             description = "The ID of the ORT run."
         }
 
+        queryParameter<String>("identifier") {
+            description = "Defines an ORT package identifier for which the packages are to be retrieved. This uses a " +
+                    "case-insensitive substring match."
+        }
+
+        queryParameter<String>("purl") {
+            description = "Defines a purl for which the packages are to be retrieved. This uses a case-insensitive " +
+                    "substring match."
+        }
+
+        queryParameter<String>("processedDeclaredLicense") {
+            description = "Defines the processed declared licenses for which packages are to be retrieved. This is a " +
+                    "comma-separated string. Add a minus as the first item to exclude packages with the specified " +
+                    "license expressions, e.g. '-,MIT'."
+        }
+
         standardListQueryParameters()
     }
 
     response {
         HttpStatusCode.OK to {
             description = "Success."
-            jsonBody<PagedResponse<Package>> {
+            jsonBody<PagedSearchResponse<Package, PackageFilters>> {
                 example("Get packages for an ORT run") {
-                    value = PagedResponse(
+                    value = PagedSearchResponse(
                         listOf(
                             Package(
                                 identifier = Identifier("Maven", "org.example", "name", "1.0"),
@@ -387,7 +404,7 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
                                 authors = setOf("author1", "author2"),
                                 declaredLicenses = setOf("license1", "license2"),
                                 processedDeclaredLicense = ProcessedDeclaredLicense(
-                                    spdxExpression = "Expression",
+                                    spdxExpression = "Apache-2.0",
                                     mappedLicenses = emptyMap(),
                                     unmappedLicenses = emptySet()
                                 ),
@@ -416,6 +433,20 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
                             offset = 0,
                             totalCount = 1,
                             sortProperties = listOf(SortProperty("purl", SortDirection.ASCENDING))
+                        ),
+                        PackageFilters(
+                            identifier = FilterOperatorAndValue(
+                                operator = ComparisonOperator.ILIKE,
+                                value = "Maven:org.example/name@1.0"
+                            ),
+                            purl = FilterOperatorAndValue(
+                                operator = ComparisonOperator.ILIKE,
+                                value = "pkg:maven/org.example/name@1.0"
+                            ),
+                            processedDeclaredLicense = FilterOperatorAndValue(
+                                operator = ComparisonOperator.IN,
+                                value = setOf("Apache-2.0")
+                            )
                         )
                     )
                 }

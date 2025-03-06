@@ -34,10 +34,13 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -310,6 +313,183 @@ class PackageServiceTest : WordSpec() {
                             emptyList()
                         )
                     )
+                }
+            }
+
+            "allow filtering by identifier" {
+                val service = PackageService(db)
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example2", "1.0")),
+                        fixtures.generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.DESCENDING))),
+                    PackageFilters(
+                        identifier = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "com.example/example2"
+                        )
+                    )
+                )
+
+                results.data shouldHaveSize 2
+                results.totalCount shouldBe 2
+
+                results.data.first().pkg.identifier shouldBe Identifier("NPM", "com.example", "example2", "1.0")
+                results.data.last().pkg.identifier shouldBe Identifier("Maven", "com.example", "example2", "1.0")
+            }
+
+            "have a match when filtering by an identifier that doesn't have a namespace" {
+                val service = PackageService(db)
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(Identifier("NPM", "", "example", "1.0")),
+                        fixtures.generatePackage(Identifier("NPM", "com.example", "example", "1.0"))
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(
+                        identifier = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "NPM:example@1.0"
+                        )
+                    )
+                )
+
+                results.data shouldHaveSize 1
+                results.data.first().pkg.identifier shouldBe Identifier("NPM", "", "example", "1.0")
+            }
+
+            "use case insensitive filtering for purl and identifier filtering" {
+                val service = PackageService(db)
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example2", "1.0")),
+                        fixtures.generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
+                    )
+                ).id
+
+                val results1 = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(
+                        identifier = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "maven:com.example/Example2"
+                        )
+                    )
+                )
+
+                val results2 = service.listForOrtRunId(
+                    ortRunId,
+                    filters = PackageFilters(
+                        purl = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "pkg:maven/com.example/Example2"
+                        )
+                    )
+                )
+
+                results1.data shouldHaveSize 1
+                results1.totalCount shouldBe 1
+
+                results1.data.first().pkg.identifier shouldBe Identifier("Maven", "com.example", "example2", "1.0")
+
+                results2 shouldBe results1
+            }
+
+            "allow filtering by purl" {
+                val service = PackageService(db)
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
+                        fixtures.generatePackage(Identifier("Maven", "com.example", "example2", "1.0")),
+                        fixtures.generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("identifier", OrderDirection.DESCENDING))),
+                    PackageFilters(
+                        purl = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "pkg:NPM"
+                        )
+                    )
+                )
+
+                results.data shouldHaveSize 1
+                results.totalCount shouldBe 1
+
+                results.data.first().pkg.purl shouldBe "pkg:NPM/com.example/example2@1.0"
+            }
+
+            "allow filtering by processed declared license" {
+                val service = PackageService(db)
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0 OR LGPL-2.1-or-later",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example2", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("NPM", "com.example", "example2", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("processedDeclaredLicense", OrderDirection.ASCENDING))),
+                    PackageFilters(
+                        processedDeclaredLicense = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf("MIT", "Apache-2.0 OR LGPL-2.1-or-later")
+                        )
+                    )
+                )
+
+                results.data shouldHaveSize 2
+                results.totalCount shouldBe 2
+
+                with(results.data.first().pkg) {
+                    identifier shouldBe Identifier("Maven", "com.example", "example", "1.0")
+                    processedDeclaredLicense.spdxExpression shouldBe "Apache-2.0 OR LGPL-2.1-or-later"
+                }
+
+                with(results.data.last().pkg) {
+                    identifier shouldBe Identifier("NPM", "com.example", "example2", "1.0")
+                    processedDeclaredLicense.spdxExpression shouldBe "MIT"
                 }
             }
         }

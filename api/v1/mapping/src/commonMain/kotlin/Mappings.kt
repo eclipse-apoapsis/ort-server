@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters as ApiOrtRunFil
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse as ApiPagedResponse2
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions as ApiPagingOptions
@@ -138,6 +139,7 @@ import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
@@ -863,6 +865,13 @@ fun PackageWithShortestDependencyPaths.mapToApi() = ApiPackage(
     pkg.isModified,
     shortestDependencyPaths.map { it.mapToApi() }
 )
+
+fun ApiPackageFilters.mapToModel(): PackageFilters =
+    PackageFilters(
+        identifier = identifier?.mapToModel { it },
+        purl = purl?.mapToModel { it },
+        processedDeclaredLicense = processedDeclaredLicense?.mapToModel { it }
+    )
 
 fun Project.mapToApi() = ApiProject(
     identifier.mapToApi(),

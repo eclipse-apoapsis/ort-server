@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunById
@@ -236,10 +237,14 @@ fun Route.runs() = route("runs") {
 
                     val pagingOptions = call.pagingOptions(SortProperty("purl", SortDirection.ASCENDING))
 
-                    val packagesForOrtRun = packageService
-                        .listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+                    val filters = call.packageFilters()
 
-                    val pagedResponse = packagesForOrtRun.mapToApi(PackageWithShortestDependencyPaths::mapToApi)
+                    val packagesForOrtRun = packageService
+                        .listForOrtRunId(ortRun.id, pagingOptions.mapToModel(), filters.mapToModel())
+
+                    val pagedResponse = packagesForOrtRun
+                        .mapToApi(PackageWithShortestDependencyPaths::mapToApi)
+                        .toSearchResponse(filters)
 
                     call.respond(HttpStatusCode.OK, pagedResponse)
                 }
@@ -422,6 +427,31 @@ private fun ApplicationCall.status(): FilterOperatorAndValue<Set<OrtRunStatus>>?
 private fun ApplicationCall.filters(): OrtRunFilters =
     OrtRunFilters(
         status = status()
+    )
+
+/**
+ * Extract the filter for the processed declared license from this [ApplicationCall]. If this filter is missing or
+ * empty, return null. Otherwise, it is interpreted as a comma-delimited list of license expression strings to filter
+ * the result by. If the first item on the list is a minus, the provided licenses will be excluded from the result.
+ */
+private fun ApplicationCall.processedDeclaredLicense(): FilterOperatorAndValue<Set<String>>? {
+    val parts = parameters["processedDeclaredLicense"]?.split(',').orEmpty()
+    if (parts.isEmpty()) return null
+
+    return FilterOperatorAndValue(
+        operator = if (parts.first() == ("-")) ComparisonOperator.NOT_IN else ComparisonOperator.IN,
+        value = parts.filter { it != "-" }.toSet()
+    )
+}
+
+/**
+ * Extract the package filters from this [ApplicationCall].
+ */
+private fun ApplicationCall.packageFilters(): PackageFilters =
+    PackageFilters(
+        identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        processedDeclaredLicense = processedDeclaredLicense()
     )
 
 /**
