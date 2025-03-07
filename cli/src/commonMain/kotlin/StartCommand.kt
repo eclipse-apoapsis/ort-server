@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.read
+import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
 internal val POLL_INTERVAL = getEnv("POLL_INTERVAL")?.toLongOrNull()?.seconds ?: 60.seconds
 
@@ -78,10 +79,11 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
 
         val client = createOrtServerClient() ?: throw AuthenticationError()
 
-        var ortRun = client.repositories.createOrtRun(
-            repositoryId = repositoryId,
-            ortRun = createOrtRun
-        )
+        var ortRun = try {
+            client.repositories.createOrtRun(repositoryId, createOrtRun)
+        } catch (e: NotFoundException) {
+            throw RepositoryNotFoundException("Repository with ID '$repositoryId' not found.", e)
+        }
 
         ContextStorage.saveLatestRunId(ortRun.id)
 
@@ -100,3 +102,5 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
 
 private fun OrtRun.isRunning() =
     status == OrtRunStatus.ACTIVE || status == OrtRunStatus.CREATED
+
+private class RepositoryNotFoundException(message: String, cause: Throwable) : NotFoundException(message, cause)

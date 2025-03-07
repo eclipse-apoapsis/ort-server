@@ -26,14 +26,13 @@ import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.versionOption
-import com.github.ajalt.mordant.platform.MultiplatformSystem.exitProcess
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
-import org.eclipse.apoapsis.ortserver.client.OrtServerClientException
+import org.eclipse.apoapsis.ortserver.client.OrtServerException
 import org.eclipse.apoapsis.ortserver.client.auth.AuthenticationException
 import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
@@ -48,20 +47,18 @@ fun main(args: Array<String>) {
         runBlocking {
             cli.parse(args)
         }
-    } catch (e: OrtServerClientException) {
-        when (e.cause) {
-            is AuthenticationException -> {
-                cli.echo("Authentication failed. Please run '${COMMAND_NAME} auth login' to authenticate.")
-            }
-        }
 
-        cli.currentContext.exitProcess(1)
+        cli.currentContext.exitProcess(0)
+    } catch (e: AuthenticationException) {
+        cli.echo(e.message)
+    } catch (e: OrtServerException) {
+        cli.echo(e.message)
     } catch (e: CliktError) {
         cli.echoFormattedHelp(e)
         cli.currentContext.exitProcess(e.statusCode)
     }
 
-    exitProcess(0)
+    cli.currentContext.exitProcess(1)
 }
 
 class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
