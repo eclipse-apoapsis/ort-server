@@ -39,8 +39,10 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.AbstractQuery
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.ComparisonOp
 import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.QueryParameter
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
@@ -51,9 +53,9 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
+import org.jetbrains.exposed.sql.TextColumnType
 
 /**
  * Transform the given column to an [EntityID] when creating a DAO object. This can be used for foreign key columns to
@@ -177,17 +179,37 @@ fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, valu
 }
 
 /**
- * Apply the given [value] to filter this column by using the LIKE operator.
+ * Represents a case-insensitive LIKE operation. This is an extension of the [ComparisonOp] class that uses the ILIKE
+ * operator, which is the case-insensitive version of the LIKE operator in PostgreSQL.
  */
-fun Column<String>.applyLike(value: String): Op<Boolean> {
-    return this like value
-}
+class InsensitiveLikeOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "ILIKE")
+
+/**
+ * Apply the given [value] to filter this column by using the ILIKE operator.
+ */
+fun Expression<String>.applyILike(value: String): Op<Boolean> =
+    InsensitiveLikeOp(this, QueryParameter("%$value%", TextColumnType()))
 
 /**
  * Apply the given [operator] and filter [values] to filter this column by. This is an overload of the
  * applyFilter function for collections.
  */
 fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, values: Collection<T>): Op<Boolean> {
+    return when (operator) {
+        ComparisonOperator.IN -> this inList values
+        ComparisonOperator.NOT_IN -> this notInList values
+        else -> throw IllegalArgumentException("Unsupported operator for collections")
+    }
+}
+
+/**
+ * Apply the given [operator] and filter [values] to filter this column by. This is an overload of the
+ * applyFilter function for collections that supports nullable columns.
+ */
+fun <T : Comparable<T>> Column<T?>.applyFilterNullable(
+    operator: ComparisonOperator,
+    values: Collection<T>
+): Op<Boolean> {
     return when (operator) {
         ComparisonOperator.IN -> this inList values
         ComparisonOperator.NOT_IN -> this notInList values

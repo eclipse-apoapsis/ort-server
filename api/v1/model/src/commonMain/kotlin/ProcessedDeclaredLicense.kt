@@ -23,7 +23,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ProcessedDeclaredLicense(
-    val spdxExpression: String?,
+    val spdxExpression: String? = null,
     val mappedLicenses: Map<String, String>,
     val unmappedLicenses: Set<String>
 )
