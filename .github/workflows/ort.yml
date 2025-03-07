@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 
 env:
+  GH_TOKEN: ${{ github.token }}
   ORT_CONFIG_DIR: ${{ github.workspace }}/ort-server/.github/ort
 
 jobs:
@@ -37,14 +38,11 @@ jobs:
         cache: pnpm
         cache-dependency-path: ort-server/ui/pnpm-lock.yaml
 
-    - name: Get latest ORT version
+    - name: Install the latest ORT release
       run: |
-        echo "ORT_VERSION=$(curl -s https://api.github.com/repos/oss-review-toolkit/ort/releases/latest | jq -r .tag_name)" >> $GITHUB_ENV
-
-    - name: Install ORT
-      run: |
-        curl -L https://github.com/oss-review-toolkit/ort/releases/download/${{ env.ORT_VERSION }}/ort-${{ env.ORT_VERSION }}.tgz | tar xfz -
-        echo "ort-${{ env.ORT_VERSION }}/bin" >> $GITHUB_PATH
+        mkdir ort
+        gh release -R oss-review-toolkit/ort download -p 'ort-*.tgz' -O - | tar -xzf - --strip-components=1 -C ort
+        echo "ort/bin" >> $GITHUB_PATH
 
     - name: Cache ORT Cache Directory
       uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
