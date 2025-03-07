@@ -183,7 +183,8 @@ const FieldWithOptions = ({ form, pmIndex, pmName }: FieldWithOptionsProps) => {
   const pm = packageManagers[pmIndex];
 
   if (!pm) {
-    console.error(`No package manager found for index ${pmIndex}.`);
+    // This will never actually trigger, because in the form,
+    // we always feed a valid package manager.
     return null;
   }
 
