@@ -24,6 +24,7 @@ import {
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
 import { Link, LinkOptions, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +60,7 @@ export function DataTablePagination({
   setCurrentPageOptions,
 }: DataTablePaginationProps) {
   const navigate = useNavigate();
+  const [page, setPage] = useState(currentPage);
 
   return (
     <div className='flex flex-col items-center justify-between gap-4 sm:flex-row sm:gap-6 lg:gap-8'>
@@ -88,13 +90,18 @@ export function DataTablePagination({
           Page{' '}
           <Input
             type='number'
-            value={currentPage}
+            value={page}
+            onKeyUp={(event) => {
+              if (event.key === 'Enter') {
+                navigate(setCurrentPageOptions(page));
+              }
+            }}
+            onBlur={() => {
+              navigate(setCurrentPageOptions(page));
+            }}
             onChange={(event) => {
               const value = Number(event.target.value);
-              const navigationOptions = setCurrentPageOptions(
-                value > totalPages ? totalPages : value < 1 ? 1 : value
-              );
-              navigate(navigationOptions);
+              setPage(value > totalPages ? totalPages : value < 1 ? 1 : value);
             }}
             className='mx-2 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
             max={totalPages}
@@ -109,6 +116,7 @@ export function DataTablePagination({
               variant='outline'
               className='hidden size-8 p-0 lg:flex'
               disabled={currentPage <= 1}
+              onClick={() => setPage(1)}
             >
               <DoubleArrowLeftIcon className='size-4' aria-hidden='true' />
             </Button>
@@ -123,6 +131,7 @@ export function DataTablePagination({
               size='icon'
               className='size-8'
               disabled={currentPage <= 1}
+              onClick={() => setPage((prevPage) => prevPage - 1)}
             >
               <ChevronLeftIcon className='size-4' aria-hidden='true' />
             </Button>
@@ -137,6 +146,7 @@ export function DataTablePagination({
               size='icon'
               className='size-8'
               disabled={currentPage >= totalPages}
+              onClick={() => setPage((prevPage) => prevPage + 1)}
             >
               <ChevronRightIcon className='size-4' aria-hidden='true' />
             </Button>
@@ -150,6 +160,7 @@ export function DataTablePagination({
               variant='outline'
               size='icon'
               className='hidden size-8 lg:flex'
+              onClick={() => setPage(totalPages)}
               disabled={currentPage >= totalPages}
             >
               <DoubleArrowRightIcon className='size-4' aria-hidden='true' />
