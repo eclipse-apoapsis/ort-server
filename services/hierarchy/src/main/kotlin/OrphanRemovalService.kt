@@ -38,11 +38,15 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.P
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageLicenseChoicesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScannersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceSubRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsSnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersIssuesTable
@@ -63,6 +67,7 @@ import org.slf4j.LoggerFactory
 /**
  * Maintenance service to remove orphaned entities.
  */
+@Suppress("TooManyFunctions")
 class OrphanRemovalService(
     private val db: Database
 ) {
@@ -82,6 +87,9 @@ class OrphanRemovalService(
         logger.info("Deleted {} records from {}", deleteOrphanedIdentifiers(), IdentifiersTable.tableName)
         logger.info("Deleted {} records from {}", deleteOrphanedVcsInfo(), VcsInfoTable.tableName)
         logger.info("Deleted {} records from {}", deleteOrphanedRemoteArtifacts(), RemoteArtifactsTable.tableName)
+        logger.info("Deleted {} records from {}", deleteOrphanedScanResults(), ScanResultsTable.tableName)
+        logger.info("Deleted {} records from {}", deleteOrphanedScanSummaries(), ScanSummariesTable.tableName)
+        logger.info("Deleted {} records from {}", deleteOrphanedSnippets(), SnippetsTable.tableName)
 
         logger.info("Deleting orphaned children of ORT runs finished.")
     }
@@ -299,6 +307,35 @@ class OrphanRemovalService(
                                 .select(SnippetsTable.artifactId.alias("id"))
                                 .where(SnippetsTable.artifactId.isNotNull())
                         )
+                    )
+            }
+        }
+
+    private suspend fun deleteOrphanedScanResults() =
+        db.dbQuery {
+            ScanResultsTable.deleteWhere {
+                id notInSubQuery (
+                    ScannerRunsScanResultsTable.select(ScannerRunsScanResultsTable.scanResultId)
+                    )
+            }
+        }
+
+    private suspend fun deleteOrphanedScanSummaries() =
+        db.dbQuery {
+            ScanSummariesTable.deleteWhere {
+                id notInSubQuery (
+                    ScanResultsTable.select(ScanResultsTable.scanSummaryId)
+                    )
+            }
+        }
+
+    private suspend fun deleteOrphanedSnippets() =
+        db.dbQuery {
+            SnippetsTable.deleteWhere {
+                id notInSubQuery (
+                    SnippetFindingsSnippetsTable
+                        .select(SnippetFindingsSnippetsTable.snippetId.alias("id"))
+                        .where(SnippetFindingsSnippetsTable.snippetId.isNotNull())
                     )
             }
         }
