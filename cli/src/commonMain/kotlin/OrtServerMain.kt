@@ -31,6 +31,7 @@ import com.github.ajalt.mordant.platform.MultiplatformSystem.exitProcess
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
+import org.eclipse.apoapsis.ortserver.cli.model.OrtServerCliException
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerException
@@ -51,6 +52,8 @@ fun main(args: Array<String>) {
 
         exitProcess(0)
     } catch (e: AuthenticationException) {
+        cli.echo(e.message)
+    } catch (e: OrtServerCliException) {
         cli.echo(e.message)
     } catch (e: OrtServerException) {
         cli.echo(e.message)
