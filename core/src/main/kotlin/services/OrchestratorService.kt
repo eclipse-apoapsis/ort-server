@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.orchestrator.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.transport.Message
@@ -56,7 +57,8 @@ class OrchestratorService(
         jobConfig: JobConfigurations,
         jobConfigContext: String?,
         labels: Map<String, String>?,
-        environmentConfigPath: String?
+        environmentConfigPath: String?,
+        userDisplayName: UserDisplayName?
     ): OrtRun {
         val traceId = MDC.get("traceId")
 
@@ -70,7 +72,8 @@ class OrchestratorService(
                 jobConfigContext,
                 labels.orEmpty(),
                 traceId = traceId,
-                environmentConfigPath = environmentConfigPath
+                environmentConfigPath = environmentConfigPath,
+                userDisplayName = userDisplayName
             )
         }
 

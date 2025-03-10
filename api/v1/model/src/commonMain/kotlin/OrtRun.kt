@@ -131,7 +131,12 @@ data class OrtRun(
      * The trace ID that is assigned to this run. This is generated when the run is created. It can be used to
      * correlate the logs from different components that are taking part in processing of the run.
      */
-    val traceId: String?
+    val traceId: String?,
+
+    /**
+     * Display name of the user that triggered the scan.
+     */
+    val userDisplayName: UserDisplayName? = null
 )
 
 /**

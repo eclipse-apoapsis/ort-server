@@ -111,7 +111,12 @@ data class OrtRunSummary(
      * The optional path to an environment configuration file. If this is not defined, the environment configuration is
      * read from the default location `.ort.env.yml`.
      */
-    val environmentConfigPath: String? = null
+    val environmentConfigPath: String? = null,
+
+    /**
+     * Display name of the user that triggered this run.
+     */
+    val userDisplayName: UserDisplayName? = null
 )
 
 @Serializable
