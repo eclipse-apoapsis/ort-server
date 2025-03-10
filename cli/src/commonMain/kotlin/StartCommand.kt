@@ -38,6 +38,7 @@ import okio.Path.Companion.toPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.cli.model.CliInputException
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.read
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
@@ -75,7 +76,14 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
     override fun help(context: Context) = "Start a new run."
 
     override suspend fun run() {
-        val createOrtRun = json.decodeFromString(CreateOrtRun.serializer(), parameters)
+        val createOrtRun = runCatching {
+            json.decodeFromString(CreateOrtRun.serializer(), parameters)
+        }.getOrElse {
+            throw CliInputException(
+                "Invalid run parameters: '$parameters'.",
+                cause = it
+            )
+        }
 
         val client = createOrtServerClient() ?: throw AuthenticationError()
 
