@@ -100,7 +100,7 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
           <Link
             to='/organizations/$orgId/infrastructure-services/$serviceName/edit'
             params={{ orgId: params.orgId, serviceName: row.original.name }}
-            className={cn(buttonVariants({ variant: 'outline' }), 'h-9 px-2')}
+            className={cn(buttonVariants({ variant: 'outline' }), 'h-8 px-2')}
           >
             <span className='sr-only'>Edit</span>
             <EditIcon size={16} />
