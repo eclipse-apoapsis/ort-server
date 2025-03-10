@@ -25,7 +25,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { EditIcon, Pencil, PlusIcon } from 'lucide-react';
+import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
   useInfrastructureServicesServiceDeleteApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
@@ -171,28 +171,7 @@ const InfrastructureServices = () => {
       header: 'Username Secret',
       cell: ({ row }) => (
         <div className='flex items-baseline'>
-          {row.original.usernameSecretRef}{' '}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                to='/organizations/$orgId/secrets/$secretName/edit'
-                params={{
-                  orgId: params.orgId,
-                  secretName: row.original.usernameSecretRef,
-                }}
-                search={{
-                  returnTo: '/organizations/$orgId/infrastructure-services',
-                }}
-                className='px-2'
-              >
-                <span className='sr-only'>Edit</span>
-                <Pencil size={16} className='inline' />
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              Edit the secret "{row.original.usernameSecretRef}"
-            </TooltipContent>
-          </Tooltip>
+          {row.original.usernameSecretRef}
         </div>
       ),
       enableColumnFilter: false,
@@ -202,28 +181,7 @@ const InfrastructureServices = () => {
       header: 'Password Secret',
       cell: ({ row }) => (
         <div className='flex items-baseline'>
-          {row.original.passwordSecretRef}{' '}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                to='/organizations/$orgId/secrets/$secretName/edit'
-                params={{
-                  orgId: params.orgId,
-                  secretName: row.original.passwordSecretRef,
-                }}
-                search={{
-                  returnTo: '/organizations/$orgId/infrastructure-services',
-                }}
-                className='px-2'
-              >
-                <span className='sr-only'>Edit</span>
-                <Pencil size={16} className='inline' />
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              Edit the secret "{row.original.passwordSecretRef}"
-            </TooltipContent>
-          </Tooltip>
+          {row.original.passwordSecretRef}
         </div>
       ),
       enableColumnFilter: false,
