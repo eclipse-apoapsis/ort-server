@@ -28,6 +28,7 @@ import {
   useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
   useInfrastructureServicesServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
 } from '@/api/queries';
+import { useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense } from '@/api/queries/suspense';
 import { ApiError, InfrastructureServicesService } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -49,6 +50,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
@@ -66,6 +74,12 @@ type FormSchema = z.infer<typeof formSchema>;
 const EditInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
+
+  const { data: secrets } =
+    useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense({
+      organizationId: Number.parseInt(params.orgId),
+      limit: ALL_ITEMS,
+    });
 
   /* Search service details from all infrastructure services of the organization
    * TODO: Edit this to fetch the details from:
@@ -202,9 +216,23 @@ const EditInfrastructureServicePage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Username Secret</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select an existing username secret from the list' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {secrets?.data.map((secret) => (
+                        <SelectItem key={secret.name} value={secret.name}>
+                          {secret.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormDescription>
                     The name of the organization secret that contains the
                     username of the credentials for the infrastructure service.
@@ -221,9 +249,23 @@ const EditInfrastructureServicePage = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password Secret</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select an existing password secret from the list' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {secrets?.data.map((secret) => (
+                        <SelectItem key={secret.name} value={secret.name}>
+                          {secret.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormDescription>
                     The name of the organization secret that contains the
                     password of the credentials for the infrastructure service.
