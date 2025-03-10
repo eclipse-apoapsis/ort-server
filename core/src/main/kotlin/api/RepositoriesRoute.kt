@@ -26,7 +26,6 @@ import io.github.smiley4.ktorswaggerui.dsl.routing.post
 import io.github.smiley4.ktorswaggerui.dsl.routing.put
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -117,7 +116,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             val pagingOptions = call.pagingOptions(SortProperty("index", SortDirection.ASCENDING))
 
             val ortRunSummaries = repositoryService.getOrtRunSummaries(repositoryId, pagingOptions.mapToModel())
-            val pagedResponse = ortRunSummaries.mapToApi { it }
+            val pagedResponse = ortRunSummaries.mapToApi { it.mapToApi() }
             call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
