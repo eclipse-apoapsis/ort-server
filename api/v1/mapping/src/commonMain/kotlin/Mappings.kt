@@ -103,6 +103,8 @@ import org.eclipse.apoapsis.ortserver.model.JiraNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.JobSummaries
+import org.eclipse.apoapsis.ortserver.model.JobSummary
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
@@ -114,6 +116,7 @@ import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
@@ -389,6 +392,37 @@ fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
         resolvedJobConfigContext = resolvedJobConfigContext,
         environmentConfigPath = environmentConfigPath
     )
+
+fun OrtRunSummary.mapToApi() =
+    ApiOrtRunSummary(
+        id = id,
+        index = index,
+        organizationId = organizationId,
+        productId = productId,
+        repositoryId = repositoryId,
+        revision = revision,
+        resolvedRevision = resolvedRevision,
+        path = path,
+        createdAt = createdAt,
+        finishedAt = finishedAt,
+        jobs = jobs.mapToApi(),
+        status = status.mapToApi(),
+        labels = labels,
+        jobConfigContext = jobConfigContext,
+        resolvedJobConfigContext = resolvedJobConfigContext,
+        environmentConfigPath = environmentConfigPath
+    )
+
+fun JobSummaries.mapToApi() =
+    ApiJobSummaries(
+        analyzer?.mapToApi(),
+        advisor?.mapToApi(),
+        scanner?.mapToApi(),
+        evaluator?.mapToApi(),
+        reporter?.mapToApi()
+    )
+
+fun JobSummary.mapToApi() = ApiJobSummary(id, createdAt, startedAt, finishedAt, status.mapToApi())
 
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
 
