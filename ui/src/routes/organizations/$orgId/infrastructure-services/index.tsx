@@ -153,18 +153,17 @@ const InfrastructureServices = () => {
 
   const columns: ColumnDef<InfrastructureService>[] = [
     {
-      accessorKey: 'name',
-      header: 'Name',
-      enableColumnFilter: false,
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-      enableColumnFilter: false,
-    },
-    {
-      accessorKey: 'url',
-      header: 'URL',
+      accessorKey: 'details',
+      header: undefined,
+      cell: ({ row }) => (
+        <div className='flex flex-col'>
+          <div>{row.original.name}</div>
+          <div className='text-muted-foreground text-sm'>
+            {row.original.description}
+          </div>
+          <div>{row.original.url}</div>
+        </div>
+      ),
       enableColumnFilter: false,
     },
     {
