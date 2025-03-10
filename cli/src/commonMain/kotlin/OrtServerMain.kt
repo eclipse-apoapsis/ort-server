@@ -60,6 +60,8 @@ fun main(args: Array<String>) {
     } catch (e: CliktError) {
         cli.echoFormattedHelp(e)
         cli.currentContext.exitProcess(e.statusCode)
+    } catch (@Suppress("SwallowedException", "TooGenericExceptionCaught") e: Exception) {
+        cli.echo("An unexpected error occurred.")
     }
 
     exitProcess(1)
