@@ -52,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
@@ -94,7 +95,8 @@ val getOrtRunById: OpenApiRoute.() -> Unit = {
                         jobConfigContext = null,
                         resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
                         traceId = "35b67724-a85a-4cc4-b2a4-60fd914634e7",
-                        environmentConfigPath = null
+                        environmentConfigPath = null,
+                        userDisplayName = UserDisplayName("john.doe", "John Doe")
                     )
                 }
             }

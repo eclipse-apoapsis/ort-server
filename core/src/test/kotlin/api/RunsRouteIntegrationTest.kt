@@ -71,6 +71,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
@@ -104,6 +105,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -336,6 +338,81 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${run.id}")
+            }
+        }
+
+        "include name of the user that triggered this run" {
+            val userDisplayName = UserDisplayName("user-id", "username", "full name")
+            integrationTestApplication {
+                val run = ortRunRepository.create(
+                    repositoryId,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    "testContext",
+                    labelsMap,
+                    traceId = "trace",
+                    null,
+                    userDisplayName
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${run.id}")
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val ortRun = response.body<ApiOrtRun>()
+                ortRun shouldNotBeNull {
+                    this.userDisplayName shouldNotBeNull {
+                        this.username shouldBe userDisplayName.username
+                        this.fullName shouldBe userDisplayName.fullName
+                    }
+                }
+            }
+        }
+
+        "update the name of the user if user already exists" {
+            val userDisplayName1 = UserDisplayName("user-id", "username", "full name")
+            val userDisplayName2 = UserDisplayName("user-id", "new-username", "new full name")
+            integrationTestApplication {
+                val run1 = ortRunRepository.create(
+                    repositoryId,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    "testContext",
+                    labelsMap,
+                    traceId = "trace",
+                    null,
+                    userDisplayName1
+                )
+
+                val response1 = superuserClient.get("/api/v1/runs/${run1.id}")
+                response1 shouldHaveStatus HttpStatusCode.OK
+
+                // UserDisplayName is already created by the previous request, now do another request with different
+                // username and full name and check if it is updated.
+                val run2 = ortRunRepository.create(
+                    repositoryId,
+                    "revision",
+                    null,
+                    JobConfigurations(),
+                    "testContext",
+                    labelsMap,
+                    traceId = "trace",
+                    null,
+                    userDisplayName2
+                )
+
+                val response2 = superuserClient.get("/api/v1/runs/${run2.id}")
+                response2 shouldHaveStatus HttpStatusCode.OK
+
+                val ortRun2 = response2.body<ApiOrtRun>()
+                ortRun2 shouldNotBeNull {
+                    this.userDisplayName shouldNotBeNull {
+                        this.username shouldBe userDisplayName2.username
+                        this.fullName shouldBe userDisplayName2.fullName
+                    }
+                }
             }
         }
     }
