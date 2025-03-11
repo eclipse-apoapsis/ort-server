@@ -152,7 +152,6 @@ const columns = [
               queryClient.invalidateQueries({
                 queryKey: [
                   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsKey,
-                  row.original.repositoryId,
                 ],
               });
             },
