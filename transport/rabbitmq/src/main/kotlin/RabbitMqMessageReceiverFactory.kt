@@ -37,7 +37,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.job
+import kotlinx.coroutines.flow.cancellable
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
@@ -66,7 +66,11 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
         configManager: ConfigManager,
         handler: EndpointHandler<T>
     ) {
-        createMessageFlow(from, configManager).collect { handler(it) }
+        createMessageFlow(from, configManager).cancellable().collect { message ->
+            if (handler(message) == EndpointHandlerResult.STOP) {
+                coroutineContext.cancel()
+            }
+        }
     }
 
     /**

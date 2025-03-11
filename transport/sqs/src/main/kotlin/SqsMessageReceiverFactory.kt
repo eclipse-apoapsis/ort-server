@@ -30,6 +30,7 @@ import kotlinx.coroutines.isActive
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
@@ -81,7 +82,9 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
             waitTimeSeconds = 20
         }
 
-        while (coroutineContext.isActive) {
+        var result = EndpointHandlerResult.CONTINUE
+
+        while (result == EndpointHandlerResult.CONTINUE && coroutineContext.isActive) {
             val receiveResponse = client.receiveMessage(receiveRequest)
 
             receiveResponse.messages?.forEach { sqsMessage ->
@@ -109,7 +112,7 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
                         "traceId" to ortMessage.header.traceId,
                         "ortRunId" to ortMessage.header.ortRunId.toString()
                     ) {
-                        handler(ortMessage)
+                        result = handler(ortMessage)
                     }
                 }.onFailure {
                     logger.error("Error during message body processing.", it)

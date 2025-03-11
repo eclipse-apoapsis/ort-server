@@ -20,15 +20,20 @@
 package org.eclipse.apoapsis.ortserver.transport.artemis
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 
 import jakarta.jms.Session
 import jakarta.jms.TextMessage
+
+import java.util.concurrent.TimeUnit
 
 import org.apache.qpid.jms.JmsConnectionFactory
 
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
@@ -84,6 +89,32 @@ class ArtemisMessageReceiverFactoryTest : StringSpec({
             producer.send(serializer.createMessage(session, traceId, runId, payload))
 
             messageQueue.checkMessage(traceId, runId, payload)
+        }
+    }
+
+    "Message receiving is stopped when the handler returns STOP" {
+        val serializer = JsonSerializer.forType<OrchestratorMessage>()
+        val config = startArtemisContainer("orchestrator", "receiver")
+        val messageQueue = startReceiver(config, EndpointHandlerResult.STOP)
+
+        val connectionFactory = JmsConnectionFactory(config.getString("orchestrator.receiver.serverUri"))
+        connectionFactory.createConnection().use { connection ->
+            val session = connection.createSession()
+            val queue = session.createQueue(TEST_QUEUE_NAME)
+            val producer = session.createProducer(queue)
+
+            val traceId1 = "trace1"
+            val runId1 = 1L
+            val payload1 = AnalyzerWorkerError(21)
+            val traceId2 = "trace2"
+            val runId2 = 2L
+            val payload2 = AnalyzerWorkerResult(42)
+
+            producer.send(serializer.createMessage(session, traceId1, runId1, payload1))
+            producer.send(serializer.createMessage(session, traceId2, runId2, payload2))
+
+            messageQueue.checkMessage(traceId1, runId1, payload1)
+            messageQueue.poll(2, TimeUnit.SECONDS) should beNull()
         }
     }
 })

@@ -67,12 +67,15 @@ fun createConfigManager(
  * Start a receiver that is initialized from the given [configManager]. Since the receiver blocks, this has to be done
  * in a separate thread. Return a queue that can be polled to obtain the received messages.
  */
-fun startReceiver(configManager: ConfigManager): LinkedBlockingQueue<Message<OrchestratorMessage>> {
+fun startReceiver(
+    configManager: ConfigManager,
+    result: EndpointHandlerResult = EndpointHandlerResult.CONTINUE
+): LinkedBlockingQueue<Message<OrchestratorMessage>> {
     val queue = LinkedBlockingQueue<Message<OrchestratorMessage>>()
 
     fun handler(message: Message<OrchestratorMessage>): EndpointHandlerResult {
         queue.offer(message)
-        return EndpointHandlerResult.CONTINUE
+        return result
     }
 
     thread {
