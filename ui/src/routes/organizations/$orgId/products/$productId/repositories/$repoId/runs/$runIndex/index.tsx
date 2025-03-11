@@ -29,6 +29,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip.tsx';
 import { config } from '@/config';
 import { calculateDuration } from '@/helpers/get-run-duration';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
@@ -110,6 +115,23 @@ const RunComponent = () => {
                 <Label className='font-semibold'>Created at:</Label>{' '}
                 <TimestampWithUTC timestamp={ortRun.createdAt} />
               </div>
+              {ortRun.userDisplayName && (
+                <div className='text-sm'>
+                  <Label className='font-semibold'>Created by:</Label>{' '}
+                  {ortRun.userDisplayName?.fullName ? (
+                    <Tooltip>
+                      <TooltipTrigger>
+                        {ortRun.userDisplayName?.username}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {ortRun.userDisplayName?.fullName}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <span>{ortRun.userDisplayName?.username}</span>
+                  )}
+                </div>
+              )}
               {ortRun.finishedAt && (
                 <div>
                   <div className='text-sm'>
