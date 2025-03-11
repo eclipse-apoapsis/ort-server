@@ -37,9 +37,9 @@ versionsPlugin = "0.52.0"
 
 # Gradle dependencies
 awsSdk = "1.4.37"
-azureIdentity = "1.15.3"
+azureIdentity = "1.15.4"
 azureSecurityKeyvaultSecrets = "4.9.3"
-azureStorageBlob = "12.29.1"
+azureStorageBlob = "12.30.0"
 clikt = "5.0.3"
 exposed = "0.60.0"
 flyway = "11.3.4"
