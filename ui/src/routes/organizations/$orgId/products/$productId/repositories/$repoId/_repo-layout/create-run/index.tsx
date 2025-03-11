@@ -47,6 +47,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 import { AdvisorFields } from '../../-components/advisor-fields';
 import { AnalyzerFields } from '../../-components/analyzer-fields';
@@ -66,6 +74,8 @@ const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const ortRun = Route.useLoaderData();
+  const user = useUser();
+  const [isTest, setIsTest] = useState(false);
 
   type AccordionSection =
     | 'analyzer'
@@ -138,6 +148,9 @@ const CreateRunPage = () => {
   });
 
   async function onSubmit(values: CreateRunFormValues) {
+    if (isTest) {
+      return;
+    }
     await mutateAsync({
       repositoryId: Number.parseInt(params.repoId),
       requestBody: formValuesToPayload(values),
@@ -426,16 +439,58 @@ const CreateRunPage = () => {
                 )}
               </p>
             )}
-            <Button type='submit' disabled={isPending}>
-              {isPending ? (
-                <>
-                  <span className='sr-only'>Creating run...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              ) : (
-                'Create'
+            <div className='flex w-full items-center justify-between'>
+              <Button type='submit' disabled={isPending}>
+                {isPending ? (
+                  <>
+                    <span className='sr-only'>Creating run...</span>
+                    <Loader2 size={16} className='mx-3 animate-spin' />
+                  </>
+                ) : (
+                  'Create'
+                )}
+              </Button>
+              {user.hasRole(['superuser']) && (
+                <div className='flex items-center space-x-2'>
+                  <Switch
+                    id='test-form'
+                    checked={isTest}
+                    onCheckedChange={setIsTest}
+                  />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Label
+                        className='text-muted-foreground'
+                        htmlFor='test-form'
+                      >
+                        Test the form
+                      </Label>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div>Only for superusers: when enabled, pressing</div>
+                      <div>
+                        "Create" will not create a run but it instead shows
+                      </div>
+                      <div>
+                        the form payload that would be sent to the server.
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               )}
-            </Button>
+            </div>
+            {user.hasRole(['superuser']) && isTest && (
+              <>
+                <Label className='mt-4'>Form payload:</Label>
+                <pre className='w-full rounded-lg p-4 text-xs'>
+                  {JSON.stringify(
+                    formValuesToPayload(form.getValues()),
+                    null,
+                    2
+                  )}
+                </pre>
+              </>
+            )}
           </CardFooter>
         </form>
       </Form>
