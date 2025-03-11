@@ -26,11 +26,16 @@ import aws.sdk.kotlin.services.sqs.model.GetQueueUrlResponse
 import aws.sdk.kotlin.services.sqs.model.SendMessageRequest
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
+
+import java.util.concurrent.TimeUnit
 
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_QUEUE_NAME
@@ -108,5 +113,23 @@ class SqsMessageReceiverFactoryTest : StringSpec({
         queueResponse.sendMessage(traceId, ortRunId, serializer.toJson(payload))
 
         messageQueue.checkMessage("", ortRunId, payload)
+    }
+
+    "Message receiving is stopped when the handler returns STOP" {
+        val messageQueue = startReceiver(configManager, EndpointHandlerResult.STOP)
+
+        val traceId1 = "trace1"
+        val ortRunId1 = 1L
+        val payload1 = AnalyzerWorkerError(1)
+
+        val traceId2 = "trace2"
+        val ortRunId2 = 2L
+        val payload2 = AnalyzerWorkerError(2)
+
+        queueResponse.sendMessage(traceId1, ortRunId1, serializer.toJson(payload1))
+        queueResponse.sendMessage(traceId2, ortRunId2, serializer.toJson(payload2))
+
+        messageQueue.checkMessage(traceId1, ortRunId1, payload1)
+        messageQueue.poll(2, TimeUnit.SECONDS) should beNull()
     }
 })

@@ -22,10 +22,15 @@ package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 import com.rabbitmq.client.ConnectionFactory
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
+
+import java.util.concurrent.TimeUnit
 
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
 import org.eclipse.apoapsis.ortserver.model.orchestrator.OrchestratorMessage
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.transport.rabbitmq.RabbitMqMessageConverter.toAmqpProperties
@@ -120,6 +125,53 @@ class RabbitMqMessageReceiverFactoryTest : StringSpec({
             )
 
             messageQueue.checkMessage(traceId, runId, payload)
+        }
+    }
+
+    "Message receiving is stopped when the handler returns STOP" {
+        val serializer = JsonSerializer.forType<OrchestratorMessage>()
+        val config = startRabbitMqContainer("orchestrator", "receiver")
+
+        val connectionFactory = ConnectionFactory().apply {
+            setUri(config.getString("orchestrator.receiver.serverUri"))
+        }
+
+        connectionFactory.newConnection().use { connection ->
+            val channel = connection.createChannel().also {
+                it.queueDeclare(
+                    /* queue = */ TEST_QUEUE_NAME,
+                    /* durable = */ false,
+                    /* exclusive = */ false,
+                    /* autoDelete = */ false,
+                    /* arguments = */ emptyMap()
+                )
+            }
+
+            val messageQueue = startReceiver(config, EndpointHandlerResult.STOP)
+
+            val traceId1 = "trace1"
+            val runId1 = 1L
+            val payload1 = AnalyzerWorkerError(1)
+            val traceId2 = "trace2"
+            val runId2 = 2L
+            val payload2 = AnalyzerWorkerResult(42)
+
+            channel.basicPublish(
+                "",
+                TEST_QUEUE_NAME,
+                MessageHeader(traceId1, runId1).toAmqpProperties(),
+                serializer.toJson(payload1).toByteArray()
+            )
+
+            channel.basicPublish(
+                "",
+                TEST_QUEUE_NAME,
+                MessageHeader(traceId2, runId2).toAmqpProperties(),
+                serializer.toJson(payload2).toByteArray()
+            )
+
+            messageQueue.checkMessage(traceId1, runId1, payload1)
+            messageQueue.poll(2, TimeUnit.SECONDS) should beNull()
         }
     }
 })

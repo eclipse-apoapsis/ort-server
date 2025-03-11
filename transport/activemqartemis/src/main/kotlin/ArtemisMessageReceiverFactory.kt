@@ -27,6 +27,7 @@ import org.apache.qpid.jms.JmsConnectionFactory
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
@@ -81,6 +82,8 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
             do {
                 runCatching {
                     val jmsMessage = consumer.receiveSave()
+                    var result = EndpointHandlerResult.CONTINUE
+
                     if (jmsMessage != null) {
                         val message = ArtemisMessageConverter.toTransportMessage(jmsMessage, serializer)
 
@@ -94,12 +97,12 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
                                 message.payload.javaClass.name
                             )
 
-                            handler(message)
+                            result = handler(message)
                         }
                     }
 
                     // jmsMessage is null when there is an unrecoverable error with the consumer; so exit the loop.
-                    running = jmsMessage != null
+                    running = result == EndpointHandlerResult.CONTINUE && jmsMessage != null
                 }.onFailure { exception ->
                     logger.error("Error during message processing.", exception)
                 }
