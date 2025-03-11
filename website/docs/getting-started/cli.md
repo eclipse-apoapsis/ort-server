@@ -6,6 +6,16 @@ The ORT Server Client CLI (`osc`) is a command-line interface designed to intera
 
 The latest version of `osc` can be obtained from the [GitHub releases page](https://github.com/eclipse-apoapsis/ort-server/releases/latest).
 
+### macOS
+
+When using the CLI on macOS, Apple's Gatekeeper restrictions may prevent the application from running.
+To bypass this, the quarantine attribute from the `osc` binary needs to be removed.
+This can be done by running the following command:
+
+```shell
+xattr -d com.apple.quarantine /path/to/osc
+```
+
 ## Usage
 
 ### Authentication
