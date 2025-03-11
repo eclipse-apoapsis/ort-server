@@ -29,7 +29,10 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import { usePackagesServiceGetApiV1RunsByRunIdPackages } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
+import {
+  usePackagesServiceGetApiV1RunsByRunIdPackagesSuspense,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense,
+} from '@/api/queries/suspense';
 import { Package } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DependencyPaths } from '@/components/dependency-paths';
@@ -59,79 +62,6 @@ import {
 const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<Package>();
-
-const columns = [
-  columnHelper.display({
-    id: 'moreInfo',
-    header: 'Details',
-    size: 50,
-    cell: ({ row }) => {
-      return row.getCanExpand() ? (
-        <Button
-          variant='outline'
-          size='sm'
-          onClick={row.getToggleExpandedHandler()}
-          style={{ cursor: 'pointer' }}
-        >
-          {row.getIsExpanded() ? (
-            <ChevronUp className='h-4 w-4' />
-          ) : (
-            <ChevronDown className='h-4 w-4' />
-          )}
-        </Button>
-      ) : (
-        'No info'
-      );
-    },
-    enableSorting: false,
-    enableColumnFilter: false,
-  }),
-  columnHelper.accessor(
-    (pkg) => {
-      return identifierToString(pkg.identifier);
-    },
-    {
-      id: 'identifier',
-      header: 'Package ID',
-      cell: ({ row }) => {
-        return (
-          <div className='font-semibold'>{row.getValue('identifier')}</div>
-        );
-      },
-      enableColumnFilter: false,
-    }
-  ),
-  columnHelper.accessor(
-    (row) => {
-      return row.processedDeclaredLicense.spdxExpression;
-    },
-    {
-      id: 'processedDeclaredLicense',
-      header: 'Declared License',
-      cell: ({ row }) => (
-        <div className='break-all'>
-          {row.getValue('processedDeclaredLicense')}
-        </div>
-      ),
-      enableColumnFilter: false,
-    }
-  ),
-  columnHelper.accessor('homepageUrl', {
-    header: 'Homepage',
-    cell: ({ row }) => (
-      <a
-        href={row.getValue('homepageUrl')}
-        target='_blank'
-        rel='noopener noreferrer'
-        className='font-semibold text-blue-400 hover:underline'
-      >
-        {row.getValue('homepageUrl')}
-      </a>
-    ),
-    enableColumnFilter: false,
-    enableSorting: false,
-  }),
-];
 
 const renderSubComponent = ({ row }: { row: Row<Package> }) => {
   const pkg = row.original;
@@ -208,8 +138,92 @@ const renderSubComponent = ({ row }: { row: Row<Package> }) => {
 const PackagesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const packageId = search.pkgId;
+
+  const columns = [
+    columnHelper.display({
+      id: 'moreInfo',
+      header: 'Details',
+      size: 50,
+      cell: ({ row }) => {
+        return row.getCanExpand() ? (
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={row.getToggleExpandedHandler()}
+            style={{ cursor: 'pointer' }}
+          >
+            {row.getIsExpanded() ? (
+              <ChevronUp className='h-4 w-4' />
+            ) : (
+              <ChevronDown className='h-4 w-4' />
+            )}
+          </Button>
+        ) : (
+          'No info'
+        );
+      },
+      enableSorting: false,
+      enableColumnFilter: false,
+    }),
+    columnHelper.accessor(
+      (pkg) => {
+        return identifierToString(pkg.identifier);
+      },
+      {
+        id: 'identifier',
+        header: 'Package ID',
+        cell: ({ row }) => {
+          return (
+            <div className='font-semibold'>{row.getValue('identifier')}</div>
+          );
+        },
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, pkgId: value },
+              });
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor(
+      (row) => {
+        return row.processedDeclaredLicense.spdxExpression;
+      },
+      {
+        id: 'processedDeclaredLicense',
+        header: 'Declared License',
+        cell: ({ row }) => (
+          <div className='break-all'>
+            {row.getValue('processedDeclaredLicense')}
+          </div>
+        ),
+        enableColumnFilter: false,
+      }
+    ),
+    columnHelper.accessor('homepageUrl', {
+      header: 'Homepage',
+      cell: ({ row }) => (
+        <a
+          href={row.getValue('homepageUrl')}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='font-semibold text-blue-400 hover:underline'
+        >
+          {row.getValue('homepageUrl')}
+        </a>
+      ),
+      enableColumnFilter: false,
+      enableSorting: false,
+    }),
+  ];
 
   const { data: ortRun } =
     useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
@@ -218,6 +232,12 @@ const PackagesComponent = () => {
         ortRunIndex: Number.parseInt(params.runIndex),
       }
     );
+
+  const { data: totalPackages } =
+    usePackagesServiceGetApiV1RunsByRunIdPackagesSuspense({
+      runId: ortRun.id,
+      limit: 1,
+    });
 
   const {
     data: packages,
@@ -229,6 +249,7 @@ const PackagesComponent = () => {
     limit: pageSize,
     offset: pageIndex * pageSize,
     sort: convertToBackendSorting(search.sortBy),
+    identifier: packageId,
   });
 
   const table = useReactTable({
@@ -241,6 +262,7 @@ const PackagesComponent = () => {
         pageSize,
       },
       sorting: search.sortBy,
+      columnFilters: [{ id: 'identifier', value: packageId }],
     },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
@@ -263,12 +285,16 @@ const PackagesComponent = () => {
     });
     return;
   }
+  const filtersInUse =
+    totalPackages.pagination.totalCount !== packages.pagination.totalCount;
+  const matching = `, ${packages.pagination.totalCount} matching filters`;
 
   return (
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Packages ({packages.pagination.totalCount} in total)
+          Packages ({totalPackages.pagination.totalCount} in total
+          {filtersInUse && matching})
         </CardTitle>
         <CardDescription>
           This view shows the flat set of de-duplicated packages discovered for
