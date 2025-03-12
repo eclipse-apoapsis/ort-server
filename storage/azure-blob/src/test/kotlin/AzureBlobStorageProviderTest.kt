@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.storage.StorageException
 
 import org.testcontainers.containers.GenericContainer
 
-private const val AZURITE_IMAGE = "mcr.microsoft.com/azure-storage/azurite:3.33.0"
+private const val AZURITE_IMAGE = "mcr.microsoft.com/azure-storage/azurite:3.34.0"
 
 // Default account name and key, see https://github.com/Azure/Azurite/blob/main/README.md#default-storage-account.
 private const val ACCOUNT_NAME = "devstoreaccount1"
