@@ -217,7 +217,7 @@ export const Header = () => {
                       {...field}
                       type='text'
                       name='runId'
-                      placeholder='Enter global run ID'
+                      placeholder='Enter Run ID'
                       className='w-25 text-xs'
                     />
                   </FormControl>
