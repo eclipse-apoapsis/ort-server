@@ -246,7 +246,11 @@ export const Header = () => {
                   {user.username?.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className='font-semibold'>{user.username}</span>
+              <div>
+                <span className='font-semibold'>{user.username}</span>
+                <br />
+                <span>{user.fullName}</span>
+              </div>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <Link to='/about'>

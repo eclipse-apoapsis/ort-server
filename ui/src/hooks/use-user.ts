@@ -35,9 +35,13 @@ export const useUser = () => {
   // Return the logged-in username.
   const username = auth?.user?.profile?.preferred_username;
 
+  // Return end-user's full name, including all name parts.
+  const fullName = auth?.user?.profile?.name;
+
   return {
     hasRole,
     username,
+    fullName,
     ...auth,
   };
 };
