@@ -113,7 +113,7 @@ const ReportComponent = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Logs from global run ID {ortRun.id}</CardTitle>
+        <CardTitle>Logs</CardTitle>
         <CardDescription>
           Click the button to download. You can select different log levels for
           downloading from the dropdown. Note that the log levels are additive,
