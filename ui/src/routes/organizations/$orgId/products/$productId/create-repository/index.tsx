@@ -109,7 +109,7 @@ const CreateRepositoryPage = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add repository</CardTitle>
+        <CardTitle>Add Repository</CardTitle>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>

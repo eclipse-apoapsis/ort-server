@@ -263,7 +263,7 @@ const RuleViolationsComponent = () => {
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Rule violations ({ruleViolations.pagination.totalCount} in total
+          Rule Violations ({ruleViolations.pagination.totalCount} in total
           {filtersInUse && matching})
         </CardTitle>
         <CardDescription>

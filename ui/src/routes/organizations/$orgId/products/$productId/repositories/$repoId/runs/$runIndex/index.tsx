@@ -126,7 +126,7 @@ const RunComponent = () => {
           </Card>
           <Card className='flex-1'>
             <CardHeader>
-              <CardTitle>Context information</CardTitle>
+              <CardTitle>Context Information</CardTitle>
             </CardHeader>
             <CardContent>
               <div className='text-sm'>

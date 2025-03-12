@@ -140,7 +140,7 @@ const OrganizationSettingsPage = () => {
     <div className='flex flex-col gap-8'>
       <Card>
         <CardHeader>
-          <CardTitle>Edit organization</CardTitle>
+          <CardTitle>Edit Organization</CardTitle>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>

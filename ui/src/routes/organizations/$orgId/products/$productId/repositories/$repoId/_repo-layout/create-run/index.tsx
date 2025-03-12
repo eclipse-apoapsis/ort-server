@@ -187,7 +187,7 @@ const CreateRunPage = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create an ORT run</CardTitle>
+        <CardTitle>Create an ORT Run</CardTitle>
       </CardHeader>
       <Form {...form}>
         <form
