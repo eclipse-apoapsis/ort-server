@@ -32,6 +32,7 @@ import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByO
 import {
   usePackagesServiceGetApiV1RunsByRunIdPackagesSuspense,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense,
+  useRunsServiceGetApiV1RunsByRunIdPackagesLicensesSuspense,
 } from '@/api/queries/suspense';
 import { Package } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
@@ -142,6 +143,40 @@ const PackagesComponent = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const packageId = search.pkgId;
+  const declaredLicense = search.declaredLicense;
+
+  const { data: ortRun } =
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: Number.parseInt(params.runIndex),
+      }
+    );
+
+  const { data: totalPackages } =
+    usePackagesServiceGetApiV1RunsByRunIdPackagesSuspense({
+      runId: ortRun.id,
+      limit: 1,
+    });
+
+  const { data: declaredLicensesOptions } =
+    useRunsServiceGetApiV1RunsByRunIdPackagesLicensesSuspense({
+      runId: ortRun.id,
+    });
+
+  const {
+    data: packages,
+    isPending,
+    isError,
+    error,
+  } = usePackagesServiceGetApiV1RunsByRunIdPackages({
+    runId: ortRun.id,
+    limit: pageSize,
+    offset: pageIndex * pageSize,
+    sort: convertToBackendSorting(search.sortBy),
+    identifier: packageId,
+    processedDeclaredLicense: declaredLicense?.join(','),
+  });
 
   const columns = [
     columnHelper.display({
@@ -205,7 +240,27 @@ const PackagesComponent = () => {
             {row.getValue('processedDeclaredLicense')}
           </div>
         ),
-        enableColumnFilter: false,
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions:
+              declaredLicensesOptions.processedDeclaredLicenses.map(
+                (license) => ({
+                  label: license,
+                  value: license,
+                })
+              ),
+            setSelected: (licenses: string[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  declaredLicense: licenses.length === 0 ? undefined : licenses,
+                },
+              });
+            },
+          },
+        },
       }
     ),
     columnHelper.accessor('homepageUrl', {
@@ -225,33 +280,6 @@ const PackagesComponent = () => {
     }),
   ];
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
-
-  const { data: totalPackages } =
-    usePackagesServiceGetApiV1RunsByRunIdPackagesSuspense({
-      runId: ortRun.id,
-      limit: 1,
-    });
-
-  const {
-    data: packages,
-    isPending,
-    isError,
-    error,
-  } = usePackagesServiceGetApiV1RunsByRunIdPackages({
-    runId: ortRun.id,
-    limit: pageSize,
-    offset: pageIndex * pageSize,
-    sort: convertToBackendSorting(search.sortBy),
-    identifier: packageId,
-  });
-
   const table = useReactTable({
     data: packages?.data || [],
     columns,
@@ -262,7 +290,10 @@ const PackagesComponent = () => {
         pageSize,
       },
       sorting: search.sortBy,
-      columnFilters: [{ id: 'identifier', value: packageId }],
+      columnFilters: [
+        { id: 'identifier', value: packageId },
+        { id: 'processedDeclaredLicense', value: declaredLicense },
+      ],
     },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
