@@ -104,10 +104,6 @@ const RunComponent = () => {
             </CardHeader>
             <CardContent>
               <div className='text-sm'>
-                <Label className='font-semibold'>Run index:</Label>{' '}
-                {ortRun.index}
-              </div>
-              <div className='text-sm'>
                 <Label className='font-semibold'>Global id:</Label> {ortRun.id}
               </div>
               <div className='text-sm'>
