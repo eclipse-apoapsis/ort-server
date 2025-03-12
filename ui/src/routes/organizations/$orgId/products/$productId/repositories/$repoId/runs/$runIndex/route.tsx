@@ -28,6 +28,7 @@ import {
   History,
   ListCheck,
   ListTree,
+  Logs,
   Scale,
   Settings,
   ShieldQuestion,
@@ -136,6 +137,7 @@ const Layout = () => {
           title: 'Logs',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/logs',
           params,
+          icon: () => <Logs className='h-4 w-4' />,
         },
         {
           title: 'Job Configurations',
