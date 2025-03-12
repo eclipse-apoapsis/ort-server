@@ -141,7 +141,7 @@ const ProductSettingsPage = () => {
     <div className='flex flex-col gap-8'>
       <Card>
         <CardHeader>
-          <CardTitle>Edit product</CardTitle>
+          <CardTitle>Edit Product</CardTitle>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>

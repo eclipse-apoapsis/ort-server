@@ -33,7 +33,7 @@ const LicenseFindingsComponent = () => {
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>License findings</CardTitle>
+        <CardTitle>License Findings</CardTitle>
         <CardDescription>
           License and copyright findings of the project.
         </CardDescription>

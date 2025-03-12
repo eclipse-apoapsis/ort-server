@@ -152,7 +152,7 @@ const RepositorySettingsPage = () => {
     <div className='flex flex-col gap-8'>
       <Card>
         <CardHeader>
-          <CardTitle>Edit repository</CardTitle>
+          <CardTitle>Edit Repository</CardTitle>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
