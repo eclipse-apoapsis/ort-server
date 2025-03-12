@@ -21,7 +21,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
-import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   Card,
@@ -39,16 +38,11 @@ import {
 import { ProductVulnerabilityTable } from './-components/product-vulnerability-table';
 
 const ProductVulnerabilitiesComponent = () => {
-  const params = Route.useParams();
   // These states are used to keep track of the total number of vulnerabilities
   // and the number of vulnerabilities after filtering.
   const [unfilteredRowCount, setUnfilteredRowCount] = useState(0);
   const [filteredRowCount, setFilteredRowCount] = useState(0);
 
-  const { data: product } =
-    useProductsServiceGetApiV1ProductsByProductIdSuspense({
-      productId: Number.parseInt(params.productId),
-    });
   const filtersInUse = unfilteredRowCount !== filteredRowCount;
   const matching = `, ${filteredRowCount} matching filters`;
 
@@ -56,8 +50,8 @@ const ProductVulnerabilitiesComponent = () => {
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Vulnerabilities in product: {product.name} ({unfilteredRowCount} in
-          total{filtersInUse && matching})
+          Vulnerabilities ({unfilteredRowCount} in total
+          {filtersInUse && matching})
         </CardTitle>
         <CardDescription>
           These are the vulnerabilities found currently from this product.
