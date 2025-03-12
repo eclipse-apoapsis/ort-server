@@ -430,8 +430,8 @@
   }, {
     "id" : "dc908d80-5155-4b92-a34f-3c6bbed31893",
     "username" : "ort-admin",
-    "firstName" : "",
-    "lastName" : "",
+    "firstName" : "ORT",
+    "lastName" : "Administrator User",
     "emailVerified" : false,
     "createdTimestamp" : 1660817443238,
     "enabled" : true,
