@@ -104,7 +104,7 @@ const RunComponent = () => {
             </CardHeader>
             <CardContent>
               <div className='text-sm'>
-                <Label className='font-semibold'>Global id:</Label> {ortRun.id}
+                <Label className='font-semibold'>Run ID:</Label> {ortRun.id}
               </div>
               <div className='text-sm'>
                 <Label className='font-semibold'>Created at:</Label>{' '}
