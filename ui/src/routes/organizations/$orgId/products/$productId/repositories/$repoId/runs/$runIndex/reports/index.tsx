@@ -101,7 +101,7 @@ const ReportComponent = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reports from run {ortRun.index}</CardTitle>
+        <CardTitle>Other Report Formats</CardTitle>
         <CardDescription>Click the file to download.</CardDescription>
       </CardHeader>
       <CardContent>
