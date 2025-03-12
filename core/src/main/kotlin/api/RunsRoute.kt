@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.api.v1.model.DeclaredLicenses
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
@@ -48,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getDeclaredLicensesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getIssuesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
@@ -357,6 +359,22 @@ fun Route.runs() = route("runs") {
                     val pagedResponse = projectsForOrtRun.mapToApi(Project::mapToApi)
 
                     call.respond(HttpStatusCode.OK, pagedResponse)
+                }
+            }
+        }
+
+        route("licenses") {
+            route("declared") {
+                get(getDeclaredLicensesByRunId) {
+                    call.forRun(ortRunRepository) { ortRun ->
+                        requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
+
+                        val declaredLicenses = DeclaredLicenses(
+                            packageService.getProcessedDeclaredLicenses(ortRun.id)
+                        )
+
+                        call.respond(HttpStatusCode.OK, declaredLicenses)
+                    }
                 }
             }
         }

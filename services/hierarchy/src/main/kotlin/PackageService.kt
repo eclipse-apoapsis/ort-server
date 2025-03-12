@@ -161,6 +161,18 @@ class PackageService(private val db: Database) {
                     )
                 }
         }
+
+    /** Get all distinct processed declared license expressions found in packages in an ORT run. */
+    suspend fun getProcessedDeclaredLicenses(ortRunId: Long): List<String> =
+        db.dbQuery {
+            PackagesTable.joinAnalyzerTables()
+                .innerJoin(ProcessedDeclaredLicensesTable)
+                .select(ProcessedDeclaredLicensesTable.spdxExpression)
+                .withDistinct()
+                .where { AnalyzerJobsTable.ortRunId eq ortRunId }
+                .orderBy(ProcessedDeclaredLicensesTable.spdxExpression)
+                .mapNotNull { it[ProcessedDeclaredLicensesTable.spdxExpression] }
+        }
 }
 
 private fun ResultRow.toPackageWithShortestDependencyPaths(): PackageWithShortestDependencyPaths =
