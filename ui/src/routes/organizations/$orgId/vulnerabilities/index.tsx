@@ -20,10 +20,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
-import {
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense,
-  useVulnerabilitiesServiceGetApiV1OrganizationsByOrganizationIdVulnerabilitiesSuspense,
-} from '@/api/queries/suspense';
+import { useVulnerabilitiesServiceGetApiV1OrganizationsByOrganizationIdVulnerabilitiesSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   Card,
@@ -41,11 +38,6 @@ import { OrganizationVulnerabilityTable } from './-components/organization-vulne
 const OrganizationVulnerabilitiesComponent = () => {
   const params = Route.useParams();
 
-  const { data: organization } =
-    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense({
-      organizationId: Number.parseInt(params.orgId),
-    });
-
   const { data: vulnerabilities } =
     useVulnerabilitiesServiceGetApiV1OrganizationsByOrganizationIdVulnerabilitiesSuspense(
       {
@@ -58,10 +50,7 @@ const OrganizationVulnerabilitiesComponent = () => {
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>
-          Vulnerabilities in organization: {organization.name} (
-          {totalVulnerabilities} in total)
-        </CardTitle>
+        <CardTitle>Vulnerabilities ({totalVulnerabilities} in total)</CardTitle>
         <CardDescription>
           These are the vulnerabilities found currently from this organization.
           Please note that the vulnerability status may change over time, as
