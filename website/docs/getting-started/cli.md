@@ -16,6 +16,61 @@ This can be done by running the following command:
 xattr -d com.apple.quarantine /path/to/osc
 ```
 
+## Usage in GitHub Actions
+
+When using `osc` in a GitHub action, the [`setup-osc`](https://github.com/eclipse-apoapsis/setup-osc) action can be used to install `osc` and authenticate with an ORT Server instance.
+
+The following example demonstrates how to integrate `osc` in a GitHub Actions workflow to start an ORT run, retrieve the created reports, and store them as workflow artifacts:
+
+```yaml
+jobs:
+  run-osc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup OSC
+        uses: eclipse-apoapsis/setup-osc@main
+        with:
+          osc-version: 0.1.0-RC16
+          base-url: https://ort-server.example.com
+          token-url: https://auth.example.com/realms/prod/protocol/openid-connect/token
+          client-id: ort-server-prod
+          username: user
+          password: ${{ secrets.ORT_SERVER_PASSWORD }}
+
+      - name: Start ORT run
+        run: |
+          osc runs start --parameters '{
+            "revision": "${{ github.head_ref || github.ref_name }}",
+            "jobConfigs": {
+              "analyzer": {},
+              "advisor": {},
+              "evaluator": {},
+              "scanner": {},
+              "reporter": {},
+              "notifier": {}
+            }
+          }'
+        env:
+          OSC_REPOSITORY_ID: 42
+          OSC_RUNS_START_WAIT: true # Block the runner until the ORT Server run is finished.
+
+      - name: Download Reports
+        run: |
+          osc runs download reports
+        env:
+          OSC_DOWNLOAD_REPORTS_FILE_NAMES: 'scan-report-web-app.html'
+          OSC_DOWNLOAD_REPORTS_OUTPUT_DIR: './reports'
+
+      - name: Upload reports
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: reports/
+```
+
+All available settings for `setup-osc` can be found [in the Repository of the action](https://github.com/eclipse-apoapsis/setup-osc).
+
 ## Usage
 
 ### Authentication
