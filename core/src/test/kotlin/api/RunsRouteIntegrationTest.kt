@@ -101,7 +101,7 @@ import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
@@ -552,7 +552,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ortRunId = ortRun.id,
                     configuration = AdvisorJobConfiguration(
                         config = mapOf(
-                            "VulnerableCode" to PluginConfiguration(
+                            "VulnerableCode" to PluginConfig(
                                 options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
                                 secrets = mapOf("apiKey" to "key")
                             )
@@ -575,7 +575,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ),
                     config = AdvisorConfiguration(
                         config = mapOf(
-                            "VulnerableCode" to PluginConfiguration(
+                            "VulnerableCode" to PluginConfig(
                                 options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
                                 secrets = mapOf("apiKey" to "key")
                             )
@@ -824,7 +824,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ),
                     config = AdvisorConfiguration(
                         config = mapOf(
-                            "VulnerableCode" to PluginConfiguration(
+                            "VulnerableCode" to PluginConfig(
                                 options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
                                 secrets = mapOf("apiKey" to "key")
                             )
@@ -1833,7 +1833,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ),
                     config = AdvisorConfiguration(
                         config = mapOf(
-                            "VulnerableCode" to PluginConfiguration(
+                            "VulnerableCode" to PluginConfig(
                                 options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
                                 secrets = mapOf("apiKey" to "key")
                             )

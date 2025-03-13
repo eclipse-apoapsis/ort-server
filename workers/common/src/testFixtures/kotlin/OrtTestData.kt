@@ -79,7 +79,6 @@ import org.ossreviewtoolkit.model.config.PackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude
 import org.ossreviewtoolkit.model.config.PathExcludeReason
-import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
@@ -98,6 +97,7 @@ import org.ossreviewtoolkit.model.config.snippet.SnippetChoice
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability
 import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference
+import org.ossreviewtoolkit.plugins.api.PluginConfig
 import org.ossreviewtoolkit.utils.common.enumSetOf
 import org.ossreviewtoolkit.utils.ort.Environment
 import org.ossreviewtoolkit.utils.ort.ProcessedDeclaredLicense
@@ -420,7 +420,7 @@ object OrtTestData {
 
     val advisorConfiguration = AdvisorConfiguration(
         config = mapOf(
-            "GitHubDefects" to PluginConfiguration(
+            "GitHubDefects" to PluginConfig(
                 options = mapOf(
                     "endpointUrl" to "https://github.com/defects",
                     "labelFilter" to "!any",
@@ -429,7 +429,7 @@ object OrtTestData {
                 ),
                 secrets = mapOf("token" to "tokenValue")
             ),
-            "NexusIQ" to PluginConfiguration(
+            "NexusIQ" to PluginConfig(
                 options = mapOf(
                     "serverUrl" to "https://example.org/nexus",
                     "browseUrl" to "https://example.org/nexus/browse"
@@ -439,11 +439,11 @@ object OrtTestData {
                     "password" to "pass"
                 )
             ),
-            "OSV" to PluginConfiguration(
+            "OSV" to PluginConfig(
                 options = mapOf("serverUrl" to "https://google.com/osv"),
                 secrets = emptyMap()
             ),
-            "VulnerableCode" to PluginConfiguration(
+            "VulnerableCode" to PluginConfig(
                 options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
                 secrets = mapOf("apiKey" to "key")
             )
@@ -489,11 +489,11 @@ object OrtTestData {
         archive = null,
         detectedLicenseMapping = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
         config = mapOf(
-            "scanner-1" to PluginConfiguration(
+            "scanner-1" to PluginConfig(
                 options = mapOf("option-key-1" to "option-value-1"),
                 secrets = mapOf("secret-key-1" to "secret-value-1")
             ),
-            "scanner-2" to PluginConfiguration(
+            "scanner-2" to PluginConfig(
                 options = mapOf("option-key-1" to "option-value-1", "option-key-2" to "option-value-2"),
                 secrets = mapOf("secret-key-1" to "secret-value-1", "secret-key-2" to "secret-value-2")
             )

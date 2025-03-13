@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.runs
 
 data class AnalyzerConfiguration(
     val allowDynamicVersions: Boolean,
-    val enabledPackageManagers: List<String>?,
+    val enabledPackageManagers: List<String>,
     val disabledPackageManagers: List<String>?,
     val packageManagers: Map<String, PackageManagerConfiguration>?,
     val skipExcluded: Boolean

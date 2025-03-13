@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -50,12 +50,12 @@ class AdvisorConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
         val config = buildMap {
             (optionsByAdvisor.keys + secretsByAdvisor.keys).forEach { advisor ->
-                val pluginConfiguration = PluginConfiguration(
+                val pluginConfig = PluginConfig(
                     options = optionsByAdvisor[advisor].orEmpty(),
                     secrets = secretsByAdvisor[advisor].orEmpty()
                 )
 
-                put(advisor, pluginConfiguration)
+                put(advisor, pluginConfig)
             }
         }
 

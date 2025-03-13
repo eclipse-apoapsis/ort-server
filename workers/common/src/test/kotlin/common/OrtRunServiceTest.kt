@@ -787,7 +787,7 @@ class OrtRunServiceTest : WordSpec({
                 ),
                 config = AnalyzerConfiguration(
                     allowDynamicVersions = true,
-                    enabledPackageManagers = null,
+                    enabledPackageManagers = emptyList(),
                     disabledPackageManagers = null,
                     packageManagers = emptyMap(),
                     skipExcluded = true

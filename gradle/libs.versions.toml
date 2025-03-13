@@ -63,7 +63,7 @@ logback = "1.5.17"
 micrometer = "1.14.5"
 mockk = "1.13.17"
 okio = "3.10.2"
-ort = "53.0.0"
+ort = "54.0.0"
 postgres = "42.7.5"
 qpidJmsClient = "2.7.0"
 schemaKenerator = "1.6.5"
@@ -165,6 +165,7 @@ ortPackageConfigurationProviders = { module = "org.ossreviewtoolkit.plugins:pack
 ortPackageCurationProviderApi = { module = "org.ossreviewtoolkit.plugins.packagecurationproviders:package-curation-provider-api", version.ref = "ort" }
 ortPackageCurationProviders = { module = "org.ossreviewtoolkit.plugins:package-curation-providers", version.ref = "ort" }
 ortPackageManagers = { module = "org.ossreviewtoolkit.plugins:package-managers", version.ref = "ort" }
+ortPluginApi = { module = "org.ossreviewtoolkit.plugins:api", version.ref = "ort" }
 ortPluginCompiler = { module = "org.ossreviewtoolkit.plugins:compiler", version.ref = "ort" }
 ortReporter = { module = "org.ossreviewtoolkit:reporter", version.ref = "ort" }
 ortReporters = { module = "org.ossreviewtoolkit.plugins:reporters", version.ref = "ort" }

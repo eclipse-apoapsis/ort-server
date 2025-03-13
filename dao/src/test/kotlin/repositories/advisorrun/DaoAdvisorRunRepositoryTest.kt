@@ -29,7 +29,7 @@ import kotlinx.datetime.Clock
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -134,7 +134,7 @@ private val environment = Environment(
 
 private val advisorConfiguration = AdvisorConfiguration(
     config = mapOf(
-        "GitHubDefects" to PluginConfiguration(
+        "GitHubDefects" to PluginConfig(
             options = mapOf(
                 "endpointUrl" to "https://github.com/defects",
                 "labelFilter" to "!any",
@@ -143,7 +143,7 @@ private val advisorConfiguration = AdvisorConfiguration(
             ),
             secrets = mapOf("token" to "tokenValue")
         ),
-        "NexusIQ" to PluginConfiguration(
+        "NexusIQ" to PluginConfig(
             options = mapOf(
                 "serverUrl" to "https://example.org/nexus",
                 "browseUrl" to "https://example.org/nexus/browse"
@@ -153,11 +153,11 @@ private val advisorConfiguration = AdvisorConfiguration(
                 "password" to "pass"
             )
         ),
-        "OSV" to PluginConfiguration(
+        "OSV" to PluginConfig(
             options = mapOf("serverUrl" to "https://google.com/osv"),
             secrets = emptyMap()
         ),
-        "VulnerableCode" to PluginConfiguration(
+        "VulnerableCode" to PluginConfig(
             options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
             secrets = mapOf("apiKey" to "key")
         )

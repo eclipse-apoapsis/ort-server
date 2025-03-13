@@ -31,8 +31,9 @@ import io.mockk.unmockkAll
 import io.mockk.verify
 
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.advisor.AdviceProvider
 import org.ossreviewtoolkit.advisor.AdviceProviderFactory
@@ -41,7 +42,6 @@ import org.ossreviewtoolkit.model.AnalyzerRun
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package
 import org.ossreviewtoolkit.model.config.AdvisorConfiguration
-import org.ossreviewtoolkit.plugins.api.PluginConfig
 import org.ossreviewtoolkit.plugins.api.PluginDescriptor
 
 class AdvisorRunnerTest : WordSpec({
@@ -71,14 +71,14 @@ class AdvisorRunnerTest : WordSpec({
 
             val osvSecretRefs = mapOf("secret1" to "passRef1", "secret2" to "passRef2")
             val osvSecrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
-            val osvConfig = PluginConfiguration(
+            val osvConfig = PluginConfig(
                 options = mapOf("option1" to "value1", "option2" to "value2"),
                 secrets = osvSecretRefs
             )
 
             val vulnerableCodeSecretRefs = mapOf("secret3" to "passRef3", "secret4" to "passRef4")
             val vulnerableCodeSecrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
-            val vulnerableCodeConfig = PluginConfiguration(
+            val vulnerableCodeConfig = PluginConfig(
                 options = mapOf("option3" to "value3", "option4" to "value4"),
                 secrets = vulnerableCodeSecretRefs
             )
@@ -110,8 +110,8 @@ class AdvisorRunnerTest : WordSpec({
             )
 
             verify(exactly = 1) {
-                osvFactory.create(PluginConfig(osvConfig.options, osvSecrets))
-                vulnerableCodeFactory.create(PluginConfig(vulnerableCodeConfig.options, vulnerableCodeSecrets))
+                osvFactory.create(osvConfig.copy(secrets = osvSecrets).mapToOrt())
+                vulnerableCodeFactory.create(vulnerableCodeConfig.copy(secrets = vulnerableCodeSecrets).mapToOrt())
             }
         }
     }
@@ -141,7 +141,7 @@ private fun mockAdvisorAll(adviceProviders: List<AdviceProviderFactory>) {
  */
 private fun mockContext(
     jobConfig: AdvisorJobConfiguration = AdvisorJobConfiguration(),
-    resolvedPluginConfig: Map<String, PluginConfiguration> = emptyMap()
+    resolvedPluginConfig: Map<String, PluginConfig> = emptyMap()
 ): WorkerContext =
     mockk {
         coEvery { resolvePluginConfigSecrets(jobConfig.config) } returns resolvedPluginConfig

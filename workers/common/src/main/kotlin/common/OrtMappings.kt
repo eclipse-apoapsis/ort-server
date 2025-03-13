@@ -24,7 +24,7 @@ package org.eclipse.apoapsis.ortserver.workers.common
 import kotlinx.datetime.toKotlinInstant
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
@@ -141,7 +141,6 @@ import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfi
 import org.ossreviewtoolkit.model.config.PackageLicenseChoice as OrtPackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude as OrtPathExclude
-import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration as OrtRepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration as OrtRepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions as OrtResolutions
@@ -155,6 +154,7 @@ import org.ossreviewtoolkit.model.config.snippet.SnippetChoice as OrtSnippetChoi
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason as OrtSnippetChoiceReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability as OrtVulnerability
 import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference as OrtVulnerabilityReference
+import org.ossreviewtoolkit.plugins.api.PluginConfig as OrtPluginConfig
 import org.ossreviewtoolkit.utils.ort.Environment as OrtEnvironment
 import org.ossreviewtoolkit.utils.ort.ProcessedDeclaredLicense as OrtProcessedDeclaredLicense
 import org.ossreviewtoolkit.utils.spdx.SpdxLicenseChoice as OrtSpdxLicenseChoice
@@ -383,7 +383,7 @@ fun OrtPackageManagerConfiguration.mapToModel() =
 
 fun OrtPathExclude.mapToModel() = PathExclude(pattern, reason.name, comment)
 
-fun OrtPluginConfiguration.mapToModel() = PluginConfiguration(options = options, secrets = secrets)
+fun OrtPluginConfig.mapToModel() = PluginConfig(options = options, secrets = secrets)
 
 fun OrtProcessedDeclaredLicense.mapToModel() =
     ProcessedDeclaredLicense(

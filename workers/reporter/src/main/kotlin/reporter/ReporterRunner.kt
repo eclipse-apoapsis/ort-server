@@ -31,7 +31,7 @@ import kotlinx.datetime.Clock
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -54,7 +54,7 @@ import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
-import org.ossreviewtoolkit.plugins.api.PluginConfig
+import org.ossreviewtoolkit.plugins.api.orEmpty
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
@@ -203,8 +203,8 @@ class ReporterRunner(
                             }
 
                             val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.let { options ->
-                                PluginConfig(options.options, options.secrets)
-                            } ?: PluginConfig()
+                                options.mapToOrt()
+                            }.orEmpty()
 
                             val reporter = reporterFactory.create(reporterConfig)
                             val reportFileResults = reporter.generateReport(reporterInput, outputDir)
@@ -255,7 +255,7 @@ class ReporterRunner(
     private suspend fun processReporterOptions(
         context: WorkerContext,
         config: ReporterJobConfiguration
-    ): Map<String, PluginConfiguration> = withContext(Dispatchers.IO) {
+    ): Map<String, PluginConfig> = withContext(Dispatchers.IO) {
         val templateDir = context.createTempDir()
 
         launch { context.downloadAssetFiles(config.assetFiles, templateDir) }

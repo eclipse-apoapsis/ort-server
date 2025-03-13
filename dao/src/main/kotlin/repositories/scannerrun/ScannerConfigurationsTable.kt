@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun
 
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -60,12 +60,12 @@ class ScannerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
         val config = buildMap {
             (optionsByScanner.keys + secretsByScanner.keys).forEach { scanner ->
-                val pluginConfiguration = PluginConfiguration(
+                val pluginConfig = PluginConfig(
                     options = optionsByScanner[scanner].orEmpty(),
                     secrets = secretsByScanner[scanner].orEmpty()
                 )
 
-                put(scanner, pluginConfiguration)
+                put(scanner, pluginConfig)
             }
         }
 

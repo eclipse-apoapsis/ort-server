@@ -33,9 +33,10 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import io.mockk.verify
 
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.ArtifactProvenance
 import org.ossreviewtoolkit.model.Issue
@@ -43,7 +44,6 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
-import org.ossreviewtoolkit.plugins.api.PluginConfig
 import org.ossreviewtoolkit.scanner.LocalPathScannerWrapper
 import org.ossreviewtoolkit.scanner.Scanner
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
@@ -120,14 +120,14 @@ class ScannerRunnerTest : WordSpec({
 
             val scanCodeSecretRefs = mapOf("secret1" to "passRef1", "secret2" to "passRef2")
             val scanCodeSecrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
-            val scanCodeConfig = PluginConfiguration(
+            val scanCodeConfig = PluginConfig(
                 options = mapOf("option1" to "value1", "option2" to "value2"),
                 secrets = scanCodeSecretRefs
             )
 
             val licenseeSecretRefs = mapOf("secret3" to "passRef3", "secret4" to "passRef4")
             val licenseeSecrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
-            val licenseeConfig = PluginConfiguration(
+            val licenseeConfig = PluginConfig(
                 options = mapOf("option3" to "value3", "option4" to "value4"),
                 secrets = licenseeSecretRefs
             )
@@ -149,8 +149,8 @@ class ScannerRunnerTest : WordSpec({
             runner.run(context, OrtResult.EMPTY, jobConfig, 0L)
 
             verify(exactly = 1) {
-                scanCodeFactory.create(PluginConfig(scanCodeConfig.options, scanCodeSecrets))
-                licenseeFactory.create(PluginConfig(licenseeConfig.options, licenseeSecrets))
+                scanCodeFactory.create(scanCodeConfig.copy(secrets = scanCodeSecrets).mapToOrt())
+                licenseeFactory.create(licenseeConfig.copy(secrets = licenseeSecrets).mapToOrt())
             }
         }
 
@@ -200,6 +200,7 @@ private fun mockScannerWrapperFactory(scannerName: String) =
                 every { name } returns scannerName
             }
             every { descriptor.id } returns scannerName
+            every { descriptor.displayName } returns scannerName
             every { readFromStorage } returns true
             every { writeToStorage } returns true
         }
@@ -216,7 +217,7 @@ private fun mockScannerWrapperAll(scanners: List<ScannerWrapperFactory>) {
  */
 private fun mockContext(
     jobConfig: ScannerJobConfiguration = ScannerJobConfiguration(),
-    resolvedPluginConfig: Map<String, PluginConfiguration> = emptyMap()
+    resolvedPluginConfig: Map<String, PluginConfig> = emptyMap()
 ): WorkerContext =
     mockk {
         coEvery { resolvePluginConfigSecrets(jobConfig.config) } returns resolvedPluginConfig

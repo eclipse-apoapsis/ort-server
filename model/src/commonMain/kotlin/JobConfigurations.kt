@@ -134,7 +134,7 @@ data class AdvisorJobConfiguration(
     /**
      * A map of plugin configurations that are specific to a concrete advisor.
      */
-    val config: Map<String, PluginConfiguration>? = null,
+    val config: Map<String, PluginConfig>? = null,
 
     /**
      * Keep the worker alive after it has finished. This is useful for manual problem analysis directly
@@ -190,7 +190,7 @@ data class ScannerJobConfiguration(
     /**
      * A map of plugin configurations that are specific to a concrete scanner.
      */
-    val config: Map<String, PluginConfiguration>? = null,
+    val config: Map<String, PluginConfig>? = null,
 
     /**
      * Keep the worker alive after it has finished. This is useful for manual problem analysis directly
@@ -380,7 +380,7 @@ data class ReporterJobConfiguration(
     /**
      * A map of configuration options that are specific to a concrete reporter.
      */
-    val config: Map<String, PluginConfiguration>? = null,
+    val config: Map<String, PluginConfig>? = null,
 
     /**
      * A map allowing to assign [ReportNameMapping] instances to single reporters. This can be used to override the
