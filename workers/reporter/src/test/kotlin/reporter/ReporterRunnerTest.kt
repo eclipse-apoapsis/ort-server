@@ -61,7 +61,7 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
@@ -78,7 +78,7 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity as OrtSeverity
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
-import org.ossreviewtoolkit.plugins.api.PluginConfig
+import org.ossreviewtoolkit.plugins.api.PluginConfig as OrtPluginConfig
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.reporter.DefaultLicenseTextProvider
 import org.ossreviewtoolkit.reporter.HowToFixTextProvider
@@ -116,12 +116,12 @@ class ReporterRunnerTest : WordSpec({
             every { createTempDir() } returnsMany listOf(outputDirectory, configDirectory)
             every { close() } just runs
             coEvery { resolvePluginConfigSecrets(any()) } answers {
-                val pluginConfigs: Map<String, PluginConfiguration>? = firstArg()
+                val pluginConfigs: Map<String, PluginConfig>? = firstArg()
                 pluginConfigs.orEmpty().mapValues { entry ->
                     val resolvedSecrets = entry.value.secrets.mapValues { secretEntry ->
                         "${secretEntry.value}_resolved"
                     }
-                    PluginConfiguration(entry.value.options, resolvedSecrets)
+                    PluginConfig(entry.value.options, resolvedSecrets)
                 }
             }
             coEvery { resolveProviderPluginConfigSecrets(providerPluginConfigs) } returns resolvedProviderPluginConfigs
@@ -181,8 +181,8 @@ class ReporterRunnerTest : WordSpec({
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(plainFormat, templateFormat),
                 config = mapOf(
-                    plainFormat to PluginConfiguration(plainOptions, emptyMap()),
-                    templateFormat to PluginConfiguration(
+                    plainFormat to PluginConfig(plainOptions, emptyMap()),
+                    templateFormat to PluginConfig(
                         mapOf(
                             "ugly" to "false",
                             "templateFile" to "${ReporterComponent.TEMPLATE_REFERENCE}$templateFileReference1",
@@ -208,8 +208,8 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotPlainPluginConfiguration = slot<PluginConfig>()
-            val slotTemplatePluginConfiguration = slot<PluginConfig>()
+            val slotPlainPluginConfiguration = slot<OrtPluginConfig>()
+            val slotTemplatePluginConfiguration = slot<OrtPluginConfig>()
             verify {
                 plainReporter.create(capture(slotPlainPluginConfiguration))
                 templateReporter.create(capture(slotTemplatePluginConfiguration))
@@ -241,7 +241,7 @@ class ReporterRunnerTest : WordSpec({
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(templateFormat),
                 config = mapOf(
-                    templateFormat to PluginConfiguration(
+                    templateFormat to PluginConfig(
                         mapOf(
                             "templateFile" to
                                     "$otherReference1,${ReporterComponent.TEMPLATE_REFERENCE}$fileReference," +
@@ -266,7 +266,7 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotPluginConfiguration = slot<PluginConfig>()
+            val slotPluginConfiguration = slot<OrtPluginConfig>()
             verify {
                 templateReporter.create(capture(slotPluginConfiguration))
 
@@ -288,7 +288,7 @@ class ReporterRunnerTest : WordSpec({
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(templateFormat),
                 config = mapOf(
-                    templateFormat to PluginConfiguration(
+                    templateFormat to PluginConfig(
                         mapOf("currentWorkingDir" to "${ReporterComponent.WORK_DIR_PLACEHOLDER}/reports"),
                         emptyMap()
                     )
@@ -305,7 +305,7 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotPluginConfiguration = slot<PluginConfig>()
+            val slotPluginConfiguration = slot<OrtPluginConfig>()
             verify {
                 templateReporter.create(capture(slotPluginConfiguration))
             }
@@ -328,7 +328,7 @@ class ReporterRunnerTest : WordSpec({
 
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(templateFormat),
-                config = mapOf(templateFormat to PluginConfiguration(options, secrets))
+                config = mapOf(templateFormat to PluginConfig(options, secrets))
             )
 
             val (contextFactory, _) = mockContext()
@@ -341,12 +341,12 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null)
 
-            val slotPluginConfiguration = slot<PluginConfig>()
+            val slotPluginConfiguration = slot<OrtPluginConfig>()
             verify {
                 templateReporter.create(capture(slotPluginConfiguration))
             }
 
-            slotPluginConfiguration.captured shouldBe PluginConfig(options, resolvedSecrets)
+            slotPluginConfiguration.captured shouldBe OrtPluginConfig(options, resolvedSecrets)
         }
 
         "handle a failed reporter" {

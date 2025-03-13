@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -106,8 +106,8 @@ internal class WorkerContextImpl(
     }
 
     override suspend fun resolvePluginConfigSecrets(
-        config: Map<String, PluginConfiguration>?
-    ): Map<String, PluginConfiguration> =
+        config: Map<String, PluginConfig>?
+    ): Map<String, PluginConfig> =
         config?.let { c ->
             val secrets = c.values.flatMap { it.secrets.values }
             val resolvedSecrets = parallelTransform(secrets, configSecretsCache, this::resolveConfigSecret) { it }
@@ -255,9 +255,9 @@ private fun extractDownloadFileKey(directory: String, targetName: String?): (Con
 }
 
 /**
- * Return a [PluginConfiguration] whose secrets are resolved according to the given map with [secretValues].
+ * Return a [PluginConfig] whose secrets are resolved according to the given map with [secretValues].
  */
-private fun PluginConfiguration.resolveSecrets(secretValues: Map<String, String>): PluginConfiguration {
+private fun PluginConfig.resolveSecrets(secretValues: Map<String, String>): PluginConfig {
     val resolvedSecrets = secrets.mapValues { e -> secretValues.getValue(e.value) }
     return copy(secrets = resolvedSecrets)
 }

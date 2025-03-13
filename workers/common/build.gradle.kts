@@ -53,6 +53,7 @@ dependencies {
     api(libs.koinCore)
     api(libs.ortDownloader)
     api(libs.ortModel)
+    api(libs.ortPluginApi)
     api(libs.ortScanner)
     api(libs.typesafeConfig)
 

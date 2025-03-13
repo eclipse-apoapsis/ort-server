@@ -29,7 +29,7 @@ import kotlinx.datetime.toJavaInstant
 import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.model.OrtRun
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -164,7 +164,6 @@ import org.ossreviewtoolkit.model.config.PackageLicenseChoice as OrtPackageLicen
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude as OrtPathExclude
 import org.ossreviewtoolkit.model.config.PathExcludeReason as OrtPathExcludeReason
-import org.ossreviewtoolkit.model.config.PluginConfiguration as OrtPluginConfiguration
 import org.ossreviewtoolkit.model.config.ProviderPluginConfiguration as OrtProviderPluginConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration as OrtRepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration as OrtRepositoryConfiguration
@@ -186,6 +185,7 @@ import org.ossreviewtoolkit.model.config.snippet.SnippetChoice as OrtSnippetChoi
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason as OrtSnippetChoiceReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability as OrtVulnerability
 import org.ossreviewtoolkit.model.vulnerabilities.VulnerabilityReference as OrtVulnerabilityReference
+import org.ossreviewtoolkit.plugins.api.PluginConfig as OrtPluginConfig
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenance as OrtNestedProvenance
 import org.ossreviewtoolkit.scanner.provenance.NestedProvenanceScanResult as OrtNestedProvenanceScanResult
 import org.ossreviewtoolkit.utils.common.enumSetOf
@@ -457,8 +457,8 @@ fun PackageManagerConfiguration.mapToOrt() = OrtPackageManagerConfiguration(must
 
 fun PathExclude.mapToOrt() = OrtPathExclude(pattern, OrtPathExcludeReason.valueOf(reason), comment)
 
-fun PluginConfiguration.mapToOrt() =
-    OrtPluginConfiguration(
+fun PluginConfig.mapToOrt() =
+    OrtPluginConfig(
         options = options,
         secrets = secrets
     )

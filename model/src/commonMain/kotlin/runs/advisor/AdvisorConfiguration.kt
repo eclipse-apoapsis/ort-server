@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.advisor
 
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 
 data class AdvisorConfiguration(
-    val config: Map<String, PluginConfiguration>
+    val config: Map<String, PluginConfig>
 )

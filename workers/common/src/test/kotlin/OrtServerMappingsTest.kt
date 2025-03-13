@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -300,7 +300,7 @@ class OrtServerMappingsTest : WordSpec({
 
             val advisorConfiguration = AdvisorConfiguration(
                 config = mapOf(
-                    "GitHubDefects" to PluginConfiguration(
+                    "GitHubDefects" to PluginConfig(
                         options = mapOf(
                             "endpointUrl" to "https://github.com/defects",
                             "labelFilter" to "!any",
@@ -309,7 +309,7 @@ class OrtServerMappingsTest : WordSpec({
                         ),
                         secrets = mapOf("token" to "tokenValue")
                     ),
-                    "NexusIQ" to PluginConfiguration(
+                    "NexusIQ" to PluginConfig(
                         options = mapOf(
                             "serverUrl" to "https://example.org/nexus",
                             "browseUrl" to "https://example.org/nexus/browse"
@@ -319,11 +319,11 @@ class OrtServerMappingsTest : WordSpec({
                             "password" to "pass"
                         )
                     ),
-                    "OSV" to PluginConfiguration(
+                    "OSV" to PluginConfig(
                         options = mapOf("serverUrl" to "https://google.com/osv"),
                         secrets = emptyMap()
                     ),
-                    "VulnerableCode" to PluginConfiguration(
+                    "VulnerableCode" to PluginConfig(
                         options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
                         secrets = mapOf("apiKey" to "key")
                     )
@@ -371,11 +371,11 @@ class OrtServerMappingsTest : WordSpec({
                 skipExcluded = true,
                 detectedLicenseMappings = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
                 config = mapOf(
-                    "scanner-1" to PluginConfiguration(
+                    "scanner-1" to PluginConfig(
                         options = mapOf("option-key-1" to "option-value-1"),
                         secrets = mapOf("secret-key-1" to "secret-value-1")
                     ),
-                    "scanner-2" to PluginConfiguration(
+                    "scanner-2" to PluginConfig(
                         options = mapOf("option-key-1" to "option-value-1", "option-key-2" to "option-value-2"),
                         secrets = mapOf("secret-key-1" to "secret-value-1", "secret-key-2" to "secret-value-2")
                     )

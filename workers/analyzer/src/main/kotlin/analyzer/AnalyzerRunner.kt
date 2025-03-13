@@ -251,7 +251,7 @@ class AnalyzerRunner(
 
         val analyzerConfigFromJob = AnalyzerConfiguration(
             config.allowDynamicVersions,
-            config.enabledPackageManagers,
+            config.enabledPackageManagers ?: AnalyzerConfiguration().enabledPackageManagers,
             config.disabledPackageManagers,
             ortPackageManagerOptions,
             config.skipExcluded ?: false
@@ -285,7 +285,7 @@ class AnalyzerRunner(
         if (info.managedFiles.isEmpty()) {
             logger.warn("No definition files found.")
         } else {
-            val filesPerManager = info.managedFiles.mapKeysTo(sortedMapOf()) { it.key.managerName }
+            val filesPerManager = info.managedFiles.mapKeysTo(sortedMapOf()) { it.key.descriptor.displayName }
             var count = 0
 
             filesPerManager.forEach { (manager, files) ->

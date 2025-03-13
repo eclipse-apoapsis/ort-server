@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.OrtRun
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 class ExtensionsTest : WordSpec({
@@ -61,22 +61,22 @@ class ExtensionsTest : WordSpec({
     "mapOptions" should {
         "apply the transform to all option entries" {
             val pluginConfigs = mapOf(
-                "plugin1" to PluginConfiguration(
+                "plugin1" to PluginConfig(
                     options = mapOf("key1" to "value1", "key2" to "value2"),
                     secrets = emptyMap()
                 ),
-                "plugin2" to PluginConfiguration(
+                "plugin2" to PluginConfig(
                     options = mapOf("key3" to "value3", "key4" to "value4"),
                     secrets = emptyMap()
                 )
             )
 
             pluginConfigs.mapOptions { it.key + it.value } should containExactly(
-                "plugin1" to PluginConfiguration(
+                "plugin1" to PluginConfig(
                     options = mapOf("key1" to "key1value1", "key2" to "key2value2"),
                     secrets = emptyMap()
                 ),
-                "plugin2" to PluginConfiguration(
+                "plugin2" to PluginConfig(
                     options = mapOf("key3" to "key3value3", "key4" to "key4value4"),
                     secrets = emptyMap()
                 )
@@ -85,14 +85,14 @@ class ExtensionsTest : WordSpec({
 
         "not apply the transform to the secrets" {
             val pluginConfigs = mapOf(
-                "plugin1" to PluginConfiguration(
+                "plugin1" to PluginConfig(
                     options = emptyMap(),
                     secrets = mapOf("key1" to "value1", "key2" to "value2")
                 )
             )
 
             pluginConfigs.mapOptions { it.key + it.value } should containExactly(
-                "plugin1" to PluginConfiguration(
+                "plugin1" to PluginConfig(
                     options = emptyMap(),
                     secrets = mapOf("key1" to "value1", "key2" to "value2")
                 )

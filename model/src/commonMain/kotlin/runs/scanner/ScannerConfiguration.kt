@@ -19,12 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.scanner
 
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 
 data class ScannerConfiguration(
     val skipConcluded: Boolean,
     val skipExcluded: Boolean,
     val detectedLicenseMappings: Map<String, String>,
-    val config: Map<String, PluginConfiguration>,
+    val config: Map<String, PluginConfig>,
     val ignorePatterns: List<String>
 )

@@ -60,7 +60,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageF
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse as ApiPagedResponse2
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions as ApiPagingOptions
-import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfiguration as ApiPluginConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig as ApiPluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability as ApiProductVulnerability
@@ -118,7 +118,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
@@ -684,9 +684,9 @@ fun PackageManagerConfiguration.mapToApi() =
 fun ApiPackageManagerConfiguration.mapToModel() =
     PackageManagerConfiguration(mustRunAfter = mustRunAfter, options = options)
 
-fun PluginConfiguration.mapToApi() = ApiPluginConfiguration(options = options, secrets = secrets)
+fun PluginConfig.mapToApi() = ApiPluginConfig(options = options, secrets = secrets)
 
-fun ApiPluginConfiguration.mapToModel() = PluginConfiguration(options = options, secrets = secrets)
+fun ApiPluginConfig.mapToModel() = PluginConfig(options = options, secrets = secrets)
 
 fun ProviderPluginConfiguration.mapToApi() =
     ApiProviderPluginConfiguration(

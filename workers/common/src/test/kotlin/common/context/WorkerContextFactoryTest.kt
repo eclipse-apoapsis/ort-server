@@ -51,7 +51,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesti
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -321,11 +321,11 @@ class WorkerContextFactoryTest : WordSpec({
         }
 
         "return plugin configurations with resolved secrets" {
-            val pluginConfig1 = PluginConfiguration(
+            val pluginConfig1 = PluginConfig(
                 options = mapOf("plugin1Option1" to "v1", "plugin1Option2" to "v2"),
                 secrets = mapOf("plugin1User" to "dbUser", "plugin1Password" to "dbPassword")
             )
-            val pluginConfig2 = PluginConfiguration(
+            val pluginConfig2 = PluginConfig(
                 options = mapOf("plugin2Option" to "v3"),
                 secrets = mapOf(
                     "plugin2ServiceUser" to "serviceUser",

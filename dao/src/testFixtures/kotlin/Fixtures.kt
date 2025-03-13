@@ -51,7 +51,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
@@ -295,7 +295,7 @@ class Fixtures(private val db: Database) {
         ),
         config = AdvisorConfiguration(
             config = mapOf(
-                "VulnerableCode" to PluginConfiguration(
+                "VulnerableCode" to PluginConfig(
                     options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
                     secrets = mapOf("apiKey" to "key")
                 )

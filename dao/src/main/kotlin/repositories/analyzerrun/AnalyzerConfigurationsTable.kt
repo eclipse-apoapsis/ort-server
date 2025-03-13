@@ -45,9 +45,9 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var allowDynamicVersions by AnalyzerConfigurationsTable.allowDynamicVersions
     var enabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.enabledPackageManagers
-        .transform({ it?.joinToString(",") }, { it?.split(",") })
+        .transform({ managers -> managers?.takeIf { it.isNotEmpty() }?.joinToString(",") }, { it?.split(",") })
     var disabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.disabledPackageManagers
-        .transform({ it?.joinToString(",") }, { it?.split(",") })
+        .transform({ managers -> managers?.takeIf { it.isNotEmpty() }?.joinToString(",") }, { it?.split(",") })
     var skipExcluded by AnalyzerConfigurationsTable.skipExcluded
 
     var packageManagerConfigurations by PackageManagerConfigurationDao via
@@ -55,7 +55,7 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     fun mapToModel() = AnalyzerConfiguration(
         allowDynamicVersions = allowDynamicVersions,
-        enabledPackageManagers = enabledPackageManagers,
+        enabledPackageManagers = enabledPackageManagers.orEmpty(),
         disabledPackageManagers = disabledPackageManagers,
         packageManagers = packageManagerConfigurations.associate { it.name to it.mapToModel() },
         skipExcluded = skipExcluded

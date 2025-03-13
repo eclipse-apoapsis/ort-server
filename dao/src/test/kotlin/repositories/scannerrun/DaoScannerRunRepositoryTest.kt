@@ -41,7 +41,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
@@ -313,11 +313,11 @@ private val scannerConfiguration = ScannerConfiguration(
         "license-2" to "spdx-license-2"
     ),
     config = mapOf(
-        "scanner-1" to PluginConfiguration(
+        "scanner-1" to PluginConfig(
             options = mapOf("option-key-1" to "option-value-1"),
             secrets = mapOf("secret-key-1" to "secret-value-1")
         ),
-        "scanner-2" to PluginConfiguration(
+        "scanner-2" to PluginConfig(
             options = mapOf("option-key-1" to "option-value-1", "option-key-2" to "option-value-2"),
             secrets = mapOf("secret-key-1" to "secret-value-1", "secret-key-2" to "secret-value-2")
         )
@@ -461,7 +461,7 @@ private val analyzerRun = AnalyzerRun(
     environment = environment,
     config = AnalyzerConfiguration(
         allowDynamicVersions = true,
-        enabledPackageManagers = null,
+        enabledPackageManagers = emptyList(),
         disabledPackageManagers = null,
         packageManagers = null,
         skipExcluded = true

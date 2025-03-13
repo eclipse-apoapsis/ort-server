@@ -34,7 +34,6 @@ import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.SourceCodeOrigin
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
-import org.ossreviewtoolkit.model.config.PluginConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.plugins.api.PluginConfig
@@ -127,7 +126,7 @@ class ScannerRunner(
     }
 }
 
-private fun createScanners(names: List<String>, config: Map<String, PluginConfiguration>?): List<ScannerWrapper> =
+private fun createScanners(names: List<String>, config: Map<String, PluginConfig>?): List<ScannerWrapper> =
     names.map {
         ScannerWrapperFactory.ALL[it] ?: throw IllegalArgumentException(
             "Scanner '$it' is not one of ${ScannerWrapperFactory.ALL.keys.joinToString()}"

@@ -25,7 +25,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
-import org.eclipse.apoapsis.ortserver.model.PluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 
@@ -69,11 +69,11 @@ interface WorkerContext : AutoCloseable {
 
     /**
      * Resolve all the secrets referenced by the given [config]. If [config] is not *null*, obtain the referenced
-     * secrets from the [PluginConfiguration]s and resolve all values using the [configManager] instance. Note that
+     * secrets from the [PluginConfig]s and resolve all values using the [configManager] instance. Note that
      * in contrast to [resolveSecrets], this function deals with secrets from the configuration instead of secrets
      * managed on behalf of customers.
      */
-    suspend fun resolvePluginConfigSecrets(config: Map<String, PluginConfiguration>?): Map<String, PluginConfiguration>
+    suspend fun resolvePluginConfigSecrets(config: Map<String, PluginConfig>?): Map<String, PluginConfig>
 
     /**
      * Resolve all the secrets referenced by the given [config]. If [config] is not *null*, obtain the referenced
