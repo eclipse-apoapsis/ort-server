@@ -18,22 +18,35 @@
  */
 
 import { Sidebar, SidebarNavProps } from '@/components/sidebar';
-import { Content, Page, Pane } from '@/components/ui/layout';
+import { Bar, Content, Page, Pane } from '@/components/ui/layout';
 
 interface PageLayoutProps {
   sections: SidebarNavProps['sections'] | undefined;
+  topBar?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export const PageLayout = ({ sections, children }: PageLayoutProps) => {
+export const PageLayout = ({
+  sections,
+  topBar,
+
+  children,
+}: PageLayoutProps) => {
   return (
-    <Page className='flex flex-col justify-center gap-4 md:flex-row'>
-      {sections && (
-        <Pane className='w-full md:w-52'>
-          <Sidebar sections={sections} />
-        </Pane>
+    <>
+      {topBar && (
+        <Bar className='-mt-8 flex flex-col justify-center md:flex-row'>
+          <Content className='w-full'>{topBar}</Content>
+        </Bar>
       )}
-      <Content className='w-full md:max-w-5xl'>{children}</Content>
-    </Page>
+      <Page className='flex flex-col justify-center gap-4 md:flex-row'>
+        {sections && (
+          <Pane className='w-full md:w-52'>
+            <Sidebar sections={sections} />
+          </Pane>
+        )}
+        <Content className='w-full md:max-w-5xl'>{children}</Content>
+      </Page>
+    </>
   );
 };
