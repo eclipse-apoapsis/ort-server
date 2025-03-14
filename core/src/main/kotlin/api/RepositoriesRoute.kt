@@ -26,6 +26,7 @@ import io.github.smiley4.ktorswaggerui.dsl.routing.post
 import io.github.smiley4.ktorswaggerui.dsl.routing.put
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -55,12 +56,17 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByRepositoryIdAndN
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToRepositoryGroup
+import org.eclipse.apoapsis.ortserver.core.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.core.authorization.getFullName
+import org.eclipse.apoapsis.ortserver.core.authorization.getUserId
+import org.eclipse.apoapsis.ortserver.core.authorization.getUsername
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -68,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.services.SecretService
 
 import org.koin.ktor.ext.inject
 
+@Suppress("LongMethod")
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val orchestratorService by inject<OrchestratorService>()
     val ortRunService by inject<OrtRunService>()
@@ -127,6 +134,12 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
 
             repositoryService.getRepository(repositoryId)?.let {
                 val createOrtRun = call.receive<CreateOrtRun>()
+
+                // Extract the user information from the principal.
+                val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
+                    UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
+                }
+
                 call.respond(
                     HttpStatusCode.Created,
                     orchestratorService.createOrtRun(
@@ -136,7 +149,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                         createOrtRun.jobConfigs.mapToModel(),
                         createOrtRun.jobConfigContext,
                         createOrtRun.labels,
-                        createOrtRun.environmentConfigPath
+                        createOrtRun.environmentConfigPath,
+                        userDisplayName
                     ).mapToApi(Jobs())
                 )
             } ?: call.respond(HttpStatusCode.NotFound)

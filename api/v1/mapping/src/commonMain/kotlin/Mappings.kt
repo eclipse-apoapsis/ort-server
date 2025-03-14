@@ -83,6 +83,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty as ApiSortProper
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy as ApiSubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName as ApiUserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
@@ -133,6 +134,7 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.model.User
+import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
@@ -372,7 +374,8 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
         jobConfigContext,
         resolvedJobConfigContext,
         environmentConfigPath,
-        traceId
+        traceId,
+        userDisplayName?.mapToApi()
     )
 
 fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
@@ -392,7 +395,8 @@ fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
         labels = labels,
         jobConfigContext = jobConfigContext,
         resolvedJobConfigContext = resolvedJobConfigContext,
-        environmentConfigPath = environmentConfigPath
+        environmentConfigPath = environmentConfigPath,
+        userDisplayName = userDisplayName?.mapToApi()
     )
 
 fun OrtRunSummary.mapToApi() =
@@ -412,7 +416,8 @@ fun OrtRunSummary.mapToApi() =
         labels = labels,
         jobConfigContext = jobConfigContext,
         resolvedJobConfigContext = resolvedJobConfigContext,
-        environmentConfigPath = environmentConfigPath
+        environmentConfigPath = environmentConfigPath,
+        userDisplayName = userDisplayName?.mapToApi()
     )
 
 fun JobSummaries.mapToApi() =
@@ -886,3 +891,5 @@ fun Project.mapToApi() = ApiProject(
     homepageUrl,
     scopeNames
 )
+
+fun UserDisplayName.mapToApi() = ApiUserDisplayName(username, fullName)

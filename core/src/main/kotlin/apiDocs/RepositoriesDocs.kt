@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy.FULLY_RECURSIVE
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
@@ -360,7 +361,8 @@ val getOrtRunsByRepositoryId: OpenApiRoute.() -> Unit = {
                                 status = OrtRunStatus.FINISHED,
                                 labels = mapOf("label key" to "label value"),
                                 jobConfigContext = null,
-                                resolvedJobConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c"
+                                resolvedJobConfigContext = "c80ef3bcd2bec428da923a188dd0870b1153995c",
+                                userDisplayName = UserDisplayName("john.doe", "John Doe")
                             ),
                             OrtRunSummary(
                                 id = 3,
@@ -381,7 +383,8 @@ val getOrtRunsByRepositoryId: OpenApiRoute.() -> Unit = {
                                 labels = mapOf("label key" to "label value"),
                                 jobConfigContext = null,
                                 resolvedJobConfigContext = "32f955941e94d0a318e1c985903f42af924e9050",
-                                environmentConfigPath = null
+                                environmentConfigPath = null,
+                                userDisplayName = UserDisplayName("john.doe", "John Doe")
                             )
                         ),
                         PagingData(

@@ -49,3 +49,9 @@ fun OrtPrincipal?.hasRole(role: String) = this != null && role in roles
  * Return true if this [OrtPrincipal] is not `null` and has the [superuser role][Superuser.ROLE_NAME].
  */
 fun OrtPrincipal?.isSuperuser() = hasRole(Superuser.ROLE_NAME)
+
+fun OrtPrincipal.getUserId(): String = payload.subject
+
+fun OrtPrincipal.getUsername(): String = payload.getClaim("preferred_username").asString()
+
+fun OrtPrincipal.getFullName(): String? = payload.getClaim("name").asString()

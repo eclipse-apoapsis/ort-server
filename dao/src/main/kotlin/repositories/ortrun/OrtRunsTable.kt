@@ -35,6 +35,8 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.R
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RepositoryConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNameDAO
+import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNamesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
@@ -79,6 +81,7 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val path = text("path").nullable()
     val traceId = text("trace_id").nullable()
     val environmentConfigPath = text("environment_config_path").nullable()
+    val userDisplayName = reference("user_id", UserDisplayNamesTable.id).nullable()
 }
 
 class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
@@ -104,6 +107,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var vcsId by OrtRunsTable.vcsId
     var vcsProcessedId by OrtRunsTable.vcsProcessedId
     var environmentConfigPath by OrtRunsTable.environmentConfigPath
+    var userDisplayName by UserDisplayNameDAO optionalReferencedOn OrtRunsTable.userDisplayName
 
     val advisorJob by AdvisorJobDao optionalBackReferencedOn AdvisorJobsTable.ortRunId
     val analyzerJob by AnalyzerJobDao optionalBackReferencedOn AnalyzerJobsTable.ortRunId
@@ -137,7 +141,8 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
         jobConfigContext = jobConfigContext,
         resolvedJobConfigContext = resolvedJobConfigContext,
         traceId = traceId,
-        environmentConfigPath = environmentConfigPath
+        environmentConfigPath = environmentConfigPath,
+        userDisplayName = userDisplayName?.mapToModel(),
     )
 
     /**
@@ -169,7 +174,8 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
             labels = labels.associate { it.mapToModel() },
             jobConfigContext = jobConfigContext,
             resolvedJobConfigContext = resolvedJobConfigContext,
-            environmentConfigPath = environmentConfigPath
+            environmentConfigPath = environmentConfigPath,
+            userDisplayName = userDisplayName?.mapToModel(),
         )
     }
 }

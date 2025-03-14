@@ -90,8 +90,28 @@ const columns = [
     enableColumnFilter: false,
   }),
   columnHelper.accessor('createdAt', {
-    header: 'Created At',
-    cell: ({ row }) => <TimestampWithUTC timestamp={row.original.createdAt} />,
+    header: 'Created',
+    cell: ({ row }) => (
+      <div>
+        <TimestampWithUTC timestamp={row.original.createdAt} />
+        {row.original.userDisplayName && (
+          <div>
+            {row.original.userDisplayName?.fullName ? (
+              <Tooltip>
+                <TooltipTrigger>
+                  {row.original.userDisplayName?.username}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {row.original.userDisplayName?.fullName}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span>{row.original.userDisplayName?.username}</span>
+            )}
+          </div>
+        )}
+      </div>
+    ),
     enableColumnFilter: false,
   }),
   columnHelper.accessor('status', {
