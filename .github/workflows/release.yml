@@ -136,6 +136,7 @@ jobs:
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
+          # On Windows, "bash" is "Git Bash" which does not come with the "zip" tool, so use a PowerShell command.
           powershell Compress-Archive -Path ${{ matrix.target.artifact }}/${{ matrix.target.binName }} -DestinationPath ${{ matrix.target.artifact }}.${{ matrix.target.archiveExt }}
         else
           tar -czf ${{ matrix.target.artifact }}.${{ matrix.target.archiveExt }} -C ${{ matrix.target.artifact }} ${{ matrix.target.binName }}
