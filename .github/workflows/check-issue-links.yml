@@ -62,7 +62,7 @@ jobs:
         response=$(gh api graphql -f query="$query")
 
         # Extract linked issues.
-        linked_issues=$(echo $response | jq -r '.data.repository.pullRequest.closingIssuesReferences.edges[].node.number' | sort | uniq | tr '\n' ',')
+        linked_issues=$(echo $response | jq -r '.data.repository.pullRequest.closingIssuesReferences.edges | map(.node.number) | unique | join(",")')
         echo "Found currently linked issues: $linked_issues"
 
         # Export linked issues as an environment variable.
