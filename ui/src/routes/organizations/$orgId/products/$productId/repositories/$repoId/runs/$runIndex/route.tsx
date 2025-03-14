@@ -22,6 +22,7 @@ import {
   Boxes,
   Bug,
   Eye,
+  Files,
   FileText,
   FolderKanban,
   ListCheck,
@@ -78,12 +79,6 @@ const Layout = () => {
           },
           icon: () => <Scale className='h-4 w-4' />,
         },
-        {
-          title: 'SBOMs',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/sbom',
-          params,
-          icon: () => <ListCheck className='h-4 w-4' />,
-        },
       ],
     },
     {
@@ -104,6 +99,23 @@ const Layout = () => {
       ],
     },
     {
+      label: 'Reports',
+      items: [
+        {
+          title: 'SBOMs',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/sbom',
+          params,
+          icon: () => <ListCheck className='h-4 w-4' />,
+        },
+        {
+          title: 'Other',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports',
+          params,
+          icon: () => <Files className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
       label: 'Technical',
       items: [
         {
@@ -114,11 +126,6 @@ const Layout = () => {
             sortBy: [{ id: 'severity', desc: true }],
           },
           icon: () => <Bug className='h-4 w-4' />,
-        },
-        {
-          title: 'Reports',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports',
-          params,
         },
         {
           title: 'Logs',
