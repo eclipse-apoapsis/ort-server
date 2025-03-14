@@ -41,6 +41,7 @@ import { RepositoriesService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 import { useUser } from '@/hooks/use-user';
+import { RunDetailsBar } from './-components/run-details-bar';
 
 const Layout = () => {
   const params = Route.useParams();
@@ -189,7 +190,7 @@ const Layout = () => {
   ];
 
   return (
-    <PageLayout sections={sections}>
+    <PageLayout sections={sections} topBar={<RunDetailsBar />}>
       <Suspense fallback={<div>Loading...</div>}>
         <Outlet />
       </Suspense>
