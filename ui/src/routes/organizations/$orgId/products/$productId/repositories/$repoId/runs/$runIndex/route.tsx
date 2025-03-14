@@ -78,12 +78,6 @@ const Layout = () => {
           },
           icon: () => <Scale className='h-4 w-4' />,
         },
-        {
-          title: 'SBOMs',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/sbom',
-          params,
-          icon: () => <ListCheck className='h-4 w-4' />,
-        },
       ],
     },
     {
@@ -100,6 +94,22 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages',
           params,
           icon: () => <Boxes className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'Reports',
+      items: [
+        {
+          title: 'SBOMs',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/sbom',
+          params,
+          icon: () => <ListCheck className='h-4 w-4' />,
+        },
+        {
+          title: 'Other',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports',
+          params,
         },
       ],
     },
