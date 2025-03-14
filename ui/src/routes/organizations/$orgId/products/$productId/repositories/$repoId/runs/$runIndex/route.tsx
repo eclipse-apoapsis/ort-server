@@ -56,13 +56,13 @@ const Layout = () => {
       label: 'Compliance',
       items: [
         {
-          title: 'Vulnerabilities',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
+          title: 'Rule Violations',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations',
           params,
           search: {
-            sortBy: [{ id: 'rating', desc: true }],
+            sortBy: [{ id: 'severity', desc: true }],
           },
-          icon: () => <ShieldQuestion className='h-4 w-4' />,
+          icon: () => <Scale className='h-4 w-4' />,
         },
         {
           title: 'License Findings',
@@ -71,13 +71,13 @@ const Layout = () => {
           icon: () => <FileText className='h-4 w-4' />,
         },
         {
-          title: 'Rule Violations',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations',
+          title: 'Vulnerabilities',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
           params,
           search: {
-            sortBy: [{ id: 'severity', desc: true }],
+            sortBy: [{ id: 'rating', desc: true }],
           },
-          icon: () => <Scale className='h-4 w-4' />,
+          icon: () => <ShieldQuestion className='h-4 w-4' />,
         },
       ],
     },
