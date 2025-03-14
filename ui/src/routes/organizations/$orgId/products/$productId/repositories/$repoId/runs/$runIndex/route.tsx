@@ -19,19 +19,15 @@
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import {
-  BookLock,
   Boxes,
   Bug,
   Eye,
   FileText,
   FolderKanban,
   ListCheck,
-  ListTree,
   Logs,
   Scale,
-  Settings,
   ShieldQuestion,
-  User,
 } from 'lucide-react';
 import { Suspense } from 'react';
 
@@ -39,12 +35,10 @@ import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunInd
 import { RepositoriesService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
-import { useUser } from '@/hooks/use-user';
 import { RunDetailsBar } from './-components/run-details-bar';
 
 const Layout = () => {
   const params = Route.useParams();
-  const user = useUser();
 
   const sections: SidebarNavProps['sections'] = [
     {
@@ -61,6 +55,35 @@ const Layout = () => {
       label: 'Compliance',
       items: [
         {
+          title: 'Rule Violations',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations',
+          params,
+          search: {
+            sortBy: [{ id: 'severity', desc: true }],
+          },
+          icon: () => <Scale className='h-4 w-4' />,
+        },
+        {
+          title: 'License Findings',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings',
+          params,
+          icon: () => <FileText className='h-4 w-4' />,
+        },
+        {
+          title: 'Vulnerabilities',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
+          params,
+          search: {
+            sortBy: [{ id: 'rating', desc: true }],
+          },
+          icon: () => <ShieldQuestion className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'Components',
+      items: [
+        {
           title: 'Projects',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects',
           params,
@@ -72,41 +95,21 @@ const Layout = () => {
           params,
           icon: () => <Boxes className='h-4 w-4' />,
         },
-        {
-          title: 'Dependencies',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies',
-          params,
-          icon: () => <ListTree className='h-4 w-4' />,
-        },
-        {
-          title: 'Vulnerabilities',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
-          params,
-          search: {
-            sortBy: [{ id: 'rating', desc: true }],
-          },
-          icon: () => <ShieldQuestion className='h-4 w-4' />,
-        },
-        {
-          title: 'License Findings',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/license-findings',
-          params,
-          icon: () => <FileText className='h-4 w-4' />,
-        },
-        {
-          title: 'Rule Violations',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations',
-          params,
-          search: {
-            sortBy: [{ id: 'severity', desc: true }],
-          },
-          icon: () => <Scale className='h-4 w-4' />,
-        },
+      ],
+    },
+    {
+      label: 'Reports',
+      items: [
         {
           title: 'SBOMs',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/sbom',
           params,
           icon: () => <ListCheck className='h-4 w-4' />,
+        },
+        {
+          title: 'Other',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports',
+          params,
         },
       ],
     },
@@ -137,46 +140,6 @@ const Layout = () => {
           title: 'Job Configurations',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config',
           params,
-        },
-      ],
-    },
-    {
-      label: 'Repository',
-      visible: user.hasRole([
-        'superuser',
-        `role_repository_${params.repoId}_admin`,
-        `permission_repository_${params.repoId}_write_secrets`,
-      ]),
-      items: [
-        {
-          title: 'Secrets',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
-          params,
-          icon: () => <BookLock className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `permission_repository_${params.repoId}_write_secrets`,
-          ]),
-        },
-        {
-          title: 'Users',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
-          params,
-          icon: () => <User className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_repository_${params.repoId}_admin`,
-          ]),
-        },
-        {
-          title: 'Settings',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/settings',
-          params,
-          icon: () => <Settings className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_repository_${params.repoId}_admin`,
-          ]),
         },
       ],
     },
