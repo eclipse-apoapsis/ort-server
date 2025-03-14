@@ -25,7 +25,6 @@ import {
   FileText,
   FolderKanban,
   ListCheck,
-  ListTree,
   Logs,
   Scale,
   ShieldQuestion,
@@ -66,12 +65,6 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages',
           params,
           icon: () => <Boxes className='h-4 w-4' />,
-        },
-        {
-          title: 'Dependencies',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/dependencies',
-          params,
-          icon: () => <ListTree className='h-4 w-4' />,
         },
         {
           title: 'Vulnerabilities',
