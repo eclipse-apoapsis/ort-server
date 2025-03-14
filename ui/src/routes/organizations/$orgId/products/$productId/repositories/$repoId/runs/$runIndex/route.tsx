@@ -55,18 +55,6 @@ const Layout = () => {
       label: 'Compliance',
       items: [
         {
-          title: 'Projects',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects',
-          params,
-          icon: () => <FolderKanban className='h-4 w-4' />,
-        },
-        {
-          title: 'Packages',
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages',
-          params,
-          icon: () => <Boxes className='h-4 w-4' />,
-        },
-        {
           title: 'Vulnerabilities',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
           params,
@@ -95,6 +83,23 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/sbom',
           params,
           icon: () => <ListCheck className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'Components',
+      items: [
+        {
+          title: 'Projects',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects',
+          params,
+          icon: () => <FolderKanban className='h-4 w-4' />,
+        },
+        {
+          title: 'Packages',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages',
+          params,
+          icon: () => <Boxes className='h-4 w-4' />,
         },
       ],
     },
