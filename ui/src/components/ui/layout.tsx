@@ -37,6 +37,14 @@ const Pane = React.forwardRef<
 ));
 Pane.displayName = 'Pane';
 
+const Bar = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('w-full', className)} {...props} />
+));
+Bar.displayName = 'Bar';
+
 const Page = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -45,4 +53,4 @@ const Page = React.forwardRef<
 ));
 Page.displayName = 'Page';
 
-export { Content, Pane, Page };
+export { Bar, Content, Page, Pane };
