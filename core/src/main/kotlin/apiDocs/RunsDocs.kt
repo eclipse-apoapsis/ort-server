@@ -28,6 +28,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.api.v1.model.DeclaredLicenses
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
@@ -621,6 +622,30 @@ val getOrtRunStatistics: OpenApiRoute.() -> Unit = {
                             Severity.WARNING to 1,
                             Severity.ERROR to 4
                         )
+                    )
+                }
+            }
+        }
+    }
+}
+
+val getDeclaredLicensesByRunId: OpenApiRoute.() -> Unit = {
+    operationId = "GetDeclaredLicensesByRunId"
+    summary = "Get the declared licenses found in an ORT run."
+    tags = listOf("Runs")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            jsonBody<DeclaredLicenses> {
+                example("Get declared licenses") {
+                    value = DeclaredLicenses(
+                        packagesProcessedDeclaredLicenses = listOf("Apache-2.0", "MIT")
                     )
                 }
             }
