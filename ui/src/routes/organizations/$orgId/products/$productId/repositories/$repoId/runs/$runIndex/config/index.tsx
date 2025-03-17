@@ -22,6 +22,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { AdvisorJobDetails } from './-components/advisor-job-details';
 import { AnalyzerJobDetails } from './-components/analyzer-job-details';
 import { EvaluatorJobDetails } from './-components/evaluator-job-details';
@@ -42,6 +44,58 @@ const ConfigComponent = () => {
 
   return (
     <div className='flex flex-col gap-4'>
+      <Card>
+        <CardHeader>
+          <CardTitle>Run Configuration</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {ortRun.path && (
+            <div className='text-sm'>
+              <Label className='font-semibold'>Path:</Label> {ortRun.path}
+            </div>
+          )}
+          {(ortRun.jobConfigContext || ortRun.resolvedJobConfigContext) && (
+            <div className='flex items-center gap-1 text-sm'>
+              <Label className='font-semibold'>Configuration context:</Label>
+              {ortRun.jobConfigContext && <div>{ortRun.jobConfigContext}</div>}
+              {ortRun.resolvedJobConfigContext && (
+                <div>({ortRun.resolvedJobConfigContext})</div>
+              )}
+            </div>
+          )}
+          {Object.keys(ortRun.labels).length > 0 && (
+            <div className='text-sm'>
+              <Label className='font-semibold'>Labels:</Label>{' '}
+              {Object.entries(ortRun.labels).map(([key, value]) => (
+                <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
+                  <div className='col-span-3 text-left break-all'>{key}</div>
+                  <div className='col-span-1 text-center'>=</div>
+                  <div className='col-span-8 text-left break-all'>{value}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          {ortRun.jobConfigs.parameters &&
+            Object.keys(ortRun.jobConfigs.parameters).length > 0 && (
+              <div className='text-sm'>
+                <Label className='font-semibold'>Parameters:</Label>{' '}
+                {Object.entries(ortRun.jobConfigs.parameters).map(
+                  ([key, value]) => (
+                    <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
+                      <div className='col-span-3 text-left break-all'>
+                        {key}
+                      </div>
+                      <div className='col-span-1 text-center'>=</div>
+                      <div className='col-span-8 text-left break-all'>
+                        {value}
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+        </CardContent>
+      </Card>
       <div id='analyzer' className='scroll-mt-16'>
         <AnalyzerJobDetails run={ortRun} />
       </div>
