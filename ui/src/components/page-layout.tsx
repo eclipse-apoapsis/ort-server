@@ -36,7 +36,7 @@ export const PageLayout = ({
     <>
       {topBar && (
         <Bar className='-mt-8 flex flex-col justify-center md:flex-row'>
-          <Content className='w-full'>{topBar}</Content>
+          <Content className='w-full max-w-[1400px]'>{topBar}</Content>
         </Bar>
       )}
       <Page className='flex flex-col justify-center gap-4 md:flex-row'>
