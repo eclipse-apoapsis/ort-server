@@ -135,7 +135,7 @@ const Layout = () => {
           icon: () => <Logs className='h-4 w-4' />,
         },
         {
-          title: 'Job Configurations',
+          title: 'Configuration',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config',
           params,
           icon: () => <CalendarCheck className='h-4 w-4' />,
