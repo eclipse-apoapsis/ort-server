@@ -21,6 +21,7 @@ import { createFileRoute, Outlet } from '@tanstack/react-router';
 import {
   Boxes,
   Bug,
+  CalendarCheck,
   Eye,
   Files,
   FileText,
@@ -137,6 +138,7 @@ const Layout = () => {
           title: 'Job Configurations',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/config',
           params,
+          icon: () => <CalendarCheck className='h-4 w-4' />,
         },
       ],
     },
