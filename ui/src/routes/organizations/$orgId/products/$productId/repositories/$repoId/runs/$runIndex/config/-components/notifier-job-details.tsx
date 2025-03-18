@@ -18,11 +18,9 @@
  */
 
 import { OrtRun } from '@/api/requests';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { calculateDuration } from '@/helpers/get-run-duration';
-import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import { JobTitle } from './job-title';
 
 type NotifierJobDetailsProps = {
   run: OrtRun;
@@ -35,21 +33,12 @@ export const NotifierJobDetails = ({ run }: NotifierJobDetailsProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='flex gap-2'>
-          Notifier
-          <Badge className={`border ${getStatusBackgroundColor(job?.status)}`}>
-            {job?.status || 'NOT RUN'}
-          </Badge>
+        <CardTitle>
+          <JobTitle title='Notifier' job={job} />
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className='space-y-2 text-sm'>
-          <div>
-            <Label className='font-semibold'>Duration: </Label>
-            {job?.startedAt && job?.finishedAt
-              ? calculateDuration(job.startedAt, job.finishedAt)
-              : 'N/A'}
-          </div>
           {jobConfigs && (
             <div className='space-y-2'>
               <Label className='font-semibold'>
