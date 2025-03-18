@@ -40,10 +40,25 @@ class WorkerContextFactory(
     private val repositoryRepository: RepositoryRepository
 ) {
     /**
+     * Create a new [WorkerContext] for the given [ID of an ORT run][ortRunId] and execute the given [block] passing
+     * in the new context. Make sure that the context is properly closed after the block has been executed.
+     */
+    suspend fun <T> withContext(ortRunId: Long, block: suspend (WorkerContext) -> T): T {
+        val context = createContext(ortRunId)
+
+        // Note: The `use` function cannot be used here because it does not accept the `suspend` function type.
+        return try {
+            block(context)
+        } finally {
+            context.close()
+        }
+    }
+
+    /**
      * Return a [WorkerContext] for the given [ID of an ORT run][ortRunId]. The context is lazily initialized; so the
      * instance creation is not an expensive operation. When functionality is used, data may be loaded dynamically.
      */
-    fun createContext(ortRunId: Long): WorkerContext {
+    internal fun createContext(ortRunId: Long): WorkerContext {
         val ortConfig = WorkerOrtConfig.create(configManager)
         ortConfig.setUpOrtEnvironment()
 

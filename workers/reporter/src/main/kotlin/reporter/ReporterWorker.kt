@@ -88,48 +88,50 @@ internal class ReporterWorker(
             return RunResult.FinishedWithIssues
         }
 
-        val context = contextFactory.createContext(job.ortRunId)
-        environmentService.generateNetRcFileForCurrentRun(context)
+        contextFactory.withContext(job.ortRunId) { context ->
+            environmentService.generateNetRcFileForCurrentRun(context)
 
-        val reporterRunnerResult = runner.run(
-            job.ortRunId,
-            ortResult,
-            job.configuration,
-            ortRunService.getEvaluatorJobForOrtRun(ortRun.id)?.configuration
-        )
+            val reporterRunnerResult = runner.run(
+                job.ortRunId,
+                ortResult,
+                job.configuration,
+                ortRunService.getEvaluatorJobForOrtRun(ortRun.id)?.configuration,
+                context
+            )
 
-        val endTime = Clock.System.now()
+            val endTime = Clock.System.now()
 
-        val reports = reporterRunnerResult.reports.values
-            .flatMap { it.toList() }
-            .map { toReport(it, job.ortRunId) }
-            .toList()
+            val reports = reporterRunnerResult.reports.values
+                .flatMap { it.toList() }
+                .map { toReport(it, job.ortRunId) }
+                .toList()
 
-        val reporterRun = ReporterRun(
-            id = -1L,
-            reporterJobId = jobId,
-            startTime = startTime,
-            endTime = endTime,
-            reports = reports
-        )
+            val reporterRun = ReporterRun(
+                id = -1L,
+                reporterJobId = jobId,
+                startTime = startTime,
+                endTime = endTime,
+                reports = reports
+            )
 
-        db.dbQuery {
-            ortRunService.storeReporterRun(reporterRun)
-            reporterRunnerResult.resolvedPackageConfigurations?.let {
-                ortRunService.storeResolvedPackageConfigurations(ortRun.id, it)
+            db.dbQuery {
+                ortRunService.storeReporterRun(reporterRun)
+                reporterRunnerResult.resolvedPackageConfigurations?.let {
+                    ortRunService.storeResolvedPackageConfigurations(ortRun.id, it)
+                }
+                reporterRunnerResult.resolvedResolutions?.let {
+                    ortRunService.storeResolvedResolutions(ortRun.id, it)
+                }
+                reporterRunnerResult.issues.takeUnless { it.isEmpty() }?.let {
+                    ortRunService.storeIssues(ortRun.id, it)
+                }
             }
-            reporterRunnerResult.resolvedResolutions?.let {
-                ortRunService.storeResolvedResolutions(ortRun.id, it)
-            }
-            reporterRunnerResult.issues.takeUnless { it.isEmpty() }?.let {
-                ortRunService.storeIssues(ortRun.id, it)
-            }
-        }
 
-        if (reporterRunnerResult.issues.any { it.severity >= Severity.WARNING }) {
-            RunResult.FinishedWithIssues
-        } else {
-            RunResult.Success
+            if (reporterRunnerResult.issues.any { it.severity >= Severity.WARNING }) {
+                RunResult.FinishedWithIssues
+            } else {
+                RunResult.Success
+            }
         }
     }.getOrElse {
         when (it) {

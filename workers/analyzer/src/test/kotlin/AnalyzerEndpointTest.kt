@@ -111,7 +111,9 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             runEndpointTest {
                 val contextFactory by inject<WorkerContextFactory>()
 
-                contextFactory.createContext(42L) shouldNot beNull()
+                contextFactory.withContext(42L) {
+                    it shouldNot beNull()
+                }
             }
         }
 

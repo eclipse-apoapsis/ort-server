@@ -37,7 +37,6 @@ import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.mapOptions
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
@@ -80,9 +79,6 @@ class ReporterRunner(
     /** The object to store the generated report files. */
     private val reportStorage: ReportStorage,
 
-    /** The factory for creating a worker context. */
-    private val contextFactory: WorkerContextFactory,
-
     /** The config manager used to download configuration files. */
     private val configManager: ConfigManager,
 
@@ -93,157 +89,156 @@ class ReporterRunner(
         runId: Long,
         ortResult: OrtResult,
         config: ReporterJobConfiguration,
-        evaluatorConfig: EvaluatorJobConfiguration?
+        evaluatorConfig: EvaluatorJobConfiguration?,
+        context: WorkerContext
     ): ReporterRunnerResult {
-        return contextFactory.createContext(runId).use { context ->
-            val copyrightGarbageFile =
-                if (evaluatorConfig != null) evaluatorConfig.copyrightGarbageFile else config.copyrightGarbageFile
-            val copyrightGarbage = configManager.readConfigFileValueWithDefault(
-                path = copyrightGarbageFile,
-                defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
-                fallbackValue = CopyrightGarbage(),
-                context = context.resolvedConfigurationContext
-            )
+        val copyrightGarbageFile =
+            if (evaluatorConfig != null) evaluatorConfig.copyrightGarbageFile else config.copyrightGarbageFile
+        val copyrightGarbage = configManager.readConfigFileValueWithDefault(
+            path = copyrightGarbageFile,
+            defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
+            fallbackValue = CopyrightGarbage(),
+            context = context.resolvedConfigurationContext
+        )
 
-            val licenseClassificationsFile = if (evaluatorConfig != null) {
-                evaluatorConfig.licenseClassificationsFile
-            } else {
-                config.licenseClassificationsFile
-            }
-            val licenseClassifications = configManager.readConfigFileValueWithDefault(
-                path = licenseClassificationsFile,
-                defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
-                fallbackValue = LicenseClassifications(),
-                context = context.resolvedConfigurationContext
-            )
-
-            var resolvedOrtResult = ortResult
-
-            if (evaluatorConfig == null) {
-                // Resolve package configurations if not already done by the evaluator.
-                val packageConfigurationProvider = buildList {
-                    val repositoryPackageConfigurations = resolvedOrtResult.repository.config.packageConfigurations
-                    add(SimplePackageConfigurationProvider(configurations = repositoryPackageConfigurations))
-
-                    val packageConfigurationProviderConfigs = context
-                        .resolveProviderPluginConfigSecrets(config.packageConfigurationProviders)
-                        .map { it.mapToOrt() }
-
-                    addAll(
-                        PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs)
-                            .map { it.second }
-                    )
-                }.let { CompositePackageConfigurationProvider(it) }
-
-                resolvedOrtResult = resolvedOrtResult.setPackageConfigurations(packageConfigurationProvider)
-
-                // Resolve resolutions if not already done by the evaluator.
-                val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
-
-                val resolutionsFromFile = configManager.readConfigFileValueWithDefault(
-                    path = config.resolutionsFile,
-                    defaultPath = ORT_RESOLUTIONS_FILENAME,
-                    fallbackValue = Resolutions(),
-                    context = context.resolvedConfigurationContext
-                )
-
-                val resolutionProvider = DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
-
-                resolvedOrtResult = resolvedOrtResult.setResolutions(resolutionProvider)
-            }
-
-            val howToFixTextProviderScript = configManager.readConfigFileWithDefault(
-                path = config.howToFixTextProviderFile,
-                defaultPath = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
-                fallbackValue = "",
-                context = context.resolvedConfigurationContext
-            )
-
-            val howToFixTextProvider = if (howToFixTextProviderScript.isNotEmpty()) {
-                HowToFixTextProvider.fromKotlinScript(howToFixTextProviderScript, resolvedOrtResult)
-            } else {
-                HowToFixTextProvider.NONE
-            }
-
-            val outputDir = context.createTempDir()
-            val issues = mutableListOf<Issue>()
-
-            val successes = withContext(Dispatchers.IO) {
-                val deferredTransformedOptions = async { processReporterOptions(context, config) }
-
-                val deferredReporterInput = async {
-                    // TODO: Some parameters of ReporterInput are still set to default values. Make sure that for all
-                    //       corresponding configuration options exist and are used here.
-                    ReporterInput(
-                        ortResult = resolvedOrtResult,
-                        licenseInfoResolver = LicenseInfoResolver(
-                            provider = DefaultLicenseInfoProvider(resolvedOrtResult),
-                            copyrightGarbage = copyrightGarbage,
-                            addAuthorsToCopyrights = true,
-                            archiver = fileArchiver,
-                            licenseFilePatterns = LicenseFilePatterns.DEFAULT
-                        ),
-                        copyrightGarbage = copyrightGarbage,
-                        licenseClassifications = licenseClassifications,
-                        licenseTextProvider = createLicenseTextProvider(context, config),
-                        howToFixTextProvider = howToFixTextProvider
-                    )
-                }
-
-                val reporterInput = deferredReporterInput.await()
-                val transformedOptions = deferredTransformedOptions.await()
-
-                config.formats.map { format ->
-                    async {
-                        logger.info("Generating the '$format' report...")
-
-                        val result = runCatching {
-                            val reporterFactory = requireNotNull(ReporterFactory.ALL[format]) {
-                                "No reporter found for the configured format '$format'."
-                            }
-
-                            val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.let { options ->
-                                options.mapToOrt()
-                            }.orEmpty()
-
-                            val reporter = reporterFactory.create(reporterConfig)
-                            val reportFileResults = reporter.generateReport(reporterInput, outputDir)
-
-                            val reportFiles = reportFileResults.mapNotNull { result ->
-                                result.getOrElse {
-                                    issues += createAndLogReporterIssue(format, it)
-                                    null
-                                }
-                            }
-
-                            reportFiles.takeUnless { it.isEmpty() }?.let { reporter to reportFiles }
-                        }.onFailure {
-                            issues += createAndLogReporterIssue(format, it)
-                        }
-
-                        result.getOrNull()?.let { (reporter, reportFiles) ->
-                            val nameMapper = ReportNameMapper.create(config, reporter.descriptor.id)
-                            format to nameMapper.mapReportNames(reportFiles)
-                                .also { reportStorage.storeReportFiles(runId, it) }
-                        }
-                    }
-                }.awaitAll().filterNotNull()
-            }
-
-            val reports = successes.associate { (name, report) ->
-                logger.info("Successfully created '$name' report.")
-                name to report.keys.toList()
-            }
-
-            // Only return the package configurations and resolutions if they were not already resolved by the
-            // evaluator.
-            ReporterRunnerResult(
-                reports,
-                resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
-                resolvedOrtResult.resolvedConfiguration.resolutions.takeIf { evaluatorConfig == null },
-                issues = issues
-            )
+        val licenseClassificationsFile = if (evaluatorConfig != null) {
+            evaluatorConfig.licenseClassificationsFile
+        } else {
+            config.licenseClassificationsFile
         }
+        val licenseClassifications = configManager.readConfigFileValueWithDefault(
+            path = licenseClassificationsFile,
+            defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
+            fallbackValue = LicenseClassifications(),
+            context = context.resolvedConfigurationContext
+        )
+
+        var resolvedOrtResult = ortResult
+
+        if (evaluatorConfig == null) {
+            // Resolve package configurations if not already done by the evaluator.
+            val packageConfigurationProvider = buildList {
+                val repositoryPackageConfigurations = resolvedOrtResult.repository.config.packageConfigurations
+                add(SimplePackageConfigurationProvider(configurations = repositoryPackageConfigurations))
+
+                val packageConfigurationProviderConfigs = context
+                    .resolveProviderPluginConfigSecrets(config.packageConfigurationProviders)
+                    .map { it.mapToOrt() }
+
+                addAll(
+                    PackageConfigurationProviderFactory.create(packageConfigurationProviderConfigs)
+                        .map { it.second }
+                )
+            }.let { CompositePackageConfigurationProvider(it) }
+
+            resolvedOrtResult = resolvedOrtResult.setPackageConfigurations(packageConfigurationProvider)
+
+            // Resolve resolutions if not already done by the evaluator.
+            val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
+
+            val resolutionsFromFile = configManager.readConfigFileValueWithDefault(
+                path = config.resolutionsFile,
+                defaultPath = ORT_RESOLUTIONS_FILENAME,
+                fallbackValue = Resolutions(),
+                context = context.resolvedConfigurationContext
+            )
+
+            val resolutionProvider = DefaultResolutionProvider(resolutionsFromOrtResult.merge(resolutionsFromFile))
+
+            resolvedOrtResult = resolvedOrtResult.setResolutions(resolutionProvider)
+        }
+
+        val howToFixTextProviderScript = configManager.readConfigFileWithDefault(
+            path = config.howToFixTextProviderFile,
+            defaultPath = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
+            fallbackValue = "",
+            context = context.resolvedConfigurationContext
+        )
+
+        val howToFixTextProvider = if (howToFixTextProviderScript.isNotEmpty()) {
+            HowToFixTextProvider.fromKotlinScript(howToFixTextProviderScript, resolvedOrtResult)
+        } else {
+            HowToFixTextProvider.NONE
+        }
+
+        val outputDir = context.createTempDir()
+        val issues = mutableListOf<Issue>()
+
+        val successes = withContext(Dispatchers.IO) {
+            val deferredTransformedOptions = async { processReporterOptions(context, config) }
+
+            val deferredReporterInput = async {
+                // TODO: Some parameters of ReporterInput are still set to default values. Make sure that for all
+                //       corresponding configuration options exist and are used here.
+                ReporterInput(
+                    ortResult = resolvedOrtResult,
+                    licenseInfoResolver = LicenseInfoResolver(
+                        provider = DefaultLicenseInfoProvider(resolvedOrtResult),
+                        copyrightGarbage = copyrightGarbage,
+                        addAuthorsToCopyrights = true,
+                        archiver = fileArchiver,
+                        licenseFilePatterns = LicenseFilePatterns.DEFAULT
+                    ),
+                    copyrightGarbage = copyrightGarbage,
+                    licenseClassifications = licenseClassifications,
+                    licenseTextProvider = createLicenseTextProvider(context, config),
+                    howToFixTextProvider = howToFixTextProvider
+                )
+            }
+
+            val reporterInput = deferredReporterInput.await()
+            val transformedOptions = deferredTransformedOptions.await()
+
+            config.formats.map { format ->
+                async {
+                    logger.info("Generating the '$format' report...")
+
+                    val result = runCatching {
+                        val reporterFactory = requireNotNull(ReporterFactory.ALL[format]) {
+                            "No reporter found for the configured format '$format'."
+                        }
+
+                        val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.let { options ->
+                            options.mapToOrt()
+                        }.orEmpty()
+
+                        val reporter = reporterFactory.create(reporterConfig)
+                        val reportFileResults = reporter.generateReport(reporterInput, outputDir)
+
+                        val reportFiles = reportFileResults.mapNotNull { result ->
+                            result.getOrElse {
+                                issues += createAndLogReporterIssue(format, it)
+                                null
+                            }
+                        }
+
+                        reportFiles.takeUnless { it.isEmpty() }?.let { reporter to reportFiles }
+                    }.onFailure {
+                        issues += createAndLogReporterIssue(format, it)
+                    }
+
+                    result.getOrNull()?.let { (reporter, reportFiles) ->
+                        val nameMapper = ReportNameMapper.create(config, reporter.descriptor.id)
+                        format to nameMapper.mapReportNames(reportFiles)
+                            .also { reportStorage.storeReportFiles(runId, it) }
+                    }
+                }
+            }.awaitAll().filterNotNull()
+        }
+
+        val reports = successes.associate { (name, report) ->
+            logger.info("Successfully created '$name' report.")
+            name to report.keys.toList()
+        }
+
+        // Only return the package configurations and resolutions if they were not already resolved by the
+        // evaluator.
+        return ReporterRunnerResult(
+            reports,
+            resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
+            resolvedOrtResult.resolvedConfiguration.resolutions.takeIf { evaluatorConfig == null },
+            issues = issues
+        )
     }
 
     /**

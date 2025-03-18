@@ -45,44 +45,47 @@ internal class AdvisorWorker(
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidAdvisorJob(jobId)
-        val workerContext = contextFactory.createContext(job.ortRunId)
-        val ortRun = workerContext.ortRun
+        contextFactory.withContext(job.ortRunId) { workerContext ->
+            val ortRun = workerContext.ortRun
 
-        if (job.configuration.keepAliveWorker == true) {
-            EndpointComponent.generateKeepAliveFile()
-        }
+            if (job.configuration.keepAliveWorker == true) {
+                EndpointComponent.generateKeepAliveFile()
+            }
 
-        val repository = ortRunService.getOrtRepositoryInformation(ortRun)
-        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
-        val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(job.ortRunId)
+            val repository = ortRunService.getOrtRepositoryInformation(ortRun)
+            val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
+            val analyzerRun = ortRunService.getAnalyzerRunForOrtRun(job.ortRunId)
 
-        val ortResult = ortRun.mapToOrt(
-            repository = repository,
-            analyzerRun = analyzerRun?.mapToOrt(),
-            resolvedConfiguration = resolvedConfiguration.mapToOrt()
-        )
+            val ortResult = ortRun.mapToOrt(
+                repository = repository,
+                analyzerRun = analyzerRun?.mapToOrt(),
+                resolvedConfiguration = resolvedConfiguration.mapToOrt()
+            )
 
-        job = ortRunService.startAdvisorJob(job.id)
-            ?: throw IllegalArgumentException("The advisor job with id '$jobId' could not be started.")
-        logger.debug("Advisor job with id '{}' started at {}.", job.id, job.startedAt)
+            job = ortRunService.startAdvisorJob(job.id)
+                ?: throw IllegalArgumentException("The advisor job with id '$jobId' could not be started.")
+            logger.debug("Advisor job with id '{}' started at {}.", job.id, job.startedAt)
 
-        val advisorRun = checkNotNull(
-            runner.run(
-                contextFactory.createContext(job.ortRunId),
-                ortResult = ortResult,
-                config = job.configuration
-            ).advisor
-        ) { "ORT Adviser failed to create a result." }
+            val advisorRun = checkNotNull(
+                runner.run(
+                    workerContext,
+                    ortResult = ortResult,
+                    config = job.configuration
+                ).advisor
+            ) { "ORT Adviser failed to create a result." }
 
-        db.dbQuery {
-            getValidAdvisorJob(jobId)
-            ortRunService.storeAdvisorRun(advisorRun.mapToModel(jobId))
-        }
+            db.dbQuery {
+                getValidAdvisorJob(jobId)
+                ortRunService.storeAdvisorRun(advisorRun.mapToModel(jobId))
+            }
 
-        if (advisorRun.results.values.flatten().flatMap { it.summary.issues }.any { it.severity >= Severity.WARNING }) {
-            RunResult.FinishedWithIssues
-        } else {
-            RunResult.Success
+            if (advisorRun.results.values.flatten().flatMap { it.summary.issues }
+                    .any { it.severity >= Severity.WARNING }
+                ) {
+                RunResult.FinishedWithIssues
+            } else {
+                RunResult.Success
+            }
         }
     }.getOrElse {
         when (it) {

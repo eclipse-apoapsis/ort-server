@@ -71,66 +71,67 @@ class ConfigWorker(
     suspend fun run(ortRunId: Long): RunResult = runCatching {
         logger.info("Running config worker for run '$ortRunId'.")
 
-        val context = contextFactory.createContext(ortRunId)
+        contextFactory.withContext(ortRunId) { context ->
+            val jobConfigContext = context.ortRun.jobConfigContext?.let(::Context)
+            val resolvedJobConfigContext = configManager.resolveContext(jobConfigContext)
 
-        val jobConfigContext = context.ortRun.jobConfigContext?.let(::Context)
-        val resolvedJobConfigContext = configManager.resolveContext(jobConfigContext)
+            logger.info(
+                "Provided configuration context '{}' was resolved to '{}'.",
+                context.ortRun.jobConfigContext,
+                resolvedJobConfigContext.name
+            )
 
-        logger.info(
-            "Provided configuration context '{}' was resolved to '{}'.",
-            context.ortRun.jobConfigContext,
-            resolvedJobConfigContext.name
-        )
+            // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it
+            //       configurable.
+            val validationScriptExists = configManager.containsFile(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
+            val (result, validationResult) = if (validationScriptExists) {
+                logger.info("Running validation script.")
 
-        // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it configurable.
-        val validationScriptExists = configManager.containsFile(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
-        val (result, validationResult) = if (validationScriptExists) {
-            logger.info("Running validation script.")
+                val validationScript = configManager.getFileAsString(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
+                val validator = ConfigValidator.create(createValidationWorkerContext(context, resolvedJobConfigContext))
+                val validationResult = validator.validate(validationScript)
 
-            val validationScript = configManager.getFileAsString(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
-            val validator = ConfigValidator.create(createValidationWorkerContext(context, resolvedJobConfigContext))
-            val validationResult = validator.validate(validationScript)
+                logger.debug("Issues returned by validation script: {}.", validationResult.issues)
 
-            logger.debug("Issues returned by validation script: {}.", validationResult.issues)
+                when (validationResult) {
+                    is ConfigValidationResultSuccess -> RunResult.Success to Triple(
+                        validationResult.resolvedConfigurations.asPresent(),
+                        validationResult.issues.asPresent(),
+                        validationResult.labelsToUpdate()
+                    )
 
-            when (validationResult) {
-                is ConfigValidationResultSuccess -> RunResult.Success to Triple(
-                    validationResult.resolvedConfigurations.asPresent(),
-                    validationResult.issues.asPresent(),
-                    validationResult.labelsToUpdate()
-                )
+                    is ConfigValidationResultFailure -> RunResult.Failed(
+                        IllegalArgumentException("Parameter validation failed.")
+                    ) to Triple(
+                        OptionalValue.Absent,
+                        validationResult.issues.asPresent(),
+                        OptionalValue.Absent
+                    )
+                }
+            } else {
+                logger.info("Skipping validation as no script exists.")
 
-                is ConfigValidationResultFailure -> RunResult.Failed(
-                    IllegalArgumentException("Parameter validation failed.")
-                ) to Triple(
+                RunResult.Success to Triple(
+                    context.ortRun.jobConfigs.asPresent(),
                     OptionalValue.Absent,
-                    validationResult.issues.asPresent(),
                     OptionalValue.Absent
                 )
             }
-        } else {
-            logger.info("Skipping validation as no script exists.")
 
-            RunResult.Success to Triple(
-                context.ortRun.jobConfigs.asPresent(),
-                OptionalValue.Absent,
-                OptionalValue.Absent
-            )
+            val (configs, issues, labels) = validationResult
+
+            db.dbQuery {
+                ortRunRepository.update(
+                    id = ortRunId,
+                    resolvedJobConfigs = configs,
+                    resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent(),
+                    issues = issues,
+                    labels = labels
+                )
+            }
+
+            result
         }
-
-        val (configs, issues, labels) = validationResult
-
-        db.dbQuery {
-            ortRunRepository.update(
-                id = ortRunId,
-                resolvedJobConfigs = configs,
-                resolvedJobConfigContext = resolvedJobConfigContext.name.asPresent(),
-                issues = issues,
-                labels = labels
-            )
-        }
-
-        result
     }.getOrElse { RunResult.Failed(it) }
 
     /**

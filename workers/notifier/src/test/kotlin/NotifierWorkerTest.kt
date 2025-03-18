@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
@@ -102,8 +103,12 @@ class NotifierWorkerTest : StringSpec({
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns ortRun
         }
+
+        val slot = slot<suspend (WorkerContext) -> RunResult>()
         val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
+            coEvery { withContext(ORT_RUN_ID, capture(slot)) } coAnswers {
+                slot.captured(context)
+            }
         }
 
         val runnerResult = NotifierRunnerResult(
