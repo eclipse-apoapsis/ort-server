@@ -18,25 +18,11 @@
  */
 
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Repeat } from 'lucide-react';
 
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { OrtRunJobStatus } from '@/components/ort-run-job-status';
-import { TimestampWithUTC } from '@/components/timestamp-with-utc';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip.tsx';
 import { config } from '@/config';
-import { calculateDuration } from '@/helpers/get-run-duration';
-import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { IssuesStatisticsCard } from './-components/issues-statistics-card';
 import { PackagesStatisticsCard } from './-components/packages-statistics-card';
 import { RuleViolationsStatisticsCard } from './-components/rule-violations-statistics-card';
@@ -69,153 +55,6 @@ const RunComponent = () => {
   return (
     <>
       <div className='flex flex-col gap-2'>
-        <div className='flex flex-row gap-2'>
-          <Card>
-            <CardHeader>
-              <CardTitle className='flex flex-col gap-2'>
-                <div className='flex items-center justify-between'>
-                  <Badge
-                    className={`border ${getStatusBackgroundColor(ortRun.status)}`}
-                  >
-                    {ortRun.status}
-                  </Badge>
-                  <Button variant='outline' asChild size='sm'>
-                    <Link
-                      to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-                      params={{
-                        orgId: params.orgId,
-                        productId: params.productId,
-                        repoId: params.repoId,
-                      }}
-                      search={{
-                        rerunIndex: ortRun.index,
-                      }}
-                    >
-                      Rerun
-                      <Repeat className='ml-1 h-4 w-4' />
-                    </Link>
-                  </Button>
-                </div>
-                <div>
-                  <OrtRunJobStatus
-                    jobs={ortRun.jobs}
-                    orgId={params.orgId}
-                    productId={params.productId}
-                    repoId={params.repoId}
-                    runIndex={params.runIndex}
-                  />
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='text-sm'>
-                <Label className='font-semibold'>Run ID:</Label> {ortRun.id}
-              </div>
-              <div className='text-sm'>
-                <Label className='font-semibold'>Created at:</Label>{' '}
-                <TimestampWithUTC timestamp={ortRun.createdAt} />
-              </div>
-              {ortRun.userDisplayName && (
-                <div className='text-sm'>
-                  <Label className='font-semibold'>Created by:</Label>{' '}
-                  {ortRun.userDisplayName?.fullName ? (
-                    <Tooltip>
-                      <TooltipTrigger>
-                        {ortRun.userDisplayName?.username}
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {ortRun.userDisplayName?.fullName}
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <span>{ortRun.userDisplayName?.username}</span>
-                  )}
-                </div>
-              )}
-              {ortRun.finishedAt && (
-                <div>
-                  <div className='text-sm'>
-                    <Label className='font-semibold'>Finished at:</Label>{' '}
-                    <TimestampWithUTC timestamp={ortRun.finishedAt} />
-                  </div>
-                  <div className='text-sm'>
-                    <Label className='font-semibold'>Duration:</Label>{' '}
-                    {calculateDuration(ortRun.createdAt, ortRun.finishedAt)}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          <Card className='flex-1'>
-            <CardHeader>
-              <CardTitle>Context Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='text-sm'>
-                <Label className='font-semibold'>Revision:</Label>{' '}
-                {ortRun.revision}
-                {ortRun.resolvedRevision &&
-                  ortRun.revision !== ortRun.resolvedRevision &&
-                  ` (${ortRun.resolvedRevision})`}
-              </div>
-              {ortRun.path && (
-                <div className='text-sm'>
-                  <Label className='font-semibold'>Path:</Label> {ortRun.path}
-                </div>
-              )}
-              {ortRun.jobConfigContext && (
-                <div className='text-sm'>
-                  <Label className='font-semibold'>
-                    Configuration context:
-                  </Label>{' '}
-                  {ortRun.jobConfigContext}
-                </div>
-              )}
-              {ortRun.resolvedJobConfigContext && (
-                <div className='text-sm'>
-                  <Label className='font-semibold'>
-                    Resolved configuration context:
-                  </Label>{' '}
-                  {ortRun.resolvedJobConfigContext}
-                </div>
-              )}
-              {Object.keys(ortRun.labels).length > 0 && (
-                <div className='text-sm'>
-                  <Label className='font-semibold'>Labels:</Label>{' '}
-                  {Object.entries(ortRun.labels).map(([key, value]) => (
-                    <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
-                      <div className='col-span-3 text-left break-all'>
-                        {key}
-                      </div>
-                      <div className='col-span-1 text-center'>=</div>
-                      <div className='col-span-8 text-left break-all'>
-                        {value}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {ortRun.jobConfigs.parameters && (
-                <div className='text-sm'>
-                  <Label className='font-semibold'>Parameters:</Label>{' '}
-                  {Object.entries(ortRun.jobConfigs.parameters).map(
-                    ([key, value]) => (
-                      <div key={key} className='ml-4 grid grid-cols-12 text-xs'>
-                        <div className='col-span-3 text-left break-all'>
-                          {key}
-                        </div>
-                        <div className='col-span-1 text-center'>=</div>
-                        <div className='col-span-8 text-left break-all'>
-                          {value}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
         <div className='grid grid-cols-4 gap-2'>
           <Link
             to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities'
