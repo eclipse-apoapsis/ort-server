@@ -38,84 +38,71 @@ export const ScannerJobDetails = ({ run }: ScannerJobDetailsProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className='space-y-2 text-sm'>
-          {jobConfigs && (
-            <div className='space-y-2'>
-              <Label className='font-semibold'>
-                Resolved job configuration:
-              </Label>
-              <div className='ml-2 space-y-2'>
-                {jobConfigs?.skipConcluded && (
-                  <div>
-                    <Label className='font-semibold'>Skip concluded: </Label>
-                    {jobConfigs.skipConcluded.toString()}
-                  </div>
-                )}
-                {jobConfigs?.skipExcluded && (
-                  <div>
-                    <Label className='font-semibold'>Skip excluded: </Label>
-                    {jobConfigs.skipExcluded.toString()}
-                  </div>
-                )}
-                {jobConfigs?.scanners && (
-                  <div className='space-y-2'>
-                    <Label className='font-semibold'>Scanners:</Label>{' '}
-                    {jobConfigs.scanners.map((scanner) => (
-                      <div className='ml-2' key={scanner}>
-                        <Label className='font-semibold'>{scanner}</Label>
-                        {jobConfigs?.config?.[scanner] && (
+        {jobConfigs && (
+          <div className='space-y-2 text-sm'>
+            {jobConfigs?.skipConcluded && (
+              <div>
+                <Label className='font-semibold'>Skip concluded: </Label>
+                {jobConfigs.skipConcluded.toString()}
+              </div>
+            )}
+            {jobConfigs?.skipExcluded && (
+              <div>
+                <Label className='font-semibold'>Skip excluded: </Label>
+                {jobConfigs.skipExcluded.toString()}
+              </div>
+            )}
+            {jobConfigs?.scanners && (
+              <div className='space-y-2'>
+                <Label className='font-semibold'>Scanners:</Label>{' '}
+                {jobConfigs.scanners.map((scanner) => (
+                  <div className='ml-2' key={scanner}>
+                    <Label className='font-semibold'>{scanner}</Label>
+                    {jobConfigs?.config?.[scanner] && (
+                      <div className='ml-2'>
+                        <Label className='font-semibold'>Configuration:</Label>
+                        {jobConfigs.config?.[scanner].options && (
                           <div className='ml-2'>
-                            <Label className='font-semibold'>
-                              Configuration:
-                            </Label>
-                            {jobConfigs.config?.[scanner].options && (
-                              <div className='ml-2'>
-                                <Label className='font-semibold'>
-                                  Options:
-                                </Label>
-                                <div className='ml-2'>
-                                  {Object.entries(
-                                    jobConfigs.config[scanner].options
-                                  ).map(([key, value]) => (
-                                    <div key={key}>
-                                      <Label className='font-semibold'>
-                                        {key}:
-                                      </Label>{' '}
-                                      {value.toString()}
-                                    </div>
-                                  ))}
+                            <Label className='font-semibold'>Options:</Label>
+                            <div className='ml-2'>
+                              {Object.entries(
+                                jobConfigs.config[scanner].options
+                              ).map(([key, value]) => (
+                                <div key={key}>
+                                  <Label className='font-semibold'>
+                                    {key}:
+                                  </Label>{' '}
+                                  {value.toString()}
                                 </div>
-                              </div>
-                            )}
-                            {jobConfigs.config?.[scanner].secrets && (
-                              <div className='ml-2'>
-                                <Label className='font-semibold'>
-                                  Secrets:
-                                </Label>
-                                <div className='ml-2'>
-                                  {Object.entries(
-                                    jobConfigs.config[scanner].secrets
-                                  ).map(([key, value]) => (
-                                    <div key={key}>
-                                      <Label className='font-semibold'>
-                                        {key}:
-                                      </Label>{' '}
-                                      {value.toString()}
-                                    </div>
-                                  ))}
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {jobConfigs.config?.[scanner].secrets && (
+                          <div className='ml-2'>
+                            <Label className='font-semibold'>Secrets:</Label>
+                            <div className='ml-2'>
+                              {Object.entries(
+                                jobConfigs.config[scanner].secrets
+                              ).map(([key, value]) => (
+                                <div key={key}>
+                                  <Label className='font-semibold'>
+                                    {key}:
+                                  </Label>{' '}
+                                  {value.toString()}
                                 </div>
-                              </div>
-                            )}
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

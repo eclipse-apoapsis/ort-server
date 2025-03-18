@@ -38,100 +38,86 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className='space-y-2 text-sm'>
-          {jobConfigs && (
-            <div className='space-y-2'>
-              <Label className='font-semibold'>
-                Resolved job configuration:
-              </Label>
-              <div className='ml-2 space-y-2'>
-                {jobConfigs.repositoryConfigPath && (
-                  <div>
-                    <Label className='font-semibold'>
-                      Repository configuration path:
-                    </Label>{' '}
-                    {jobConfigs.repositoryConfigPath}
-                  </div>
-                )}
-                {jobConfigs.allowDynamicVersions && (
-                  <div>
-                    <Label className='font-semibold'>
-                      Allow dynamic versions:
-                    </Label>{' '}
-                    {jobConfigs.allowDynamicVersions.toString()}
-                  </div>
-                )}
-                {jobConfigs.skipExcluded && (
-                  <div>
-                    <Label className='font-semibold'>Skip excluded: </Label>
-                    {jobConfigs.skipExcluded.toString()}
-                  </div>
-                )}
-                {jobConfigs.enabledPackageManagers && (
-                  <div>
-                    <Label className='font-semibold'>
-                      Enabled package managers:
-                    </Label>{' '}
-                    {jobConfigs.enabledPackageManagers.join(', ')}
-                  </div>
-                )}
-                {jobConfigs.environmentConfig?.environmentVariables && (
-                  <div>
-                    <Label className='font-semibold'>
-                      Environment variables:
-                    </Label>{' '}
-                    {jobConfigs.environmentConfig.environmentVariables.map(
-                      (env) => (
-                        <div className='ml-2 flex gap-1' key={env.name}>
-                          <div>{env.name}</div>
-                          <div>=</div>
-                          <div>{env.value}</div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                )}
-                {jobConfigs.packageManagerOptions && (
-                  <div className='space-y-2'>
-                    <Label className='font-semibold'>
-                      Package manager options:
-                    </Label>{' '}
-                    {Object.keys(jobConfigs.packageManagerOptions).map((pm) => (
-                      <div className='ml-2' key={pm}>
-                        <Label className='font-semibold'>{pm}:</Label>
-                        {jobConfigs.packageManagerOptions?.[pm]
-                          ?.mustRunAfter && (
-                          <div className='ml-2'>
-                            <Label>Must run after:</Label>{' '}
-                            {jobConfigs.packageManagerOptions?.[
-                              pm
-                            ].mustRunAfter.join(', ')}
-                          </div>
-                        )}
-                        {jobConfigs.packageManagerOptions?.[pm]?.options && (
-                          <div className='ml-2'>
-                            <div className='ml-2'>
-                              {Object.entries(
-                                jobConfigs.packageManagerOptions[pm].options
-                              ).map(([key, value]) => (
-                                <div key={key}>
-                                  <Label className='font-semibold'>
-                                    {key}:
-                                  </Label>{' '}
-                                  {value}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+        {jobConfigs && (
+          <div className='space-y-2 text-sm'>
+            {jobConfigs.repositoryConfigPath && (
+              <div>
+                <Label className='font-semibold'>
+                  Repository configuration path:
+                </Label>{' '}
+                {jobConfigs.repositoryConfigPath}
+              </div>
+            )}
+            {jobConfigs.allowDynamicVersions && (
+              <div>
+                <Label className='font-semibold'>Allow dynamic versions:</Label>{' '}
+                {jobConfigs.allowDynamicVersions.toString()}
+              </div>
+            )}
+            {jobConfigs.skipExcluded && (
+              <div>
+                <Label className='font-semibold'>Skip excluded: </Label>
+                {jobConfigs.skipExcluded.toString()}
+              </div>
+            )}
+            {jobConfigs.enabledPackageManagers && (
+              <div>
+                <Label className='font-semibold'>
+                  Enabled package managers:
+                </Label>{' '}
+                {jobConfigs.enabledPackageManagers.join(', ')}
+              </div>
+            )}
+            {jobConfigs.environmentConfig?.environmentVariables && (
+              <div>
+                <Label className='font-semibold'>Environment variables:</Label>{' '}
+                {jobConfigs.environmentConfig.environmentVariables.map(
+                  (env) => (
+                    <div className='ml-2 flex gap-1' key={env.name}>
+                      <div>{env.name}</div>
+                      <div>=</div>
+                      <div>{env.value}</div>
+                    </div>
+                  )
                 )}
               </div>
-            </div>
-          )}
-        </div>
+            )}
+            {jobConfigs.packageManagerOptions && (
+              <div className='space-y-2'>
+                <Label className='font-semibold'>
+                  Package manager options:
+                </Label>{' '}
+                {Object.keys(jobConfigs.packageManagerOptions).map((pm) => (
+                  <div className='ml-2' key={pm}>
+                    <Label className='font-semibold'>{pm}:</Label>
+                    {jobConfigs.packageManagerOptions?.[pm]?.mustRunAfter && (
+                      <div className='ml-2'>
+                        <Label>Must run after:</Label>{' '}
+                        {jobConfigs.packageManagerOptions?.[
+                          pm
+                        ].mustRunAfter.join(', ')}
+                      </div>
+                    )}
+                    {jobConfigs.packageManagerOptions?.[pm]?.options && (
+                      <div className='ml-2'>
+                        <div className='ml-2'>
+                          {Object.entries(
+                            jobConfigs.packageManagerOptions[pm].options
+                          ).map(([key, value]) => (
+                            <div key={key}>
+                              <Label className='font-semibold'>{key}:</Label>{' '}
+                              {value}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
