@@ -38,23 +38,16 @@ export const ReporterJobDetails = ({ run }: ReporterJobDetailsProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className='space-y-2 text-sm'>
-          {jobConfigs && (
-            <div className='space-y-2'>
-              <Label className='font-semibold'>
-                Resolved job configuration:
-              </Label>
-              <div className='ml-2'>
-                {jobConfigs?.formats && (
-                  <div>
-                    <Label className='font-semibold'>Report formats:</Label>{' '}
-                    {jobConfigs.formats.join(', ')}
-                  </div>
-                )}
+        {jobConfigs && (
+          <div className='space-y-2 text-sm'>
+            {jobConfigs?.formats && (
+              <div>
+                <Label className='font-semibold'>Report formats:</Label>{' '}
+                {jobConfigs.formats.join(', ')}
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

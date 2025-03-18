@@ -38,105 +38,90 @@ export const EvaluatorJobDetails = ({ run }: EvaluatorJobDetailsProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className='space-y-2 text-sm'>
-          {jobConfigs && (
-            <div className='space-y-2'>
-              <Label className='font-semibold'>
-                Resolved job configuration:
-              </Label>
-              <div className='ml-2 space-y-2'>
-                {jobConfigs?.ruleSet && (
-                  <div>
-                    <Label className='font-semibold'>Ruleset:</Label>{' '}
-                    {jobConfigs.ruleSet}
-                  </div>
-                )}
-                {jobConfigs?.licenseClassificationsFile && (
-                  <div>
-                    <Label className='font-semibold'>
-                      License classifications:
-                    </Label>{' '}
-                    {jobConfigs.licenseClassificationsFile}
-                  </div>
-                )}
-                {jobConfigs?.copyrightGarbageFile && (
-                  <div>
-                    <Label className='font-semibold'>Copyright garbage:</Label>{' '}
-                    {jobConfigs.copyrightGarbageFile}
-                  </div>
-                )}
-                {jobConfigs?.resolutionsFile && (
-                  <div>
-                    <Label className='font-semibold'>Resolutions:</Label>{' '}
-                    {jobConfigs.resolutionsFile}
-                  </div>
-                )}
-                {jobConfigs?.packageConfigurationProviders && (
-                  <div className='space-y-2'>
-                    <Label className='font-semibold'>
-                      Package configuration providers:
-                    </Label>{' '}
-                    {jobConfigs.packageConfigurationProviders.map(
-                      (provider) => (
-                        <div className='ml-2' key={provider.id}>
-                          <Label className='font-semibold'>
-                            {provider.type}
-                          </Label>
-                          {provider.id && (
-                            <div className='ml-2'>
-                              <Label className='font-semibold'>Id:</Label>{' '}
-                              {provider.id.toString()}
-                            </div>
-                          )}
-                          {provider.enabled && (
-                            <div className='ml-2'>
-                              <Label className='font-semibold'>Enabled:</Label>{' '}
-                              {provider.enabled.toString()}
-                            </div>
-                          )}
-                          {provider.options && (
-                            <div className='ml-2'>
-                              <Label className='font-semibold'>Options:</Label>{' '}
-                              <div className='ml-2'>
-                                {Object.entries(provider.options).map(
-                                  ([key, value]) => (
-                                    <div key={key}>
-                                      <Label className='font-semibold'>
-                                        {key}:
-                                      </Label>{' '}
-                                      {value.toString()}
-                                    </div>
-                                  )
-                                )}
+        {jobConfigs && (
+          <div className='space-y-2 text-sm'>
+            {jobConfigs?.ruleSet && (
+              <div>
+                <Label className='font-semibold'>Ruleset:</Label>{' '}
+                {jobConfigs.ruleSet}
+              </div>
+            )}
+            {jobConfigs?.licenseClassificationsFile && (
+              <div>
+                <Label className='font-semibold'>
+                  License classifications:
+                </Label>{' '}
+                {jobConfigs.licenseClassificationsFile}
+              </div>
+            )}
+            {jobConfigs?.copyrightGarbageFile && (
+              <div>
+                <Label className='font-semibold'>Copyright garbage:</Label>{' '}
+                {jobConfigs.copyrightGarbageFile}
+              </div>
+            )}
+            {jobConfigs?.resolutionsFile && (
+              <div>
+                <Label className='font-semibold'>Resolutions:</Label>{' '}
+                {jobConfigs.resolutionsFile}
+              </div>
+            )}
+            {jobConfigs?.packageConfigurationProviders && (
+              <div className='space-y-2'>
+                <Label className='font-semibold'>
+                  Package configuration providers:
+                </Label>{' '}
+                {jobConfigs.packageConfigurationProviders.map((provider) => (
+                  <div className='ml-2' key={provider.id}>
+                    <Label className='font-semibold'>{provider.type}</Label>
+                    {provider.id && (
+                      <div className='ml-2'>
+                        <Label className='font-semibold'>Id:</Label>{' '}
+                        {provider.id.toString()}
+                      </div>
+                    )}
+                    {provider.enabled && (
+                      <div className='ml-2'>
+                        <Label className='font-semibold'>Enabled:</Label>{' '}
+                        {provider.enabled.toString()}
+                      </div>
+                    )}
+                    {provider.options && (
+                      <div className='ml-2'>
+                        <Label className='font-semibold'>Options:</Label>{' '}
+                        <div className='ml-2'>
+                          {Object.entries(provider.options).map(
+                            ([key, value]) => (
+                              <div key={key}>
+                                <Label className='font-semibold'>{key}:</Label>{' '}
+                                {value.toString()}
                               </div>
-                            </div>
-                          )}
-                          {provider.secrets && (
-                            <div className='ml-2'>
-                              <Label className='font-semibold'>Secrets:</Label>{' '}
-                              <div className='ml-2'>
-                                {Object.entries(provider.secrets).map(
-                                  ([key, value]) => (
-                                    <div key={key}>
-                                      <Label className='font-semibold'>
-                                        {key}:
-                                      </Label>{' '}
-                                      {value.toString()}
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </div>
+                            )
                           )}
                         </div>
-                      )
+                      </div>
+                    )}
+                    {provider.secrets && (
+                      <div className='ml-2'>
+                        <Label className='font-semibold'>Secrets:</Label>{' '}
+                        <div className='ml-2'>
+                          {Object.entries(provider.secrets).map(
+                            ([key, value]) => (
+                              <div key={key}>
+                                <Label className='font-semibold'>{key}:</Label>{' '}
+                                {value.toString()}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
-                )}
+                ))}
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

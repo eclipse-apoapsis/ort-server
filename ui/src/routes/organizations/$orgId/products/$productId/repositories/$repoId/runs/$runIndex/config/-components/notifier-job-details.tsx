@@ -41,9 +41,6 @@ export const NotifierJobDetails = ({ run }: NotifierJobDetailsProps) => {
         <div className='space-y-2 text-sm'>
           {jobConfigs && (
             <div className='space-y-2'>
-              <Label className='font-semibold'>
-                Resolved job configuration:
-              </Label>
               <div className='ml-2 space-y-2'>
                 {jobConfigs?.notifierRules && (
                   <div>
