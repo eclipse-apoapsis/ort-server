@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
@@ -44,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
+import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
@@ -64,7 +66,7 @@ internal class WorkerContextImpl(
     private val repositoryRepository: RepositoryRepository,
 
     /** The ID of the current ORT run. */
-    private val ortRunId: Long
+    private val ortRunId: Long,
 ) : WorkerContext {
     /** The object for accessing secrets. */
     private val secretStorage by lazy { SecretStorage.createStorage(configManager) }
@@ -83,6 +85,11 @@ internal class WorkerContextImpl(
      * underlying concurrent map is used to guarantee thread-safe access.
      */
     private val tempDirectories = Collections.newSetFromMap(ConcurrentHashMap<File, Boolean>())
+
+    /**
+     * The authenticator to be used for all requests during the lifetime of this context.
+     */
+    private val authenticator = OrtServerAuthenticator.install()
 
     override val ortRun: OrtRun by lazy {
         requireNotNull(ortRunRepository.get(ortRunId)) { "Could not resolve ORT run ID $ortRunId" }
@@ -163,8 +170,28 @@ internal class WorkerContextImpl(
         return downloadConfigurationFiles(containedFiles, targetDirectory)
     }
 
+    override suspend fun setupAuthentication(services: Collection<InfrastructureService>) {
+        val serviceSecrets = services.flatMapTo(mutableSetOf()) { service ->
+            listOf(service.usernameSecret, service.passwordSecret)
+        }
+
+        val resolvedSecrets = resolveSecrets(*serviceSecrets.toTypedArray())
+        val authServices = services.map { service ->
+            val username = resolvedSecrets.getValue(service.usernameSecret)
+            val password = resolvedSecrets.getValue(service.passwordSecret)
+            AuthenticatedService(service.name, service.url, username, password)
+        }
+
+        authenticator.updateAuthenticatedServices(authServices)
+    }
+
     override fun close() {
         tempDirectories.forEach { it.safeDeleteRecursively() }
+
+        // During the worker execution, ORT's authenticator was typically installed. Uninstall it first, which
+        // will restore OrtServerAuthenticator as default authenticator.
+        OrtAuthenticator.uninstall()
+        OrtServerAuthenticator.uninstall()
     }
 
     /**
