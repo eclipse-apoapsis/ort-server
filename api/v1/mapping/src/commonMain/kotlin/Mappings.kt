@@ -84,6 +84,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy as ApiSubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName as ApiUserDisplayName
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
@@ -135,6 +136,7 @@ import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.UserGroup
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
@@ -822,6 +824,8 @@ fun ApiSourceCodeOrigin.mapToModel() =
     }
 
 fun User.mapToApi() = ApiUser(username, firstName, lastName, email)
+
+fun UserGroup.mapToApi() = ApiUserGroup.valueOf(name)
 
 fun EcosystemStats.mapToApi() = ApiEcosystemStats(name = name, count = count)
 

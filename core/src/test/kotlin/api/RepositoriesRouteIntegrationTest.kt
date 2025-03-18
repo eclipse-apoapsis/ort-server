@@ -77,10 +77,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -1214,6 +1218,96 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
                     membersAfter.shouldBeEmpty()
                 }
+            }
+        }
+    }
+
+    "GET /repositories/{repositoryId}/users" should {
+        "return list of users that have rights for repository" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                // Using two users that are prepared for test, just to have their user names
+                addUserToGroup(TEST_USER.username.value, repositoryId, "READERS")
+                addUserToGroup(SUPERUSER.username.value, repositoryId, "WRITERS")
+                addUserToGroup(SUPERUSER.username.value, repositoryId, "ADMINS")
+
+                val response = superuserClient.get("/api/v1/repositories/$repositoryId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse<ApiUserWithGroups>(
+                    listOf(
+                        ApiUserWithGroups(
+                            ApiUser(SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email),
+                            listOf(ApiUserGroup.ADMINS, ApiUserGroup.WRITERS)
+                        ),
+                        ApiUserWithGroups(
+                            ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),
+                            listOf(ApiUserGroup.READERS)
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "return empty list if no user has rights for repository" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                val response = superuserClient.get("/api/v1/repositories/$repositoryId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse<ApiUserWithGroups>(
+                    emptyList(),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 0,
+                        sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "respond with 'Bad Request' if there is more than one sort field" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                val response = superuserClient.get("/api/v1/repositories/$repositoryId/users?sort=username,firstName")
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Invalid query parameters."
+                body.cause shouldBe "Exactly one sort field must be defined."
+            }
+        }
+
+        "respond with 'Bad Request' if there is no sort field" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                val response = superuserClient.get("/api/v1/repositories/$repositoryId/users?sort=")
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "Invalid query parameters."
+                body.cause shouldBe "Empty sort field."
+            }
+        }
+
+        "require RepositoryPermission.READ" {
+            val repositoryId = createRepository().id
+
+            requestShouldRequireRole(RepositoryPermission.READ.roleName(repositoryId)) {
+                get("/api/v1/repositories/$repositoryId/users")
             }
         }
     }
