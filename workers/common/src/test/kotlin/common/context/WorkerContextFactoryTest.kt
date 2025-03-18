@@ -27,6 +27,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.file.aDirectory
 import io.kotest.matchers.file.exist
 import io.kotest.matchers.maps.beEmpty as beEmptyMap
@@ -42,25 +43,38 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
+import io.mockk.verifyOrder
 
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.secrets.Path as SecretPath
+import org.eclipse.apoapsis.ortserver.secrets.Secret as SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 
+import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
+
 class WorkerContextFactoryTest : WordSpec({
-    afterSpec {
+    beforeEach {
+        mockkObject(OrtServerAuthenticator)
+
+        every { OrtServerAuthenticator.install() } returns mockk()
+    }
+
+    afterEach {
         unmockkAll()
     }
 
@@ -231,9 +245,9 @@ class WorkerContextFactoryTest : WordSpec({
             val context = helper.context()
 
             val file1 = context.downloadConfigurationFile(Path("config1.txt"), dir)
-                val file2 = context.downloadConfigurationFile(Path("config1.txt"), dir)
+            val file2 = context.downloadConfigurationFile(Path("config1.txt"), dir)
 
-                file1 shouldBe file2
+            file1 shouldBe file2
         }
 
         "not cache downloaded files if they use different names" {
@@ -429,6 +443,79 @@ class WorkerContextFactoryTest : WordSpec({
             }
 
             tempDir.exists() shouldBe false
+        }
+    }
+
+    "close" should {
+        "uninstall the ORT Server authenticator" {
+            mockkObject(OrtAuthenticator)
+
+            val helper = ContextFactoryTestHelper()
+            helper.factory.withContext(RUN_ID) { }
+
+            verifyOrder {
+                OrtAuthenticator.uninstall()
+                OrtServerAuthenticator.uninstall()
+            }
+        }
+    }
+
+    "setupAuthentication" should {
+        "pass services with resolved secrets to the ORT Server authenticator" {
+            val authenticator = mockk<OrtServerAuthenticator> {
+                every { updateAuthenticatedServices(any()) } just runs
+            }
+            every { OrtServerAuthenticator.install() } returns authenticator
+
+            val helper = ContextFactoryTestHelper()
+            val context = helper.context()
+
+            // Make sure the secrets provider is initialized.
+            context.resolveSecret(createSecret(SecretsProviderFactoryForTesting.PASSWORD_PATH.path))
+
+            val secretsProvider = SecretsProviderFactoryForTesting.instance()
+            val secUser1 = createSecret("serviceUser1")
+            val username1 = SecretValue("uname1")
+            val secPass1 = createSecret("servicePassword1")
+            val password1 = SecretValue("secret-01")
+            val secUser2 = createSecret("serviceUser2")
+            val username2 = SecretValue("uname2")
+            val secPass2 = createSecret("servicePassword2")
+            val password2 = SecretValue("very-secret")
+            secretsProvider.writeSecret(SecretPath(secUser1.path), username1)
+            secretsProvider.writeSecret(SecretPath(secUser2.path), username2)
+            secretsProvider.writeSecret(SecretPath(secPass1.path), password1)
+            secretsProvider.writeSecret(SecretPath(secPass2.path), password2)
+
+            val service1 = InfrastructureService(
+                name = "service1",
+                url = "https://example.com/service1",
+                usernameSecret = secUser1,
+                passwordSecret = secPass1,
+                organization = null,
+                product = null
+            )
+            val service2 = InfrastructureService(
+                name = "service2",
+                url = "https://example.com/service2",
+                usernameSecret = secUser2,
+                passwordSecret = secPass2,
+                organization = null,
+                product = null
+            )
+
+            context.setupAuthentication(listOf(service1, service2))
+
+            val slotAuthServices = slot<Collection<AuthenticatedService>>()
+            verify {
+                authenticator.updateAuthenticatedServices(capture(slotAuthServices))
+            }
+
+            val expectedAuthServices = listOf(
+                AuthenticatedService(service1.name, service1.url, username1.value, password1.value),
+                AuthenticatedService(service2.name, service2.url, username2.value, password2.value)
+            )
+            slotAuthServices.captured shouldContainExactlyInAnyOrder expectedAuthServices
         }
     }
 })
