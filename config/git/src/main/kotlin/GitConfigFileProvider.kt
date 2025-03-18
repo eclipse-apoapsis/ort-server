@@ -70,14 +70,17 @@ class GitConfigFileProvider internal constructor(
     constructor(gitUrl: String) : this(gitUrl, org.ossreviewtoolkit.utils.ort.createOrtTempDir())
 
     private val git = GitFactory.create()
+    private val lock = Any()
 
     private lateinit var workingTree: WorkingTree
     private lateinit var unresolvedRevision: String
     private lateinit var resolvedRevision: String
 
     override fun resolveContext(context: Context): Context {
-        initWorkingTree(context)
-        git.updateWorkingTree(workingTree, unresolvedRevision, recursive = true)
+        synchronized(lock) {
+            initWorkingTree(context)
+            git.updateWorkingTree(workingTree, unresolvedRevision, recursive = true)
+        }
 
         resolvedRevision = workingTree.getRevision()
         return Context(resolvedRevision)
@@ -109,10 +112,12 @@ class GitConfigFileProvider internal constructor(
     }
 
     private fun initWorkingTree(context: Context) {
-        unresolvedRevision = context.name.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
-        val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, unresolvedRevision)
+        synchronized(lock) {
+            unresolvedRevision = context.name.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
+            val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, unresolvedRevision)
 
-        workingTree = git.initWorkingTree(configDir, vcsInfo)
+            workingTree = git.initWorkingTree(configDir, vcsInfo)
+        }
     }
 
     private fun updateWorkingTree(requestedRevision: String) {
@@ -121,11 +126,13 @@ class GitConfigFileProvider internal constructor(
         // also initialize their workingTree when needed.
         // We decide this based on whether configDir has a ".git" subdirectory or not.
         // TODO: there might be a better way to do this.
-        if (!configDir.resolve(".git").isDirectory) {
-            initWorkingTree(Context(requestedRevision))
-        }
+        synchronized(lock) {
+            if (!configDir.resolve(".git").isDirectory) {
+                initWorkingTree(Context(requestedRevision))
+            }
 
-        if (requestedRevision == resolvedRevision) return
-        git.updateWorkingTree(workingTree, requestedRevision, recursive = true)
+            if (requestedRevision == resolvedRevision) return
+            git.updateWorkingTree(workingTree, requestedRevision, recursive = true)
+        }
     }
 }
