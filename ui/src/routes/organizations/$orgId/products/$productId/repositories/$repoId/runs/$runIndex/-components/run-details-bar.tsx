@@ -27,6 +27,11 @@ import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { cn } from '@/lib/utils';
@@ -126,6 +131,23 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
         </div>
       </div>
       <div className='flex flex-col'>
+        {ortRun.userDisplayName && (
+          <div className='flex items-center gap-2 text-sm'>
+            <Label className='font-semibold'>Created by:</Label>
+            {ortRun.userDisplayName?.fullName ? (
+              <Tooltip>
+                <TooltipTrigger className='cursor-pointer'>
+                  {ortRun.userDisplayName?.username}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {ortRun.userDisplayName?.fullName}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span>{ortRun.userDisplayName?.username}</span>
+            )}
+          </div>
+        )}
         <div className='flex items-center gap-2 text-sm'>
           <Label className='font-semibold'>Created at:</Label>
           <TimestampWithUTC timestamp={ortRun.createdAt} />
