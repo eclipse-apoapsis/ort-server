@@ -26,6 +26,7 @@ import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
@@ -69,11 +70,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -1371,6 +1375,54 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             val createdProduct = createProduct()
             requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
                 get("/api/v1/products/${createdProduct.id}/statistics/runs")
+            }
+        }
+    }
+
+    "GET /products/{productId}/users" should {
+        "return list of users that have rights for product" {
+            integrationTestApplication {
+                val productId = createProduct().id
+
+                // Using two users that are prepared for test, just to have their user names
+                addUserToGroup(TEST_USER.username.value, productId, "READERS")
+                addUserToGroup(SUPERUSER.username.value, productId, "WRITERS")
+
+                val response = superuserClient.get("/api/v1/products/$productId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val userMap = response.body<Map<UserGroup, Set<User>>>()
+                userMap.keys.size shouldBe 2
+                userMap.keys shouldContainAll listOf(UserGroup.READERS, UserGroup.WRITERS)
+                userMap[UserGroup.READERS]?.shouldContain(
+                    User(
+                        TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email
+                    )
+                )
+                userMap[UserGroup.WRITERS]?.shouldContain(
+                    User(
+                        SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email
+                    )
+                )
+            }
+        }
+
+        "return empty list if no user has rights for product" {
+            integrationTestApplication {
+                val productId = createProduct().id
+
+                val response = superuserClient.get("/api/v1/products/$productId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody emptyMap<UserGroup, Set<User>>()
+            }
+        }
+
+        "require ProductPermission.READ" {
+            val productId = createProduct().id
+
+            requestShouldRequireRole(ProductPermission.READ.roleName(productId)) {
+                get("/api/v1/products/$productId/users")
             }
         }
     }

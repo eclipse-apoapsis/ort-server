@@ -43,6 +43,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
@@ -700,6 +702,40 @@ val getOrtRunStatisticsByOrganizationId: OpenApiRoute.() -> Unit = {
                             Severity.HINT to 3,
                             Severity.WARNING to 1,
                             Severity.ERROR to 0
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+val getUsersForOrganization: OpenApiRoute.() -> Unit = {
+    operationId = "GetUsersForOrganization"
+    summary = "Get all users that have rights for a organization, grouped by user privilege."
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The ID of an organization."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<Map<UserGroup, Set<User>>> {
+                example("Get users for organization") {
+                    value = mapOf(
+                        Pair(
+                            UserGroup.READERS,
+                            setOf(
+                                User(
+                                    username = "jdoe", firstName = "John", lastName = "Doe", email = "johndoe@mail.ee"
+                                ),
+                                User(
+                                    username = "jble", firstName = "John", lastName = "Ble", email = "johnble@mail.ee"
+                                )
+                            )
                         )
                     )
                 }

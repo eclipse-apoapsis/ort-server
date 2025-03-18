@@ -40,6 +40,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
@@ -513,6 +515,40 @@ val getOrtRunStatisticsByProductId: OpenApiRoute.() -> Unit = {
                             Severity.HINT to 0,
                             Severity.WARNING to 6,
                             Severity.ERROR to 98
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+val getUsersForProduct: OpenApiRoute.() -> Unit = {
+    operationId = "GetUsersForProduct"
+    summary = "Get all users that have rights for a product, grouped by user privilege."
+
+    request {
+        pathParameter<Long>("productId") {
+            description = "The product's ID."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<Map<UserGroup, Set<User>>> {
+                example("Get users for product") {
+                    value = mapOf(
+                        Pair(
+                            UserGroup.READERS,
+                            setOf(
+                                User(
+                                    username = "jdoe", firstName = "John", lastName = "Doe", email = "johndoe@mail.ee"
+                                ),
+                                User(
+                                    username = "jble", firstName = "John", lastName = "Ble", email = "johnble@mail.ee"
+                                )
+                            )
                         )
                     )
                 }

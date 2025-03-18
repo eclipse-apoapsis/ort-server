@@ -26,6 +26,7 @@ import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
@@ -77,10 +78,13 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -1214,6 +1218,54 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
                     membersAfter.shouldBeEmpty()
                 }
+            }
+        }
+    }
+
+    "GET /repositories/{repositoryId}/users" should {
+        "return list of users that have rights for repository" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                // Using two users that are prepared for test, just to have their user names
+                addUserToGroup(TEST_USER.username.value, repositoryId, "READERS")
+                addUserToGroup(SUPERUSER.username.value, repositoryId, "WRITERS")
+
+                val response = superuserClient.get("/api/v1/repositories/$repositoryId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val userMap = response.body<Map<UserGroup, Set<User>>>()
+                userMap.keys.size shouldBe 2
+                userMap.keys shouldContainAll listOf(UserGroup.READERS, UserGroup.WRITERS)
+                userMap[UserGroup.READERS]?.shouldContain(
+                    User(
+                        TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email
+                    )
+                )
+                userMap[UserGroup.WRITERS]?.shouldContain(
+                    User(
+                        SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email
+                    )
+                )
+            }
+        }
+
+        "return empty list if no user has rights for repository" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                val response = superuserClient.get("/api/v1/repositories/$repositoryId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody emptyMap<UserGroup, Set<User>>()
+            }
+        }
+
+        "require RepositoryPermission.READ" {
+            val repositoryId = createRepository().id
+
+            requestShouldRequireRole(RepositoryPermission.READ.roleName(repositoryId)) {
+                get("/api/v1/repositories/$repositoryId/users")
             }
         }
     }

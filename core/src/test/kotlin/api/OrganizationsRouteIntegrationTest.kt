@@ -27,6 +27,7 @@ import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -76,11 +77,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.addUserRole
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
@@ -1935,6 +1939,54 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             val createdOrganization = createOrganization()
             requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrganization.id)) {
                 get("/api/v1/organizations/${createdOrganization.id}/statistics/runs")
+            }
+        }
+    }
+
+    "GET /organizations/{productId}/users" should {
+        "return list of users that have rights for organization" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                // Using two users that are prepared for test, just to have their user names
+                addUserToGroup(TEST_USER.username.value, orgId, "READERS")
+                addUserToGroup(SUPERUSER.username.value, orgId, "WRITERS")
+
+                val response = superuserClient.get("/api/v1/organizations/$orgId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val userMap = response.body<Map<UserGroup, Set<User>>>()
+                userMap.keys.size shouldBe 2
+                userMap.keys shouldContainAll listOf(UserGroup.READERS, UserGroup.WRITERS)
+                userMap[UserGroup.READERS]?.shouldContain(
+                    User(
+                        TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email
+                    )
+                )
+                userMap[UserGroup.WRITERS]?.shouldContain(
+                    User(
+                        SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email
+                    )
+                )
+            }
+        }
+
+        "return empty list if no user has rights for organizations" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val response = superuserClient.get("/api/v1/organizations/$orgId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody emptyMap<UserGroup, Set<User>>()
+            }
+        }
+
+        "require OrganizationPermission.READ" {
+            val orgId = createOrganization().id
+
+            requestShouldRequireRole(OrganizationPermission.READ.roleName(orgId)) {
+                get("/api/v1/organizations/$orgId/users")
             }
         }
     }

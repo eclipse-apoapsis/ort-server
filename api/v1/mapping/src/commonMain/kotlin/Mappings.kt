@@ -135,6 +135,7 @@ import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.UserGroup
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
@@ -822,6 +823,8 @@ fun ApiSourceCodeOrigin.mapToModel() =
     }
 
 fun User.mapToApi() = ApiUser(username, firstName, lastName, email)
+
+fun UserGroup.mapToApi() = org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup.valueOf(name)
 
 fun EcosystemStats.mapToApi() = ApiEcosystemStats(name = name, count = count)
 

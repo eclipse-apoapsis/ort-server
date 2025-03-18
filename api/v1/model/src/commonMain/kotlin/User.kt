@@ -39,6 +39,21 @@ data class User(
     val email: String? = null,
 )
 
+/*
+ * User group (privilege level) for repositories, products or organizations
+ */
+@Serializable
+enum class UserGroup {
+    /** READER privilege  **/
+    READERS,
+
+    /** WRITER privilege  **/
+    WRITERS,
+
+    /** ADMIN privilege  **/
+    ADMINS
+}
+
 @Serializable
 data class CreateUser(
     val username: String,
