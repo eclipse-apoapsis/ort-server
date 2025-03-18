@@ -417,6 +417,20 @@ class WorkerContextFactoryTest : WordSpec({
             }
         }
     }
+
+    "withContext" should {
+        "properly close the context after the block has been executed" {
+            val helper = ContextFactoryTestHelper()
+
+            val tempDir = helper.factory.withContext(RUN_ID) { context ->
+                context.createTempDir().also {
+                    it.exists() shouldBe true
+                }
+            }
+
+            tempDir.exists() shouldBe false
+        }
+    }
 })
 
 private const val RUN_ID = 20230607142948L

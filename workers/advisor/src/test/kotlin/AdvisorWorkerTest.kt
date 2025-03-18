@@ -30,6 +30,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.unmockkAll
 
@@ -112,9 +113,7 @@ class AdvisorWorkerTest : StringSpec({
             every { this@mockk.ortRun } returns ortRun
             coEvery { resolvePluginConfigSecrets(any()) } returns emptyMap()
         }
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val runner = spyk(createRunner())
         val worker = AdvisorWorker(mockk(), runner, ortRunService, contextFactory)
@@ -179,9 +178,7 @@ class AdvisorWorkerTest : StringSpec({
             every { this@mockk.ortRun } returns ortRun
             coEvery { resolvePluginConfigSecrets(any()) } returns emptyMap()
         }
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val runner = spyk(createRunner())
         coEvery { runner.run(any(), any(), any()) } coAnswers {
@@ -221,7 +218,11 @@ class AdvisorWorkerTest : StringSpec({
 /**
  * Create a mock [WorkerContextFactory] and prepare it to return the given [context].
  */
-private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextFactory =
-    mockk {
-        every { createContext(advisorJob.ortRunId) } returns context
+private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextFactory {
+    val slot = slot<suspend (WorkerContext) -> RunResult>()
+    return mockk {
+        coEvery { withContext(ORT_RUN_ID, capture(slot)) } coAnswers {
+            slot.captured(context)
+        }
     }
+}

@@ -45,37 +45,38 @@ internal class NotifierWorker(
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidNotifierJob(jobId)
-        val workerContext = workerContextFactory.createContext(job.ortRunId)
-        val ortRun = workerContext.ortRun
+        workerContextFactory.withContext(job.ortRunId) { workerContext ->
+            val ortRun = workerContext.ortRun
 
-        job = ortRunService.startNotifierJob(job.id)
-            ?: throw IllegalArgumentException("The notifier job '$jobId' does not exist.")
-        logger.debug("Notifier job with id '{}' started at '{}'.", jobId, job.startedAt)
+            job = ortRunService.startNotifierJob(job.id)
+                ?: throw IllegalArgumentException("The notifier job '$jobId' does not exist.")
+            logger.debug("Notifier job with id '{}' started at '{}'.", jobId, job.startedAt)
 
-        if (job.configuration.keepAliveWorker == true) {
-            EndpointComponent.generateKeepAliveFile()
+            if (job.configuration.keepAliveWorker == true) {
+                EndpointComponent.generateKeepAliveFile()
+            }
+
+            val ortResult = ortResultGenerator.generateOrtResult(ortRun, job)
+
+            val startTime = Clock.System.now()
+
+            runner.run(ortResult, job.configuration, workerContext)
+
+            val endTime = Clock.System.now()
+
+            val notifierRun = NotifierRun(
+                id = -1L,
+                notifierJobId = job.id,
+                startTime = startTime,
+                endTime = endTime
+            )
+
+            db.dbQuery {
+                ortRunService.storeNotifierRun(notifierRun)
+            }
+
+            RunResult.Success
         }
-
-        val ortResult = ortResultGenerator.generateOrtResult(ortRun, job)
-
-        val startTime = Clock.System.now()
-
-        runner.run(ortResult, job.configuration, workerContext)
-
-        val endTime = Clock.System.now()
-
-        val notifierRun = NotifierRun(
-            id = -1L,
-            notifierJobId = job.id,
-            startTime = startTime,
-            endTime = endTime
-        )
-
-        db.dbQuery {
-            ortRunService.storeNotifierRun(notifierRun)
-        }
-
-        RunResult.Success
     }.getOrElse {
         when (it) {
             is JobIgnoredException -> {

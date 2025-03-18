@@ -25,9 +25,11 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 
@@ -283,8 +285,11 @@ private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<Work
         every { ortRun } returns run
     }
 
+    val slot = slot<suspend (WorkerContext) -> RunResult>()
     val factory = mockk<WorkerContextFactory> {
-        every { createContext(RUN_ID) } returns context
+        coEvery { withContext(RUN_ID, capture(slot)) } coAnswers {
+            slot.captured(context)
+        }
     }
 
     return factory to context

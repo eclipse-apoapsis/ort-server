@@ -32,6 +32,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 
@@ -136,9 +137,7 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
 
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(analyzerJob.ortRunId) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val infrastructureServices = listOf<InfrastructureService>(mockk(relaxed = true), mockk(relaxed = true))
         val envService = mockk<EnvironmentService> {
@@ -199,9 +198,7 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
 
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(analyzerJob.ortRunId) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServicesForRepository(context, null) } returns emptyList()
@@ -260,9 +257,7 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
 
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(analyzerJob.ortRunId) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServicesForRepository(context, envConfig) } returns emptyList()
@@ -316,9 +311,7 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val context = mockk<WorkerContext>()
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(analyzerJob.ortRunId) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val resolvedEnvConfig = mockk<ResolvedEnvironmentConfig>()
         val envService = mockk<EnvironmentService> {
@@ -365,9 +358,7 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val context = mockk<WorkerContext>()
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(analyzerJob.ortRunId) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val resolvedEnvConfig = mockk<ResolvedEnvironmentConfig>()
         val envService = mockk<EnvironmentService> {
@@ -464,9 +455,7 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
 
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(analyzerJob.ortRunId) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val envService = mockk<EnvironmentService> {
             every { findInfrastructureServicesForRepository(context, null) } returns emptyList()
@@ -495,3 +484,15 @@ class AnalyzerWorkerTest : StringSpec({
         }
     }
 })
+
+/**
+ * Create a mock [WorkerContextFactory] and prepare it to return the given [context].
+ */
+private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextFactory {
+    val slot = slot<suspend (WorkerContext) -> RunResult>()
+    return mockk {
+        coEvery { withContext(analyzerJob.ortRunId, capture(slot)) } coAnswers {
+            slot.captured(context)
+        }
+    }
+}

@@ -115,9 +115,7 @@ class ScannerWorkerTest : StringSpec({
         }
 
         val context = mockk<WorkerContext>()
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val ortIdentifier = Identifier("type", "namespace", "name", "version")
         val mappedIdentifier = org.eclipse.apoapsis.ortserver.model.runs.Identifier(
@@ -205,9 +203,7 @@ class ScannerWorkerTest : StringSpec({
         }
 
         val context = mockk<WorkerContext>()
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val provenance1 = mockk<ArtifactProvenance>(relaxed = true)
         val provenance2 = mockk<RepositoryProvenance>(relaxed = true)
@@ -375,9 +371,7 @@ class ScannerWorkerTest : StringSpec({
         }
 
         val context = mockk<WorkerContext>()
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val provenance: Provenance =
             OrtTestData.scannerRun.provenances.firstNotNullOf(ProvenanceResolutionResult::packageProvenance)
@@ -421,3 +415,15 @@ class ScannerWorkerTest : StringSpec({
         }
     }
 })
+
+/**
+ * Create a mock [WorkerContextFactory] and prepare it to return the given [context].
+ */
+private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextFactory {
+    val slot = slot<suspend (WorkerContext) -> RunResult>()
+    return mockk {
+        coEvery { withContext(ORT_RUN_ID, capture(slot)) } coAnswers {
+            slot.captured(context)
+        }
+    }
+}

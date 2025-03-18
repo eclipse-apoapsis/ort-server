@@ -93,13 +93,17 @@ private val reporterJob = ReporterJob(
 )
 
 class ReporterWorkerTest : StringSpec({
-    fun mockContextFactory(): WorkerContextFactory {
-        val context = mockk<WorkerContext>(relaxed = true) {
+    fun mockContext(): WorkerContext =
+        mockk<WorkerContext>(relaxed = true) {
             every { createTempDir() } answers { tempdir() }
         }
 
+    fun mockContextFactory(context: WorkerContext = mockContext()): WorkerContextFactory {
+        val slot = slot<suspend (WorkerContext) -> RunResult>()
         return mockk {
-            every { createContext(ORT_RUN_ID) } returns context
+            coEvery { withContext(ORT_RUN_ID, capture(slot)) } coAnswers {
+                slot.captured(context)
+            }
         }
     }
 
@@ -154,9 +158,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val context = mockk<WorkerContext>()
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val environmentService = mockk<EnvironmentService> {
             coEvery { generateNetRcFileForCurrentRun(context) } just runs
@@ -170,7 +172,7 @@ class ReporterWorkerTest : StringSpec({
         )
         val runner = mockk<ReporterRunner> {
             coEvery {
-                run(ORT_RUN_ID, ortResult, reporterJob.configuration, evaluatorJob.configuration)
+                run(ORT_RUN_ID, ortResult, reporterJob.configuration, evaluatorJob.configuration, context)
             } returns runnerResult
         }
 
@@ -216,7 +218,7 @@ class ReporterWorkerTest : StringSpec({
             mockContextFactory(),
             mockk(),
             mockk(),
-            ReporterRunner(mockk(relaxed = true), mockContextFactory(), mockk(), mockk()),
+            ReporterRunner(mockk(relaxed = true), mockk(), mockk()),
             ortRunService,
             mockk()
         )
@@ -272,9 +274,7 @@ class ReporterWorkerTest : StringSpec({
         }
 
         val context = mockk<WorkerContext>()
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val environmentService = mockk<EnvironmentService> {
             coEvery { generateNetRcFileForCurrentRun(context) } just runs
@@ -288,7 +288,7 @@ class ReporterWorkerTest : StringSpec({
         )
         val runner = mockk<ReporterRunner> {
             coEvery {
-                run(ORT_RUN_ID, ortResult, reporterJob.configuration, evaluatorJob.configuration)
+                run(ORT_RUN_ID, ortResult, reporterJob.configuration, evaluatorJob.configuration, context)
             } returns runnerResult
         }
 
@@ -334,7 +334,7 @@ class ReporterWorkerTest : StringSpec({
             mockContextFactory(),
             mockk(),
             mockk(),
-            ReporterRunner(mockk(relaxed = true), mockContextFactory(), mockk(), mockk()),
+            ReporterRunner(mockk(relaxed = true), mockk(), mockk()),
             ortRunService,
             mockk()
         )

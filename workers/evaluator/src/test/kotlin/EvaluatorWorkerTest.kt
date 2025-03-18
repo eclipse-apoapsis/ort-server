@@ -30,6 +30,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.unmockkAll
 
@@ -133,9 +134,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { this@mockk.configManager } returns configManager
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val runner = spyk(EvaluatorRunner(mockk()))
         // The severity of the rule violation has to be lowered to HINT to avoid a FinishedWithIssues result.
@@ -226,9 +225,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { this@mockk.configManager } returns configManager
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
-        val contextFactory = mockk<WorkerContextFactory> {
-            every { createContext(ORT_RUN_ID) } returns context
-        }
+        val contextFactory = mockContextFactory(context)
 
         val runner = spyk(EvaluatorRunner(mockk()))
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
@@ -262,3 +259,15 @@ class EvaluatorWorkerTest : StringSpec({
         }
     }
 })
+
+/**
+ * Create a mock [WorkerContextFactory] and prepare it to return the given [context].
+ */
+private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextFactory {
+    val slot = slot<suspend (WorkerContext) -> RunResult>()
+    return mockk {
+        coEvery { withContext(ORT_RUN_ID, capture(slot)) } coAnswers {
+            slot.captured(context)
+        }
+    }
+}
