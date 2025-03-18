@@ -93,7 +93,7 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                     </Label>{' '}
                     {jobConfigs.environmentConfig.environmentVariables.map(
                       (env) => (
-                        <div className='ml-2 flex gap-1'>
+                        <div className='ml-2 flex gap-1' key={env.name}>
                           <div>{env.name}</div>
                           <div>=</div>
                           <div>{env.value}</div>
