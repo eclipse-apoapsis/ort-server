@@ -73,27 +73,33 @@ export const StatisticsCard = ({
         <div className='flex flex-col'>
           {counts.length > 0 && counts.some(({ count }) => count > 0) ? (
             <div className='relative mb-2 h-3 w-full overflow-hidden rounded-sm bg-gray-100'>
-              {percentages.map(({ key, count, color, percentage }, index) => {
-                const left = percentages
-                  .slice(0, index)
-                  .reduce((sum, { percentage }) => sum + percentage, 0);
-                return (
-                  <Tooltip key={key}>
-                    <TooltipTrigger>
-                      <div
-                        className={`absolute top-0 h-full cursor-default ${color}`}
-                        style={{
-                          left: `${left}%`,
-                          width: `${percentage}%`,
-                        }}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {key}: {count}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className='relative h-full w-full cursor-default'>
+                    {percentages.map(({ key, color, percentage }, index) => {
+                      const left = percentages
+                        .slice(0, index)
+                        .reduce((sum, { percentage }) => sum + percentage, 0);
+                      return (
+                        <div
+                          key={key}
+                          className={`absolute top-0 h-full ${color}`}
+                          style={{
+                            left: `${left}%`,
+                            width: `${percentage}%`,
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {percentages
+                    .filter(({ count }) => count > 0)
+                    .map(({ key, count }) => `${key}: ${count}`)
+                    .join(' | ')}
+                </TooltipContent>
+              </Tooltip>
             </div>
           ) : (
             <div className='relative mb-2 h-3 w-full overflow-hidden rounded-sm' />
