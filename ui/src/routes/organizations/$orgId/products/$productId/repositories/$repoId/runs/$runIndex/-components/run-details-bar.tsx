@@ -134,17 +134,17 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
         {ortRun.userDisplayName && (
           <div className='flex items-center gap-2 text-sm'>
             <Label className='font-semibold'>Created by:</Label>
-            {ortRun.userDisplayName?.fullName ? (
+            {ortRun.userDisplayName.fullName ? (
               <Tooltip>
                 <TooltipTrigger className='cursor-pointer'>
-                  {ortRun.userDisplayName?.username}
+                  {ortRun.userDisplayName.username}
                 </TooltipTrigger>
                 <TooltipContent>
-                  {ortRun.userDisplayName?.fullName}
+                  {ortRun.userDisplayName.fullName}
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <span>{ortRun.userDisplayName?.username}</span>
+              <span>{ortRun.userDisplayName.username}</span>
             )}
           </div>
         )}
