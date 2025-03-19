@@ -115,10 +115,17 @@ Install the chart in Kubernetes:
 scripts/helm/$ helm install ort-server ./ort-server --namespace ort-server --create-namespace
 ```
 
-Switch to the newly created namespace with https://github.com/ahmetb/kubectx/blob/master/kubens[KubeNS]:
+Switch to the newly created namespace with [KubeNS](https://github.com/ahmetb/kubectx):
 
 ```shell
 kubens ort-server
+```
+
+or use the following kubectl command:
+
+```shell
+kubectl config set-context --current --namespace=ort-server
+
 ```
 
 To Uninstall the chart run:
