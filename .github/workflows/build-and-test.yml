@@ -83,7 +83,7 @@ jobs:
       run: ./${{ matrix.target.artifact }}/${{ matrix.target.binName }} --version
 
     - name: Upload CLI binary
-      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
         name: ${{ matrix.target.artifact }}
         path: ${{ matrix.target.artifact }}/${{ matrix.target.binName }}
@@ -142,7 +142,7 @@ jobs:
       if: success() || failure()
 
     - name: Upload test results
-      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       if: success() || failure()
       with:
         name: test-results
@@ -169,7 +169,7 @@ jobs:
       if: success() || failure()
 
     - name: Upload test results
-      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       if: success() || failure()
       with:
         name: integration-test-results
