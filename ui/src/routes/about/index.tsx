@@ -18,6 +18,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
+import { Fragment } from 'react';
 
 import { useVersionsServiceGetApiV1VersionsSuspense } from '@/api/queries/suspense';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -34,14 +35,13 @@ export const About = () => {
       <Separator />
       <CardContent className='pt-6'>
         <div>
-          <h3 className='font-semibold'>Version Information</h3>
-          <div className='text-sm'>
+          <h3 className='mb-4 font-semibold'>Version Information</h3>
+          <div className='grid grid-cols-[auto_1fr] gap-x-8 gap-y-1'>
             {Object.entries(versionData).map(([key, value]) => (
-              <div key={key}>
-                <span className='text-muted-foreground'>
-                  {key}: {value}
-                </span>
-              </div>
+              <Fragment key={key}>
+                <div className='text-muted-foreground font-semibold'>{key}</div>
+                <div className='text-muted-foreground'>{value}</div>
+              </Fragment>
             ))}
           </div>
         </div>
