@@ -57,15 +57,13 @@ data class InfrastructureService(
 
     /**
      * The set of [CredentialsType]s for this infrastructure service. This determines in which configuration files the
-     * credentials of the service are listed when generating the runtime environment for a worker. Per default, the
-     * credentials for all the infrastructure services referenced from a repository are added to the _.netrc_ file.
-     * This is typically desired, so that all external tools invoked from a worker can access the credentials they
-     * represent. In some constellations, however, there could be conflicting services; for instance, if multiple
-     * repositories with different credentials are defined on the same repository server. Such issues can be resolved
-     * by explicitly removing the [CredentialsType.NETRC_FILE] constant from this set. It is also possible to add other
-     * constants if a special treatment of the credentials is required.
+     * credentials of the service are listed when generating the runtime environment for a worker. All services
+     * involved in an ORT run are installed in the authenticator, so that their credentials are available when
+     * accessing the corresponding URLs from within the JVM. In case, the credentials are also required from external
+     * tools (e.g. the Git CLI), this needs to be indicated by adding the corresponding constant. Per default, the set
+     * is empty, so that the services are only used by the authenticator of the JVM.
      */
-    val credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE)
+    val credentialsTypes: Set<CredentialsType> = emptySet()
 ) {
     companion object {
         val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
