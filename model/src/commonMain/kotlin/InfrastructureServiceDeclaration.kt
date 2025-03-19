@@ -51,5 +51,5 @@ data class InfrastructureServiceDeclaration(
     val passwordSecret: String,
 
     /** The set of [CredentialsType]s for this infrastructure service. */
-    val credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE)
+    val credentialsTypes: Set<CredentialsType> = emptySet()
 )

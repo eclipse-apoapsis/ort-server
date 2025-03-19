@@ -53,7 +53,7 @@ data class InfrastructureService(
      * The set of [CredentialsType]s for this infrastructure service. This determines in which configuration files the
      * credentials of the service are listed when generating the runtime environment for a worker.
      */
-    val credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE)
+    val credentialsTypes: Set<CredentialsType> = emptySet()
 )
 
 /**
