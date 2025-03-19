@@ -21,6 +21,11 @@ import { Loader2 } from 'lucide-react';
 
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { config } from '@/config';
 
 export const LastRunDate = ({ repoId }: { repoId: number }) => {
@@ -62,12 +67,23 @@ export const LastRunDate = ({ repoId }: { repoId: number }) => {
   const run = runs.data[0];
 
   return (
-    <>
+    <div>
       {run.finishedAt ? (
         <TimestampWithUTC timestamp={run.finishedAt} />
       ) : (
         <TimestampWithUTC className='italic' timestamp={run.createdAt} />
       )}
-    </>
+      {run.userDisplayName &&
+        (run.userDisplayName.fullName ? (
+          <Tooltip>
+            <TooltipTrigger className='cursor-pointer'>
+              {run.userDisplayName.username}
+            </TooltipTrigger>
+            <TooltipContent>{run.userDisplayName.fullName}</TooltipContent>
+          </Tooltip>
+        ) : (
+          <span>{run.userDisplayName.username}</span>
+        ))}
+    </div>
   );
 };
