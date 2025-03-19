@@ -71,6 +71,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.Licenses
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
@@ -2109,6 +2110,74 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
             requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
                 get("/api/v1/runs/${ortRun.id}/statistics")
+            }
+        }
+    }
+
+    "GET /runs/{runId}/packages/licenses" should {
+        "return the processed declared licenses found in packages" {
+            integrationTestApplication {
+                val ortRunId = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                ).id
+
+                val analyzerJobId = dbExtension.fixtures.createAnalyzerJob(ortRunId).id
+
+                dbExtension.fixtures.createAnalyzerRun(
+                    analyzerJobId,
+                    packages = setOf(
+                        dbExtension.fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "LGPL-2.1-or-later",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        dbExtension.fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example2", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0 OR LGPL-2.1-or-later",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        dbExtension.fixtures.generatePackage(
+                            Identifier("NPM", "", "example", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/runs/$ortRunId/packages/licenses")
+
+                response.status shouldBe HttpStatusCode.OK
+
+                val licenses = response.body<Licenses>()
+
+                licenses.processedDeclaredLicenses shouldBe listOf(
+                    "Apache-2.0 OR LGPL-2.1-or-later",
+                    "LGPL-2.1-or-later",
+                    "MIT"
+                )
+            }
+        }
+
+        "require RepositoryPermission.READ_ORT_RUNS" {
+            val ortRunId = dbExtension.fixtures.createOrtRun(
+                repositoryId = repositoryId,
+                revision = "revision",
+                jobConfigurations = JobConfigurations()
+            ).id
+
+            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+                get("/api/v1/runs/$ortRunId/packages/licenses")
             }
         }
     }

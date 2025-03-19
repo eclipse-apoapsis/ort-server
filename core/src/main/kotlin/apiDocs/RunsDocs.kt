@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
+import org.eclipse.apoapsis.ortserver.api.v1.model.Licenses
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
@@ -623,6 +624,30 @@ val getOrtRunStatistics: OpenApiRoute.() -> Unit = {
                             Severity.WARNING to 1,
                             Severity.ERROR to 4
                         )
+                    )
+                }
+            }
+        }
+    }
+}
+
+val getLicensesForPackagesByRunId: OpenApiRoute.() -> Unit = {
+    operationId = "GetLicensesForPackagesByRunId"
+    summary = "Get the licenses for packages found in an ORT run."
+    tags = listOf("Runs")
+
+    request {
+        pathParameter<Long>("runId") {
+            description = "The ID of the ORT run."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            jsonBody<Licenses> {
+                example("Get licenses for packages") {
+                    value = Licenses(
+                        processedDeclaredLicenses = listOf("Apache-2.0", "MIT")
                     )
                 }
             }

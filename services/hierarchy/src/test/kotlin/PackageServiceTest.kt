@@ -578,6 +578,54 @@ class PackageServiceTest : WordSpec() {
                 ecosystems.last().count shouldBe 1
             }
         }
+
+        "getProcessedDeclaredLicenses" should {
+            "return the distinct processed declared SPDX licenses found in packages in the ORT run" {
+                val service = PackageService(db)
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    setOf(
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0 OR LGPL-2.1-or-later",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("Maven", "com.example", "example2", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "Apache-2.0",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("NPM", "com.example", "example3", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        ),
+                        fixtures.generatePackage(
+                            Identifier("NPM", "com.example", "example4", "1.0"),
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
+                                "MIT",
+                                emptyMap(),
+                                emptySet()
+                            )
+                        )
+                    )
+                ).id
+
+                val licenses = service.getProcessedDeclaredLicenses(ortRunId)
+
+                licenses.size shouldBe 3
+                licenses shouldBe listOf("Apache-2.0", "Apache-2.0 OR LGPL-2.1-or-later", "MIT")
+            }
+        }
     }
 
     private fun createAnalyzerRunWithPackages(
