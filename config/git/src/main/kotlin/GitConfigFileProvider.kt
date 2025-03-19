@@ -33,6 +33,7 @@ import org.ossreviewtoolkit.downloader.WorkingTree
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitFactory
+import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
 import org.slf4j.LoggerFactory
 
@@ -62,12 +63,9 @@ class GitConfigFileProvider internal constructor(
             logger.info("Creating GitConfigFileProvider.")
             logger.debug("Git URL: '{}'.", gitUrl)
 
-            return GitConfigFileProvider(gitUrl)
+            return GitConfigFileProvider(gitUrl, createOrtTempDir())
         }
     }
-
-    // Here, FQN is used deliberately to distinguish the regular top-level function from the extension function on Any.
-    constructor(gitUrl: String) : this(gitUrl, org.ossreviewtoolkit.utils.ort.createOrtTempDir())
 
     private val git = GitFactory.create()
     private val lock = Any()
