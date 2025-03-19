@@ -60,8 +60,8 @@ class MockConfigFileBuilder {
          */
         fun createInfrastructureService(
             url: String = REPOSITORY_URL,
-            userSecret: Secret = mockk(),
-            passwordSecret: Secret = mockk(),
+            userSecret: Secret = mockk(relaxed = true),
+            passwordSecret: Secret = mockk(relaxed = true),
             credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
         ): InfrastructureService =
             InfrastructureService(
