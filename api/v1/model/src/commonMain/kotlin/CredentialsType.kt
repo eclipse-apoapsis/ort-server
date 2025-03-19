@@ -23,21 +23,21 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
  * An enumeration class defining the supported credential types that are available for infrastructure services.
  * Depending on the type(s) set, the credentials of the service are added to different configuration files. Note that
  * infrastructure services can be assigned multiple credential types. It is also possible that they have no type;
- * then they are ignored when generating configuration files for credentials.
+ * then they are ignored when generating configuration files for credentials. They are, however, always considered by
+ * the global authenticator of the JVM.
  */
 enum class CredentialsType {
     /**
      * Credentials type indicating that the credentials of the service should be added to the _.netrc_ file. This is
-     * in most cases the desired option, since it allows access to the service from most external tools.
+     * needed if the underlying service URL needs to be accessed from external tools (except for Git) that rely on the
+     * mechanism of the _.netrc_ file.
      */
     NETRC_FILE,
 
     /**
      * Credentials type indicating that the credentials of the service should be added to the _.git-credentials_ file.
-     * For normal cases, it should not be necessary to use this type, since Git should be able to obtain the
-     * credentials from the _.netrc_ file. There are, however, rare cases when Git is not able to authenticate against
-     * a repository based on the information in the _.netrc_ file. This was observed for instance with repositories
-     * hosted on Microsoft Azure DevOps servers.
+     * This flag should typically be set for services representing Git repositories to make sure that the Git CLI can
+     * obtain their credentials.
      */
     GIT_CREDENTIALS_FILE
 }
