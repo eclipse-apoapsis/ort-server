@@ -26,7 +26,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
-import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
@@ -64,7 +63,7 @@ class EnvironmentService(
      * Return a list of all [InfrastructureService]s that may be relevant for checking out the current repository
      * defined by the given [context]. If specified, merge this list with the services from the given [config], so
      * that the services from the [config] take priority over the ones from the database. The resulting services can
-     * then be added to the _.netrc_ file to make sure that all credentials are available, even if the repository
+     * then be added to the authenticator to make sure that all credentials are available, even if the repository
      * contains submodules or other dependencies.
      */
     fun findInfrastructureServicesForRepository(
@@ -74,11 +73,11 @@ class EnvironmentService(
         val hierarchyServices = infrastructureServiceRepository.listForHierarchy(
             context.hierarchy.organization.id,
             context.hierarchy.product.id
-        ).netrcServices()
+        ).associateBy(InfrastructureService::url)
 
         val configServices = config?.let {
             configLoader.resolve(it, context.hierarchy).infrastructureServices
-        }.orEmpty().netrcServices()
+        }.orEmpty().associateBy(InfrastructureService::url)
 
         return (hierarchyServices + configServices).values.toList()
     }
@@ -138,13 +137,16 @@ class EnvironmentService(
     private suspend fun generateConfigFiles(
         context: WorkerContext,
         definitions: Collection<EnvironmentServiceDefinition>
-    ) =
+    ) {
         withContext(Dispatchers.IO) {
             generators.map { generator ->
                 val builder = ConfigFileBuilder(context)
                 async { generator.generateApplicable(builder, definitions) }
             }.awaitAll()
         }
+
+        context.setupAuthentication(definitions.map(EnvironmentServiceDefinition::service))
+    }
 
     /**
      * Generate the _.netrc_ file based on the given [services]. Use the given [context] to access required
@@ -206,11 +208,3 @@ internal fun EnvironmentConfig.merge(other: EnvironmentConfig?): EnvironmentConf
 
     return EnvironmentConfig(mergedInfrastructureService, mergedEnvironmentDefinitions, mergedEnvironmentVariables)
 }
-
-/**
- * Filter this collection of [InfrastructureService]s for services to be added to the _.netrc_ file and return a
- * [Map] with the services' URLs as keys that can be used to merge services from different sources.
- */
-private fun Collection<InfrastructureService>.netrcServices(): Map<String, InfrastructureService> =
-    filter { CredentialsType.NETRC_FILE in it.credentialsTypes }
-        .associateBy(InfrastructureService::url)

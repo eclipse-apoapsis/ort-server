@@ -20,10 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
@@ -132,30 +130,6 @@ class EnvironmentServiceTest : WordSpec({
 
             result shouldContainExactlyInAnyOrder listOf(hierarchyService, configService, overrideService)
         }
-
-        "ignore infrastructure services not intended to be used for the .netrc file" {
-            val service1 = createInfrastructureService(
-                "https://repo.example.org/test-orga/test-repo",
-                credentialsTypes = EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
-            )
-            val service2 = createInfrastructureService(credentialsTypes = emptySet())
-
-            val repository = mockk<InfrastructureServiceRepository> {
-                every {
-                    listForHierarchy(ORGANIZATION_ID, PRODUCT_ID)
-                } returns listOf(service1)
-            }
-
-            val config = mockk<EnvironmentConfig>()
-            val configLoader = mockk<EnvironmentConfigLoader> {
-                every { resolve(config, any()) } returns ResolvedEnvironmentConfig(listOf(service2))
-            }
-
-            val environmentService = EnvironmentService(repository, mockk(), configLoader)
-            val result = environmentService.findInfrastructureServicesForRepository(mockContext(), config)
-
-            result should beEmpty()
-        }
     }
 
     "setUpEnvironment from a file" should {
@@ -205,6 +179,22 @@ class EnvironmentServiceTest : WordSpec({
             assignedServices shouldContainExactlyInAnyOrder services
         }
 
+        "setup the authenticator with the services from the config file" {
+            val services = listOf<InfrastructureService>(mockk(), mockk())
+            val context = mockContext()
+
+            val config = ResolvedEnvironmentConfig(services, emptyList())
+            val configLoader = mockConfigLoader(config)
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
+            environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
+
+            coVerify { context.setupAuthentication(services) }
+        }
+
         "load the environment configuration from the ORT run if any is provided" {
             val envConfigFileName = "alternative.ort.env.yml"
 
@@ -215,6 +205,7 @@ class EnvironmentServiceTest : WordSpec({
             val context = mockk<WorkerContext> {
                 every { hierarchy } returns repositoryHierarchy
                 every { ortRun } returns ortRunWithEnvironment
+                coEvery { setupAuthentication(any()) } just runs
             }
 
             val repositoryFolder = createOrtTempDir("EnvironmentServiceTest")
@@ -370,7 +361,7 @@ class EnvironmentServiceTest : WordSpec({
 
     "generateNetRcFile" should {
         "produce the correct file using the NetRcGenerator" {
-            val context = mockk<WorkerContext>()
+            val context = mockk<WorkerContext>(relaxed = true)
             val services = listOf(
                 createInfrastructureService(),
                 createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
@@ -383,6 +374,25 @@ class EnvironmentServiceTest : WordSpec({
 
             val args = generator.verify(context)
             args.second.map { it.service } shouldContainExactlyInAnyOrder services
+        }
+
+        "setup the authenticator with the services" {
+            val context = mockk<WorkerContext> {
+                coEvery { setupAuthentication(any()) } just runs
+            }
+
+            val services = listOf(
+                createInfrastructureService(),
+                createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
+            )
+
+            val serviceRepository = mockk<InfrastructureServiceRepository>()
+            serviceRepository.expectServiceAssignments()
+
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
+            environmentService.generateNetRcFile(context, services)
+
+            coVerify { context.setupAuthentication(services) }
         }
     }
 
@@ -405,6 +415,23 @@ class EnvironmentServiceTest : WordSpec({
 
             val args = generator.verify(context)
             args.second.map { it.service } shouldContainExactlyInAnyOrder services
+        }
+
+        "setup the authenticator with services stored in the database" {
+            val context = mockContext()
+            val services = listOf(
+                createInfrastructureService(),
+                createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
+            )
+
+            val serviceRepository = mockk<InfrastructureServiceRepository> {
+                every { listForRun(RUN_ID) } returns services
+            }
+
+            val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
+            environmentService.generateNetRcFileForCurrentRun(context)
+
+            coVerify { context.setupAuthentication(services) }
         }
     }
 
@@ -531,12 +558,14 @@ fun createInfrastructureServiceDeclaration(
     )
 
 /**
- * Create a mock [WorkerContext] object that is prepared to return the [Hierarchy] of the test repository.
+ * Create a mock [WorkerContext] object that is prepared to return the [Hierarchy] of the test repository and
+ * expects some default interactions.
  */
 private fun mockContext(): WorkerContext =
     mockk {
         every { hierarchy } returns repositoryHierarchy
         every { ortRun } returns currentOrtRun
+        coEvery { setupAuthentication(any()) } just runs
     }
 
 /**
