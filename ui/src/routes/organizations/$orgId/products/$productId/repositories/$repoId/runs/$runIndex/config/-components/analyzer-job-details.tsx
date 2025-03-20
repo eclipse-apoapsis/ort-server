@@ -116,6 +116,60 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                 ))}
               </div>
             )}
+            {jobConfigs?.packageCurationProviders && (
+              <div className='space-y-2'>
+                <Label className='font-semibold'>
+                  Package curation providers:
+                </Label>{' '}
+                {jobConfigs.packageCurationProviders.map((provider) => (
+                  <div className='ml-2' key={provider.id}>
+                    <Label className='font-semibold'>{provider.type}</Label>
+                    {provider.id && (
+                      <div className='ml-2'>
+                        <Label className='font-semibold'>Id:</Label>{' '}
+                        {provider.id.toString()}
+                      </div>
+                    )}
+                    {provider.enabled && (
+                      <div className='ml-2'>
+                        <Label className='font-semibold'>Enabled:</Label>{' '}
+                        {provider.enabled.toString()}
+                      </div>
+                    )}
+                    {provider.options && (
+                      <div className='ml-2'>
+                        <Label className='font-semibold'>Options:</Label>{' '}
+                        <div className='ml-2'>
+                          {Object.entries(provider.options).map(
+                            ([key, value]) => (
+                              <div key={key}>
+                                <Label className='font-semibold'>{key}:</Label>{' '}
+                                {value.toString()}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {provider.secrets && (
+                      <div className='ml-2'>
+                        <Label className='font-semibold'>Secrets:</Label>{' '}
+                        <div className='ml-2'>
+                          {Object.entries(provider.secrets).map(
+                            ([key, value]) => (
+                              <div key={key}>
+                                <Label className='font-semibold'>{key}:</Label>{' '}
+                                {value.toString()}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </CardContent>
