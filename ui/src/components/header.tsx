@@ -261,6 +261,9 @@ export const Header = () => {
                 <DropdownMenuItem>Admin</DropdownMenuItem>
               </Link>
             )}
+            <Link to='/settings'>
+              <DropdownMenuItem>Settings</DropdownMenuItem>
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={async () => {
