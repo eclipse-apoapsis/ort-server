@@ -40,8 +40,11 @@ class VaultSecretsProviderFactory : SecretsProviderFactory {
         val vaultConfig = VaultConfiguration.create(configManager)
 
         logger.info("Creating VaultSecretsProvider.")
-        logger.debug("Vault URI: '${vaultConfig.vaultUri}'.")
-        logger.debug("RoleId: '${vaultConfig.credentials.roleId}'.")
+        logger.info("Vault URI: '${vaultConfig.vaultUri}'.")
+        logger.info("RoleId: '${vaultConfig.credentials.roleId}'.")
+        logger.info("Root path: '${vaultConfig.rootPath}'.")
+        logger.info("Prefix: '${vaultConfig.prefix}'.")
+        logger.info("Namespace: '${vaultConfig.namespace ?: "<undefined>"}'.")
 
         return VaultSecretsProvider(vaultConfig)
     }
