@@ -49,6 +49,10 @@ export const issueCategorySchema = z.enum([
 ]);
 export type IssueCategory = z.infer<typeof issueCategorySchema>;
 
+// Enum schema and type for the possible package ID types.
+export const packageIdTypeSchema = z.enum(['PURL', 'ORT_ID']);
+export type PackageIdType = z.infer<typeof packageIdTypeSchema>;
+
 // Search parameter validation schemas
 
 export const paginationSearchParameterSchema = z.object({
