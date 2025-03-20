@@ -222,7 +222,8 @@ const CreateRunPage = () => {
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
                   <FormDescription>
-                    The path to limit the analysis to, for example{' '}
+                    The path (relative to the repository root) to limit the
+                    analysis to, for example{' '}
                     <InlineCode>path/to/source</InlineCode>.
                   </FormDescription>
                   <FormMessage />
