@@ -19,23 +19,30 @@
 
 import { MoveRight } from 'lucide-react';
 
-import { Identifier, Package, ShortestDependencyPath } from '@/api/requests';
+import { Package, ShortestDependencyPath } from '@/api/requests';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { cn } from '@/lib/utils';
+import { PackageIdType } from '@/schemas';
 
 type DependencyPathsProps = {
   pkg: Package;
+  pkgIdType?: PackageIdType;
   className?: string;
 };
 
-export const DependencyPaths = ({ pkg, className }: DependencyPathsProps) => {
+export const DependencyPaths = ({
+  pkg,
+  pkgIdType,
+  className,
+}: DependencyPathsProps) => {
   return (
     <div className={className}>
       {pkg.shortestDependencyPaths.map((path, index) => (
         <div key={index}>
           <DependencyPath
             shortestPath={path}
-            pkgId={pkg.identifier}
+            pkg={pkg}
+            pkgIdType={pkgIdType}
             className='ml-2'
           />
         </div>
@@ -46,11 +53,13 @@ export const DependencyPaths = ({ pkg, className }: DependencyPathsProps) => {
 
 const DependencyPath = ({
   shortestPath,
-  pkgId,
+  pkg,
+  pkgIdType,
   className,
 }: {
   shortestPath: ShortestDependencyPath;
-  pkgId: Identifier;
+  pkg: Package;
+  pkgIdType?: PackageIdType;
   className: string;
 }) => {
   return (
@@ -62,12 +71,18 @@ const DependencyPath = ({
       {shortestPath.path.map((path, index) => (
         <div className='flex flex-wrap gap-x-2 align-middle' key={index}>
           <MoveRight size={20} />
-          <div>{identifierToString(path)}</div>
+          <div>
+            {pkgIdType === 'ORT_ID' ? identifierToString(path) : pkg.purl}
+          </div>
         </div>
       ))}
       <div className='flex flex-wrap gap-x-2 align-middle'>
         <MoveRight size={20} />
-        <div>{identifierToString(pkgId)}</div>
+        <div>
+          {pkgIdType === 'ORT_ID'
+            ? identifierToString(pkg.identifier)
+            : pkg.purl}
+        </div>
       </div>
     </div>
   );
