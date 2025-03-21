@@ -41,6 +41,11 @@ interface KeycloakClient {
     suspend fun getGroup(name: GroupName): Group
 
     /**
+     * Searches the [group][Group] that group name contains [name].
+     */
+    suspend fun searchGroups(name: GroupName): Set<Group>
+
+    /**
      * Add a new [group][Group] to the Keycloak realm with the given [name].
      */
     suspend fun createGroup(name: GroupName)
@@ -180,4 +185,9 @@ interface KeycloakClient {
      * Return a set of all [users][User] of a group [GroupName].
      */
     suspend fun getGroupMembers(groupName: GroupName): Set<User>
+
+    /**
+     * Return a set of all [users][User] of a group [GroupId].
+     */
+    suspend fun getGroupMembers(groupId: GroupId): Set<User>
 }

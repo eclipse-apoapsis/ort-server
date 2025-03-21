@@ -41,6 +41,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
@@ -51,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunsByRepositoryId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByRepositoryId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
@@ -71,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
+import org.eclipse.apoapsis.ortserver.services.UserService
 
 import org.koin.ktor.ext.inject
 
@@ -80,6 +84,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     val ortRunService by inject<OrtRunService>()
     val repositoryService by inject<RepositoryService>()
     val secretService by inject<SecretService>()
+    val userService by inject<UserService>()
 
     get(getRepositoryById) {
         requirePermission(RepositoryPermission.READ)
@@ -285,6 +290,21 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 repositoryService.removeUserFromGroup(user.username, repositoryId, groupId)
                 call.respond(HttpStatusCode.NoContent)
             }
+        }
+    }
+
+    route("users") {
+        get(getUsersForRepository) {
+            requirePermission(RepositoryPermission.READ)
+
+            val repositoryId = call.requireIdParameter("repositoryId")
+
+            val users = mutableMapOf<UserGroup, Set<User>>()
+            userService.getUsersForRepository(repositoryId).map { group ->
+                users[group.key.mapToApi()] = group.value.map { user -> user.mapToApi() }.toSet()
+            }
+
+            call.respond(users)
         }
     }
 }

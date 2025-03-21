@@ -67,7 +67,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy.FULLY_RECURSIVE
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
@@ -742,6 +744,40 @@ val deleteUserFromRepositoryGroup: OpenApiRoute.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "Repository or group not found."
+        }
+    }
+}
+
+val getUsersForRepository: OpenApiRoute.() -> Unit = {
+    operationId = "GetUsersForRepository"
+    summary = "Get all users that have rights for a repository, grouped by user privilege."
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<Map<UserGroup, Set<User>>> {
+                example("Get users for repository") {
+                    value = mapOf(
+                        Pair(
+                            UserGroup.READERS,
+                            setOf(
+                                User(
+                                    username = "jdoe", firstName = "John", lastName = "Doe", email = "johndoe@mail.ee"
+                                ),
+                                User(
+                                    username = "jble", firstName = "John", lastName = "Ble", email = "johnble@mail.ee"
+                                )
+                            )
+                        )
+                    )
+                }
+            }
         }
     }
 }

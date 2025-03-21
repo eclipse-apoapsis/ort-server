@@ -19,9 +19,15 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
+import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.model.User
+import org.eclipse.apoapsis.ortserver.model.UserGroup
+import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
+import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
+import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 
 /**
  * A service providing functions for working with [users][User].
@@ -32,6 +38,7 @@ class UserService(
     /**
      * Create a user. If "password" is null, then "temporary" is ignored.
      */
+    @Suppress("LongParameterList")
     suspend fun createUser(
         username: String,
         firstName: String?,
@@ -72,4 +79,46 @@ class UserService(
         val user = keycloakClient.getUser(username = UserName(username))
         keycloakClient.deleteUser(id = user.id)
     }
+
+    /**
+     * Get [User] sets that has rights for given [organizationId], grouped by [Group]
+     */
+    suspend fun getUsersForOrganization(organizationId: Long): Map<UserGroup, Set<User>> =
+        getUsersForGroups(keycloakClient.searchGroups(GroupName(OrganizationRole.groupPrefix(organizationId))))
+
+    /**
+     * Get [User] sets that has rights for given [productId], grouped by [Group]
+     */
+    suspend fun getUsersForProduct(productId: Long): Map<UserGroup, Set<User>> =
+        getUsersForGroups(keycloakClient.searchGroups(GroupName(ProductRole.groupPrefix(productId))))
+
+    /**
+     * Get [User] sets that has rights for given [repositoryId], grouped by [Group]
+     */
+    suspend fun getUsersForRepository(repositoryId: Long): Map<UserGroup, Set<User>> =
+        getUsersForGroups(keycloakClient.searchGroups(GroupName(RepositoryRole.groupPrefix(repositoryId))))
+
+    private suspend fun getUsersForGroups(groups: Set<Group>): Map<UserGroup, Set<User>> {
+        val users = mutableMapOf<UserGroup, Set<User>>()
+        groups.forEach { group ->
+            val usersInGroup = keycloakClient.getGroupMembers(group.id).map {
+                User(
+                    username = it.username.value,
+                    firstName = it.firstName,
+                    lastName = it.lastName,
+                    email = it.email
+                )
+            }.toSet()
+
+            if (usersInGroup.isNotEmpty()) {
+                users[calculateUserGroup(group)] = usersInGroup
+            }
+        }
+        return users
+    }
+
+    private fun calculateUserGroup(group: Group): UserGroup =
+        group.name.value.split("_").last().let {
+            UserGroup.valueOf(it)
+        }
 }

@@ -36,14 +36,16 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
  * An implementation of [KeycloakClient] that can be used for testing, for example when using the Keycloak testcontainer
  * is too expensive and mocking the client becomes too complex.
  */
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "LongParameterList")
 class KeycloakTestClient(
     private val groups: MutableSet<Group> = mutableSetOf(),
     private val groupClientRoles: MutableMap<GroupId, Set<RoleId>> = mutableMapOf(),
     private val roles: MutableSet<Role> = mutableSetOf(),
     private val roleComposites: MutableMap<RoleId, Set<RoleId>> = mutableMapOf(),
     private val users: MutableSet<User> = mutableSetOf(),
-    private val userClientRoles: MutableMap<UserId, Set<RoleId>> = mutableMapOf()
+    private val userClientRoles: MutableMap<UserId, Set<RoleId>> = mutableMapOf(),
+    private val userGroups: MutableMap<UserId, Set<GroupId>> = mutableMapOf()
+
 ) : KeycloakClient {
     private var groupCounter = 0
     private var roleCounter = 0
@@ -57,6 +59,9 @@ class KeycloakTestClient(
 
     override suspend fun getGroup(name: GroupName) =
         groups.find { it.name == name } ?: throw KeycloakClientException("")
+
+    override suspend fun searchGroups(name: GroupName) =
+        groups.filter { it.name.value.contains(name.value) }.toSet()
 
     override suspend fun createGroup(name: GroupName) {
         if (groups.any { it.name == name }) throw KeycloakClientException("")
@@ -188,7 +193,13 @@ class KeycloakTestClient(
             ?: throw KeycloakClientException("")
 
     override suspend fun addUserToGroup(username: UserName, groupName: GroupName) {
-        TODO("Not yet implemented")
+        val user = getUser(username)
+        val group = getGroup(groupName)
+        userGroups[user.id]?.let {
+            userGroups[user.id] = it + group.id
+        } ?: run {
+            userGroups[user.id] = setOf(group.id)
+        }
     }
 
     override suspend fun removeUserFromGroup(username: UserName, groupName: GroupName) {
@@ -196,7 +207,13 @@ class KeycloakTestClient(
     }
 
     override suspend fun getGroupMembers(groupName: GroupName): Set<User> {
-        TODO("Not yet implemented")
+        val groupId = groups.find { it.name == groupName }?.id ?: throw KeycloakClientException("")
+        return getGroupMembers(groupId)
+    }
+
+    override suspend fun getGroupMembers(groupId: GroupId): Set<User> {
+        val userIds = userGroups.filter { it.value.contains(groupId) }.keys
+        return users.filter { it.id in userIds }.toSet()
     }
 
     override suspend fun getUserHasCredentials(username: UserName): Boolean {
