@@ -84,8 +84,6 @@ jobs:
           dockerfile: Scanner.Dockerfile
           jibImage: scanner-worker
           task: :workers:scanner:jibDockerBuild
-        - jibImage: cli
-          task: :cli:jibDockerBuild
         - preparationTask: :core:generateOpenApiSpec
           image: ui
           context: ui
