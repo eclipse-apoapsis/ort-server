@@ -56,15 +56,23 @@ import { toast } from '@/lib/toast';
 import {
   declaredLicenseSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
+  PackageIdType,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
+import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<Package>();
 
-const renderSubComponent = ({ row }: { row: Row<Package> }) => {
+const renderSubComponent = ({
+  row,
+  packageIdType,
+}: {
+  row: Row<Package>;
+  packageIdType?: PackageIdType;
+}) => {
   const pkg = row.original;
 
   return (
@@ -129,7 +137,11 @@ const renderSubComponent = ({ row }: { row: Row<Package> }) => {
       {pkg.shortestDependencyPaths.length > 0 && (
         <div>
           <div className='font-semibold'>Shortest dependency paths</div>
-          <DependencyPaths pkg={pkg} className='flex flex-col gap-2' />
+          <DependencyPaths
+            pkg={pkg}
+            pkgIdType={packageIdType}
+            className='flex flex-col gap-2'
+          />
         </div>
       )}
     </div>
@@ -144,6 +156,7 @@ const PackagesComponent = () => {
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const packageId = search.pkgId;
   const declaredLicense = search.declaredLicense;
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
   const { data: ortRun } =
     useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
@@ -174,7 +187,9 @@ const PackagesComponent = () => {
     limit: pageSize,
     offset: pageIndex * pageSize,
     sort: convertToBackendSorting(search.sortBy),
-    identifier: packageId,
+    ...(packageIdType === 'ORT_ID'
+      ? { identifier: packageId }
+      : { purl: packageId }),
     processedDeclaredLicense: declaredLicense?.join(','),
   });
 
@@ -206,15 +221,17 @@ const PackagesComponent = () => {
     }),
     columnHelper.accessor(
       (pkg) => {
-        return identifierToString(pkg.identifier);
+        if (packageIdType === 'ORT_ID') {
+          return identifierToString(pkg.identifier);
+        } else {
+          return pkg.purl;
+        }
       },
       {
-        id: 'identifier',
+        id: `${packageIdType === 'ORT_ID' ? 'identifier' : 'purl'}`,
         header: 'Package ID',
-        cell: ({ row }) => {
-          return (
-            <div className='font-semibold'>{row.getValue('identifier')}</div>
-          );
+        cell: ({ getValue }) => {
+          return <div className='font-semibold'>{getValue()}</div>;
         },
         meta: {
           filter: {
@@ -335,7 +352,9 @@ const PackagesComponent = () => {
       <CardContent>
         <DataTable
           table={table}
-          renderSubComponent={renderSubComponent}
+          renderSubComponent={({ row }) =>
+            renderSubComponent({ row, packageIdType })
+          }
           setCurrentPageOptions={(currentPage) => {
             return {
               to: Route.to,
