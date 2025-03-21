@@ -198,10 +198,10 @@ const config: Config = {
         href: 'https://www.eclipse.org',
         height: 150,
       },
-      copyright: `Copyright © ${new Date().getFullYear()} The ORT Server Authors.<br/><br/>
-                  Eclipse Apoapsis and the Eclipse Foundation logo are Trademarks of The Eclipse Foundation.<br/>
+      copyright: `Copyright © ${new Date().getFullYear()} <a href="https://github.com/eclipse-apoapsis/ort-server/graphs/contributors">The ORT Server Authors</a>.<br/><br/>
+                  Eclipse Apoapsis and the Eclipse Foundation logo are Trademarks of <a href="https://www.eclipse.org">The Eclipse Foundation</a>.<br/>
                   Other names may be trademarks of their respective owners.<br/><br/>
-                  Built with Docusaurus.`,
+                  Built with <a href="https://docusaurus.io">Docusaurus</a>.`,
     },
     prism: {
       theme: prismThemes.github,
