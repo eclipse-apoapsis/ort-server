@@ -55,8 +55,8 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
                 val serviceUrl = URI.create(url).toURL()
                 append(serviceUrl.protocol)
                 append("://")
-                append(builder.secretRef(usernameSecret)).append(':')
-                append(builder.secretRef(passwordSecret)).append('@')
+                append(builder.secretRef(usernameSecret, ConfigFileBuilder.urlEncoding)).append(':')
+                append(builder.secretRef(passwordSecret, ConfigFileBuilder.urlEncoding)).append('@')
                 append(serviceUrl.authority)
                 append(serviceUrl.path)
             }

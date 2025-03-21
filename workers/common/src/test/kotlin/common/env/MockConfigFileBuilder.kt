@@ -92,6 +92,9 @@ class MockConfigFileBuilder {
     /** Stores information about the files that have been generated via this mock builder. */
     private val generatedFiles = mutableListOf<GeneratedFile>()
 
+    /** A map to store the encoding functions used when creating secret references. */
+    private val encodingFunctions = mutableMapOf<String, SecretEncodingFun>()
+
     /** The mock for the [WorkerContext] used by the mock [ConfigFileBuilder]. */
     val contextMock = mockk<WorkerContext>()
 
@@ -151,6 +154,12 @@ class MockConfigFileBuilder {
     }
 
     /**
+     * Return the [SecretEncodingFun] that was used when adding the specified [reference] to the builder. This can be
+     * used to test the correct encoding of secret values.
+     */
+    fun encodingFunctionFor(reference: String): SecretEncodingFun = encodingFunctions.getValue(reference)
+
+    /**
      * Create a mock for a [ConfigFileBuilder] that is prepared to record its invocations.
      */
     private fun createBuilderMock(): ConfigFileBuilder =
@@ -163,8 +172,10 @@ class MockConfigFileBuilder {
                 invokeBuilderBlock(null, firstArg<String>())
             }
 
-            every { secretRef(any()) } answers {
-                testSecretRef(firstArg())
+            every { secretRef(any(), any()) } answers {
+                val reference = testSecretRef(firstArg())
+                encodingFunctions[reference] = secondArg()
+                reference
             }
 
             every { context } returns contextMock
