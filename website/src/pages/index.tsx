@@ -22,7 +22,12 @@ function HomepageHeader() {
         <Heading as='h1' className='hero__title'>
           {siteConfig.title}
         </Heading>
-        <p className='hero__subtitle'>{siteConfig.tagline}</p>
+        <p className='hero__subtitle'>
+          {siteConfig.tagline}
+          <br />
+          Based on the{' '}
+          <Link to='https://oss-review-toolkit.org'>OSS Review Toolkit</Link>.
+        </p>
         <div className={styles.buttons}>
           <Link
             className='button button--secondary button--lg'
