@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 import kotlin.random.Random
 
@@ -29,6 +31,13 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.slf4j.LoggerFactory
+
+/**
+ * Type alias for a function that allows encoding the value of a secret before it gets inserted into a generated
+ * configuration file. This is needed for instance if usernames or passwords which may contain special characters have
+ * to be added to URLs.
+ */
+typealias SecretEncodingFun = (String) -> String
 
 /**
  * A helper class supporting the generation of configuration files.
@@ -46,6 +55,18 @@ import org.slf4j.LoggerFactory
 class ConfigFileBuilder(val context: WorkerContext) {
     companion object {
         private val logger = LoggerFactory.getLogger(ConfigFileBuilder::class.java)
+
+        /**
+         * A predefined [SecretEncodingFun] that uses the value of the secret verbatim. This is used per default and
+         * does not perform any changes on the secret value.
+         */
+        val noEncoding: SecretEncodingFun = { it }
+
+        /**
+         * A predefined [SecretEncodingFun] that performs URL-encoding on the secret's value. This makes sure that
+         * special characters contained in the secret value do not cause problems when used in the context of a URL.
+         */
+        val urlEncoding: SecretEncodingFun = { URLEncoder.encode(it, StandardCharsets.UTF_8) }
 
         /**
          * Print the given [multiLineText] making sure that the correct line endings are used. This function is
@@ -118,7 +139,7 @@ class ConfigFileBuilder(val context: WorkerContext) {
     }
 
     /** A map storing the secret references used in the generated file. */
-    private val secretReferences = mutableMapOf<String, Secret>()
+    private val secretReferences = mutableMapOf<String, SecretReference>()
 
     /**
      * Generate a configuration file at the location defined by the given [file] with content defined by the
@@ -132,9 +153,10 @@ class ConfigFileBuilder(val context: WorkerContext) {
 
         printWriter.block()
 
-        val secretValues = context.resolveSecrets(*secretReferences.values.toTypedArray())
-        val content = secretReferences.entries.fold(writer.toString()) { text, entry ->
-            text.replace(entry.key, secretValues.getValue(entry.value))
+        val secretValues = context.resolveSecrets(*secretReferences.values.map(SecretReference::secret).toTypedArray())
+        val content = secretReferences.entries.fold(writer.toString()) { text, (placeholder, reference) ->
+            val encodedValue = reference.encodingFun(secretValues.getValue(reference.secret))
+            text.replace(placeholder, encodedValue)
         }
 
         // Make sure that the parent directory exists in case the config should be stored in a subdirectory.
@@ -157,11 +179,12 @@ class ConfigFileBuilder(val context: WorkerContext) {
 
     /**
      * Return a string-based reference to the given [secret]. This reference is replaced by the value of this
-     * secret when the file is written.
+     * secret when the file is written. By specifying an [encodingFun], it is possible to apply a specific encoding on
+     * the secret value before it is inserted into the file. Per default, no encoding is applied.
      */
-    fun secretRef(secret: Secret): String {
+    fun secretRef(secret: Secret, encodingFun: SecretEncodingFun = noEncoding): String {
         val ref = generateReference()
-        secretReferences[ref] = secret
+        secretReferences[ref] = SecretReference(secret, encodingFun)
 
         return ref
     }
@@ -229,4 +252,16 @@ data class ProxyConfigFromSystemProperties(
 data class ProxyFromSystemProperties(
     val host: String,
     val port: String
+)
+
+/**
+ * A data class for storing information about a [Secret] that is referenced from a configuration file. An instance
+ * contains all the information required to replace the reference with the actual value of the secret.
+ */
+private data class SecretReference(
+    /** The [Secret] that is referenced. */
+    val secret: Secret,
+
+    /** The function to encode the value of the secret. */
+    val encodingFun: SecretEncodingFun
 )

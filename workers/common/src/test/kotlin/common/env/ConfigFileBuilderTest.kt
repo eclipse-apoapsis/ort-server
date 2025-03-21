@@ -57,27 +57,42 @@ class ConfigFileBuilderTest : StringSpec({
 
     "Secret references are resolved automatically" {
         val file = tempfile()
-        val secret1 = Secret(1, "p1", "s1", null, null, null, null)
-        val secret2 = Secret(2, "p2", "s2", null, null, null, null)
+        val secret1 = createSecret(1)
+        val secret2 = createSecret(2)
         val secretValues = mapOf(secret1 to "value1", secret2 to "value2")
 
-        val capturedSecrets = mutableListOf<Secret>()
-        val context = mockk<WorkerContext> {
-            coEvery { resolveSecrets(*varargAll { capturedSecrets.add(it) }) } returns secretValues
+        withSecretResolvingContext(secretValues) { context ->
+            val builder = ConfigFileBuilder(context)
+            builder.build(file) {
+                println("secret1 = ${builder.secretRef(secret1)},")
+                println("secret2 = ${builder.secretRef(secret2)}.")
+            }
+
+            file.readLines() shouldContainExactly listOf(
+                "secret1 = value1,",
+                "secret2 = value2."
+            )
         }
+    }
 
-        val builder = ConfigFileBuilder(context)
-        builder.build(file) {
-            println("secret1 = ${builder.secretRef(secret1)},")
-            println("secret2 = ${builder.secretRef(secret2)}.")
+    "Secret values can be url-encoded" {
+        val file = tempfile()
+        val secret1 = createSecret(1)
+        val secret2 = createSecret(2)
+        val secretValues = mapOf(secret1 to "!My\$ecret?:);", secret2 to "#+1/")
+
+        withSecretResolvingContext(secretValues) { context ->
+            val builder = ConfigFileBuilder(context)
+            builder.build(file) {
+                println("secret1 = ${builder.secretRef(secret1, ConfigFileBuilder.urlEncoding)},")
+                println("secret2 = ${builder.secretRef(secret2, ConfigFileBuilder.urlEncoding)}.")
+            }
+
+            file.readLines() shouldContainExactly listOf(
+                "secret1 = %21My%24ecret%3F%3A%29%3B,",
+                "secret2 = %23%2B1%2F."
+            )
         }
-
-        file.readLines() shouldContainExactly listOf(
-            "secret1 = value1,",
-            "secret2 = value2."
-        )
-
-        capturedSecrets shouldContainExactlyInAnyOrder listOf(secret1, secret2)
     }
 
     "Multiline texts can be printed" {
@@ -196,10 +211,33 @@ class ConfigFileBuilderTest : StringSpec({
 })
 
 /**
- * Create a mock for a [WorkerContext] and prepare it to return the given [secretValues] when asked to resolve
- * secrets.
+ * Create a mock for a [WorkerContext] that expects a call to resolve secrets, but does not return any secret values.
  */
-private fun createContextMock(secretValues: Map<Secret, String> = emptyMap()): WorkerContext =
+private fun createContextMock(): WorkerContext =
     mockk<WorkerContext> {
-        coEvery { resolveSecrets(*anyVararg()) } returns secretValues
+        coEvery { resolveSecrets(*anyVararg()) } returns emptyMap()
     }
+
+/**
+ * Execute the given [block] with a mock [WorkerContext] that is prepared to resolve the secrets from the given [Map]
+ * of [secretValues]. Afterward, check whether the function to resolve secrets has been called correctly.
+ */
+private suspend fun withSecretResolvingContext(
+    secretValues: Map<Secret, String>,
+    block: suspend (WorkerContext) -> Unit
+) {
+    val capturedSecrets = mutableListOf<Secret>()
+    val context = mockk<WorkerContext> {
+        coEvery { resolveSecrets(*varargAll { capturedSecrets.add(it) }) } returns secretValues
+    }
+
+    block(context)
+
+    capturedSecrets shouldContainExactlyInAnyOrder secretValues.keys
+}
+
+/**
+ * Create a test [Secret] based on the given [index].
+ */
+private fun createSecret(index: Int): Secret =
+    Secret(index.toLong(), "p$index", "secret$index", null, null, null, null)
