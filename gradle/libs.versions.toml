@@ -36,6 +36,7 @@ rabbitMq = "5.25.0"
 versionsPlugin = "0.52.0"
 
 # Gradle dependencies
+aedile = "2.0.3"
 awsSdk = "1.4.46"
 azureIdentity = "1.15.4"
 azureMessagingServicebus = "7.17.10"
@@ -89,6 +90,7 @@ plugin-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", v
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinPlugin" }
 plugin-mavenPublish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "mavenPublishPlugin" }
 
+aedile = { module = "com.sksamuel.aedile:aedile-core", version.ref = "aedile" }
 azureIdentity = { module = "com.azure:azure-identity", version.ref = "azureIdentity" }
 azureMessagingServicebus = { module = "com.azure:azure-messaging-servicebus", version.ref = "azureMessagingServicebus" }
 azureSecurityKeyvaultSecrets = { module = "com.azure:azure-security-keyvault-secrets", version.ref = "azureSecurityKeyvaultSecrets" }
