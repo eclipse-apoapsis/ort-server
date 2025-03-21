@@ -24,6 +24,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 
 import java.util.EnumSet
 
@@ -130,5 +131,32 @@ class GitCredentialsGeneratorTest : StringSpec({
         lines shouldContainExactly listOf(
             "https://${testSecretRef(secUser)}:${testSecretRef(secPass)}@repo.example.org/orga/repo.git",
         )
+    }
+
+    "Secret values should be URL-encoded" {
+        val mockBuilder = MockConfigFileBuilder()
+        val secUser = createSecret("user1Secret")
+        val secPass = createSecret("pass1Secret")
+
+        val definitions = listOf(
+            EnvironmentServiceDefinition(
+                createInfrastructureService(
+                    "https://repo1.example.org",
+                    secUser,
+                    secPass
+                ),
+                credentialsTypes = EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
+            )
+        )
+
+        GitCredentialsGenerator().generate(mockBuilder.builder, definitions)
+
+        fun checkEncodingFun(reference: String) {
+            val encodingFun = mockBuilder.encodingFunctionFor(reference)
+            encodingFun("#+1/") shouldBe "%23%2B1%2F"
+        }
+
+        checkEncodingFun(testSecretRef(secUser))
+        checkEncodingFun(testSecretRef(secPass))
     }
 })
