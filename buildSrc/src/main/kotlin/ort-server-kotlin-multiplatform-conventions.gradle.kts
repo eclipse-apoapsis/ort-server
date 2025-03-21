@@ -28,6 +28,7 @@ plugins {
 }
 
 kotlin {
+    // Always target at least the JVM in multiplatform projects.
     jvm()
 
     sourceSets {
