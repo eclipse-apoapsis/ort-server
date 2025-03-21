@@ -54,7 +54,6 @@ class OrtServerFileArchiveStorage(
                 when (this) {
                     is ArtifactProvenance -> Key("source-artifact|${sourceArtifact.url}|${sourceArtifact.hash}")
                     is RepositoryProvenance -> Key("vcs|${vcsInfo.type}|${vcsInfo.url}|$resolvedRevision")
-                    else -> throw IllegalArgumentException("Unsupported provenance class ${this::class.simpleName}")
                 }
             }
     }
