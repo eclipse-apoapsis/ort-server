@@ -22,6 +22,13 @@
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
 FROM eclipse-temurin:21.0.4_7-jdk-jammy@sha256:0472478e22da0f66043fa6acd8cd30126592349f47937adafc2340794e5bf06a
 
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
 ARG USERNAME=ort
 ARG USER_ID=1000
 ARG USER_GID=$USER_ID
