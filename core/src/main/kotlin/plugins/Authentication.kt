@@ -22,6 +22,12 @@ package org.eclipse.apoapsis.ortserver.core.plugins
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.interfaces.Payload
 
+import com.github.benmanes.caffeine.cache.Caffeine
+
+import com.sksamuel.aedile.core.Cache
+import com.sksamuel.aedile.core.asCache
+import com.sksamuel.aedile.core.expireAfterWrite
+
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
@@ -31,6 +37,7 @@ import io.ktor.server.config.ApplicationConfig
 import java.net.URI
 import java.util.concurrent.TimeUnit
 
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTimedValue
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
@@ -58,6 +65,14 @@ fun Application.configureAuthentication() {
         .rateLimited(10, 1, TimeUnit.MINUTES)
         .build()
 
+    // Keycloak roles are cached to speed up the UI when a single page makes multiple requests. The cache expires
+    // quickly so that changes in the Keycloak roles are not delayed too much.
+    val roleCacheLifetimeSeconds = config.property("jwt.roleCacheLifetimeSeconds").getString().toLong()
+    val roleCache = Caffeine.newBuilder()
+        .expireAfterWrite(roleCacheLifetimeSeconds.seconds)
+        .maximumSize(1000)
+        .asCache<String, Set<String>>()
+
     install(Authentication) {
         jwt(SecurityConfigurations.token) {
             realm = configuredRealm
@@ -67,25 +82,34 @@ fun Application.configureAuthentication() {
 
             validate { credential ->
                 credential.payload.takeIf(this@configureAuthentication::validateJwtPayload)?.let { payload ->
-                    val (result, duration) = measureTimedValue {
-                        runCatching {
-                            keycloakClient.getUserClientRoles(UserId(payload.subject))
-                                .mapTo(mutableSetOf()) { it.name.value }
-                        }
-                    }
-
-                    val roles = result.onSuccess {
-                        logger.debug("Loaded ${it.size} Keycloak roles for '${payload.subject}' in $duration.")
-                    }.onFailure {
-                        logger.error("Failed to load Keycloak roles for '${payload.subject}'.", it)
-                    }.getOrThrow()
-
+                    val roles = getRoles(payload.subject, keycloakClient, roleCache)
                     OrtPrincipal(payload, roles)
                 }
             }
         }
     }
 }
+
+internal suspend fun getRoles(
+    subject: String,
+    keycloakClient: KeycloakClient,
+    roleCache: Cache<String, Set<String>>
+): Set<String> =
+    // TODO: Make cache configurable to be able to disable it for testing.
+    roleCache.get(subject) {
+        val (result, duration) = measureTimedValue {
+            runCatching {
+                keycloakClient.getUserClientRoles(UserId(subject))
+                    .mapTo(mutableSetOf()) { role -> role.name.value }
+            }
+        }
+
+        result.onSuccess { roles ->
+            logger.debug("Loaded ${roles.size} Keycloak roles for '$subject' in $duration.")
+        }.onFailure { e ->
+            logger.error("Failed to load Keycloak roles for '$subject'.", e)
+        }.getOrThrow()
+    }
 
 /**
  * Validate the [payload] of the current JWT. Return *true* if it is valid.
