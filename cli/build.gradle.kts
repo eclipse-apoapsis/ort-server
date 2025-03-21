@@ -17,33 +17,21 @@
  * License-Filename: LICENSE
  */
 
-import com.google.cloud.tools.jib.gradle.JibTask
-
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-
-val dockerImagePrefix: String by project
-val dockerImageTag: String by project
 
 plugins {
     id("ort-server-kotlin-multiplatform-conventions")
     id("ort-server-publication-conventions")
 
     // Apply third-party plugins.
-    alias(libs.plugins.jib)
     alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver.cli"
 
-tasks.withType<JibTask> {
-    notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")
-}
-
 kotlin {
-    jvm {
-        // Include Java sources into the JVM target's compilations, to make them available for the Jib plugin.
-        withJava()
-    }
+    // Note that the JVM is a conventional default target.
+
     linuxX64()
     macosArm64()
     macosX64()
@@ -106,15 +94,5 @@ tasks.named<Test>("jvmTest") {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         showExceptions = true
         showStandardStreams = true
-    }
-}
-
-jib {
-    from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
-    to.image = "${dockerImagePrefix}ort-server-cli:$dockerImageTag"
-
-    container {
-        mainClass = "org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt"
-        creationTime.set("USE_CURRENT_TIMESTAMP")
     }
 }
