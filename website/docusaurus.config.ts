@@ -5,8 +5,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 const config: Config = {
   title: 'ORT Server',
-  tagline:
-    'A scalable application to automate software compliance checks, based on the OSS Review Toolkit.',
+  tagline: 'A scalable application to automate software compliance checks.',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
