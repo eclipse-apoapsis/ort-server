@@ -84,7 +84,8 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
             if (response != null) publisher.publish(OrchestratorEndpoint, response)
         }
 
-        EndpointHandlerResult.CONTINUE
+        val handleSingleJobOnly = configManager.config.getBoolean("advisor.handleSingleJobOnly")
+        if (handleSingleJobOnly) EndpointHandlerResult.STOP else EndpointHandlerResult.CONTINUE
     }
 
     override fun customModules(): List<Module> =
