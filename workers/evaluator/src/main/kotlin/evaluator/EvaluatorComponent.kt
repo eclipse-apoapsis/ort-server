@@ -77,7 +77,8 @@ class EvaluatorComponent : EndpointComponent<EvaluatorRequest>(EvaluatorEndpoint
             if (response != null) publisher.publish(OrchestratorEndpoint, response)
         }
 
-        EndpointHandlerResult.CONTINUE
+        val handleSingleJob = configManager.config.getBoolean("evaluator.handleSingleJob")
+        if (handleSingleJob) EndpointHandlerResult.STOP else EndpointHandlerResult.CONTINUE
     }
 
     override fun customModules(): List<Module> =

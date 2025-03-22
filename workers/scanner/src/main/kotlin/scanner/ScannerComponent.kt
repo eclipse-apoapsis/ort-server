@@ -79,7 +79,8 @@ class ScannerComponent : EndpointComponent<ScannerRequest>(ScannerEndpoint) {
             if (response != null) publisher.publish(OrchestratorEndpoint, response)
         }
 
-        EndpointHandlerResult.CONTINUE
+        val handleSingleJob = configManager.config.getBoolean("scanner.handleSingleJob")
+        if (handleSingleJob) EndpointHandlerResult.STOP else EndpointHandlerResult.CONTINUE
     }
 
     override fun customModules(): List<Module> = listOf(

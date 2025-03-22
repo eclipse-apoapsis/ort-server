@@ -122,7 +122,8 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
             if (response != null) publisher.publish(OrchestratorEndpoint, response)
         }
 
-        EndpointHandlerResult.CONTINUE
+        val handleSingleJob = configManager.config.getBoolean("reporter.handleSingleJob")
+        if (handleSingleJob) EndpointHandlerResult.STOP else EndpointHandlerResult.CONTINUE
     }
 
     override fun customModules(): List<Module> =
