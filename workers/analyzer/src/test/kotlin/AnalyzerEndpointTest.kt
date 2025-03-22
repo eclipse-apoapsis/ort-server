@@ -36,8 +36,10 @@ import io.kotest.matchers.string.shouldNotContain
 
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkClass
+import io.mockk.runs
 
 import java.io.File
 import java.util.Properties
@@ -111,7 +113,9 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             runEndpointTest {
                 val contextFactory by inject<WorkerContextFactory>()
 
-                contextFactory.createContext(42L) shouldNot beNull()
+                contextFactory.withContext(42L) {
+                    it shouldNot beNull()
+                }
             }
         }
 
@@ -353,6 +357,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     resolvedJobConfigContext = null,
                     traceId = "trace-id",
                 )
+                coEvery { setupAuthentication(any()) } just runs
             }
 
             val repositoryFolder = File("src/test/resources/mavenProject")

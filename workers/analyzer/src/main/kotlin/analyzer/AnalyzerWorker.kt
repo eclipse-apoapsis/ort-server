@@ -59,72 +59,73 @@ internal class AnalyzerWorker(
             ?: throw IllegalArgumentException("The analyzer job with id '$jobId' could not be started.")
         logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
 
-        val context = contextFactory.createContext(job.ortRunId)
+        contextFactory.withContext(job.ortRunId) { context ->
+            if (job.configuration.keepAliveWorker == true) {
+                EndpointComponent.generateKeepAliveFile()
+            }
 
-        if (job.configuration.keepAliveWorker == true) {
-            EndpointComponent.generateKeepAliveFile()
-        }
+            val envConfigFromJob = job.configuration.environmentConfig
+            val repositoryServices =
+                environmentService.findInfrastructureServicesForRepository(context, envConfigFromJob)
+            if (repositoryServices.isNotEmpty()) {
+                logger.info(
+                    "Generating a .netrc file with credentials from infrastructure services '{}' to download the " +
+                            "repository.",
+                    repositoryServices.map(InfrastructureService::name)
+                )
 
-        val envConfigFromJob = job.configuration.environmentConfig
-        val repositoryServices = environmentService.findInfrastructureServicesForRepository(context, envConfigFromJob)
-        if (repositoryServices.isNotEmpty()) {
-            logger.info(
-                "Generating a .netrc file with credentials from infrastructure services '{}' to download the " +
-                        "repository.",
-                repositoryServices.map(InfrastructureService::name)
+                environmentService.generateNetRcFile(context, repositoryServices)
+            }
+
+            val downloadResult = downloader.downloadRepository(
+                repository.url,
+                ortRun.revision,
+                ortRun.path.orEmpty(),
+                job.configuration.submoduleFetchStrategy
             )
 
-            environmentService.generateNetRcFile(context, repositoryServices)
-        }
+            ortRunService.updateResolvedRevision(ortRun.id, downloadResult.resolvedRevision)
 
-        val downloadResult = downloader.downloadRepository(
-            repository.url,
-            ortRun.revision,
-            ortRun.path.orEmpty(),
-            job.configuration.submoduleFetchStrategy
-        )
+            val resolvedEnvConfig = environmentService.setUpEnvironment(
+                context,
+                downloadResult.directory,
+                envConfigFromJob,
+                repositoryServices
+            )
+            val ortResult = runner.run(context, downloadResult.directory, job.configuration, resolvedEnvConfig)
 
-        ortRunService.updateResolvedRevision(ortRun.id, downloadResult.resolvedRevision)
+            ortRunService.storeRepositoryInformation(ortRun.id, ortResult.repository)
+            ortRunService.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)
 
-        val resolvedEnvConfig = environmentService.setUpEnvironment(
-            context,
-            downloadResult.directory,
-            envConfigFromJob,
-            repositoryServices
-        )
-        val ortResult = runner.run(context, downloadResult.directory, job.configuration, resolvedEnvConfig)
+            val analyzerRun = ortResult.analyzer
+                ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
-        ortRunService.storeRepositoryInformation(ortRun.id, ortResult.repository)
-        ortRunService.storeResolvedPackageCurations(job.ortRunId, ortResult.resolvedConfiguration.packageCurations)
+            logger.info(
+                "Analyzer job '${job.id}' for repository '${repository.url}' with revision ${ortRun.revision} " +
+                        "finished with '${analyzerRun.result.issues.values.size}' issues."
+            )
 
-        val analyzerRun = ortResult.analyzer
-            ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
+            val shortestPathsByIdentifier = mutableMapOf<Identifier, MutableList<ShortestDependencyPath>>()
 
-        logger.info(
-            "Analyzer job '${job.id}' for repository '${repository.url}' with revision ${ortRun.revision} finished " +
-                    "with '${analyzerRun.result.issues.values.size}' issues."
-        )
-
-        val shortestPathsByIdentifier = mutableMapOf<Identifier, MutableList<ShortestDependencyPath>>()
-
-        analyzerRun.result.projects.forEach { project ->
-            getIdentifierToShortestPathsMap(
-                project.id.mapToModel(),
-                ortResult.dependencyNavigator.getShortestPaths(project)
-            ).forEach { (identifier, path) ->
-                shortestPathsByIdentifier.getOrPut(identifier) { mutableListOf() } += path
+            analyzerRun.result.projects.forEach { project ->
+                getIdentifierToShortestPathsMap(
+                    project.id.mapToModel(),
+                    ortResult.dependencyNavigator.getShortestPaths(project)
+                ).forEach { (identifier, path) ->
+                    shortestPathsByIdentifier.getOrPut(identifier) { mutableListOf() } += path
+                }
             }
-        }
 
-        db.dbQuery {
-            getValidAnalyzerJob(jobId)
-            ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
-        }
+            db.dbQuery {
+                getValidAnalyzerJob(jobId)
+                ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
+            }
 
-        if (analyzerRun.result.issues.values.flatten().any { it.severity >= Severity.WARNING }) {
-            RunResult.FinishedWithIssues
-        } else {
-            RunResult.Success
+            if (analyzerRun.result.issues.values.flatten().any { it.severity >= Severity.WARNING }) {
+                RunResult.FinishedWithIssues
+            } else {
+                RunResult.Success
+            }
         }
     }.getOrElse {
         when (it) {

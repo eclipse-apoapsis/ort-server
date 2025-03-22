@@ -24,6 +24,7 @@ import java.io.File
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
@@ -104,4 +105,10 @@ interface WorkerContext : AutoCloseable {
      * downloaded.
      */
     suspend fun downloadConfigurationDirectory(path: Path, targetDirectory: File): Map<Path, File>
+
+    /**
+     * Install the given list of [services] in ORT Server's authenticator, so that their credentials can be used to
+     * access the corresponding URLs.
+     */
+    suspend fun setupAuthentication(services: Collection<InfrastructureService>)
 }

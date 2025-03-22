@@ -44,32 +44,33 @@ internal class EvaluatorWorker(
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidEvaluatorJob(jobId)
-        val workerContext = workerContextFactory.createContext(job.ortRunId)
-        val ortRun = workerContext.ortRun
+        workerContextFactory.withContext(job.ortRunId) { workerContext ->
+            val ortRun = workerContext.ortRun
 
-        job = ortRunService.startEvaluatorJob(job.id)
-            ?: throw IllegalArgumentException("The evaluator job with id '$jobId' could not be started.")
-        logger.debug("Evaluator job with id '{}' started at {}.", job.id, job.startedAt)
+            job = ortRunService.startEvaluatorJob(job.id)
+                ?: throw IllegalArgumentException("The evaluator job with id '$jobId' could not be started.")
+            logger.debug("Evaluator job with id '{}' started at {}.", job.id, job.startedAt)
 
-        if (job.configuration.keepAliveWorker == true) {
-            EndpointComponent.generateKeepAliveFile()
-        }
+            if (job.configuration.keepAliveWorker == true) {
+                EndpointComponent.generateKeepAliveFile()
+            }
 
-        val ortResult = ortRunService.generateOrtResult(ortRun)
+            val ortResult = ortRunService.generateOrtResult(ortRun)
 
-        val evaluatorRunnerResult = runner.run(ortResult, job.configuration, workerContext)
+            val evaluatorRunnerResult = runner.run(ortResult, job.configuration, workerContext)
 
-        db.dbQuery {
-            getValidEvaluatorJob(job.id)
-            ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(job.id))
-            ortRunService.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
-            ortRunService.storeResolvedResolutions(ortRun.id, evaluatorRunnerResult.resolutions)
-        }
+            db.dbQuery {
+                getValidEvaluatorJob(job.id)
+                ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(job.id))
+                ortRunService.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
+                ortRunService.storeResolvedResolutions(ortRun.id, evaluatorRunnerResult.resolutions)
+            }
 
-        if (evaluatorRunnerResult.evaluatorRun.violations.any { it.severity >= Severity.WARNING }) {
-            RunResult.FinishedWithIssues
-        } else {
-            RunResult.Success
+            if (evaluatorRunnerResult.evaluatorRun.violations.any { it.severity >= Severity.WARNING }) {
+                RunResult.FinishedWithIssues
+            } else {
+                RunResult.Success
+            }
         }
     }.getOrElse {
         when (it) {

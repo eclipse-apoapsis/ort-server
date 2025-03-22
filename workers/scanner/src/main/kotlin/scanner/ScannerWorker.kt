@@ -74,31 +74,31 @@ class ScannerWorker(
             Pair(job, ortResult)
         }
 
-        val context = contextFactory.createContext(scannerJob.ortRunId)
+        contextFactory.withContext(scannerJob.ortRunId) { context ->
+            environmentService.generateNetRcFileForCurrentRun(context)
 
-        environmentService.generateNetRcFileForCurrentRun(context)
+            val scannerRunId = ortRunService.createScannerRun(scannerJob.id).id
 
-        val scannerRunId = ortRunService.createScannerRun(scannerJob.id).id
+            if (scannerJob.configuration.keepAliveWorker == true) {
+                EndpointComponent.generateKeepAliveFile()
+            }
 
-        if (scannerJob.configuration.keepAliveWorker == true) {
-            EndpointComponent.generateKeepAliveFile()
-        }
+            val scannerRunResult = runner.run(context, ortResult, scannerJob.configuration, scannerRunId)
 
-        val scannerRunResult = runner.run(context, ortResult, scannerJob.configuration, scannerRunId)
+            val issues = scannerRunResult.extractIssues()
+            db.dbQuery {
+                getValidScannerJob(scannerJob.id)
+                ortRunService.finalizeScannerRun(
+                    scannerRunResult.scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId),
+                    issues
+                )
+            }
 
-        val issues = scannerRunResult.extractIssues()
-        db.dbQuery {
-            getValidScannerJob(scannerJob.id)
-            ortRunService.finalizeScannerRun(
-                scannerRunResult.scannerRun.mapToModel(scannerJob.id).copy(id = scannerRunId),
-                issues
-            )
-        }
-
-        if (issues.any { it.severity >= Severity.WARNING }) {
-            RunResult.FinishedWithIssues
-        } else {
-            RunResult.Success
+            if (issues.any { it.severity >= Severity.WARNING }) {
+                RunResult.FinishedWithIssues
+            } else {
+                RunResult.Success
+            }
         }
     }.getOrElse {
         when (it) {
