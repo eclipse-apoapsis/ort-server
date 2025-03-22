@@ -109,6 +109,8 @@ private class EndpointForTesting : EndpointComponent<OrchestratorMessage>(Orches
         publisher.publish(AnalyzerEndpoint, response)
 
         service.process()
+
+        EndpointHandlerResult.CONTINUE
     }
 
     override fun customModules(): List<Module> {

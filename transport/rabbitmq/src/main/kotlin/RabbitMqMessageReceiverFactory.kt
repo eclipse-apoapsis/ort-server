@@ -30,15 +30,19 @@ import com.rabbitmq.client.Envelope
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 
+import kotlin.coroutines.coroutineContext
+
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.cancellable
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageReceiverFactory
 import org.eclipse.apoapsis.ortserver.transport.json.JsonSerializer
@@ -62,7 +66,11 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
         configManager: ConfigManager,
         handler: EndpointHandler<T>
     ) {
-        createMessageFlow(from, configManager).collect(handler)
+        createMessageFlow(from, configManager).cancellable().collect { message ->
+            if (handler(message) == EndpointHandlerResult.STOP) {
+                coroutineContext.cancel()
+            }
+        }
     }
 
     /**

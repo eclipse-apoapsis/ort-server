@@ -27,9 +27,21 @@ import org.eclipse.apoapsis.ortserver.config.Path
 import org.slf4j.LoggerFactory
 
 /**
- * Definition of a message handler function of an endpoint. The function is passed the message it should handle.
+ * Definition of a message handler function for an endpoint. The function is passed the message it should handle and
+ * returns whether the handler shall receive further messages.
  */
-typealias EndpointHandler<T> = suspend (Message<T>) -> Unit
+typealias EndpointHandler<T> = suspend (Message<T>) -> EndpointHandlerResult
+
+/**
+ * The result of handling a message by an [EndpointHandler].
+ */
+enum class EndpointHandlerResult {
+    /** The handler shall receive further messages. */
+    CONTINUE,
+
+    /** The handler shall not receive further messages. */
+    STOP
+}
 
 /**
  * Factory interface for setting up a receiver for an [Endpoint].

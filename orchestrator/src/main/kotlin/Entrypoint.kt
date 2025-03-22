@@ -59,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
+import org.eclipse.apoapsis.ortserver.transport.EndpointHandlerResult
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
@@ -104,6 +105,8 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
             is WorkerError -> orchestrator.handleWorkerError(message.header, payload)
             is LostSchedule -> orchestrator.handleLostSchedule(message.header, payload)
         }
+
+        EndpointHandlerResult.CONTINUE
     }
 
     override fun customModules(): List<Module> {
