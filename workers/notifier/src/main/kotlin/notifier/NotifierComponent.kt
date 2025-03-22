@@ -72,7 +72,8 @@ class NotifierComponent : EndpointComponent<NotifierRequest>(NotifierEndpoint) {
             if (response != null) publisher.publish(OrchestratorEndpoint, response)
         }
 
-        EndpointHandlerResult.CONTINUE
+        val handleSingleJobOnly = configManager.config.getBoolean("notifier.handleSingleJobOnly")
+        if (handleSingleJobOnly) EndpointHandlerResult.STOP else EndpointHandlerResult.CONTINUE
     }
 
     override fun customModules() =

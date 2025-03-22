@@ -67,7 +67,8 @@ class ConfigComponent : EndpointComponent<ConfigRequest>(ConfigEndpoint) {
 
         publisher.publish(OrchestratorEndpoint, Message(message.header, responsePayload))
 
-        EndpointHandlerResult.CONTINUE
+        val handleSingleJobOnly = configManager.config.getBoolean("config.handleSingleJobOnly")
+        if (handleSingleJobOnly) EndpointHandlerResult.STOP else EndpointHandlerResult.CONTINUE
     }
 
     override fun customModules(): List<Module> = listOf(configModule(), databaseModule(), workerContextModule())
