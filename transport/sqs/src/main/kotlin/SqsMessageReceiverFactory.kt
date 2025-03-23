@@ -82,9 +82,7 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
             waitTimeSeconds = 20
         }
 
-        var result = EndpointHandlerResult.CONTINUE
-
-        while (result == EndpointHandlerResult.CONTINUE && coroutineContext.isActive) {
+        loop@ while (coroutineContext.isActive) {
             val receiveResponse = client.receiveMessage(receiveRequest)
 
             receiveResponse.messages?.forEach { sqsMessage ->
@@ -112,8 +110,10 @@ class SqsMessageReceiverFactory : MessageReceiverFactory {
                         "traceId" to ortMessage.header.traceId,
                         "ortRunId" to ortMessage.header.ortRunId.toString()
                     ) {
-                        result = handler(ortMessage)
+                        handler(ortMessage)
                     }
+                }.onSuccess {
+                    if (it == EndpointHandlerResult.STOP) break@loop
                 }.onFailure {
                     logger.error("Error during message body processing.", it)
                 }

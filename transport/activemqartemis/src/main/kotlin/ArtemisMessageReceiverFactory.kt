@@ -78,13 +78,11 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
             connection.start()
 
             // TODO: To make this a production-ready implementation, error handling needs to be improved.
-            var running = true
-            do {
+            loop@ while (true) {
                 runCatching {
                     val jmsMessage = consumer.receiveSave()
-                    var result = EndpointHandlerResult.CONTINUE
 
-                    if (jmsMessage != null) {
+                    val result = if (jmsMessage != null) {
                         val message = ArtemisMessageConverter.toTransportMessage(jmsMessage, serializer)
 
                         withMdcContext(
@@ -97,16 +95,18 @@ class ArtemisMessageReceiverFactory : MessageReceiverFactory {
                                 message.payload.javaClass.name
                             )
 
-                            result = handler(message)
+                            handler(message)
                         }
+                    } else {
+                        // jmsMessage is null when there is an unrecoverable error with the consumer; so exit the loop.
+                        EndpointHandlerResult.STOP
                     }
 
-                    // jmsMessage is null when there is an unrecoverable error with the consumer; so exit the loop.
-                    running = result == EndpointHandlerResult.CONTINUE && jmsMessage != null
+                    if (result == EndpointHandlerResult.STOP) break@loop
                 }.onFailure { exception ->
                     logger.error("Error during message processing.", exception)
                 }
-            } while (running)
+            }
         }
     }
 }
