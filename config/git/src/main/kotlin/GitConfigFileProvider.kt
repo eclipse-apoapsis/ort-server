@@ -118,11 +118,11 @@ class GitConfigFileProvider internal constructor(
         }
     }
 
+    /**
+     * Update the working tree to the [requestedRevision]. If the [configDir] does not contain a ".git" subdirectory,
+     * the working tree is initialized first.
+     */
     private fun updateWorkingTree(requestedRevision: String) {
-        // Because resolveContext is called only once per ORT run, by the config worker,
-        // we need to make sure that other workers, which run in their own pods/containers,
-        // also initialize their workingTree when needed.
-        // We decide this based on whether configDir has a ".git" subdirectory or not.
         // TODO: there might be a better way to do this.
         synchronized(lock) {
             if (!configDir.resolve(".git").isDirectory) {
