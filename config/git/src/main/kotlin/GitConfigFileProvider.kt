@@ -69,13 +69,12 @@ class GitConfigFileProvider internal constructor(
     private val lock = Any()
 
     private lateinit var workingTree: WorkingTree
-    private lateinit var unresolvedRevision: String
     private lateinit var resolvedRevision: String
 
     override fun resolveContext(context: Context): Context {
         synchronized(lock) {
-            initWorkingTree(context.name)
-            git.updateWorkingTree(workingTree, unresolvedRevision, recursive = true)
+            val revision = initWorkingTree(context.name)
+            git.updateWorkingTree(workingTree, revision, recursive = true)
         }
 
         resolvedRevision = workingTree.getRevision()
@@ -107,12 +106,17 @@ class GitConfigFileProvider internal constructor(
         return dir.walk().maxDepth(1).filter { it.isFile }.mapTo(mutableSetOf()) { Path(it.path) }
     }
 
-    private fun initWorkingTree(revision: String) {
-        synchronized(lock) {
-            unresolvedRevision = revision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
-            val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, unresolvedRevision)
+    /**
+     * Initialize the working tree with the requested [revision]. If the revision is empty, the default branch is used.
+     * The revision used for initialization is returned.
+     */
+    private fun initWorkingTree(revision: String): String {
+        return synchronized(lock) {
+            val initRevision = revision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
+            val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
 
             workingTree = git.initWorkingTree(configDir, vcsInfo)
+            initRevision
         }
     }
 
