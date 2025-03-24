@@ -59,8 +59,7 @@ class GitConfigFileProvider internal constructor(
         fun create(config: Config): GitConfigFileProvider {
             val gitUrl = config.getString(GIT_URL)
 
-            logger.info("Creating GitConfigFileProvider.")
-            logger.debug("Git URL: '{}'.", gitUrl)
+            logger.info("Creating GitConfigFileProvider for repository '{}'.", gitUrl)
 
             return GitConfigFileProvider(gitUrl, createOrtTempDir())
         }
