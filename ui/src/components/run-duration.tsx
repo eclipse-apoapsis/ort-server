@@ -45,10 +45,10 @@ export const RunDuration = ({ createdAt, finishedAt }: RunDurationProps) => {
   return (
     <div>
       {finishedAt ? (
-        calculateDuration(createdAt, finishedAt)
+        calculateDuration(createdAt, finishedAt).formattedDuration
       ) : (
         <div className='animate-pulse italic'>
-          {calculateDuration(createdAt, currentTime)}
+          {calculateDuration(createdAt, currentTime).formattedDuration}
         </div>
       )}
     </div>
