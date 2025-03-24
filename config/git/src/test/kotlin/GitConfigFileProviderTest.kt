@@ -31,7 +31,9 @@ import org.eclipse.apoapsis.ortserver.config.Path
 
 internal const val GIT_URL = "https://github.com/doubleopen-project/ort-config-test.git"
 internal const val GIT_BRANCH_MAIN = "main"
+private const val GIT_REVISION_MAIN = "5c2d08c40dc558962a3941855cba876066f6b4b9"
 private const val GIT_BRANCH_DEV = "dev"
+private const val GIT_REVISION_DEV = "c7c011911baa064bef049c88807c4503fbe957c0"
 
 class GitConfigFileProviderTest : WordSpec({
     "resolveContext" should {
@@ -39,21 +41,21 @@ class GitConfigFileProviderTest : WordSpec({
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
             val context = provider.resolveContext(Context(""))
 
-            context.name shouldBe "5c2d08c40dc558962a3941855cba876066f6b4b9"
+            context.name shouldBe GIT_REVISION_MAIN
         }
 
         "resolve a context successfully to HEAD of the `main` branch" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
             val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            context.name shouldBe "5c2d08c40dc558962a3941855cba876066f6b4b9"
+            context.name shouldBe GIT_REVISION_MAIN
         }
 
         "resolve a context successfully to HEAD of the `dev` branch" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
             val context = provider.resolveContext(Context(GIT_BRANCH_DEV))
 
-            context.name shouldBe "c7c011911baa064bef049c88807c4503fbe957c0"
+            context.name shouldBe GIT_REVISION_DEV
         }
     }
 
