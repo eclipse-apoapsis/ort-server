@@ -29,7 +29,6 @@ import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 
-import org.ossreviewtoolkit.downloader.WorkingTree
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.plugins.versioncontrolsystems.git.GitFactory
@@ -67,8 +66,6 @@ class GitConfigFileProvider internal constructor(
 
     private val git = GitFactory.create()
     private val lock = Any()
-
-    private lateinit var workingTree: WorkingTree
 
     override fun resolveContext(context: Context): Context {
         val resolvedRevision = updateWorkingTree(context.name)
@@ -111,11 +108,13 @@ class GitConfigFileProvider internal constructor(
                 val initRevision = requestedRevision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
                 val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
 
-                workingTree = git.initWorkingTree(configDir, vcsInfo)
+                git.initWorkingTree(configDir, vcsInfo)
                 initRevision
             } else {
                 requestedRevision
             }
+
+            val workingTree = git.getWorkingTree(configDir)
 
             // Check if the requested revision was already checked out.
             if (revision == workingTree.getRevision()) return revision
