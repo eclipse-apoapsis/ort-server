@@ -38,9 +38,8 @@ import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 import org.slf4j.LoggerFactory
 
 /**
- * An implementation of [ConfigFileProvider] that reads config files from Git
- * and stores them to a local directory. The directory is temporary and only
- * exists for the lifetime of a job.
+ * An implementation of [ConfigFileProvider] that reads config files from Git and stores them to a local directory. The
+ * directory is temporary and only exists for the lifetime of a job.
  */
 class GitConfigFileProvider internal constructor(
     private val gitUrl: String,
