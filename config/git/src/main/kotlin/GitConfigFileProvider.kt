@@ -101,20 +101,6 @@ class GitConfigFileProvider internal constructor(
     }
 
     /**
-     * Initialize the working tree with the requested [revision]. If the revision is empty, the default branch is used.
-     * The revision used for initialization is returned.
-     */
-    private fun initWorkingTree(revision: String): String {
-        return synchronized(lock) {
-            val initRevision = revision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
-            val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
-
-            workingTree = git.initWorkingTree(configDir, vcsInfo)
-            initRevision
-        }
-    }
-
-    /**
      * Update the working tree to the [requestedRevision]. If the [configDir] does not contain a ".git" subdirectory,
      * the working tree is initialized first. The resolved revision is returned.
      */
@@ -122,7 +108,11 @@ class GitConfigFileProvider internal constructor(
         synchronized(lock) {
             // TODO: There might be a better way to do check if the configDir already contains a Git repository.
             val revision = if (!configDir.resolve(".git").isDirectory) {
-                initWorkingTree(requestedRevision)
+                val initRevision = requestedRevision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
+                val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
+
+                workingTree = git.initWorkingTree(configDir, vcsInfo)
+                initRevision
             } else {
                 requestedRevision
             }
