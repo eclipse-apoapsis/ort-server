@@ -101,8 +101,8 @@ class LogsCommand : SuspendingCliktCommand() {
         val outputFile = outputDir.resolve("run-$resolvedOrtRunId-$resolvedLogLevel.logs.zip")
 
         try {
-            FileSystem.SYSTEM.sink(outputFile).buffer().use { sink ->
-                client.runs.downloadLogs(resolvedOrtRunId, resolvedLogLevel, steps) { channel ->
+            client.runs.downloadLogs(resolvedOrtRunId, resolvedLogLevel, steps) { channel ->
+                FileSystem.SYSTEM.sink(outputFile).buffer().use { sink ->
                     val buffer = ByteArray(8192) // 8KiB buffer.
                     var bytesRead: Int
                     while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
@@ -110,11 +110,11 @@ class LogsCommand : SuspendingCliktCommand() {
                     }
                 }
             }
+
+            echo(outputFile.toString())
         } catch (e: NotFoundException) {
             throw LogsNotFoundException("Logs not found for run '$resolvedOrtRunId'.", e)
         }
-
-        echo(outputFile.toString())
     }
 }
 
