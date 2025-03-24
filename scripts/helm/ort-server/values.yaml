@@ -70,7 +70,7 @@ rabbitmq:
       amqp: "5672"
       amqpTls: "5671"
       manager: "15672"
-  enabled: true
+  enabled: false
   auth:
     username: admin
     password: admin
@@ -103,7 +103,7 @@ ort_server:
     ## Additionally, you can mount a directory of the host with `minikube mount` to this location.
     init_location: "/data/init-keycloak"
   artemis:
-    enabled: false
+    enabled: true
     user: "admin"
     password: "admin"
     openWirePort: 61616
