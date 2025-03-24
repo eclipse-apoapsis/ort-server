@@ -129,6 +129,7 @@ class GitConfigFileProvider internal constructor(
                 initWorkingTree(Context(requestedRevision))
             }
 
+            resolvedRevision = workingTree.getRevision()
             if (requestedRevision == resolvedRevision) return
             git.updateWorkingTree(workingTree, requestedRevision, recursive = true)
         }

@@ -30,10 +30,14 @@ import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 
 internal const val GIT_URL = "https://github.com/doubleopen-project/ort-config-test.git"
+
 internal const val GIT_BRANCH_MAIN = "main"
 private const val GIT_REVISION_MAIN = "5c2d08c40dc558962a3941855cba876066f6b4b9"
+private val RESOLVED_CONTEXT_MAIN = Context(GIT_REVISION_MAIN)
+
 private const val GIT_BRANCH_DEV = "dev"
 private const val GIT_REVISION_DEV = "c7c011911baa064bef049c88807c4503fbe957c0"
+private val RESOLVED_CONTEXT_DEV = Context(GIT_REVISION_DEV)
 
 class GitConfigFileProviderTest : WordSpec({
     "resolveContext" should {
@@ -62,51 +66,50 @@ class GitConfigFileProviderTest : WordSpec({
     "contains" should {
         "return `true` if a file from root is present" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            provider.contains(context, Path("copyright-garbage.yml")) shouldBe true
+            provider.contains(RESOLVED_CONTEXT_MAIN, Path("copyright-garbage.yml")) shouldBe true
         }
 
         "return `true` if a file from a subdirectory is present" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            provider.contains(context, Path("customer1/product1/evaluator.rules.kts")) shouldBe true
+            provider.contains(RESOLVED_CONTEXT_MAIN, Path("customer1/product1/evaluator.rules.kts")) shouldBe true
         }
 
         "return `true` if a file referred to by a symlink is present" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            provider.contains(context, Path("customer1/product1/copyright-garbage.yml")) shouldBe true
+            provider.contains(RESOLVED_CONTEXT_MAIN, Path("customer1/product1/copyright-garbage.yml")) shouldBe true
         }
 
         "return `true`if a file from a submodule is present" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            provider.contains(context, Path("ort-config-test-sm/license-classifications.yml")) shouldBe true
+            provider.contains(
+                RESOLVED_CONTEXT_MAIN,
+                Path("ort-config-test-sm/license-classifications.yml")
+            ) shouldBe true
         }
 
         "return `true` if a file from a submodule, referred to by a symlink is present" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            provider.contains(context, Path("customer1/product1/license-classifications.yml")) shouldBe true
+            provider.contains(
+                RESOLVED_CONTEXT_MAIN,
+                Path("customer1/product1/license-classifications.yml")
+            ) shouldBe true
         }
 
         "return `false` if the path refers to a directory" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            provider.contains(context, Path("customer1/")) shouldBe false
+            provider.contains(RESOLVED_CONTEXT_MAIN, Path("customer1/")) shouldBe false
         }
 
         "return `false` if a the file cannot be found" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            provider.contains(context, Path("non/existent/file")) shouldBe false
+            provider.contains(RESOLVED_CONTEXT_MAIN, Path("non/existent/file")) shouldBe false
         }
     }
 
@@ -116,28 +119,25 @@ class GitConfigFileProviderTest : WordSpec({
             val expectedFiles =
                 listOf("copyright-garbage.yml", "evaluator.rules.kts", "license-classifications.yml")
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            val listFiles = provider.listFiles(context, Path(filesPath)).map { it.nameComponent }
+            val listFiles = provider.listFiles(RESOLVED_CONTEXT_MAIN, Path(filesPath)).map { it.nameComponent }
 
             listFiles shouldContainExactlyInAnyOrder expectedFiles
         }
 
         "throw an exception if the path does not exist" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
             shouldThrow<ConfigException> {
-                provider.listFiles(context, Path("non/existent/path"))
+                provider.listFiles(RESOLVED_CONTEXT_MAIN, Path("non/existent/path"))
             }
         }
 
         "throw an exception if the path does not refer a directory" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
             shouldThrow<ConfigException> {
-                provider.listFiles(context, Path("copyright-garbage.yml"))
+                provider.listFiles(RESOLVED_CONTEXT_MAIN, Path("copyright-garbage.yml"))
             }
         }
     }
@@ -146,9 +146,8 @@ class GitConfigFileProviderTest : WordSpec({
         "successfully provide a file from `main` branch" {
             val content = "This is the main branch of the repository"
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
-            val fileContent = provider.getFile(context, Path("README.md"))
+            val fileContent = provider.getFile(RESOLVED_CONTEXT_MAIN, Path("README.md"))
                 .bufferedReader(Charsets.UTF_8).use { it.readText() }
 
             fileContent shouldBe content
@@ -157,9 +156,8 @@ class GitConfigFileProviderTest : WordSpec({
         "successfully provide a file from `dev` branch" {
             val content = "This is a dev branch of the repository"
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_DEV))
 
-            val fileContent = provider.getFile(context, Path("README.md"))
+            val fileContent = provider.getFile(RESOLVED_CONTEXT_DEV, Path("README.md"))
                 .bufferedReader(Charsets.UTF_8).use { it.readText() }
 
             fileContent shouldBe content
@@ -167,19 +165,17 @@ class GitConfigFileProviderTest : WordSpec({
 
         "throw an exception if the file cannot be found" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
             shouldThrow<ConfigException> {
-                provider.getFile(context, Path("README-non-existent.md"))
+                provider.getFile(RESOLVED_CONTEXT_MAIN, Path("README-non-existent.md"))
             }
         }
 
         "throw an exception if the path refers a directory" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))
 
             shouldThrow<ConfigException> {
-                provider.getFile(context, Path("customer1/product1"))
+                provider.getFile(RESOLVED_CONTEXT_MAIN, Path("customer1/product1"))
             }
         }
     }
