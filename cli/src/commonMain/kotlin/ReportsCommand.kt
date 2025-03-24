@@ -91,8 +91,8 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
             val reportFile = outputDir.resolve(fileName)
 
             try {
-                FileSystem.SYSTEM.sink(reportFile).buffer().use { sink ->
-                    client.runs.downloadReport(resolvedOrtRunId, fileName) { channel ->
+                client.runs.downloadReport(resolvedOrtRunId, fileName) { channel ->
+                    FileSystem.SYSTEM.sink(reportFile).buffer().use { sink ->
                         val buffer = ByteArray(8192) // 8KiB buffer.
                         var bytesRead: Int
                         while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
@@ -100,11 +100,11 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
                         }
                     }
                 }
+
+                echo(reportFile.toString())
             } catch (e: NotFoundException) {
                 throw ReportNotFoundException("Report '$fileName' not found for run '$resolvedOrtRunId'.", e)
             }
-
-            echo(reportFile.toString())
         }
     }
 }
