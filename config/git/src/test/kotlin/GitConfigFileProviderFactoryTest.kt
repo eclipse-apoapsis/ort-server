@@ -51,7 +51,7 @@ class GitConfigFileProviderFactoryTest : WordSpec({
             )
 
             val manager = ConfigManager.create(createProviderConfig())
-            manager.getFile(Context(GIT_REVISION), Path("README.md")).bufferedReader(Charsets.UTF_8)
+            manager.getFile(Context(GIT_BRANCH_MAIN), Path("README.md")).bufferedReader(Charsets.UTF_8)
                 .use { it.readText() } shouldBe CONTENT
         }
     }
