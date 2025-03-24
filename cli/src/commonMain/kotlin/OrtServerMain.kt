@@ -69,7 +69,7 @@ fun main(args: Array<String>) {
 
 class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
     init {
-        completionOption()
+        completionOption(hidden = true)
 
         subcommands(AuthCommand(), RunsCommand())
 

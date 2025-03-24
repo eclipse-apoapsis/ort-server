@@ -16,6 +16,17 @@ __skip_opt_eq() {
     fi
 }
 
+__complete_files() {
+   # Generate filename completions
+   local word="$1"
+   local IFS=$'\n'
+
+   # quote each completion to support spaces and special characters
+   COMPREPLY=($(compgen -o filenames -f -- "$word" | while read -r line; do
+       printf "%q\n" "$line"
+   done))
+}
+
 _osc() {
   local i=1
   local in_param=''
@@ -29,12 +40,6 @@ _osc() {
         --)
           can_parse_options=0
           (( i = i + 1 ));
-          continue
-          ;;
-        --generate-completion)
-          __skip_opt_eq
-          (( i = i + 1 ))
-          [[ ${i} -gt COMP_CWORD ]] && in_param='--generate-completion' || in_param=''
           continue
           ;;
         --version|-v)
@@ -67,7 +72,7 @@ _osc() {
   done
   local word="${COMP_WORDS[$COMP_CWORD]}"
   if [[ "${word}" =~ ^[-] ]]; then
-    COMPREPLY=($(compgen -W '--generate-completion --version -v -h --help' -- "${word}"))
+    COMPREPLY=($(compgen -W '--version -v -h --help' -- "${word}"))
     return
   fi
 
@@ -77,11 +82,9 @@ _osc() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --generate-completion)
+    "--version")
       ;;
-    --version)
-      ;;
-    --help)
+    "--help")
       ;;
     *)
       COMPREPLY=($(compgen -W 'auth runs' -- "${word}"))
@@ -112,10 +115,6 @@ _osc_auth() {
       esac
     fi
     case "${COMP_WORDS[$i]}" in
-      info)
-        _osc_auth_info $(( i + 1 ))
-        return
-        ;;
       login)
         _osc_auth_login $(( i + 1 ))
         return
@@ -143,57 +142,10 @@ _osc_auth() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --help)
+    "--help")
       ;;
     *)
-      COMPREPLY=($(compgen -W 'info login logout' -- "${word}"))
-      ;;
-  esac
-}
-
-_osc_auth_info() {
-  local i=$1
-  local in_param=''
-  local fixed_arg_names=()
-  local vararg_name=''
-  local can_parse_options=1
-
-  while [[ ${i} -lt $COMP_CWORD ]]; do
-    if [[ ${can_parse_options} -eq 1 ]]; then
-      case "${COMP_WORDS[$i]}" in
-        --)
-          can_parse_options=0
-          (( i = i + 1 ));
-          continue
-          ;;
-        -h|--help)
-          __skip_opt_eq
-          in_param=''
-          continue
-          ;;
-      esac
-    fi
-    case "${COMP_WORDS[$i]}" in
-      *)
-        (( i = i + 1 ))
-        # drop the head of the array
-        fixed_arg_names=("${fixed_arg_names[@]:1}")
-        ;;
-    esac
-  done
-  local word="${COMP_WORDS[$COMP_CWORD]}"
-  if [[ "${word}" =~ ^[-] ]]; then
-    COMPREPLY=($(compgen -W '-h --help' -- "${word}"))
-    return
-  fi
-
-  # We're either at an option's value, or the first remaining fixed size
-  # arg, or the vararg if there are no fixed args left
-  [[ -z "${in_param}" ]] && in_param=${fixed_arg_names[0]}
-  [[ -z "${in_param}" ]] && in_param=${vararg_name}
-
-  case "${in_param}" in
-    --help)
+      COMPREPLY=($(compgen -W 'login logout' -- "${word}"))
       ;;
   esac
 }
@@ -270,17 +222,17 @@ _osc_auth_login() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --base-url)
+    "--base-url")
       ;;
-    --token-url)
+    "--token-url")
       ;;
-    --client-id)
+    "--client-id")
       ;;
-    --username)
+    "--username")
       ;;
-    --password)
+    "--password")
       ;;
-    --help)
+    "--help")
       ;;
   esac
 }
@@ -327,7 +279,7 @@ _osc_auth_logout() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --help)
+    "--help")
       ;;
   esac
 }
@@ -386,7 +338,7 @@ _osc_runs() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --help)
+    "--help")
       ;;
     *)
       COMPREPLY=($(compgen -W 'download info start' -- "${word}"))
@@ -444,7 +396,7 @@ _osc_runs_download() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --help)
+    "--help")
       ;;
     *)
       COMPREPLY=($(compgen -W 'logs reports' -- "${word}"))
@@ -530,22 +482,21 @@ _osc_runs_download_logs() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --run-id)
+    "--run-id")
       ;;
-    --repository-id)
+    "--repository-id")
       ;;
-    --index)
+    "--index")
       ;;
-    --output-dir)
-       COMPREPLY=($(compgen -o default -- "${word}"))
+    "--output-dir")
       ;;
-    --level)
+    "--level")
       COMPREPLY=($(compgen -W 'DEBUG INFO WARN ERROR' -- "${word}"))
       ;;
-    --steps)
+    "--steps")
       COMPREPLY=($(compgen -W 'CONFIG ANALYZER ADVISOR SCANNER EVALUATOR REPORTER NOTIFIER' -- "${word}"))
       ;;
-    --help)
+    "--help")
       ;;
   esac
 }
@@ -622,18 +573,17 @@ _osc_runs_download_reports() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --run-id)
+    "--run-id")
       ;;
-    --repository-id)
+    "--repository-id")
       ;;
-    --index)
+    "--index")
       ;;
-    --file-names)
+    "--file-names")
       ;;
-    --output-dir)
-       COMPREPLY=($(compgen -o default -- "${word}"))
+    "--output-dir")
       ;;
-    --help)
+    "--help")
       ;;
   esac
 }
@@ -698,13 +648,13 @@ _osc_runs_info() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --run-id)
+    "--run-id")
       ;;
-    --repository-id)
+    "--repository-id")
       ;;
-    --index)
+    "--index")
       ;;
-    --help)
+    "--help")
       ;;
   esac
 }
@@ -774,16 +724,15 @@ _osc_runs_start() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    --repository-id)
+    "--repository-id")
       ;;
-    --wait)
+    "--wait")
       ;;
-    --parameters-file)
-       COMPREPLY=($(compgen -o default -- "${word}"))
+    "--parameters-file")
       ;;
-    --parameters)
+    "--parameters")
       ;;
-    --help)
+    "--help")
       ;;
   esac
 }
