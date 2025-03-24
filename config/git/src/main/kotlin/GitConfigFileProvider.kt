@@ -123,8 +123,8 @@ class GitConfigFileProvider internal constructor(
      * the working tree is initialized first.
      */
     private fun updateWorkingTree(requestedRevision: String) {
-        // TODO: there might be a better way to do this.
         synchronized(lock) {
+            // TODO: There might be a better way to do check if the configDir already contains a Git repository.
             if (!configDir.resolve(".git").isDirectory) {
                 initWorkingTree(Context(requestedRevision))
             }
