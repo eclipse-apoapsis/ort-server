@@ -33,18 +33,13 @@ import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
 
-import io.ktor.utils.io.readAvailable
-
-import okio.FileSystem
 import okio.Path.Companion.toPath
-import okio.SYSTEM
-import okio.buffer
-import okio.use
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
+import org.eclipse.apoapsis.ortserver.cli.utils.writeFromChannel
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
 class LogsCommand : SuspendingCliktCommand() {
@@ -101,15 +96,7 @@ class LogsCommand : SuspendingCliktCommand() {
         val outputFile = outputDir.resolve("run-$resolvedOrtRunId-$resolvedLogLevel.logs.zip")
 
         try {
-            client.runs.downloadLogs(resolvedOrtRunId, resolvedLogLevel, steps) { channel ->
-                FileSystem.SYSTEM.sink(outputFile).buffer().use { sink ->
-                    val buffer = ByteArray(8192) // 8KiB buffer.
-                    var bytesRead: Int
-                    while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
-                        sink.write(buffer, 0, bytesRead)
-                    }
-                }
-            }
+            client.runs.downloadLogs(resolvedOrtRunId, resolvedLogLevel, steps) { outputFile.writeFromChannel(it) }
 
             echo(outputFile.toString())
         } catch (e: NotFoundException) {
