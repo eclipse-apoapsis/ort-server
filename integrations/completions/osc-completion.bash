@@ -42,6 +42,11 @@ _osc() {
           in_param=''
           continue
           ;;
+        --json)
+          __skip_opt_eq
+          in_param=''
+          continue
+          ;;
         -h|--help)
           __skip_opt_eq
           in_param=''
@@ -67,7 +72,7 @@ _osc() {
   done
   local word="${COMP_WORDS[$COMP_CWORD]}"
   if [[ "${word}" =~ ^[-] ]]; then
-    COMPREPLY=($(compgen -W '--version -v -h --help' -- "${word}"))
+    COMPREPLY=($(compgen -W '--version -v --json -h --help' -- "${word}"))
     return
   fi
 
@@ -78,6 +83,8 @@ _osc() {
 
   case "${in_param}" in
     "--version")
+      ;;
+    "--json")
       ;;
     "--help")
       ;;

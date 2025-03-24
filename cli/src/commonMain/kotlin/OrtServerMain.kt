@@ -19,12 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.cli
 
-import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
+import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.command.parse
 import com.github.ajalt.clikt.completion.completionOption
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.mordant.platform.MultiplatformSystem.exitProcess
 
@@ -33,6 +35,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.cli.model.OrtServerCliException
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.useJsonFormat
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerException
 import org.eclipse.apoapsis.ortserver.client.auth.AuthenticationException
@@ -67,7 +70,7 @@ fun main(args: Array<String>) {
     exitProcess(1)
 }
 
-class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
+class OrtServerMain : SuspendingCliktCommand(COMMAND_NAME) {
     init {
         completionOption(hidden = true)
 
@@ -81,9 +84,20 @@ class OrtServerMain : SuspendingNoOpCliktCommand(COMMAND_NAME) {
         )
     }
 
+    private val jsonFormat by option(
+        "--json",
+        envvar = "CLI_FORMAT_JSON",
+        help = "Print CLI messages as JSON."
+    ).flag()
+
     override fun help(context: Context) = """
         The ORT Server Client (OSC) is a Command Line Interface (CLI) to interact with an ORT Server instance.
     """.trimIndent()
+
+    override suspend fun run() {
+        // Make the jsonFormat flag available globally.
+        useJsonFormat = jsonFormat
+    }
 
     /**
      * Build the version information for the CLI and (if authenticated) for the ORT Server.
