@@ -31,16 +31,11 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.long
 
-import io.ktor.utils.io.readAvailable
-
-import okio.FileSystem
 import okio.Path.Companion.toPath
-import okio.SYSTEM
-import okio.buffer
-import okio.use
 
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
+import org.eclipse.apoapsis.ortserver.cli.utils.writeFromChannel
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
 class ReportsCommand : SuspendingCliktCommand(name = "reports") {
@@ -91,15 +86,7 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
             val reportFile = outputDir.resolve(fileName)
 
             try {
-                client.runs.downloadReport(resolvedOrtRunId, fileName) { channel ->
-                    FileSystem.SYSTEM.sink(reportFile).buffer().use { sink ->
-                        val buffer = ByteArray(8192) // 8KiB buffer.
-                        var bytesRead: Int
-                        while (channel.readAvailable(buffer).also { bytesRead = it } > 0) {
-                            sink.write(buffer, 0, bytesRead)
-                        }
-                    }
-                }
+                client.runs.downloadReport(resolvedOrtRunId, fileName) { reportFile.writeFromChannel(it) }
 
                 echo(reportFile.toString())
             } catch (e: NotFoundException) {
