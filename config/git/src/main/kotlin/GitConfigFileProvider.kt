@@ -74,7 +74,7 @@ class GitConfigFileProvider internal constructor(
 
     override fun resolveContext(context: Context): Context {
         synchronized(lock) {
-            initWorkingTree(context)
+            initWorkingTree(context.name)
             git.updateWorkingTree(workingTree, unresolvedRevision, recursive = true)
         }
 
@@ -107,9 +107,9 @@ class GitConfigFileProvider internal constructor(
         return dir.walk().maxDepth(1).filter { it.isFile }.mapTo(mutableSetOf()) { Path(it.path) }
     }
 
-    private fun initWorkingTree(context: Context) {
+    private fun initWorkingTree(revision: String) {
         synchronized(lock) {
-            unresolvedRevision = context.name.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
+            unresolvedRevision = revision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
             val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, unresolvedRevision)
 
             workingTree = git.initWorkingTree(configDir, vcsInfo)
@@ -124,7 +124,7 @@ class GitConfigFileProvider internal constructor(
         synchronized(lock) {
             // TODO: There might be a better way to do check if the configDir already contains a Git repository.
             if (!configDir.resolve(".git").isDirectory) {
-                initWorkingTree(Context(requestedRevision))
+                initWorkingTree(requestedRevision)
             }
 
             resolvedRevision = workingTree.getRevision()
