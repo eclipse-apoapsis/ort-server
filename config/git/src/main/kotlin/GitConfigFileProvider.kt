@@ -69,10 +69,9 @@ class GitConfigFileProvider internal constructor(
     private val lock = Any()
 
     private lateinit var workingTree: WorkingTree
-    private lateinit var resolvedRevision: String
 
     override fun resolveContext(context: Context): Context {
-        updateWorkingTree(context.name)
+        val resolvedRevision = updateWorkingTree(context.name)
         return Context(resolvedRevision)
     }
 
@@ -117,9 +116,9 @@ class GitConfigFileProvider internal constructor(
 
     /**
      * Update the working tree to the [requestedRevision]. If the [configDir] does not contain a ".git" subdirectory,
-     * the working tree is initialized first.
+     * the working tree is initialized first. The resolved revision is returned.
      */
-    private fun updateWorkingTree(requestedRevision: String) {
+    private fun updateWorkingTree(requestedRevision: String): String {
         synchronized(lock) {
             // TODO: There might be a better way to do check if the configDir already contains a Git repository.
             val revision = if (!configDir.resolve(".git").isDirectory) {
@@ -129,11 +128,11 @@ class GitConfigFileProvider internal constructor(
             }
 
             // Check if the requested revision was already checked out.
-            if (revision == workingTree.getRevision()) return
+            if (revision == workingTree.getRevision()) return revision
 
             // Update the working tree to the requested revision.
             git.updateWorkingTree(workingTree, revision, recursive = true)
-            resolvedRevision = workingTree.getRevision()
+            return workingTree.getRevision()
         }
     }
 }
