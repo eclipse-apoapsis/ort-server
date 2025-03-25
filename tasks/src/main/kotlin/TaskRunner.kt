@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepositor
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.DaoReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.services.OrphanRemovalService
 import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.storage.Storage
@@ -119,6 +120,7 @@ private fun tasksModule(): Module =
     module {
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
         single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<OrphanRemovalService> { OrphanRemovalService(get()) }
 
         single { Storage.create("reportStorage", get()) }
 
