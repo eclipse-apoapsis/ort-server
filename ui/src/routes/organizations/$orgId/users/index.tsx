@@ -18,16 +18,16 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
+import { Eye, Loader2, Pen, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
   useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
 } from '@/api/queries';
-import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
@@ -36,7 +36,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -57,6 +56,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/lib/toast';
+import { OrganizationUsersTable } from '@/routes/organizations/$orgId/users/-components/organization-users-table.tsx';
 import { groupsSchema } from '@/schemas';
 
 const formSchema = z.object({
@@ -80,30 +80,18 @@ const ManageUsers = () => {
       organizationId: Number.parseInt(params.orgId),
     });
 
+  const queryClient = useQueryClient();
+
   const { mutateAsync: addUser, isPending: isAddUserPending } =
     useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId({
       onSuccess() {
+        queryClient.invalidateQueries({
+          queryKey: [
+            useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+          ],
+        });
         toast.info('Add User', {
           description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
-
-  const { mutateAsync: removeUser, isPending: isRemoveUserPending } =
-    useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId({
-      onSuccess() {
-        toast.info('Remove User', {
-          description: `User "${form.getValues().username}" removed successfully from group "${form.getValues().groupId.toUpperCase()}".`,
         });
       },
       onError(error: ApiError) {
@@ -126,16 +114,8 @@ const ManageUsers = () => {
         username: values.username,
       },
     });
-  }
 
-  async function onRemoveUser(values: z.infer<typeof formSchema>) {
-    await removeUser({
-      organizationId: Number.parseInt(params.orgId),
-      groupId: values.groupId,
-      requestBody: {
-        username: values.username,
-      },
-    });
+    form.setValue('username', '');
   }
 
   return (
@@ -147,16 +127,25 @@ const ManageUsers = () => {
             Assign or remove users to different groups in organization:{' '}
             <span className='font-semibold'>{organization.name}</span>.
           </span>
-          <span>
-            READERS: Can view the organization and its projects and
-            repositories.
-            <br />
-            WRITERS: Can view and edit the organization and its projects and
-            repositories.
-            <br />
-            ADMINS: Can view, edit, and delete the organization and its projects
-            and repositories.
-          </span>
+          <div className='grid grid-cols-[auto_auto_1fr] items-center gap-x-2 gap-y-2'>
+            <Eye size={16} />
+            <span>READERS</span>
+            <span>
+              Can view the organization and its projects and repositories.
+            </span>
+            <Pen size={16} />
+            <span>WRITERS</span>
+            <span>
+              Can view and edit the organization and its projects and
+              repositories.
+            </span>
+            <Shield size={16} />
+            <span>ADMINS</span>
+            <span>
+              Can view, edit, and delete the organization and its projects and
+              repositories.
+            </span>
+          </div>
           <span>NOTE: The username must already exist in Keycloak.</span>
         </CardDescription>
       </CardHeader>
@@ -176,7 +165,6 @@ const ManageUsers = () => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name='groupId'
@@ -195,7 +183,12 @@ const ManageUsers = () => {
                     <SelectContent>
                       {groupsSchema.options.map((group) => (
                         <SelectItem key={group} value={group}>
-                          {group.toUpperCase()}
+                          <div className='flex items-center gap-2'>
+                            {group === 'admins' && <Shield size={16} />}
+                            {group === 'writers' && <Pen size={16} />}
+                            {group === 'readers' && <Eye size={16} />}
+                            {group.toUpperCase()}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -204,9 +197,9 @@ const ManageUsers = () => {
                 </FormItem>
               )}
             />
-          </CardContent>
-          <CardFooter className='gap-2'>
             <Button
+              size='sm'
+              className='ml-auto gap-1'
               type='submit'
               disabled={isAddUserPending}
               onClick={form.handleSubmit(onAddUser)}
@@ -220,21 +213,8 @@ const ManageUsers = () => {
                 'Add User'
               )}
             </Button>
-            <Button
-              type='submit'
-              disabled={isRemoveUserPending}
-              onClick={form.handleSubmit(onRemoveUser)}
-            >
-              {isRemoveUserPending ? (
-                <>
-                  <span className='sr-only'>Removing user...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              ) : (
-                'Remove User'
-              )}
-            </Button>
-          </CardFooter>
+            <OrganizationUsersTable />
+          </CardContent>
         </form>
       </Form>
     </Card>
@@ -242,13 +222,5 @@ const ManageUsers = () => {
 };
 
 export const Route = createFileRoute('/organizations/$orgId/users/')({
-  loader: async ({ context, params }) => {
-    await prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
-      context.queryClient,
-      {
-        organizationId: Number.parseInt(params.orgId),
-      }
-    );
-  },
   component: ManageUsers,
 });
