@@ -37,5 +37,5 @@ class GitConfigFileProviderFactory : ConfigFileProviderFactory {
     override val name: String = NAME
 
     override fun createProvider(config: Config, secretProvider: ConfigSecretProvider): ConfigFileProvider =
-        GitConfigFileProvider.create(config)
+        GitConfigFileProvider.create(config, secretProvider)
 }
