@@ -23,11 +23,17 @@ import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
 
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
@@ -513,6 +519,96 @@ val getOrtRunStatisticsByProductId: OpenApiRoute.() -> Unit = {
                             Severity.HINT to 0,
                             Severity.WARNING to 6,
                             Severity.ERROR to 98
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+private val minimalJobConfigurations = JobConfigurations(
+    analyzer = AnalyzerJobConfiguration(
+        skipExcluded = true
+    ),
+    advisor = AdvisorJobConfiguration(
+        skipExcluded = true
+    )
+)
+
+val postOrtRunsForProduct: OpenApiRoute.() -> Unit = {
+    operationId = "postOrtRunsForProduct"
+    summary = "Create ORT runs for all repositories under a product."
+    tags = listOf("Products")
+
+    request {
+        pathParameter<Long>("productId") {
+            description = "The product's ID."
+        }
+
+        jsonBody<CreateOrtRun> {
+            example("Create ORT runs using minimal job configurations (defaults)") {
+                value = CreateOrtRun(
+                    revision = "main",
+                    jobConfigs = minimalJobConfigurations
+                )
+            }
+
+            example("Create ORT runs using full job configurations") {
+                value = CreateOrtRun(
+                    revision = "main",
+                    jobConfigs = fullJobConfigurations,
+                    labels = mapOf("label key" to "label value"),
+                    path = "optional VCS sub-path",
+                    jobConfigContext = "optional context",
+                )
+            }
+        }
+    }
+
+    response {
+        HttpStatusCode.Created to {
+            description = "Success"
+            jsonBody<List<OrtRun>> {
+                example("Create ORT runs") {
+                    value = listOf(
+                        OrtRun(
+                            id = 1,
+                            index = 2,
+                            organizationId = 1,
+                            productId = 1,
+                            repositoryId = 1,
+                            revision = "main",
+                            createdAt = CREATED_AT,
+                            jobConfigs = fullJobConfigurations,
+                            resolvedJobConfigs = fullJobConfigurations,
+                            jobs = jobs,
+                            status = OrtRunStatus.CREATED,
+                            finishedAt = null,
+                            labels = mapOf("label key" to "label value"),
+                            issues = emptyList(),
+                            jobConfigContext = null,
+                            resolvedJobConfigContext = null,
+                            traceId = "35b67724-a85b-4cc3-b2a4-60fd914634e7"
+                        ),
+                        OrtRun(
+                            id = 2,
+                            index = 1,
+                            organizationId = 1,
+                            productId = 1,
+                            repositoryId = 2,
+                            revision = "main",
+                            createdAt = CREATED_AT,
+                            jobConfigs = fullJobConfigurations,
+                            resolvedJobConfigs = fullJobConfigurations,
+                            jobs = jobs,
+                            status = OrtRunStatus.CREATED,
+                            finishedAt = null,
+                            labels = mapOf("label key" to "label value"),
+                            issues = emptyList(),
+                            jobConfigContext = null,
+                            resolvedJobConfigContext = null,
+                            traceId = "35b67724-a85b-4cc3-b2a4-60fd914634e7"
                         )
                     )
                 }

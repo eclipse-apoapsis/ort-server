@@ -53,9 +53,12 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
+import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
@@ -1371,6 +1374,67 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             val createdProduct = createProduct()
             requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
                 get("/api/v1/products/${createdProduct.id}/statistics/runs")
+            }
+        }
+    }
+
+    "POST /products/{productId}/runs" should {
+        "trigger ORT runs for repositories in the product" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val repository1Id = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo1.git",
+                    productId = productId
+                ).id
+                val repository2Id = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo2.git",
+                    productId = productId
+                ).id
+
+                val createOrtRun = CreateOrtRun(
+                    revision = "main",
+                    path = "",
+                    jobConfigs = JobConfigurations(),
+                    jobConfigContext = null,
+                    labels = emptyMap(),
+                    environmentConfigPath = null
+                )
+
+                val response = superuserClient.post("/api/v1/products/$productId/runs") {
+                    setBody(createOrtRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Created
+
+                val createdRuns = response.body<List<OrtRun>>()
+                createdRuns shouldHaveSize 2
+
+                val repositoryIds = createdRuns.map { run ->
+                    dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
+                }
+                repositoryIds shouldContainExactlyInAnyOrder listOf(repository1Id, repository2Id)
+            }
+        }
+
+        "require ProductPermission.TRIGGER_ORT_RUN" {
+            val createdProduct = createProduct()
+            requestShouldRequireRole(
+                ProductPermission.TRIGGER_ORT_RUN.roleName(createdProduct.id),
+                HttpStatusCode.Created
+            ) {
+                val createOrtRun = CreateOrtRun(
+                    revision = "main",
+                    path = "",
+                    jobConfigs = JobConfigurations(),
+                    jobConfigContext = null,
+                    labels = emptyMap(),
+                    environmentConfigPath = null
+                )
+                post("/api/v1/products/${createdProduct.id}/runs") {
+                    setBody(createOrtRun)
+                }
             }
         }
     }

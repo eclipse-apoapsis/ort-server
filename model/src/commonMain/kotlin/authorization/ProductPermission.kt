@@ -46,6 +46,9 @@ enum class ProductPermission {
     /** Permission to create a [Repository] for the [Product]. */
     CREATE_REPOSITORY,
 
+    /** Permission to trigger an ORT run for the [repositories][Repository] of the [Product]. */
+    TRIGGER_ORT_RUN,
+
     /** Permission to delete the [Product]. */
     DELETE;
 
