@@ -40,19 +40,24 @@ tasks.withType<JibTask> {
 dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.dao)
+    implementation(projects.utils.logging)
     implementation(projects.services.hierarchyService)
     implementation(projects.services.reportStorageService)
     implementation(projects.storage.storageSpi)
+    implementation(projects.transport.transportSpi)
 
     implementation(libs.koinCore)
     implementation(libs.kotlinxCoroutines)
+    implementation(libs.kubernetesClient)
     implementation(libs.logback)
     implementation(libs.typesafeConfig)
 
     runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.config))
+    runtimeOnly(platform(projects.transport))
 
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.transport.transportSpi))
 
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestRunnerJunit5)
