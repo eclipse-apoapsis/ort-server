@@ -36,11 +36,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
@@ -92,26 +87,19 @@ const RepositoryRunsComponent = () => {
           <CardTitle>Runs</CardTitle>
           <CardDescription>All runs for {repo.url}</CardDescription>
           <div className='py-2'>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button asChild size='sm' className='ml-auto gap-1'>
-                  <Link
-                    to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-                    params={{
-                      orgId: params.orgId,
-                      productId: params.productId,
-                      repoId: params.repoId,
-                    }}
-                  >
-                    New run
-                    <PlusIcon className='h-4 w-4' />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Create a new ORT run for this repository
-              </TooltipContent>
-            </Tooltip>
+            <Button asChild size='sm' className='ml-auto gap-1'>
+              <Link
+                to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                params={{
+                  orgId: params.orgId,
+                  productId: params.productId,
+                  repoId: params.repoId,
+                }}
+              >
+                New run
+                <PlusIcon className='h-4 w-4' />
+              </Link>
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
