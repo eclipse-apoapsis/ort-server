@@ -65,7 +65,6 @@ class GitConfigFileProvider internal constructor(
     }
 
     private val git = GitFactory.create()
-    private val lock = Any()
 
     override fun resolveContext(context: Context): Context {
         val resolvedRevision = updateWorkingTree(context.name)
@@ -102,7 +101,7 @@ class GitConfigFileProvider internal constructor(
      * the working tree is initialized first. The resolved revision is returned.
      */
     private fun updateWorkingTree(requestedRevision: String): String {
-        synchronized(lock) {
+        synchronized(this) {
             // TODO: There might be a better way to do check if the configDir already contains a Git repository.
             val revision = if (!configDir.resolve(".git").isDirectory) {
                 val initRevision = requestedRevision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
