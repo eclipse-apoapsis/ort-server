@@ -25,6 +25,7 @@ import {
   prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
   prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns,
 } from '@/api/queries/prefetch';
+import { JobDurations } from '@/components/charts/job-durations';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -80,42 +81,49 @@ const RepositoryRunsComponent = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Runs</CardTitle>
-        <CardDescription>All runs for {repo.url}</CardDescription>
-        <div className='py-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
-                <Link
-                  to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
-                  params={{
-                    orgId: params.orgId,
-                    productId: params.productId,
-                    repoId: params.repoId,
-                  }}
-                >
-                  New run
-                  <PlusIcon className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Create a new ORT run for this repository
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <RepositoryRunsTable
-          repoId={params.repoId}
-          pageIndex={pageIndex}
-          pageSize={pageSize}
-          search={search}
-        />
-      </CardContent>
-    </Card>
+    <div className='flex flex-col gap-4'>
+      <JobDurations
+        repoId={params.repoId}
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Runs</CardTitle>
+          <CardDescription>All runs for {repo.url}</CardDescription>
+          <div className='py-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild size='sm' className='ml-auto gap-1'>
+                  <Link
+                    to='/organizations/$orgId/products/$productId/repositories/$repoId/create-run'
+                    params={{
+                      orgId: params.orgId,
+                      productId: params.productId,
+                      repoId: params.repoId,
+                    }}
+                  >
+                    New run
+                    <PlusIcon className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Create a new ORT run for this repository
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <RepositoryRunsTable
+            repoId={params.repoId}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            search={search}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
