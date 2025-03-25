@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
-
+import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
@@ -29,11 +29,14 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { config } from '@/config';
 import {
   calculateDuration,
   convertDurationToHms,
 } from '@/helpers/get-run-duration';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import { LoadingIndicator } from '../loading-indicator';
 import { ToastError } from '../toast-error';
@@ -74,6 +77,10 @@ export const JobDurations = ({
   pageIndex,
   pageSize,
 }: JobDurationsProps) => {
+  const [fetchMode, setFetchMode] = useState<'VISIBLE_RUNS' | 'ALL_RUNS'>(
+    'VISIBLE_RUNS'
+  );
+
   const {
     data: runs,
     error: runsError,
@@ -82,8 +89,8 @@ export const JobDurations = ({
   } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
     {
       repositoryId: Number.parseInt(repoId),
-      limit: pageSize,
-      offset: pageIndex * pageSize,
+      limit: fetchMode === 'VISIBLE_RUNS' ? pageSize : ALL_ITEMS,
+      offset: fetchMode === 'VISIBLE_RUNS' ? pageIndex * pageSize : undefined,
       sort: '-index',
     },
     undefined,
@@ -166,7 +173,28 @@ export const JobDurations = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Durations</CardTitle>
+        <CardTitle className='flex items-center justify-between'>
+          Durations
+          <div className='flex items-center space-x-2'>
+            <div className='text-sm font-normal'>Show durations for</div>
+            <RadioGroup
+              value={fetchMode}
+              onValueChange={(value) =>
+                setFetchMode(value as 'VISIBLE_RUNS' | 'ALL_RUNS')
+              }
+              className='flex gap-2'
+            >
+              <div className='flex items-center space-x-2'>
+                <RadioGroupItem value='VISIBLE_RUNS' id='visible' />
+                <Label htmlFor='visible'>current view</Label>
+              </div>
+              <div className='flex items-center space-x-2'>
+                <RadioGroupItem value='ALL_RUNS' id='all' />
+                <Label htmlFor='all'>all runs</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer
