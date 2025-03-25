@@ -43,6 +43,12 @@ configManager {
 }
 ```
 
+The provider supports password authentication for private repositories using these configuration options:
+
+| Option                     | Secret | Description                                      |
+|----------------------------|--------|--------------------------------------------------|
+| gitConfigFileProviderUser  | yes    | The username to use for authentication.          |
+| gitConfigFileProviderToken | yes    | The token or password to use for authentication. |
 
 ### Runtime configuration
 
