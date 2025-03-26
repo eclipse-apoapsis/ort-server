@@ -16,6 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
+import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
@@ -80,6 +81,7 @@ export const JobDurations = ({
   const [fetchMode, setFetchMode] = useState<'VISIBLE_RUNS' | 'ALL_RUNS'>(
     'VISIBLE_RUNS'
   );
+  const navigate = useNavigate();
 
   const {
     data: runs,
@@ -170,6 +172,20 @@ export const JobDurations = ({
     return null;
   }
 
+  const handleBarClick = (runIndex: string) => {
+    const run = runs.data?.find((run) => run.index === Number(runIndex));
+    if (run)
+      navigate({
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
+        params: {
+          orgId: run.organizationId.toString(),
+          productId: run.productId.toString(),
+          repoId: run.repositoryId.toString(),
+          runIndex: run.index.toString(),
+        },
+      });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -201,7 +217,13 @@ export const JobDurations = ({
           config={chartConfig}
           className='h-[200px] min-h-[200px] w-full'
         >
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart
+            accessibilityLayer
+            data={chartData}
+            onClick={(data) => {
+              handleBarClick(data.activeLabel as string);
+            }}
+          >
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey='runId'
@@ -215,38 +237,66 @@ export const JobDurations = ({
                 <ChartTooltipContent
                   hideLabel
                   className='w-[180px]'
-                  formatter={(value, name) => (
-                    <div className='flex w-full items-baseline justify-between'>
-                      <div className='flex items-baseline gap-2'>
-                        <div
-                          className='size-2.5 shrink-0 rounded-[2px]'
-                          style={{
-                            backgroundColor: `var(--color-${name})`,
-                          }}
-                        />
-                        <div>
-                          {chartConfig[name as keyof typeof chartConfig]
-                            ?.label || name}
+                  formatter={(value, name, _item, index) => (
+                    <>
+                      <div className='flex w-full items-baseline justify-between'>
+                        <div className='flex items-baseline gap-2'>
+                          <div
+                            className='size-2.5 shrink-0 rounded-[2px]'
+                            style={{
+                              backgroundColor: `var(--color-${name})`,
+                            }}
+                          />
+                          <div>
+                            {chartConfig[name as keyof typeof chartConfig]
+                              ?.label || name}
+                          </div>
+                        </div>
+                        <div className='text-muted-foreground font-mono text-xs'>
+                          {convertDurationToHms(Number(value))}
                         </div>
                       </div>
-                      <div className='text-muted-foreground font-mono text-xs'>
-                        {convertDurationToHms(Number(value))}
-                      </div>
-                    </div>
+                      {index === 4 && (
+                        <div className='text-muted-foreground text-xs'>
+                          Click bar to go to run
+                        </div>
+                      )}
+                    </>
                   )}
                 />
               }
             />
             <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey='analyzer' stackId='a' fill='var(--color-analyzer)' />
-            <Bar dataKey='advisor' stackId='a' fill='var(--color-advisor)' />
-            <Bar dataKey='scanner' stackId='a' fill='var(--color-scanner)' />
+            <Bar
+              dataKey='analyzer'
+              stackId='a'
+              fill='var(--color-analyzer)'
+              className='cursor-pointer'
+            />
+            <Bar
+              dataKey='advisor'
+              stackId='a'
+              fill='var(--color-advisor)'
+              className='cursor-pointer'
+            />
+            <Bar
+              dataKey='scanner'
+              stackId='a'
+              fill='var(--color-scanner)'
+              className='cursor-pointer'
+            />
             <Bar
               dataKey='evaluator'
               stackId='a'
               fill='var(--color-evaluator)'
+              className='cursor-pointer'
             />
-            <Bar dataKey='reporter' stackId='a' fill='var(--color-reporter)' />
+            <Bar
+              dataKey='reporter'
+              stackId='a'
+              fill='var(--color-reporter)'
+              className='cursor-pointer'
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>
