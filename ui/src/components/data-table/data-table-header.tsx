@@ -105,9 +105,9 @@ export function DataTableHeader<TData>({
                       onClick={column.getToggleSortingHandler()}
                     >
                       {column.getIsSorted() === 'asc' ? (
-                        <ChevronUp className='h-4 w-4' />
+                        <ChevronUp className='h-4 w-4 text-blue-500' />
                       ) : column.getIsSorted() === 'desc' ? (
-                        <ChevronDown className='h-4 w-4' />
+                        <ChevronDown className='h-4 w-4 text-blue-500' />
                       ) : (
                         <ChevronsUpDown className='h-4 w-4' />
                       )}
