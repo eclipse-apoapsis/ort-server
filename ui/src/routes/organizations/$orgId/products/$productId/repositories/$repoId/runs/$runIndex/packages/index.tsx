@@ -297,6 +297,9 @@ const PackagesComponent = () => {
     }),
   ];
 
+  // Match the column id properly when ORT ID or PURL is used for the column data.
+  const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
+
   const table = useReactTable({
     data: packages?.data || [],
     columns,
@@ -308,7 +311,7 @@ const PackagesComponent = () => {
       },
       sorting: search.sortBy,
       columnFilters: [
-        { id: 'identifier', value: packageId },
+        { id: columnId, value: packageId },
         { id: 'processedDeclaredLicense', value: declaredLicense },
       ],
     },
