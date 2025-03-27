@@ -237,7 +237,7 @@ export const JobDurations = ({
                 <ChartTooltipContent
                   hideLabel
                   className='w-[180px]'
-                  formatter={(value, name, _item, index) => (
+                  formatter={(value, name) => (
                     <>
                       <div className='flex w-full items-baseline justify-between'>
                         <div className='flex items-baseline gap-2'>
@@ -256,13 +256,13 @@ export const JobDurations = ({
                           {convertDurationToHms(Number(value))}
                         </div>
                       </div>
-                      {index === 4 && (
-                        <div className='text-muted-foreground text-xs'>
-                          Click bar to go to run
-                        </div>
-                      )}
                     </>
                   )}
+                  footer={
+                    <div className='text-muted-foreground text-xs'>
+                      Click bar to go to run
+                    </div>
+                  }
                 />
               }
             />
