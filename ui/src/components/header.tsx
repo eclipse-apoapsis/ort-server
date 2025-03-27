@@ -27,6 +27,7 @@ import { z } from 'zod';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { extractInitials } from '@/helpers/extract-initials.ts';
 import { useUser } from '@/hooks/use-user';
 import {
   Breadcrumb,
@@ -243,7 +244,7 @@ export const Header = () => {
             <DropdownMenuItem className='flex gap-2' disabled>
               <Avatar className='h-8 w-8'>
                 <AvatarFallback className='h-8 w-8 bg-red-400'>
-                  {user.fullName?.slice(0, 2).toUpperCase()}
+                  {extractInitials(user.fullName) ?? '??'}
                 </AvatarFallback>
               </Avatar>
               <div>
