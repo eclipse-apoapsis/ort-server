@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.mockDatabaseModule
 import org.eclipse.apoapsis.ortserver.dao.test.unmockDatabaseModule
 import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
 
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
@@ -102,6 +103,13 @@ class TaskRunnerTest : KoinTest, WordSpec() {
                 checkMain { koin ->
                     val task = koin.get<Task>(named("delete-old-ort-runs"))
                     task should beInstanceOf<DeleteOldOrtRunsTask>()
+                }
+            }
+
+            "include a task to delete orphan entities" {
+                checkMain { koin ->
+                    val task = koin.get<Task>(named("delete-orphaned-entities"))
+                    task should beInstanceOf<DeleteOrphanedEntitiesTask>()
                 }
             }
         }
