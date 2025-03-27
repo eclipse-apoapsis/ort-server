@@ -125,6 +125,7 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
+  footer,
 }: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
   React.ComponentProps<'div'> & {
     hideLabel?: boolean;
@@ -132,6 +133,7 @@ function ChartTooltipContent({
     indicator?: 'line' | 'dot' | 'dashed';
     nameKey?: string;
     labelKey?: string;
+    footer?: React.ReactNode;
   }) {
   const { config } = useChart();
 
@@ -250,6 +252,7 @@ function ChartTooltipContent({
             </div>
           );
         })}
+        {footer && <div className={cn('flex w-full')}>{footer}</div>}
       </div>
     </div>
   );
