@@ -243,13 +243,13 @@ export const Header = () => {
             <DropdownMenuItem className='flex gap-2' disabled>
               <Avatar className='h-8 w-8'>
                 <AvatarFallback className='h-8 w-8 bg-red-400'>
-                  {user.username?.slice(0, 2).toUpperCase()}
+                  {user.fullName?.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <span className='font-semibold'>{user.username}</span>
+                <span className='font-semibold'>{user.fullName}</span>
                 <br />
-                <span>{user.fullName}</span>
+                <span>{user.username}</span>
               </div>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

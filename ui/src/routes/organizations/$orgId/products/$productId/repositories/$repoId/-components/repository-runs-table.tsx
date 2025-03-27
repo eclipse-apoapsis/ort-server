@@ -96,17 +96,17 @@ const columns = [
         <TimestampWithUTC timestamp={row.original.createdAt} />
         {row.original.userDisplayName && (
           <div>
-            {row.original.userDisplayName.fullName ? (
+            {row.original.userDisplayName.username ? (
               <Tooltip>
                 <TooltipTrigger>
-                  {row.original.userDisplayName.username}
+                  {row.original.userDisplayName.fullName}
                 </TooltipTrigger>
                 <TooltipContent>
-                  {row.original.userDisplayName.fullName}
+                  {row.original.userDisplayName.username}
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <span>{row.original.userDisplayName.username}</span>
+              <span>{row.original.userDisplayName.fullName}</span>
             )}
           </div>
         )}

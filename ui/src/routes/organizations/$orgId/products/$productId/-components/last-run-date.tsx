@@ -74,15 +74,15 @@ export const LastRunDate = ({ repoId }: { repoId: number }) => {
         <TimestampWithUTC className='italic' timestamp={run.createdAt} />
       )}
       {run.userDisplayName &&
-        (run.userDisplayName.fullName ? (
+        (run.userDisplayName.username ? (
           <Tooltip>
             <TooltipTrigger className='cursor-pointer'>
-              {run.userDisplayName.username}
+              {run.userDisplayName.fullName}
             </TooltipTrigger>
-            <TooltipContent>{run.userDisplayName.fullName}</TooltipContent>
+            <TooltipContent>{run.userDisplayName.username}</TooltipContent>
           </Tooltip>
         ) : (
-          <span>{run.userDisplayName.username}</span>
+          <span>{run.userDisplayName.fullName}</span>
         ))}
     </div>
   );
