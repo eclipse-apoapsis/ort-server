@@ -81,7 +81,7 @@ class GitConfigFileProvider internal constructor(
         }
     }
 
-    private val git = GitFactory.create()
+    private val git = GitFactory.create(historyDepth = 1)
 
     override fun resolveContext(context: Context): Context {
         val resolvedRevision = updateWorkingTree(context.name)
