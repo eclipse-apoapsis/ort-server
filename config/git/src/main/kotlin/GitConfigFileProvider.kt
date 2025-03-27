@@ -24,6 +24,8 @@ import com.typesafe.config.Config
 import java.io.File
 import java.io.InputStream
 
+import kotlin.time.measureTime
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
@@ -125,7 +127,10 @@ class GitConfigFileProvider internal constructor(
                     val initRevision = requestedRevision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
                     val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
 
-                    git.initWorkingTree(configDir, vcsInfo)
+                    measureTime { git.initWorkingTree(configDir, vcsInfo) }.also {
+                        logger.debug("Initialized Git working tree in $it.")
+                    }
+
                     initRevision
                 }
             } else {
@@ -139,7 +144,9 @@ class GitConfigFileProvider internal constructor(
 
             // Update the working tree to the requested revision.
             withAuthenticator(username, token) {
-                git.updateWorkingTree(workingTree, revision, recursive = true)
+                measureTime { git.updateWorkingTree(workingTree, revision, recursive = true) }.also {
+                    logger.debug("Updated Git working tree to revision '$revision' in $it.")
+                }
             }
 
             return workingTree.getRevision()
