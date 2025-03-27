@@ -19,7 +19,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { calculateDuration } from '@/helpers/get-run-duration';
+import { calculateDuration } from '@/helpers/calculate-duration';
 
 type RunDurationProps = {
   createdAt: string;
