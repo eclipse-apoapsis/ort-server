@@ -36,7 +36,7 @@ import { config } from '@/config';
 import {
   calculateDuration,
   convertDurationToHms,
-} from '@/helpers/get-run-duration';
+} from '@/helpers/calculate-duration';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import { LoadingIndicator } from '../loading-indicator';
