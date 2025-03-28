@@ -128,7 +128,7 @@ private fun tasksModule(): Module =
         singleOf(::OrphanRemovalService)
 
         single<Task>(named("delete-old-ort-runs")) { DeleteOldOrtRunsTask.create(get(), get()) }
-        single<Task>(named("delete-orphaned-entities")) { DeleteOrphanedEntitiesTask.create(get()) }
+        single<Task>(named("delete-orphaned-entities")) { DeleteOrphanedEntitiesTask.create(get(), get()) }
     }
 
 /**

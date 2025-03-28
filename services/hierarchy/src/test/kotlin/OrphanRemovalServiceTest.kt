@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -30,6 +32,7 @@ import kotlin.random.Random
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
@@ -142,7 +145,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                     ProcessedDeclaredLicensesTable.selectAll().count() shouldBe 3
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     PackagesTable.selectAll().count() shouldBe 1
@@ -204,7 +207,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                     UnmappedDeclaredLicensesTable.selectAll().count() shouldBe 1
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     ProjectsTable.selectAll().count() shouldBe 1
@@ -257,7 +260,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                     AuthorsTable.selectAll().count() shouldBe 8
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     AuthorsTable.selectAll().count() shouldBe 3
@@ -306,7 +309,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                     DeclaredLicensesTable.selectAll().count() shouldBe 7
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     DeclaredLicensesTable.selectAll().count() shouldBe 2
@@ -363,7 +366,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                     VcsInfoTable.selectAll().count() shouldBe 11
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     VcsInfoTable.selectAll().count() shouldBe 8
@@ -405,13 +408,27 @@ class OrphanRemovalServiceTest : WordSpec() {
                     RemoteArtifactsTable.selectAll().count() shouldBe 9
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     RemoteArtifactsTable.selectAll().count() shouldBe 6
                     RemoteArtifactsTable.selectAll().toList().forEach {
                         it[RemoteArtifactsTable.url] shouldStartWith "not.to.delete"
                     }
+                }
+            }
+
+            "take the limit into account when deleting entities" {
+                db.dbQuery {
+                    (1..16).forEach {
+                        createRemoteArtifactsTableEntry(url = "https://repo.example.com/artifact-$it")
+                    }
+                }
+
+                service.deleteRunsOrphanedEntities(createConfigManager())
+
+                db.dbQuery {
+                    RemoteArtifactsTable.selectAll().count() shouldBe 6
                 }
             }
         }
@@ -746,4 +763,18 @@ class OrphanRemovalServiceTest : WordSpec() {
             it[this.projectId] = projectId
             it[this.name] = name
         } get ProjectScopesTable.id
+}
+
+/**
+ * Return a [ConfigManager] instance with the default configuration for orphan deletion.
+ */
+private fun createConfigManager(): ConfigManager {
+    val configMap = mapOf(
+        "vcsInfo.limit" to "10",
+        "vcsInfo.chunkSize" to "2",
+        "remoteArtifacts.limit" to "10",
+        "remoteArtifacts.chunkSize" to "2"
+    )
+
+    return ConfigManager.create(ConfigFactory.parseMap(configMap))
 }

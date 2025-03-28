@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalService
 import org.eclipse.apoapsis.ortserver.tasks.Task
 
@@ -30,22 +32,28 @@ import org.slf4j.LoggerFactory
  * during [DeleteOldOrtRunsTask] run.
  */
 class DeleteOrphanedEntitiesTask(
+    /** The object for accessing configuration data. */
+    private val config: ConfigManager,
+
     /** Service for deleting entities orphaned after ORT run deletion */
     private var orphanRemovalService: OrphanRemovalService
 ) : Task {
     companion object {
         private val logger = LoggerFactory.getLogger(DeleteOrphanedEntitiesTask::class.java)
 
+        /** The section containing configuration for orphaned entity deletion. */
+        private val ORPHAN_SECTION = Path("orphanHandlers")
+
         /**
          * Create a new instance of [DeleteOldOrtRunsTask].
          */
-        fun create(orphanRemovalService: OrphanRemovalService): DeleteOrphanedEntitiesTask {
-            return DeleteOrphanedEntitiesTask(orphanRemovalService)
+        fun create(config: ConfigManager, orphanRemovalService: OrphanRemovalService): DeleteOrphanedEntitiesTask {
+            return DeleteOrphanedEntitiesTask(config, orphanRemovalService)
         }
     }
 
     override suspend fun execute() {
         logger.info("Deleting orphaned ORT run entities.")
-        orphanRemovalService.deleteRunsOrphanedEntities()
+        orphanRemovalService.deleteRunsOrphanedEntities(config.subConfig(ORPHAN_SECTION))
     }
 }
