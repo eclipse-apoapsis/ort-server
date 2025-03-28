@@ -63,8 +63,6 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
-import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
-import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -86,6 +84,8 @@ import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.koin.ktor.ext.inject
 

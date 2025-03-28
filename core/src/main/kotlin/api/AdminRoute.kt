@@ -40,9 +40,9 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.runPermissionsSync
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
-import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.UserService
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.koin.ktor.ext.inject
 

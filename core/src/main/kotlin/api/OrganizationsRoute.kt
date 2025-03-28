@@ -73,8 +73,6 @@ import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.utils.paginate
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
-import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
-import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Secret
@@ -89,6 +87,8 @@ import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.koin.ktor.ext.inject
 
