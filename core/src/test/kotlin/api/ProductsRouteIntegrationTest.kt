@@ -80,6 +80,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
@@ -87,13 +91,6 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole.ADMIN
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole.READER
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole.WRITER
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -891,9 +888,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NoContent
 
                     val groupName = when (groupId) {
-                        "readers" -> READER.groupName(createdProd.id)
-                        "writers" -> WRITER.groupName(createdProd.id)
-                        "admins" -> ADMIN.groupName(createdProd.id)
+                        "readers" -> ProductRole.READER.groupName(createdProd.id)
+                        "writers" -> ProductRole.WRITER.groupName(createdProd.id)
+                        "admins" -> ProductRole.ADMIN.groupName(createdProd.id)
                         else -> error("Unknown group: $groupId")
                     }
                     val group = keycloakClient.getGroup(GroupName(groupName))
@@ -921,9 +918,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                     // Check pre-condition
                     val groupName = when (groupId) {
-                        "readers" -> READER.groupName(createdProd.id)
-                        "writers" -> WRITER.groupName(createdProd.id)
-                        "admins" -> ADMIN.groupName(createdProd.id)
+                        "readers" -> ProductRole.READER.groupName(createdProd.id)
+                        "writers" -> ProductRole.WRITER.groupName(createdProd.id)
+                        "admins" -> ProductRole.ADMIN.groupName(createdProd.id)
                         else -> error("Unknown group: $groupId")
                     }
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
