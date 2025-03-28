@@ -19,7 +19,27 @@
 
 package org.eclipse.apoapsis.ortserver.cli.utils
 
+import com.github.ajalt.clikt.command.SuspendingCliktCommand
+
+import kotlinx.serialization.Serializable
+
+import org.eclipse.apoapsis.ortserver.cli.json
+
 /**
  * Global variable that gets toggled by a command line parameter parsed in the main entry points of the modules.
  */
 var useJsonFormat = false
+
+/**
+ * Print the [message] of an error to stderr. If required as a [json][CliError] object.
+ */
+internal fun SuspendingCliktCommand.echoError(message: String?) {
+    if (useJsonFormat) {
+        echo(json.encodeToString(CliError(message)), err = true)
+    } else {
+        echo(message, err = true)
+    }
+}
+
+@Serializable
+private data class CliError(val message: String?)

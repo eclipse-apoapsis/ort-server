@@ -35,6 +35,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.cli.model.OrtServerCliException
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.echoError
 import org.eclipse.apoapsis.ortserver.cli.utils.useJsonFormat
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerException
@@ -55,16 +56,17 @@ fun main(args: Array<String>) {
 
         exitProcess(0)
     } catch (e: AuthenticationException) {
-        cli.echo(e.message, err = true)
+        cli.echoError(e.message)
     } catch (e: OrtServerCliException) {
-        cli.echo(e.message, err = true)
+        cli.echoError(e.message)
     } catch (e: OrtServerException) {
-        cli.echo(e.message, err = true)
+        cli.echoError(e.message)
     } catch (e: CliktError) {
+        // The jsonFormat flag is not supported for the help message.
         cli.echoFormattedHelp(e)
         cli.currentContext.exitProcess(e.statusCode)
     } catch (@Suppress("SwallowedException", "TooGenericExceptionCaught") e: Exception) {
-        cli.echo("An unexpected error occurred.", err = true)
+        cli.echoError("An unexpected error occurred.")
     }
 
     exitProcess(1)
