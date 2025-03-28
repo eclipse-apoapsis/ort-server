@@ -23,23 +23,31 @@ import io.kotest.core.spec.style.StringSpec
 
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalService
 
 class DeleteOrphanedEntitiesTaskTest : StringSpec({
     "DeleteOrphanedEntitiesTask should start orphaned entities deletion service" {
         val orphanRemovalService = mockk<OrphanRemovalService> {
-            coEvery { deleteRunsOrphanedEntities() } just runs
+            coEvery { deleteRunsOrphanedEntities(any()) } just runs
         }
 
-        val task = DeleteOrphanedEntitiesTask.create(orphanRemovalService)
+        val subConfigManager = mockk<ConfigManager>()
+        val configManager = mockk<ConfigManager> {
+            every { subConfig(Path("orphanHandlers")) } returns subConfigManager
+        }
+
+        val task = DeleteOrphanedEntitiesTask.create(configManager, orphanRemovalService)
         task.execute()
 
         coVerify {
-            orphanRemovalService.deleteRunsOrphanedEntities()
+            orphanRemovalService.deleteRunsOrphanedEntities(subConfigManager)
         }
     }
 })
