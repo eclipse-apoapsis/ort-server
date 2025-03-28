@@ -265,7 +265,7 @@ const CreateRunPage = () => {
                 className='my-2 flex flex-row items-end space-x-2'
               >
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel>Key</FormLabel>}
+                  {index === 0 && <FormLabel className='mb-2'>Key</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`jobConfigs.parameters.${index}.key`}
@@ -280,7 +280,7 @@ const CreateRunPage = () => {
                   />
                 </div>
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel>Value</FormLabel>}
+                  {index === 0 && <FormLabel className='mb-2'>Value</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`jobConfigs.parameters.${index}.value`}
@@ -331,7 +331,7 @@ const CreateRunPage = () => {
                 className='my-2 flex flex-row items-end space-x-2'
               >
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel>Key</FormLabel>}
+                  {index === 0 && <FormLabel className='mb-2'>Key</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`labels.${index}.key`}
@@ -346,7 +346,7 @@ const CreateRunPage = () => {
                   />
                 </div>
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel>Value</FormLabel>}
+                  {index === 0 && <FormLabel className='mb-2'>Value</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`labels.${index}.value`}

@@ -161,7 +161,7 @@ export const AnalyzerFields = ({
             {environmentVariablesFields.map((field, index) => (
               <div key={field.id} className='flex flex-row items-end space-x-2'>
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel>Name</FormLabel>}
+                  {index === 0 && <FormLabel className='mb-2'>Name</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`jobConfigs.analyzer.environmentVariables.${index}.name`}
@@ -176,7 +176,7 @@ export const AnalyzerFields = ({
                   />
                 </div>
                 <div className='flex-auto'>
-                  {index === 0 && <FormLabel>Value</FormLabel>}
+                  {index === 0 && <FormLabel className='mb-2'>Value</FormLabel>}
                   <FormField
                     control={form.control}
                     name={`jobConfigs.analyzer.environmentVariables.${index}.value`}
