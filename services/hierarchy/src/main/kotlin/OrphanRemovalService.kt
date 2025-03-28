@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsIdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAuthorsTable
@@ -30,23 +29,15 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAnaly
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAuthorsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataAuthors
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageLicenseChoicesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScannersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceSubRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersIssuesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 
@@ -87,7 +78,6 @@ class OrphanRemovalService(
         logger.info("Deleted {} records from {}", deleteOrphanedProjects(), ProjectsTable.tableName)
         logger.info("Deleted {} records from {}", deleteOrphanedAuthors(), AuthorsTable.tableName)
         logger.info("Deleted {} records from {}", deleteOrphanedDeclaredLicenses(), DeclaredLicensesTable.tableName)
-        logger.info("Deleted {} records from {}", deleteOrphanedIdentifiers(), IdentifiersTable.tableName)
         logger.info("Deleted {} records from {}", deleteOrphanedVcsInfo(), VcsInfoTable.tableName)
         logger.info("Deleted {} records from {}", deleteOrphanedRemoteArtifacts(), RemoteArtifactsTable.tableName)
 
@@ -147,63 +137,6 @@ class OrphanRemovalService(
                     ProjectsDeclaredLicensesTable
                         .select(ProjectsDeclaredLicensesTable.declaredLicenseId.alias("id"))
                         .where { ProjectsDeclaredLicensesTable.declaredLicenseId eq id }
-                )
-        }
-
-    private suspend fun deleteOrphanedIdentifiers() =
-        IdentifiersTable.deleteWhereNotExists { id ->
-            ProjectsTable
-                .select(ProjectsTable.identifierId.alias("id"))
-                .where { ProjectsTable.identifierId eq id }
-                .union(
-                    PackagesTable
-                        .select(PackagesTable.identifierId.alias("id"))
-                        .where { PackagesTable.identifierId eq id }
-                )
-                .union(
-                    IdentifiersIssuesTable
-                        .select(IdentifiersIssuesTable.identifierId.alias("id"))
-                        .where { IdentifiersIssuesTable.identifierId eq id }
-                )
-                .union(
-                    AdvisorRunsIdentifiersTable
-                        .select(AdvisorRunsIdentifiersTable.identifierId.alias("id"))
-                        .where { AdvisorRunsIdentifiersTable.identifierId eq id }
-                )
-                .union(
-                    PackageProvenancesTable
-                        .select(PackageProvenancesTable.identifierId.alias("id"))
-                        .where { PackageProvenancesTable.identifierId eq id }
-                )
-                .union(
-                    RuleViolationsTable
-                        .select(RuleViolationsTable.packageIdentifierId.alias("id"))
-                        .where { RuleViolationsTable.packageIdentifierId eq id }
-                )
-                .union(
-                    PackageCurationsTable
-                        .select(PackageCurationsTable.identifierId.alias("id"))
-                        .where { PackageCurationsTable.identifierId eq id }
-                )
-                .union(
-                    PackageConfigurationsTable
-                        .select(PackageConfigurationsTable.identifierId.alias("id"))
-                        .where { PackageConfigurationsTable.identifierId eq id }
-                )
-                .union(
-                    PackageLicenseChoicesTable
-                        .select(PackageLicenseChoicesTable.identifierId.alias("id"))
-                        .where { PackageLicenseChoicesTable.identifierId eq id }
-                )
-                .union(
-                    ScannerRunsScannersTable
-                        .select(ScannerRunsScannersTable.identifierId.alias("id"))
-                        .where { ScannerRunsScannersTable.identifierId eq id }
-                )
-                .union(
-                    OrtRunsIssuesTable
-                        .select(OrtRunsIssuesTable.identifierId.alias("id"))
-                        .where { OrtRunsIssuesTable.identifierId eq id }
                 )
         }
 
