@@ -84,7 +84,7 @@ Then the different images of ORT Server:
 Finally, mount the directory containing Keycloak initialization script:
 
 ```shell
-minikube mount scripts/docker/keycloak:/data/init-keycloak &
+minikube mount scripts/docker/keycloak:/docker-entrypoint-initdb.d &
 ```
 
 ## Usage
