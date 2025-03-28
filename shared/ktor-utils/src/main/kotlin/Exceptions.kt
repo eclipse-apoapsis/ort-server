@@ -19,7 +19,7 @@
 
 @file:Suppress("MatchingDeclarationName", "Filename")
 
-package org.eclipse.apoapsis.ortserver.core.utils
+package org.eclipse.apoapsis.ortserver.shared.ktorutils
 
 /**
  * An exception to indicate that a URL path is malformed.
