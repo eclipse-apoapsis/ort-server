@@ -26,6 +26,7 @@ import io.github.smiley4.ktorswaggerui.dsl.routing.post
 import io.github.smiley4.ktorswaggerui.dsl.routing.put
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -33,8 +34,10 @@ import io.ktor.server.routing.route
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
@@ -52,15 +55,22 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByProductId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepositoriesByProductId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByProductIdAndName
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRunsForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
+import org.eclipse.apoapsis.ortserver.core.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.core.authorization.getFullName
+import org.eclipse.apoapsis.ortserver.core.authorization.getUserId
+import org.eclipse.apoapsis.ortserver.core.authorization.getUsername
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.services.IssueService
@@ -82,6 +92,7 @@ fun Route.products() = route("products/{productId}") {
     val issueService by inject<IssueService>()
     val ruleViolationService by inject<RuleViolationService>()
     val packageService by inject<PackageService>()
+    val orchestratorService by inject<OrchestratorService>()
 
     get(getProductById) {
         requirePermission(ProductPermission.READ)
@@ -371,6 +382,36 @@ fun Route.products() = route("products/{productId}") {
                     )
                 )
             }
+        }
+    }
+
+    route("runs") {
+        post(postOrtRunsForProduct) {
+            requirePermission(ProductPermission.TRIGGER_ORT_RUN)
+
+            val productId = call.requireIdParameter("productId")
+            val createOrtRun = call.receive<CreateOrtRun>()
+
+            val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
+                UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
+            }
+
+            val repositoryIds = productService.getRepositoryIdsForProduct(productId)
+
+            val createdRuns = repositoryIds.mapNotNull { repositoryId ->
+                orchestratorService.createOrtRun(
+                    repositoryId,
+                    createOrtRun.revision,
+                    createOrtRun.path,
+                    createOrtRun.jobConfigs.mapToModel(),
+                    createOrtRun.jobConfigContext,
+                    createOrtRun.labels,
+                    createOrtRun.environmentConfigPath,
+                    userDisplayName
+                ).mapToApi(Jobs())
+            }
+
+            call.respond(HttpStatusCode.Created, createdRuns)
         }
     }
 }
