@@ -29,6 +29,9 @@ keycloak:
   extraVolumeMounts:
     - mountPath: /docker-entrypoint-initdb.d
       name: keycloak-init-volume
+    - mountPath: /opt/bitnami/keycloak/data/import
+      name: keycloak-init-volume
+  extraStartupArgs: "--import-realm"
   auth:
     adminUser: "admin"
     adminPassword: "admin"
