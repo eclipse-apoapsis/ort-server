@@ -55,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.FailedJobNotifier
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LongRunningJobsFinderTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LostJobsFinderTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.MonitorConfig
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
@@ -183,6 +184,7 @@ private fun tasksModule(): Module =
                 get()
             )
         }
+        single<Task>(named("kubernetes-long-running-jobs-finder")) { LongRunningJobsFinderTask(get(), get(), get()) }
     }
 
 /**
