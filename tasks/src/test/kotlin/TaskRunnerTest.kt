@@ -45,6 +45,8 @@ import org.eclipse.apoapsis.ortserver.dao.test.unmockDatabaseModule
 import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
 
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
@@ -112,6 +114,13 @@ class TaskRunnerTest : KoinTest, WordSpec() {
                     task should beInstanceOf<DeleteOrphanedEntitiesTask>()
                 }
             }
+
+            "include a task for the Kubernetes job reaper" {
+                checkMain { koin ->
+                    val task = koin.get<Task>(named("kubernetes-reaper"))
+                    task should beInstanceOf<ReaperTask>()
+                }
+            }
         }
     }
 }
@@ -142,7 +151,12 @@ private suspend fun checkMain(block: (Koin) -> Unit) {
     try {
         coEvery { runTasks(any()) } just runs
 
-        main()
+        val environment = mapOf("ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME)
+        withEnvironment(environment) {
+            ConfigFactory.invalidateCaches()
+
+            main()
+        }
 
         val captModules = slot<List<Module>>()
         coVerify { runTasks(capture(captModules)) }
