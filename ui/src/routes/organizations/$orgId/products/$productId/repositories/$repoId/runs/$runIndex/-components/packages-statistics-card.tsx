@@ -28,6 +28,7 @@ import {
   getEcosystemBackgroundColor,
   getStatusFontColor,
 } from '@/helpers/get-status-class';
+import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
 import { toast } from '@/lib/toast';
 
 type PackagesStatisticsCardProps = {
@@ -42,9 +43,13 @@ export const PackagesStatisticsCard = ({
   runId,
 }: PackagesStatisticsCardProps) => {
   const { data, isPending, isError, error } =
-    useRunsServiceGetApiV1RunsByRunIdStatistics({
-      runId: runId,
-    });
+    useRunsServiceGetApiV1RunsByRunIdStatistics(
+      {
+        runId: runId,
+      },
+      undefined,
+      { enabled: isJobFinished(status) }
+    );
 
   if (isPending) {
     return (
@@ -73,18 +78,7 @@ export const PackagesStatisticsCard = ({
 
   const total = data.packagesCount;
   const counts = data.ecosystems;
-
-  const jobIsScheduled = status !== undefined;
-  const jobIsFinished =
-    jobIsScheduled &&
-    ['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status);
-  const { value, description } = jobIncluded
-    ? jobIsScheduled
-      ? jobIsFinished
-        ? { value: total, description: '' }
-        : { value: '...', description: 'Running' }
-      : { value: '-', description: 'Not started' }
-    : { value: 'Skipped', description: 'Enable the job for results' };
+  const { value, description } = jobStatusTexts(status, jobIncluded, total);
 
   return (
     <StatisticsCard
