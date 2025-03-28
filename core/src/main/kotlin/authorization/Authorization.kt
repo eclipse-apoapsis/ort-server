@@ -24,11 +24,11 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.RoutingContext
 
 import org.eclipse.apoapsis.ortserver.core.api.AuthorizationException
-import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
 /**
  * Return `true` if the [OrtPrincipal] of the current [call] has the provided [permission] for the organization with the

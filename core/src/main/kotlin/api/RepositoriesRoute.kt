@@ -67,8 +67,6 @@ import org.eclipse.apoapsis.ortserver.core.authorization.getUsername
 import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
-import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
-import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
@@ -76,6 +74,8 @@ import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.UserService
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.koin.ktor.ext.inject
 
