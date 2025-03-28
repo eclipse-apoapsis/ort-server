@@ -24,8 +24,11 @@ import com.typesafe.config.Config
 import java.io.File
 import java.io.InputStream
 
+import kotlin.time.measureTime
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
+import org.eclipse.apoapsis.ortserver.config.ConfigSecretProvider
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 
@@ -42,7 +45,9 @@ import org.slf4j.LoggerFactory
  */
 class GitConfigFileProvider internal constructor(
     private val gitUrl: String,
-    private val configDir: File
+    private val configDir: File,
+    private val username: String? = null,
+    private val token: String? = null
 ) : ConfigFileProvider {
     companion object {
         /**
@@ -50,21 +55,35 @@ class GitConfigFileProvider internal constructor(
          */
         const val GIT_URL = "gitUrl"
 
+        /** The path to the secret containing the Git username. */
+        val USERNAME_SECRET = Path("gitConfigFileProviderUser")
+
+        /** The path to the secret containing the Git token. */
+        val TOKEN_SECRET = Path("gitConfigFileProviderToken")
+
         private val logger = LoggerFactory.getLogger(GitConfigFileProvider::class.java)
 
         /**
          * Create a new instance of [GitConfigFileProvider] that is initialized based on the given [config].
          */
-        fun create(config: Config): GitConfigFileProvider {
+        fun create(config: Config, secretProvider: ConfigSecretProvider): GitConfigFileProvider {
             val gitUrl = config.getString(GIT_URL)
 
             logger.info("Creating GitConfigFileProvider for repository '{}'.", gitUrl)
 
-            return GitConfigFileProvider(gitUrl, createOrtTempDir())
+            val username = runCatching { secretProvider.getSecret(USERNAME_SECRET) }.onFailure {
+                logger.info("Could not get $USERNAME_SECRET from secret provider, continuing without it.")
+            }.getOrNull()
+
+            val token = runCatching { secretProvider.getSecret(TOKEN_SECRET) }.onFailure {
+                logger.info("Could not get $TOKEN_SECRET from secret provider, continuing without it.")
+            }.getOrNull()
+
+            return GitConfigFileProvider(gitUrl, createOrtTempDir(), username, token)
         }
     }
 
-    private val git = GitFactory.create()
+    private val git = GitFactory.create(historyDepth = 1)
 
     override fun resolveContext(context: Context): Context {
         val resolvedRevision = updateWorkingTree(context.name)
@@ -104,11 +123,16 @@ class GitConfigFileProvider internal constructor(
         synchronized(this) {
             // TODO: There might be a better way to do check if the configDir already contains a Git repository.
             val revision = if (!configDir.resolve(".git").isDirectory) {
-                val initRevision = requestedRevision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
-                val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
+                withAuthenticator(username, token) {
+                    val initRevision = requestedRevision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
+                    val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
 
-                git.initWorkingTree(configDir, vcsInfo)
-                initRevision
+                    measureTime { git.initWorkingTree(configDir, vcsInfo) }.also {
+                        logger.debug("Initialized Git working tree in $it.")
+                    }
+
+                    initRevision
+                }
             } else {
                 requestedRevision
             }
@@ -119,7 +143,12 @@ class GitConfigFileProvider internal constructor(
             if (revision == workingTree.getRevision()) return revision
 
             // Update the working tree to the requested revision.
-            git.updateWorkingTree(workingTree, revision, recursive = true)
+            withAuthenticator(username, token) {
+                measureTime { git.updateWorkingTree(workingTree, revision, recursive = true) }.also {
+                    logger.debug("Updated Git working tree to revision '$revision' in $it.")
+                }
+            }
+
             return workingTree.getRevision()
         }
     }
