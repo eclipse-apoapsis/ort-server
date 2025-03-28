@@ -35,9 +35,9 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
-import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class AdminRouteIntegrationTest : AbstractIntegrationTest({

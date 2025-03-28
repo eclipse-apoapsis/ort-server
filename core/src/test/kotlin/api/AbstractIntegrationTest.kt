@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER_PASSWORD
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
@@ -49,7 +50,6 @@ import org.eclipse.apoapsis.ortserver.core.setUpUserRoles
 import org.eclipse.apoapsis.ortserver.core.testutils.authNoDbConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
-import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 

@@ -23,11 +23,11 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.UserGroup
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
 
 /**
  * A service providing functions for working with [users][User].

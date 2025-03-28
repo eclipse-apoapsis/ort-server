@@ -84,6 +84,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
@@ -92,11 +94,6 @@ import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole.ADMIN
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole.READER
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole.WRITER
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
@@ -1164,9 +1161,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NoContent
 
                     val groupName = when (groupId) {
-                        "readers" -> READER.groupName(createdRepo.id)
-                        "writers" -> WRITER.groupName(createdRepo.id)
-                        "admins" -> ADMIN.groupName(createdRepo.id)
+                        "readers" -> RepositoryRole.READER.groupName(createdRepo.id)
+                        "writers" -> RepositoryRole.WRITER.groupName(createdRepo.id)
+                        "admins" -> RepositoryRole.ADMIN.groupName(createdRepo.id)
                         else -> error("Unknown group: $groupId")
                     }
                     val group = keycloakClient.getGroup(GroupName(groupName))
@@ -1194,9 +1191,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                     // Check pre-condition
                     val groupName = when (groupId) {
-                        "readers" -> READER.groupName(createdRepo.id)
-                        "writers" -> WRITER.groupName(createdRepo.id)
-                        "admins" -> ADMIN.groupName(createdRepo.id)
+                        "readers" -> RepositoryRole.READER.groupName(createdRepo.id)
+                        "writers" -> RepositoryRole.WRITER.groupName(createdRepo.id)
+                        "admins" -> RepositoryRole.ADMIN.groupName(createdRepo.id)
                         else -> error("Unknown group: $groupId")
                     }
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))

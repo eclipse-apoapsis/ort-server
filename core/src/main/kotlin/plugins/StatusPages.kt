@@ -27,8 +27,8 @@ import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 
+import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationException
 import org.eclipse.apoapsis.ortserver.core.api.AuthenticationException
-import org.eclipse.apoapsis.ortserver.core.api.AuthorizationException
 import org.eclipse.apoapsis.ortserver.core.api.ErrorResponse
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException

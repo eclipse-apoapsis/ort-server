@@ -19,13 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryRole
-import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 
 /**
  * A service to manage roles and permissions in Keycloak.

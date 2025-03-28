@@ -17,17 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.authorization
+package org.eclipse.apoapsis.ortserver.components.authorization
 
 import io.ktor.server.application.call
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.RoutingContext
 
-import org.eclipse.apoapsis.ortserver.core.api.AuthorizationException
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
 /**

@@ -24,7 +24,10 @@ import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
 
-import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
+import org.eclipse.apoapsis.ortserver.components.authorization.isSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 
 class OrtPrincipalTest : WordSpec({
     val role1 = "role1"
