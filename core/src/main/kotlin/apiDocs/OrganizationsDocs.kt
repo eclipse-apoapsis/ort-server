@@ -43,6 +43,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
+import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
+import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
@@ -700,6 +703,54 @@ val getOrtRunStatisticsByOrganizationId: OpenApiRoute.() -> Unit = {
                             Severity.HINT to 3,
                             Severity.WARNING to 1,
                             Severity.ERROR to 0
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+val getUsersForOrganization: OpenApiRoute.() -> Unit = {
+    operationId = "GetUsersForOrganization"
+    summary = "Get all users that have rights for a organization, including user privileges (groups) that user have " +
+        "within organization."
+    description = "Fields available for sorting: 'username', 'firstName', 'lastName', 'email', 'group'. " +
+        "NOTE: This endpoint supports only one sort field. All fields other than first one are ignored."
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The ID of an organization."
+        }
+
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<PagedResponse<UserWithGroups>> {
+                example("Get users for organization") {
+                    value = PagedResponse(
+                        listOf(
+                            UserWithGroups(
+                                User(
+                                    username = "jdoe",
+                                    firstName = "John",
+                                    lastName = "Doe",
+                                    email = "johndoe@example.com"
+                                ),
+                                listOf(
+                                    UserGroup.READERS,
+                                    UserGroup.WRITERS
+                                )
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 1,
+                            sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
                         )
                     )
                 }

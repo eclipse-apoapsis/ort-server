@@ -181,6 +181,18 @@ class DefaultKeycloakClient(
         }.body<List<Group>>().find { it.name == name }
             ?: throw KeycloakClientException("Could not find group with name '${name.value}'.")
 
+    override suspend fun searchGroups(name: GroupName): Set<Group> =
+        runCatching {
+            httpClient.get("$apiUrl/groups") {
+                url {
+                    parameters.append("search", name.value)
+                    parameters.append("exact", "false")
+                }
+            }
+        }.getOrElse {
+            throw KeycloakClientException("Failed to loads groups.", it)
+        }.body<List<Group>>().toSet()
+
     override suspend fun createGroup(name: GroupName) {
         runCatching {
             httpClient.post("$apiUrl/groups") {
@@ -440,10 +452,14 @@ class DefaultKeycloakClient(
 
     override suspend fun getGroupMembers(groupName: GroupName): Set<User> {
         val group = getGroup(groupName)
+        return getGroupMembers(group.id)
+    }
+
+    override suspend fun getGroupMembers(groupId: GroupId): Set<User> {
         return runCatching {
-            httpClient.get("$apiUrl/groups/${group.id.value}/members")
+            httpClient.get("$apiUrl/groups/${groupId.value}/members")
         }.getOrElse {
-            throw KeycloakClientException("Failed to get members of group '${groupName.value}'.", it)
+            throw KeycloakClientException("Failed to get members of group '${groupId.value}'.", it)
         }.body()
     }
 }

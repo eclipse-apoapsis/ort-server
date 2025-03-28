@@ -37,11 +37,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
+import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByRepositoryIdAndName
@@ -51,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunsByRepositoryId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByRepositoryId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
@@ -71,6 +75,7 @@ import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
+import org.eclipse.apoapsis.ortserver.services.UserService
 
 import org.koin.ktor.ext.inject
 
@@ -80,6 +85,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     val ortRunService by inject<OrtRunService>()
     val repositoryService by inject<RepositoryService>()
     val secretService by inject<SecretService>()
+    val userService by inject<UserService>()
 
     get(getRepositoryById) {
         requirePermission(RepositoryPermission.READ)
@@ -285,6 +291,21 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 repositoryService.removeUserFromGroup(user.username, repositoryId, groupId)
                 call.respond(HttpStatusCode.NoContent)
             }
+        }
+    }
+
+    route("users") {
+        get(getUsersForRepository) {
+            requirePermission(RepositoryPermission.READ)
+
+            val repositoryId = call.requireIdParameter("repositoryId")
+            val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
+
+            val users = userService.getUsersHavingRightsForRepository(repositoryId).mapToApi()
+
+            call.respond(
+                PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))
+            )
         }
     }
 }

@@ -39,6 +39,35 @@ data class User(
     val email: String? = null,
 )
 
+/**
+ * User group (privilege level) for repositories, products or organizations.
+ */
+@Serializable
+enum class UserGroup(private val rank: Int) {
+    /** READER privilege */
+    READERS(1),
+
+    /** WRITER privilege */
+    WRITERS(2),
+
+    /** ADMIN privilege */
+    ADMINS(3);
+
+    fun getRank() = rank
+}
+
+/**
+ * Response object for a user containing groups that user belongs to.
+ */
+@Serializable
+data class UserWithGroups(
+    /** User object */
+    val user: User,
+
+    /** List of groups user belongs to */
+    val groups: List<UserGroup>
+)
+
 @Serializable
 data class CreateUser(
     val username: String,
