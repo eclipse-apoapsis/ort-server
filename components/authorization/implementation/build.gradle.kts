@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,20 @@
  */
 
 plugins {
-    // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
     id("ort-server-publication-conventions")
 }
 
-group = "org.eclipse.apoapsis.ortserver.services"
+group = "org.eclipse.apoapsis.ortserver.components.authorization"
 
 dependencies {
-    api(projects.model)
-    api(projects.services.authorizationService)
+    api(libs.ktorServerCore)
 
-    api(libs.exposedCore)
+    implementation(projects.model)
+    implementation(projects.shared.ktorUtils)
 
-    implementation(projects.components.authorization.implementation)
-    implementation(projects.dao)
-    implementation(projects.services.reportStorageService)
+    implementation(libs.ktorServerAuth)
+    implementation(libs.ktorServerAuthJwt)
 
-    runtimeOnly(libs.logback)
-
-    testImplementation(testFixtures(projects.dao))
-
-    testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

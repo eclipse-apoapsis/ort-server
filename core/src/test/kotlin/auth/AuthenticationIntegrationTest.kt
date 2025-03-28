@@ -44,9 +44,9 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
-import org.eclipse.apoapsis.ortserver.core.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.core.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.core.plugins.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.core.setUpClientScope
