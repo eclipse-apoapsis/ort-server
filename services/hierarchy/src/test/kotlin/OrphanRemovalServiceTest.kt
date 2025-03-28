@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import com.typesafe.config.ConfigFactory
+
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -30,10 +32,8 @@ import kotlin.random.Random
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsIdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorsTable
@@ -51,40 +51,26 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsAutho
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.UnmappedDeclaredLicensesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataAuthors
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageLicenseChoicesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VcsInfoCurationDataTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VcsMatchersTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScannersTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
-import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
-import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 
 import org.jetbrains.exposed.sql.Database
@@ -159,7 +145,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                     ProcessedDeclaredLicensesTable.selectAll().count() shouldBe 3
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     PackagesTable.selectAll().count() shouldBe 1
@@ -221,7 +207,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                     UnmappedDeclaredLicensesTable.selectAll().count() shouldBe 1
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     ProjectsTable.selectAll().count() shouldBe 1
@@ -274,7 +260,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                     AuthorsTable.selectAll().count() shouldBe 8
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     AuthorsTable.selectAll().count() shouldBe 3
@@ -323,83 +309,12 @@ class OrphanRemovalServiceTest : WordSpec() {
                     DeclaredLicensesTable.selectAll().count() shouldBe 7
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     DeclaredLicensesTable.selectAll().count() shouldBe 2
                     DeclaredLicensesTable.selectAll().toList().forEach {
                         it[DeclaredLicensesTable.name] shouldStartWith "not.to.delete"
-                    }
-                }
-            }
-
-            "delete identifiers that are not associated with any other entity" {
-                db.dbQuery {
-                    createIdentifierTableEntry(name = "to.delete.1")
-
-                    // Wrapped, to prevent deletion identifier with project
-                    createProjectsAnalyzerRunsTableEntry(
-                        projectId = createProjectsTableEntry(
-                            identifierId = createIdentifierTableEntry(name = "not.to.delete.1").value
-                        ).value
-                    )
-
-                    // Wrapped, to prevent deletion identifier with package
-                    createPackageAnalyzerRunsTableEntry(
-                        createPackagesTableEntry(
-                            identifierId = createIdentifierTableEntry(name = "not.to.delete.2").value
-                        ).value,
-                        createAnalyzerRunTableEntry().value
-                    )
-
-                    createIdentifiersIssuesTableEntry(
-                        identifierId = createIdentifierTableEntry(name = "not.to.delete.3").value
-                    )
-
-                    createAdvisorRunsIdentifiersTableEntry(
-                        identifierId = createIdentifierTableEntry(name = "not.to.delete.4").value
-                    )
-
-                    createPackageProvenancesTableEntry(
-                        identifierId = createIdentifierTableEntry(name = "not.to.delete.5").value
-                    )
-
-                    createRuleViolationsTableEntry(
-                        packageIdentifierId = createIdentifierTableEntry(name = "not.to.delete.6").value
-                    )
-
-                    createPackageCurationsTableEntry(
-                        identifierId = createIdentifierTableEntry(name = "not.to.delete.7").value
-                    )
-
-                    createPackageConfigurationsTableEntry(
-                        identifierId = createIdentifierTableEntry(name = "not.to.delete.8").value
-                    )
-
-                    createPackageLicenseChoicesTableEntry(
-                        identifierId = createIdentifierTableEntry(name = "not.to.delete.9").value
-                    )
-
-                    createScannerRunsScannersTableEntry(
-                        identifierId = createIdentifierTableEntry(name = "not.to.delete.10").value
-                    )
-
-                    createOrtRunsIssuesTableEntry(
-                        identifierId = createIdentifierTableEntry(name = "not.to.delete.11").value
-                    )
-
-                    createIdentifierTableEntry(name = "to.delete.2")
-                    createIdentifierTableEntry(name = "to.delete.3")
-
-                    IdentifiersTable.selectAll().count() shouldBe 14
-                }
-
-                service.deleteRunsOrphanedEntities()
-
-                db.dbQuery {
-                    IdentifiersTable.selectAll().count() shouldBe 11
-                    IdentifiersTable.selectAll().toList().forEach {
-                        it[IdentifiersTable.name] shouldStartWith "not.to.delete"
                     }
                 }
             }
@@ -451,7 +366,7 @@ class OrphanRemovalServiceTest : WordSpec() {
                     VcsInfoTable.selectAll().count() shouldBe 11
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     VcsInfoTable.selectAll().count() shouldBe 8
@@ -493,13 +408,27 @@ class OrphanRemovalServiceTest : WordSpec() {
                     RemoteArtifactsTable.selectAll().count() shouldBe 9
                 }
 
-                service.deleteRunsOrphanedEntities()
+                service.deleteRunsOrphanedEntities(createConfigManager())
 
                 db.dbQuery {
                     RemoteArtifactsTable.selectAll().count() shouldBe 6
                     RemoteArtifactsTable.selectAll().toList().forEach {
                         it[RemoteArtifactsTable.url] shouldStartWith "not.to.delete"
                     }
+                }
+            }
+
+            "take the limit into account when deleting entities" {
+                db.dbQuery {
+                    (1..16).forEach {
+                        createRemoteArtifactsTableEntry(url = "https://repo.example.com/artifact-$it")
+                    }
+                }
+
+                service.deleteRunsOrphanedEntities(createConfigManager())
+
+                db.dbQuery {
+                    RemoteArtifactsTable.selectAll().count() shouldBe 6
                 }
             }
         }
@@ -632,46 +561,6 @@ class OrphanRemovalServiceTest : WordSpec() {
         it[this.version] = version
     } get IdentifiersTable.id
 
-    private fun createIdentifiersIssuesTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value,
-        issueId: Long = createIssuesTableEntry().value
-    ) = IdentifiersIssuesTable.insert {
-        it[this.identifierId] = identifierId
-        it[this.issueId] = issueId
-    } get IdentifiersIssuesTable.id
-
-    private fun createIssuesTableEntry() =
-        IssuesTable.insert {
-            it[this.issueSource] = "src_" + Random.nextInt(0, 10000)
-            it[this.message] = "msg_" + Random.nextInt(0, 10000)
-            it[this.severity] = Severity.ERROR
-            it[this.affectedPath] = "path/" + Random.nextInt(0, 10000)
-        } get IssuesTable.id
-
-    private fun createAdvisorRunsIdentifiersTableEntry(
-        advisorRunId: Long = createAdvisorRunsTableEntry().value,
-        identifierId: Long = createIdentifierTableEntry().value,
-    ) = AdvisorRunsIdentifiersTable.insert {
-        it[this.advisorRunId] = advisorRunId
-        it[this.identifierId] = identifierId
-    }
-
-    private fun createAdvisorRunsTableEntry() =
-        AdvisorRunsTable.insert {
-            it[this.advisorJobId] = createAdvisorJobsTableEntry().value
-            it[this.environmentId] = createEnvironmentTableEntry().value
-            it[this.startTime] = Clock.System.now()
-            it[this.endTime] = Clock.System.now()
-        } get AdvisorRunsTable.id
-
-    private fun createAdvisorJobsTableEntry() =
-        AdvisorJobsTable.insert {
-            it[this.ortRunId] = createOrtRunTableEntry().value
-            it[this.createdAt] = Clock.System.now()
-            it[this.configuration] = AdvisorJobConfiguration()
-            it[this.status] = JobStatus.FINISHED
-        } get AdvisorJobsTable.id
-
     private fun createPackageProvenancesTableEntry(
         identifierId: Long = createIdentifierTableEntry().value,
         artifactId: Long = createRemoteArtifactsTableEntry().value,
@@ -681,29 +570,6 @@ class OrphanRemovalServiceTest : WordSpec() {
         it[this.artifactId] = artifactId
         it[this.vcsId] = vcsId
     } get PackageProvenancesTable.id
-
-    private fun createRuleViolationsTableEntry(
-        rule: String = "rule_" + Random.nextInt(0, 10000),
-        packageIdentifierId: Long = createIdentifierTableEntry().value,
-        severity: Severity = Severity.WARNING,
-        message: String = "msg_" + Random.nextInt(0, 10000),
-        howToFix: String = "howhow_" + Random.nextInt(0, 10000)
-
-    ) = RuleViolationsTable.insert {
-        it[this.rule] = rule
-        it[this.packageIdentifierId] = packageIdentifierId
-        it[this.severity] = severity
-        it[this.message] = message
-        it[this.howToFix] = howToFix
-    } get RuleViolationsTable.id
-
-    private fun createPackageCurationsTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value,
-        packageCurationDataId: Long = createPackageCurationDataTableEntry().value
-    ) = PackageCurationsTable.insert {
-        it[this.identifierId] = identifierId
-        it[this.packageCurationDataId] = packageCurationDataId
-    } get PackageCurationsTable.id
 
     private fun createPackageCurationDataTableEntry(
         binaryArtifactId: Long = createRemoteArtifactsTableEntry().value,
@@ -724,62 +590,6 @@ class OrphanRemovalServiceTest : WordSpec() {
             it[this.revision] = "rev_" + Random.nextInt(0, 10000)
             it[this.path] = "path/" + Random.nextInt(0, 10000)
         } get VcsInfoCurationDataTable.id
-
-    private fun createPackageConfigurationsTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value,
-        vcsMatcherId: Long = createVcsMatchersTableEntry().value
-    ) = PackageConfigurationsTable.insert {
-        it[this.identifierId] = identifierId
-        it[this.vcsMatcherId] = vcsMatcherId
-    } get PackageConfigurationsTable.id
-
-    private fun createVcsMatchersTableEntry() =
-        VcsMatchersTable.insert {
-            it[this.type] = "type_" + Random.nextInt(0, 10000)
-            it[this.url] = "http://homepage.%d.url".format(Random.nextInt(0, 10000))
-            it[this.revision] = "rev_" + Random.nextInt(0, 10000)
-        } get VcsMatchersTable.id
-
-    private fun createPackageLicenseChoicesTableEntry(
-        identifierId: Long = createIdentifierTableEntry().value
-    ) = PackageLicenseChoicesTable.insert {
-        it[this.identifierId] = identifierId
-    } get PackageLicenseChoicesTable.id
-
-    private fun createScannerRunsScannersTableEntry(
-        scannerRunId: Long = createScannerRunsTableEntry().value,
-        identifierId: Long = createIdentifierTableEntry().value,
-        scannerName: String = "name_" + Random.nextInt(0, 10000)
-    ) = ScannerRunsScannersTable.insert {
-        it[this.scannerRunId] = scannerRunId
-        it[this.identifierId] = identifierId
-        it[this.scannerName] = scannerName
-    } get ScannerRunsScannersTable.id
-
-    private fun createScannerRunsTableEntry() =
-        ScannerRunsTable.insert {
-            it[this.scannerJobId] = createScannerJobsTableEntry()
-            it[this.environmentId] = createEnvironmentTableEntry()
-        } get ScannerRunsTable.id
-
-    private fun createScannerJobsTableEntry() =
-        ScannerJobsTable.insert {
-            it[this.ortRunId] = createOrtRunTableEntry()
-            it[this.createdAt] = Clock.System.now()
-            it[this.configuration] = ScannerJobConfiguration()
-            it[this.status] = JobStatus.CREATED
-        } get ScannerJobsTable.id
-
-    private fun createOrtRunsIssuesTableEntry(
-        ortRunId: Long = createOrtRunTableEntry().value,
-        issueId: Long = createIssuesTableEntry().value,
-        identifierId: Long = createIdentifierTableEntry().value
-    ) = OrtRunsIssuesTable.insert {
-        it[this.ortRunId] = ortRunId
-        it[this.issueId] = issueId
-        it[this.identifierId] = identifierId
-        it[this.timestamp] = Clock.System.now()
-    } get OrtRunsIssuesTable.id
 
     @Suppress("LongParameterList")
     private fun createPackagesTableEntry(
@@ -953,4 +763,18 @@ class OrphanRemovalServiceTest : WordSpec() {
             it[this.projectId] = projectId
             it[this.name] = name
         } get ProjectScopesTable.id
+}
+
+/**
+ * Return a [ConfigManager] instance with the default configuration for orphan deletion.
+ */
+private fun createConfigManager(): ConfigManager {
+    val configMap = mapOf(
+        "vcsInfo.limit" to "10",
+        "vcsInfo.chunkSize" to "2",
+        "remoteArtifacts.limit" to "10",
+        "remoteArtifacts.chunkSize" to "2"
+    )
+
+    return ConfigManager.create(ConfigFactory.parseMap(configMap))
 }

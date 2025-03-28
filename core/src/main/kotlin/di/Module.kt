@@ -67,7 +67,6 @@ import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
-import org.eclipse.apoapsis.ortserver.services.OrphanRemovalService
 import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.PackageService
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -136,7 +135,6 @@ fun ortServerModule(config: ApplicationConfig) = module {
     single { ProjectService(get()) }
     single { UserService(get()) }
     single { OrtRunService(get(), get(), get(), get()) }
-    single { OrphanRemovalService(get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)
 }
