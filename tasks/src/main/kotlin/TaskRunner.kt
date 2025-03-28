@@ -33,10 +33,20 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.DaoNotifierJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalService
 import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
@@ -45,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.FailedJobNotifier
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LostJobsFinderTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.MonitorConfig
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.TimeHelper
@@ -147,9 +158,31 @@ private fun tasksModule(): Module =
         single { BatchV1Api(get()) }
         single { CoreV1Api(get()) }
         single { MessageSenderFactory.createSender(OrchestratorEndpoint, get()) }
+        single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+        single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
+        single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
+        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
         singleOf(::FailedJobNotifier)
         singleOf(::JobHandler)
         single<Task>(named("kubernetes-reaper")) { ReaperTask(get(), get(), get()) }
+        single<Task>(named("kubernetes-lost-jobs-finder")) {
+            LostJobsFinderTask(
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get()
+            )
+        }
     }
 
 /**

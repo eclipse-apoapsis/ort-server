@@ -45,6 +45,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.unmockDatabaseModule
 import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LostJobsFinderTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
 
@@ -119,6 +120,13 @@ class TaskRunnerTest : KoinTest, WordSpec() {
                 checkMain { koin ->
                     val task = koin.get<Task>(named("kubernetes-reaper"))
                     task should beInstanceOf<ReaperTask>()
+                }
+            }
+
+            "include a task for the Kubernetes lost jobs finder" {
+                checkMain { koin ->
+                    val task = koin.get<Task>(named("kubernetes-lost-jobs-finder"))
+                    task should beInstanceOf<LostJobsFinderTask>()
                 }
             }
         }
