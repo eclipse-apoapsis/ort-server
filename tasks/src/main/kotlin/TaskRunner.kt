@@ -21,6 +21,10 @@ package org.eclipse.apoapsis.ortserver.tasks
 
 import com.typesafe.config.ConfigFactory
 
+import io.kubernetes.client.openapi.apis.BatchV1Api
+import io.kubernetes.client.openapi.apis.CoreV1Api
+import io.kubernetes.client.util.ClientBuilder
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -39,6 +43,13 @@ import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.FailedJobNotifier
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.MonitorConfig
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.TimeHelper
+import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -129,6 +140,16 @@ private fun tasksModule(): Module =
 
         single<Task>(named("delete-old-ort-runs")) { DeleteOldOrtRunsTask.create(get(), get()) }
         single<Task>(named("delete-orphaned-entities")) { DeleteOrphanedEntitiesTask.create(get(), get()) }
+
+        single { TimeHelper() }
+        single { MonitorConfig.create(get()) }
+        single { ClientBuilder.defaultClient() }
+        single { BatchV1Api(get()) }
+        single { CoreV1Api(get()) }
+        single { MessageSenderFactory.createSender(OrchestratorEndpoint, get()) }
+        singleOf(::FailedJobNotifier)
+        singleOf(::JobHandler)
+        single<Task>(named("kubernetes-reaper")) { ReaperTask(get(), get(), get()) }
     }
 
 /**
