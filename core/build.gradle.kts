@@ -51,6 +51,7 @@ tasks.withType<JibTask> {
 dependencies {
     implementation(projects.api.v1.apiV1Mapping)
     implementation(projects.clients.keycloak)
+    implementation(projects.components.authorization.implementation)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.logaccess.logaccessSpi)

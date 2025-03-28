@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.authorization
+package org.eclipse.apoapsis.ortserver.components.authorization
 
 import com.auth0.jwt.interfaces.Payload
 
 import io.ktor.server.auth.jwt.JWTPayloadHolder
 
-import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 
 /**
  * A [Principal] holding information about the authenticated ORT Server user.

@@ -44,7 +44,7 @@ import kotlin.time.measureTimedValue
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
-import org.eclipse.apoapsis.ortserver.core.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 
 import org.koin.ktor.ext.inject
 

@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.core
 import org.eclipse.apoapsis.ortserver.clients.keycloak.User
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
-import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 
 /**
  * A Keycloak [User] to be used when testing authorization in integration tests. The user is supposed to have the
