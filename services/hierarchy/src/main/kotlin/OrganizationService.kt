@@ -19,12 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.Organization
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters

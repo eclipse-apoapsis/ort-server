@@ -35,11 +35,11 @@ import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
+import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserByUsername
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.runPermissionsSync
-import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter

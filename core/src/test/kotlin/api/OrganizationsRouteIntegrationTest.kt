@@ -84,6 +84,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.addUserRole
@@ -92,14 +97,6 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole.ADMIN
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole.READER
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationRole.WRITER
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductRole
-import org.eclipse.apoapsis.ortserver.model.authorization.Superuser
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -1464,9 +1461,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NoContent
 
                     val groupName = when (groupId) {
-                        "readers" -> READER.groupName(createdOrg.id)
-                        "writers" -> WRITER.groupName(createdOrg.id)
-                        "admins" -> ADMIN.groupName(createdOrg.id)
+                        "readers" -> OrganizationRole.READER.groupName(createdOrg.id)
+                        "writers" -> OrganizationRole.WRITER.groupName(createdOrg.id)
+                        "admins" -> OrganizationRole.ADMIN.groupName(createdOrg.id)
                         else -> error("Unknown group: $groupId")
                     }
                     val group = keycloakClient.getGroup(GroupName(groupName))
@@ -1494,9 +1491,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                     // Check pre-condition
                     val groupName = when (groupId) {
-                        "readers" -> READER.groupName(createdOrg.id)
-                        "writers" -> WRITER.groupName(createdOrg.id)
-                        "admins" -> ADMIN.groupName(createdOrg.id)
+                        "readers" -> OrganizationRole.READER.groupName(createdOrg.id)
+                        "writers" -> OrganizationRole.WRITER.groupName(createdOrg.id)
+                        "admins" -> OrganizationRole.ADMIN.groupName(createdOrg.id)
                         else -> error("Unknown group: $groupId")
                     }
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
