@@ -18,16 +18,16 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
+import { Eye, Loader2, Pen, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
+  useDefaultServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
   useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
 } from '@/api/queries';
-import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
@@ -36,7 +36,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -57,6 +56,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/lib/toast';
+import { RepositoryUsersTable } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users/-components/repository-users-table.tsx';
 import { groupsSchema } from '@/schemas';
 
 const formSchema = z.object({
@@ -80,30 +80,18 @@ const ManageUsers = () => {
       repositoryId: Number.parseInt(params.repoId),
     });
 
+  const queryClient = useQueryClient();
+
   const { mutateAsync: addUser, isPending: isAddUserPending } =
     useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId({
       onSuccess() {
+        queryClient.invalidateQueries({
+          queryKey: [
+            useDefaultServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
+          ],
+        });
         toast.info('Add User', {
           description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
-
-  const { mutateAsync: removeUser, isPending: isRemoveUserPending } =
-    useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId({
-      onSuccess() {
-        toast.info('Remove User', {
-          description: `User "${form.getValues().username}" removed successfully from group "${form.getValues().groupId.toUpperCase()}".`,
         });
       },
       onError(error: ApiError) {
@@ -126,16 +114,8 @@ const ManageUsers = () => {
         username: values.username,
       },
     });
-  }
 
-  async function onRemoveUser(values: z.infer<typeof formSchema>) {
-    await removeUser({
-      repositoryId: Number.parseInt(params.repoId),
-      groupId: values.groupId,
-      requestBody: {
-        username: values.username,
-      },
-    });
+    form.setValue('username', '');
   }
 
   return (
@@ -147,13 +127,17 @@ const ManageUsers = () => {
             Assign or remove users to different groups in repository:{' '}
             <span className='font-semibold'>{repository.url}</span>.
           </span>
-          <span>
-            READERS: Can view the repository.
-            <br />
-            WRITERS: Can view and edit the repository.
-            <br />
-            ADMINS: Can view, edit, and delete the repository.
-          </span>
+          <div className='grid grid-cols-[auto_auto_1fr] items-center gap-x-2 gap-y-2'>
+            <Eye size={16} />
+            <span>READERS</span>
+            <span>Can view the repository.</span>
+            <Pen size={16} />
+            <span>WRITERS</span>
+            <span>Can view and edit the repository.</span>
+            <Shield size={16} />
+            <span>ADMINS</span>
+            <span>Can view, edit, and delete the repository.</span>
+          </div>
           <span>NOTE: The username must already exist in Keycloak.</span>
         </CardDescription>
       </CardHeader>
@@ -173,7 +157,6 @@ const ManageUsers = () => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name='groupId'
@@ -192,7 +175,12 @@ const ManageUsers = () => {
                     <SelectContent>
                       {groupsSchema.options.map((group) => (
                         <SelectItem key={group} value={group}>
-                          {group.toUpperCase()}
+                          <div className='flex items-center gap-2'>
+                            {group === 'admins' && <Shield size={16} />}
+                            {group === 'writers' && <Pen size={16} />}
+                            {group === 'readers' && <Eye size={16} />}
+                            {group.toUpperCase()}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -201,9 +189,9 @@ const ManageUsers = () => {
                 </FormItem>
               )}
             />
-          </CardContent>
-          <CardFooter className='gap-2'>
             <Button
+              size='sm'
+              className='ml-auto gap-1'
               type='submit'
               disabled={isAddUserPending}
               onClick={form.handleSubmit(onAddUser)}
@@ -217,21 +205,8 @@ const ManageUsers = () => {
                 'Add User'
               )}
             </Button>
-            <Button
-              type='submit'
-              disabled={isRemoveUserPending}
-              onClick={form.handleSubmit(onRemoveUser)}
-            >
-              {isRemoveUserPending ? (
-                <>
-                  <span className='sr-only'>Removing user...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              ) : (
-                'Remove User'
-              )}
-            </Button>
-          </CardFooter>
+            <RepositoryUsersTable />
+          </CardContent>
         </form>
       </Form>
     </Card>
@@ -241,13 +216,5 @@ const ManageUsers = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users/'
 )({
-  loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId(
-      context.queryClient,
-      {
-        repositoryId: Number.parseInt(params.repoId),
-      }
-    );
-  },
   component: ManageUsers,
 });

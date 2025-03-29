@@ -18,16 +18,16 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
+import { Eye, Loader2, Pen, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
+  useDefaultServiceGetApiV1ProductsByProductIdUsersKey,
   useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId,
 } from '@/api/queries';
-import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
 import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
@@ -36,7 +36,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -57,6 +56,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/lib/toast';
+import { ProductUsersTable } from '@/routes/organizations/$orgId/products/$productId/users/-components/product-users-table.tsx';
 import { groupsSchema } from '@/schemas';
 
 const formSchema = z.object({
@@ -80,30 +80,16 @@ const ManageUsers = () => {
       productId: Number.parseInt(params.productId),
     });
 
+  const queryClient = useQueryClient();
+
   const { mutateAsync: addUser, isPending: isAddUserPending } =
     useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId({
       onSuccess() {
+        queryClient.invalidateQueries({
+          queryKey: [useDefaultServiceGetApiV1ProductsByProductIdUsersKey],
+        });
         toast.info('Add User', {
           description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
-
-  const { mutateAsync: removeUser, isPending: isRemoveUserPending } =
-    useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId({
-      onSuccess() {
-        toast.info('Remove User', {
-          description: `User "${form.getValues().username}" removed successfully from group "${form.getValues().groupId.toUpperCase()}".`,
         });
       },
       onError(error: ApiError) {
@@ -126,16 +112,8 @@ const ManageUsers = () => {
         username: values.username,
       },
     });
-  }
 
-  async function onRemoveUser(values: z.infer<typeof formSchema>) {
-    await removeUser({
-      productId: Number.parseInt(params.productId),
-      groupId: values.groupId,
-      requestBody: {
-        username: values.username,
-      },
-    });
+    form.setValue('username', '');
   }
 
   return (
@@ -147,13 +125,19 @@ const ManageUsers = () => {
             Assign or remove users to different groups in product:{' '}
             <span className='font-semibold'>{product.name}</span>.
           </span>
-          <span>
-            READERS: Can view the product and its repositories.
-            <br />
-            WRITERS: Can view and edit the product and its repositories.
-            <br />
-            ADMINS: Can view, edit, and delete the product and its repositories.
-          </span>
+          <div className='grid grid-cols-[auto_auto_1fr] items-center gap-x-2 gap-y-2'>
+            <Eye size={16} />
+            <span>READERS</span>
+            <span>Can view the product and its repositories.</span>
+            <Pen size={16} />
+            <span>WRITERS</span>
+            <span>Can view and edit the product and its repositories.</span>
+            <Shield size={16} />
+            <span>ADMINS</span>
+            <span>
+              Can view, edit, and delete the product and its repositories.
+            </span>
+          </div>
           <span>NOTE: The username must already exist in Keycloak.</span>
         </CardDescription>
       </CardHeader>
@@ -173,7 +157,6 @@ const ManageUsers = () => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name='groupId'
@@ -192,7 +175,12 @@ const ManageUsers = () => {
                     <SelectContent>
                       {groupsSchema.options.map((group) => (
                         <SelectItem key={group} value={group}>
-                          {group.toUpperCase()}
+                          <div className='flex items-center gap-2'>
+                            {group === 'admins' && <Shield size={16} />}
+                            {group === 'writers' && <Pen size={16} />}
+                            {group === 'readers' && <Eye size={16} />}
+                            {group.toUpperCase()}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -201,9 +189,9 @@ const ManageUsers = () => {
                 </FormItem>
               )}
             />
-          </CardContent>
-          <CardFooter className='gap-2'>
             <Button
+              size='sm'
+              className='ml-auto gap-1'
               type='submit'
               disabled={isAddUserPending}
               onClick={form.handleSubmit(onAddUser)}
@@ -217,21 +205,8 @@ const ManageUsers = () => {
                 'Add User'
               )}
             </Button>
-            <Button
-              type='submit'
-              disabled={isRemoveUserPending}
-              onClick={form.handleSubmit(onRemoveUser)}
-            >
-              {isRemoveUserPending ? (
-                <>
-                  <span className='sr-only'>Removing user...</span>
-                  <Loader2 size={16} className='mx-3 animate-spin' />
-                </>
-              ) : (
-                'Remove User'
-              )}
-            </Button>
-          </CardFooter>
+            <ProductUsersTable />
+          </CardContent>
         </form>
       </Form>
     </Card>
@@ -241,13 +216,5 @@ const ManageUsers = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/users/'
 )({
-  loader: async ({ context, params }) => {
-    await prefetchUseProductsServiceGetApiV1ProductsByProductId(
-      context.queryClient,
-      {
-        productId: Number.parseInt(params.productId),
-      }
-    );
-  },
   component: ManageUsers,
 });

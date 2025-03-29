@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,33 +17,34 @@
  * License-Filename: LICENSE
  */
 
-import { TrashIcon } from 'lucide-react';
+import { EllipsisIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 
-type DeleteIconButtonProps = {
+type EllipsisIconButtonProps = {
   className?: string;
   disabled?: boolean;
 };
 
-const DeleteIconButton = forwardRef<HTMLButtonElement, DeleteIconButtonProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <Button
-        size='sm'
-        variant='outline'
-        {...props}
-        className={cn('h-8 px-2', className)}
-        ref={ref}
-      >
-        <span className='sr-only'>Delete</span>
-        <TrashIcon size={16} />
-      </Button>
-    );
-  }
-);
-DeleteIconButton.displayName = 'DeleteIconButton';
+const EllipsisIconButton = forwardRef<
+  HTMLButtonElement,
+  EllipsisIconButtonProps
+>(({ className, ...props }, ref) => {
+  return (
+    <Button
+      size='sm'
+      variant='outline'
+      {...props}
+      className={cn('h-8 px-2', className)}
+      ref={ref}
+    >
+      <span className='sr-only'>Delete</span>
+      <EllipsisIcon size={16} />
+    </Button>
+  );
+});
+EllipsisIconButton.displayName = 'EllipsisIconButton';
 
-export { DeleteIconButton };
+export { EllipsisIconButton };

@@ -18,11 +18,19 @@
  */
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { z } from 'zod';
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/users'
 )({
   component: () => <Outlet />,
+
+  validateSearch: z.object({
+    page: z.coerce.number().default(1),
+    pageSize: z.coerce.number().default(10),
+    sort: z.string().optional(),
+  }),
+
   beforeLoad: ({ context, params }) => {
     if (
       !context.auth.hasRole([
