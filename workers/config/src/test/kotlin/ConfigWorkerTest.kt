@@ -71,7 +71,7 @@ class ConfigWorkerTest : StringSpec({
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
-                update(RUN_ID, any(), any(), any(), any(), any(), any(), any())
+                update(RUN_ID, any(), any(), any(), any(), any(), any(), any(), any())
             } returns mockk()
         }
 
@@ -102,7 +102,7 @@ class ConfigWorkerTest : StringSpec({
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
-                update(RUN_ID, any(), any(), any(), any(), any(), any())
+                update(RUN_ID, any(), any(), any(), any(), any(), any(), any())
             } returns mockk()
         }
 
@@ -132,7 +132,7 @@ class ConfigWorkerTest : StringSpec({
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
-                update(RUN_ID, any(), any(), any(), any(), any(), any())
+                update(RUN_ID, any(), any(), any(), any(), any(), any(), any())
             } returns mockk()
         }
 
@@ -176,7 +176,7 @@ class ConfigWorkerTest : StringSpec({
 
         val ortRunRepository = mockk<OrtRunRepository> {
             every {
-                update(RUN_ID, any(), any(), any(), any(), any(), any())
+                update(RUN_ID, any(), any(), any(), any(), any(), any(), any())
             } returns mockk()
         }
 

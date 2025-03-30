@@ -162,6 +162,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         jobConfigs: OptionalValue<JobConfigurations>,
         resolvedJobConfigs: OptionalValue<JobConfigurations>,
         resolvedJobConfigContext: OptionalValue<String?>,
+        revision: OptionalValue<String>,
         resolvedRevision: OptionalValue<String?>,
         issues: OptionalValue<Collection<Issue>>,
         labels: OptionalValue<Map<String, String>>
@@ -180,6 +181,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
 
         resolvedJobConfigs.ifPresent { ortRun.resolvedJobConfigs = it }
         resolvedJobConfigContext.ifPresent { ortRun.resolvedJobConfigContext = it }
+        revision.ifPresent { ortRun.revision = it }
         resolvedRevision.ifPresent { ortRun.resolvedRevision = it }
 
         issues.ifPresent { issues ->

@@ -53,18 +53,21 @@ class AnalyzerDownloaderTest : WordSpec({
         "use the default branch if an empty revision is given" {
             val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
 
-            val outputDir = downloader.downloadRepository(repositoryUrl, revision = "").directory
+            val result = downloader.downloadRepository(repositoryUrl, revision = "")
 
-            with(GitCommand.run(outputDir, "branch", "--show-current").requireSuccess()) {
+            result.initRevision shouldBe "main"
+
+            with(GitCommand.run(result.directory, "branch", "--show-current").requireSuccess()) {
                 stdout.trim() shouldBe "main"
             }
         }
 
-        "return the resolved revision" {
+        "return the initial and resolved revisions" {
             val repositoryUrl = "https://github.com/oss-review-toolkit/ort-test-data-scanner.git"
 
-            val result = downloader.downloadRepository(repositoryUrl, revision = "")
+            val result = downloader.downloadRepository(repositoryUrl, revision = "main")
 
+            result.initRevision shouldBe "main"
             result.resolvedRevision shouldBe GitFactory.create().getWorkingTree(result.directory).getRevision()
         }
 
