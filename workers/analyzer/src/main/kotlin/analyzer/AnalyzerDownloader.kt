@@ -49,10 +49,12 @@ class AnalyzerDownloader {
         val vcs = VersionControlSystem.forUrl(repositoryUrl, config)
         requireNotNull(vcs) { "Could not determine the VCS for URL '$repositoryUrl'." }
 
+        val initRevision = revision.takeUnless { it.isEmpty() } ?: vcs.getDefaultBranchName(repositoryUrl)
+
         val vcsInfo = VcsInfo(
             type = vcs.type,
             url = repositoryUrl,
-            revision = revision.takeUnless { it.isEmpty() } ?: vcs.getDefaultBranchName(repositoryUrl),
+            revision = initRevision,
             path = path
         )
 
@@ -67,7 +69,7 @@ class AnalyzerDownloader {
                     "'$resolvedRevision'."
         )
 
-        return DownloadResult(outputDir, resolvedRevision)
+        return DownloadResult(outputDir, initRevision, resolvedRevision)
     }
 
     /**
@@ -96,6 +98,9 @@ class AnalyzerDownloader {
 data class DownloadResult(
     /** The directory to which the repository was downloaded. */
     val directory: File,
+
+    /** The revision used to initialize the repository. */
+    val initRevision: String,
 
     /** The resolved revision of the repository. */
     val resolvedRevision: String

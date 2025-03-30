@@ -539,6 +539,12 @@ class OrtRunService(
         }
     }
 
+    fun updateRevision(ortRunId: Long, revision: String) {
+        db.blockingQuery {
+            ortRunRepository.update(ortRunId, revision = revision.asPresent())
+        }
+    }
+
     fun updateResolvedRevision(ortRunId: Long, resolvedRevision: String) {
         db.blockingQuery {
             ortRunRepository.update(ortRunId, resolvedRevision = resolvedRevision.asPresent())

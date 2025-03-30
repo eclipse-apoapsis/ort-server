@@ -84,6 +84,13 @@ internal class AnalyzerWorker(
                 job.configuration.submoduleFetchStrategy
             )
 
+            if (downloadResult.initRevision != ortRun.revision) {
+                logger.info(
+                    "Updating revision of ORT run from '${ortRun.revision}' to '${downloadResult.initRevision}'."
+                )
+                ortRunService.updateRevision(ortRun.id, downloadResult.initRevision)
+            }
+
             ortRunService.updateResolvedRevision(ortRun.id, downloadResult.resolvedRevision)
 
             val resolvedEnvConfig = environmentService.setUpEnvironment(

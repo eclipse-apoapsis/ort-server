@@ -130,7 +130,8 @@ class AnalyzerWorkerTest : StringSpec({
         val downloader = mockk<AnalyzerDownloader> {
             // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
             // the repository is not cloned.
-            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
         }
 
         val context = mockk<WorkerContext> {
@@ -191,7 +192,8 @@ class AnalyzerWorkerTest : StringSpec({
         val downloader = mockk<AnalyzerDownloader> {
             // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
             // the repository is not cloned.
-            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
         }
 
         val context = mockk<WorkerContext> {
@@ -250,7 +252,8 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val downloader = mockk<AnalyzerDownloader> {
-            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
         }
 
         val context = mockk<WorkerContext> {
@@ -307,7 +310,8 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val downloader = mockk<AnalyzerDownloader> {
-            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
         }
 
         val context = mockk<WorkerContext>()
@@ -354,7 +358,8 @@ class AnalyzerWorkerTest : StringSpec({
         }
 
         val downloader = mockk<AnalyzerDownloader> {
-            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
         }
 
         val context = mockk<WorkerContext>()
@@ -448,7 +453,8 @@ class AnalyzerWorkerTest : StringSpec({
         val downloader = mockk<AnalyzerDownloader> {
             // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
             // the repository is not cloned.
-            every { downloadRepository(any(), any()) } returns DownloadResult(projectDir, "resolvedRevision")
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
         }
 
         val context = mockk<WorkerContext> {
