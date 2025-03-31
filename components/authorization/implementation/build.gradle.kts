@@ -25,13 +25,22 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.components.authorization"
 
 dependencies {
+    api(projects.clients.keycloak)
+
     api(libs.ktorServerCore)
 
     implementation(projects.model)
     implementation(projects.shared.ktorUtils)
 
+    implementation(libs.aedile)
     implementation(libs.ktorServerAuth)
     implementation(libs.ktorServerAuthJwt)
 
+    testImplementation(testFixtures(projects.clients.keycloak))
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestAssertionsKtor)
+    testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.ktorServerTestHost)
     testImplementation(libs.mockk)
 }

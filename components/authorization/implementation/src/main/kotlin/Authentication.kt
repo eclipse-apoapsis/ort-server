@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.plugins
+package org.eclipse.apoapsis.ortserver.components.authorization
 
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.interfaces.Payload
@@ -44,9 +44,6 @@ import kotlin.time.measureTimedValue
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
-import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
-
-import org.koin.ktor.ext.inject
 
 import org.slf4j.LoggerFactory
 
@@ -55,10 +52,7 @@ private val logger = LoggerFactory.getLogger(OrtPrincipal::class.java)
 /**
  * Configure the authentication for this server application.
  */
-fun Application.configureAuthentication() {
-    val config: ApplicationConfig by inject()
-    val keycloakClient by inject<KeycloakClient>()
-
+fun Application.configureAuthentication(config: ApplicationConfig, keycloakClient: KeycloakClient) {
     val issuer = config.property("jwt.issuer").getString()
     val jwksUri = URI.create(config.property("jwt.jwksUri").getString()).toURL()
     val configuredRealm = config.property("jwt.realm").getString()
