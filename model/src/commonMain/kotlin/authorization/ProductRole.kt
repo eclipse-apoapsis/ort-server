@@ -50,7 +50,8 @@ enum class ProductRole(
             ProductPermission.READ,
             ProductPermission.WRITE,
             ProductPermission.READ_REPOSITORIES,
-            ProductPermission.CREATE_REPOSITORY
+            ProductPermission.CREATE_REPOSITORY,
+            ProductPermission.TRIGGER_ORT_RUN
         ),
         includedRepositoryRole = RepositoryRole.WRITER
     ),
