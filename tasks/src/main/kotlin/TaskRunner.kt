@@ -25,6 +25,8 @@ import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.apis.CoreV1Api
 import io.kubernetes.client.util.ClientBuilder
 
+import kotlin.system.exitProcess
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -75,6 +77,15 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("TaskRunner")
 
+/** The name of the configuration section with properties for the task runner. */
+private const val TASK_RUNNER_SECTION = "taskRunner"
+
+/** The name of the configuration property that defines the tasks to be executed. */
+private const val TASKS_PROPERTY = "tasks"
+
+/** The name of the environment variable that determines whether the JVM should be kept alive after task execution. */
+private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
+
 /**
  * The main entry point of the task runner component.
  *
@@ -83,11 +94,18 @@ private val logger = LoggerFactory.getLogger("TaskRunner")
  * - `tasks`: A comma-separated list of names for the tasks to be executed. This can be overridden using the `TASKS`
  *   environment variable.
  *
+ * In addition, the function reads the `TASKS_KEEP_JVM` environment variable. Its value is a flag that controls whether
+ * the task runner should end the JVM process after executing the tasks. This may be required to prevent that some
+ * background threads keep the JVM alive. Therefore, the default value of this property is `false`. It is mainly
+ * overridden in tests, since the JVM should not be shut down by unit tests.
+ *
  * The following tasks are available:
  * - `delete-old-ort-runs`: Deletes old ORT runs according to the configured data retention policy.
  */
 suspend fun main() {
     runTasks(listOf(configModule(), databaseModule(), tasksModule()))
+
+    endTaskRunner()
 }
 
 /**
@@ -106,8 +124,8 @@ internal suspend fun runTasks(modules: List<Module>) {
     }
 
     try {
-        val config = app.koin.get<ConfigManager>().subConfig(Path("taskRunner"))
-        val tasksToRun = config.getString("tasks").split(',')
+        val config = app.koin.get<ConfigManager>().subConfig(Path(TASK_RUNNER_SECTION))
+        val tasksToRun = config.getString(TASKS_PROPERTY).split(',')
 
         withContext(Dispatchers.IO) {
             tasksToRun.map { taskName ->
@@ -125,6 +143,17 @@ internal suspend fun runTasks(modules: List<Module>) {
         }
     } finally {
         stopKoin()
+    }
+}
+
+/**
+ * Exit the JVM depending on the value of the corresponding environment variable. This function is called after task
+ * execution to make sure that the JVM process is cleanly terminated.
+ */
+internal fun endTaskRunner() {
+    if (!System.getenv(KEEP_JVM_VARIABLE).toBoolean()) {
+        logger.info("Exiting JVM after task execution.")
+        exitProcess(0)
     }
 }
 
