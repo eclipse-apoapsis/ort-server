@@ -33,5 +33,5 @@ class AuthCommand : SuspendingNoOpCliktCommand(name = "auth") {
 }
 
 class AuthenticationError : ProgramResult(1) {
-    override val message = "Not authenticated. Please run '$COMMAND_NAME auth login'."
+    override val message = "Authentication required. Please run '$COMMAND_NAME auth login'."
 }
