@@ -21,9 +21,12 @@ package org.eclipse.apoapsis.ortserver.core
 
 import io.ktor.server.application.Application
 
+import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
 import org.eclipse.apoapsis.ortserver.core.plugins.*
 import org.eclipse.apoapsis.ortserver.core.testutils.configureTestAuthentication
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+
+import org.koin.ktor.ext.get
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
 
@@ -51,7 +54,7 @@ fun Application.testModule() {
  */
 fun Application.testAuthModule() {
     configureKoin()
-    configureAuthentication()
+    configureAuthentication(get(), get())
     configureStatusPages()
     configureRouting()
     configureSerialization()

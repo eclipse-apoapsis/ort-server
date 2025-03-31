@@ -24,6 +24,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
+import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.core.api.admin
 import org.eclipse.apoapsis.ortserver.core.api.authentication
 import org.eclipse.apoapsis.ortserver.core.api.downloads
