@@ -101,6 +101,15 @@ private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
  *
  * The following tasks are available:
  * - `delete-old-ort-runs`: Deletes old ORT runs according to the configured data retention policy.
+ * - `delete-orphaned-entities`: Deletes entities from the database that are shared between ORT runs, but are no longer
+ *   referenced by any run.
+ * - `kubernetes-reaper`: Cleans up completed Kubernetes jobs and also notifies the Orchestrator about failed jobs.
+ *   This task is part of the Kubernetes Job Monitor.
+ * - `kubernetes-lost-jobs-finder`: Checks for jobs that are active according to the database, but for which no
+ *   running Kubernetes job exists. Such a constellation indicates a fatal crash of a worker job. This task is part of
+ *   the Kubernetes Job Monitor.
+ * - `kubernetes-long-running-jobs-finder`: Checks for worker jobs in Kubernetes that are running longer than a
+ *   configured timeout and terminates them. This task is part of the Kubernetes Job Monitor.
  */
 suspend fun main() {
     runTasks(listOf(configModule(), databaseModule(), tasksModule()))
