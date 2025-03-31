@@ -28,6 +28,7 @@ import {
   getStatusFontColor,
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
+import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
 import { toast } from '@/lib/toast';
 
 type VulnerabilitiesStatisticsCardProps = {
@@ -42,9 +43,15 @@ export const VulnerabilitiesStatisticsCard = ({
   runId,
 }: VulnerabilitiesStatisticsCardProps) => {
   const { data, isPending, isError, error } =
-    useRunsServiceGetApiV1RunsByRunIdStatistics({
-      runId: runId,
-    });
+    useRunsServiceGetApiV1RunsByRunIdStatistics(
+      {
+        runId: runId,
+      },
+      undefined,
+      {
+        enabled: isJobFinished(status),
+      }
+    );
 
   if (isPending) {
     return (
@@ -73,18 +80,7 @@ export const VulnerabilitiesStatisticsCard = ({
 
   const total = data.vulnerabilitiesCount;
   const counts = data.vulnerabilitiesCountByRating;
-
-  const jobIsScheduled = status !== undefined;
-  const jobIsFinished =
-    jobIsScheduled &&
-    ['FINISHED', 'FINISHED_WITH_ISSUES', 'FAILED'].includes(status);
-  const { value, description } = jobIncluded
-    ? jobIsScheduled
-      ? jobIsFinished
-        ? { value: total, description: '' }
-        : { value: '...', description: 'Running' }
-      : { value: '-', description: 'Not started' }
-    : { value: 'Skipped', description: 'Enable the job for results' };
+  const { value, description } = jobStatusTexts(status, jobIncluded, total);
 
   return (
     <StatisticsCard

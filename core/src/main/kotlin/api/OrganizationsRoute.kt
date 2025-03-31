@@ -45,6 +45,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
+import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByOrganizationIdAndName
@@ -56,6 +58,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatisticsByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByOrganizationId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepositoriesByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganizationById
@@ -84,6 +87,7 @@ import org.eclipse.apoapsis.ortserver.services.PackageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.SecretService
+import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 
 import org.koin.ktor.ext.inject
@@ -98,6 +102,7 @@ fun Route.organizations() = route("organizations") {
     val issueService by inject<IssueService>()
     val ruleViolationService by inject<RuleViolationService>()
     val packageService by inject<PackageService>()
+    val userService by inject<UserService>()
 
     get(getOrganizations) {
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
@@ -484,6 +489,21 @@ fun Route.organizations() = route("organizations") {
                         )
                     )
                 }
+            }
+        }
+
+        route("users") {
+            get(getUsersForOrganization) {
+                requirePermission(OrganizationPermission.READ)
+
+                val orgId = call.requireIdParameter("organizationId")
+                val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
+
+                val users = userService.getUsersHavingRightsForOrganization(orgId).mapToApi()
+
+                call.respond(
+                    PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))
+                )
             }
         }
     }
