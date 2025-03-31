@@ -32,30 +32,66 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.serialization
 import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.AuthenticationContext
+import io.ktor.server.auth.AuthenticationProvider
+import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
+
 import kotlinx.serialization.json.Json
 
+import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
+class DummyConfig(val principal: OrtPrincipal) : AuthenticationProvider.Config("test")
+
+class FakeAuthenticationProvider(val config: DummyConfig) : AuthenticationProvider(config) {
+    override suspend fun onAuthenticate(context: AuthenticationContext) {
+        context.principal(config.principal)
+    }
+}
+
 class GetInstalledPluginsIntegrationTest : WordSpec({
     tags(Integration)
 
+    beforeSpec {
+        mockkStatic(RoutingContext::hasRole)
+    }
+
+    afterSpec { unmockkAll() }
+
     "GetInstalledPlugins" should {
         "return all installed ORT plugins" {
+            val principal = mockk<OrtPrincipal> {
+                every { hasRole(any()) } returns true
+            }
+
             testApplication {
                 application {
                     install(ContentNegotiation) {
                         serialization(ContentType.Application.Json, Json)
                     }
 
+                    install(Authentication) {
+                        register(FakeAuthenticationProvider(DummyConfig(principal)))
+                    }
+
                     routing {
-                        getInstalledPlugins()
+                        authenticate("test") {
+                            getInstalledPlugins()
+                        }
                     }
                 }
 
