@@ -39,6 +39,8 @@ repositories {
 dependencies {
     api(projects.components.pluginManager.api)
 
+    implementation(projects.components.authorization.implementation)
+
     implementation(libs.ktorOpenApi)
     implementation(libs.ktorServerCore)
     implementation(libs.ortAdvisor)
@@ -55,12 +57,18 @@ dependencies {
     implementation(platform(libs.ortReporters))
     implementation(platform(libs.ortScanners))
 
+    testImplementation(testFixtures(projects.clients.keycloak))
+
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.kotlinxSerializationJson)
     testImplementation(libs.ktorClientContentNegotiation)
     testImplementation(libs.ktorKotlinxSerialization)
+    testImplementation(libs.ktorServerAuth)
+    testImplementation(libs.ktorServerAuthJwt)
     testImplementation(libs.ktorServerContentNegotiation)
+    testImplementation(libs.ktorServerStatusPages)
     testImplementation(libs.ktorServerTestHost)
+    testImplementation(libs.mockk)
 }
