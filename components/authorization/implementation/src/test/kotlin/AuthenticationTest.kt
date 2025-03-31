@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.auth
+package org.eclipse.apoapsis.ortserver.components.authorization
 
 import com.github.benmanes.caffeine.cache.Caffeine
 
@@ -42,7 +42,6 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.Role
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
-import org.eclipse.apoapsis.ortserver.core.plugins.getRoles
 
 class AuthenticationTest : WordSpec({
     val subject = "subject"
