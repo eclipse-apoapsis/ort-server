@@ -26,6 +26,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
+import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOption
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
@@ -64,6 +65,8 @@ fun Route.getInstalledPlugins() = get("admin/plugins", {
         }
     }
 }) {
+    requireSuperuser()
+
     val advisors = AdviceProviderFactory.ALL.values.map {
         it.descriptor.mapToApi(PluginType.ADVISOR)
     }
