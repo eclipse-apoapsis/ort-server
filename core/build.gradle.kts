@@ -68,7 +68,6 @@ dependencies {
     implementation(projects.utils.logging)
     implementation(projects.utils.system)
 
-    implementation(libs.aedile)
     implementation(libs.jsonSchemaSerialization)
     implementation(libs.koinKtor)
     implementation(libs.konform)

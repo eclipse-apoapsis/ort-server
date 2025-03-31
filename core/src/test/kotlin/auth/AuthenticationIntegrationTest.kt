@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.auth
+package org.eclipse.apoapsis.ortserver.components.authorization
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
@@ -48,10 +48,8 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfig
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUserRoles
-import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
-import org.eclipse.apoapsis.ortserver.core.plugins.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.core.testutils.authNoDbConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
