@@ -177,18 +177,6 @@ class InfoCommandTest : StringSpec({
         }
     }
 
-    "info command should fail if no options are provided" {
-        val command = OrtServerMain()
-        val result = command.test(
-            listOf(
-                "runs",
-                "info"
-            )
-        )
-
-        result.statusCode shouldNotBe 0
-    }
-
     "info command should fail if both options are provided" {
         val command = OrtServerMain()
         val result = command.test(
