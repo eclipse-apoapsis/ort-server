@@ -145,7 +145,7 @@ const ManageUsers = () => {
         <CardDescription className='flex flex-col gap-2'>
           <span>
             Assign or remove users to different groups in repository:{' '}
-            <span className='font-semibold'>{repository.url}</span>.
+            <span className='font-semibold'>{repository.url}</span>
           </span>
           <span>
             READERS: Can view the repository.
