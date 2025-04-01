@@ -28,11 +28,13 @@ import com.sksamuel.aedile.core.Cache
 import com.sksamuel.aedile.core.asCache
 import com.sksamuel.aedile.core.expireAfterWrite
 
+import io.ktor.http.HttpMethod
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.request.httpMethod
 
 import java.net.URI
 import java.util.concurrent.TimeUnit
@@ -83,6 +85,17 @@ fun Application.configureAuthentication() {
             validate { credential ->
                 credential.payload.takeIf(this@configureAuthentication::validateJwtPayload)?.let { payload ->
                     val roles = getRoles(payload.subject, keycloakClient, roleCache)
+
+                    // Clear the cache for the user after a write operation as it could have changed the roles.
+                    @Suppress("ComplexCondition")
+                    if (this.request.httpMethod == HttpMethod.Delete ||
+                        this.request.httpMethod == HttpMethod.Patch ||
+                        this.request.httpMethod == HttpMethod.Post ||
+                        this.request.httpMethod == HttpMethod.Put
+                    ) {
+                        roleCache.invalidate(payload.subject)
+                    }
+
                     OrtPrincipal(payload, roles)
                 }
             }
