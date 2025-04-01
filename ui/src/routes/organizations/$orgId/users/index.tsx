@@ -147,16 +147,23 @@ const ManageUsers = () => {
             Assign or remove users to different groups in organization:{' '}
             <span className='font-semibold'>{organization.name}</span>
           </span>
-          <span>
-            READERS: Can view the organization and its projects and
-            repositories.
-            <br />
-            WRITERS: Can view and edit the organization and its projects and
-            repositories.
-            <br />
-            ADMINS: Can view, edit, and delete the organization and its projects
-            and repositories.
-          </span>
+          <div className='grid grid-cols-[auto_1fr] items-center gap-x-1 gap-y-1'>
+            <Eye size={16} />
+            <span>
+              READERS can view the organization and its projects and
+              repositories.
+            </span>
+            <Pen size={16} />
+            <span>
+              WRITERS can view and edit the organization and its projects and
+              repositories.
+            </span>
+            <Shield size={16} />
+            <span>
+              ADMINS can view, edit, and delete the organization and its
+              projects and repositories.
+            </span>
+          </div>
           <span>NOTE: The username must already exist in Keycloak.</span>
         </CardDescription>
       </CardHeader>

@@ -147,13 +147,14 @@ const ManageUsers = () => {
             Assign or remove users to different groups in repository:{' '}
             <span className='font-semibold'>{repository.url}</span>
           </span>
-          <span>
-            READERS: Can view the repository.
-            <br />
-            WRITERS: Can view and edit the repository.
-            <br />
-            ADMINS: Can view, edit, and delete the repository.
-          </span>
+          <div className='grid grid-cols-[auto_1fr] items-center gap-x-1 gap-y-1'>
+            <Eye size={16} />
+            <span>READERS can view the repository.</span>
+            <Pen size={16} />
+            <span>WRITERS can view and edit the repository.</span>
+            <Shield size={16} />
+            <span>ADMINS can view, edit, and delete the repository.</span>
+          </div>
           <span>NOTE: The username must already exist in Keycloak.</span>
         </CardDescription>
       </CardHeader>
