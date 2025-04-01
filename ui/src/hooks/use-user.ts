@@ -32,6 +32,25 @@ export const useUser = () => {
     return roles.some((role) => userRoles.includes(role));
   };
 
+  // Refresh the token silently. This also refreshes the user profile (and the roles).
+  const refreshUser = async () => {
+    try {
+      const user = await auth.signinSilent();
+
+      if (!user) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          'Silent sign-in returned null — treating as unauthenticated'
+        );
+        await auth.signinRedirect({ redirect_uri: window.location.href });
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Silent sign-in failed:', error);
+      await auth.signinRedirect({ redirect_uri: window.location.href });
+    }
+  };
+
   // Return the logged-in username.
   const username = auth?.user?.profile?.preferred_username;
 
@@ -42,6 +61,7 @@ export const useUser = () => {
     hasRole,
     username,
     fullName,
+    refreshUser,
     ...auth,
   };
 };
