@@ -50,8 +50,7 @@ internal fun SuspendingCliktCommand.echoMessage(message: CliPrintable) {
     if (useJsonFormat) {
         echo(message.json())
     } else {
-        // TODO: Replace with human readable formatting.
-        echo(message.toString())
+        echo(message.humanReadable())
     }
 }
 

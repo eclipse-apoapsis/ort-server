@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.cli.model.printables
 
+import com.github.ajalt.mordant.widgets.Text
+
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.cli.json
@@ -28,9 +30,9 @@ import org.eclipse.apoapsis.ortserver.cli.json
  */
 @Serializable
 class MessagePrintable(private val message: String) : CliPrintable {
-    override fun json() = json.encodeToString(StringMessage(message))
+    override fun humanReadable() = Text(message)
 
-    override fun toString() = message
+    override fun json() = json.encodeToString(StringMessage(message))
 }
 
 fun String.toPrintable(): MessagePrintable = MessagePrintable(this)
