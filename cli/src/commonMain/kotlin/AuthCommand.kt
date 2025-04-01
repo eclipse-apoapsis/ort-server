@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
 import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.subcommands
 
 class AuthCommand : SuspendingNoOpCliktCommand(name = "auth") {
@@ -30,8 +29,4 @@ class AuthCommand : SuspendingNoOpCliktCommand(name = "auth") {
     }
 
     override fun help(context: Context) = "Commands for authentication with the ORT Server."
-}
-
-class AuthenticationError : ProgramResult(1) {
-    override val message = "Authentication required. Please run '$COMMAND_NAME auth login'."
 }
