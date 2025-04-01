@@ -8,7 +8,12 @@
  */
 
 import React from 'react';
-import { FieldPath, FieldValues, useFormContext } from 'react-hook-form';
+import {
+  FieldPath,
+  FieldValues,
+  useFormContext,
+  useFormState,
+} from 'react-hook-form';
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
@@ -24,8 +29,8 @@ export const FormFieldContext = React.createContext<FormFieldContextValue>(
 export const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
-  const { getFieldState, formState } = useFormContext();
-
+  const { getFieldState } = useFormContext();
+  const formState = useFormState({ name: fieldContext.name });
   const fieldState = getFieldState(fieldContext.name, formState);
 
   if (!fieldContext) {
