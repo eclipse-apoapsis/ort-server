@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.cli.model
 
-import com.github.ajalt.clikt.core.ProgramResult
 import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
 
 /**
@@ -35,6 +34,5 @@ class CliInputException(message: String, cause: Throwable? = null) : OrtServerCl
 /**
  * An exception thrown when the user authentication or the re-authentication using a refresh token fails.
  */
-class AuthenticationError : ProgramResult(1) {
-    override val message = "Authentication required. Please run '$COMMAND_NAME auth login'."
-}
+class AuthenticationError(message: String = "Authentication required. Please run '$COMMAND_NAME auth login'.") :
+    OrtServerCliException(message, null)
