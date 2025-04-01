@@ -55,16 +55,16 @@ fun main(args: Array<String>) {
 
         exitProcess(0)
     } catch (e: AuthenticationException) {
-        cli.echo(e.message)
+        cli.echo(e.message, err = true)
     } catch (e: OrtServerCliException) {
-        cli.echo(e.message)
+        cli.echo(e.message, err = true)
     } catch (e: OrtServerException) {
-        cli.echo(e.message)
+        cli.echo(e.message, err = true)
     } catch (e: CliktError) {
         cli.echoFormattedHelp(e)
         cli.currentContext.exitProcess(e.statusCode)
     } catch (@Suppress("SwallowedException", "TooGenericExceptionCaught") e: Exception) {
-        cli.echo("An unexpected error occurred.")
+        cli.echo("An unexpected error occurred.", err = true)
     }
 
     exitProcess(1)
