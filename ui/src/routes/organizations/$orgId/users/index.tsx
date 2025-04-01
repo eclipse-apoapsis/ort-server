@@ -145,7 +145,7 @@ const ManageUsers = () => {
         <CardDescription className='flex flex-col gap-2'>
           <span>
             Assign or remove users to different groups in organization:{' '}
-            <span className='font-semibold'>{organization.name}</span>.
+            <span className='font-semibold'>{organization.name}</span>
           </span>
           <span>
             READERS: Can view the organization and its projects and

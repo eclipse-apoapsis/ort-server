@@ -145,7 +145,7 @@ const ManageUsers = () => {
         <CardDescription className='flex flex-col gap-2'>
           <span>
             Assign or remove users to different groups in product:{' '}
-            <span className='font-semibold'>{product.name}</span>.
+            <span className='font-semibold'>{product.name}</span>
           </span>
           <span>
             READERS: Can view the product and its repositories.
