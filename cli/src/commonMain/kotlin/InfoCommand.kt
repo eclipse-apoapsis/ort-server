@@ -30,6 +30,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.long
 
+import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
 import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage

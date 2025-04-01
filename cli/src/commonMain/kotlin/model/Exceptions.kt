@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.cli.model
 
+import com.github.ajalt.clikt.core.ProgramResult
+import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
+
 /**
  * Base class for all exceptions caused by the ORT Server CLI.
  */
@@ -28,3 +31,10 @@ sealed class OrtServerCliException(message: String, cause: Throwable? = null) : 
  * An exception thrown when the user provides invalid input which is not handled by Clikt.
  */
 class CliInputException(message: String, cause: Throwable? = null) : OrtServerCliException(message, cause)
+
+/**
+ * An exception thrown when the user authentication or the re-authentication using a refresh token fails.
+ */
+class AuthenticationError : ProgramResult(1) {
+    override val message = "Authentication required. Please run '$COMMAND_NAME auth login'."
+}

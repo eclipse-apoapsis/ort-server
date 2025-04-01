@@ -38,6 +38,7 @@ import okio.Path.Companion.toPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
 import org.eclipse.apoapsis.ortserver.cli.model.CliInputException
 import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
