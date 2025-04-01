@@ -45,6 +45,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -55,10 +56,14 @@ const formSchema = z.object({
 const CreateProductPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
+  const { refreshUser } = useUser();
 
   const { mutateAsync, isPending } =
     useProductsServicePostApiV1OrganizationsByOrganizationIdProducts({
       onSuccess(data) {
+        // Refresh the user token and data to get the new roles after creating a new product.
+        refreshUser();
+
         toast.info('Add Product', {
           description: `Product "${data.name}" added successfully.`,
         });

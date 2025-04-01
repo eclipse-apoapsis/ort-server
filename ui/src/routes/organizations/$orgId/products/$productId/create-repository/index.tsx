@@ -50,6 +50,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -60,10 +61,14 @@ const formSchema = z.object({
 const CreateRepositoryPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
+  const { refreshUser } = useUser();
 
   const { mutateAsync, isPending } =
     useRepositoriesServicePostApiV1ProductsByProductIdRepositories({
       onSuccess(data) {
+        // Refresh the user token and data to get the new roles after creating a new repository.
+        refreshUser();
+
         toast.info('Add Repository', {
           description: `Repository ${data.url} added successfully.`,
         });
