@@ -49,7 +49,7 @@ import org.eclipse.apoapsis.ortserver.client.api.RunsApi
 class InfoCommandTest : StringSpec({
     afterEach { unmockkAll() }
 
-    "info command should get ORT run by ID" {
+    "info command should get ORT run JSON by ID" {
         val ortRunId = 1L
 
         val ortRun = OrtRun(
@@ -80,6 +80,7 @@ class InfoCommandTest : StringSpec({
         val command = OrtServerMain()
         val result = command.test(
             listOf(
+                "--json",
                 "runs",
                 "info",
                 "--run-id",
@@ -95,7 +96,7 @@ class InfoCommandTest : StringSpec({
         result.output shouldContain json.encodeToString(ortRun)
     }
 
-    "info command should get ORT run by index" {
+    "info command should get ORT run JSON by index" {
         val repositoryId = 1L
         val ortRunIndex = 1L
 
@@ -127,6 +128,7 @@ class InfoCommandTest : StringSpec({
         val command = OrtServerMain()
         val result = command.test(
             listOf(
+                "--json",
                 "runs",
                 "info",
                 "--repository-id",

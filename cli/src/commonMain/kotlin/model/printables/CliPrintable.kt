@@ -17,23 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.cli
-
-import com.github.ajalt.clikt.command.SuspendingCliktCommand
-import com.github.ajalt.clikt.core.Context
-
-import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
-import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
+package org.eclipse.apoapsis.ortserver.cli.model.printables
 
 /**
- * A command to logout from ORT Server instances.
+ * Interface that describes the way how objects can be printed in the CLI.
  */
-class LogoutCommand : SuspendingCliktCommand(name = "logout") {
-    override fun help(context: Context) = "Logout from all ORT Server instances."
-
-    override suspend fun run() {
-        AuthenticationStorage.clear()
-
-        echoMessage("Successfully logged out.")
-    }
+interface CliPrintable {
+    /** The JSON representation of this object. */
+    fun json(): String
 }

@@ -24,6 +24,8 @@ import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.cli.json
+import org.eclipse.apoapsis.ortserver.cli.model.printables.CliPrintable
+import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
 
 /**
  * Global variable that gets toggled by a command line parameter parsed in the main entry points of the modules.
@@ -40,6 +42,20 @@ internal fun SuspendingCliktCommand.echoError(message: String?) {
         echo(message, err = true)
     }
 }
+
+/**
+ * Print the [message] to stdout. If required as a json object.
+ */
+internal fun SuspendingCliktCommand.echoMessage(message: CliPrintable) {
+    if (useJsonFormat) {
+        echo(message.json())
+    } else {
+        // TODO: Replace with human readable formatting.
+        echo(message.toString())
+    }
+}
+
+internal fun SuspendingCliktCommand.echoMessage(message: String) = echoMessage(message.toPrintable())
 
 @Serializable
 private data class CliError(val message: String?)

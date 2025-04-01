@@ -17,23 +17,26 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.cli
+package org.eclipse.apoapsis.ortserver.cli.model.printables
 
-import com.github.ajalt.clikt.command.SuspendingCliktCommand
-import com.github.ajalt.clikt.core.Context
+import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
-import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
+import org.eclipse.apoapsis.ortserver.cli.json
 
 /**
- * A command to logout from ORT Server instances.
+ * A [CliPrintable] that prints a simple [String] message.
  */
-class LogoutCommand : SuspendingCliktCommand(name = "logout") {
-    override fun help(context: Context) = "Logout from all ORT Server instances."
+@Serializable
+class MessagePrintable(private val message: String) : CliPrintable {
+    override fun json() = json.encodeToString(StringMessage(message))
 
-    override suspend fun run() {
-        AuthenticationStorage.clear()
-
-        echoMessage("Successfully logged out.")
-    }
+    override fun toString() = message
 }
+
+fun String.toPrintable(): MessagePrintable = MessagePrintable(this)
+
+/**
+ * A wrapper for JSON formatting of a String.
+ */
+@Serializable
+private data class StringMessage(val message: String)
