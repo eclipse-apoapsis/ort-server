@@ -19,6 +19,7 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
+import { ensureUseDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersData } from '@/api/queries/ensureQueryData.ts';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute('/organizations/$orgId/users')({
@@ -26,6 +27,27 @@ export const Route = createFileRoute('/organizations/$orgId/users')({
 
   // Route’s query string parameters (centralized)
   validateSearch: paginationSearchParameterSchema,
+  loaderDeps: ({ search: { page, pageSize } }) => ({
+    page,
+    pageSize,
+  }),
+  loader: async ({ context, deps, params }) => {
+    const { queryClient } = context;
+    const { page = 1, pageSize = 10 } = deps;
+    const { orgId } = params;
+    const pageIndex = page - 1;
+
+    // Ensure the data is available in the query cache when the component is rendered.
+    await ensureUseDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersData(
+      queryClient,
+      {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        organizationId: Number.parseInt(orgId),
+        sort: 'username',
+      }
+    );
+  },
   beforeLoad: ({ context, params }) => {
     if (
       !context.auth.hasRole([
