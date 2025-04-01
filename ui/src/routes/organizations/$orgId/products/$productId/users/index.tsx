@@ -147,13 +147,19 @@ const ManageUsers = () => {
             Assign or remove users to different groups in product:{' '}
             <span className='font-semibold'>{product.name}</span>
           </span>
-          <span>
-            READERS: Can view the product and its repositories.
-            <br />
-            WRITERS: Can view and edit the product and its repositories.
-            <br />
-            ADMINS: Can view, edit, and delete the product and its repositories.
-          </span>
+          <div className='grid grid-cols-[auto_1fr] items-center gap-x-1 gap-y-1'>
+            <Eye size={16} />
+            <span>READERS can view the product and its repositories.</span>
+            <Pen size={16} />
+            <span>
+              WRITERS can view and edit the product and its repositories.
+            </span>
+            <Shield size={16} />
+            <span>
+              ADMINS can view, edit, and delete the product and its
+              repositories.
+            </span>
+          </div>
           <span>NOTE: The username must already exist in Keycloak.</span>
         </CardDescription>
       </CardHeader>
