@@ -28,6 +28,7 @@ import com.github.ajalt.clikt.parameters.options.required
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
 import org.eclipse.apoapsis.ortserver.cli.model.HostAuthenticationDetails
 import org.eclipse.apoapsis.ortserver.cli.model.Tokens
+import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient.Companion.JSON
 import org.eclipse.apoapsis.ortserver.client.auth.AuthService
 import org.eclipse.apoapsis.ortserver.client.createDefaultHttpClient
@@ -90,6 +91,6 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
             )
         )
 
-        echo("Successfully logged in to '$baseUrl' as '$username'.")
+        echoMessage("Successfully logged in to '$baseUrl' as '$username'.")
     }
 }

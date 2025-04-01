@@ -34,6 +34,7 @@ import com.github.ajalt.clikt.parameters.types.long
 import okio.Path.Companion.toPath
 
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
 import org.eclipse.apoapsis.ortserver.cli.utils.writeFromChannel
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
@@ -88,7 +89,7 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
             try {
                 client.runs.downloadReport(resolvedOrtRunId, fileName) { reportFile.writeFromChannel(it) }
 
-                echo(reportFile.toString())
+                echoMessage(reportFile.toString())
             } catch (e: NotFoundException) {
                 throw ReportNotFoundException("Report '$fileName' not found for run '$resolvedOrtRunId'.", e)
             }

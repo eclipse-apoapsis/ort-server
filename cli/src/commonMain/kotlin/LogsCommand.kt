@@ -38,6 +38,7 @@ import okio.Path.Companion.toPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
 import org.eclipse.apoapsis.ortserver.cli.utils.writeFromChannel
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
@@ -98,7 +99,7 @@ class LogsCommand : SuspendingCliktCommand() {
         try {
             client.runs.downloadLogs(resolvedOrtRunId, resolvedLogLevel, steps) { outputFile.writeFromChannel(it) }
 
-            echo(outputFile.toString())
+            echoMessage(outputFile.toString())
         } catch (e: NotFoundException) {
             throw LogsNotFoundException("Logs not found for run '$resolvedOrtRunId'.", e)
         }

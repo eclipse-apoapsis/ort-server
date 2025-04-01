@@ -39,7 +39,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.model.CliInputException
+import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.read
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
@@ -95,7 +97,7 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
 
         ContextStorage.saveLatestRunId(ortRun.id)
 
-        echo(json.encodeToString(ortRun))
+        echoMessage(ortRun.toPrintable())
 
         if (wait) {
             while (ortRun.isRunning()) {
@@ -103,7 +105,7 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
                 ortRun = client.repositories.getOrtRun(repositoryId, ortRun.index)
             }
 
-            echo(json.encodeToString(ortRun))
+            echoMessage(ortRun.toPrintable())
         }
     }
 }

@@ -30,7 +30,9 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.long
 
+import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
 class InfoCommand : SuspendingCliktCommand(name = "info") {
@@ -73,7 +75,7 @@ class InfoCommand : SuspendingCliktCommand(name = "info") {
             }
         } ?: throw ProgramResult(1)
 
-        echo(json.encodeToString(ortRun))
+        echoMessage(ortRun.toPrintable())
     }
 }
 

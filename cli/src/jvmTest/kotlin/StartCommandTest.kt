@@ -81,6 +81,7 @@ class StartCommandTest : StringSpec({
         val command = OrtServerMain()
         val result = command.test(
             listOf(
+                "--json",
                 "runs",
                 "start",
                 "--repository-id",
@@ -142,6 +143,7 @@ class StartCommandTest : StringSpec({
         val command = OrtServerMain()
         val result = command.test(
             listOf(
+                "--json",
                 "runs",
                 "start",
                 "--repository-id",
