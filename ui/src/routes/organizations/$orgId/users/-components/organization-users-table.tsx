@@ -1,0 +1,302 @@
+/*
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+import { useQueryClient } from '@tanstack/react-query';
+import { getRouteApi } from '@tanstack/react-router';
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { Eye, Pen, Shield } from 'lucide-react';
+
+import {
+  useAdminServiceDeleteApiV1AdminUsers,
+  useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsers,
+  useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+  useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+} from '@/api/queries';
+import { ApiError, UserWithGroups } from '@/api/requests';
+import { DataTable } from '@/components/data-table/data-table.tsx';
+import { DeleteDialog } from '@/components/delete-dialog.tsx';
+import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
+import { ToastError } from '@/components/toast-error.tsx';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
+import { useUser } from '@/hooks/use-user.ts';
+import { toast } from '@/lib/toast.ts';
+
+const columnHelper = createColumnHelper<UserWithGroups>();
+
+const columns = [
+  columnHelper.accessor('user.username', {
+    header: 'Username',
+    cell: ({ row }) => <>{row.original.user.username}</>,
+  }),
+  columnHelper.accessor('user.firstName', {
+    header: 'First name',
+    cell: ({ row }) => <>{row.original.user.firstName}</>,
+  }),
+  columnHelper.accessor('user.lastName', {
+    header: 'Last name',
+    cell: ({ row }) => <>{row.original.user.lastName}</>,
+  }),
+  columnHelper.accessor('user.email', {
+    header: 'Email address',
+    cell: ({ row }) => <>{row.original.user.email}</>,
+  }),
+  columnHelper.accessor('groups', {
+    header: 'Group',
+    cell: ({ row }) => {
+      const groups = row.original.groups;
+      let IconComponent;
+      let effectiveGroup = '';
+      if (groups.includes('ADMINS')) {
+        IconComponent = Shield;
+        effectiveGroup = 'ADMINS';
+      } else if (groups.includes('WRITERS')) {
+        IconComponent = Pen;
+        effectiveGroup = 'WRITERS';
+      } else if (groups.includes('READERS')) {
+        IconComponent = Eye;
+        effectiveGroup = 'READERS';
+      } else {
+        return <>{groups.join(' ')}</>;
+      }
+
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <IconComponent size={16} />
+          </TooltipTrigger>
+          <TooltipContent>{effectiveGroup}</TooltipContent>
+        </Tooltip>
+      );
+    },
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: () => <div>Actions</div>,
+    cell: function CellComponent({ row }) {
+      const queryClient = useQueryClient();
+      const params = routeApi.useParams();
+      const organizationId = Number.parseInt(params.orgId);
+
+      const { mutateAsync: delUser } = useAdminServiceDeleteApiV1AdminUsers({
+        onSuccess() {
+          toast.info('Delete User', {
+            description: `User "${row.original.user.username}" deleted successfully.`,
+          });
+          queryClient.invalidateQueries({
+            queryKey: [
+              useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+            ],
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      });
+
+      const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
+        useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId({
+          onSuccess(_response, parameters) {
+            queryClient.invalidateQueries({
+              queryKey: [
+                useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+              ],
+            });
+            toast.info('Join Group', {
+              description: `User "${row.original.user.username}" joined group ${parameters.groupId} successfully.`,
+            });
+          },
+          onError(error: ApiError) {
+            toast.error(error.message, {
+              description: <ToastError error={error} />,
+              duration: Infinity,
+              cancel: {
+                label: 'Dismiss',
+                onClick: () => {},
+              },
+            });
+          },
+        });
+
+      const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
+        useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId(
+          {
+            onSuccess(_response, parameters) {
+              // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
+              toast.info('Leave Group', {
+                description: `User "${row.original.user.username}" left group ${parameters.groupId} successfully.`,
+              });
+            },
+            onError(error: ApiError) {
+              toast.error(error.message, {
+                description: <ToastError error={error} />,
+                duration: Infinity,
+                cancel: {
+                  label: 'Dismiss',
+                  onClick: () => {},
+                },
+              });
+            },
+          }
+        );
+
+      // Leave all groups except the one to join.
+      async function leaveOtherGroups(joinGroupId: string) {
+        const groups = row.original.groups;
+        const otherGroups = groups.filter((group) => group !== joinGroupId);
+
+        for (const group of otherGroups) {
+          await leaveGroup({
+            organizationId: organizationId,
+            groupId: group,
+            requestBody: {
+              username: row.original.user.username,
+            },
+          });
+        }
+      }
+
+      async function joinAdminsGroup() {
+        await leaveOtherGroups('ADMINS');
+        await joinGroup({
+          organizationId: organizationId,
+          groupId: 'ADMINS',
+          requestBody: {
+            username: row.original.user.username,
+          },
+        });
+      }
+
+      async function joinWritersGroup() {
+        await leaveOtherGroups('WRITERS');
+        await joinGroup({
+          organizationId: organizationId,
+          groupId: 'WRITERS',
+          requestBody: {
+            username: row.original.user.username,
+          },
+        });
+      }
+
+      async function joinReadersGroup() {
+        await leaveOtherGroups('READERS');
+        await joinGroup({
+          organizationId: organizationId,
+          groupId: 'READERS',
+          requestBody: {
+            username: row.original.user.username,
+          },
+        });
+      }
+
+      return row.original.user.username !== useUser().username ? (
+        <div className='flex gap-2'>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <UserGroupRowActions
+                row={row}
+                onJoinAdminsGroup={joinAdminsGroup}
+                onJoinWritersGroup={joinWritersGroup}
+                onJoinReadersGroup={joinReadersGroup}
+                disabled={isJoinGroupPending || isLeaveGroupPending}
+              />
+            </TooltipTrigger>
+            <TooltipContent>Join group</TooltipContent>
+          </Tooltip>
+
+          <DeleteDialog
+            thingName={'user'}
+            thingId={row.original.user.username}
+            uiComponent={<DeleteIconButton className='text-red-500' />}
+            onDelete={() => delUser({ username: row.original.user.username })}
+          />
+        </div>
+      ) : (
+        <div className='flex justify-end'>
+          <DeleteIconButton disabled={true} />
+        </div>
+      );
+    },
+  }),
+];
+
+const routeApi = getRouteApi('/organizations/$orgId/users');
+
+export const OrganizationUsersTable = () => {
+  const { orgId } = routeApi.useParams();
+  const search = routeApi.useSearch();
+  const { page = 1, pageSize = 10 } = search;
+  const pageIndex = page - 1;
+
+  const { data: usersWithGroups } =
+    useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsers({
+      organizationId: Number.parseInt(orgId),
+      limit: pageSize,
+      offset: pageIndex * pageSize,
+      sort: 'username',
+    });
+
+  const table = useReactTable({
+    data: usersWithGroups?.data || [],
+    columns: columns,
+    pageCount: Math.ceil(
+      (usersWithGroups?.pagination.totalCount ?? 0) / pageSize
+    ),
+    manualPagination: true, // Using server-side pagination
+    state: {
+      pagination: {
+        pageIndex: pageIndex,
+        pageSize: pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <DataTable
+      table={table}
+      setCurrentPageOptions={(currentPage) => {
+        return {
+          search: { ...search, page: currentPage },
+        };
+      }}
+      setPageSizeOptions={(size) => {
+        return {
+          search: { ...search, page: 1, pageSize: size },
+        };
+      }}
+    />
+  );
+};
