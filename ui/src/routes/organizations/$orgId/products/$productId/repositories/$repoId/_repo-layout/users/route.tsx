@@ -19,10 +19,15 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
+import { paginationSearchParameterSchema } from '@/schemas';
+
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/users'
 )({
   component: () => <Outlet />,
+
+  // Route’s query string parameters (centralized)
+  validateSearch: paginationSearchParameterSchema,
   beforeLoad: ({ context, params }) => {
     if (
       !context.auth.hasRole([
