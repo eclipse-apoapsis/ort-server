@@ -25,6 +25,7 @@ import { Button } from './ui/button';
 
 type DeleteIconButtonProps = {
   className?: string;
+  disabled?: boolean;
 };
 
 const DeleteIconButton = forwardRef<HTMLButtonElement, DeleteIconButtonProps>(
