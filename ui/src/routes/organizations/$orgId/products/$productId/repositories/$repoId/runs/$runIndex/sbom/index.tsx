@@ -18,6 +18,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
+import { Download } from 'lucide-react';
 
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
@@ -141,19 +142,25 @@ const SBOMComponent = () => {
           <div className='flex justify-around gap-2 pb-6'>
             {cycloneDxReports && cycloneDxReports.length > 0
               ? cycloneDxReports.map((filename) => (
-                  <div key={filename}>
-                    <Button
-                      variant='outline'
-                      className='h-auto font-semibold whitespace-normal text-blue-400'
-                      onClick={() => handleDownload(ortRun.id, filename)}
-                    >
-                      <div className='break-all'>
-                        {filename.includes('json')
-                          ? 'JSON Format'
-                          : 'XML Format'}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div key={filename}>
+                        <Button
+                          variant='outline'
+                          className='h-auto font-semibold whitespace-normal text-blue-400'
+                          onClick={() => handleDownload(ortRun.id, filename)}
+                        >
+                          <Download />
+                          {filename.includes('json') ? 'JSON' : 'XML'}
+                        </Button>
                       </div>
-                    </Button>
-                  </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Click to download in
+                      {filename.includes('json') ? ' JSON ' : ' XML '}
+                      format
+                    </TooltipContent>
+                  </Tooltip>
                 ))
               : 'No CycloneDX reports available.'}
           </div>
@@ -182,19 +189,25 @@ const SBOMComponent = () => {
           <div className='flex justify-around gap-2 pb-6'>
             {spdxReports && spdxReports.length > 0
               ? spdxReports.map((filename) => (
-                  <div key={filename}>
-                    <Button
-                      variant='outline'
-                      className='h-auto font-semibold whitespace-normal text-blue-400'
-                      onClick={() => handleDownload(ortRun.id, filename)}
-                    >
-                      <div className='break-all'>
-                        {filename.includes('json')
-                          ? 'JSON Format'
-                          : 'YAML Format'}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div key={filename}>
+                        <Button
+                          variant='outline'
+                          className='h-auto font-semibold whitespace-normal text-blue-400'
+                          onClick={() => handleDownload(ortRun.id, filename)}
+                        >
+                          <Download />
+                          {filename.includes('json') ? 'JSON' : 'YAML'}
+                        </Button>
                       </div>
-                    </Button>
-                  </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Click to download in
+                      {filename.includes('json') ? ' JSON ' : ' YAML '}
+                      format
+                    </TooltipContent>
+                  </Tooltip>
                 ))
               : 'No SPDX reports available.'}
           </div>
