@@ -48,10 +48,23 @@ tasks.withType<JibTask> {
     notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")
 }
 
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.gradle.org/gradle/libs-releases/")
+        }
+
+        filter {
+            includeGroup("org.gradle")
+        }
+    }
+}
+
 dependencies {
     implementation(projects.api.v1.apiV1Mapping)
     implementation(projects.clients.keycloak)
     implementation(projects.components.authorization.implementation)
+    implementation(projects.components.pluginManager.implementation)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.logaccess.logaccessSpi)
