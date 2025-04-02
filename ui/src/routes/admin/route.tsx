@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
-import { Eye, KeyRound, ListVideo, User } from 'lucide-react';
+import { Blocks, Eye, KeyRound, ListVideo, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
@@ -31,6 +31,16 @@ const Layout = () => {
           title: 'Overview',
           to: '/admin',
           icon: () => <Eye className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'ORT Plugin Management',
+      items: [
+        {
+          title: 'Installed Plugins',
+          to: '/admin/plugins',
+          icon: () => <Blocks className='h-4 w-4' />,
         },
       ],
     },
