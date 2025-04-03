@@ -74,7 +74,7 @@ import {
   productPaginationSearchParameterSchema,
 } from '@/schemas';
 
-const defaultPageSize = 10;
+const defaultPageSize = 5;
 
 const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const params = Route.useParams();
