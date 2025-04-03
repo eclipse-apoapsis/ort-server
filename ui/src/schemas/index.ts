@@ -65,6 +65,11 @@ export const orgPaginationSearchParameterSchema = z.object({
   orgPageSize: z.number().optional(),
 });
 
+export const productPaginationSearchParameterSchema = z.object({
+  productPage: z.number().optional(),
+  productPageSize: z.number().optional(),
+});
+
 // sortBy needs to be of form "columnId.asc" or "columnId.desc"
 export const sortingSearchParameterSchema = z.object({
   sortBy: z

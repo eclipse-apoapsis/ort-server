@@ -28,12 +28,20 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
+  useProductsServiceGetApiV1ProductsByProductId,
+  useProductsServiceGetApiV1ProductsByProductIdSecrets,
   useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsKey,
 } from '@/api/queries';
 import {
+  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
+  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
+  prefetchUseProductsServiceGetApiV1ProductsByProductId,
+  prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets,
   prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
   prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets,
 } from '@/api/queries/prefetch';
@@ -60,7 +68,11 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
-import { paginationSearchParameterSchema } from '@/schemas';
+import {
+  orgPaginationSearchParameterSchema,
+  paginationSearchParameterSchema,
+  productPaginationSearchParameterSchema,
+} from '@/schemas';
 
 const defaultPageSize = 10;
 
@@ -134,7 +146,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   );
 };
 
-const columns: ColumnDef<Secret>[] = [
+const baseColumns: ColumnDef<Secret>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
@@ -145,6 +157,10 @@ const columns: ColumnDef<Secret>[] = [
     header: 'Description',
     enableColumnFilter: false,
   },
+];
+
+const columns: ColumnDef<Secret>[] = [
+  ...baseColumns,
   {
     id: 'actions',
     cell: ActionCell,
@@ -157,6 +173,12 @@ const RepositorySecrets = () => {
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const productPageIndex = search.productPage ? search.productPage - 1 : 0;
+  const productPageSize = search.productPageSize
+    ? search.productPageSize
+    : defaultPageSize;
+  const orgPageIndex = search.orgPage ? search.orgPage - 1 : 0;
+  const orgPageSize = search.orgPageSize ? search.orgPageSize : defaultPageSize;
 
   const {
     data: repo,
@@ -168,6 +190,24 @@ const RepositorySecrets = () => {
   });
 
   const {
+    data: product,
+    error: productError,
+    isPending: productIsPending,
+    isError: productIsError,
+  } = useProductsServiceGetApiV1ProductsByProductId({
+    productId: Number.parseInt(params.productId),
+  });
+
+  const {
+    data: organization,
+    error: orgError,
+    isPending: orgIsPending,
+    isError: orgIsError,
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
+    organizationId: Number.parseInt(params.orgId),
+  });
+
+  const {
     data: secrets,
     error: secretsError,
     isPending: secretsIsPending,
@@ -176,6 +216,28 @@ const RepositorySecrets = () => {
     repositoryId: Number.parseInt(params.repoId),
     limit: pageSize,
     offset: pageIndex * pageSize,
+  });
+
+  const {
+    data: productSecrets,
+    error: productSecretsError,
+    isPending: productSecretsIsPending,
+    isError: productSecretsIsError,
+  } = useProductsServiceGetApiV1ProductsByProductIdSecrets({
+    productId: Number(params.productId),
+    limit: productPageSize,
+    offset: productPageIndex * productPageSize,
+  });
+
+  const {
+    data: orgSecrets,
+    error: orgSecretsError,
+    isPending: orgSecretsIsPending,
+    isError: orgSecretsIsError,
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets({
+    organizationId: Number.parseInt(params.orgId),
+    limit: orgPageSize,
+    offset: orgPageIndex * orgPageSize,
   });
 
   const table = useReactTable({
@@ -192,13 +254,70 @@ const RepositorySecrets = () => {
     manualPagination: true,
   });
 
-  if (repoIsPending || secretsIsPending) {
+  const productTable = useReactTable({
+    data: productSecrets?.data || [],
+    columns: baseColumns,
+    pageCount: Math.ceil(
+      (productSecrets?.pagination.totalCount ?? 0) / orgPageSize
+    ),
+    state: {
+      pagination: {
+        pageIndex: productPageIndex,
+        pageSize: productPageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
+
+  const orgTable = useReactTable({
+    data: orgSecrets?.data || [],
+    columns: baseColumns,
+    pageCount: Math.ceil(
+      (orgSecrets?.pagination.totalCount ?? 0) / orgPageSize
+    ),
+    state: {
+      pagination: {
+        pageIndex: orgPageIndex,
+        pageSize: orgPageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
+
+  if (
+    repoIsPending ||
+    productIsPending ||
+    orgIsPending ||
+    secretsIsPending ||
+    productSecretsIsPending ||
+    orgSecretsIsPending
+  ) {
     return <LoadingIndicator />;
   }
 
-  if (repoIsError || secretsIsError) {
+  if (
+    repoIsError ||
+    productIsError ||
+    orgIsError ||
+    secretsIsError ||
+    productSecretsIsError ||
+    orgSecretsIsError
+  ) {
     toast.error('Unable to load data', {
-      description: <ToastError error={repoError || secretsError} />,
+      description: (
+        <ToastError
+          error={
+            repoError ||
+            productError ||
+            orgError ||
+            secretsError ||
+            productSecretsError ||
+            orgSecretsError
+          }
+        />
+      ),
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -209,65 +328,183 @@ const RepositorySecrets = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Secrets</CardTitle>
-        <CardDescription>Manage secrets for {repo.url}.</CardDescription>
-        <div className='py-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
-                <Link
-                  to='/organizations/$orgId/products/$productId/repositories/$repoId/secrets/create-secret'
-                  params={{
-                    orgId: params.orgId,
-                    productId: params.productId,
-                    repoId: params.repoId,
-                  }}
-                >
-                  New secret
-                  <PlusIcon className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Create a new secret for this repository
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          table={table}
-          setCurrentPageOptions={(currentPage) => {
-            return {
-              to: Route.to,
-              search: { ...search, page: currentPage },
-            };
-          }}
-          setPageSizeOptions={(size) => {
-            return {
-              to: Route.to,
-              search: { ...search, page: 1, pageSize: size },
-            };
-          }}
-        />
-      </CardContent>
-    </Card>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Repository Secrets</CardTitle>
+          <CardDescription>Manage secrets for {repo.url}.</CardDescription>
+          <div className='py-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild size='sm' className='ml-auto gap-1'>
+                  <Link
+                    to='/organizations/$orgId/products/$productId/repositories/$repoId/secrets/create-secret'
+                    params={{
+                      orgId: params.orgId,
+                      productId: params.productId,
+                      repoId: params.repoId,
+                    }}
+                  >
+                    New secret
+                    <PlusIcon className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Create a new secret for this repository
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            table={table}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: 1, pageSize: size },
+              };
+            }}
+          />
+        </CardContent>
+      </Card>
+      <Card className='mt-4'>
+        <CardHeader>
+          <CardTitle>Product Secrets</CardTitle>
+          <CardDescription>
+            Inherited secrets from {product.name}.
+          </CardDescription>
+          <div className='py-2'>
+            <Button asChild size='sm' className='ml-auto gap-1'>
+              <Link
+                to='/organizations/$orgId/products/$productId/secrets'
+                params={{
+                  orgId: params.orgId,
+                  productId: params.productId,
+                }}
+              >
+                Manage Product Secrets
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            table={productTable}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                to: Route.to,
+                search: { ...search, productPage: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                to: Route.to,
+                search: { ...search, productPage: 1, productPageSize: size },
+              };
+            }}
+          />
+        </CardContent>
+      </Card>
+      <Card className='mt-4'>
+        <CardHeader>
+          <CardTitle>Organization Secrets</CardTitle>
+          <CardDescription>
+            Inherited secrets from {organization.name}.
+          </CardDescription>
+          <div className='py-2'>
+            <Button asChild size='sm' className='ml-auto gap-1'>
+              <Link
+                to='/organizations/$orgId/secrets'
+                params={{
+                  orgId: params.orgId,
+                }}
+              >
+                Manage Organization Secrets
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            table={orgTable}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                to: Route.to,
+                search: { ...search, orgPage: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                to: Route.to,
+                search: { ...search, orgPage: 1, orgPageSize: size },
+              };
+            }}
+          />
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/'
 )({
-  validateSearch: paginationSearchParameterSchema,
-  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context, params, deps: { page, pageSize } }) => {
+  validateSearch: paginationSearchParameterSchema
+    .merge(productPaginationSearchParameterSchema)
+    .merge(orgPaginationSearchParameterSchema),
+  loaderDeps: ({
+    search: {
+      page,
+      pageSize,
+      productPage,
+      productPageSize,
+      orgPage,
+      orgPageSize,
+    },
+  }) => ({
+    page,
+    pageSize,
+    productPage,
+    productPageSize,
+    orgPage,
+    orgPageSize,
+  }),
+  loader: async ({
+    context,
+    params,
+    deps: {
+      page,
+      pageSize,
+      productPage,
+      productPageSize,
+      orgPage,
+      orgPageSize,
+    },
+  }) => {
     await Promise.allSettled([
       prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId(
         context.queryClient,
         {
           repositoryId: Number.parseInt(params.repoId),
+        }
+      ),
+      prefetchUseProductsServiceGetApiV1ProductsByProductId(
+        context.queryClient,
+        {
+          productId: Number.parseInt(params.productId),
+        }
+      ),
+      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
+        context.queryClient,
+        {
+          organizationId: Number.parseInt(params.orgId),
         }
       ),
       prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets(
@@ -276,6 +513,26 @@ export const Route = createFileRoute(
           repositoryId: Number.parseInt(params.repoId),
           limit: pageSize || defaultPageSize,
           offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        }
+      ),
+      prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets(
+        context.queryClient,
+        {
+          productId: Number(params.productId),
+          limit: productPageSize || defaultPageSize,
+          offset: productPage
+            ? (productPage - 1) * (productPageSize || defaultPageSize)
+            : 0,
+        }
+      ),
+      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets(
+        context.queryClient,
+        {
+          organizationId: Number.parseInt(params.orgId),
+          limit: orgPageSize || defaultPageSize,
+          offset: orgPage
+            ? (orgPage - 1) * (orgPageSize || defaultPageSize)
+            : 0,
         }
       ),
     ]);
