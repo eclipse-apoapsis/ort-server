@@ -55,8 +55,8 @@ fun main(args: Array<String>) {
         }
 
         exitProcess(0)
-    } catch (e: AuthenticationException) {
-        cli.echoError(e.message)
+    } catch (@Suppress("SwallowedException") e: AuthenticationException) {
+        cli.echoError("Authentication failed. Please check your credentials.")
     } catch (e: OrtServerCliException) {
         cli.echoError(e.message)
     } catch (e: OrtServerException) {
