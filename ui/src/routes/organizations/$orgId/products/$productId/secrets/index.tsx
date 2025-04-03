@@ -28,12 +28,16 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
   useProductsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName,
   useProductsServiceGetApiV1ProductsByProductId,
   useProductsServiceGetApiV1ProductsByProductIdSecrets,
   useProductsServiceGetApiV1ProductsByProductIdSecretsKey,
 } from '@/api/queries';
 import {
+  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
+  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
   prefetchUseProductsServiceGetApiV1ProductsByProductId,
   prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets,
 } from '@/api/queries/prefetch';
@@ -60,7 +64,10 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
-import { paginationSearchParameterSchema } from '@/schemas';
+import {
+  orgPaginationSearchParameterSchema,
+  paginationSearchParameterSchema,
+} from '@/schemas';
 
 const defaultPageSize = 10;
 
@@ -128,7 +135,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   );
 };
 
-const columns: ColumnDef<Secret>[] = [
+const baseColumns: ColumnDef<Secret>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
@@ -139,6 +146,10 @@ const columns: ColumnDef<Secret>[] = [
     header: 'Description',
     enableColumnFilter: false,
   },
+];
+
+const columns: ColumnDef<Secret>[] = [
+  ...baseColumns,
   {
     id: 'actions',
     cell: ActionCell,
@@ -151,6 +162,8 @@ const ProductSecrets = () => {
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const orgPageIndex = search.orgPage ? search.orgPage - 1 : 0;
+  const orgPageSize = search.orgPageSize ? search.orgPageSize : defaultPageSize;
 
   const {
     data: product,
@@ -162,6 +175,15 @@ const ProductSecrets = () => {
   });
 
   const {
+    data: organization,
+    error: orgError,
+    isPending: orgIsPending,
+    isError: orgIsError,
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
+    organizationId: Number.parseInt(params.orgId),
+  });
+
+  const {
     data: secrets,
     error: secretsError,
     isPending: secretsIsPending,
@@ -170,6 +192,17 @@ const ProductSecrets = () => {
     productId: Number(params.productId),
     limit: pageSize,
     offset: pageIndex * pageSize,
+  });
+
+  const {
+    data: orgSecrets,
+    error: orgSecretsError,
+    isPending: orgSecretsIsPending,
+    isError: orgSecretsIsError,
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets({
+    organizationId: Number.parseInt(params.orgId),
+    limit: orgPageSize,
+    offset: orgPageIndex * orgPageSize,
   });
 
   const table = useReactTable({
@@ -186,13 +219,38 @@ const ProductSecrets = () => {
     manualPagination: true,
   });
 
-  if (prodIsPending || secretsIsPending) {
+  const orgTable = useReactTable({
+    data: orgSecrets?.data || [],
+    columns: baseColumns,
+    pageCount: Math.ceil(
+      (orgSecrets?.pagination.totalCount ?? 0) / orgPageSize
+    ),
+    state: {
+      pagination: {
+        pageIndex: orgPageIndex,
+        pageSize: orgPageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
+
+  if (
+    prodIsPending ||
+    secretsIsPending ||
+    orgIsPending ||
+    orgSecretsIsPending
+  ) {
     return <LoadingIndicator />;
   }
 
-  if (prodIsError || secretsIsError) {
+  if (prodIsError || secretsIsError || orgIsError || orgSecretsIsError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={prodError || secretsError} />,
+      description: (
+        <ToastError
+          error={prodError || secretsError || orgError || orgSecretsError}
+        />
+      ),
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -203,64 +261,120 @@ const ProductSecrets = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Secrets</CardTitle>
-        <CardDescription>Manage secrets for {product.name}.</CardDescription>
-        <div className='py-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild size='sm' className='ml-auto gap-1'>
-                <Link
-                  to='/organizations/$orgId/products/$productId/secrets/create-secret'
-                  params={{
-                    orgId: params.orgId,
-                    productId: params.productId,
-                  }}
-                >
-                  New secret
-                  <PlusIcon className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Create a new secret for this product
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          table={table}
-          setCurrentPageOptions={(currentPage) => {
-            return {
-              to: Route.to,
-              search: { ...search, page: currentPage },
-            };
-          }}
-          setPageSizeOptions={(size) => {
-            return {
-              to: Route.to,
-              search: { ...search, page: 1, pageSize: size },
-            };
-          }}
-        />
-      </CardContent>
-    </Card>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Secrets</CardTitle>
+          <CardDescription>Manage secrets for {product.name}.</CardDescription>
+          <div className='py-2'>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild size='sm' className='ml-auto gap-1'>
+                  <Link
+                    to='/organizations/$orgId/products/$productId/secrets/create-secret'
+                    params={{
+                      orgId: params.orgId,
+                      productId: params.productId,
+                    }}
+                  >
+                    New secret
+                    <PlusIcon className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Create a new secret for this product
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            table={table}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                to: Route.to,
+                search: { ...search, page: 1, pageSize: size },
+              };
+            }}
+          />
+        </CardContent>
+      </Card>
+      <Card className='mt-4'>
+        <CardHeader>
+          <CardTitle>Organization Secrets</CardTitle>
+          <CardDescription>
+            Inherited secrets from {organization.name}.
+          </CardDescription>
+          <div className='py-2'>
+            <Button asChild size='sm' className='ml-auto gap-1'>
+              <Link
+                to='/organizations/$orgId/secrets'
+                params={{
+                  orgId: params.orgId,
+                }}
+              >
+                Manage Organization Secrets
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            table={orgTable}
+            setCurrentPageOptions={(currentPage) => {
+              return {
+                to: Route.to,
+                search: { ...search, orgPage: currentPage },
+              };
+            }}
+            setPageSizeOptions={(size) => {
+              return {
+                to: Route.to,
+                search: { ...search, orgPage: 1, orgPageSize: size },
+              };
+            }}
+          />
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/secrets/'
 )({
-  validateSearch: paginationSearchParameterSchema,
-  loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context, params, deps: { page, pageSize } }) => {
+  validateSearch: paginationSearchParameterSchema.merge(
+    orgPaginationSearchParameterSchema
+  ),
+  loaderDeps: ({ search: { page, pageSize, orgPage, orgPageSize } }) => ({
+    page,
+    pageSize,
+    orgPage,
+    orgPageSize,
+  }),
+  loader: async ({
+    context,
+    params,
+    deps: { page, pageSize, orgPage, orgPageSize },
+  }) => {
     await Promise.allSettled([
       prefetchUseProductsServiceGetApiV1ProductsByProductId(
         context.queryClient,
         {
           productId: Number.parseInt(params.productId),
+        }
+      ),
+      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
+        context.queryClient,
+        {
+          organizationId: Number.parseInt(params.orgId),
         }
       ),
       prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets(
@@ -269,6 +383,16 @@ export const Route = createFileRoute(
           productId: Number(params.productId),
           limit: pageSize || defaultPageSize,
           offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        }
+      ),
+      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets(
+        context.queryClient,
+        {
+          organizationId: Number.parseInt(params.orgId),
+          limit: orgPageSize || defaultPageSize,
+          offset: orgPage
+            ? (orgPage - 1) * (orgPageSize || defaultPageSize)
+            : 0,
         }
       ),
     ]);
