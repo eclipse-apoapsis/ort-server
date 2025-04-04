@@ -615,7 +615,7 @@ val getVulnerabilitiesAcrossRepositoriesByOrganizationId: OpenApiRoute.() -> Uni
     summary = "Get vulnerabilities from an organization"
     description = "Get the vulnerabilities from latest successful advisor runs across the repositories in an " +
             " organization."
-    tags = listOf("Vulnerabilities")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {

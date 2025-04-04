@@ -432,7 +432,7 @@ val getVulnerabilitiesAcrossRepositoriesByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetVulnerabilitiesAcrossRepositoriesByProductId"
     summary = "Get vulnerabilities from a product"
     description = "Get the vulnerabilities from latest successful advisor runs across the repositories in a product."
-    tags = listOf("Vulnerabilities")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
