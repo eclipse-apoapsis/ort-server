@@ -17,8 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { CheckIcon } from '@radix-ui/react-icons';
-import { Filter } from 'lucide-react';
+import { Check, Filter } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -98,7 +97,7 @@ export function FilterMultiSelect<TValue>({
                           : 'opacity-50 [&_svg]:invisible'
                       )}
                     >
-                      <CheckIcon className={cn('h-4 w-4')} />
+                      <Check className={cn('h-4 w-4')} />
                     </div>
                     {option.icon && (
                       <option.icon className='text-muted-foreground mr-2 h-4 w-4' />

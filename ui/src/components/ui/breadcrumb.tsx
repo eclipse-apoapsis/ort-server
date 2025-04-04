@@ -7,8 +7,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { ChevronRightIcon, DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Slot } from '@radix-ui/react-slot';
+import { ChevronRight, Ellipsis } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
@@ -84,7 +84,7 @@ function BreadcrumbSeparator({
       className={cn('[&>svg]:size-3.5', className)}
       {...props}
     >
-      {children ?? <ChevronRightIcon />}
+      {children ?? <ChevronRight />}
     </li>
   );
 }
@@ -101,7 +101,7 @@ function BreadcrumbEllipsis({
       className={cn('flex size-9 items-center justify-center', className)}
       {...props}
     >
-      <DotsHorizontalIcon className='size-4' />
+      <Ellipsis className='size-4' />
       <span className='sr-only'>More</span>
     </span>
   );
