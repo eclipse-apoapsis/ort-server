@@ -19,11 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
+import io.github.smiley4.ktoropenapi.config.RouteConfig
 
 import io.ktor.http.HttpStatusCode
 
-val getReportByRunIdAndToken: OpenApiRoute.() -> Unit = {
+val getReportByRunIdAndToken: RouteConfig.() -> Unit = {
     operationId = "GetReportByRunIdAndToken"
     summary = "Download a report of an ORT run using a token"
     description = "This endpoint does not require authentication."

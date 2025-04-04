@@ -19,13 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
+import io.github.smiley4.ktoropenapi.config.RouteConfig
 
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.core.api.Liveness
 
-val getLiveness: OpenApiRoute.() -> Unit = {
+val getLiveness: RouteConfig.() -> Unit = {
     operationId = "GetLiveness"
     summary = "Get the health of the ORT server"
     tags = listOf("Health")

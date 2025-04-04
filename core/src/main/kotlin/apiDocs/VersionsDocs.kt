@@ -19,11 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
+import io.github.smiley4.ktoropenapi.config.RouteConfig
 
 import io.ktor.http.HttpStatusCode
 
-val getVersions: OpenApiRoute.() -> Unit = {
+val getVersions: RouteConfig.() -> Unit = {
     operationId = "getVersions"
     summary = "Get the versions of the ORT server and other components"
     tags = listOf("Versions")
