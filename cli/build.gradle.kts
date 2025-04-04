@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
@@ -30,7 +31,14 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.cli"
 
 kotlin {
-    // Note that the JVM is a conventional default target.
+    jvm {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        binaries {
+            executable {
+                mainClass = "org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt"
+            }
+        }
+    }
 
     linuxX64()
     macosArm64()
