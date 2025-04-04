@@ -28,10 +28,10 @@ import { Eye, Pen, Shield } from 'lucide-react';
 
 import {
   useAdminServiceDeleteApiV1AdminUsers,
-  useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
-  useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsers,
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
 } from '@/api/queries';
 import { ApiError, UserWithGroups } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -127,31 +127,33 @@ const columns = [
       });
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
-        useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId({
-          onSuccess(_response, parameters) {
-            queryClient.invalidateQueries({
-              queryKey: [
-                useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-              ],
-            });
-            toast.info('Join Group', {
-              description: `User "${row.original.user.username}" joined group ${parameters.groupId} successfully.`,
-            });
-          },
-          onError(error: ApiError) {
-            toast.error(error.message, {
-              description: <ToastError error={error} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
-          },
-        });
+        useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId(
+          {
+            onSuccess(_response, parameters) {
+              queryClient.invalidateQueries({
+                queryKey: [
+                  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+                ],
+              });
+              toast.info('Join Group', {
+                description: `User "${row.original.user.username}" joined group ${parameters.groupId} successfully.`,
+              });
+            },
+            onError(error: ApiError) {
+              toast.error(error.message, {
+                description: <ToastError error={error} />,
+                duration: Infinity,
+                cancel: {
+                  label: 'Dismiss',
+                  onClick: () => {},
+                },
+              });
+            },
+          }
+        );
 
       const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-        useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId(
+        useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId(
           {
             onSuccess(_response, parameters) {
               // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.

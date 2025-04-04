@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useProductsServicePostApiV1OrganizationsByOrganizationIdProducts } from '@/api/queries';
+import { useOrganizationsServicePostApiV1OrganizationsByOrganizationIdProducts } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
@@ -59,7 +59,7 @@ const CreateProductPage = () => {
   const { refreshUser } = useUser();
 
   const { mutateAsync, isPending } =
-    useProductsServicePostApiV1OrganizationsByOrganizationIdProducts({
+    useOrganizationsServicePostApiV1OrganizationsByOrganizationIdProducts({
       onSuccess(data) {
         // Refresh the user token and data to get the new roles after creating a new product.
         refreshUser();

@@ -25,10 +25,10 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
-  useSecretsServicePatchApiV1ProductsByProductIdSecretsBySecretName,
+  useProductsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
+  useProductsServicePatchApiV1ProductsByProductIdSecretsBySecretName,
 } from '@/api/queries';
-import { ApiError, SecretsService } from '@/api/requests';
+import { ApiError, ProductsService } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -65,12 +65,12 @@ const EditProductSecretPage = () => {
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
+      useProductsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
       params.productId,
       params.secretName,
     ],
     queryFn: () =>
-      SecretsService.getApiV1ProductsByProductIdSecretsBySecretName({
+      ProductsService.getApiV1ProductsByProductIdSecretsBySecretName({
         productId: Number.parseInt(params.productId),
         secretName: params.secretName,
       }),
@@ -86,7 +86,7 @@ const EditProductSecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } =
-    useSecretsServicePatchApiV1ProductsByProductIdSecretsBySecretName({
+    useProductsServicePatchApiV1ProductsByProductIdSecretsBySecretName({
       onSuccess(data) {
         toast.info('Edit Product Secret', {
           description: `Secret "${data.name}" updated successfully.`,
@@ -207,12 +207,12 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useSecretsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
+        useProductsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
         params.productId,
         params.secretName,
       ],
       queryFn: () =>
-        SecretsService.getApiV1ProductsByProductIdSecretsBySecretName({
+        ProductsService.getApiV1ProductsByProductIdSecretsBySecretName({
           productId: Number.parseInt(params.productId),
           secretName: params.secretName,
         }),

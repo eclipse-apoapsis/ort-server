@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useRepositoriesServicePostApiV1ProductsByProductIdRepositories } from '@/api/queries';
+import { useProductsServicePostApiV1ProductsByProductIdRepositories } from '@/api/queries';
 import { $RepositoryType, ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -64,7 +64,7 @@ const CreateRepositoryPage = () => {
   const { refreshUser } = useUser();
 
   const { mutateAsync, isPending } =
-    useRepositoriesServicePostApiV1ProductsByProductIdRepositories({
+    useProductsServicePostApiV1ProductsByProductIdRepositories({
       onSuccess(data) {
         // Refresh the user token and data to get the new roles after creating a new repository.
         refreshUser();

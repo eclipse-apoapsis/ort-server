@@ -24,7 +24,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import { useRepositoriesServiceGetApiV1ProductsByProductIdRepositories } from '@/api/queries';
+import { useProductsServiceGetApiV1ProductsByProductIdRepositories } from '@/api/queries';
 import { PagedResponse_Repository, Repository } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -122,7 +122,7 @@ export const ProductRepositoryTable = () => {
     error: reposError,
     isPending: reposIsPending,
     isError: reposIsError,
-  } = useRepositoriesServiceGetApiV1ProductsByProductIdRepositories({
+  } = useProductsServiceGetApiV1ProductsByProductIdRepositories({
     productId: Number.parseInt(params.productId),
     limit: pageSize,
     offset: pageIndex * pageSize,

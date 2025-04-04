@@ -28,14 +28,14 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
+  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
-  useSecretsServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName,
-  useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecrets,
-  useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsKey,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsKey,
 } from '@/api/queries';
 import {
   prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
-  prefetchUseSecretsServiceGetApiV1RepositoriesByRepositoryIdSecrets,
+  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets,
 } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { ApiError, Secret } from '@/api/requests';
@@ -74,28 +74,30 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
     });
 
   const { mutateAsync: deleteSecret } =
-    useSecretsServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName({
-      onSuccess() {
-        toast.info('Delete Secret', {
-          description: `Secret "${row.original.name}" deleted successfully.`,
-        });
-        queryClient.invalidateQueries({
-          queryKey: [
-            useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsKey,
-          ],
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+    useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName(
+      {
+        onSuccess() {
+          toast.info('Delete Secret', {
+            description: `Secret "${row.original.name}" deleted successfully.`,
+          });
+          queryClient.invalidateQueries({
+            queryKey: [
+              useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsKey,
+            ],
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      }
+    );
 
   return (
     <div className='flex items-center justify-end gap-1'>
@@ -170,7 +172,7 @@ const RepositorySecrets = () => {
     error: secretsError,
     isPending: secretsIsPending,
     isError: secretsIsError,
-  } = useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecrets({
+  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets({
     repositoryId: Number.parseInt(params.repoId),
     limit: pageSize,
     offset: pageIndex * pageSize,
@@ -268,7 +270,7 @@ export const Route = createFileRoute(
           repositoryId: Number.parseInt(params.repoId),
         }
       ),
-      prefetchUseSecretsServiceGetApiV1RepositoriesByRepositoryIdSecrets(
+      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets(
         context.queryClient,
         {
           repositoryId: Number.parseInt(params.repoId),

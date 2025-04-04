@@ -28,14 +28,14 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
+  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdSecretsBySecretName,
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
-  useSecretsServiceDeleteApiV1OrganizationsByOrganizationIdSecretsBySecretName,
-  useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
-  useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsKey,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsKey,
 } from '@/api/queries';
 import {
   prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
-  prefetchUseSecretsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
+  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
 } from '@/api/queries/prefetch';
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
 import { ApiError, Secret } from '@/api/requests';
@@ -74,7 +74,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
     });
 
   const { mutateAsync: delSecret } =
-    useSecretsServiceDeleteApiV1OrganizationsByOrganizationIdSecretsBySecretName(
+    useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdSecretsBySecretName(
       {
         onSuccess() {
           toast.info('Delete Secret', {
@@ -82,7 +82,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
           });
           queryClient.invalidateQueries({
             queryKey: [
-              useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsKey,
+              useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsKey,
             ],
           });
         },
@@ -166,7 +166,7 @@ const OrganizationSecrets = () => {
     error: secretsError,
     isPending: secretsIsPending,
     isError: secretsIsError,
-  } = useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecrets({
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets({
     organizationId: Number.parseInt(params.orgId),
     limit: pageSize,
     offset: pageIndex * pageSize,
@@ -260,7 +260,7 @@ export const Route = createFileRoute('/organizations/$orgId/secrets/')({
           organizationId: Number.parseInt(params.orgId),
         }
       ),
-      prefetchUseSecretsServiceGetApiV1OrganizationsByOrganizationIdSecrets(
+      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets(
         context.queryClient,
         {
           organizationId: Number.parseInt(params.orgId),

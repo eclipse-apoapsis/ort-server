@@ -20,7 +20,7 @@
 import { Link } from '@tanstack/react-router';
 import { Files, PlusIcon } from 'lucide-react';
 
-import { useRepositoriesServiceGetApiV1ProductsByProductIdRepositories } from '@/api/queries';
+import { useProductsServiceGetApiV1ProductsByProductIdRepositories } from '@/api/queries';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -45,7 +45,7 @@ export const ProductRepositoriesStatisticsCard = ({
   className,
 }: ProductRepositoriesStatisticsCardProps) => {
   const { data, isPending, isError, error } =
-    useRepositoriesServiceGetApiV1ProductsByProductIdRepositories({
+    useProductsServiceGetApiV1ProductsByProductIdRepositories({
       productId: Number.parseInt(productId),
       limit: 1,
     });

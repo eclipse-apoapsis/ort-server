@@ -31,7 +31,7 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { useVulnerabilitiesServiceGetApiV1RunsByRunIdVulnerabilities } from '@/api/queries';
+import { useRunsServiceGetApiV1RunsByRunIdVulnerabilities } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import {
@@ -306,7 +306,7 @@ const VulnerabilitiesComponent = () => {
     isPending,
     isError,
     error,
-  } = useVulnerabilitiesServiceGetApiV1RunsByRunIdVulnerabilities({
+  } = useRunsServiceGetApiV1RunsByRunIdVulnerabilities({
     runId: ortRun.id,
     limit: ALL_ITEMS,
   });

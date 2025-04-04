@@ -133,7 +133,7 @@ val deleteProductById: OpenApiRoute.() -> Unit = {
 val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetRepositoriesByProductId"
     summary = "Get all repositories of a product"
-    tags = listOf("Repositories")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -181,7 +181,7 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
 val postRepository: OpenApiRoute.() -> Unit = {
     operationId = "CreateRepository"
     summary = "Create a repository for a product"
-    tags = listOf("Repositories")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -218,7 +218,7 @@ val postRepository: OpenApiRoute.() -> Unit = {
 val getSecretsByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretsByProductId"
     summary = "Get all secrets of a specific product"
-    tags = listOf("Secrets")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -253,7 +253,7 @@ val getSecretsByProductId: OpenApiRoute.() -> Unit = {
 val getSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretByProductIdAndName"
     summary = "Get details of a secret of a product"
-    tags = listOf("Secrets")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -279,7 +279,7 @@ val getSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
 val postSecretForProduct: OpenApiRoute.() -> Unit = {
     operationId = "PostSecretForProduct"
     summary = "Create a secret for a product"
-    tags = listOf("Secrets")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -311,7 +311,7 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
 val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchSecretByProductIdAndName"
     summary = "Update a secret of a product"
-    tags = listOf("Secrets")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -348,7 +348,7 @@ val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
 val deleteSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteSecretByProductIdAndName"
     summary = "Delete a secret from a product"
-    tags = listOf("Secrets")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -369,7 +369,7 @@ val deleteSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
 val putUserToProductGroup: OpenApiRoute.() -> Unit = {
     operationId = "PutUserToGroupProduct"
     summary = "Add a user to a group on product level"
-    tags = listOf("Groups")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -400,7 +400,7 @@ val putUserToProductGroup: OpenApiRoute.() -> Unit = {
 val deleteUserFromProductGroup: OpenApiRoute.() -> Unit = {
     operationId = "DeleteUserFromGroupProduct"
     summary = "Remove a user from a group on product level"
-    tags = listOf("Groups")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -432,7 +432,7 @@ val getVulnerabilitiesAcrossRepositoriesByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetVulnerabilitiesAcrossRepositoriesByProductId"
     summary = "Get vulnerabilities from a product"
     description = "Get the vulnerabilities from latest successful advisor runs across the repositories in a product."
-    tags = listOf("Vulnerabilities")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {

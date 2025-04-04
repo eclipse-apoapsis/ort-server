@@ -25,10 +25,10 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
-  useSecretsServicePatchApiV1RepositoriesByRepositoryIdSecretsBySecretName,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
+  useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdSecretsBySecretName,
 } from '@/api/queries';
-import { ApiError, SecretsService } from '@/api/requests';
+import { ApiError, RepositoriesService } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -65,15 +65,17 @@ const EditRepositorySecretPage = () => {
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
+      useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
       params.repoId,
       params.secretName,
     ],
     queryFn: () =>
-      SecretsService.getApiV1RepositoriesByRepositoryIdSecretsBySecretName({
-        repositoryId: Number.parseInt(params.repoId),
-        secretName: params.secretName,
-      }),
+      RepositoriesService.getApiV1RepositoriesByRepositoryIdSecretsBySecretName(
+        {
+          repositoryId: Number.parseInt(params.repoId),
+          secretName: params.secretName,
+        }
+      ),
   });
 
   const form = useForm<EditSecretFormValues>({
@@ -86,31 +88,33 @@ const EditRepositorySecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } =
-    useSecretsServicePatchApiV1RepositoriesByRepositoryIdSecretsBySecretName({
-      onSuccess(data) {
-        toast.info('Edit Repository Secret', {
-          description: `Secret "${data.name}" updated successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
-          params: {
-            orgId: params.orgId,
-            productId: params.productId,
-            repoId: params.repoId,
-          },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+    useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdSecretsBySecretName(
+      {
+        onSuccess(data) {
+          toast.info('Edit Repository Secret', {
+            description: `Secret "${data.name}" updated successfully.`,
+          });
+          navigate({
+            to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
+            params: {
+              orgId: params.orgId,
+              productId: params.productId,
+              repoId: params.repoId,
+            },
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      }
+    );
 
   const onSubmit = (values: EditSecretFormValues) => {
     editSecret({
@@ -215,15 +219,17 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useSecretsServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
+        useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsBySecretNameKey,
         params.repoId,
         params.secretName,
       ],
       queryFn: () =>
-        SecretsService.getApiV1RepositoriesByRepositoryIdSecretsBySecretName({
-          repositoryId: Number.parseInt(params.repoId),
-          secretName: params.secretName,
-        }),
+        RepositoriesService.getApiV1RepositoriesByRepositoryIdSecretsBySecretName(
+          {
+            repositoryId: Number.parseInt(params.repoId),
+            secretName: params.secretName,
+          }
+        ),
     });
   },
   component: EditRepositorySecretPage,

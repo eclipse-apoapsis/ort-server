@@ -28,14 +28,14 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
-  useInfrastructureServicesServiceDeleteApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
-  useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices,
-  useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
 } from '@/api/queries';
 import {
-  prefetchUseInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices,
   prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
+  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices,
 } from '@/api/queries/prefetch';
 import { ApiError, InfrastructureService } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
@@ -68,7 +68,7 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
   const queryClient = useQueryClient();
 
   const { mutateAsync: delService } =
-    useInfrastructureServicesServiceDeleteApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
+    useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
       {
         onSuccess() {
           toast.info('Delete Infrastructure Service', {
@@ -76,7 +76,7 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
           });
           queryClient.invalidateQueries({
             queryKey: [
-              useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+              useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
             ],
           });
         },
@@ -143,7 +143,7 @@ const InfrastructureServices = () => {
     error: infraError,
     isPending: infraIsPending,
     isError: infraIsError,
-  } = useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices(
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices(
     {
       organizationId: Number.parseInt(params.orgId),
       limit: pageSize,
@@ -298,7 +298,7 @@ export const Route = createFileRoute(
           organizationId: Number.parseInt(params.orgId),
         }
       ),
-      prefetchUseInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices(
+      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices(
         context.queryClient,
         {
           organizationId: Number.parseInt(params.orgId),

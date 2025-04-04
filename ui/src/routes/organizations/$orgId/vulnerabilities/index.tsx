@@ -20,7 +20,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
-import { useVulnerabilitiesServiceGetApiV1OrganizationsByOrganizationIdVulnerabilitiesSuspense } from '@/api/queries/suspense';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdVulnerabilitiesSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   Card,
@@ -39,7 +39,7 @@ const OrganizationVulnerabilitiesComponent = () => {
   const params = Route.useParams();
 
   const { data: vulnerabilities } =
-    useVulnerabilitiesServiceGetApiV1OrganizationsByOrganizationIdVulnerabilitiesSuspense(
+    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdVulnerabilitiesSuspense(
       {
         organizationId: Number.parseInt(params.orgId),
         limit: 1,

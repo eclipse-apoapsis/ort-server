@@ -25,10 +25,10 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
-  useSecretsServicePatchApiV1OrganizationsByOrganizationIdSecretsBySecretName,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
+  useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdSecretsBySecretName,
 } from '@/api/queries';
-import { ApiError, SecretsService } from '@/api/requests';
+import { ApiError, OrganizationsService } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -66,15 +66,17 @@ const EditOrganizationSecretPage = () => {
 
   const { data: secret } = useSuspenseQuery({
     queryKey: [
-      useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
+      useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
       params.orgId,
       params.secretName,
     ],
     queryFn: () =>
-      SecretsService.getApiV1OrganizationsByOrganizationIdSecretsBySecretName({
-        organizationId: Number.parseInt(params.orgId),
-        secretName: params.secretName,
-      }),
+      OrganizationsService.getApiV1OrganizationsByOrganizationIdSecretsBySecretName(
+        {
+          organizationId: Number.parseInt(params.orgId),
+          secretName: params.secretName,
+        }
+      ),
   });
 
   const form = useForm<EditSecretFormValues>({
@@ -87,7 +89,7 @@ const EditOrganizationSecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } =
-    useSecretsServicePatchApiV1OrganizationsByOrganizationIdSecretsBySecretName(
+    useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdSecretsBySecretName(
       {
         onSuccess(data) {
           toast.info('Edit organization secret', {
@@ -220,12 +222,12 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
+        useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
         params.orgId,
         params.secretName,
       ],
       queryFn: () =>
-        SecretsService.getApiV1OrganizationsByOrganizationIdSecretsBySecretName(
+        OrganizationsService.getApiV1OrganizationsByOrganizationIdSecretsBySecretName(
           {
             organizationId: Number.parseInt(params.orgId),
             secretName: params.secretName,

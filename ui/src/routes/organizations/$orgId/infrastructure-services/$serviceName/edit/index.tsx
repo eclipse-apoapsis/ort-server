@@ -25,11 +25,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
-  useInfrastructureServicesServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+  useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
 } from '@/api/queries';
-import { useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense } from '@/api/queries/suspense';
-import { ApiError, InfrastructureServicesService } from '@/api/requests';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense } from '@/api/queries/suspense';
+import { ApiError, OrganizationsService } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -76,10 +76,12 @@ const EditInfrastructureServicePage = () => {
   const params = Route.useParams();
 
   const { data: secrets } =
-    useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense({
-      organizationId: Number.parseInt(params.orgId),
-      limit: ALL_ITEMS,
-    });
+    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense(
+      {
+        organizationId: Number.parseInt(params.orgId),
+        limit: ALL_ITEMS,
+      }
+    );
 
   /* Search service details from all infrastructure services of the organization
    * TODO: Edit this to fetch the details from:
@@ -88,11 +90,11 @@ const EditInfrastructureServicePage = () => {
    */
   const { data: infrastructureServices } = useSuspenseQuery({
     queryKey: [
-      useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+      useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
       params.orgId,
     ],
     queryFn: () =>
-      InfrastructureServicesService.getApiV1OrganizationsByOrganizationIdInfrastructureServices(
+      OrganizationsService.getApiV1OrganizationsByOrganizationIdInfrastructureServices(
         {
           organizationId: Number.parseInt(params.orgId),
           limit: ALL_ITEMS,
@@ -105,7 +107,7 @@ const EditInfrastructureServicePage = () => {
   );
 
   const { mutateAsync, isPending } =
-    useInfrastructureServicesServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
+    useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
       {
         onSuccess(data) {
           toast.info('Edit Infrastructure Service', {
@@ -361,11 +363,11 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useInfrastructureServicesServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+        useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
         params.orgId,
       ],
       queryFn: () =>
-        InfrastructureServicesService.getApiV1OrganizationsByOrganizationIdInfrastructureServices(
+        OrganizationsService.getApiV1OrganizationsByOrganizationIdInfrastructureServices(
           {
             organizationId: Number.parseInt(params.orgId),
             limit: ALL_ITEMS,

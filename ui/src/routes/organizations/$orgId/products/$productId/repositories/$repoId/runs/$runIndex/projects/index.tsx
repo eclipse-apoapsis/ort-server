@@ -32,7 +32,7 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { useProjectsServiceGetApiV1RunsByRunIdProjects } from '@/api/queries';
+import { useRunsServiceGetApiV1RunsByRunIdProjects } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { Project } from '@/api/requests';
@@ -204,7 +204,7 @@ const ProjectsComponent = () => {
     isPending,
     isError,
     error,
-  } = useProjectsServiceGetApiV1RunsByRunIdProjects({
+  } = useRunsServiceGetApiV1RunsByRunIdProjects({
     runId: ortRun.id,
     limit: ALL_ITEMS,
   });
