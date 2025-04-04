@@ -47,7 +47,7 @@ const val COMMAND_NAME = "osc"
 fun main(args: Array<String>) {
     val cli = OrtServerMain()
 
-    try {
+    runCatching {
         // Kotlin native does not support suspending entrypoints, see
         // https://youtrack.jetbrains.com/issue/KT-52753/Native-Support-suspending-entrypoints.
         runBlocking {
@@ -55,18 +55,18 @@ fun main(args: Array<String>) {
         }
 
         exitProcess(0)
-    } catch (@Suppress("SwallowedException") e: AuthenticationException) {
-        cli.echoError("Authentication failed. Please check your credentials.")
-    } catch (e: OrtServerCliException) {
-        cli.echoError(e.message)
-    } catch (e: OrtServerException) {
-        cli.echoError(e.message)
-    } catch (e: CliktError) {
-        // The jsonFormat flag is not supported for the help message.
-        cli.echoFormattedHelp(e)
-        cli.currentContext.exitProcess(e.statusCode)
-    } catch (@Suppress("SwallowedException", "TooGenericExceptionCaught") e: Exception) {
-        cli.echoError("An unexpected error occurred.")
+    }.onFailure { e ->
+        when (e) {
+            is AuthenticationException -> cli.echoError("Authentication failed. Please check your credentials.")
+            is OrtServerCliException, is OrtServerException -> cli.echoError(e.message)
+            is CliktError -> {
+                // The jsonFormat flag is not supported for the help message.
+                cli.echoFormattedHelp(e)
+                cli.currentContext.exitProcess(e.statusCode)
+            }
+
+            else -> cli.echoError("An unexpected error occurred.")
+        }
     }
 
     exitProcess(1)
