@@ -539,7 +539,7 @@ val deleteOrtRunByIndex: OpenApiRoute.() -> Unit = {
 val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretsByRepositoryId"
     summary = "Get all secrets of a repository"
-    tags = listOf("Secrets")
+    tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {
@@ -574,7 +574,7 @@ val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
 val getSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretByRepositoryIdAndName"
     summary = "Get details of a secret of a repository"
-    tags = listOf("Secrets")
+    tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {
@@ -600,7 +600,7 @@ val getSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
 val postSecretForRepository: OpenApiRoute.() -> Unit = {
     operationId = "PostSecretForRepository"
     summary = "Create a secret for a repository"
-    tags = listOf("Secrets")
+    tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {
@@ -632,7 +632,7 @@ val postSecretForRepository: OpenApiRoute.() -> Unit = {
 val patchSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchSecretByRepositoryIdAndName"
     summary = "Update a secret of a repository"
-    tags = listOf("Secrets")
+    tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {
@@ -669,7 +669,7 @@ val patchSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
 val deleteSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteSecretByRepositoryIdAndName"
     summary = "Delete a secret from a repository"
-    tags = listOf("Secrets")
+    tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {

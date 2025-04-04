@@ -249,7 +249,7 @@ val postProduct: OpenApiRoute.() -> Unit = {
 val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretsByOrganizationId"
     summary = "Get all secrets of an organization"
-    tags = listOf("Secrets")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
@@ -284,7 +284,7 @@ val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
 val getSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretByOrganizationIdAndName"
     summary = "Get details of a secret of an organization"
-    tags = listOf("Secrets")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
@@ -310,7 +310,7 @@ val getSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
 val postSecretForOrganization: OpenApiRoute.() -> Unit = {
     operationId = "PostSecretForOrganization"
     summary = "Create a secret for an organization"
-    tags = listOf("Secrets")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
@@ -342,7 +342,7 @@ val postSecretForOrganization: OpenApiRoute.() -> Unit = {
 val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchSecretByOrganizationIdAndName"
     summary = "Update a secret of an organization"
-    tags = listOf("Secrets")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
@@ -379,7 +379,7 @@ val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
 val deleteSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteSecretByOrganizationIdAndName"
     summary = "Delete a secret from an organization"
-    tags = listOf("Secrets")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
@@ -400,7 +400,7 @@ val deleteSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
 val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
     operationId = "GetInfrastructureServicesByOrganizationId"
     summary = "List all infrastructure services of an organization"
-    tags = listOf("Infrastructure services")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
@@ -447,7 +447,7 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
 val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
     operationId = "PostInfrastructureServiceForOrganization"
     summary = "Create an infrastructure service for an organization"
-    tags = listOf("Infrastructure services")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
@@ -487,7 +487,7 @@ val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
 val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchInfrastructureServiceForOrganizationIdAndName"
     summary = "Update an infrastructure service for an organization"
-    tags = listOf("Infrastructure services")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
@@ -530,7 +530,7 @@ val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit 
 val deleteInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteInfrastructureServiceForOrganizationIdAndName"
     summary = "Delete an infrastructure service from an organization"
-    tags = listOf("Infrastructure services")
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {

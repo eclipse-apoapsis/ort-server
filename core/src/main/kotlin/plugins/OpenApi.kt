@@ -103,8 +103,6 @@ fun Application.configureOpenApi() {
             tag("Products") { }
             tag("Repositories") { }
             tag("Runs") { }
-            tag("Secrets") { }
-            tag("Infrastructure services") { }
             tag("Reports") { }
             tag("Logs") { }
         }
