@@ -54,7 +54,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
 val getOrganizationById: OpenApiRoute.() -> Unit = {
     operationId = "GetOrganizationById"
-    summary = "Get details of an organization."
+    summary = "Get details of an organization"
     tags = listOf("Organizations")
 
     request {
@@ -77,7 +77,7 @@ val getOrganizationById: OpenApiRoute.() -> Unit = {
 
 val getOrganizations: OpenApiRoute.() -> Unit = {
     operationId = "GetOrganizations"
-    summary = "Get all organizations."
+    summary = "Get all organizations"
     tags = listOf("Organizations")
 
     request {
@@ -109,7 +109,7 @@ val getOrganizations: OpenApiRoute.() -> Unit = {
 
 val postOrganizations: OpenApiRoute.() -> Unit = {
     operationId = "PostOrganizations"
-    summary = "Create an organization."
+    summary = "Create an organization"
     tags = listOf("Organizations")
 
     request {
@@ -134,7 +134,7 @@ val postOrganizations: OpenApiRoute.() -> Unit = {
 
 val patchOrganizationById: OpenApiRoute.() -> Unit = {
     operationId = "PatchOrganizationById"
-    summary = "Update an organization."
+    summary = "Update an organization"
     tags = listOf("Organizations")
 
     request {
@@ -166,7 +166,7 @@ val patchOrganizationById: OpenApiRoute.() -> Unit = {
 
 val deleteOrganizationById: OpenApiRoute.() -> Unit = {
     operationId = "DeleteOrganizationById"
-    summary = "Delete an organization."
+    summary = "Delete an organization"
     tags = listOf("Organizations")
 
     request {
@@ -184,7 +184,7 @@ val deleteOrganizationById: OpenApiRoute.() -> Unit = {
 
 val getOrganizationProducts: OpenApiRoute.() -> Unit = {
     operationId = "GetOrganizationProducts"
-    summary = "Get all products of an organization."
+    summary = "Get all products of an organization"
     tags = listOf("Products")
 
     request {
@@ -220,7 +220,7 @@ val getOrganizationProducts: OpenApiRoute.() -> Unit = {
 
 val postProduct: OpenApiRoute.() -> Unit = {
     operationId = "PostProduct"
-    summary = "Create a product for an organization."
+    summary = "Create a product for an organization"
     tags = listOf("Products")
 
     request {
@@ -248,7 +248,7 @@ val postProduct: OpenApiRoute.() -> Unit = {
 
 val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretsByOrganizationId"
-    summary = "Get all secrets of an organization."
+    summary = "Get all secrets of an organization"
     tags = listOf("Secrets")
 
     request {
@@ -283,7 +283,7 @@ val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
 
 val getSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretByOrganizationIdAndName"
-    summary = "Get details of a secret of an organization."
+    summary = "Get details of a secret of an organization"
     tags = listOf("Secrets")
 
     request {
@@ -309,7 +309,7 @@ val getSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
 
 val postSecretForOrganization: OpenApiRoute.() -> Unit = {
     operationId = "PostSecretForOrganization"
-    summary = "Create a secret for an organization."
+    summary = "Create a secret for an organization"
     tags = listOf("Secrets")
 
     request {
@@ -341,7 +341,7 @@ val postSecretForOrganization: OpenApiRoute.() -> Unit = {
 
 val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchSecretByOrganizationIdAndName"
-    summary = "Update a secret of an organization."
+    summary = "Update a secret of an organization"
     tags = listOf("Secrets")
 
     request {
@@ -378,7 +378,7 @@ val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
 
 val deleteSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteSecretByOrganizationIdAndName"
-    summary = "Delete a secret from an organization."
+    summary = "Delete a secret from an organization"
     tags = listOf("Secrets")
 
     request {
@@ -399,7 +399,7 @@ val deleteSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
 
 val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
     operationId = "GetInfrastructureServicesByOrganizationId"
-    summary = "List all infrastructure services of an organization."
+    summary = "List all infrastructure services of an organization"
     tags = listOf("Infrastructure services")
 
     request {
@@ -446,7 +446,7 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
 
 val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
     operationId = "PostInfrastructureServiceForOrganization"
-    summary = "Create an infrastructure service for an organization."
+    summary = "Create an infrastructure service for an organization"
     tags = listOf("Infrastructure services")
 
     request {
@@ -486,7 +486,7 @@ val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
 
 val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchInfrastructureServiceForOrganizationIdAndName"
-    summary = "Update an infrastructure service for an organization."
+    summary = "Update an infrastructure service for an organization"
     tags = listOf("Infrastructure services")
 
     request {
@@ -529,7 +529,7 @@ val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit 
 
 val deleteInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteInfrastructureServiceForOrganizationIdAndName"
-    summary = "Delete an infrastructure service from an organization."
+    summary = "Delete an infrastructure service from an organization"
     tags = listOf("Infrastructure services")
 
     request {
@@ -550,7 +550,7 @@ val deleteInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit
 
 val putUserToOrganizationGroup: OpenApiRoute.() -> Unit = {
     operationId = "PutUserToGroupOrganization"
-    summary = "Add a user to a group on Organization level."
+    summary = "Add a user to a group on organization level"
     tags = listOf("Groups")
 
     request {
@@ -581,7 +581,7 @@ val putUserToOrganizationGroup: OpenApiRoute.() -> Unit = {
 
 val deleteUserFromOrganizationGroup: OpenApiRoute.() -> Unit = {
     operationId = "DeleteUserFromGroupOrganization"
-    summary = "Remove a user from a group on Organization level."
+    summary = "Remove a user from a group on organization level"
     tags = listOf("Groups")
 
     request {
@@ -612,7 +612,9 @@ val deleteUserFromOrganizationGroup: OpenApiRoute.() -> Unit = {
 
 val getVulnerabilitiesAcrossRepositoriesByOrganizationId: OpenApiRoute.() -> Unit = {
     operationId = "GetVulnerabilitiesAcrossRepositoriesByOrganizationId"
-    summary = "Get the vulnerabilities from latest successful advisor runs across the repositories in an organization."
+    summary = "Get vulnerabilities from an organization"
+    description = "Get the vulnerabilities from latest successful advisor runs across the repositories in an " +
+            " organization."
     tags = listOf("Vulnerabilities")
 
     request {
@@ -665,7 +667,7 @@ val getVulnerabilitiesAcrossRepositoriesByOrganizationId: OpenApiRoute.() -> Uni
 
 val getOrtRunStatisticsByOrganizationId: OpenApiRoute.() -> Unit = {
     operationId = "GetOrtRunStatisticsByOrganizationId"
-    summary = "Get statistics about ORT runs across the repositories of an organization."
+    summary = "Get statistics about ORT runs across the repositories of an organization"
     tags = listOf("Organizations")
 
     request {
