@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration as Ap
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob as ApiAnalyzerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator as ApiComparisonOperator
+import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection as ApiContentManagementSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats as ApiEcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvironmentConfig
@@ -95,6 +96,7 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.ContentManagementSection
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
@@ -899,5 +901,12 @@ fun Project.mapToApi() = ApiProject(
 )
 
 fun UserDisplayName.mapToApi() = ApiUserDisplayName(username, fullName)
+
+fun ContentManagementSection.mapToApi() = ApiContentManagementSection(
+    id = id,
+    isEnabled = isEnabled,
+    markdown = markdown,
+    updatedAt = updatedAt
+)
 
 fun OidcConfig.mapToApi() = ApiOidcConfig(accessTokenUrl, clientId)
