@@ -52,7 +52,7 @@ const Authorization = () => {
           More information on{' '}
           <a
             href={
-              'https://github.com/eclipse-apoapsis/ort-server/blob/main/docs/authorization/authorization.adoc'
+              'https://eclipse-apoapsis.github.io/ort-server/docs/architecture/authorization'
             }
             target='_blank'
             className='gap-1 text-blue-400 hover:underline'
