@@ -17,18 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
+
+import org.eclipse.apoapsis.ortserver.tasks.Task
 
 import org.slf4j.LoggerFactory
 
 /**
- * A class that periodically checks for completed and failed jobs.
+ * A task implementation that periodically checks for completed and failed jobs in Kubernetes.
  *
- * This class is used to clean up completed jobs and their pods periodically. It also acts as a safety net for
- * [JobMonitor] if this component is temporarily unavailable and thus events regarding failed jobs are missed. Those
- * jobs are eventually picked up by this class, and corresponding notifications are sent.
+ * This class is used to clean up completed jobs and their pods periodically. It also detects failed jobs and sends
+ * corresponding notifications to the Orchestrator.
  */
-internal class Reaper(
+internal class ReaperTask(
     /** The object to query and manipulate jobs. */
     private val jobHandler: JobHandler,
 
@@ -37,22 +38,12 @@ internal class Reaper(
 
     /** The object for time calculations. */
     private val timeHelper: TimeHelper
-) {
+) : Task {
     companion object {
-        private val logger = LoggerFactory.getLogger(Reaper::class.java)
+        private val logger = LoggerFactory.getLogger(ReaperTask::class.java)
     }
 
-    /**
-     * Run reaper jobs periodically according to the configuration using the provided [scheduler].
-     */
-    fun run(scheduler: Scheduler) {
-        scheduler.schedule(config.reaperInterval) { reap() }
-    }
-
-    /**
-     * Perform a reap run.
-     */
-    private suspend fun reap() {
+    override suspend fun execute() {
         val time = timeHelper.before(config.reaperMaxAge)
         logger.info("Starting a Reaper run. Processing completed jobs before {}.", time)
 

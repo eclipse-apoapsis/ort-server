@@ -17,11 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import io.kubernetes.client.openapi.models.V1Job
 
-import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.ortRunId
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
@@ -31,6 +30,8 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.WorkerJobRepository
+import org.eclipse.apoapsis.ortserver.tasks.Task
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler.Companion.ortRunId
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
@@ -44,14 +45,14 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 /**
- * A class that periodically checks for jobs that have disappeared in Kubernetes.
+ * A task implementation that checks for jobs that have disappeared in Kubernetes.
  *
- * It cannot always be guaranteed that all failed jobs are detected by the [JobMonitor]. Obviously, there are certain
- * infrastructure conditions that can cause a job to disappear without an event being received by the [JobMonitor].
- * A `kubectl delete job xxx` also has such an effect. Orchestrator would then get no notification about affected jobs,
- * and the associated ORT runs would stay forever in the "running" state.
+ * It cannot always be guaranteed that all failed jobs are detected by the [ReaperTask]. Obviously, there are certain
+ * infrastructure conditions that can cause a job to disappear, so that [ReaperTask] cannot find a failed completed
+ * job. A `kubectl delete job xxx` also has such an effect. Orchestrator would then get no notification about affected
+ * jobs, and the associated ORT runs would stay forever in the "running" state.
  *
- * To detect and remedy such scenarios, this class does a periodic sync between the ORT Server database and the job
+ * To detect and remedy such scenarios, this task class does a sync between the ORT Server database and the job
  * status in Kubernetes. It looks for jobs that should be running according to the database, but do not exist
  * (anymore) in Kubernetes. For such jobs, it sends a notification to the Orchestrator, to give it the chance to act
  * accordingly.
@@ -61,7 +62,7 @@ import org.slf4j.MDC
  * the run.
  */
 @Suppress("LongParameterList")
-internal class LostJobsFinder(
+internal class LostJobsFinderTask(
     /** The object to query and manipulate jobs. */
     private val jobHandler: JobHandler,
 
@@ -94,9 +95,9 @@ internal class LostJobsFinder(
 
     /** The object to determine the current time and the age of jobs. */
     private val timeHelper: TimeHelper
-) {
+) : Task {
     companion object {
-        private val logger = LoggerFactory.getLogger(LostJobsFinder::class.java)
+        private val logger = LoggerFactory.getLogger(LostJobsFinderTask::class.java)
     }
 
     /** A map associating all worker endpoints with their job repository. */
@@ -109,18 +110,7 @@ internal class LostJobsFinder(
         NotifierEndpoint to notifierJobRepository
     )
 
-    /**
-     * Schedule an action to periodically check for lost jobs on the given [scheduler] according to the configuration.
-     */
-    fun run(scheduler: Scheduler) {
-        scheduler.schedule(monitorConfig.lostJobsInterval, this::checkForLostJobs)
-    }
-
-    /**
-     * For all worker types, check if there are currently active jobs in the database for which no job in Kubernetes
-     * exists. For those jobs, send a corresponding notification to the Orchestrator.
-     */
-    private fun checkForLostJobs() {
+    override suspend fun execute() {
         logger.info("Checking for lost jobs and missing schedules.")
 
         // Keep track of runs for which active jobs exist. These runs are not subject to lost schedules.

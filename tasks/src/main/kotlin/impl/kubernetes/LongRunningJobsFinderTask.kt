@@ -17,11 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import kotlin.time.Duration
 
-import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.isTimeout
+import org.eclipse.apoapsis.ortserver.tasks.Task
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler.Companion.isTimeout
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
@@ -34,16 +35,16 @@ import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 import org.slf4j.LoggerFactory
 
 /**
- * A class that periodically checks for jobs that are running longer than a configured timeout.
+ * A task implementation that checks for jobs that are running longer than a configured timeout.
  *
  * The purpose of this class is to detect jobs that hang or encounter other problems that prevent their proper
- * execution. Such jobs are then terminated. If the [LostJobsFinder] component is active, it will find out that jobs
+ * execution. Such jobs are then terminated. If the [LostJobsFinderTask] task is active, it will find out that jobs
  * are missing and notify the Orchestrator to mark the ORT run as failed.
  *
  * Since worker jobs of different types typically have different execution times, the timeouts can be configured
  * separately for each worker type.
  */
-internal class LongRunningJobsFinder(
+internal class LongRunningJobsFinderTask(
     /** The object to query and manipulate jobs. */
     private val jobHandler: JobHandler,
 
@@ -52,23 +53,12 @@ internal class LongRunningJobsFinder(
 
     /** The object for time calculations. */
     private val timeHelper: TimeHelper
-) {
+) : Task {
     companion object {
-        private val logger = LoggerFactory.getLogger(LongRunningJobsFinder::class.java)
+        private val logger = LoggerFactory.getLogger(LongRunningJobsFinderTask::class.java)
     }
 
-    /**
-     * Schedule an action to periodically check for long-running jobs on the given [scheduler] according to the
-     * configuration.
-     */
-    fun run(scheduler: Scheduler) {
-        scheduler.schedule(monitorConfig.longRunningJobsInterval, this::checkForLongRunningJobs)
-    }
-
-    /**
-     * Perform a check for long-running jobs.
-     */
-    private fun checkForLongRunningJobs() {
+    override suspend fun execute() {
         checkForLongRunningJobsForEndpoint(ConfigEndpoint, monitorConfig.timeoutConfig.configTimeout)
         checkForLongRunningJobsForEndpoint(AnalyzerEndpoint, monitorConfig.timeoutConfig.analyzerTimeout)
         checkForLongRunningJobsForEndpoint(AdvisorEndpoint, monitorConfig.timeoutConfig.advisorTimeout)

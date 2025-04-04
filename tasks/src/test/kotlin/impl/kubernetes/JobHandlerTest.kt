@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
@@ -53,9 +53,9 @@ import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.delay
 
-import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.isCompleted
-import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.isFailed
-import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.isTimeout
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler.Companion.isCompleted
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler.Companion.isFailed
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler.Companion.isTimeout
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 
 private const val NAMESPACE = "EventHandlerNamespace"

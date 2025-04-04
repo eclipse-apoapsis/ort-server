@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import io.kotest.core.spec.style.WordSpec
 
@@ -41,7 +41,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
-import org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor.JobHandler.Companion.isTimeout
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler.Companion.isTimeout
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
@@ -51,7 +51,7 @@ import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 
-class LongRunningJobsFinderTest : WordSpec({
+class LongRunningJobsFinderTaskTest : WordSpec({
     beforeTest {
         mockkObject(JobHandler)
     }
@@ -105,28 +105,24 @@ private val testTimeoutConfig = TimeoutConfig(
     notifierTimeout = 11.minutes
 )
 
-/** The interval for checks for long-running jobs. */
-private val checkInterval = 23.minutes
-
 /**
  * Determine the timeout for this [Endpoint]. This is explicitly done via a `when` construct to make sure that the
  * compiler complains when a new endpoint is added.
  */
 private fun TimeoutConfig.forEndpoint(endpoint: Endpoint<*>): Duration =
     when (endpoint) {
-     ConfigEndpoint -> configTimeout
-     AnalyzerEndpoint -> analyzerTimeout
-     AdvisorEndpoint -> advisorTimeout
-     ScannerEndpoint -> scannerTimeout
-     EvaluatorEndpoint -> evaluatorTimeout
-     ReporterEndpoint -> reporterTimeout
-     NotifierEndpoint -> notifierTimeout
-    else -> fail("Unknown endpoint type.")
-}
+        ConfigEndpoint -> configTimeout
+        AnalyzerEndpoint -> analyzerTimeout
+        AdvisorEndpoint -> advisorTimeout
+        ScannerEndpoint -> scannerTimeout
+        EvaluatorEndpoint -> evaluatorTimeout
+        ReporterEndpoint -> reporterTimeout
+        NotifierEndpoint -> notifierTimeout
+        else -> fail("Unknown endpoint type.")
+    }
 
 private suspend fun testLongRunningJobsDetectionForEndpoint(endpoint: Endpoint<*>) {
     val config = mockk<MonitorConfig> {
-        every { longRunningJobsInterval } returns checkInterval
         every { timeoutConfig } returns testTimeoutConfig
     }
 
@@ -156,12 +152,8 @@ private suspend fun testLongRunningJobsDetectionForEndpoint(endpoint: Endpoint<*
         every { deleteJob(TIMEOUT_JOB_NAME) } just runs
     }
 
-    val schedulerHelper = SchedulerTestHelper()
-
-    val finder = LongRunningJobsFinder(jobHandler, config, timeHelper)
-    finder.run(schedulerHelper.scheduler)
-
-    schedulerHelper.expectSchedule(checkInterval).triggerAction()
+    val finder = LongRunningJobsFinderTask(jobHandler, config, timeHelper)
+    finder.execute()
 
     verify {
         jobHandler.deleteJob(TIMEOUT_JOB_NAME)

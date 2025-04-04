@@ -21,6 +21,12 @@ package org.eclipse.apoapsis.ortserver.tasks
 
 import com.typesafe.config.ConfigFactory
 
+import io.kubernetes.client.openapi.apis.BatchV1Api
+import io.kubernetes.client.openapi.apis.CoreV1Api
+import io.kubernetes.client.util.ClientBuilder
+
+import kotlin.system.exitProcess
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -29,16 +35,35 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.DaoNotifierJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalService
 import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.FailedJobNotifier
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.JobHandler
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LongRunningJobsFinderTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LostJobsFinderTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.MonitorConfig
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.TimeHelper
+import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
+import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -52,6 +77,15 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("TaskRunner")
 
+/** The name of the configuration section with properties for the task runner. */
+private const val TASK_RUNNER_SECTION = "taskRunner"
+
+/** The name of the configuration property that defines the tasks to be executed. */
+private const val TASKS_PROPERTY = "tasks"
+
+/** The name of the environment variable that determines whether the JVM should be kept alive after task execution. */
+private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
+
 /**
  * The main entry point of the task runner component.
  *
@@ -60,11 +94,27 @@ private val logger = LoggerFactory.getLogger("TaskRunner")
  * - `tasks`: A comma-separated list of names for the tasks to be executed. This can be overridden using the `TASKS`
  *   environment variable.
  *
+ * In addition, the function reads the `TASKS_KEEP_JVM` environment variable. Its value is a flag that controls whether
+ * the task runner should end the JVM process after executing the tasks. This may be required to prevent that some
+ * background threads keep the JVM alive. Therefore, the default value of this property is `false`. It is mainly
+ * overridden in tests, since the JVM should not be shut down by unit tests.
+ *
  * The following tasks are available:
  * - `delete-old-ort-runs`: Deletes old ORT runs according to the configured data retention policy.
+ * - `delete-orphaned-entities`: Deletes entities from the database that are shared between ORT runs, but are no longer
+ *   referenced by any run.
+ * - `kubernetes-reaper`: Cleans up completed Kubernetes jobs and also notifies the Orchestrator about failed jobs.
+ *   This task is part of the Kubernetes Job Monitor.
+ * - `kubernetes-lost-jobs-finder`: Checks for jobs that are active according to the database, but for which no
+ *   running Kubernetes job exists. Such a constellation indicates a fatal crash of a worker job. This task is part of
+ *   the Kubernetes Job Monitor.
+ * - `kubernetes-long-running-jobs-finder`: Checks for worker jobs in Kubernetes that are running longer than a
+ *   configured timeout and terminates them. This task is part of the Kubernetes Job Monitor.
  */
 suspend fun main() {
     runTasks(listOf(configModule(), databaseModule(), tasksModule()))
+
+    endTaskRunner()
 }
 
 /**
@@ -83,8 +133,8 @@ internal suspend fun runTasks(modules: List<Module>) {
     }
 
     try {
-        val config = app.koin.get<ConfigManager>().subConfig(Path("taskRunner"))
-        val tasksToRun = config.getString("tasks").split(',')
+        val config = app.koin.get<ConfigManager>().subConfig(Path(TASK_RUNNER_SECTION))
+        val tasksToRun = config.getString(TASKS_PROPERTY).split(',')
 
         withContext(Dispatchers.IO) {
             tasksToRun.map { taskName ->
@@ -102,6 +152,17 @@ internal suspend fun runTasks(modules: List<Module>) {
         }
     } finally {
         stopKoin()
+    }
+}
+
+/**
+ * Exit the JVM depending on the value of the corresponding environment variable. This function is called after task
+ * execution to make sure that the JVM process is cleanly terminated.
+ */
+internal fun endTaskRunner() {
+    if (!System.getenv(KEEP_JVM_VARIABLE).toBoolean()) {
+        logger.info("Exiting JVM after task execution.")
+        exitProcess(0)
     }
 }
 
@@ -129,6 +190,39 @@ private fun tasksModule(): Module =
 
         single<Task>(named("delete-old-ort-runs")) { DeleteOldOrtRunsTask.create(get(), get()) }
         single<Task>(named("delete-orphaned-entities")) { DeleteOrphanedEntitiesTask.create(get(), get()) }
+
+        single { TimeHelper() }
+        single { MonitorConfig.create(get()) }
+        single { ClientBuilder.defaultClient() }
+        single { BatchV1Api(get()) }
+        single { CoreV1Api(get()) }
+        single { MessageSenderFactory.createSender(OrchestratorEndpoint, get()) }
+        single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+        single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
+        single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
+        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+        singleOf(::FailedJobNotifier)
+        singleOf(::JobHandler)
+        single<Task>(named("kubernetes-reaper")) { ReaperTask(get(), get(), get()) }
+        single<Task>(named("kubernetes-lost-jobs-finder")) {
+            LostJobsFinderTask(
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get()
+            )
+        }
+        single<Task>(named("kubernetes-long-running-jobs-finder")) { LongRunningJobsFinderTask(get(), get(), get()) }
     }
 
 /**

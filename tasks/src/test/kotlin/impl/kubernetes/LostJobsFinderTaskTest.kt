@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import io.kotest.core.spec.style.StringSpec
 
@@ -62,7 +62,7 @@ import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 
-class LostJobsFinderTest : StringSpec({
+class LostJobsFinderTaskTest : StringSpec({
     "Notifications for lost jobs should be sent" {
         val jobHandler = mockk<JobHandler>().apply {
             every { findJobsForWorker(ConfigEndpoint) } returns emptyList()
@@ -102,10 +102,9 @@ class LostJobsFinderTest : StringSpec({
 
         val config = mockk<MonitorConfig> {
             every { lostJobsMinAge } returns minJobAge
-            every { lostJobsInterval } returns runInterval
         }
 
-        val finder = LostJobsFinder(
+        val finder = LostJobsFinderTask(
             jobHandler,
             notifier,
             config,
@@ -119,9 +118,7 @@ class LostJobsFinderTest : StringSpec({
             testTimeHelper
         )
 
-        val helper = SchedulerTestHelper()
-        finder.run(helper.scheduler)
-        helper.expectSchedule(runInterval).triggerAction()
+        finder.execute()
 
         verify {
             notifier.sendLostJobNotification(RUN_ID, AnalyzerEndpoint)
@@ -180,10 +177,9 @@ class LostJobsFinderTest : StringSpec({
 
         val config = mockk<MonitorConfig> {
             every { lostJobsMinAge } returns minJobAge
-            every { lostJobsInterval } returns runInterval
         }
 
-        val finder = LostJobsFinder(
+        val finder = LostJobsFinderTask(
             jobHandler,
             notifier,
             config,
@@ -197,9 +193,7 @@ class LostJobsFinderTest : StringSpec({
             testTimeHelper
         )
 
-        val helper = SchedulerTestHelper()
-        finder.run(helper.scheduler)
-        helper.expectSchedule(runInterval).triggerAction()
+        finder.execute()
 
         verify {
             notifier.sendLostScheduleNotification(runWithLostSchedules)
@@ -218,9 +212,6 @@ private val jobCreationTime = Instant.parse("2024-03-15T12:28:17Z")
 
 /** The configuration setting for the minimum job age. */
 private val minJobAge = 1.minutes
-
-/** The interval in which the lost jobs component should run. */
-private val runInterval = 3.minutes
 
 /** The clock used by the component under test. It always returns a constant time. */
 private val testTimeHelper = createTimeHelper()

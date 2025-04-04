@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -62,17 +62,11 @@ data class MonitorConfig(
     /** The name of the Kubernetes namespace this component should monitor. */
     val namespace: String,
 
-    /** The interval in which the Reaper component should run. */
-    val reaperInterval: Duration,
-
     /**
      * The maximum age of a job for being deleted by the Reaper. During a Reaper run, it deletes all completed that
      * are older than this value.
      */
     val reaperMaxAge: Duration,
-
-    /** The interval in which the lost jobs detection should run. */
-    val lostJobsInterval: Duration,
 
     /**
      * The minimum age of a job in the database to be taken into account by the lost job finder component. This is
@@ -87,23 +81,8 @@ data class MonitorConfig(
      */
     val recentlyProcessedInterval: Duration,
 
-    /** The interval in which the detection for long-running jobs should run. */
-    val longRunningJobsInterval: Duration,
-
     /** The configuration of the timeouts for the single workers. */
     val timeoutConfig: TimeoutConfig,
-
-    /** Flag whether the watcher component should be active. */
-    val watchingEnabled: Boolean,
-
-    /** Flag whether the Reaper component should be active. */
-    val reaperEnabled: Boolean,
-
-    /** Flag whether the lost jobs detection component should be active. */
-    val lostJobsEnabled: Boolean,
-
-    /** Flag whether the detection of long-running jobs should be active. */
-    val longRunningJobsEnabled: Boolean
 ) {
     companion object {
         /** The prefix for all configuration properties. */
@@ -112,19 +91,11 @@ data class MonitorConfig(
         /** The configuration property that selects the namespace to watch. */
         private const val NAMESPACE_PROPERTY = "namespace"
 
-        /** The configuration property defining the interval in which the reaper should run (in seconds). */
-        private const val REAPER_INTERVAL_PROPERTY = "reaperInterval"
-
         /**
          * The configuration property defining the maximum age of a completed job (in seconds) to become subject of
          * the Reaper. The Reaper deletes jobs that are older than this value.
          */
         private const val REAPER_MAX_AGE_PROPERTY = "reaperMaxAge"
-
-        /**
-         * The configuration property defining the interval in which the lost jobs detection should run (in seconds).
-         */
-        private const val LOST_JOBS_INTERVAL_PROPERTY = "lostJobsInterval"
 
         /** The configuration property defining the minimum age of a job (in seconds) to be considered lost. */
         private const val LOST_JOBS_MIN_AGE_PROPERTY = "lostJobsMinAge"
@@ -134,24 +105,6 @@ data class MonitorConfig(
          * (in seconds).
          */
         private const val RECENTLY_PROCESSED_INTERVAL_PROPERTY = "recentlyProcessedInterval"
-
-        /**
-         * The configuration property defining the interval in which the detection for long-running jobs should run
-         * (in seconds).
-         */
-        private const val LONG_RUNNING_JOBS_INTERVAL_PROPERTY = "longRunningJobsInterval"
-
-        /** The configuration property to enable or disable the watcher component. */
-        private const val WATCHING_ENABLED_PROPERTY = "enableWatching"
-
-        /** The configuration property to enable or disable the Reaper component. */
-        private const val REAPER_ENABLED_PROPERTY = "enableReaper"
-
-        /** The configuration property to enable or disable the detection of lost jobs. */
-        private const val LOST_JOBS_ENABLED_PROPERTY = "enableLostJobs"
-
-        /** The configuration property to enable or disable the detection of long-running jobs. */
-        private const val LONG_RUNNING_JOBS_ENABLED_PROPERTY = "enableLongRunningJobs"
 
         /** The section that defines the timeouts for the single workers. */
         private const val TIMEOUTS_SECTION = "timeouts"
@@ -185,16 +138,9 @@ data class MonitorConfig(
 
             return MonitorConfig(
                 namespace = config.getString(NAMESPACE_PROPERTY),
-                reaperInterval = config.getInt(REAPER_INTERVAL_PROPERTY).seconds,
                 reaperMaxAge = config.getInt(REAPER_MAX_AGE_PROPERTY).seconds,
-                lostJobsInterval = config.getInt(LOST_JOBS_INTERVAL_PROPERTY).seconds,
                 lostJobsMinAge = config.getInt(LOST_JOBS_MIN_AGE_PROPERTY).seconds,
                 recentlyProcessedInterval = config.getInt(RECENTLY_PROCESSED_INTERVAL_PROPERTY).seconds,
-                longRunningJobsInterval = config.getInt(LONG_RUNNING_JOBS_INTERVAL_PROPERTY).seconds,
-                watchingEnabled = config.getBoolean(WATCHING_ENABLED_PROPERTY),
-                reaperEnabled = config.getBoolean(REAPER_ENABLED_PROPERTY),
-                lostJobsEnabled = config.getBoolean(LOST_JOBS_ENABLED_PROPERTY),
-                longRunningJobsEnabled = config.getBoolean(LONG_RUNNING_JOBS_ENABLED_PROPERTY),
                 timeoutConfig = createTimeoutConfig(config)
             )
         }

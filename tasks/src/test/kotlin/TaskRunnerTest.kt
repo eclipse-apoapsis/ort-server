@@ -45,6 +45,10 @@ import org.eclipse.apoapsis.ortserver.dao.test.unmockDatabaseModule
 import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LongRunningJobsFinderTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LostJobsFinderTask
+import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
+import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
 
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
@@ -112,19 +116,40 @@ class TaskRunnerTest : KoinTest, WordSpec() {
                     task should beInstanceOf<DeleteOrphanedEntitiesTask>()
                 }
             }
+
+            "include a task for the Kubernetes job reaper" {
+                checkMain { koin ->
+                    val task = koin.get<Task>(named("kubernetes-reaper"))
+                    task should beInstanceOf<ReaperTask>()
+                }
+            }
+
+            "include a task for the Kubernetes lost jobs finder" {
+                checkMain { koin ->
+                    val task = koin.get<Task>(named("kubernetes-lost-jobs-finder"))
+                    task should beInstanceOf<LostJobsFinderTask>()
+                }
+            }
+
+            "include a task for the Kubernetes long-running jobs finder" {
+                checkMain { koin ->
+                    val task = koin.get<Task>(named("kubernetes-long-running-jobs-finder"))
+                    task should beInstanceOf<LongRunningJobsFinderTask>()
+                }
+            }
         }
     }
 }
 
 /**
  * Call the task runner function to execute the tasks with the given [taskNames] and return a [TaskLog] with
- * information about the executed tasks.
+ * information about the executed tasks. Optionally, set the property to exit the JVM to the given [exitFlag].
  */
-private suspend fun checkTaskExecution(vararg taskNames: String): TaskLog {
+private suspend fun checkTaskExecution(vararg taskNames: String, exitFlag: Boolean = false): TaskLog {
     val tasksToExecute = taskNames.joinToString(",")
     val taskLog = TaskLog()
 
-    val environment = mapOf("TASKS" to tasksToExecute)
+    val environment = mapOf("TASKS" to tasksToExecute, "TASKS_EXIT_JVM" to exitFlag.toString())
     withEnvironment(environment) {
         ConfigFactory.invalidateCaches()
         runTasks(listOf(configModule(), createTestModule(taskLog)))
@@ -135,14 +160,23 @@ private suspend fun checkTaskExecution(vararg taskNames: String): TaskLog {
 
 /**
  * Run a test with the `main` function. Call the given [block] with a Koin instance that is configured with the modules
- * passed to [runTasks]. The [block] can then test for the presence of certain bean instances.
+ * passed to [runTasks]. The [block] can then test for the presence of certain bean instances. Set the environment
+ * variable to keep the JVM alive to the given [keepAliveFlag].
  */
-private suspend fun checkMain(block: (Koin) -> Unit) {
+private suspend fun checkMain(keepAliveFlag: Boolean = true, block: (Koin) -> Unit) {
     mockkStatic(::runTasks)
     try {
         coEvery { runTasks(any()) } just runs
 
-        main()
+        val environment = mapOf(
+            "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
+            "TASKS_KEEP_JVM" to keepAliveFlag.toString()
+        )
+        withEnvironment(environment) {
+            ConfigFactory.invalidateCaches()
+
+            main()
+        }
 
         val captModules = slot<List<Module>>()
         coVerify { runTasks(capture(captModules)) }

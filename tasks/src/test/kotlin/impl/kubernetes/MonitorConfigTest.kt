@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.kubernetes.jobmonitor
+package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import com.typesafe.config.ConfigFactory
 
@@ -43,17 +43,10 @@ class MonitorConfigTest : StringSpec({
         )
         val monitorConfigMap = mapOf(
             "namespace" to "test-namespace",
-            "reaperInterval" to "333",
             "reaperMaxAge" to "555",
-            "lostJobsInterval" to "444",
             "lostJobsMinAge" to "600",
             "recentlyProcessedInterval" to "66",
-            "longRunningJobsInterval" to "77",
-            "timeouts" to timeoutMap,
-            "enableWatching" to "true",
-            "enableReaper" to "false",
-            "enableLostJobs" to "true",
-            "enableLongRunningJobs" to "false"
+            "timeouts" to timeoutMap
         )
         val configMap = mapOf("jobMonitor" to monitorConfigMap)
         val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
@@ -61,12 +54,9 @@ class MonitorConfigTest : StringSpec({
         val monitorConfig = MonitorConfig.create(configManager)
 
         monitorConfig.namespace shouldBe "test-namespace"
-        monitorConfig.reaperInterval shouldBe 333.seconds
         monitorConfig.reaperMaxAge shouldBe 555.seconds
-        monitorConfig.lostJobsInterval shouldBe 444.seconds
         monitorConfig.lostJobsMinAge shouldBe 600.seconds
         monitorConfig.recentlyProcessedInterval shouldBe 66.seconds
-        monitorConfig.longRunningJobsInterval shouldBe 77.seconds
         monitorConfig.timeoutConfig shouldBe TimeoutConfig(
             configTimeout = 1.minutes,
             analyzerTimeout = 90.minutes,
@@ -76,31 +66,21 @@ class MonitorConfigTest : StringSpec({
             reporterTimeout = 10.minutes,
             notifierTimeout = 4.minutes
         )
-        monitorConfig.watchingEnabled shouldBe true
-        monitorConfig.reaperEnabled shouldBe false
-        monitorConfig.lostJobsEnabled shouldBe true
     }
 
     "The configuration should be loaded from environment variables" {
         val environment = mapOf(
             "MONITOR_NAMESPACE" to "test-namespace",
-            "MONITOR_REAPER_INTERVAL" to "333",
             "MONITOR_REAPER_MAX_AGE" to "555",
-            "MONITOR_LOST_JOBS_INTERVAL" to "444",
             "MONITOR_LOST_JOBS_MIN_AGE" to "600",
             "MONITOR_RECENTLY_PROCESSED_INTERVAL" to "66",
-            "MONITOR_LONG_RUNNING_JOBS_INTERVAL" to "77",
             "MONITOR_TIMEOUT_CONFIG" to "1",
             "MONITOR_TIMEOUT_ANALYZER" to "90",
             "MONITOR_TIMEOUT_ADVISOR" to "2",
             "MONITOR_TIMEOUT_SCANNER" to "1440",
             "MONITOR_TIMEOUT_EVALUATOR" to "5",
             "MONITOR_TIMEOUT_REPORTER" to "10",
-            "MONITOR_TIMEOUT_NOTIFIER" to "4",
-            "MONITOR_WATCHING_ENABLED" to "true",
-            "MONITOR_REAPER_ENABLED" to "false",
-            "MONITOR_LOST_JOBS_ENABLED" to "true",
-            "MONITOR_LONG_RUNNING_JOBS_ENABLED" to "false"
+            "MONITOR_TIMEOUT_NOTIFIER" to "4"
         )
 
         withEnvironment(environment) {
@@ -110,12 +90,9 @@ class MonitorConfigTest : StringSpec({
             val monitorConfig = MonitorConfig.create(configManager)
 
             monitorConfig.namespace shouldBe "test-namespace"
-            monitorConfig.reaperInterval shouldBe 333.seconds
             monitorConfig.reaperMaxAge shouldBe 555.seconds
-            monitorConfig.lostJobsInterval shouldBe 444.seconds
             monitorConfig.lostJobsMinAge shouldBe 600.seconds
             monitorConfig.recentlyProcessedInterval shouldBe 66.seconds
-            monitorConfig.longRunningJobsInterval shouldBe 77.seconds
             monitorConfig.timeoutConfig shouldBe TimeoutConfig(
                 configTimeout = 1.minutes,
                 analyzerTimeout = 90.minutes,
@@ -125,9 +102,6 @@ class MonitorConfigTest : StringSpec({
                 reporterTimeout = 10.minutes,
                 notifierTimeout = 4.minutes
             )
-            monitorConfig.watchingEnabled shouldBe true
-            monitorConfig.reaperEnabled shouldBe false
-            monitorConfig.lostJobsEnabled shouldBe true
         }
     }
 })
