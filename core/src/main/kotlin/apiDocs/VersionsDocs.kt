@@ -25,7 +25,7 @@ import io.ktor.http.HttpStatusCode
 
 val getVersions: OpenApiRoute.() -> Unit = {
     operationId = "getVersions"
-    summary = "Get the versions of the ORT server and other components."
+    summary = "Get the versions of the ORT server and other components"
     tags = listOf("Versions")
 
     response {

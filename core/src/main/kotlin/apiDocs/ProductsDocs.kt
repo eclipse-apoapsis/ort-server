@@ -57,7 +57,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
 val getProductById: OpenApiRoute.() -> Unit = {
     operationId = "GetProductById"
-    summary = "Get details of a product."
+    summary = "Get details of a product"
     tags = listOf("Products")
 
     request {
@@ -80,7 +80,7 @@ val getProductById: OpenApiRoute.() -> Unit = {
 
 val patchProductById: OpenApiRoute.() -> Unit = {
     operationId = "PatchProductById"
-    summary = "Update a product."
+    summary = "Update a product"
     tags = listOf("Products")
 
     request {
@@ -114,7 +114,7 @@ val patchProductById: OpenApiRoute.() -> Unit = {
 
 val deleteProductById: OpenApiRoute.() -> Unit = {
     operationId = "DeleteProductById"
-    summary = "Delete a product."
+    summary = "Delete a product"
     tags = listOf("Products")
 
     request {
@@ -132,7 +132,7 @@ val deleteProductById: OpenApiRoute.() -> Unit = {
 
 val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetRepositoriesByProductId"
-    summary = "Get all repositories of a product."
+    summary = "Get all repositories of a product"
     tags = listOf("Repositories")
 
     request {
@@ -180,7 +180,7 @@ val getRepositoriesByProductId: OpenApiRoute.() -> Unit = {
 
 val postRepository: OpenApiRoute.() -> Unit = {
     operationId = "CreateRepository"
-    summary = "Create a repository for a product."
+    summary = "Create a repository for a product"
     tags = listOf("Repositories")
 
     request {
@@ -217,7 +217,7 @@ val postRepository: OpenApiRoute.() -> Unit = {
 
 val getSecretsByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretsByProductId"
-    summary = "Get all secrets of a specific product."
+    summary = "Get all secrets of a specific product"
     tags = listOf("Secrets")
 
     request {
@@ -252,7 +252,7 @@ val getSecretsByProductId: OpenApiRoute.() -> Unit = {
 
 val getSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretByProductIdAndName"
-    summary = "Get details of a secret of a product."
+    summary = "Get details of a secret of a product"
     tags = listOf("Secrets")
 
     request {
@@ -278,7 +278,7 @@ val getSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
 
 val postSecretForProduct: OpenApiRoute.() -> Unit = {
     operationId = "PostSecretForProduct"
-    summary = "Create a secret for a product."
+    summary = "Create a secret for a product"
     tags = listOf("Secrets")
 
     request {
@@ -310,7 +310,7 @@ val postSecretForProduct: OpenApiRoute.() -> Unit = {
 
 val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchSecretByProductIdAndName"
-    summary = "Update a secret of a product."
+    summary = "Update a secret of a product"
     tags = listOf("Secrets")
 
     request {
@@ -347,7 +347,7 @@ val patchSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
 
 val deleteSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteSecretByProductIdAndName"
-    summary = "Delete a secret from a product."
+    summary = "Delete a secret from a product"
     tags = listOf("Secrets")
 
     request {
@@ -368,7 +368,7 @@ val deleteSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
 
 val putUserToProductGroup: OpenApiRoute.() -> Unit = {
     operationId = "PutUserToGroupProduct"
-    summary = "Add a user to a group on Product level."
+    summary = "Add a user to a group on product level"
     tags = listOf("Groups")
 
     request {
@@ -399,7 +399,7 @@ val putUserToProductGroup: OpenApiRoute.() -> Unit = {
 
 val deleteUserFromProductGroup: OpenApiRoute.() -> Unit = {
     operationId = "DeleteUserFromGroupProduct"
-    summary = "Remove a user from a group on Product level."
+    summary = "Remove a user from a group on product level"
     tags = listOf("Groups")
 
     request {
@@ -430,7 +430,8 @@ val deleteUserFromProductGroup: OpenApiRoute.() -> Unit = {
 
 val getVulnerabilitiesAcrossRepositoriesByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetVulnerabilitiesAcrossRepositoriesByProductId"
-    summary = "Get the vulnerabilities from latest successful advisor runs across the repositories in a product."
+    summary = "Get vulnerabilities from a product"
+    description = "Get the vulnerabilities from latest successful advisor runs across the repositories in a product."
     tags = listOf("Vulnerabilities")
 
     request {
@@ -483,7 +484,7 @@ val getVulnerabilitiesAcrossRepositoriesByProductId: OpenApiRoute.() -> Unit = {
 
 val getOrtRunStatisticsByProductId: OpenApiRoute.() -> Unit = {
     operationId = "GetOrtRunStatisticsByProductId"
-    summary = "Get statistics about ORT runs across the repositories of a product."
+    summary = "Get statistics about ORT runs across the repositories of a product"
     tags = listOf("Products")
 
     request {
@@ -591,7 +592,7 @@ private val minimalJobConfigurations = JobConfigurations(
 
 val postOrtRunsForProduct: OpenApiRoute.() -> Unit = {
     operationId = "postOrtRunsForProduct"
-    summary = "Create ORT runs for all repositories under a product."
+    summary = "Create ORT runs for all repositories under a product"
     tags = listOf("Products")
 
     request {

@@ -28,7 +28,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.User
 
 val runPermissionsSync: OpenApiRoute.() -> Unit = {
     operationId = "runPermissionsSync"
-    summary = "Trigger the synchronization of Keycloak roles."
+    summary = "Trigger the synchronization of Keycloak roles"
     tags = listOf("Admin")
 
     request {
@@ -47,7 +47,7 @@ val runPermissionsSync: OpenApiRoute.() -> Unit = {
 
 val getUsers: OpenApiRoute.() -> Unit = {
     operationId = "getUsers"
-    summary = "Get all users of the server."
+    summary = "Get all users of the server"
     tags = listOf("Admin")
 
     request {
@@ -80,7 +80,7 @@ val getUsers: OpenApiRoute.() -> Unit = {
 
 val postUsers: OpenApiRoute.() -> Unit = {
     operationId = "postUsers"
-    summary = "Create a user, possibly with a password."
+    summary = "Create a user, possibly with a password"
     tags = listOf("Admin")
 
     request {
@@ -114,7 +114,7 @@ val postUsers: OpenApiRoute.() -> Unit = {
 
 val deleteUserByUsername: OpenApiRoute.() -> Unit = {
     operationId = "deleteUserByUsername"
-    summary = "Delete a user from the server."
+    summary = "Delete a user from the server"
     tags = listOf("Admin")
 
     request {

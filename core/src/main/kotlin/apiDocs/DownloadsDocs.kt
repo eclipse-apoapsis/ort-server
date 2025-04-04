@@ -25,7 +25,8 @@ import io.ktor.http.HttpStatusCode
 
 val getReportByRunIdAndToken: OpenApiRoute.() -> Unit = {
     operationId = "GetReportByRunIdAndToken"
-    summary = "Download a report of an ORT run using a token. This endpoint does not require authentication."
+    summary = "Download a report of an ORT run using a token"
+    description = "This endpoint does not require authentication."
     tags = listOf("Reports")
 
     request {

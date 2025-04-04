@@ -64,7 +64,7 @@ import org.eclipse.apoapsis.ortserver.model.LogSource
 
 val getOrtRunById: OpenApiRoute.() -> Unit = {
     operationId = "getOrtRunById"
-    summary = "Get details of an ORT run."
+    summary = "Get details of an ORT run"
     tags = listOf("Runs")
 
     request {
@@ -107,7 +107,7 @@ val getOrtRunById: OpenApiRoute.() -> Unit = {
 
 val deleteOrtRunById: OpenApiRoute.() -> Unit = {
     operationId = "deleteOrtRunById"
-    summary = "Delete an ORT run."
+    summary = "Delete an ORT run"
     description = "This operation deletes an ORT run and all generated data, including the generated reports."
     tags = listOf("Runs")
 
@@ -130,7 +130,7 @@ val deleteOrtRunById: OpenApiRoute.() -> Unit = {
 
 val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
     operationId = "GetReportByRunIdAndFileName"
-    summary = "Download a report of an ORT run."
+    summary = "Download a report of an ORT run"
     tags = listOf("Reports")
 
     request {
@@ -158,7 +158,7 @@ val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
 
 val getLogsByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetLogsByRunId"
-    summary = "Download an archive with selected logs of an ORT run."
+    summary = "Download an archive with selected logs of an ORT run"
     tags = listOf("Logs")
 
     request {
@@ -196,7 +196,7 @@ val getLogsByRunId: OpenApiRoute.() -> Unit = {
 
 val getIssuesByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetIssuesByRunId"
-    summary = "Get the issues of an ORT run."
+    summary = "Get the issues of an ORT run"
     tags = listOf("Issues")
 
     request {
@@ -240,7 +240,7 @@ val getIssuesByRunId: OpenApiRoute.() -> Unit = {
 
 val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetVulnerabilitiesByRunId"
-    summary = "Get the vulnerabilities found in an ORT run."
+    summary = "Get the vulnerabilities found in an ORT run"
     tags = listOf("Vulnerabilities")
 
     request {
@@ -296,7 +296,7 @@ val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
 
 val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetRuleViolationsByRunId"
-    summary = "Get the rule violations found in an ORT run."
+    summary = "Get the rule violations found in an ORT run"
     tags = listOf("RuleViolations")
 
     request {
@@ -366,7 +366,7 @@ val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
 
 val getPackagesByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetPackagesByRunId"
-    summary = "Get the packages found in an ORT run."
+    summary = "Get the packages found in an ORT run"
     tags = listOf("Packages")
 
     request {
@@ -464,7 +464,7 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
 
 val getProjectsByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetProjectsByRunId"
-    summary = "Get the projects found in an ORT run."
+    summary = "Get the projects found in an ORT run"
     tags = listOf("Projects")
 
     request {
@@ -519,7 +519,7 @@ val getProjectsByRunId: OpenApiRoute.() -> Unit = {
 
 val getOrtRuns: OpenApiRoute.() -> Unit = {
     operationId = "getOrtRuns"
-    summary = "Get all ORT runs."
+    summary = "Get all ORT runs"
     tags = listOf("Runs")
 
     request {
@@ -584,7 +584,7 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
 
 val getOrtRunStatistics: OpenApiRoute.() -> Unit = {
     operationId = "getOrtRunStatistics"
-    summary = "Get statistics about an ORT run."
+    summary = "Get statistics about an ORT run"
     tags = listOf("Runs")
 
     request {
@@ -633,7 +633,7 @@ val getOrtRunStatistics: OpenApiRoute.() -> Unit = {
 
 val getLicensesForPackagesByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetLicensesForPackagesByRunId"
-    summary = "Get the licenses for packages found in an ORT run."
+    summary = "Get the licenses for packages found in an ORT run"
     tags = listOf("Runs")
 
     request {

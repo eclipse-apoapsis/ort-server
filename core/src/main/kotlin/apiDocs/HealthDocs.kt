@@ -27,7 +27,7 @@ import org.eclipse.apoapsis.ortserver.core.api.Liveness
 
 val getLiveness: OpenApiRoute.() -> Unit = {
     operationId = "GetLiveness"
-    summary = "Get the health of the ORT server."
+    summary = "Get the health of the ORT server"
     tags = listOf("Health")
 
     response {
