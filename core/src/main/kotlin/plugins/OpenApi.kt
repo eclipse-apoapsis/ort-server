@@ -19,21 +19,22 @@
 
 package org.eclipse.apoapsis.ortserver.core.plugins
 
-import io.github.smiley4.ktorswaggerui.SwaggerUI
-import io.github.smiley4.ktorswaggerui.data.AuthType
-import io.github.smiley4.ktorswaggerui.routing.openApiSpec
-import io.github.smiley4.ktorswaggerui.routing.swaggerUI
-import io.github.smiley4.schemakenerator.core.connectSubTypes
-import io.github.smiley4.schemakenerator.core.handleNameAnnotation
-import io.github.smiley4.schemakenerator.reflection.collectSubTypes
-import io.github.smiley4.schemakenerator.reflection.processReflection
-import io.github.smiley4.schemakenerator.swagger.OptionalHandling
-import io.github.smiley4.schemakenerator.swagger.compileReferencingRoot
+import io.github.smiley4.ktoropenapi.OpenApi
+import io.github.smiley4.ktoropenapi.config.AuthType
+import io.github.smiley4.ktoropenapi.openApi
+import io.github.smiley4.ktorswaggerui.swaggerUI
+import io.github.smiley4.schemakenerator.core.CoreSteps.addMissingSupertypeSubtypeRelations
+import io.github.smiley4.schemakenerator.core.CoreSteps.handleNameAnnotation
+import io.github.smiley4.schemakenerator.reflection.ReflectionSteps.analyzeTypeUsingReflection
+import io.github.smiley4.schemakenerator.reflection.ReflectionSteps.collectSubTypes
+import io.github.smiley4.schemakenerator.reflection.data.TypeRedirect
+import io.github.smiley4.schemakenerator.swagger.SwaggerSteps
+import io.github.smiley4.schemakenerator.swagger.SwaggerSteps.compileReferencingRoot
+import io.github.smiley4.schemakenerator.swagger.SwaggerSteps.generateSwaggerSchema
+import io.github.smiley4.schemakenerator.swagger.SwaggerSteps.handleCoreAnnotations
+import io.github.smiley4.schemakenerator.swagger.SwaggerSteps.withTitle
 import io.github.smiley4.schemakenerator.swagger.data.RefType
 import io.github.smiley4.schemakenerator.swagger.data.TitleType
-import io.github.smiley4.schemakenerator.swagger.generateSwaggerSchema
-import io.github.smiley4.schemakenerator.swagger.handleCoreAnnotations
-import io.github.smiley4.schemakenerator.swagger.withTitle
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -53,7 +54,7 @@ import org.koin.ktor.ext.inject
 fun Application.configureOpenApi() {
     val config: ApplicationConfig by inject()
 
-    install(SwaggerUI) {
+    install(OpenApi) {
         // Don't show the routes providing the custom json-schemas.
         pathFilter = { _, url -> url.firstOrNull() != "schemas" }
 
@@ -111,29 +112,43 @@ fun Application.configureOpenApi() {
             generator = { type ->
                 type
                     .collectSubTypes()
-                    .processReflection {
+                    .analyzeTypeUsingReflection {
                         // Replace Instants with Strings in the generated schema to avoid breaking changes in the UI.
                         // This might later be replaced with a proper schema for dates.
-                        redirect<Instant, String>()
-                        redirect<Instant?, String?>()
+                        redirect {
+                            from<Instant>()
+                            to<String>()
+                        }
 
                         // Replace OptionalValue with its type argument in the generated schema as the class is only
                         // required in Kotlin code to model the difference between not present and null. Data classes
                         // using OptionalValue must provide a default value to properly mark the element as not required
                         // in the generated schema.
-                        redirect<OptionalValue<String>, String>()
-                        redirect<OptionalValue<String?>, String?>()
-                        redirect<OptionalValue<RepositoryType>, RepositoryType>()
-                        redirect<OptionalValue<Set<CredentialsType>>, Set<CredentialsType>>()
+                        redirect {
+                            from<OptionalValue<String>>(nullability = TypeRedirect.FromNullability.MATCH)
+                            to<String>()
+                        }
+                        redirect {
+                            from<OptionalValue<String?>>(nullability = TypeRedirect.FromNullability.MATCH)
+                            to<String?>(nullability = TypeRedirect.ToNullability.REPLACE)
+                        }
+                        redirect {
+                            from<OptionalValue<RepositoryType>>(nullability = TypeRedirect.FromNullability.MATCH)
+                            to<RepositoryType>()
+                        }
+                        redirect {
+                            from<OptionalValue<Set<CredentialsType>>>(nullability = TypeRedirect.FromNullability.MATCH)
+                            to<Set<CredentialsType>>()
+                        }
                     }
-                    .connectSubTypes()
+                    .addMissingSupertypeSubtypeRelations()
                     .handleNameAnnotation()
                     .generateSwaggerSchema {
-                        optionalHandling = OptionalHandling.NON_REQUIRED
+                        optionals = SwaggerSteps.RequiredHandling.NON_REQUIRED
                     }
                     .handleCoreAnnotations()
                     .withTitle(TitleType.OPENAPI_SIMPLE)
-                    .compileReferencingRoot(RefType.OPENAPI_SIMPLE)
+                    .compileReferencingRoot(pathType = RefType.OPENAPI_SIMPLE)
             }
         }
     }
@@ -143,7 +158,7 @@ fun Application.configureOpenApi() {
             swaggerUI("/swagger-ui/api.json")
 
             route("api.json") {
-                openApiSpec()
+                openApi()
             }
         }
     }

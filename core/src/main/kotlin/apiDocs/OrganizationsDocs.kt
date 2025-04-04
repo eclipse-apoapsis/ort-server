@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
+import io.github.smiley4.ktoropenapi.config.RouteConfig
 
 import io.ktor.http.HttpStatusCode
 
@@ -52,7 +52,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
 
-val getOrganizationById: OpenApiRoute.() -> Unit = {
+val getOrganizationById: RouteConfig.() -> Unit = {
     operationId = "GetOrganizationById"
     summary = "Get details of an organization"
     tags = listOf("Organizations")
@@ -75,7 +75,7 @@ val getOrganizationById: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getOrganizations: OpenApiRoute.() -> Unit = {
+val getOrganizations: RouteConfig.() -> Unit = {
     operationId = "GetOrganizations"
     summary = "Get all organizations"
     tags = listOf("Organizations")
@@ -107,7 +107,7 @@ val getOrganizations: OpenApiRoute.() -> Unit = {
     }
 }
 
-val postOrganizations: OpenApiRoute.() -> Unit = {
+val postOrganizations: RouteConfig.() -> Unit = {
     operationId = "PostOrganizations"
     summary = "Create an organization"
     tags = listOf("Organizations")
@@ -132,7 +132,7 @@ val postOrganizations: OpenApiRoute.() -> Unit = {
     }
 }
 
-val patchOrganizationById: OpenApiRoute.() -> Unit = {
+val patchOrganizationById: RouteConfig.() -> Unit = {
     operationId = "PatchOrganizationById"
     summary = "Update an organization"
     tags = listOf("Organizations")
@@ -164,7 +164,7 @@ val patchOrganizationById: OpenApiRoute.() -> Unit = {
     }
 }
 
-val deleteOrganizationById: OpenApiRoute.() -> Unit = {
+val deleteOrganizationById: RouteConfig.() -> Unit = {
     operationId = "DeleteOrganizationById"
     summary = "Delete an organization"
     tags = listOf("Organizations")
@@ -182,7 +182,7 @@ val deleteOrganizationById: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getOrganizationProducts: OpenApiRoute.() -> Unit = {
+val getOrganizationProducts: RouteConfig.() -> Unit = {
     operationId = "GetOrganizationProducts"
     summary = "Get all products of an organization"
     tags = listOf("Organizations")
@@ -218,7 +218,7 @@ val getOrganizationProducts: OpenApiRoute.() -> Unit = {
     }
 }
 
-val postProduct: OpenApiRoute.() -> Unit = {
+val postProduct: RouteConfig.() -> Unit = {
     operationId = "PostProduct"
     summary = "Create a product for an organization"
     tags = listOf("Organizations")
@@ -246,7 +246,7 @@ val postProduct: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
+val getSecretsByOrganizationId: RouteConfig.() -> Unit = {
     operationId = "GetSecretsByOrganizationId"
     summary = "Get all secrets of an organization"
     tags = listOf("Organizations")
@@ -281,7 +281,7 @@ val getSecretsByOrganizationId: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
+val getSecretByOrganizationIdAndName: RouteConfig.() -> Unit = {
     operationId = "GetSecretByOrganizationIdAndName"
     summary = "Get details of a secret of an organization"
     tags = listOf("Organizations")
@@ -307,7 +307,7 @@ val getSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     }
 }
 
-val postSecretForOrganization: OpenApiRoute.() -> Unit = {
+val postSecretForOrganization: RouteConfig.() -> Unit = {
     operationId = "PostSecretForOrganization"
     summary = "Create a secret for an organization"
     tags = listOf("Organizations")
@@ -339,7 +339,7 @@ val postSecretForOrganization: OpenApiRoute.() -> Unit = {
     }
 }
 
-val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
+val patchSecretByOrganizationIdAndName: RouteConfig.() -> Unit = {
     operationId = "PatchSecretByOrganizationIdAndName"
     summary = "Update a secret of an organization"
     tags = listOf("Organizations")
@@ -376,7 +376,7 @@ val patchSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     }
 }
 
-val deleteSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
+val deleteSecretByOrganizationIdAndName: RouteConfig.() -> Unit = {
     operationId = "DeleteSecretByOrganizationIdAndName"
     summary = "Delete a secret from an organization"
     tags = listOf("Organizations")
@@ -397,7 +397,7 @@ val deleteSecretByOrganizationIdAndName: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
+val getInfrastructureServicesByOrganizationId: RouteConfig.() -> Unit = {
     operationId = "GetInfrastructureServicesByOrganizationId"
     summary = "List all infrastructure services of an organization"
     tags = listOf("Organizations")
@@ -444,7 +444,7 @@ val getInfrastructureServicesByOrganizationId: OpenApiRoute.() -> Unit = {
     }
 }
 
-val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
+val postInfrastructureServiceForOrganization: RouteConfig.() -> Unit = {
     operationId = "PostInfrastructureServiceForOrganization"
     summary = "Create an infrastructure service for an organization"
     tags = listOf("Organizations")
@@ -484,7 +484,7 @@ val postInfrastructureServiceForOrganization: OpenApiRoute.() -> Unit = {
     }
 }
 
-val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
+val patchInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit = {
     operationId = "PatchInfrastructureServiceForOrganizationIdAndName"
     summary = "Update an infrastructure service for an organization"
     tags = listOf("Organizations")
@@ -527,7 +527,7 @@ val patchInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit 
     }
 }
 
-val deleteInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit = {
+val deleteInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit = {
     operationId = "DeleteInfrastructureServiceForOrganizationIdAndName"
     summary = "Delete an infrastructure service from an organization"
     tags = listOf("Organizations")
@@ -548,7 +548,7 @@ val deleteInfrastructureServiceForOrganizationIdAndName: OpenApiRoute.() -> Unit
     }
 }
 
-val putUserToOrganizationGroup: OpenApiRoute.() -> Unit = {
+val putUserToOrganizationGroup: RouteConfig.() -> Unit = {
     operationId = "PutUserToGroupOrganization"
     summary = "Add a user to a group on organization level"
     tags = listOf("Organizations")
@@ -579,7 +579,7 @@ val putUserToOrganizationGroup: OpenApiRoute.() -> Unit = {
     }
 }
 
-val deleteUserFromOrganizationGroup: OpenApiRoute.() -> Unit = {
+val deleteUserFromOrganizationGroup: RouteConfig.() -> Unit = {
     operationId = "DeleteUserFromGroupOrganization"
     summary = "Remove a user from a group on organization level"
     tags = listOf("Organizations")
@@ -610,7 +610,7 @@ val deleteUserFromOrganizationGroup: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getVulnerabilitiesAcrossRepositoriesByOrganizationId: OpenApiRoute.() -> Unit = {
+val getVulnerabilitiesAcrossRepositoriesByOrganizationId: RouteConfig.() -> Unit = {
     operationId = "GetVulnerabilitiesAcrossRepositoriesByOrganizationId"
     summary = "Get vulnerabilities from an organization"
     description = "Get the vulnerabilities from latest successful advisor runs across the repositories in an " +
@@ -665,7 +665,7 @@ val getVulnerabilitiesAcrossRepositoriesByOrganizationId: OpenApiRoute.() -> Uni
     }
 }
 
-val getOrtRunStatisticsByOrganizationId: OpenApiRoute.() -> Unit = {
+val getOrtRunStatisticsByOrganizationId: RouteConfig.() -> Unit = {
     operationId = "GetOrtRunStatisticsByOrganizationId"
     summary = "Get statistics about ORT runs across the repositories of an organization"
     tags = listOf("Organizations")
@@ -713,7 +713,7 @@ val getOrtRunStatisticsByOrganizationId: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getUsersForOrganization: OpenApiRoute.() -> Unit = {
+val getUsersForOrganization: RouteConfig.() -> Unit = {
     operationId = "GetUsersForOrganization"
     summary = "Get all users for an organization"
     description = "Get all users that have access rights for an organization, including the user privileges (groups) " +

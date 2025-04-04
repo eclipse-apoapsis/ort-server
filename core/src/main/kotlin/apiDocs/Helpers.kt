@@ -19,19 +19,19 @@
 
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRequest
-import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiResponse
-import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiSimpleBody
+import io.github.smiley4.ktoropenapi.config.RequestConfig
+import io.github.smiley4.ktoropenapi.config.ResponseConfig
+import io.github.smiley4.ktoropenapi.config.SimpleBodyConfig
 
 import io.ktor.http.ContentType
 
-inline fun <reified T> OpenApiRequest.jsonBody(noinline block: OpenApiSimpleBody.() -> Unit) =
+inline fun <reified T> RequestConfig.jsonBody(noinline block: SimpleBodyConfig.() -> Unit) =
     body<T> {
         mediaTypes = setOf(ContentType.Application.Json)
         block()
     }
 
-inline fun <reified T> OpenApiResponse.jsonBody(noinline block: OpenApiSimpleBody.() -> Unit) =
+inline fun <reified T> ResponseConfig.jsonBody(noinline block: SimpleBodyConfig.() -> Unit) =
     body<T> {
         mediaTypes = setOf(ContentType.Application.Json)
         block()
@@ -40,7 +40,7 @@ inline fun <reified T> OpenApiResponse.jsonBody(noinline block: OpenApiSimpleBod
 /**
  * Generate documentation for standard list query parameters.
  */
-fun OpenApiRequest.standardListQueryParameters() {
+fun RequestConfig.standardListQueryParameters() {
     queryParameter<Int>("limit") {
         description = "The maximum number of items to retrieve. If not specified at most 20 items are retrieved."
     }

@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.koinKtor)
     implementation(libs.konform)
     implementation(libs.ktorKotlinxSerialization)
+    implementation(libs.ktorOpenApi)
     implementation(libs.ktorServerAuth)
     implementation(libs.ktorServerAuthJwt)
     implementation(libs.ktorServerCallLogging)

@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.apiDocs
 
-import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
+import io.github.smiley4.ktoropenapi.config.RouteConfig
 
 import io.ktor.http.HttpStatusCode
 
@@ -62,7 +62,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
 
-val getOrtRunById: OpenApiRoute.() -> Unit = {
+val getOrtRunById: RouteConfig.() -> Unit = {
     operationId = "getOrtRunById"
     summary = "Get details of an ORT run"
     tags = listOf("Runs")
@@ -105,7 +105,7 @@ val getOrtRunById: OpenApiRoute.() -> Unit = {
     }
 }
 
-val deleteOrtRunById: OpenApiRoute.() -> Unit = {
+val deleteOrtRunById: RouteConfig.() -> Unit = {
     operationId = "deleteOrtRunById"
     summary = "Delete an ORT run"
     description = "This operation deletes an ORT run and all generated data, including the generated reports."
@@ -128,7 +128,7 @@ val deleteOrtRunById: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
+val getReportByRunIdAndFileName: RouteConfig.() -> Unit = {
     operationId = "GetReportByRunIdAndFileName"
     summary = "Download a report of an ORT run"
     tags = listOf("Runs")
@@ -156,7 +156,7 @@ val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getLogsByRunId: OpenApiRoute.() -> Unit = {
+val getLogsByRunId: RouteConfig.() -> Unit = {
     operationId = "GetLogsByRunId"
     summary = "Download an archive with selected logs of an ORT run"
     tags = listOf("Runs")
@@ -194,7 +194,7 @@ val getLogsByRunId: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getIssuesByRunId: OpenApiRoute.() -> Unit = {
+val getIssuesByRunId: RouteConfig.() -> Unit = {
     operationId = "GetIssuesByRunId"
     summary = "Get the issues of an ORT run"
     tags = listOf("Runs")
@@ -238,7 +238,7 @@ val getIssuesByRunId: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
+val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
     operationId = "GetVulnerabilitiesByRunId"
     summary = "Get the vulnerabilities found in an ORT run"
     tags = listOf("Runs")
@@ -294,7 +294,7 @@ val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
+val getRuleViolationsByRunId: RouteConfig.() -> Unit = {
     operationId = "GetRuleViolationsByRunId"
     summary = "Get the rule violations found in an ORT run"
     tags = listOf("Runs")
@@ -364,7 +364,7 @@ val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getPackagesByRunId: OpenApiRoute.() -> Unit = {
+val getPackagesByRunId: RouteConfig.() -> Unit = {
     operationId = "GetPackagesByRunId"
     summary = "Get the packages found in an ORT run"
     tags = listOf("Runs")
@@ -462,7 +462,7 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getProjectsByRunId: OpenApiRoute.() -> Unit = {
+val getProjectsByRunId: RouteConfig.() -> Unit = {
     operationId = "GetProjectsByRunId"
     summary = "Get the projects found in an ORT run"
     tags = listOf("Runs")
@@ -517,7 +517,7 @@ val getProjectsByRunId: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getOrtRuns: OpenApiRoute.() -> Unit = {
+val getOrtRuns: RouteConfig.() -> Unit = {
     operationId = "getOrtRuns"
     summary = "Get all ORT runs"
     tags = listOf("Runs")
@@ -582,7 +582,7 @@ val getOrtRuns: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getOrtRunStatistics: OpenApiRoute.() -> Unit = {
+val getOrtRunStatistics: RouteConfig.() -> Unit = {
     operationId = "getOrtRunStatistics"
     summary = "Get statistics about an ORT run"
     tags = listOf("Runs")
@@ -631,7 +631,7 @@ val getOrtRunStatistics: OpenApiRoute.() -> Unit = {
     }
 }
 
-val getLicensesForPackagesByRunId: OpenApiRoute.() -> Unit = {
+val getLicensesForPackagesByRunId: RouteConfig.() -> Unit = {
     operationId = "GetLicensesForPackagesByRunId"
     summary = "Get the licenses for packages found in an ORT run"
     tags = listOf("Runs")
