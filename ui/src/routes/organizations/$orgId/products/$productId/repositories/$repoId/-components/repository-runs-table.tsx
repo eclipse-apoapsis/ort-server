@@ -248,7 +248,7 @@ const columns = [
                 <span className='font-bold'>{repository.data.url}</span>
               </>
             }
-            uiComponent={<DeleteIconButton className='text-red-500' />}
+            uiComponent={<DeleteIconButton />}
             onDelete={handleDelete}
           />
         </div>
