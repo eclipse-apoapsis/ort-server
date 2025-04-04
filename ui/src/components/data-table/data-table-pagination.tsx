@@ -17,13 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DoubleArrowLeftIcon,
-  DoubleArrowRightIcon,
-} from '@radix-ui/react-icons';
 import { Link, LinkOptions, useNavigate } from '@tanstack/react-router';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -129,7 +129,7 @@ export function DataTablePagination({
               disabled={currentPage <= 1}
               onClick={() => setPage(1)}
             >
-              <DoubleArrowLeftIcon className='size-4' aria-hidden='true' />
+              <ChevronsLeft className='size-4' aria-hidden='true' />
             </Button>
           </Link>
           <Link
@@ -144,7 +144,7 @@ export function DataTablePagination({
               disabled={currentPage <= 1}
               onClick={() => setPage((prevPage) => prevPage - 1)}
             >
-              <ChevronLeftIcon className='size-4' aria-hidden='true' />
+              <ChevronLeft className='size-4' aria-hidden='true' />
             </Button>
           </Link>
           <Link
@@ -159,7 +159,7 @@ export function DataTablePagination({
               disabled={currentPage >= totalPages}
               onClick={() => setPage((prevPage) => prevPage + 1)}
             >
-              <ChevronRightIcon className='size-4' aria-hidden='true' />
+              <ChevronRight className='size-4' aria-hidden='true' />
             </Button>
           </Link>
           <Link
@@ -174,7 +174,7 @@ export function DataTablePagination({
               onClick={() => setPage(totalPages)}
               disabled={currentPage >= totalPages}
             >
-              <DoubleArrowRightIcon className='size-4' aria-hidden='true' />
+              <ChevronsRight className='size-4' aria-hidden='true' />
             </Button>
           </Link>
         </div>
