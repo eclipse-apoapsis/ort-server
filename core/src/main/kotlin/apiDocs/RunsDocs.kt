@@ -131,7 +131,7 @@ val deleteOrtRunById: OpenApiRoute.() -> Unit = {
 val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
     operationId = "GetReportByRunIdAndFileName"
     summary = "Download a report of an ORT run"
-    tags = listOf("Reports")
+    tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
@@ -159,7 +159,7 @@ val getReportByRunIdAndFileName: OpenApiRoute.() -> Unit = {
 val getLogsByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetLogsByRunId"
     summary = "Download an archive with selected logs of an ORT run"
-    tags = listOf("Logs")
+    tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
@@ -197,7 +197,7 @@ val getLogsByRunId: OpenApiRoute.() -> Unit = {
 val getIssuesByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetIssuesByRunId"
     summary = "Get the issues of an ORT run"
-    tags = listOf("Issues")
+    tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
@@ -241,7 +241,7 @@ val getIssuesByRunId: OpenApiRoute.() -> Unit = {
 val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetVulnerabilitiesByRunId"
     summary = "Get the vulnerabilities found in an ORT run"
-    tags = listOf("Vulnerabilities")
+    tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
@@ -297,7 +297,7 @@ val getVulnerabilitiesByRunId: OpenApiRoute.() -> Unit = {
 val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetRuleViolationsByRunId"
     summary = "Get the rule violations found in an ORT run"
-    tags = listOf("RuleViolations")
+    tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
@@ -367,7 +367,7 @@ val getRuleViolationsByRunId: OpenApiRoute.() -> Unit = {
 val getPackagesByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetPackagesByRunId"
     summary = "Get the packages found in an ORT run"
-    tags = listOf("Packages")
+    tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
@@ -465,7 +465,7 @@ val getPackagesByRunId: OpenApiRoute.() -> Unit = {
 val getProjectsByRunId: OpenApiRoute.() -> Unit = {
     operationId = "GetProjectsByRunId"
     summary = "Get the projects found in an ORT run"
-    tags = listOf("Projects")
+    tags = listOf("Runs")
 
     request {
         pathParameter<Long>("runId") {
