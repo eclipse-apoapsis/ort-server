@@ -85,7 +85,7 @@ jobs:
       run: pnpm -C ui install --dev
 
     - name: Run ESLint
-      run: pnpm -C ui lint 
+      run: pnpm -C ui lint
 
   prettier-ui:
     runs-on: ubuntu-24.04
@@ -109,7 +109,7 @@ jobs:
       run: pnpm -C ui install --dev
 
     - name: Run Prettier
-      run: pnpm -C ui format:check 
+      run: pnpm -C ui format:check
 
   prettier-website:
     runs-on: ubuntu-24.04
