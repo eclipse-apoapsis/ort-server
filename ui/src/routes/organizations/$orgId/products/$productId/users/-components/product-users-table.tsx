@@ -28,10 +28,10 @@ import { Eye, Pen, Shield } from 'lucide-react';
 
 import {
   useAdminServiceDeleteApiV1AdminUsers,
-  useDefaultServiceGetApiV1ProductsByProductIdUsers,
-  useDefaultServiceGetApiV1ProductsByProductIdUsersKey,
   useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
   useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId,
+  useProductsServiceGetApiV1ProductsByProductIdUsers,
+  useProductsServiceGetApiV1ProductsByProductIdUsersKey,
 } from '@/api/queries';
 import { ApiError, UserWithGroups } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -109,7 +109,7 @@ const columns = [
             description: `User "${row.original.user.username}" deleted successfully.`,
           });
           queryClient.invalidateQueries({
-            queryKey: [useDefaultServiceGetApiV1ProductsByProductIdUsersKey],
+            queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
           });
         },
         onError(error: ApiError) {
@@ -128,7 +128,7 @@ const columns = [
         useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId({
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
-              queryKey: [useDefaultServiceGetApiV1ProductsByProductIdUsersKey],
+              queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
             });
             toast.info('Join Group', {
               description: `User "${row.original.user.username}" joined group ${parameters.groupId} successfully.`,
@@ -255,7 +255,7 @@ export const ProductUsersTable = () => {
   const pageIndex = page - 1;
 
   const { data: usersWithGroups } =
-    useDefaultServiceGetApiV1ProductsByProductIdUsers({
+    useProductsServiceGetApiV1ProductsByProductIdUsers({
       productId: Number.parseInt(productId),
       limit: pageSize,
       offset: pageIndex * pageSize,

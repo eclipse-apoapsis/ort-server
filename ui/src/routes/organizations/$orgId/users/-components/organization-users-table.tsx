@@ -28,10 +28,10 @@ import { Eye, Pen, Shield } from 'lucide-react';
 
 import {
   useAdminServiceDeleteApiV1AdminUsers,
-  useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsers,
-  useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
   useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
   useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsers,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
 } from '@/api/queries';
 import { ApiError, UserWithGroups } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -110,7 +110,7 @@ const columns = [
           });
           queryClient.invalidateQueries({
             queryKey: [
-              useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+              useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
             ],
           });
         },
@@ -131,7 +131,7 @@ const columns = [
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
               queryKey: [
-                useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+                useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
               ],
             });
             toast.info('Join Group', {
@@ -261,7 +261,7 @@ export const OrganizationUsersTable = () => {
   const pageIndex = page - 1;
 
   const { data: usersWithGroups } =
-    useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsers({
+    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsers({
       organizationId: Number.parseInt(orgId),
       limit: pageSize,
       offset: pageIndex * pageSize,

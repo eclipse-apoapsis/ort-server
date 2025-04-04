@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { ensureUseDefaultServiceGetApiV1RepositoriesByRepositoryIdUsersData } from '@/api/queries/ensureQueryData.ts';
+import { ensureUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersData } from '@/api/queries/ensureQueryData.ts';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute(
@@ -40,7 +40,7 @@ export const Route = createFileRoute(
     const pageIndex = page - 1;
 
     // Ensure the data is available in the query cache when the component is rendered.
-    await ensureUseDefaultServiceGetApiV1RepositoriesByRepositoryIdUsersData(
+    await ensureUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersData(
       queryClient,
       {
         limit: pageSize,

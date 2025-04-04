@@ -532,10 +532,12 @@ val getOrtRunStatisticsByProductId: OpenApiRoute.() -> Unit = {
 
 val getUsersForProduct: OpenApiRoute.() -> Unit = {
     operationId = "GetUsersForProduct"
-    summary = "Get all users that have rights for a product, including user privileges (groups) that user have " +
-        "within product."
-    description = "Fields available for sorting: 'username', 'firstName', 'lastName', 'email', 'group'. " +
-        "NOTE: This endpoint supports only one sort field. All fields other than first one are ignored."
+    summary = "Get all users for a product"
+    description = "Get all users that have access rights for a product, including the user privileges (groups) " +
+            "the user has within the product. Fields available for sorting: 'username', 'firstName', " +
+            "'lastName', 'email', 'group'. NOTE: This endpoint supports only one sort field. All fields other than " +
+            " the first one are ignored."
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {

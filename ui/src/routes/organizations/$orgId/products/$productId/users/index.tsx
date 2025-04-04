@@ -25,9 +25,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useDefaultServiceGetApiV1ProductsByProductIdUsersKey,
   useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
   useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId,
+  useProductsServiceGetApiV1ProductsByProductIdUsersKey,
 } from '@/api/queries';
 import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
@@ -87,7 +87,7 @@ const ManageUsers = () => {
     useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId({
       onSuccess() {
         queryClient.invalidateQueries({
-          queryKey: [useDefaultServiceGetApiV1ProductsByProductIdUsersKey],
+          queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
         });
         toast.info('Add User', {
           description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
