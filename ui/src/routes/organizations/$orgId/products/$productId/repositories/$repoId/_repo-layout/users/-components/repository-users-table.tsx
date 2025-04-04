@@ -28,10 +28,10 @@ import { Eye, Pen, Shield } from 'lucide-react';
 
 import {
   useAdminServiceDeleteApiV1AdminUsers,
-  useDefaultServiceGetApiV1RepositoriesByRepositoryIdUsers,
-  useDefaultServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
   useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
   useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsers,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
 } from '@/api/queries';
 import { ApiError, UserWithGroups } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -110,7 +110,7 @@ const columns = [
           });
           queryClient.invalidateQueries({
             queryKey: [
-              useDefaultServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
+              useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
             ],
           });
         },
@@ -131,7 +131,7 @@ const columns = [
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
               queryKey: [
-                useDefaultServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
+                useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
               ],
             });
             toast.info('Join Group', {
@@ -261,7 +261,7 @@ export const RepositoryUsersTable = () => {
   const pageIndex = page - 1;
 
   const { data: usersWithGroups } =
-    useDefaultServiceGetApiV1RepositoriesByRepositoryIdUsers({
+    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsers({
       repositoryId: Number.parseInt(repoId),
       limit: pageSize,
       offset: pageIndex * pageSize,

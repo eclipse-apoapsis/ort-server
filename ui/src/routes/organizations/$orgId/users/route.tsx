@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { ensureUseDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersData } from '@/api/queries/ensureQueryData.ts';
+import { ensureUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersData } from '@/api/queries/ensureQueryData.ts';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute('/organizations/$orgId/users')({
@@ -38,7 +38,7 @@ export const Route = createFileRoute('/organizations/$orgId/users')({
     const pageIndex = page - 1;
 
     // Ensure the data is available in the query cache when the component is rendered.
-    await ensureUseDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersData(
+    await ensureUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersData(
       queryClient,
       {
         limit: pageSize,

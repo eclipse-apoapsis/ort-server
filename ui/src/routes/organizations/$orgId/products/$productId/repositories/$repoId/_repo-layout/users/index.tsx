@@ -25,9 +25,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useDefaultServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
   useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
   useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
+  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
 } from '@/api/queries';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
@@ -88,7 +88,7 @@ const ManageUsers = () => {
       onSuccess() {
         queryClient.invalidateQueries({
           queryKey: [
-            useDefaultServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
+            useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
           ],
         });
         toast.info('Add User', {

@@ -713,10 +713,12 @@ val getOrtRunStatisticsByOrganizationId: OpenApiRoute.() -> Unit = {
 
 val getUsersForOrganization: OpenApiRoute.() -> Unit = {
     operationId = "GetUsersForOrganization"
-    summary = "Get all users that have rights for a organization, including user privileges (groups) that user have " +
-        "within organization."
-    description = "Fields available for sorting: 'username', 'firstName', 'lastName', 'email', 'group'. " +
-        "NOTE: This endpoint supports only one sort field. All fields other than first one are ignored."
+    summary = "Get all users for an organization"
+    description = "Get all users that have access rights for an organization, including the user privileges (groups) " +
+            "the user has within the organization. Fields available for sorting: 'username', 'firstName', " +
+            "'lastName', 'email', 'group'. NOTE: This endpoint supports only one sort field. All fields other than " +
+            " the first one are ignored."
+    tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {

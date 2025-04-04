@@ -25,9 +25,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
   useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
   useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
 } from '@/api/queries';
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
@@ -88,7 +88,7 @@ const ManageUsers = () => {
       onSuccess() {
         queryClient.invalidateQueries({
           queryKey: [
-            useDefaultServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+            useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
           ],
         });
         toast.info('Add User', {
