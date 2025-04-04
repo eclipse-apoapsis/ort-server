@@ -751,10 +751,12 @@ val deleteUserFromRepositoryGroup: OpenApiRoute.() -> Unit = {
 
 val getUsersForRepository: OpenApiRoute.() -> Unit = {
     operationId = "GetUsersForRepository"
-    summary = "Get all users that have rights for a repository, including privileges (groups) that user have within " +
-        "repository."
-    description = "Fields available for sorting: 'username', 'firstName', 'lastName', 'email', 'group'. " +
-        "NOTE: This endpoint supports only one sort field. All fields other than first one are ignored."
+    summary = "Get all users for a repository"
+    description = "Get all users that have access rights for a repository, including the user privileges (groups) " +
+            "the user has within the repository. Fields available for sorting: 'username', 'firstName', " +
+            "'lastName', 'email', 'group'. NOTE: This endpoint supports only one sort field. All fields other than " +
+            " the first one are ignored."
+    tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {
