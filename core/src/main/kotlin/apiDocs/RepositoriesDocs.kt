@@ -690,7 +690,7 @@ val deleteSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
 val putUserToRepositoryGroup: OpenApiRoute.() -> Unit = {
     operationId = "PutUserToGroupRepository"
     summary = "Add a user to a group on repository level"
-    tags = listOf("Groups")
+    tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {
@@ -721,7 +721,7 @@ val putUserToRepositoryGroup: OpenApiRoute.() -> Unit = {
 val deleteUserFromRepositoryGroup: OpenApiRoute.() -> Unit = {
     operationId = "DeleteUserFromGroupRepository"
     summary = "Remove a user from a group on repository level"
-    tags = listOf("Groups")
+    tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {

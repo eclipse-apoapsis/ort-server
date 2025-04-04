@@ -369,7 +369,7 @@ val deleteSecretByProductIdAndName: OpenApiRoute.() -> Unit = {
 val putUserToProductGroup: OpenApiRoute.() -> Unit = {
     operationId = "PutUserToGroupProduct"
     summary = "Add a user to a group on product level"
-    tags = listOf("Groups")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
@@ -400,7 +400,7 @@ val putUserToProductGroup: OpenApiRoute.() -> Unit = {
 val deleteUserFromProductGroup: OpenApiRoute.() -> Unit = {
     operationId = "DeleteUserFromGroupProduct"
     summary = "Remove a user from a group on product level"
-    tags = listOf("Groups")
+    tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
