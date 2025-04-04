@@ -242,7 +242,7 @@ fun createJobSummary(offset: Duration, status: JobStatus = JobStatus.FINISHED): 
 
 val getRepositoryById: OpenApiRoute.() -> Unit = {
     operationId = "GetRepositoryById"
-    summary = "Get details of a repository."
+    summary = "Get details of a repository"
     tags = listOf("Repositories")
 
     request {
@@ -271,7 +271,7 @@ val getRepositoryById: OpenApiRoute.() -> Unit = {
 
 val patchRepositoryById: OpenApiRoute.() -> Unit = {
     operationId = "PatchRepositoryById"
-    summary = "Update a repository."
+    summary = "Update a repository"
     tags = listOf("Repositories")
 
     request {
@@ -309,7 +309,7 @@ val patchRepositoryById: OpenApiRoute.() -> Unit = {
 
 val deleteRepositoryById: OpenApiRoute.() -> Unit = {
     operationId = "DeleteRepositoryById"
-    summary = "Delete a repository."
+    summary = "Delete a repository"
     tags = listOf("Repositories")
 
     request {
@@ -327,7 +327,7 @@ val deleteRepositoryById: OpenApiRoute.() -> Unit = {
 
 val getOrtRunsByRepositoryId: OpenApiRoute.() -> Unit = {
     operationId = "getOrtRunsByRepositoryId"
-    summary = "Get all ORT runs of a repository."
+    summary = "Get all ORT runs of a repository"
     tags = listOf("Repositories")
 
     request {
@@ -405,7 +405,7 @@ val getOrtRunsByRepositoryId: OpenApiRoute.() -> Unit = {
 
 val postOrtRun: OpenApiRoute.() -> Unit = {
     operationId = "postOrtRun"
-    summary = "Create an ORT run for a repository."
+    summary = "Create an ORT run for a repository"
     tags = listOf("Repositories")
 
     request {
@@ -465,7 +465,7 @@ val postOrtRun: OpenApiRoute.() -> Unit = {
 
 val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
     operationId = "getOrtRunByIndex"
-    summary = "Get details of an ORT run of a repository."
+    summary = "Get details of an ORT run of a repository"
     tags = listOf("Repositories")
 
     request {
@@ -511,7 +511,7 @@ val getOrtRunByIndex: OpenApiRoute.() -> Unit = {
 
 val deleteOrtRunByIndex: OpenApiRoute.() -> Unit = {
     operationId = "deleteOrtRunByIndex"
-    summary = "Delete an ORT run of a repository."
+    summary = "Delete an ORT run of a repository"
     description = "This operation deletes an ORT run and all generated data, including the generated reports."
     tags = listOf("Repositories")
 
@@ -538,7 +538,7 @@ val deleteOrtRunByIndex: OpenApiRoute.() -> Unit = {
 
 val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretsByRepositoryId"
-    summary = "Get all secrets of a repository."
+    summary = "Get all secrets of a repository"
     tags = listOf("Secrets")
 
     request {
@@ -573,7 +573,7 @@ val getSecretsByRepositoryId: OpenApiRoute.() -> Unit = {
 
 val getSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "GetSecretByRepositoryIdAndName"
-    summary = "Get details of a secret of a repository."
+    summary = "Get details of a secret of a repository"
     tags = listOf("Secrets")
 
     request {
@@ -599,7 +599,7 @@ val getSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
 
 val postSecretForRepository: OpenApiRoute.() -> Unit = {
     operationId = "PostSecretForRepository"
-    summary = "Create a secret for a repository."
+    summary = "Create a secret for a repository"
     tags = listOf("Secrets")
 
     request {
@@ -631,7 +631,7 @@ val postSecretForRepository: OpenApiRoute.() -> Unit = {
 
 val patchSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "PatchSecretByRepositoryIdAndName"
-    summary = "Update a secret of a repository."
+    summary = "Update a secret of a repository"
     tags = listOf("Secrets")
 
     request {
@@ -668,7 +668,7 @@ val patchSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
 
 val deleteSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
     operationId = "DeleteSecretByRepositoryIdAndName"
-    summary = "Delete a secret from a repository."
+    summary = "Delete a secret from a repository"
     tags = listOf("Secrets")
 
     request {
@@ -689,7 +689,7 @@ val deleteSecretByRepositoryIdAndName: OpenApiRoute.() -> Unit = {
 
 val putUserToRepositoryGroup: OpenApiRoute.() -> Unit = {
     operationId = "PutUserToGroupRepository"
-    summary = "Add a user to a group on Repository level."
+    summary = "Add a user to a group on repository level"
     tags = listOf("Groups")
 
     request {
@@ -720,7 +720,7 @@ val putUserToRepositoryGroup: OpenApiRoute.() -> Unit = {
 
 val deleteUserFromRepositoryGroup: OpenApiRoute.() -> Unit = {
     operationId = "DeleteUserFromGroupRepository"
-    summary = "Remove a user from a group on Repository level."
+    summary = "Remove a user from a group on repository level"
     tags = listOf("Groups")
 
     request {
