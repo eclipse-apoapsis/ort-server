@@ -23,6 +23,32 @@ jobs:
       with:
         configFile: .commitlintrc.yml
 
+  completions:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Setup Java
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+      - name: Generate OSC completions
+        run: |
+          scripts/cli/generate_completion_scripts.sh
+      - name: Check if completions are up-to-date
+        run: |
+          if git diff --exit-code > /dev/null; then
+            echo "Completions are up-to-date."
+          else
+            echo "Completions for OSC are not up-to-date."
+            echo "Please update the completion scripts when changing CLI commands:"
+            echo "scripts/cli/generate_completion_scripts.sh"
+            exit 1
+          fi
+
   detekt-issues:
     runs-on: ubuntu-24.04
     env:
