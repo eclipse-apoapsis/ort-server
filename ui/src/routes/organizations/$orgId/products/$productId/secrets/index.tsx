@@ -28,14 +28,14 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 
 import {
+  useProductsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName,
   useProductsServiceGetApiV1ProductsByProductId,
-  useSecretsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName,
-  useSecretsServiceGetApiV1ProductsByProductIdSecrets,
-  useSecretsServiceGetApiV1ProductsByProductIdSecretsKey,
+  useProductsServiceGetApiV1ProductsByProductIdSecrets,
+  useProductsServiceGetApiV1ProductsByProductIdSecretsKey,
 } from '@/api/queries';
 import {
   prefetchUseProductsServiceGetApiV1ProductsByProductId,
-  prefetchUseSecretsServiceGetApiV1ProductsByProductIdSecrets,
+  prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets,
 } from '@/api/queries/prefetch';
 import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { ApiError, Secret } from '@/api/requests';
@@ -74,13 +74,13 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
     });
 
   const { mutateAsync: deleteSecret } =
-    useSecretsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName({
+    useProductsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName({
       onSuccess() {
         toast.info('Delete Secret', {
           description: `Secret "${row.original.name}" deleted successfully.`,
         });
         queryClient.invalidateQueries({
-          queryKey: [useSecretsServiceGetApiV1ProductsByProductIdSecretsKey],
+          queryKey: [useProductsServiceGetApiV1ProductsByProductIdSecretsKey],
         });
       },
       onError(error: ApiError) {
@@ -166,7 +166,7 @@ const ProductSecrets = () => {
     error: secretsError,
     isPending: secretsIsPending,
     isError: secretsIsError,
-  } = useSecretsServiceGetApiV1ProductsByProductIdSecrets({
+  } = useProductsServiceGetApiV1ProductsByProductIdSecrets({
     productId: Number(params.productId),
     limit: pageSize,
     offset: pageIndex * pageSize,
@@ -263,7 +263,7 @@ export const Route = createFileRoute(
           productId: Number.parseInt(params.productId),
         }
       ),
-      prefetchUseSecretsServiceGetApiV1ProductsByProductIdSecrets(
+      prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets(
         context.queryClient,
         {
           productId: Number(params.productId),

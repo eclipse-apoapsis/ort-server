@@ -28,10 +28,10 @@ import { Eye, Pen, Shield } from 'lucide-react';
 
 import {
   useAdminServiceDeleteApiV1AdminUsers,
-  useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
-  useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId,
+  useProductsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
   useProductsServiceGetApiV1ProductsByProductIdUsers,
   useProductsServiceGetApiV1ProductsByProductIdUsersKey,
+  useProductsServicePutApiV1ProductsByProductIdGroupsByGroupId,
 } from '@/api/queries';
 import { ApiError, UserWithGroups } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -125,7 +125,7 @@ const columns = [
       });
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
-        useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId({
+        useProductsServicePutApiV1ProductsByProductIdGroupsByGroupId({
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
               queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
@@ -147,7 +147,7 @@ const columns = [
         });
 
       const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-        useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId({
+        useProductsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId({
           onSuccess(_response, parameters) {
             // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
             toast.info('Leave Group', {

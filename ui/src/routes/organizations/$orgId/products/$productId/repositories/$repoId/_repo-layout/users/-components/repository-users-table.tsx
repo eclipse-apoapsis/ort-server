@@ -28,10 +28,10 @@ import { Eye, Pen, Shield } from 'lucide-react';
 
 import {
   useAdminServiceDeleteApiV1AdminUsers,
-  useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
-  useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
+  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsers,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
+  useRepositoriesServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
 } from '@/api/queries';
 import { ApiError, UserWithGroups } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -127,48 +127,52 @@ const columns = [
       });
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
-        useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId({
-          onSuccess(_response, parameters) {
-            queryClient.invalidateQueries({
-              queryKey: [
-                useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-              ],
-            });
-            toast.info('Join Group', {
-              description: `User "${row.original.user.username}" joined group ${parameters.groupId} successfully.`,
-            });
-          },
-          onError(error: ApiError) {
-            toast.error(error.message, {
-              description: <ToastError error={error} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
-          },
-        });
+        useRepositoriesServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId(
+          {
+            onSuccess(_response, parameters) {
+              queryClient.invalidateQueries({
+                queryKey: [
+                  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
+                ],
+              });
+              toast.info('Join Group', {
+                description: `User "${row.original.user.username}" joined group ${parameters.groupId} successfully.`,
+              });
+            },
+            onError(error: ApiError) {
+              toast.error(error.message, {
+                description: <ToastError error={error} />,
+                duration: Infinity,
+                cancel: {
+                  label: 'Dismiss',
+                  onClick: () => {},
+                },
+              });
+            },
+          }
+        );
 
       const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-        useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId({
-          onSuccess(_response, parameters) {
-            // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
-            toast.info('Leave Group', {
-              description: `User "${row.original.user.username}" left group ${parameters.groupId} successfully.`,
-            });
-          },
-          onError(error: ApiError) {
-            toast.error(error.message, {
-              description: <ToastError error={error} />,
-              duration: Infinity,
-              cancel: {
-                label: 'Dismiss',
-                onClick: () => {},
-              },
-            });
-          },
-        });
+        useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId(
+          {
+            onSuccess(_response, parameters) {
+              // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
+              toast.info('Leave Group', {
+                description: `User "${row.original.user.username}" left group ${parameters.groupId} successfully.`,
+              });
+            },
+            onError(error: ApiError) {
+              toast.error(error.message, {
+                description: <ToastError error={error} />,
+                duration: Infinity,
+                cancel: {
+                  label: 'Dismiss',
+                  onClick: () => {},
+                },
+              });
+            },
+          }
+        );
 
       // Leave all groups except the one to join.
       async function leaveOtherGroups(joinGroupId: string) {

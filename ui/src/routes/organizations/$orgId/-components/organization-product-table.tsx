@@ -26,8 +26,8 @@ import {
 import { Loader2 } from 'lucide-react';
 
 import {
-  useProductsServiceGetApiV1OrganizationsByOrganizationIdProducts,
-  useRepositoriesServiceGetApiV1ProductsByProductIdRepositories,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdProducts,
+  useProductsServiceGetApiV1ProductsByProductIdRepositories,
 } from '@/api/queries';
 import { PagedResponse_Product, Product } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
@@ -75,7 +75,7 @@ const columns = [
     size: 60,
     cell: function CellComponent({ row }) {
       const { data, isPending, isError } =
-        useRepositoriesServiceGetApiV1ProductsByProductIdRepositories({
+        useProductsServiceGetApiV1ProductsByProductIdRepositories({
           productId: row.original.id,
           limit: 1,
         });
@@ -101,7 +101,7 @@ const columns = [
     header: 'Last Run Status',
     cell: function CellComponent({ row }) {
       const { data, isPending, isError } =
-        useRepositoriesServiceGetApiV1ProductsByProductIdRepositories({
+        useProductsServiceGetApiV1ProductsByProductIdRepositories({
           productId: row.original.id,
           limit: 1,
         });
@@ -128,7 +128,7 @@ const columns = [
     header: 'Last Run Date',
     cell: function CellComponent({ row }) {
       const { data, isPending, isError } =
-        useRepositoriesServiceGetApiV1ProductsByProductIdRepositories({
+        useProductsServiceGetApiV1ProductsByProductIdRepositories({
           productId: row.original.id,
           limit: 1,
         });
@@ -154,7 +154,7 @@ const columns = [
     header: 'Last Job Status',
     cell: function CellComponent({ row }) {
       const { data, isPending, isError } =
-        useRepositoriesServiceGetApiV1ProductsByProductIdRepositories({
+        useProductsServiceGetApiV1ProductsByProductIdRepositories({
           productId: row.original.id,
           limit: 1,
         });
@@ -191,7 +191,7 @@ export const OrganizationProductTable = () => {
     error: prodError,
     isPending: prodIsPending,
     isError: prodIsError,
-  } = useProductsServiceGetApiV1OrganizationsByOrganizationIdProducts({
+  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdProducts({
     organizationId: Number.parseInt(params.orgId),
     limit: pageSize,
     offset: pageIndex * pageSize,

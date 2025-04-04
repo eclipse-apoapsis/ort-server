@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useSecretsServicePostApiV1RepositoriesByRepositoryIdSecrets } from '@/api/queries';
+import { useRepositoriesServicePostApiV1RepositoriesByRepositoryIdSecrets } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
@@ -56,7 +56,7 @@ const CreateRepositorySecretPage = () => {
   const params = Route.useParams();
 
   const { mutateAsync, isPending } =
-    useSecretsServicePostApiV1RepositoriesByRepositoryIdSecrets({
+    useRepositoriesServicePostApiV1RepositoriesByRepositoryIdSecrets({
       onSuccess(data) {
         toast.info('Create Repository Secret', {
           description: `New repository secret "${data.name}" created successfully.`,

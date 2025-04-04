@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useSecretsServicePostApiV1ProductsByProductIdSecrets } from '@/api/queries';
+import { useProductsServicePostApiV1ProductsByProductIdSecrets } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
@@ -56,7 +56,7 @@ const CreateProductSecretPage = () => {
   const params = Route.useParams();
 
   const { mutateAsync, isPending } =
-    useSecretsServicePostApiV1ProductsByProductIdSecrets({
+    useProductsServicePostApiV1ProductsByProductIdSecrets({
       onSuccess(data) {
         toast.info('Create Product Secret', {
           description: `New product secret "${data.name}" created successfully.`,

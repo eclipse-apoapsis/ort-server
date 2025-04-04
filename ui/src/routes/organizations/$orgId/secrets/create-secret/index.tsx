@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useSecretsServicePostApiV1OrganizationsByOrganizationIdSecrets } from '@/api/queries';
+import { useOrganizationsServicePostApiV1OrganizationsByOrganizationIdSecrets } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input.tsx';
 import { ToastError } from '@/components/toast-error';
@@ -56,7 +56,7 @@ const CreateOrganizationSecretPage = () => {
   const params = Route.useParams();
 
   const { mutateAsync, isPending } =
-    useSecretsServicePostApiV1OrganizationsByOrganizationIdSecrets({
+    useOrganizationsServicePostApiV1OrganizationsByOrganizationIdSecrets({
       onSuccess(data) {
         toast.info('Create Organization Secret', {
           description: `New organization secret "${data.name}" created successfully.`,

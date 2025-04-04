@@ -25,9 +25,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
-  useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
 } from '@/api/queries';
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
@@ -84,43 +84,47 @@ const ManageUsers = () => {
   const queryClient = useQueryClient();
 
   const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useGroupsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId({
-      onSuccess() {
-        queryClient.invalidateQueries({
-          queryKey: [
-            useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-          ],
-        });
-        toast.info('Add User', {
-          description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+    useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId(
+      {
+        onSuccess() {
+          queryClient.invalidateQueries({
+            queryKey: [
+              useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+            ],
+          });
+          toast.info('Add User', {
+            description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      }
+    );
 
   const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-    useGroupsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId({
-      onError(error: ApiError) {
-        // There is no error when trying to remove a user from a group he actually is not a member of.
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+    useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId(
+      {
+        onError(error: ApiError) {
+          // There is no error when trying to remove a user from a group he actually is not a member of.
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      }
+    );
 
   // The user might accidentally try to add a user to a group, although the user already has a group assignment.
   // In this case, leave any potential other groups before adding the user to the new group.

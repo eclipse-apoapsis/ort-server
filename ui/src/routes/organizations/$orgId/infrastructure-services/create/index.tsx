@@ -23,8 +23,8 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useInfrastructureServicesServicePostApiV1OrganizationsByOrganizationIdInfrastructureServices } from '@/api/queries';
-import { useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense } from '@/api/queries/suspense';
+import { useOrganizationsServicePostApiV1OrganizationsByOrganizationIdInfrastructureServices } from '@/api/queries';
+import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { ToastError } from '@/components/toast-error';
@@ -73,13 +73,15 @@ const CreateInfrastructureServicePage = () => {
   const params = Route.useParams();
 
   const { data: secrets } =
-    useSecretsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense({
-      organizationId: Number.parseInt(params.orgId),
-      limit: ALL_ITEMS,
-    });
+    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense(
+      {
+        organizationId: Number.parseInt(params.orgId),
+        limit: ALL_ITEMS,
+      }
+    );
 
   const { mutateAsync, isPending } =
-    useInfrastructureServicesServicePostApiV1OrganizationsByOrganizationIdInfrastructureServices(
+    useOrganizationsServicePostApiV1OrganizationsByOrganizationIdInfrastructureServices(
       {
         onSuccess(data) {
           toast.info('Create Infrastructure Service', {

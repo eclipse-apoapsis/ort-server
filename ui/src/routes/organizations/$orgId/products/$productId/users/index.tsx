@@ -25,9 +25,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
-  useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId,
+  useProductsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
   useProductsServiceGetApiV1ProductsByProductIdUsersKey,
+  useProductsServicePutApiV1ProductsByProductIdGroupsByGroupId,
 } from '@/api/queries';
 import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
@@ -84,7 +84,7 @@ const ManageUsers = () => {
   const queryClient = useQueryClient();
 
   const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useGroupsServicePutApiV1ProductsByProductIdGroupsByGroupId({
+    useProductsServicePutApiV1ProductsByProductIdGroupsByGroupId({
       onSuccess() {
         queryClient.invalidateQueries({
           queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
@@ -106,7 +106,7 @@ const ManageUsers = () => {
     });
 
   const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-    useGroupsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId({
+    useProductsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId({
       onError(error: ApiError) {
         // There is no error when trying to remove a user from a group he actually is not a member of.
         toast.error(error.message, {

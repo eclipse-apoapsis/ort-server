@@ -34,7 +34,7 @@ import { useMemo } from 'react';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import {
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense,
-  useRuleViolationsServiceGetApiV1RunsByRunIdRuleViolationsSuspense,
+  useRunsServiceGetApiV1RunsByRunIdRuleViolationsSuspense,
 } from '@/api/queries/suspense';
 import { RuleViolation, Severity } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
@@ -233,7 +233,7 @@ const RuleViolationsComponent = () => {
     );
 
   const { data: ruleViolations } =
-    useRuleViolationsServiceGetApiV1RunsByRunIdRuleViolationsSuspense({
+    useRunsServiceGetApiV1RunsByRunIdRuleViolationsSuspense({
       runId: ortRun.id,
       limit: ALL_ITEMS,
     });

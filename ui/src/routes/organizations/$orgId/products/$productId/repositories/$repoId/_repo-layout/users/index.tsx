@@ -25,9 +25,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
-  useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
+  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
+  useRepositoriesServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
 } from '@/api/queries';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
@@ -84,7 +84,7 @@ const ManageUsers = () => {
   const queryClient = useQueryClient();
 
   const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useGroupsServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId({
+    useRepositoriesServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId({
       onSuccess() {
         queryClient.invalidateQueries({
           queryKey: [
@@ -108,7 +108,7 @@ const ManageUsers = () => {
     });
 
   const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-    useGroupsServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId({
+    useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId({
       onError(error: ApiError) {
         // There is no error when trying to remove a user from a group he actually is not a member of.
         toast.error(error.message, {

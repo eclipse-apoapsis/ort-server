@@ -27,12 +27,12 @@ import {
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-import { usePackagesServiceGetApiV1RunsByRunIdPackages } from '@/api/queries';
+import { useRunsServiceGetApiV1RunsByRunIdPackages } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import {
-  usePackagesServiceGetApiV1RunsByRunIdPackagesSuspense,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense,
   useRunsServiceGetApiV1RunsByRunIdPackagesLicensesSuspense,
+  useRunsServiceGetApiV1RunsByRunIdPackagesSuspense,
 } from '@/api/queries/suspense';
 import { Package } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
@@ -167,7 +167,7 @@ const PackagesComponent = () => {
     );
 
   const { data: totalPackages } =
-    usePackagesServiceGetApiV1RunsByRunIdPackagesSuspense({
+    useRunsServiceGetApiV1RunsByRunIdPackagesSuspense({
       runId: ortRun.id,
       limit: 1,
     });
@@ -182,7 +182,7 @@ const PackagesComponent = () => {
     isPending,
     isError,
     error,
-  } = usePackagesServiceGetApiV1RunsByRunIdPackages({
+  } = useRunsServiceGetApiV1RunsByRunIdPackages({
     runId: ortRun.id,
     limit: pageSize,
     offset: pageIndex * pageSize,
