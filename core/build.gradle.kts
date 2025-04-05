@@ -48,9 +48,23 @@ tasks.withType<JibTask> {
     notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")
 }
 
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.gradle.org/gradle/libs-releases/")
+        }
+
+        filter {
+            includeGroup("org.gradle")
+        }
+    }
+}
+
 dependencies {
     implementation(projects.api.v1.apiV1Mapping)
     implementation(projects.clients.keycloak)
+    implementation(projects.components.authorization.implementation)
+    implementation(projects.components.pluginManager.implementation)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.logaccess.logaccessSpi)
@@ -61,12 +75,12 @@ dependencies {
     implementation(projects.services.infrastructureService)
     implementation(projects.services.reportStorageService)
     implementation(projects.services.secretService)
+    implementation(projects.shared.ktorUtils)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.logging)
     implementation(projects.utils.system)
 
-    implementation(libs.aedile)
     implementation(libs.jsonSchemaSerialization)
     implementation(libs.koinKtor)
     implementation(libs.konform)

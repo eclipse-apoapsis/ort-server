@@ -31,23 +31,6 @@ import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 
 /**
- * Get the parameter from this [ApplicationCall].
- */
-fun ApplicationCall.requireParameter(name: String) = requireNotNull(parameters[name]) {
-    "Parameter '$name' cannot be null."
-}
-
-/**
- * Get the ID parameter from this [ApplicationCall]. Throw a [UrlPathFormatException] if the parameter is null or not a
- * valid ID.
- */
-fun ApplicationCall.requireIdParameter(name: String): Long {
-    val id = requireParameter(name).toLongOrNull()
-
-    return if (id != null && id > 0) id else throw UrlPathFormatException("Invalid entity ID: '${parameters[name]}'.")
-}
-
-/**
  * Return the numeric value of the parameter with the given [name]. Throw a [QueryParametersException] if a value
  * is provided which cannot be converted to a number.
  */

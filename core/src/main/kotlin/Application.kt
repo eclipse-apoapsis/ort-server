@@ -21,7 +21,10 @@ package org.eclipse.apoapsis.ortserver.core
 
 import io.ktor.server.application.Application
 
+import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
 import org.eclipse.apoapsis.ortserver.core.plugins.*
+
+import org.koin.ktor.ext.get
 
 import org.slf4j.MDC
 
@@ -31,7 +34,7 @@ fun Application.module() {
     MDC.put("component", "core")
 
     configureKoin()
-    configureAuthentication()
+    configureAuthentication(get(), get())
     configureLifecycle()
     configureStatusPages()
     configureRouting()

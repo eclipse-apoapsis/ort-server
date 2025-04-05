@@ -31,6 +31,7 @@ dependencies {
 
     api(libs.exposedCore)
 
+    implementation(projects.components.authorization.implementation)
     implementation(projects.dao)
 
     runtimeOnly(libs.logback)

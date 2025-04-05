@@ -45,6 +45,12 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.getFullName
+import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
+import org.eclipse.apoapsis.ortserver.components.authorization.getUsername
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
@@ -63,20 +69,12 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRunsForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
-import org.eclipse.apoapsis.ortserver.core.authorization.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.core.authorization.getFullName
-import org.eclipse.apoapsis.ortserver.core.authorization.getUserId
-import org.eclipse.apoapsis.ortserver.core.authorization.getUsername
-import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
-import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
-import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
-import org.eclipse.apoapsis.ortserver.model.authorization.ProductPermission
 import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.PackageService
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -85,6 +83,8 @@ import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.koin.ktor.ext.inject
 
