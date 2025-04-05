@@ -154,6 +154,7 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => <div>Actions</div>,
+    size: 70,
     cell: function Row({ row }) {
       const queryClient = useQueryClient();
 

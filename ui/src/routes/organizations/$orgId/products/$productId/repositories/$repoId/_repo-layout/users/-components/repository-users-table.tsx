@@ -98,6 +98,7 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => <div>Actions</div>,
+    size: 70,
     cell: function CellComponent({ row }) {
       const queryClient = useQueryClient();
       const params = routeApi.useParams();
@@ -246,8 +247,8 @@ const columns = [
           />
         </div>
       ) : (
-        <div className='flex justify-end'>
-          <DeleteIconButton disabled={true} />
+        <div>
+          <DeleteIconButton className='text-red-500' disabled={true} />
         </div>
       );
     },
