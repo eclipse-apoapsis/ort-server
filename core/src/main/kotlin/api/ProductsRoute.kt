@@ -397,15 +397,21 @@ fun Route.products() = route("products/{productId}") {
 
             val productId = call.requireIdParameter("productId")
             val createOrtRun = call.receive<CreateOrtRun>()
-
             val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
                 UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
             }
 
-            val repositoryIds = productService.getRepositoryIdsForProduct(productId)
+            val repositoryIds = if (createOrtRun.repositoryIds.isEmpty()) {
+                productService.getRepositoryIdsForProduct(productId)
+            } else {
+                val productRepoIds = productService.getRepositoryIdsForProduct(productId)
+                createOrtRun.repositoryIds.filter { it in productRepoIds }.takeIf { it.isNotEmpty() }
+                    ?:
+                    throw IllegalArgumentException("None of the provided repository IDs belong to product $productId")
+            }
 
             val createdRuns = repositoryIds.mapNotNull { repositoryId ->
-                orchestratorService.createOrtRun(
+                val run = orchestratorService.createOrtRun(
                     repositoryId,
                     createOrtRun.revision,
                     createOrtRun.path,
@@ -414,7 +420,8 @@ fun Route.products() = route("products/{productId}") {
                     createOrtRun.labels,
                     createOrtRun.environmentConfigPath,
                     userDisplayName
-                ).mapToApi(Jobs())
+                )
+                run.mapToApi(Jobs())
             }
 
             call.respond(HttpStatusCode.Created, createdRuns)
