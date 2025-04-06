@@ -1483,28 +1483,53 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     productId = productId
                 ).id
 
-                val createOrtRun = CreateOrtRun(
+                val createOrtRunAll = CreateOrtRun(
                     revision = "main",
                     path = "",
                     jobConfigs = JobConfigurations(),
                     jobConfigContext = null,
                     labels = emptyMap(),
-                    environmentConfigPath = null
+                    environmentConfigPath = null,
+                    repositoryIds = emptyList()
                 )
 
-                val response = superuserClient.post("/api/v1/products/$productId/runs") {
-                    setBody(createOrtRun)
+                val responseAll = superuserClient.post("/api/v1/products/$productId/runs") {
+                    setBody(createOrtRunAll)
                 }
 
-                response shouldHaveStatus HttpStatusCode.Created
+                responseAll shouldHaveStatus HttpStatusCode.Created
 
-                val createdRuns = response.body<List<OrtRun>>()
-                createdRuns shouldHaveSize 2
+                val createdRunsAll = responseAll.body<List<OrtRun>>()
+                createdRunsAll shouldHaveSize 2
 
-                val repositoryIds = createdRuns.map { run ->
+                val repositoryIdsAll = createdRunsAll.map { run ->
                     dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
                 }
-                repositoryIds shouldContainExactlyInAnyOrder listOf(repository1Id, repository2Id)
+                repositoryIdsAll shouldContainExactlyInAnyOrder listOf(repository1Id, repository2Id)
+
+                val createOrtRunSpecific = CreateOrtRun(
+                    revision = "main",
+                    path = "",
+                    jobConfigs = JobConfigurations(),
+                    jobConfigContext = null,
+                    labels = emptyMap(),
+                    environmentConfigPath = null,
+                    repositoryIds = listOf(repository1Id)
+                )
+
+                val responseSpecific = superuserClient.post("/api/v1/products/$productId/runs") {
+                    setBody(createOrtRunSpecific)
+                }
+
+                responseSpecific shouldHaveStatus HttpStatusCode.Created
+
+                val createdRunsSpecific = responseSpecific.body<List<OrtRun>>()
+                createdRunsSpecific shouldHaveSize 1
+
+                val repositoryIdsSpecific = createdRunsSpecific.map { run ->
+                    dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
+                }
+                repositoryIdsSpecific shouldContainExactlyInAnyOrder listOf(repository1Id)
             }
         }
 
@@ -1520,7 +1545,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     jobConfigs = JobConfigurations(),
                     jobConfigContext = null,
                     labels = emptyMap(),
-                    environmentConfigPath = null
+                    environmentConfigPath = null,
+                    repositoryIds = emptyList()
                 )
                 post("/api/v1/products/${createdProduct.id}/runs") {
                     setBody(createOrtRun)

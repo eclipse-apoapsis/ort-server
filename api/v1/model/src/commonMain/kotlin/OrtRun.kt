@@ -175,6 +175,11 @@ data class CreateOrtRun(
      * read from the default location `.ort.env.yml`.
      */
     val environmentConfigPath: String? = null,
+
+    /**
+     * The IDs of the repositories for this run.
+     */
+    val repositoryIds: List<Long> = emptyList()
 )
 
 @Serializable

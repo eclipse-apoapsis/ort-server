@@ -397,12 +397,22 @@ fun Route.products() = route("products/{productId}") {
 
             val productId = call.requireIdParameter("productId")
             val createOrtRun = call.receive<CreateOrtRun>()
-
             val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
                 UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
             }
 
-            val repositoryIds = productService.getRepositoryIdsForProduct(productId)
+            val repositoryIds = if (createOrtRun.repositoryIds.isEmpty()) {
+                productService.getRepositoryIdsForProduct(productId)
+            } else {
+                val productRepoIds = productService.getRepositoryIdsForProduct(productId)
+                require(createOrtRun.repositoryIds.all { it in productRepoIds }) {
+                    """
+                    The following repository IDs do not belong to product $productId: 
+                    ${createOrtRun.repositoryIds.filter { it !in productRepoIds }}
+                    """.trimIndent()
+                }
+                createOrtRun.repositoryIds
+            }
 
             val createdRuns = repositoryIds.mapNotNull { repositoryId ->
                 orchestratorService.createOrtRun(

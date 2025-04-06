@@ -592,7 +592,8 @@ private val minimalJobConfigurations = JobConfigurations(
 
 val postOrtRunsForProduct: RouteConfig.() -> Unit = {
     operationId = "postOrtRunsForProduct"
-    summary = "Create ORT runs for all repositories under a product"
+    summary = "Create ORT runs for repositories under a product"
+    description = "Create ORT runs for all repositories under a product or specific repositories"
     tags = listOf("Products")
 
     request {
@@ -601,20 +602,18 @@ val postOrtRunsForProduct: RouteConfig.() -> Unit = {
         }
 
         jsonBody<CreateOrtRun> {
-            example("Create ORT runs using minimal job configurations (defaults)") {
+            example("Create ORT runs for all repositories using minimal job configurations") {
                 value = CreateOrtRun(
                     revision = "main",
                     jobConfigs = minimalJobConfigurations
                 )
             }
 
-            example("Create ORT runs using full job configurations") {
+            example("Create ORT runs for specific repositories using minimal job configurations") {
                 value = CreateOrtRun(
                     revision = "main",
-                    jobConfigs = fullJobConfigurations,
-                    labels = mapOf("label key" to "label value"),
-                    path = "optional VCS sub-path",
-                    jobConfigContext = "optional context",
+                    jobConfigs = minimalJobConfigurations,
+                    repositoryIds = listOf(1, 2)
                 )
             }
         }
@@ -667,6 +666,10 @@ val postOrtRunsForProduct: RouteConfig.() -> Unit = {
                     )
                 }
             }
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "Invalid request, e.g., provided repository IDs do not belong to the product."
         }
     }
 }
