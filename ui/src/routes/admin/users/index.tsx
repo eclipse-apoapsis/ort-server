@@ -152,15 +152,12 @@ const Users = () => {
             <TooltipTrigger asChild>
               <Button asChild size='sm' className='ml-auto gap-1'>
                 <Link to='/admin/users/create-user'>
-                  Add user
+                  Create user
                   <UserPlus className='h-4 w-4' />
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              Add a new user to the server. Note that the username has to be
-              unique.
-            </TooltipContent>
+            <TooltipContent>Create a new user account.</TooltipContent>
           </Tooltip>
         </div>
       </CardHeader>
