@@ -67,7 +67,7 @@ export const LastRunDate = ({ repoId }: { repoId: number }) => {
   const run = runs.data[0];
 
   return (
-    <div>
+    <div className='flex flex-col items-start'>
       {run.finishedAt ? (
         <TimestampWithUTC timestamp={run.finishedAt} />
       ) : (
