@@ -23,16 +23,22 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useAdminServicePostApiV1AdminUsers } from '@/api/queries';
+import {
+  useAdminServicePostApiV1AdminUsers,
+  useOrganizationsServiceGetApiV1Organizations,
+  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+} from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
 import { PasswordInput } from '@/components/form/password-input';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -41,12 +47,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -56,42 +65,84 @@ const formSchema = z.object({
   email: asOptionalField(z.string().email()),
   password: asOptionalField(z.string().min(1)),
   temporary: z.boolean(),
+  organizations: z.array(z.string()).min(1, {
+    message: 'The user must be part of at least one organization.',
+  }),
 });
 
 const CreateUser = () => {
   const navigate = useNavigate();
 
-  const { mutateAsync, isPending } = useAdminServicePostApiV1AdminUsers({
-    onSuccess() {
-      toast.info('Add User', {
-        description: `User "${form.getValues().username}" added successfully to the server.`,
-      });
-      navigate({
-        to: '/admin/users',
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
+  const {
+    data: organizations,
+    isPending: orgIsPending,
+    isError: orgIsError,
+    error: orgError,
+  } = useOrganizationsServiceGetApiV1Organizations({
+    limit: ALL_ITEMS,
   });
+
+  const { mutateAsync: createUser, isPending: isCreateUserPending } =
+    useAdminServicePostApiV1AdminUsers({
+      onSuccess() {
+        toast.info('Create User', {
+          description: `User "${form.getValues().username}" created successfully.`,
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
+
+  const {
+    mutateAsync: addUserToReaders,
+    isPending: isAddUserToReadersPending,
+  } =
+    useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId(
+      {
+        onSuccess(_, variables) {
+          const organizationName = organizations?.data.find(
+            (org) => org.id === variables.organizationId
+          )?.name;
+
+          toast.info('Add Access Rights', {
+            description: `The "${variables.requestBody?.username}" user was created and added to the "${organizationName}" organization as part of the READERS group.`,
+          });
+          navigate({
+            to: '/admin/users',
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      }
+    );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: '',
       temporary: true,
+      organizations: [],
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await mutateAsync({
+    await createUser({
       requestBody: {
         username: values.username,
         firstName: values.firstName,
@@ -101,12 +152,46 @@ const CreateUser = () => {
         temporary: values.temporary,
       },
     });
+    // Add the user to the READERS group for each selected organization.
+    await Promise.all(
+      values.organizations.map((orgId) =>
+        addUserToReaders({
+          organizationId: Number.parseInt(orgId),
+          groupId: 'readers',
+          requestBody: {
+            username: values.username,
+          },
+        })
+      )
+    );
   }
+
+  if (orgIsPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (orgIsError) {
+    toast.error('Unable to load data', {
+      description: <ToastError error={orgError} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
+  }
+
+  const options: Option[] = organizations.data.map((o) => ({
+    label: o.name,
+    value: o.id.toString(),
+  }));
 
   return (
     <Card className='col-span-2 w-full'>
       <CardHeader>
-        <CardTitle className='text-sm'>Create User</CardTitle>
+        <CardTitle>Create User</CardTitle>
+        <CardDescription>Create a new user account.</CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -120,6 +205,9 @@ const CreateUser = () => {
                   <FormControl>
                     <Input {...field} autoFocus />
                   </FormControl>
+                  <FormDescription>
+                    The username needs to be globally unique.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -195,12 +283,60 @@ const CreateUser = () => {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name='organizations'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Organizations</FormLabel>
+                  <FormControl>
+                    <MultipleSelector
+                      {...field}
+                      placeholder='Start typing to find organizations...'
+                      badgeClassName='bg-amber-200 text-black'
+                      emptyIndicator={
+                        <p className='text-center text-lg leading-10 text-gray-600 dark:text-gray-400'>
+                          No results found.
+                        </p>
+                      }
+                      value={field.value.map(
+                        (v) =>
+                          options.find((o) => o.value === v) || {
+                            label: v,
+                            value: v,
+                          }
+                      )}
+                      defaultOptions={options}
+                      onChange={(selected) =>
+                        field.onChange(selected.map((s) => s.value))
+                      }
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    At least one organization needs to be chosen, to which the
+                    user is granted READERS access.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
           <CardFooter>
-            <Button type='submit' disabled={isPending}>
-              {isPending ? (
+            <Button
+              type='submit'
+              disabled={isCreateUserPending || isAddUserToReadersPending}
+              className='mt-4'
+            >
+              {isCreateUserPending ? (
                 <>
                   <span className='sr-only'>Creating user...</span>
+                  <Loader2 size={16} className='mx-3 animate-spin' />
+                </>
+              ) : isAddUserToReadersPending ? (
+                <>
+                  <span className='sr-only'>
+                    Adding user to organizations...
+                  </span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
                 </>
               ) : (
