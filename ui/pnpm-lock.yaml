@@ -80,6 +80,9 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.17.3
         version: 8.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      ae-cvss-calculator:
+        specifier: ^1.0.4
+        version: 1.0.4
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
@@ -1661,6 +1664,9 @@ packages:
     resolution: {integrity: sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg==}
     engines: {node: '>=0.4.0'}
     hasBin: true
+
+  ae-cvss-calculator@1.0.4:
+    resolution: {integrity: sha512-JkcDWw+LKcYCrzrdDYdmzN+HWvc1+YDvjcu6IBuovQsHadu3shCulYCAahkhgx1D3i0zciLF/6L7gYmdaZibyw==}
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
@@ -4793,6 +4799,8 @@ snapshots:
   acorn@8.12.1: {}
 
   acorn@8.14.1: {}
+
+  ae-cvss-calculator@1.0.4: {}
 
   ajv@6.12.6:
     dependencies:
