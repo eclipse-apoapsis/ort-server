@@ -18,7 +18,14 @@
  */
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
-import { Blocks, Eye, KeyRound, ListVideo, User } from 'lucide-react';
+import {
+  Blocks,
+  Eye,
+  KeyRound,
+  ListVideo,
+  PanelBottom,
+  User,
+} from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
@@ -66,6 +73,16 @@ const Layout = () => {
           title: 'Runs',
           to: '/admin/runs',
           icon: () => <ListVideo className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'Content Management',
+      items: [
+        {
+          title: 'Footer',
+          to: '/admin/content-management/footer',
+          icon: () => <PanelBottom className='h-4 w-4' />,
         },
       ],
     },
