@@ -71,6 +71,7 @@ dependencies {
     implementation(projects.model)
     implementation(projects.secrets.secretsSpi)
     implementation(projects.services.authorizationService)
+    implementation(projects.services.contentManagementService)
     implementation(projects.services.hierarchyService)
     implementation(projects.services.infrastructureService)
     implementation(projects.services.reportStorageService)
