@@ -36,7 +36,18 @@ val resolvedReporterJobConfig = context.ortRun.jobConfigs.reporter?.let {
 }
 
 // Disable the notifier job as the notifier-worker is currently not configured in Docker Compose.
-val resolvedJobConfigs = context.ortRun.jobConfigs.copy(reporter = resolvedReporterJobConfig, notifier = null)
+var resolvedJobConfigs = context.ortRun.jobConfigs.copy(reporter = resolvedReporterJobConfig, notifier = null)
+
+// Configure a version range for stored ScanCode results.
+context.ortRun.jobConfigs.scanner?.let { scannerJobConfig ->
+    val scanCodeConfig = (scannerJobConfig.config?.get("ScanCode") ?: PluginConfig(emptyMap(), emptyMap())).let {
+        it.copy(options = it.options + mapOf("minVersion" to "32.2.1", "maxVersion" to "33.0.0"))
+    }
+    val oldConfig = scannerJobConfig.config.orEmpty()
+    resolvedJobConfigs = resolvedJobConfigs.copy(
+        scanner = scannerJobConfig.copy(config = oldConfig + ("ScanCode" to scanCodeConfig))
+    )
+}
 
 validationResult = ConfigValidationResultSuccess(
     resolvedConfigurations = resolvedJobConfigs,
