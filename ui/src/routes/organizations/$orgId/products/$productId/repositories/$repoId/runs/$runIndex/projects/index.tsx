@@ -72,7 +72,7 @@ const renderSubComponent = ({ row }: { row: Row<Project> }) => {
       {project.authors.length > 0 && (
         <div className='flex gap-2'>
           <div className='font-semibold'>Authors:</div>
-          <div>{project.authors}</div>
+          <div>{project.authors.join(', ')}</div>
         </div>
       )}
       {project.description && (
