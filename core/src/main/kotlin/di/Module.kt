@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
+import org.eclipse.apoapsis.ortserver.services.ContentManagementService
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.IssueService
@@ -159,6 +160,7 @@ fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = 
     single { ProjectService(get()) }
     single { UserService(get()) }
     single { OrtRunService(get(), get(), get(), get()) }
+    single { ContentManagementService(get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)
 }
