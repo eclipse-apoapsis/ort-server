@@ -89,3 +89,12 @@ fun RoutingContext.requirePermission(requiredRole: String) {
 fun RoutingContext.requireSuperuser() {
     requirePermission(Superuser.ROLE_NAME)
 }
+
+/**
+ * Require that the [OrtPrincipal] of the current [call] is authenticated. Throw an [AuthorizationException] otherwise.
+ */
+fun RoutingContext.requireAuthenticated() {
+    if (call.principal<OrtPrincipal>() == null) {
+        throw AuthorizationException()
+    }
+}
