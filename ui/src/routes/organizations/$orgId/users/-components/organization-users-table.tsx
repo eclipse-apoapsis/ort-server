@@ -242,7 +242,7 @@ const columns = [
           <DeleteDialog
             thingName={'user'}
             thingId={row.original.user.username}
-            uiComponent={<DeleteIconButton className='text-red-500' />}
+            uiComponent={<DeleteIconButton />}
             onDelete={() => delUser({ username: row.original.user.username })}
           />
         </div>
