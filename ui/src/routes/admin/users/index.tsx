@@ -79,6 +79,7 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => <div className='text-right'>Actions</div>,
+    size: 70,
     cell: function CellComponent({ row }) {
       const queryClient = useQueryClient();
 
@@ -104,7 +105,7 @@ const columns = [
       });
 
       return (
-        <div className='flex justify-end'>
+        <div>
           <DeleteDialog
             thingName={'user'}
             thingId={row.original.username}
