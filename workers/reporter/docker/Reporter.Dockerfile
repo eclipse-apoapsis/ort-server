@@ -28,8 +28,9 @@ ARG SCANCODE_VERSION=32.3.3
 RUN apt-get update && apt-get install -y curl libgomp1 && rm -rf /var/lib/apt/lists/*
 
 # Use pip to install ScanCode
-RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
-    pip install --no-cache-dir -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
+RUN pip install --no-cache-dir -U pip && \
+    curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
+    pip install --no-cache-dir -U --constraint requirements.txt wheel scancode-toolkit==$SCANCODE_VERSION && \
     rm requirements.txt
 
 # Extract ScanCode license data to directory.
