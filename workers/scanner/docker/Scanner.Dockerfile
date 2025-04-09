@@ -63,7 +63,7 @@ ARG SCANCODE_VERSION=32.3.3
 
 # Use pip to install ScanCode
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
-    pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
+    pip install --no-cache-dir -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
     rm requirements.txt
 
 # Make sure the user executing the container has access rights in the home directory.

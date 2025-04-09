@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y curl libgomp1 && rm -rf /var/lib/apt/li
 
 # Use pip to install ScanCode
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
-    pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
+    pip install --no-cache-dir -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
     rm requirements.txt
 
 # Extract ScanCode license data to directory.
