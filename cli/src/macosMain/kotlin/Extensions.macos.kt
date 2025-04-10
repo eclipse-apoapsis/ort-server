@@ -22,5 +22,7 @@ package org.eclipse.apoapsis.ortserver.cli
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 
+import platform.posix.getenv
+
 @OptIn(ExperimentalForeignApi::class)
-actual fun getEnv(name: String) = platform.posix.getenv(name)?.toKString()
+actual fun getEnv(name: String) = getenv(name)?.toKString()

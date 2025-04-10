@@ -32,6 +32,8 @@ import org.eclipse.apoapsis.ortserver.cli.getEnv
 import platform.posix.S_IRUSR as USER_READ
 import platform.posix.S_IWUSR as USER_WRITE
 import platform.posix.chmod
+import platform.posix.getpwuid
+import platform.posix.getuid
 import platform.posix.mode_t
 
 @OptIn(ExperimentalForeignApi::class)
@@ -41,7 +43,7 @@ internal actual fun Path.setPermissionsToOwnerReadWrite() {
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun getHomeDirectory(): Path = requireNotNull(
-    getEnv("HOME")?.toPath() ?: platform.posix.getpwuid(platform.posix.getuid())?.pointed?.pw_dir?.toKString()?.toPath()
+    getEnv("HOME")?.toPath() ?: getpwuid(getuid())?.pointed?.pw_dir?.toKString()?.toPath()
 ) {
     "Could not determine the home directory."
 }
