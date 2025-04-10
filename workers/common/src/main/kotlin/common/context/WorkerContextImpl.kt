@@ -192,10 +192,7 @@ internal class WorkerContextImpl(
     override fun close() {
         tempDirectories.forEach { it.safeDeleteRecursively() }
 
-        // During the worker execution, ORT's authenticator was typically installed. Uninstall it first, which
-        // will restore OrtServerAuthenticator as default authenticator.
         OrtAuthenticator.uninstall()
-        OrtServerAuthenticator.uninstall()
     }
 
     /**

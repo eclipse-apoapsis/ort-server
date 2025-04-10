@@ -25,13 +25,24 @@ import java.net.URI
 import java.net.URL
 import java.util.concurrent.atomic.AtomicReference
 
+import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
+import org.ossreviewtoolkit.utils.ort.UserInfoAuthenticator
+
 import org.slf4j.LoggerFactory
 
+private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
+
 /**
- * Implementation of an [Authenticator] which uses the current set of infrastructure services to authenticate requests.
+ * Implementation of an [Authenticator] which is responsible for handling authentication within ORT Server.
  *
- * This implementation extends ORT's authenticator implementation which is unable to handle multiple credentials for
- * the same host.
+ * This implementation uses special authentication logic based on infrastructure services and their associated
+ * credentials. It also uses functionality from ORT's authentication mechanism, but makes sure that the different
+ * sources of authentication information are queried in the correct order:
+ * - If the URL contains credentials, these are used first.
+ * - If there was already an [Authenticator] installed when this instance was created, it is invoked next. This allows
+ *   to override the default authentication mechanism temporarily.
+ * - If the former steps did not yield a result, the class obtains the credentials from the best-matching
+ *   infrastructure service if any.
  *
  * When setting up a new [WorkerContext], this authenticator is installed as the default authenticator. It is
  * uninstalled when the context is closed. Since the set of infrastructure services can change during the execution
@@ -41,11 +52,9 @@ import org.slf4j.LoggerFactory
  */
 internal class OrtServerAuthenticator(
     /** The original authenticator that was active when this instance was installed. */
-    private val original: Authenticator? = null,
-) : Authenticator() {
+    original: Authenticator? = null
+) : OrtAuthenticator(original) {
     companion object {
-        private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
-
         /**
          * Install this authenticator as the global default if it is not already installed.
          */
@@ -57,24 +66,6 @@ internal class OrtServerAuthenticator(
                     setDefault(it)
                     logger.info("OrtServerAuthenticator was successfully installed.")
                 }
-        }
-
-        /**
-         * Uninstall the [OrtServerAuthenticator] if it is currently installed and restore the previous
-         * [Authenticator]. Return the new default [Authenticator], which may be *null*.
-         */
-        @Synchronized
-        fun uninstall(): Authenticator? {
-            val active = getDefault()
-            return if (active is OrtServerAuthenticator) {
-                active.original.also {
-                    setDefault(it)
-                    logger.info("OrtServerAuthenticator was successfully uninstalled.")
-                }
-            } else {
-                logger.info("OrtServerAuthenticator is not installed.")
-                active
-            }
         }
     }
 
@@ -91,21 +82,11 @@ internal class OrtServerAuthenticator(
      */
     private val refListener = AtomicReference<AuthenticationListener>()
 
-    override fun getPasswordAuthentication(): PasswordAuthentication? {
-        if (requestorType != RequestorType.SERVER) return null
-
-        logger.info("Request for password authentication for '${requestingURL ?: requestingHost}'.")
-
-        return refServices.get().getAuthenticatedService(requestingHost, requestingURL)?.let { service ->
-            logger.info("Using credentials from service '${service.name}'.")
-
-            refListener.get()?.also { listener ->
-                listener.onAuthentication(AuthenticationEvent(service.name))
-            }
-
-            PasswordAuthentication(service.username, service.password.toCharArray())
-        }
-    }
+    override val delegateAuthenticators: List<Authenticator> = listOfNotNull(
+        UserInfoAuthenticator(),
+        original,
+        ServicesAuthenticator(refServices, refListener)
+    )
 
     /**
      * Update the list of [services] for which authentication information is available. The authenticator is able to
@@ -157,6 +138,33 @@ private data class ServiceData(
         } ?: services
 
         return matchingServices.maxByOrNull { it.uri.length }
+    }
+}
+
+/**
+ * Implementation of an [Authenticator] which uses the current set of infrastructure services to authenticate requests.
+ */
+private class ServicesAuthenticator(
+    /** A reference to the set of services for which authentication information is available. */
+    private val refServices: AtomicReference<ServiceData>,
+
+    /** A reference to a listener to be notified on successful authentications. */
+    private val authenticationListener: AtomicReference<AuthenticationListener>
+) : Authenticator() {
+    override fun getPasswordAuthentication(): PasswordAuthentication? {
+        if (requestorType != RequestorType.SERVER) return null
+
+        logger.info("Request for password authentication for '${requestingURL ?: requestingHost}'.")
+
+        return refServices.get().getAuthenticatedService(requestingHost, requestingURL)?.let { service ->
+            logger.info("Using credentials from service '${service.name}'.")
+
+            authenticationListener.get()?.also { listener ->
+                listener.onAuthentication(AuthenticationEvent(service.name))
+            }
+
+            PasswordAuthentication(service.username, service.password.toCharArray())
+        }
     }
 }
 
