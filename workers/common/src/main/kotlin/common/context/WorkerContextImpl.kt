@@ -170,7 +170,10 @@ internal class WorkerContextImpl(
         return downloadConfigurationFiles(containedFiles, targetDirectory)
     }
 
-    override suspend fun setupAuthentication(services: Collection<InfrastructureService>) {
+    override suspend fun setupAuthentication(
+        services: Collection<InfrastructureService>,
+        listener: AuthenticationListener?
+    ) {
         val serviceSecrets = services.flatMapTo(mutableSetOf()) { service ->
             listOf(service.usernameSecret, service.passwordSecret)
         }
@@ -183,6 +186,7 @@ internal class WorkerContextImpl(
         }
 
         authenticator.updateAuthenticatedServices(authServices)
+        authenticator.updateAuthenticationListener(listener)
     }
 
     override fun close() {

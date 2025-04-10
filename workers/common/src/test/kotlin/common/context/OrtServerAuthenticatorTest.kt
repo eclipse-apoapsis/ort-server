@@ -25,7 +25,11 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.verify
 
 import java.net.Authenticator
 import java.net.URI
@@ -82,6 +86,17 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 pwd should beNull()
             }
 
+            "not invoke a registered authentication listener for a failed authentication" {
+                val listener = mockk<AuthenticationListener>()
+                OrtServerAuthenticator.install().updateAuthenticationListener(listener)
+
+                Authenticator.requestPasswordAuthentication("example.com", null, 443, "tcp", "hello", "https")
+
+                verify(exactly = 0) {
+                    listener.onAuthentication(any())
+                }
+            }
+
             "return an authentication for a matching host name" {
                 val authenticator = OrtServerAuthenticator.install()
                 authenticator.updateAuthenticatedServices(
@@ -120,6 +135,38 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
                 pwd.userName shouldBe USERNAME
                 pwd.password shouldBe PASSWORD.toCharArray()
+            }
+
+            "invoke a registered authentication listener for a successful authentication" {
+                val serviceName = "matchingService"
+                val url = "https://repo.example.com/org/repo"
+
+                val listener = mockk<AuthenticationListener> {
+                    every { onAuthentication(any()) } just runs
+                }
+
+                val authenticator = OrtServerAuthenticator.install()
+                authenticator.updateAuthenticationListener(listener)
+                authenticator.updateAuthenticatedServices(
+                    listOf(
+                        AuthenticatedService(serviceName, url, USERNAME, PASSWORD)
+                    )
+                )
+
+                Authenticator.requestPasswordAuthentication(
+                    "host.does.not.matter",
+                    null,
+                    443,
+                    "tcp",
+                    "hello",
+                    "https",
+                    URI.create(url).toURL(),
+                    Authenticator.RequestorType.SERVER
+                )
+
+                verify(exactly = 1) {
+                    listener.onAuthentication(AuthenticationEvent(serviceName))
+                }
             }
 
             "return null for a proxy authentication" {
