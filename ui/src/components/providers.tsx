@@ -18,6 +18,7 @@
  */
 
 import { QueryClientProvider } from '@tanstack/react-query';
+import { Log } from 'oidc-client-ts';
 import { ReactNode } from 'react';
 import { AuthProvider } from 'react-oidc-context';
 
@@ -32,7 +33,12 @@ OpenAPIConfig.BASE = config.API_URL;
 
 const oidcConfig = config.oidcConfig;
 
+const logLevel = config.oidcLogLevel;
+
 export const Providers = ({ children }: { children: ReactNode }) => {
+  Log.setLevel(logLevel);
+  Log.setLogger(console);
+
   return (
     <AuthProvider {...oidcConfig}>
       <QueryClientProvider client={queryClient}>
