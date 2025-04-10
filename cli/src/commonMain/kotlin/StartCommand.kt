@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
 import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.read
+import org.eclipse.apoapsis.ortserver.cli.utils.useJsonFormat
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
 internal val POLL_INTERVAL = getEnv("POLL_INTERVAL")?.toLongOrNull()?.seconds ?: 10.seconds
@@ -98,16 +99,15 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
 
         ContextStorage.saveLatestRunId(ortRun.id)
 
-        echoMessage(ortRun.toPrintable())
-
         if (wait) {
             while (ortRun.isRunning()) {
                 delay(POLL_INTERVAL)
                 ortRun = client.repositories.getOrtRun(repositoryId, ortRun.index)
+                if (!useJsonFormat) echoMessage(ortRun.toPrintable())
             }
-
-            echoMessage(ortRun.toPrintable())
         }
+
+        echoMessage(ortRun.toPrintable())
     }
 }
 
