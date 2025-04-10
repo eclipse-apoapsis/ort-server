@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { Log } from 'oidc-client-ts';
 import { AuthProviderProps } from 'react-oidc-context';
 
 import { env } from '@/ui-env';
@@ -25,6 +26,7 @@ interface Config {
   BASEPATH: string;
   API_URL: string;
   oidcConfig: AuthProviderProps;
+  oidcLogLevel: Log;
   serverClientId: string;
   authBaseUrl: string;
   realm: string;
@@ -58,6 +60,10 @@ const oidcConfig = {
   },
 } satisfies AuthProviderProps;
 
+const oidcLogLevel: Log = Log[
+  env.VITE_OIDC_LOG_LEVEL as keyof typeof Log
+] as Log;
+
 const serverClientId = CLIENT_ID_SERVER;
 
 // Configure Keycloak
@@ -71,6 +77,7 @@ export const config: Config = {
   BASEPATH,
   API_URL,
   oidcConfig,
+  oidcLogLevel,
   serverClientId,
   authBaseUrl,
   realm,

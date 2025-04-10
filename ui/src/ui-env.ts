@@ -31,6 +31,9 @@ export const env = createEnv({
     VITE_CLIENT_ID: z.string().default('ort-server-ui-dev'),
     VITE_CLIENT_ID_SERVER: z.string().default('ort-server'),
     VITE_RUN_POLL_INTERVAL: z.coerce.number().default(10000),
+    VITE_OIDC_LOG_LEVEL: z
+      .enum(['NONE', 'ERROR', 'WARN', 'INFO'])
+      .default('NONE'),
   },
   runtimeEnv: import.meta.env,
   emptyStringAsUndefined: true,
