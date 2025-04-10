@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.context
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -28,11 +29,17 @@ import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.runs
+import io.mockk.unmockkAll
 import io.mockk.verify
 
 import java.net.Authenticator
+import java.net.PasswordAuthentication
 import java.net.URI
+
+import org.ossreviewtoolkit.utils.common.Os
+import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
 
 class OrtServerAuthenticatorTest : WordSpec() {
     /** Stores the original authenticator, so that it can be restored after the test. */
@@ -45,6 +52,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
         afterEach {
             Authenticator.setDefault(originalAuthenticator)
+            unmockkAll()
         }
 
         "install()" should {
@@ -61,7 +69,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 Authenticator.setDefault(orgAuthenticator)
 
                 OrtServerAuthenticator.install()
-                OrtServerAuthenticator.uninstall() shouldBe orgAuthenticator
+                OrtAuthenticator.uninstall() shouldBe orgAuthenticator
 
                 Authenticator.getDefault() shouldBe orgAuthenticator
             }
@@ -70,7 +78,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 val orgAuthenticator = mockk<Authenticator>()
                 Authenticator.setDefault(orgAuthenticator)
 
-                OrtServerAuthenticator.uninstall() shouldBe orgAuthenticator
+                OrtAuthenticator.uninstall() shouldBe orgAuthenticator
 
                 Authenticator.getDefault() shouldBe orgAuthenticator
             }
@@ -217,6 +225,91 @@ class OrtServerAuthenticatorTest : WordSpec() {
                     "hello",
                     "https",
                     URI.create(url).toURL(),
+                    Authenticator.RequestorType.SERVER
+                )
+
+                pwd.userName shouldBe USERNAME
+                pwd.password shouldBe PASSWORD.toCharArray()
+            }
+
+            "use credentials specified in the URL" {
+                val url = "https://repo.example.com/org/repo"
+
+                val authenticator = OrtServerAuthenticator.install()
+                authenticator.updateAuthenticatedServices(
+                    listOf(
+                        AuthenticatedService("service", url, "other_$USERNAME", "other_$PASSWORD")
+                    )
+                )
+
+                val pwd = Authenticator.requestPasswordAuthentication(
+                    "host.does.not.matter",
+                    null,
+                    443,
+                    "tcp",
+                    "hello",
+                    "https",
+                    URI.create("https://$USERNAME:$PASSWORD@repo.example.com/org/repo").toURL(),
+                    Authenticator.RequestorType.SERVER
+                )
+
+                pwd.userName shouldBe USERNAME
+                pwd.password shouldBe PASSWORD.toCharArray()
+            }
+
+            "not use credentials from the .netrc file" {
+                val userHomeDir = tempdir()
+                mockkObject(Os)
+                every { Os.userHomeDirectory } returns userHomeDir
+
+                val uri = URI.create("https://repo.example.com/org/repo")
+
+                val netRcFile = userHomeDir.resolve(".netrc")
+                netRcFile.writeText("machine repo.example.com login other_$USERNAME password other_$PASSWORD")
+
+                OrtServerAuthenticator.install()
+
+                val pwd = Authenticator.requestPasswordAuthentication(
+                    "repo.example.com",
+                    null,
+                    443,
+                    "tcp",
+                    "hello",
+                    "https",
+                    uri.toURL(),
+                    Authenticator.RequestorType.SERVER
+                )
+
+                pwd should beNull()
+            }
+
+            "use credentials from the original authenticator before testing infrastructure services" {
+                val authUrl = URI.create("https://repo.example.com/org/repo").toURL()
+                val originalAuthenticator = object : Authenticator() {
+                    override fun getPasswordAuthentication(): PasswordAuthentication? =
+                        if (requestingURL.toString() == authUrl.toString()) {
+                            PasswordAuthentication(USERNAME, PASSWORD.toCharArray())
+                        } else {
+                            null
+                        }
+                }
+                Authenticator.setDefault(originalAuthenticator)
+
+                val authenticator = OrtServerAuthenticator.install()
+                authenticator.updateAuthenticatedServices(
+                    listOf(
+                        AuthenticatedService("service", authUrl.toString(), "other_$USERNAME", "other_$PASSWORD")
+                    )
+                )
+
+                val pwd = Authenticator.requestPasswordAuthentication(
+                    authUrl.host,
+                    null,
+                    443,
+                    "tcp",
+                    "hello",
+                    "https",
+                    authUrl,
                     Authenticator.RequestorType.SERVER
                 )
 
