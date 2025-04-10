@@ -19,11 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs
 
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+
 /**
  * A data class representing a package, and the shortest dependency path that the package is found in (relative to a
  * project found in a run).
  */
-data class PackageWithShortestDependencyPaths(
+data class PackageRunData(
     /** A package. */
     val pkg: Package,
 
@@ -31,5 +33,8 @@ data class PackageWithShortestDependencyPaths(
     val pkgId: Long,
 
     /** The shortest dependency path for the package. */
-    val shortestDependencyPaths: List<ShortestDependencyPath>
+    val shortestDependencyPaths: List<ShortestDependencyPath>,
+
+    /** The curations for the package. */
+    val curations: List<PackageCurationData> = emptyList()
 )

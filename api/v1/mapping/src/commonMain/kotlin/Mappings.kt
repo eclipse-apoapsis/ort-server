@@ -145,7 +145,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
+import org.eclipse.apoapsis.ortserver.model.runs.PackageRunData
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
@@ -857,7 +857,7 @@ fun ShortestDependencyPath.mapToApi() = ApiShortestDependencyPath(
     path = path.map { it.mapToApi() }
 )
 
-fun PackageWithShortestDependencyPaths.mapToApi() = ApiPackage(
+fun PackageRunData.mapToApi() = ApiPackage(
     pkg.identifier.mapToApi(),
     pkg.purl,
     pkg.cpe,
