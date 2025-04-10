@@ -29,27 +29,27 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RepositoryConfigurationsPackageCurationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RepositoryConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.utils.applyFilterNullable
-import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
-import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQueryCustomOrders
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
+import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
-import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
+import org.eclipse.apoapsis.ortserver.model.runs.PackageRunData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
-import org.jetbrains.exposed.sql.Case
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.concat
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.stringLiteral
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.andWhere
 
 /**
  * A service to interact with packages.
@@ -59,81 +59,204 @@ class PackageService(private val db: Database) {
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: PackageFilters = PackageFilters()
-    ): ListQueryResult<PackageWithShortestDependencyPaths> = db.dbQuery {
-        val orders = mutableListOf<Pair<Expression<*>, SortOrder>>()
+    ): ListQueryResult<PackageRunData> = db.dbQuery {
+        val packages = PackagesTable.joinAnalyzerTables()
+            .innerJoin(IdentifiersTable)
+            .innerJoin(ProcessedDeclaredLicensesTable)
+            .select(PackagesTable.columns)
+            .where { AnalyzerJobsTable.ortRunId eq ortRunId }
 
-        parameters.sortFields.forEach {
-            val sortOrder = it.direction.toSortOrder()
-            when (it.name) {
-                "identifier" -> {
-                    orders += IdentifiersTable.type to sortOrder
-                    orders += IdentifiersTable.namespace to sortOrder
-                    orders += IdentifiersTable.name to sortOrder
-                    orders += IdentifiersTable.version to sortOrder
-                }
-                "purl" -> orders += PackagesTable.purl to sortOrder
-                "processedDeclaredLicense" -> orders += ProcessedDeclaredLicensesTable.spdxExpression to sortOrder
-                else -> throw QueryParametersException("Unsupported field for sorting: '${it.name}'.")
-            }
-        }
+        val curations = RepositoryConfigurationsTable
+            .innerJoin(RepositoryConfigurationsPackageCurationsTable)
+            .innerJoin(PackageCurationsTable)
+            .innerJoin(PackageCurationDataTable)
+            .innerJoin(IdentifiersTable)
+            .innerJoin(PackagesTable)
+            .select(listOf(PackagesTable.id, PackageCurationsTable.id) + PackageCurationDataTable.columns)
+            .where(RepositoryConfigurationsTable.ortRunId eq ortRunId)
+            .andWhere { PackagesTable.id inList (packages.map { it[PackagesTable.id].value }) }
+            .distinct()
+            .groupBy { it[PackagesTable.id].value }
+            .mapValues { rows -> rows.value.map { PackageCurationDataDao.wrapRow(it).mapToModel() } }
 
-        var condition: Op<Boolean> = Op.TRUE
+        val shortestPaths = ShortestDependencyPathsTable
+            .innerJoin(PackagesTable)
+            .innerJoin(AnalyzerRunsTable)
+            .innerJoin(AnalyzerJobsTable)
+            .select(ShortestDependencyPathsTable.columns.plus(PackagesTable.id))
+            .where(AnalyzerJobsTable.ortRunId eq ortRunId)
+            .andWhere { PackagesTable.id inList (packages.map { it[PackagesTable.id].value }) }
+            .groupBy { it[PackagesTable.id].value }
+            .mapValues { rows -> rows.value.map { ShortestDependencyPathDao.wrapRow(it).mapToModel() } }
+
+        val packageResults = packages.map { pkg ->
+            val pkgId = pkg[PackagesTable.id].value
+            PackageRunData(
+                pkgId = pkgId,
+                pkg = applyCuration(
+                    pkg = PackageDao.wrapRow(pkg).mapToModel(),
+                    curationData = curations.getOrDefault(pkgId, emptyList()).firstOrNull() ?: PackageCurationData()
+                ),
+                shortestDependencyPaths = shortestPaths.getOrDefault(pkgId, emptyList())
+            )
+        }.filter(filters).sort(parameters.sortFields)
+
+        ListQueryResult(
+            limitPackageResults(parameters.limit, parameters.offset, packageResults),
+            parameters,
+            packageResults.size.toLong()
+        )
+    }
+
+    private fun applyCuration(pkg: Package, curationData: PackageCurationData): Package {
+        return Package(
+            purl = curationData.purl ?: pkg.purl,
+            cpe = curationData.cpe ?: pkg.cpe,
+            authors = curationData.authors ?: pkg.authors,
+            declaredLicenses = pkg.declaredLicenses,
+            description = curationData.description ?: pkg.description,
+            homepageUrl = curationData.homepageUrl ?: pkg.homepageUrl,
+            binaryArtifact = curationData.binaryArtifact ?: pkg.binaryArtifact,
+            sourceArtifact = curationData.sourceArtifact ?: pkg.sourceArtifact,
+            vcs = pkg.vcs,
+            vcsProcessed = pkg.vcsProcessed,
+            isMetadataOnly = curationData.isMetadataOnly ?: pkg.isMetadataOnly,
+            isModified = curationData.isModified ?: pkg.isModified,
+            identifier = pkg.identifier,
+            processedDeclaredLicense = pkg.processedDeclaredLicense
+        )
+    }
+
+    private fun List<PackageRunData>.filter(filters: PackageFilters): List<PackageRunData> {
+        var filtered = this
 
         filters.purl?.let {
-            condition = condition and PackagesTable.purl.applyILike(it.value)
+            filtered = filtered.filter{ pkg ->
+                pkg.pkg.purl.contains(filters.purl?.value?.trim().toString(), ignoreCase = true)
+            }
         }
 
         filters.identifier?.let {
-            val namespaceWithSlash = Case()
-                .When(
-                    IdentifiersTable.namespace neq stringLiteral(""),
-                    concat(IdentifiersTable.namespace, stringLiteral("/"))
-                )
-                .Else(stringLiteral(""))
-
-            val concatenatedIdentifier = concat(
-                IdentifiersTable.type,
-                stringLiteral(":"),
-                namespaceWithSlash,
-                IdentifiersTable.name,
-                stringLiteral("@"),
-                IdentifiersTable.version
-            )
-
-            condition = condition and concatenatedIdentifier.applyILike(it.value)
+            filtered = filtered.filter { pkg ->
+                pkg.pkg.identifier
+                    .concatenate()
+                    .contains(filters.identifier?.value?.trim().toString(), ignoreCase = true)
+            }
         }
 
         filters.processedDeclaredLicense?.let {
-            condition = condition and ProcessedDeclaredLicensesTable.spdxExpression.applyFilterNullable(
-                it.operator,
-                it.value
-            )
+            filtered = filtered.filter { pkg ->
+                filters.processedDeclaredLicense?.value?.joinToString(prefix = "(?i)", separator = "|")?.toRegex()
+                    ?.let { regex ->
+                        pkg.pkg.processedDeclaredLicense.spdxExpression?.contains(regex)?.or(false)
+                    } == true
+            }
         }
+        return filtered
+    }
 
-        val listQueryResult =
-            listCustomQueryCustomOrders(parameters, orders, ResultRow::toPackageWithShortestDependencyPaths) {
-                PackagesTable.joinAnalyzerTables()
-                    .innerJoin(IdentifiersTable)
-                    .innerJoin(ProcessedDeclaredLicensesTable)
-                    .select(PackagesTable.columns)
-                    .where { (AnalyzerJobsTable.ortRunId eq ortRunId) and condition }
+    private fun List<PackageRunData>.sort(sortFields: List<OrderField>): List<PackageRunData> {
+        val comparators = mutableListOf<Comparator<PackageRunData>>()
+        sortFields.forEach { sortParam ->
+            when (sortParam.name) {
+                "purl" -> comparators.add(getPurlComparator(sortParam.direction))
+                "identifier" -> comparators.addAll(getIdentifierComparators(sortParam.direction))
+                "processedDeclaredLicense" -> comparators.add(
+                    getProcessedDeclaredLicenseComparator(sortParam.direction)
+                )
+                else -> throw QueryParametersException("Unsupported field for sorting: '${sortParam.name}'.")
+            }
+        }
+        return this.sortedWith(getMultistageComparator(comparators))
+    }
+
+    private fun limitPackageResults(
+        limit: Int?,
+        offset: Long?,
+        packageResults: List<PackageRunData>
+    ): List<PackageRunData> {
+        val listOffset = (offset ?: 0).toInt()
+        val listLimit = (limit ?: packageResults.size).toInt() + listOffset
+        return packageResults.subList(listOffset, listLimit)
+    }
+
+    private fun Identifier.concatenate(): String =
+        "${type}:${if (namespace.isEmpty()) "" else "$namespace/"}" +
+            "${name}@${version}"
+
+    private fun getNullComparator(): Comparator<PackageRunData> {
+        return Comparator { a, b -> 0 }
+    }
+
+    private fun getPurlComparator(dir: OrderDirection): Comparator<PackageRunData> {
+        return Comparator { a, b ->
+            when (dir) {
+                OrderDirection.ASCENDING -> a.pkg.purl.compareTo(b.pkg.purl, ignoreCase = true)
+                OrderDirection.DESCENDING -> b.pkg.purl.compareTo(a.pkg.purl, ignoreCase = true)
+            }
+        }
+    }
+
+    private fun getIdentifierComparators(dir: OrderDirection): List<Comparator<PackageRunData>> {
+        when (dir) {
+            OrderDirection.ASCENDING -> {
+                return listOf(
+                    Comparator { a, b ->
+                        a.pkg.identifier.type.compareTo(b.pkg.identifier.type, ignoreCase = true)
+                    },
+                    Comparator { a, b ->
+                        a.pkg.identifier.namespace.compareTo(b.pkg.identifier.namespace, ignoreCase = true)
+                    },
+                    Comparator { a, b ->
+                        a.pkg.identifier.name.compareTo(b.pkg.identifier.name, ignoreCase = true)
+                    },
+                    Comparator { a, b ->
+                        a.pkg.identifier.version.compareTo(b.pkg.identifier.version, ignoreCase = true)
+                    }
+                )
             }
 
-        val data = listQueryResult.data.map { pkg ->
-            val shortestPaths = ShortestDependencyPathsTable
-                .innerJoin(PackagesTable)
-                .innerJoin(AnalyzerRunsTable)
-                .innerJoin(AnalyzerJobsTable)
-                .select(ShortestDependencyPathsTable.columns)
-                .where { (AnalyzerJobsTable.ortRunId eq ortRunId) and (PackagesTable.id eq pkg.pkgId) }
-                .map { ShortestDependencyPathDao.wrapRow(it).mapToModel() }
-
-            pkg.copy(
-                shortestDependencyPaths = shortestPaths
-            )
+            OrderDirection.DESCENDING -> {
+                return listOf(
+                    Comparator { a, b ->
+                        b.pkg.identifier.type.compareTo(a.pkg.identifier.type, ignoreCase = true)
+                    },
+                    Comparator { a, b ->
+                       b.pkg.identifier.namespace.compareTo(a.pkg.identifier.namespace, ignoreCase = true)
+                    },
+                    Comparator { a, b ->
+                        b.pkg.identifier.name.compareTo(a.pkg.identifier.name, ignoreCase = true)
+                    },
+                    Comparator { a, b ->
+                        b.pkg.identifier.version.compareTo(a.pkg.identifier.version, ignoreCase = true)
+                    }
+                )
+            }
         }
+    }
 
-        ListQueryResult(data, parameters, listQueryResult.totalCount)
+    private fun getProcessedDeclaredLicenseComparator(dir: OrderDirection): Comparator<PackageRunData> {
+        return Comparator { a, b ->
+            when (dir) {
+                OrderDirection.ASCENDING -> a.pkg.processedDeclaredLicense.spdxExpression.toString()
+                    .compareTo(b.pkg.processedDeclaredLicense.spdxExpression.toString(), ignoreCase = true)
+                OrderDirection.DESCENDING -> b.pkg.processedDeclaredLicense.spdxExpression.toString()
+                    .compareTo(a.pkg.processedDeclaredLicense.spdxExpression.toString(), ignoreCase = true)
+            }
+        }
+    }
+
+    private fun getMultistageComparator(comparators: List<Comparator<PackageRunData>>): Comparator<PackageRunData> {
+        if (comparators.isEmpty()) {
+            return getNullComparator()
+        } else {
+            val multiStageComparator = comparators[0]
+            for (comparator in comparators.drop(1)) {
+                multiStageComparator.then(comparator)
+            }
+
+            return multiStageComparator
+        }
     }
 
     /** Count packages found in provided ORT runs. */
@@ -174,14 +297,6 @@ class PackageService(private val db: Database) {
                 .mapNotNull { it[ProcessedDeclaredLicensesTable.spdxExpression] }
         }
 }
-
-private fun ResultRow.toPackageWithShortestDependencyPaths(): PackageWithShortestDependencyPaths =
-    PackageWithShortestDependencyPaths(
-        pkg = PackageDao.wrapRow(this).mapToModel(),
-        pkgId = get(PackagesTable.id).value,
-        // Temporarily set the shortestDependencyPaths into an empty list, as they will be added in a subsequent step.
-        shortestDependencyPaths = emptyList()
-    )
 
 private fun PackagesTable.joinAnalyzerTables() =
     innerJoin(PackagesAnalyzerRunsTable)
