@@ -69,6 +69,7 @@ kotlin {
                 implementation(libs.ktorClientAuth)
                 implementation(libs.ktorClientCore)
                 implementation(libs.ktorUtils)
+                implementation(libs.mordantCoroutines)
                 implementation(libs.okio)
             }
         }
