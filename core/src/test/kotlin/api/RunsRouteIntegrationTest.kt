@@ -91,6 +91,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RepositoryConfigurationsPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileCriteria
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactoryForTesting
@@ -126,6 +127,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -993,6 +1001,115 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val identifier1 = Identifier("Maven", "com.example", "example", "1.0")
                 val identifier2 = Identifier("Maven", "com.example", "example2", "1.0")
 
+                dbExtension.fixtures.repositoryConfigurationRepository.create(
+                    ortRunId = ortRun.id,
+                    curations = Curations(
+                        packages = listOf(
+                            PackageCuration(
+                                id = identifier1,
+                                data = PackageCurationData(
+                                    comment = "comment",
+                                    description = "description",
+                                    concludedLicense = "license"
+                                )
+                            )
+                        )
+                    ),
+                    analyzerConfig = RepositoryAnalyzerConfiguration(),
+                    excludes = Excludes(),
+                    resolutions = Resolutions(),
+                    packageConfigurations = listOf(),
+                    licenseChoices = LicenseChoices(),
+                    provenanceSnippetChoices = listOf()
+                )
+
+                val package1 = Package(
+                    identifier1,
+                    purl = "pkg:maven/com.example/example@1.0",
+                    cpe = null,
+                    authors = setOf("Author One", "Author Two"),
+                    declaredLicenses = setOf("License1", "License2", "License3"),
+                    ProcessedDeclaredLicense(
+                        spdxExpression = "Expression",
+                        mappedLicenses = mapOf(
+                            "License 1" to "Mapped License 1",
+                            "License 2" to "Mapped License 2",
+                        ),
+                        unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
+                    ),
+                    description = "An example package",
+                    homepageUrl = "https://example.com",
+                    binaryArtifact = RemoteArtifact(
+                        "https://example.com/example-1.0.jar",
+                        "sha1:value",
+                        "SHA-1"
+                    ),
+                    sourceArtifact = RemoteArtifact(
+                        "https://example.com/example-1.0-sources.jar",
+                        "sha1:value",
+                        "SHA-1"
+                    ),
+                    vcs = VcsInfo(
+                        RepositoryType("GIT"),
+                        "https://example.com/git",
+                        "revision",
+                        "path"
+                    ),
+                    vcsProcessed = VcsInfo(
+                        RepositoryType("GIT"),
+                        "https://example.com/git",
+                        "revision",
+                        "path"
+                    ),
+                    isMetadataOnly = false,
+                    isModified = false
+                )
+
+                val package2 = Package(
+                    identifier2,
+                    purl = "pkg:maven/com.example/example2@1.0",
+                    cpe = null,
+                    authors = emptySet(),
+                    declaredLicenses = emptySet(),
+                    ProcessedDeclaredLicense(
+                        spdxExpression = "Expression",
+                        mappedLicenses = emptyMap(),
+                        unmappedLicenses = emptySet()
+                    ),
+                    description = "Another example package",
+                    homepageUrl = "https://example.com",
+                    binaryArtifact = RemoteArtifact(
+                        "https://example.com/example2-1.0.jar",
+                        "sha1:value",
+                        "SHA-1"
+                    ),
+                    sourceArtifact = RemoteArtifact(
+                        "https://example.com/example2-1.0-sources.jar",
+                        "sha1:value",
+                        "SHA-1"
+                    ),
+                    vcs = VcsInfo(
+                        RepositoryType("GIT"),
+                        "https://example.com/git",
+                        "revision",
+                        "path"
+                    ),
+                    vcsProcessed = VcsInfo(
+                        RepositoryType("GIT"),
+                        "https://example.com/git",
+                        "revision",
+                        "path"
+                    ),
+                    isMetadataOnly = false,
+                    isModified = false
+                )
+
+                dbExtension.fixtures.createPackageCurationData(
+                    dbExtension.fixtures.getPackageCurationData(package1, "cmt1", "dsc1", "lic1")
+                )
+
+                RepositoryConfigurationsPackageCurationsTable
+
                 dbExtension.fixtures.analyzerRunRepository.create(
                     analyzerJobId = analyzerJob.id,
                     startTime = Clock.System.now().toDatabasePrecision(),
@@ -1014,87 +1131,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         skipExcluded = true
                     ),
                     projects = setOf(project),
-                    packages = setOf(
-                        Package(
-                            identifier1,
-                            purl = "pkg:maven/com.example/example@1.0",
-                            cpe = null,
-                            authors = setOf("Author One", "Author Two"),
-                            declaredLicenses = setOf("License1", "License2", "License3"),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = "Expression",
-                                mappedLicenses = mapOf(
-                                    "License 1" to "Mapped License 1",
-                                    "License 2" to "Mapped License 2",
-                                ),
-                                unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
-                            ),
-                            description = "An example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        ),
-                        Package(
-                            identifier2,
-                            purl = "pkg:maven/com.example/example2@1.0",
-                            cpe = null,
-                            authors = emptySet(),
-                            declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
-                                spdxExpression = "Expression",
-                                mappedLicenses = emptyMap(),
-                                unmappedLicenses = emptySet()
-                            ),
-                            description = "Another example package",
-                            homepageUrl = "https://example.com",
-                            binaryArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            sourceArtifact = RemoteArtifact(
-                                "https://example.com/example2-1.0-sources.jar",
-                                "sha1:value",
-                                "SHA-1"
-                            ),
-                            vcs = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            vcsProcessed = VcsInfo(
-                                RepositoryType("GIT"),
-                                "https://example.com/git",
-                                "revision",
-                                "path"
-                            ),
-                            isMetadataOnly = false,
-                            isModified = false
-                        )
-                    ),
+                    packages = setOf(package1, package2),
                     issues = emptyList(),
                     dependencyGraphs = emptyMap(),
                     shortestDependencyPaths = mapOf(
@@ -1135,14 +1172,21 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             it.scope shouldBe "compileClassPath"
                             it.path shouldBe emptyList()
                         }
+
+                        curations shouldHaveSize(1)
                     }
 
-                    last().shortestDependencyPaths.shouldBeSingleton {
-                        it.projectIdentifier shouldBe project.identifier.mapToApi()
-                        it.scope shouldBe "compileClassPath"
-                        it.path shouldBe listOf(identifier1.mapToApi())
+                    with(last()) {
+                        identifier.name shouldBe "example2"
+
+                        shortestDependencyPaths.shouldBeSingleton {
+                            it.projectIdentifier shouldBe project.identifier.mapToApi()
+                            it.scope shouldBe "compileClassPath"
+                            it.path shouldBe listOf(identifier1.mapToApi())
+                        }
+
+                        curations shouldHaveSize(0)
                     }
-                    last().identifier.name shouldBe "example2"
                 }
             }
         }
