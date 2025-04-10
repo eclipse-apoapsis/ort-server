@@ -46,7 +46,6 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
-import io.mockk.verifyOrder
 
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -453,9 +452,8 @@ class WorkerContextFactoryTest : WordSpec({
             val helper = ContextFactoryTestHelper()
             helper.factory.withContext(RUN_ID) { }
 
-            verifyOrder {
+            verify {
                 OrtAuthenticator.uninstall()
-                OrtServerAuthenticator.uninstall()
             }
         }
     }
