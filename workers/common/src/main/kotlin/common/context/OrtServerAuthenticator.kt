@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory
  */
 internal class OrtServerAuthenticator(
     /** The original authenticator that was active when this instance was installed. */
-    private val original: Authenticator? = null
+    private val original: Authenticator? = null,
 ) : Authenticator() {
     companion object {
         private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
@@ -85,6 +85,12 @@ internal class OrtServerAuthenticator(
      */
     private val refServices = AtomicReference<ServiceData>(ServiceData(emptyMap()))
 
+    /**
+     * A reference to the listener to be notified about successful authentications. This listener can be set
+     * dynamically when setting up the environment for a worker.
+     */
+    private val refListener = AtomicReference<AuthenticationListener>()
+
     override fun getPasswordAuthentication(): PasswordAuthentication? {
         if (requestorType != RequestorType.SERVER) return null
 
@@ -92,6 +98,11 @@ internal class OrtServerAuthenticator(
 
         return refServices.get().getAuthenticatedService(requestingHost, requestingURL)?.let { service ->
             logger.info("Using credentials from service '${service.name}'.")
+
+            refListener.get()?.also { listener ->
+                listener.onAuthentication(AuthenticationEvent(service.name))
+            }
+
             PasswordAuthentication(service.username, service.password.toCharArray())
         }
     }
@@ -113,6 +124,15 @@ internal class OrtServerAuthenticator(
             .mapValues { e -> e.value.map { it.second.withTrailingSlash() } }
 
         refServices.set(ServiceData(validatedServices))
+    }
+
+    /**
+     * Set the [listener] to be notified on successful authentications. Note that for the use cases of this class,
+     * only a single listener is needed; therefore, there is no `add` method.
+     */
+    fun updateAuthenticationListener(listener: AuthenticationListener?) {
+        logger.info("Updating the authentication listener.")
+        refListener.set(listener)
     }
 }
 
