@@ -19,4 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.cli
 
-actual fun getEnv(name: String): String? = System.getenv(name)
+import org.ossreviewtoolkit.utils.common.Os
+
+actual fun getEnv(name: String): String? = Os.env[name]
