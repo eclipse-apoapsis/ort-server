@@ -46,7 +46,7 @@ import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.read
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
-internal val POLL_INTERVAL = getEnv("POLL_INTERVAL")?.toLongOrNull()?.seconds ?: 60.seconds
+internal val POLL_INTERVAL = getEnv("POLL_INTERVAL")?.toLongOrNull()?.seconds ?: 10.seconds
 
 class StartCommand : SuspendingCliktCommand(name = "start") {
     private val repositoryId by option(
