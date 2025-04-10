@@ -77,6 +77,7 @@ import org.jetbrains.exposed.sql.Database
  * A helper class to manage test fixtures. It provides default instances as well as helper functions to create custom
  * instances.
  */
+@Suppress("TooManyFunctions")
 class Fixtures(private val db: Database) {
     val advisorJobRepository = DaoAdvisorJobRepository(db)
     val advisorRunRepository = DaoAdvisorRunRepository(db)
