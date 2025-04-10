@@ -464,6 +464,7 @@ class WorkerContextFactoryTest : WordSpec({
         "pass services with resolved secrets to the ORT Server authenticator" {
             val authenticator = mockk<OrtServerAuthenticator> {
                 every { updateAuthenticatedServices(any()) } just runs
+                every { updateAuthenticationListener(any()) } just runs
             }
             every { OrtServerAuthenticator.install() } returns authenticator
 
@@ -503,12 +504,14 @@ class WorkerContextFactoryTest : WordSpec({
                 organization = null,
                 product = null
             )
+            val listener = mockk<AuthenticationListener>()
 
-            context.setupAuthentication(listOf(service1, service2))
+            context.setupAuthentication(listOf(service1, service2), listener)
 
             val slotAuthServices = slot<Collection<AuthenticatedService>>()
             verify {
                 authenticator.updateAuthenticatedServices(capture(slotAuthServices))
+                authenticator.updateAuthenticationListener(listener)
             }
 
             val expectedAuthServices = listOf(
