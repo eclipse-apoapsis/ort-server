@@ -38,6 +38,7 @@ import {
   VulnerabilityRating,
   VulnerabilityWithIdentifier,
 } from '@/api/requests';
+import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -86,6 +87,7 @@ const renderSubComponent = ({
 
   return (
     <div className='flex flex-col gap-4'>
+      <VulnerabilityMetrics vulnerability={vulnerability} />
       <div className='text-lg font-semibold'>Description</div>
       <MarkdownRenderer
         markdown={vulnerability.description || 'No description.'}
