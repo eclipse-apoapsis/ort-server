@@ -108,7 +108,10 @@ interface WorkerContext : AutoCloseable {
 
     /**
      * Install the given list of [services] in ORT Server's authenticator, so that their credentials can be used to
-     * access the corresponding URLs.
+     * access the corresponding URLs. Optionally, install the given [listener] for authentication events.
      */
-    suspend fun setupAuthentication(services: Collection<InfrastructureService>)
+    suspend fun setupAuthentication(
+        services: Collection<InfrastructureService>,
+        listener: AuthenticationListener? = null
+    )
 }

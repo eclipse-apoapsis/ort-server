@@ -46,7 +46,6 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
-import io.mockk.verifyOrder
 
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -453,9 +452,8 @@ class WorkerContextFactoryTest : WordSpec({
             val helper = ContextFactoryTestHelper()
             helper.factory.withContext(RUN_ID) { }
 
-            verifyOrder {
+            verify {
                 OrtAuthenticator.uninstall()
-                OrtServerAuthenticator.uninstall()
             }
         }
     }
@@ -464,6 +462,7 @@ class WorkerContextFactoryTest : WordSpec({
         "pass services with resolved secrets to the ORT Server authenticator" {
             val authenticator = mockk<OrtServerAuthenticator> {
                 every { updateAuthenticatedServices(any()) } just runs
+                every { updateAuthenticationListener(any()) } just runs
             }
             every { OrtServerAuthenticator.install() } returns authenticator
 
@@ -503,12 +502,14 @@ class WorkerContextFactoryTest : WordSpec({
                 organization = null,
                 product = null
             )
+            val listener = mockk<AuthenticationListener>()
 
-            context.setupAuthentication(listOf(service1, service2))
+            context.setupAuthentication(listOf(service1, service2), listener)
 
             val slotAuthServices = slot<Collection<AuthenticatedService>>()
             verify {
                 authenticator.updateAuthenticatedServices(capture(slotAuthServices))
+                authenticator.updateAuthenticationListener(listener)
             }
 
             val expectedAuthServices = listOf(
