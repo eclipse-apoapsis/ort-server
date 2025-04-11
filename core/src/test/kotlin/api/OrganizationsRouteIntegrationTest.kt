@@ -233,6 +233,27 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "return an empty result if the user has no OrganizationPermission.READ" {
+            integrationTestApplication {
+                createOrganization(name = "org1")
+                createOrganization(name = "org2")
+                createOrganization(name = "org3")
+
+                val response = testUserClient.get("/api/v1/organizations")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse<Organization>(
+                    emptyList(),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 0,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
+                    )
+                )
+            }
+        }
+
         "support query parameters" {
             integrationTestApplication {
                 createOrganization(name = "name1", description = "description1")
