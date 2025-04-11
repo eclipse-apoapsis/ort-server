@@ -30,6 +30,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
@@ -135,9 +136,9 @@ class EnvironmentServiceTest : WordSpec({
     "setUpEnvironment from a file" should {
         "invoke all generators to produce the supported configuration files" {
             val definitions = listOf(
-                EnvironmentServiceDefinition(mockk()),
-                EnvironmentServiceDefinition(mockk()),
-                EnvironmentServiceDefinition(mockk())
+                EnvironmentServiceDefinition(createInfrastructureService()),
+                EnvironmentServiceDefinition(createInfrastructureService("https://svc.example.com/service")),
+                EnvironmentServiceDefinition(createInfrastructureService("https://svc.example.com/service2"))
             )
             val context = mockContext()
             val generator1 = mockGenerator()
@@ -162,7 +163,10 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "associate all infrastructure services from the config file with the current ORT run" {
-            val services = listOf<InfrastructureService>(mockk(), mockk())
+            val services = listOf(
+                createInfrastructureService(),
+                createInfrastructureService("https://service.example.com/service"),
+            )
             val context = mockContext()
 
             val config = ResolvedEnvironmentConfig(services, emptyList())
@@ -180,7 +184,10 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "setup the authenticator with the services from the config file" {
-            val services = listOf<InfrastructureService>(mockk(), mockk())
+            val services = listOf(
+                createInfrastructureService(),
+                createInfrastructureService("https://service.example.com/service"),
+            )
             val context = mockContext()
 
             val config = ResolvedEnvironmentConfig(services, emptyList())
@@ -192,7 +199,7 @@ class EnvironmentServiceTest : WordSpec({
             val environmentService = EnvironmentService(serviceRepository, emptyList(), configLoader)
             environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
-            coVerify { context.setupAuthentication(services) }
+            coVerify { context.setupAuthentication(services, any()) }
         }
 
         "load the environment configuration from the ORT run if any is provided" {
@@ -205,7 +212,7 @@ class EnvironmentServiceTest : WordSpec({
             val context = mockk<WorkerContext> {
                 every { hierarchy } returns repositoryHierarchy
                 every { ortRun } returns ortRunWithEnvironment
-                coEvery { setupAuthentication(any()) } just runs
+                coEvery { setupAuthentication(any(), any()) } just runs
             }
 
             val repositoryFolder = createOrtTempDir("EnvironmentServiceTest")
@@ -226,8 +233,8 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "assign the infrastructure services for the repository to the current ORT run" {
-            val repositoryService = mockk<InfrastructureService>()
-            val otherService = mockk<InfrastructureService>()
+            val repositoryService = createInfrastructureService()
+            val otherService = createInfrastructureService("https://service.example.com/service")
 
             val context = mockContext()
             val config = ResolvedEnvironmentConfig(listOf(otherService), emptyList())
@@ -243,7 +250,11 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "assign the infrastructure services referenced from environment definitions to the current ORT run" {
-            val services = listOf<InfrastructureService>(mockk(), mockk(), mockk())
+            val services = listOf(
+                createInfrastructureService(),
+                createInfrastructureService("https://service.example.com/service"),
+                createInfrastructureService("https://service2.example.com/service2")
+            )
             val definitions = services.map(::EnvironmentServiceDefinition)
 
             val context = mockContext()
@@ -290,9 +301,13 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "remove duplicates before assigning services to the current ORT run" {
-            val repositoryService = mockk<InfrastructureService>()
-            val referencedService = mockk<InfrastructureService>()
-            val services = listOf(repositoryService, mockk(), referencedService)
+            val repositoryService = createInfrastructureService()
+            val referencedService = createInfrastructureService("https://service.example.com/service")
+            val services = listOf(
+                repositoryService,
+                createInfrastructureService("https://service2.example.com/service2"),
+                referencedService
+            )
 
             val context = mockContext()
             val config = ResolvedEnvironmentConfig(services, listOf(EnvironmentServiceDefinition(referencedService)))
@@ -311,9 +326,9 @@ class EnvironmentServiceTest : WordSpec({
     "setUpEnvironment from a config" should {
         "invoke all generators to produce the supported configuration files" {
             val definitions = listOf(
-                EnvironmentServiceDefinition(mockk()),
-                EnvironmentServiceDefinition(mockk()),
-                EnvironmentServiceDefinition(mockk())
+                EnvironmentServiceDefinition(createInfrastructureService()),
+                EnvironmentServiceDefinition(createInfrastructureService("https://service.example.com/service")),
+                EnvironmentServiceDefinition(createInfrastructureService("https://service2.example.com/service2"))
             )
             val context = mockContext()
             val generator1 = mockGenerator()
@@ -339,7 +354,7 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "handle infrastructure services not referenced by environment definitions" {
-            val service = mockk<InfrastructureService>()
+            val service = createInfrastructureService()
             val context = mockContext()
             val generator = mockGenerator()
 
@@ -360,25 +375,9 @@ class EnvironmentServiceTest : WordSpec({
     }
 
     "setupAuthentication" should {
-        "produce the correct file using the NetRcGenerator" {
-            val context = mockk<WorkerContext>(relaxed = true)
-            val services = listOf(
-                createInfrastructureService(),
-                createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
-            )
-
-            val generator = mockGenerator()
-
-            val environmentService = EnvironmentService(mockk(), listOf(generator), mockk())
-            environmentService.setupAuthentication(context, services)
-
-            val args = generator.verify(context)
-            args.second.map { it.service } shouldContainExactlyInAnyOrder services
-        }
-
         "setup the authenticator with the services" {
             val context = mockk<WorkerContext> {
-                coEvery { setupAuthentication(any()) } just runs
+                coEvery { setupAuthentication(any(), any()) } just runs
             }
 
             val services = listOf(
@@ -389,34 +388,18 @@ class EnvironmentServiceTest : WordSpec({
             val serviceRepository = mockk<InfrastructureServiceRepository>()
             serviceRepository.expectServiceAssignments()
 
+            mockkObject(NetRcManager)
+            val netRcManager = mockk<NetRcManager>()
+            every { NetRcManager.create(context, services) } returns netRcManager
+
             val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
             environmentService.setupAuthentication(context, services)
 
-            coVerify { context.setupAuthentication(services) }
+            coVerify { context.setupAuthentication(services, netRcManager) }
         }
     }
 
     "setupAuthenticationForCurrentRun" should {
-        "produce the correct file with services stored in the database" {
-            val context = mockContext()
-            val services = listOf(
-                createInfrastructureService(),
-                createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
-            )
-
-            val serviceRepository = mockk<InfrastructureServiceRepository> {
-                every { listForRun(RUN_ID) } returns services
-            }
-
-            val generator = mockGenerator()
-
-            val environmentService = EnvironmentService(serviceRepository, listOf(generator), mockk())
-            environmentService.setupAuthenticationForCurrentRun(context)
-
-            val args = generator.verify(context)
-            args.second.map { it.service } shouldContainExactlyInAnyOrder services
-        }
-
         "setup the authenticator with services stored in the database" {
             val context = mockContext()
             val services = listOf(
@@ -428,10 +411,14 @@ class EnvironmentServiceTest : WordSpec({
                 every { listForRun(RUN_ID) } returns services
             }
 
+            mockkObject(NetRcManager)
+            val netRcManager = mockk<NetRcManager>()
+            every { NetRcManager.create(context, services) } returns netRcManager
+
             val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
             environmentService.setupAuthenticationForCurrentRun(context)
 
-            coVerify { context.setupAuthentication(services) }
+            coVerify { context.setupAuthentication(services, netRcManager) }
         }
     }
 
@@ -565,7 +552,7 @@ private fun mockContext(): WorkerContext =
     mockk {
         every { hierarchy } returns repositoryHierarchy
         every { ortRun } returns currentOrtRun
-        coEvery { setupAuthentication(any()) } just runs
+        coEvery { setupAuthentication(any(), any()) } just runs
     }
 
 /**
