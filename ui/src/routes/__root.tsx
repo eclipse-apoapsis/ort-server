@@ -22,6 +22,7 @@ import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import React, { Suspense } from 'react';
 
 import { RouterContext } from '@/app';
+import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
 
 // Don't use Router devtools in production.
@@ -42,6 +43,7 @@ const RootComponent = () => {
         <main className='flex h-full flex-col gap-4 p-4 md:w-full md:items-center md:gap-8 md:p-8'>
           <Outlet />
         </main>
+        <Footer />
       </div>
       <Suspense>
         <TanStackRouterDevtools />
