@@ -175,6 +175,12 @@ data class CreateOrtRun(
      * read from the default location `.ort.env.yml`.
      */
     val environmentConfigPath: String? = null,
+
+    /**
+     * The optional trace ID that is assigned to this run. This is generated when the run is created. It can be used to
+     * correlate the logs from different components that are taking part in processing of the run.
+     */
+    val repositoryIds: List<Long> = emptyList()
 )
 
 @Serializable
