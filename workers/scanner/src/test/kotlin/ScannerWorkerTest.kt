@@ -157,7 +157,7 @@ class ScannerWorkerTest : StringSpec({
         }
 
         val environmentService = mockk<EnvironmentService> {
-            coEvery { generateNetRcFileForCurrentRun(context) } just runs
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
         }
 
         val worker = ScannerWorker(mockk(), runner, ortRunService, contextFactory, environmentService)
@@ -171,7 +171,7 @@ class ScannerWorkerTest : StringSpec({
             verify(exactly = 1) { ortRunService.finalizeScannerRun(capture(slotScannerRun), any()) }
             slotScannerRun.captured.scanners shouldBe mapOf(mappedIdentifier to setOf("scanner1", "scanner2"))
 
-            coVerify { environmentService.generateNetRcFileForCurrentRun(context) }
+            coVerify { environmentService.setupAuthenticationForCurrentRun(context) }
         }
     }
 
@@ -287,7 +287,7 @@ class ScannerWorkerTest : StringSpec({
         }
 
         val environmentService = mockk<EnvironmentService> {
-            coEvery { generateNetRcFileForCurrentRun(context) } just runs
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
         }
 
         val worker = ScannerWorker(mockk(), runner, ortRunService, contextFactory, environmentService)
@@ -323,7 +323,7 @@ class ScannerWorkerTest : StringSpec({
                 }
             slotIssues.captured shouldContainExactlyInAnyOrder expectedIssues
 
-            coVerify { environmentService.generateNetRcFileForCurrentRun(context) }
+            coVerify { environmentService.setupAuthenticationForCurrentRun(context) }
         }
     }
 
@@ -388,7 +388,7 @@ class ScannerWorkerTest : StringSpec({
         }
 
         val environmentService = mockk<EnvironmentService> {
-            coEvery { generateNetRcFileForCurrentRun(context) } just runs
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
         }
 
         val worker = ScannerWorker(mockk(), runner, ortRunService, contextFactory, environmentService)

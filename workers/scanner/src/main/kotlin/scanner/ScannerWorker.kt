@@ -75,7 +75,7 @@ class ScannerWorker(
         }
 
         contextFactory.withContext(scannerJob.ortRunId) { context ->
-            environmentService.generateNetRcFileForCurrentRun(context)
+            environmentService.setupAuthenticationForCurrentRun(context)
 
             val scannerRunId = ortRunService.createScannerRun(scannerJob.id).id
 
