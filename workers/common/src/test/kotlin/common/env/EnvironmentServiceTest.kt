@@ -359,7 +359,7 @@ class EnvironmentServiceTest : WordSpec({
         }
     }
 
-    "generateNetRcFile" should {
+    "setupAuthentication" should {
         "produce the correct file using the NetRcGenerator" {
             val context = mockk<WorkerContext>(relaxed = true)
             val services = listOf(
@@ -370,7 +370,7 @@ class EnvironmentServiceTest : WordSpec({
             val generator = mockGenerator()
 
             val environmentService = EnvironmentService(mockk(), listOf(generator), mockk())
-            environmentService.generateNetRcFile(context, services)
+            environmentService.setupAuthentication(context, services)
 
             val args = generator.verify(context)
             args.second.map { it.service } shouldContainExactlyInAnyOrder services
@@ -390,13 +390,13 @@ class EnvironmentServiceTest : WordSpec({
             serviceRepository.expectServiceAssignments()
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
-            environmentService.generateNetRcFile(context, services)
+            environmentService.setupAuthentication(context, services)
 
             coVerify { context.setupAuthentication(services) }
         }
     }
 
-    "generateNetRcFileForCurrentRun" should {
+    "setupAuthenticationForCurrentRun" should {
         "produce the correct file with services stored in the database" {
             val context = mockContext()
             val services = listOf(
@@ -411,7 +411,7 @@ class EnvironmentServiceTest : WordSpec({
             val generator = mockGenerator()
 
             val environmentService = EnvironmentService(serviceRepository, listOf(generator), mockk())
-            environmentService.generateNetRcFileForCurrentRun(context)
+            environmentService.setupAuthenticationForCurrentRun(context)
 
             val args = generator.verify(context)
             args.second.map { it.service } shouldContainExactlyInAnyOrder services
@@ -429,7 +429,7 @@ class EnvironmentServiceTest : WordSpec({
             }
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
-            environmentService.generateNetRcFileForCurrentRun(context)
+            environmentService.setupAuthenticationForCurrentRun(context)
 
             coVerify { context.setupAuthentication(services) }
         }

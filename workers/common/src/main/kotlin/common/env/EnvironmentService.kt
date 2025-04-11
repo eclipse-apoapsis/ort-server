@@ -149,22 +149,24 @@ class EnvironmentService(
     }
 
     /**
-     * Generate the _.netrc_ file based on the given [services]. Use the given [context] to access required
-     * information. This is a special variant of the [generateConfigFiles] function that focuses only on the
-     * _.netrc_ file.
+     * Perform the required steps to set up authentication information for the current worker execution based on the
+     * given [services]. Use the given [context] to access required information. This is a special variant of the
+     * [setUpEnvironment] function that focuses only on credentials and does not generate other package
+     * manager-specific configuration files.
      */
-    suspend fun generateNetRcFile(context: WorkerContext, services: Collection<InfrastructureService>) {
+    suspend fun setupAuthentication(context: WorkerContext, services: Collection<InfrastructureService>) {
         val definitions = services.map { EnvironmentServiceDefinition(it) }
         generateConfigFiles(context, definitions)
     }
 
     /**
-     * Generate the _.netrc_ file for the current ORT run as defined by the given [context]. Load the infrastructure
-     * services associated with the current run from the database and process their credentials. This function can be
-     * used by workers running after the Analyzer, which has initialized the required information.
+     * Perform the required steps to set up authentication information for the current worker execution in the current
+     * ORT run as defined by the given [context]. Load the infrastructure services associated with the current run from
+     * the database and process their credentials. This function can be used by workers running after the Analyzer,
+     * which has initialized the required information.
      */
-    suspend fun generateNetRcFileForCurrentRun(context: WorkerContext) {
-        generateNetRcFile(context, infrastructureServiceRepository.listForRun(context.ortRun.id))
+    suspend fun setupAuthenticationForCurrentRun(context: WorkerContext) {
+        setupAuthentication(context, infrastructureServiceRepository.listForRun(context.ortRun.id))
     }
 
     /**

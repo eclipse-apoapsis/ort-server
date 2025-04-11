@@ -74,7 +74,7 @@ internal class AnalyzerWorker(
                     repositoryServices.map(InfrastructureService::name)
                 )
 
-                environmentService.generateNetRcFile(context, repositoryServices)
+                environmentService.setupAuthentication(context, repositoryServices)
             }
 
             val downloadResult = downloader.downloadRepository(

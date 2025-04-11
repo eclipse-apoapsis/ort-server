@@ -161,7 +161,7 @@ class ReporterWorkerTest : StringSpec({
         val contextFactory = mockContextFactory(context)
 
         val environmentService = mockk<EnvironmentService> {
-            coEvery { generateNetRcFileForCurrentRun(context) } just runs
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
         }
 
         val runnerResult = ReporterRunnerResult(
@@ -200,7 +200,7 @@ class ReporterWorkerTest : StringSpec({
         coVerify {
             ortRunService.storeReporterRun(capture(slotReporterRun))
             ortRunService.storeIssues(ORT_RUN_ID, runnerResult.issues)
-            environmentService.generateNetRcFileForCurrentRun(context)
+            environmentService.setupAuthenticationForCurrentRun(context)
         }
 
         slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
@@ -277,7 +277,7 @@ class ReporterWorkerTest : StringSpec({
         val contextFactory = mockContextFactory(context)
 
         val environmentService = mockk<EnvironmentService> {
-            coEvery { generateNetRcFileForCurrentRun(context) } just runs
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
         }
 
         val runnerResult = ReporterRunnerResult(
@@ -316,7 +316,7 @@ class ReporterWorkerTest : StringSpec({
         coVerify {
             ortRunService.storeReporterRun(capture(slotReporterRun))
             ortRunService.storeIssues(ORT_RUN_ID, runnerResult.issues)
-            environmentService.generateNetRcFileForCurrentRun(context)
+            environmentService.setupAuthenticationForCurrentRun(context)
         }
 
         slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
