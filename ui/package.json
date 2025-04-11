@@ -40,6 +40,7 @@
     "@tanstack/react-router": "^1.33.7",
     "@tanstack/react-router-devtools": "^1.114.25",
     "@tanstack/react-table": "^8.17.3",
+    "ae-cvss-calculator": "^1.0.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^1.1.1",
