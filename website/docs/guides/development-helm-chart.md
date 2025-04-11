@@ -81,11 +81,16 @@ Then the different images of ORT Server:
 
 ### Mount initialization directory
 
-Finally, mount the directory containing Keycloak initialization script and reams for importing:
+Finally, mount the directory containing Keycloak initialization script and realms for importing:
 
 ```shell
 minikube mount scripts/docker/keycloak:/docker-entrypoint-initdb.d &
 minikube mount scripts/docker/keycloak:/opt/bitnami/keycloak/data/import &
+```
+
+if you are enabled rabbitmq, you have to mount the directory containing secrets files for orchestrator:
+```shell
+minikube mount scripts/compose:/data/orchestrator &
 ```
 
 ## Usage
