@@ -45,6 +45,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.components.authorization.hasPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
@@ -68,18 +72,12 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToOrganizationGroup
-import org.eclipse.apoapsis.ortserver.core.authorization.hasPermission
-import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.utils.paginate
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
-import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
-import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
-import org.eclipse.apoapsis.ortserver.model.authorization.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -89,6 +87,8 @@ import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.koin.ktor.ext.inject
 

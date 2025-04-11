@@ -48,6 +48,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getIssuesByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getLicensesForPackagesByRunId
@@ -60,11 +63,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getProjectsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuleViolationsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
-import org.eclipse.apoapsis.ortserver.core.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
-import org.eclipse.apoapsis.ortserver.core.utils.requireIdParameter
-import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -72,7 +71,6 @@ import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
-import org.eclipse.apoapsis.ortserver.model.authorization.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
@@ -86,6 +84,8 @@ import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.koin.ktor.ext.inject
 

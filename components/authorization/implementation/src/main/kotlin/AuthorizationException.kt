@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.api
-
-/** Used when the user does not have a valid authentication. */
-class AuthenticationException : RuntimeException()
+package org.eclipse.apoapsis.ortserver.components.authorization
 
 /** Used when the user does not have the required permissions. */
 class AuthorizationException : RuntimeException()

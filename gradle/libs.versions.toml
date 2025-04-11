@@ -168,6 +168,7 @@ ortDownloader = { module = "org.ossreviewtoolkit:downloader", version.ref = "ort
 ortEvaluator = { module = "org.ossreviewtoolkit:evaluator", version.ref = "ort" }
 ortModel = { module = "org.ossreviewtoolkit:model", version.ref = "ort" }
 ortNotifier = { module = "org.ossreviewtoolkit:notifier", version.ref = "ort" }
+ortPackageConfigurationProviderApi = { module = "org.ossreviewtoolkit.plugins.packageconfigurationproviders:package-configuration-provider-api", version.ref = "ort" }
 ortPackageConfigurationProviders = { module = "org.ossreviewtoolkit.plugins:package-configuration-providers", version.ref = "ort" }
 ortPackageCurationProviderApi = { module = "org.ossreviewtoolkit.plugins.packagecurationproviders:package-curation-provider-api", version.ref = "ort" }
 ortPackageCurationProviders = { module = "org.ossreviewtoolkit.plugins:package-curation-providers", version.ref = "ort" }

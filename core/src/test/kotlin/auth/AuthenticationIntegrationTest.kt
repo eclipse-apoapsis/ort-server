@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.auth
+package org.eclipse.apoapsis.ortserver.components.authorization
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
@@ -42,16 +42,14 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Com
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUserRoles
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
-import org.eclipse.apoapsis.ortserver.core.authorization.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.core.createJwtConfigMapForTestRealm
-import org.eclipse.apoapsis.ortserver.core.plugins.SecurityConfigurations
-import org.eclipse.apoapsis.ortserver.core.setUpClientScope
-import org.eclipse.apoapsis.ortserver.core.setUpUser
-import org.eclipse.apoapsis.ortserver.core.setUpUserRoles
 import org.eclipse.apoapsis.ortserver.core.testutils.authNoDbConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
