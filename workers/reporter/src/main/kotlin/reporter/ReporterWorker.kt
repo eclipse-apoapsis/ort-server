@@ -89,7 +89,7 @@ internal class ReporterWorker(
         }
 
         contextFactory.withContext(job.ortRunId) { context ->
-            environmentService.generateNetRcFileForCurrentRun(context)
+            environmentService.setupAuthenticationForCurrentRun(context)
 
             val reporterRunnerResult = runner.run(
                 job.ortRunId,
