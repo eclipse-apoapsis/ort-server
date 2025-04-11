@@ -20,22 +20,20 @@
 import { TrashIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 
-import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 
 type DeleteIconButtonProps = {
-  className?: string;
   disabled?: boolean;
 };
 
 const DeleteIconButton = forwardRef<HTMLButtonElement, DeleteIconButtonProps>(
-  ({ className, ...props }, ref) => {
+  ({ ...props }, ref) => {
     return (
       <Button
         size='sm'
         variant='outline'
         {...props}
-        className={cn('h-8 px-2', className)}
+        className='h-8 px-2 text-red-500'
         ref={ref}
       >
         <span className='sr-only'>Delete</span>

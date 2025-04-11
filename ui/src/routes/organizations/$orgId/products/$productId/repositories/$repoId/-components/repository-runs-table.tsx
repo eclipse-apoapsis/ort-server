@@ -154,6 +154,7 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => <div>Actions</div>,
+    size: 70,
     cell: function Row({ row }) {
       const queryClient = useQueryClient();
 
@@ -248,7 +249,7 @@ const columns = [
                 <span className='font-bold'>{repository.data.url}</span>
               </>
             }
-            uiComponent={<DeleteIconButton className='text-red-500' />}
+            uiComponent={<DeleteIconButton />}
             onDelete={handleDelete}
           />
         </div>

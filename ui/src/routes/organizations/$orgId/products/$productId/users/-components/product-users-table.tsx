@@ -98,6 +98,7 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => <div>Actions</div>,
+    size: 70,
     cell: function CellComponent({ row }) {
       const queryClient = useQueryClient();
       const params = routeApi.useParams();
@@ -233,12 +234,12 @@ const columns = [
           <DeleteDialog
             thingName={'user'}
             thingId={row.original.user.username}
-            uiComponent={<DeleteIconButton className='text-red-500' />}
+            uiComponent={<DeleteIconButton />}
             onDelete={() => delUser({ username: row.original.user.username })}
           />
         </div>
       ) : (
-        <div className='flex justify-end'>
+        <div>
           <DeleteIconButton disabled={true} />
         </div>
       );
