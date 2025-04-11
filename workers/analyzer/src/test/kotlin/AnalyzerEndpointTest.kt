@@ -32,7 +32,6 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.string.shouldNotContain
 
 import io.mockk.coEvery
 import io.mockk.every
@@ -128,18 +127,6 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                 content shouldContain "https://center.conan.io"
                 content shouldContain "verify_ssl"
                 content shouldContain "true"
-            }
-        }
-
-        "The build environment should contain a .netrc file" {
-            runEnvironmentTest { homeFolder ->
-                val netrcFile = homeFolder.resolve(".netrc")
-                val content = netrcFile.readText()
-
-                content shouldContain "machine repo.example.org"
-                content shouldContain "login $USERNAME"
-
-                content shouldNotContain "repo2.example.org"
             }
         }
 
@@ -357,7 +344,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                     resolvedJobConfigContext = null,
                     traceId = "trace-id",
                 )
-                coEvery { setupAuthentication(any()) } just runs
+                coEvery { setupAuthentication(any(), any()) } just runs
             }
 
             val repositoryFolder = File("src/test/resources/mavenProject")

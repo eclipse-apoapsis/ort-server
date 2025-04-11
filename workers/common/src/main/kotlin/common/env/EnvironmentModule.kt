@@ -49,7 +49,6 @@ fun buildEnvironmentModule(): Module = module {
                 GitConfigGenerator.create(get()),
                 GitCredentialsGenerator(),
                 MavenSettingsGenerator(),
-                NetRcGenerator(),
                 NpmRcGenerator(),
                 NuGetGenerator(),
                 YarnRcGenerator()

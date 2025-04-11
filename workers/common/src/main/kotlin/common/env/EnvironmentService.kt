@@ -145,7 +145,9 @@ class EnvironmentService(
             }.awaitAll()
         }
 
-        context.setupAuthentication(definitions.map(EnvironmentServiceDefinition::service))
+        val services = definitions.map(EnvironmentServiceDefinition::service)
+        val netRcManager = NetRcManager.create(context, services)
+        context.setupAuthentication(services, netRcManager)
     }
 
     /**
