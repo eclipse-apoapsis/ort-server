@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob as ApiAnalyzerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator as ApiComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
+import org.eclipse.apoapsis.ortserver.api.v1.model.Curation as ApiCuration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats as ApiEcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
@@ -145,7 +146,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
+import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPathsAndCurations
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
@@ -153,6 +154,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -857,7 +859,7 @@ fun ShortestDependencyPath.mapToApi() = ApiShortestDependencyPath(
     path = path.map { it.mapToApi() }
 )
 
-fun PackageWithShortestDependencyPaths.mapToApi() = ApiPackage(
+fun PackageWithShortestDependencyPathsAndCurations.mapToApi() = ApiPackage(
     pkg.identifier.mapToApi(),
     pkg.purl,
     pkg.cpe,
@@ -872,7 +874,17 @@ fun PackageWithShortestDependencyPaths.mapToApi() = ApiPackage(
     pkg.vcsProcessed.mapToApi(),
     pkg.isMetadataOnly,
     pkg.isModified,
-    shortestDependencyPaths.map { it.mapToApi() }
+    shortestDependencyPaths.map { it.mapToApi() },
+    curations.map { it.mapToApi() }.toSet()
+)
+
+fun PackageCurationData.mapToApi(): ApiCuration = ApiCuration(
+    concludedLicense ?: "",
+    comment ?: "",
+    description ?: "",
+    homepageUrl ?: "",
+    authors ?: emptySet(),
+    declaredLicenseMapping
 )
 
 fun ApiPackageFilters.mapToModel(): PackageFilters =

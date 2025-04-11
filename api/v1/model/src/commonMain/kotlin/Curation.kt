@@ -17,19 +17,16 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.model.runs
+package org.eclipse.apoapsis.ortserver.api.v1.model
 
-/**
- * A data class representing a package, and the shortest dependency path that the package is found in (relative to a
- * project found in a run).
- */
-data class PackageWithShortestDependencyPaths(
-    /** A package. */
-    val pkg: Package,
+import kotlinx.serialization.Serializable
 
-    /** Package ID */
-    val pkgId: Long,
-
-    /** The shortest dependency path for the package. */
-    val shortestDependencyPaths: List<ShortestDependencyPath>
+@Serializable
+data class Curation(
+    val concludedLicense: String,
+    val comment: String,
+    val description: String,
+    val homepageUrl: String,
+    val authors: Set<String>,
+    val declaredLicenseMapping: Map<String, String>
 )

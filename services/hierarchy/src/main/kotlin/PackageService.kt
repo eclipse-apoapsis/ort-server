@@ -29,13 +29,19 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RepositoryConfigurationsPackageCurationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RepositoryConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilterNullable
 import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
 import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQueryCustomOrders
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
-import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
+import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPathsAndCurations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 
@@ -47,8 +53,11 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.concat
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.stringLiteral
 
 /**
@@ -59,7 +68,7 @@ class PackageService(private val db: Database) {
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: PackageFilters = PackageFilters()
-    ): ListQueryResult<PackageWithShortestDependencyPaths> = db.dbQuery {
+    ): ListQueryResult<PackageWithShortestDependencyPathsAndCurations> = db.dbQuery {
         val orders = mutableListOf<Pair<Expression<*>, SortOrder>>()
 
         parameters.sortFields.forEach {
@@ -119,6 +128,16 @@ class PackageService(private val db: Database) {
                     .where { (AnalyzerJobsTable.ortRunId eq ortRunId) and condition }
             }
 
+        val curations = RepositoryConfigurationsTable
+            .innerJoin(RepositoryConfigurationsPackageCurationsTable)
+            .innerJoin(PackageCurationsTable)
+            .innerJoin(IdentifiersTable)
+            .innerJoin(PackagesTable)
+            .select(listOf(PackagesTable.id, PackageCurationsTable.id))
+            .where(RepositoryConfigurationsTable.ortRunId eq ortRunId)
+            .andWhere { PackagesTable.id inList (listQueryResult.data.map { it.pkgId }) }
+            .distinct()
+
         val data = listQueryResult.data.map { pkg ->
             val shortestPaths = ShortestDependencyPathsTable
                 .innerJoin(PackagesTable)
@@ -129,11 +148,22 @@ class PackageService(private val db: Database) {
                 .map { ShortestDependencyPathDao.wrapRow(it).mapToModel() }
 
             pkg.copy(
-                shortestDependencyPaths = shortestPaths
+                shortestDependencyPaths = shortestPaths,
+                curations = findCurationsForPackage(pkg.pkgId, curations)
             )
         }
 
         ListQueryResult(data, parameters, listQueryResult.totalCount)
+    }
+
+    private fun findCurationsForPackage(packageId: Long, curations: List<ResultRow>): Set<PackageCurationData> {
+        return curations.find { it[PackagesTable.id].value == packageId }?.let {
+            return PackageCurationDataTable
+                .selectAll()
+                .where(PackageCurationDataTable.id eq it[PackageCurationsTable.id]).map {
+                    curation -> PackageCurationDataDao.wrapRow(curation).mapToModel()
+                }.toSet()
+        } ?: emptySet()
     }
 
     /** Count packages found in provided ORT runs. */
@@ -175,8 +205,8 @@ class PackageService(private val db: Database) {
         }
 }
 
-private fun ResultRow.toPackageWithShortestDependencyPaths(): PackageWithShortestDependencyPaths =
-    PackageWithShortestDependencyPaths(
+private fun ResultRow.toPackageWithShortestDependencyPaths(): PackageWithShortestDependencyPathsAndCurations =
+    PackageWithShortestDependencyPathsAndCurations(
         pkg = PackageDao.wrapRow(this).mapToModel(),
         pkgId = get(PackagesTable.id).value,
         // Temporarily set the shortestDependencyPaths into an empty list, as they will be added in a subsequent step.

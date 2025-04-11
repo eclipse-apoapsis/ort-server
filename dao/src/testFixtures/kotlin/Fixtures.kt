@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.DaoReporterJo
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun.DaoReporterRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.DaoRepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.DaoResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.DaoScannerRunRepository
@@ -70,6 +71,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 
 import org.jetbrains.exposed.sql.Database
 
@@ -77,6 +79,7 @@ import org.jetbrains.exposed.sql.Database
  * A helper class to manage test fixtures. It provides default instances as well as helper functions to create custom
  * instances.
  */
+@Suppress("TooManyFunctions")
 class Fixtures(private val db: Database) {
     val advisorJobRepository = DaoAdvisorJobRepository(db)
     val advisorRunRepository = DaoAdvisorRunRepository(db)
@@ -214,6 +217,27 @@ class Fixtures(private val db: Database) {
     ): Identifier = db.blockingQuery {
         IdentifierDao.getOrPut(identifier).mapToModel()
     }
+
+    fun createPackageCurationData(
+        packageCurationData: PackageCurationData
+    ): PackageCurationData = db.blockingQuery {
+        PackageCurationDataDao.getOrPut(packageCurationData).mapToModel()
+    }
+
+    fun getPackageCurationData(
+        pkg: Package = generatePackage(
+            identifier = Identifier("NPM", "example.com", "identifier_1", "1.0")
+        ),
+        comment: String = "Comment",
+        description: String = "Description",
+        concludedLicense: String = "MIT"
+    ) = PackageCurationData(
+        comment = comment,
+        purl = pkg.purl,
+        description = description,
+        concludedLicense = concludedLicense,
+        authors = pkg.authors,
+    )
 
     fun getViolation() = OrtRuleViolation(
         rule = "rule",
