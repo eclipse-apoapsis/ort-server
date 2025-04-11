@@ -68,9 +68,12 @@ abstract class EndpointComponent<T : Any>(
         private val logger: Logger = LoggerFactory.getLogger(EndpointComponent::class.java)
 
         /**
-         * Get the keep-alive file in the user's home directory.
+         * Get the keep-alive file in the system's temporary directory.
          */
-        private fun getKeepAliveFile(): File = File(System.getProperty("user.home"), KEEP_ALIVE_FILE_NAME)
+        private fun getKeepAliveFile(): File {
+            val tmpDir = File(System.getProperty("java.io.tmpdir"))
+            return tmpDir.resolve(KEEP_ALIVE_FILE_NAME)
+        }
 
         /**
          * Sleep while a keep-alive file exists. This is helpful in case a user terminal session is opened in the
