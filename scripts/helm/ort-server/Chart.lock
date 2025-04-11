@@ -1,12 +1,12 @@
 dependencies:
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
-  version: 13.4.1
+  version: 24.4.13
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
   version: 11.16.2
 - name: vault
   repository: https://helm.releases.hashicorp.com
-  version: 0.28.0
-digest: sha256:75e687402defe640259a9b09658abfb475c0daec9ad3aa845d4738141eea7fbd
-generated: "2024-04-10T11:35:21.350968386Z"
+  version: 0.28.1
+digest: sha256:9d8220bb72b0c420d57400e58dd76f89a02067d144beac2c23f8b52a5612d913
+generated: "2025-03-19T09:03:32.091395839+01:00"

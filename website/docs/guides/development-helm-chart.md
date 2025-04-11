@@ -81,10 +81,16 @@ Then the different images of ORT Server:
 
 ### Mount initialization directory
 
-Finally, mount the directory containing Keycloak initialization script:
+Finally, mount the directory containing Keycloak initialization script and realms for importing:
 
 ```shell
-minikube mount scripts/docker/keycloak:/data/init-keycloak &
+minikube mount scripts/docker/keycloak:/docker-entrypoint-initdb.d &
+minikube mount scripts/docker/keycloak:/opt/bitnami/keycloak/data/import &
+```
+
+if you are enabled rabbitmq, you have to mount the directory containing secrets files for orchestrator:
+```shell
+minikube mount scripts/compose:/data/orchestrator &
 ```
 
 ## Usage
@@ -115,10 +121,17 @@ Install the chart in Kubernetes:
 scripts/helm/$ helm install ort-server ./ort-server --namespace ort-server --create-namespace
 ```
 
-Switch to the newly created namespace with https://github.com/ahmetb/kubectx/blob/master/kubens[KubeNS]:
+Switch to the newly created namespace with [KubeNS](https://github.com/ahmetb/kubectx):
 
 ```shell
 kubens ort-server
+```
+
+or use the following kubectl command:
+
+```shell
+kubectl config set-context --current --namespace=ort-server
+
 ```
 
 To Uninstall the chart run:
