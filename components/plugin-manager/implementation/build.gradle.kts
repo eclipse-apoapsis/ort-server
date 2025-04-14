@@ -20,6 +20,10 @@
 plugins {
     id("ort-server-kotlin-jvm-conventions")
     id("ort-server-publication-conventions")
+
+
+    // Apply third-party plugins.
+    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver.components.pluginmanager"
@@ -40,7 +44,12 @@ dependencies {
     api(projects.components.pluginManager.api)
 
     implementation(projects.components.authorization.implementation)
+    implementation(projects.dao)
+    implementation(projects.shared.ktorUtils)
 
+    implementation(libs.exposedCore)
+    implementation(libs.exposedJson)
+    implementation(libs.exposedKotlinDatetime)
     implementation(libs.ktorOpenApi)
     implementation(libs.ktorServerCore)
     implementation(libs.ortAdvisor)
@@ -58,6 +67,7 @@ dependencies {
     implementation(platform(libs.ortScanners))
 
     testImplementation(testFixtures(projects.clients.keycloak))
+    testImplementation(testFixtures(projects.dao))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
