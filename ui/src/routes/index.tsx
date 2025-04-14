@@ -25,11 +25,12 @@ import {
 } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 
+import { useOrganizationsServiceGetApiV1Organizations } from '@/api/queries';
 import { prefetchUseOrganizationsServiceGetApiV1Organizations } from '@/api/queries/prefetch';
-import { useOrganizationsServiceGetApiV1OrganizationsSuspense } from '@/api/queries/suspense';
 import { Organization } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -43,6 +44,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
@@ -79,15 +81,22 @@ export const IndexPage = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : orgPageSize;
 
-  const { data } = useOrganizationsServiceGetApiV1OrganizationsSuspense({
+  const {
+    data: organizations,
+    isPending,
+    isError,
+    error,
+  } = useOrganizationsServiceGetApiV1Organizations({
     limit: pageSize,
     offset: pageIndex * pageSize,
   });
 
   const table = useReactTable({
-    data: data?.data || [],
+    data: organizations?.data || [],
     columns,
-    pageCount: Math.ceil(data.pagination.totalCount / pageSize),
+    pageCount: Math.ceil(
+      (organizations?.pagination.totalCount ?? 0) / pageSize
+    ),
     state: {
       pagination: {
         pageIndex,
@@ -97,6 +106,22 @@ export const IndexPage = () => {
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
   });
+
+  if (isPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (isError) {
+    toast.error('Unable to load data', {
+      description: <ToastError error={error} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
+  }
 
   return (
     <Card className='mx-auto w-full max-w-4xl'>
