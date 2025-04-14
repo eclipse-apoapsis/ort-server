@@ -28,6 +28,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
@@ -161,4 +162,6 @@ fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = 
     single { OrtRunService(get(), get(), get(), get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)
+
+    single { PluginEventStore(get()) }
 }

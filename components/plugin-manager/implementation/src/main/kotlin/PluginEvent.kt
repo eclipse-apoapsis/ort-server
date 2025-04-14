@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
-internal data class PluginEvent(
+data class PluginEvent(
     val pluginType: PluginType,
     val pluginId: String,
     val version: Long,
@@ -33,7 +33,7 @@ internal data class PluginEvent(
 
 /** The base class for all plugin event payloads. */
 @Serializable
-internal sealed class PluginEventPayload
+sealed class PluginEventPayload
 
 /** The payload for a plugin enabled event. */
 @Serializable

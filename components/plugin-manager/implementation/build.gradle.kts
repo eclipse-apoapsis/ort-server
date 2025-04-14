@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.exposedJson)
     implementation(libs.exposedKotlinDatetime)
     implementation(libs.ktorOpenApi)
+    implementation(libs.ktorServerAuth)
     implementation(libs.ktorServerCore)
     implementation(libs.ortAdvisor)
     implementation(libs.ortAnalyzer)

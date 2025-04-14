@@ -31,7 +31,7 @@ import org.jetbrains.exposed.sql.selectAll
 
 import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
 
-internal class PluginEventStore(private val db: Database) {
+class PluginEventStore(private val db: Database) {
     fun loadEvents(pluginType: PluginType, pluginId: String): List<PluginEvent> = db.transaction {
         PluginEvents.selectAll()
             .where { PluginEvents.pluginType eq pluginType and (PluginEvents.pluginId eq pluginId) }
