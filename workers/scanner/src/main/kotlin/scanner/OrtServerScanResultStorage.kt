@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
-import org.eclipse.apoapsis.ortserver.dao.utils.utils.JsonHashFunction
+import org.eclipse.apoapsis.ortserver.dao.utils.JsonHashFunction
 import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
