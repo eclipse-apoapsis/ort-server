@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.utils.utils
+package org.eclipse.apoapsis.ortserver.dao.utils
 
 import org.jetbrains.exposed.sql.CustomFunction
 import org.jetbrains.exposed.sql.Expression
