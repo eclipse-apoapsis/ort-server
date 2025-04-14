@@ -24,6 +24,7 @@ import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
 
 import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.serialization
@@ -57,7 +58,12 @@ import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationExce
 import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
+
+import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
 private val TEST_USER = User(
     id = UserId("test-user-id"),
@@ -69,8 +75,10 @@ private val TEST_USER = User(
 
 private const val TEST_USER_PASSWORD = "password"
 
-class GetInstalledPluginsAuthorizationTest : WordSpec({
+class PluginManagerAuthorizationTest : WordSpec({
     tags(Integration)
+
+    val dbExtension = extension(DatabaseTestExtension())
 
     val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
         setUpUser(TEST_USER, TEST_USER_PASSWORD)
@@ -91,6 +99,100 @@ class GetInstalledPluginsAuthorizationTest : WordSpec({
         val group = keycloakClient.getGroup(groupName)
         val role = keycloakClient.getRole(roleName)
         keycloakClient.addGroupClientRole(group.id, role)
+    }
+
+    "DisablePlugin" should {
+        "require the superuser role" {
+            testApplication {
+                val config = MapApplicationConfig()
+                (keycloakConfig + jwtConfig).forEach { config.put(it.key, it.value) }
+                config.put("jwt.audience", TEST_SUBJECT_CLIENT)
+
+                environment {
+                    this.config = config
+                }
+
+                application {
+                    install(ContentNegotiation) {
+                        serialization(ContentType.Application.Json, json)
+                    }
+
+                    install(StatusPages) {
+                        exception<AuthorizationException> { call, _ ->
+                            call.respond(HttpStatusCode.Forbidden)
+                        }
+                    }
+
+                    configureAuthentication(config, keycloakClient)
+
+                    routing {
+                        authenticate(SecurityConfigurations.TOKEN) {
+                            disablePlugin(PluginEventStore(dbExtension.db))
+                        }
+                    }
+                }
+
+                val pluginType = PluginType.ADVISOR
+                val pluginId = VulnerableCodeFactory.descriptor.id
+
+                val clientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
+                    user = TEST_USER.username.value,
+                    secret = TEST_USER_PASSWORD
+                )
+                val client = createJsonClient().configureAuthentication(clientConfig, json)
+
+                client.post("/admin/plugins/$pluginType/$pluginId/disable") shouldHaveStatus HttpStatusCode.Forbidden
+                keycloak.keycloakAdminClient.addUserRole(TEST_USER.username.value, Superuser.ROLE_NAME)
+                client.post("/admin/plugins/$pluginType/$pluginId/disable") shouldHaveStatus HttpStatusCode.Accepted
+            }
+        }
+    }
+
+    "EnablePlugin" should {
+        "require the superuser role" {
+            testApplication {
+                val config = MapApplicationConfig()
+                (keycloakConfig + jwtConfig).forEach { config.put(it.key, it.value) }
+                config.put("jwt.audience", TEST_SUBJECT_CLIENT)
+
+                environment {
+                    this.config = config
+                }
+
+                application {
+                    install(ContentNegotiation) {
+                        serialization(ContentType.Application.Json, json)
+                    }
+
+                    install(StatusPages) {
+                        exception<AuthorizationException> { call, _ ->
+                            call.respond(HttpStatusCode.Forbidden)
+                        }
+                    }
+
+                    configureAuthentication(config, keycloakClient)
+
+                    routing {
+                        authenticate(SecurityConfigurations.TOKEN) {
+                            enablePlugin(PluginEventStore(dbExtension.db))
+                        }
+                    }
+                }
+
+                val pluginType = PluginType.ADVISOR
+                val pluginId = VulnerableCodeFactory.descriptor.id
+
+                val clientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
+                    user = TEST_USER.username.value,
+                    secret = TEST_USER_PASSWORD
+                )
+                val client = createJsonClient().configureAuthentication(clientConfig, json)
+
+                client.post("/admin/plugins/$pluginType/$pluginId/enable") shouldHaveStatus HttpStatusCode.Forbidden
+                keycloak.keycloakAdminClient.addUserRole(TEST_USER.username.value, Superuser.ROLE_NAME)
+                client.post("/admin/plugins/$pluginType/$pluginId/enable") shouldHaveStatus HttpStatusCode.NotModified
+            }
+        }
     }
 
     "GetInstalledPlugins" should {
