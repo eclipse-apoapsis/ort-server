@@ -85,15 +85,11 @@ const renderSubComponent = ({
         </div>
       </div>
       <div>
-        <div className='font-semibold'>Repository</div>
+        <div className='font-semibold'>{pkg.vcsProcessed.type} Repository</div>
         <div className='ml-2'>
           <div className='flex gap-2'>
             <div className='font-semibold'>URL:</div>
             <FormattedValue value={pkg.vcsProcessed.url} type='url' />
-          </div>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>Type:</div>
-            <FormattedValue value={pkg.vcsProcessed.type} />
           </div>
           <div className='flex gap-2'>
             <div className='font-semibold'>Revision:</div>
