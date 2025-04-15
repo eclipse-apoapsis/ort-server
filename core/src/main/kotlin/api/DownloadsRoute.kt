@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.core.api
 
 import io.github.smiley4.ktoropenapi.get
 
-import io.ktor.server.application.call
 import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
