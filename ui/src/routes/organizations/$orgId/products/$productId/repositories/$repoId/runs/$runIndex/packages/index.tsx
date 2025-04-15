@@ -37,6 +37,7 @@ import {
 import { Package } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DependencyPaths } from '@/components/dependency-paths';
+import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -80,59 +81,39 @@ const renderSubComponent = ({
       <div>
         <div className='font-semibold'>Description</div>
         <div className='ml-2 break-all'>
-          {pkg.description || 'No description available.'}
+          <FormattedValue value={pkg.description} />
         </div>
       </div>
       <div>
         <div className='font-semibold'>Repository</div>
         <div className='ml-2'>
-          {pkg.vcsProcessed.url && (
-            <div className='flex gap-2'>
-              <div className='font-semibold'>URL:</div>
-              <a
-                href={pkg.vcsProcessed.url}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-blue-400 hover:underline'
-              >
-                {pkg.vcsProcessed.url}
-              </a>
-            </div>
-          )}
-          {pkg.vcsProcessed.type && (
-            <div className='flex gap-2'>
-              <div className='font-semibold'>Type:</div>
-              <div>{pkg.vcsProcessed.type}</div>
-            </div>
-          )}
-          {pkg.vcsProcessed.revision && (
-            <div className='flex gap-2'>
-              <div className='font-semibold'>Revision:</div>
-              <div>{pkg.vcsProcessed.revision}</div>
-            </div>
-          )}
-          {pkg.vcsProcessed.path && (
-            <div className='flex gap-2'>
-              <div className='font-semibold'>Path:</div>
-              <div>{pkg.vcsProcessed.path} </div>
-            </div>
-          )}
+          <div className='flex gap-2'>
+            <div className='font-semibold'>URL:</div>
+            <FormattedValue value={pkg.vcsProcessed.url} type='url' />
+          </div>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>Type:</div>
+            <FormattedValue value={pkg.vcsProcessed.type} />
+          </div>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>Revision:</div>
+            <FormattedValue value={pkg.vcsProcessed.revision} />
+          </div>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>Path:</div>
+            <FormattedValue value={pkg.vcsProcessed.path} />
+          </div>
         </div>
       </div>
       <div>
         <div className='font-semibold'>Source Artifact</div>
-        {pkg.isMetadataOnly ? (
-          <div className='ml-2'>This is a metadata-only package.</div>
-        ) : pkg.sourceArtifact.url.length > 0 ? (
-          <a
-            href={pkg.sourceArtifact.url}
-            className='ml-2 text-blue-400 hover:underline'
-          >
-            {pkg.sourceArtifact.url}
-          </a>
-        ) : (
-          <div className='ml-2'>No source artifact found.</div>
-        )}
+        <div className='ml-2'>
+          {pkg.isMetadataOnly ? (
+            <div>This is a metadata-only package.</div>
+          ) : (
+            <FormattedValue value={pkg.sourceArtifact.url} type='url' />
+          )}
+        </div>
       </div>
       {pkg.shortestDependencyPaths.length > 0 && (
         <div>

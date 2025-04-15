@@ -38,6 +38,7 @@ import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunInd
 import { Issue, Severity } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
+import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { ToastError } from '@/components/toast-error';
@@ -82,7 +83,9 @@ const renderSubComponent = ({ row }: { row: Row<Issue> }) => {
         <div className='font-semibold'>Created at</div>
         <TimestampWithUTC timestamp={issue.timestamp} />
         <div>by</div>
-        <div className='font-semibold'>{issue.worker}</div>
+        <div className='font-semibold'>
+          <FormattedValue value={issue.worker} />
+        </div>
       </div>
       <div className='text-muted-foreground break-all whitespace-pre-line italic'>
         {issue.message || 'No details.'}
