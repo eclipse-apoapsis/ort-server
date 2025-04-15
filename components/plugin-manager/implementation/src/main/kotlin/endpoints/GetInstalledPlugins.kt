@@ -31,9 +31,13 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOption
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.Plugins
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.and
 
 import org.ossreviewtoolkit.advisor.AdviceProviderFactory
 import org.ossreviewtoolkit.analyzer.PackageManagerFactory
+import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 import org.ossreviewtoolkit.plugins.api.PluginDescriptor as OrtPluginDescriptor
 import org.ossreviewtoolkit.plugins.api.PluginOption as OrtPluginOption
@@ -44,7 +48,7 @@ import org.ossreviewtoolkit.plugins.packagemanagers.node.npm.NpmFactory
 import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 
-fun Route.getInstalledPlugins() = get("admin/plugins", {
+fun Route.getInstalledPlugins(db: Database) = get("admin/plugins", {
     operationId = "GetInstalledPlugins"
     summary = "Get installed ORT plugins"
     description = "Get a list with detailed information about all installed ORT plugins."
@@ -57,8 +61,8 @@ fun Route.getInstalledPlugins() = get("admin/plugins", {
                 mediaTypes = setOf(ContentType.Application.Json)
                 example("List of ORT plugins") {
                     value = listOf(
-                        VulnerableCodeFactory.descriptor.mapToApi(PluginType.ADVISOR),
-                        NpmFactory.descriptor.mapToApi(PluginType.PACKAGE_MANAGER)
+                        VulnerableCodeFactory.descriptor.mapToApi(PluginType.ADVISOR, true),
+                        NpmFactory.descriptor.mapToApi(PluginType.PACKAGE_MANAGER, false)
                     )
                 }
             }
@@ -67,23 +71,35 @@ fun Route.getInstalledPlugins() = get("admin/plugins", {
 }) {
     requireSuperuser()
 
+    fun isEnabled(pluginType: PluginType, pluginId: String) = db.transaction {
+        Plugins.select(Plugins.enabled)
+            .where { Plugins.pluginType eq pluginType and (Plugins.pluginId eq pluginId) }
+            .firstOrNull()?.get(Plugins.enabled) ?: true
+    }
+
     val advisors = AdviceProviderFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.ADVISOR)
+        it.descriptor.mapToApi(PluginType.ADVISOR, isEnabled(PluginType.ADVISOR, it.descriptor.id))
     }
     val packageConfigurationProviders = PackageConfigurationProviderFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.PACKAGE_CONFIGURATION_PROVIDER)
+        it.descriptor.mapToApi(
+            PluginType.PACKAGE_CONFIGURATION_PROVIDER,
+            isEnabled(PluginType.PACKAGE_CONFIGURATION_PROVIDER, it.descriptor.id)
+        )
     }
     val packageCurationProviders = PackageCurationProviderFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.PACKAGE_CURATION_PROVIDER)
+        it.descriptor.mapToApi(
+            PluginType.PACKAGE_CURATION_PROVIDER,
+            isEnabled(PluginType.PACKAGE_CURATION_PROVIDER, it.descriptor.id)
+        )
     }
     val packageManagers = PackageManagerFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.PACKAGE_MANAGER)
+        it.descriptor.mapToApi(PluginType.PACKAGE_MANAGER, isEnabled(PluginType.PACKAGE_MANAGER, it.descriptor.id))
     }
     val reporters = ReporterFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.REPORTER)
+        it.descriptor.mapToApi(PluginType.REPORTER, isEnabled(PluginType.REPORTER, it.descriptor.id))
     }
     val scanners = ScannerWrapperFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.SCANNER)
+        it.descriptor.mapToApi(PluginType.SCANNER, isEnabled(PluginType.SCANNER, it.descriptor.id))
     }
 
     val allPlugins = advisors +
@@ -96,12 +112,13 @@ fun Route.getInstalledPlugins() = get("admin/plugins", {
     call.respond(HttpStatusCode.OK, allPlugins)
 }
 
-internal fun OrtPluginDescriptor.mapToApi(type: PluginType) = PluginDescriptor(
+internal fun OrtPluginDescriptor.mapToApi(type: PluginType, enabled: Boolean) = PluginDescriptor(
     id = id,
     type = type,
     displayName = displayName,
     description = description,
-    options = options.map { it.mapToApi() }
+    options = options.map { it.mapToApi() },
+    enabled = enabled
 )
 
 internal fun OrtPluginOption.mapToApi() = PluginOption(

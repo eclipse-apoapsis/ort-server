@@ -22,11 +22,13 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -50,10 +52,15 @@ import io.mockk.unmockkAll
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
+import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
+import org.ossreviewtoolkit.plugins.packagemanagers.node.npm.NpmFactory
 
 class DummyConfig(val principal: OrtPrincipal) : AuthenticationProvider.Config("test")
 
@@ -65,6 +72,8 @@ class FakeAuthenticationProvider(val config: DummyConfig) : AuthenticationProvid
 
 class GetInstalledPluginsIntegrationTest : WordSpec({
     tags(Integration)
+
+    val dbExtension = extension(DatabaseTestExtension())
 
     beforeSpec {
         mockkStatic(RoutingContext::hasRole)
@@ -90,7 +99,7 @@ class GetInstalledPluginsIntegrationTest : WordSpec({
 
                     routing {
                         authenticate("test") {
-                            getInstalledPlugins()
+                            getInstalledPlugins(dbExtension.db)
                         }
                     }
                 }
@@ -103,6 +112,49 @@ class GetInstalledPluginsIntegrationTest : WordSpec({
                 enumValues<PluginType>().forEach { pluginType ->
                     pluginDescriptors.filter { it.type == pluginType } shouldNot beEmpty()
                 }
+            }
+        }
+
+        "return if plugins are enabled or disabled" {
+            val principal = mockk<OrtPrincipal> {
+                every { getUserId() } returns "userId"
+                every { hasRole(any()) } returns true
+            }
+
+            val eventStore = PluginEventStore(dbExtension.db)
+
+            testApplication {
+                application {
+                    install(ContentNegotiation) {
+                        serialization(ContentType.Application.Json, Json)
+                    }
+
+                    install(Authentication) {
+                        register(FakeAuthenticationProvider(DummyConfig(principal)))
+                    }
+
+                    routing {
+                        authenticate("test") {
+                            disablePlugin(eventStore)
+                            getInstalledPlugins(dbExtension.db)
+                        }
+                    }
+                }
+
+                val npmType = PluginType.PACKAGE_MANAGER
+                val npmId = NpmFactory.descriptor.id
+                val vulnerableCodeType = PluginType.ADVISOR
+                val vulnerableCodeId = VulnerableCodeFactory.descriptor.id
+
+                val client = createJsonClient()
+                client.post("/admin/plugins/$npmType/$npmId/disable") shouldHaveStatus HttpStatusCode.Accepted
+                val response = client.get("/admin/plugins")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val pluginDescriptors = response.body<List<PluginDescriptor>>()
+
+                pluginDescriptors.find { it.type == npmType && it.id == npmId }?.enabled shouldBe false
+                pluginDescriptors.find { it.type == vulnerableCodeType && it.id == vulnerableCodeId }?.enabled shouldBe true
             }
         }
     }

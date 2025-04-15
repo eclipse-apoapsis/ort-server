@@ -50,7 +50,7 @@ fun Application.configureRouting() {
             authenticate(SecurityConfigurations.token) {
                 disablePlugin(get())
                 enablePlugin(get())
-                getInstalledPlugins()
+                getInstalledPlugins(get())
                 admin()
                 organizations()
                 products()
