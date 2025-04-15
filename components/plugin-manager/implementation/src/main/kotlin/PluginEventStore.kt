@@ -28,6 +28,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.upsert
 
 import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
 
@@ -47,6 +48,28 @@ class PluginEventStore(private val db: Database) {
             it[payload] = pluginEvent.payload
             it[createdAt] = pluginEvent.createdAt
             it[createdBy] = pluginEvent.createdBy
+        }
+
+        updateReadModel(pluginEvent)
+    }
+
+    private fun updateReadModel(pluginEvent: PluginEvent): Unit = db.transaction {
+        when (pluginEvent.payload) {
+            is PluginDisabled -> {
+                PluginsReadModel.upsert {
+                    it[pluginType] = pluginEvent.pluginType
+                    it[pluginId] = pluginEvent.pluginId
+                    it[enabled] = false
+                }
+            }
+
+            is PluginEnabled -> {
+                PluginsReadModel.upsert {
+                    it[pluginType] = pluginEvent.pluginType
+                    it[pluginId] = pluginEvent.pluginId
+                    it[enabled] = true
+                }
+            }
         }
     }
 
@@ -72,4 +95,12 @@ internal object PluginEvents : Table("plugin_events") {
     val createdBy = text("created_by")
 
     override val primaryKey = PrimaryKey(pluginType, pluginId, version)
+}
+
+internal object PluginsReadModel : Table("plugins_read_model") {
+    val pluginType = enumerationByName<PluginType>("plugin_type", 255)
+    val pluginId = text("plugin_id")
+    val enabled = bool("enabled").default(false)
+
+    override val primaryKey = PrimaryKey(pluginType, pluginId)
 }
