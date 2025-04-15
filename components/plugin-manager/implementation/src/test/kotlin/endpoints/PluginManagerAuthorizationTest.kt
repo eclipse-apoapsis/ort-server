@@ -221,7 +221,7 @@ class PluginManagerAuthorizationTest : WordSpec({
 
                     routing {
                         authenticate(SecurityConfigurations.TOKEN) {
-                            getInstalledPlugins()
+                            getInstalledPlugins(dbExtension.db)
                         }
                     }
                 }

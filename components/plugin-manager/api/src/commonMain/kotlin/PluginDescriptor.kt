@@ -30,7 +30,8 @@ data class PluginDescriptor(
     val type: PluginType,
     val displayName: String,
     val description: String,
-    val options: List<PluginOption> = emptyList()
+    val options: List<PluginOption> = emptyList(),
+    val enabled: Boolean
 )
 
 /**
