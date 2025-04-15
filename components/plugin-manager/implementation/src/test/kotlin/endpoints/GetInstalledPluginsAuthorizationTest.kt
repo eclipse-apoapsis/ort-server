@@ -57,6 +57,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationExce
 import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 private val TEST_USER = User(
@@ -71,6 +72,8 @@ private const val TEST_USER_PASSWORD = "password"
 
 class GetInstalledPluginsAuthorizationTest : WordSpec({
     tags(Integration)
+
+    val dbExtension = extension(DatabaseTestExtension())
 
     val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
         setUpUser(TEST_USER, TEST_USER_PASSWORD)
@@ -119,7 +122,7 @@ class GetInstalledPluginsAuthorizationTest : WordSpec({
 
                     routing {
                         authenticate(SecurityConfigurations.token) {
-                            getInstalledPlugins()
+                            getInstalledPlugins(dbExtension.db)
                         }
                     }
                 }

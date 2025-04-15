@@ -50,7 +50,7 @@ fun Application.configureRouting() {
                 admin()
                 disablePlugin(get())
                 enablePlugin(get())
-                getInstalledPlugins()
+                getInstalledPlugins(get())
                 organizations()
                 products()
                 repositories()
