@@ -37,6 +37,7 @@ import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByO
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { Project } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -69,72 +70,44 @@ const renderSubComponent = ({ row }: { row: Row<Project> }) => {
 
   return (
     <div className='flex flex-col gap-4'>
-      {project.authors.length > 0 && (
-        <div className='flex gap-2'>
-          <div className='font-semibold'>Authors:</div>
-          <div>{project.authors.join(', ')}</div>
-        </div>
-      )}
-      {project.description && (
-        <div className='flex gap-2'>
-          <div className='font-semibold'>Description:</div>
-          <div>{project.description}</div>
-        </div>
-      )}
-      {project.homepageUrl && (
-        <div className='flex gap-2'>
-          <div className='font-semibold'>Homepage:</div>
-          <div>{project.homepageUrl}</div>
-        </div>
-      )}
+      <div className='flex gap-2'>
+        <div className='font-semibold'>Authors:</div>
+        <FormattedValue value={project.authors} />
+      </div>
+      <div className='flex gap-2'>
+        <div className='font-semibold'>Description:</div>
+        <FormattedValue value={project.description} />
+      </div>
+      <div className='flex gap-2'>
+        <div className='font-semibold'>Homepage:</div>
+        <FormattedValue value={project.homepageUrl} type='url' />
+      </div>
+
       <div>
         <div className='font-semibold'>Repository</div>
         <div className='ml-2'>
-          {project.vcsProcessed.url && (
-            <div className='flex gap-2'>
-              <div className='font-semibold'>URL:</div>
-              <a
-                href={project.vcsProcessed.url}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-blue-400 hover:underline'
-              >
-                {project.vcsProcessed.url}
-              </a>
-            </div>
-          )}
-          {project.vcsProcessed.type && (
-            <div className='flex gap-2'>
-              <div className='font-semibold'>Type:</div>
-              <div>{project.vcsProcessed.type}</div>
-            </div>
-          )}
-          {project.vcsProcessed.revision && (
-            <div className='flex gap-2'>
-              <div className='font-semibold'>Revision:</div>
-              <div>{project.vcsProcessed.revision}</div>
-            </div>
-          )}
-          {project.vcsProcessed.path && (
-            <div className='flex gap-2'>
-              <div className='font-semibold'>Path:</div>
-              <div>{project.vcsProcessed.path} </div>
-            </div>
-          )}
-        </div>
-      </div>
-      {project.scopeNames.length > 0 && (
-        <div className='flex flex-col'>
-          <div className='font-semibold'>Scopes</div>
-          <div>
-            {project.scopeNames.sort().map((scope) => (
-              <div className='text-muted-foreground ml-2' key={scope}>
-                {scope}
-              </div>
-            ))}
+          <div className='flex gap-2'>
+            <div className='font-semibold'>URL:</div>
+            <FormattedValue value={project.vcsProcessed.url} type='url' />
+          </div>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>Type:</div>
+            <FormattedValue value={project.vcsProcessed.type} />
+          </div>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>Revision:</div>
+            <FormattedValue value={project.vcsProcessed.revision} />
+          </div>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>Path:</div>
+            <FormattedValue value={project.vcsProcessed.path} />{' '}
           </div>
         </div>
-      )}
+      </div>
+      <div className='flex flex-col'>
+        <div className='font-semibold'>Scopes</div>
+        <FormattedValue value={project.scopeNames} type='array' />
+      </div>
     </div>
   );
 };

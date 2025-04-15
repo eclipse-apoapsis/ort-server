@@ -38,6 +38,7 @@ import {
 } from '@/api/queries/suspense';
 import { RuleViolation, Severity } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Badge } from '@/components/ui/badge';
@@ -74,9 +75,13 @@ const renderSubComponent = ({ row }: { row: Row<RuleViolation> }) => {
       <div>{ruleViolation.message}</div>
       <div className='grid grid-cols-8 gap-2'>
         <div className='col-span-2 font-semibold'>License:</div>
-        <div className='col-span-6'>{ruleViolation.license}</div>
+        <div className='col-span-6'>
+          <FormattedValue value={ruleViolation.license} />
+        </div>
         <div className='col-span-2 font-semibold'>License source:</div>
-        <div className='col-span-6'>{ruleViolation.licenseSource}</div>
+        <div className='col-span-6'>
+          <FormattedValue value={ruleViolation.licenseSource} />
+        </div>
         <div className='col-span-2 font-semibold'>How to fix:</div>
       </div>
       <MarkdownRenderer markdown={ruleViolation.howToFix} />
