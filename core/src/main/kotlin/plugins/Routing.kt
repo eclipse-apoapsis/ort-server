@@ -25,6 +25,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
 import org.eclipse.apoapsis.ortserver.core.api.admin
+import org.eclipse.apoapsis.ortserver.core.api.authentication
 import org.eclipse.apoapsis.ortserver.core.api.downloads
 import org.eclipse.apoapsis.ortserver.core.api.healthChecks
 import org.eclipse.apoapsis.ortserver.core.api.organizations
@@ -36,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.core.api.versions
 fun Application.configureRouting() {
     routing {
         route("api/v1") {
+            authentication()
             healthChecks()
             downloads()
             authenticate(SecurityConfigurations.token) {
