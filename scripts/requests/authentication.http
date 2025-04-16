@@ -1,0 +1,2 @@
+### Get the OpenID Connect authentication configuration for the CLI
+GET {{host}}/auth/oidc-config/cli

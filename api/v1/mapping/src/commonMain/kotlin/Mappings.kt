@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.MailServerConfiguration as ApiMailServerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJob as ApiNotifierJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration as ApiNotifierJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.OidcConfig as ApiOidcConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue as ApiOptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization as ApiOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
@@ -140,6 +141,7 @@ import org.eclipse.apoapsis.ortserver.model.UserGroup
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
+import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
@@ -897,3 +899,5 @@ fun Project.mapToApi() = ApiProject(
 )
 
 fun UserDisplayName.mapToApi() = ApiUserDisplayName(username, fullName)
+
+fun OidcConfig.mapToApi() = ApiOidcConfig(accessTokenUrl, clientId)
