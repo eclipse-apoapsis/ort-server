@@ -19,10 +19,16 @@
 
 import { createFileRoute } from '@tanstack/react-router';
 
+import {
+  usePluginsServiceGetApiV1AdminPluginsKey,
+  usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdDisable,
+  usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdEnable,
+} from '@/api/queries';
 import { prefetchUsePluginsServiceGetApiV1AdminPlugins } from '@/api/queries/prefetch.ts';
 import { usePluginsServiceGetApiV1AdminPluginsSuspense } from '@/api/queries/suspense.ts';
-import { PluginDescriptor } from '@/api/requests';
+import { ApiError, PluginDescriptor } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
+import { ToastError } from '@/components/toast-error.tsx';
 import {
   Card,
   CardContent,
@@ -30,6 +36,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card.tsx';
+import { Switch } from '@/components/ui/switch.tsx';
+import { queryClient } from '@/lib/query-client.ts';
+import { toast } from '@/lib/toast.ts';
 
 type PluginListCardProps = {
   title: string;
@@ -41,24 +50,90 @@ const PluginListCard = ({
   title,
   description,
   plugins,
-}: PluginListCardProps) => (
-  <Card className='mb-4 h-fit'>
-    <CardHeader>
-      <CardTitle>{title}</CardTitle>
-      <CardDescription>{description}</CardDescription>
-    </CardHeader>
-    <CardContent>
-      {plugins.map((plugin) => (
-        <Card key={plugin.id} className='mb-2'>
-          <CardHeader>
-            <CardTitle>{plugin.displayName}</CardTitle>
-            <CardDescription>{plugin.description}</CardDescription>
-          </CardHeader>
-        </Card>
-      ))}
-    </CardContent>
-  </Card>
-);
+}: PluginListCardProps) => {
+  const enablePlugin =
+    usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdEnable();
+  const disablePlugin =
+    usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdDisable();
+
+  const handleToggle = (plugin: PluginDescriptor) => {
+    if (plugin.enabled) {
+      disablePlugin.mutate(
+        { pluginType: plugin.type, pluginId: plugin.id },
+        {
+          onSuccess: () => {
+            toast.info('Disable Plugin', {
+              description: `Plugin "${plugin.displayName}" disabled successfully.`,
+            });
+            queryClient.invalidateQueries({
+              queryKey: [usePluginsServiceGetApiV1AdminPluginsKey],
+            });
+          },
+          onError(error: ApiError) {
+            toast.error(error.message, {
+              description: <ToastError error={error} />,
+              duration: Infinity,
+              cancel: {
+                label: 'Dismiss',
+                onClick: () => {},
+              },
+            });
+          },
+        }
+      );
+    } else {
+      enablePlugin.mutate(
+        { pluginType: plugin.type, pluginId: plugin.id },
+        {
+          onSuccess: () => {
+            toast.info('Enable Plugin', {
+              description: `Plugin "${plugin.displayName}" enabled successfully.`,
+            });
+            queryClient.invalidateQueries({
+              queryKey: [usePluginsServiceGetApiV1AdminPluginsKey],
+            });
+          },
+          onError(error: ApiError) {
+            toast.error(error.message, {
+              description: <ToastError error={error} />,
+              duration: Infinity,
+              cancel: {
+                label: 'Dismiss',
+                onClick: () => {},
+              },
+            });
+          },
+        }
+      );
+    }
+  };
+
+  return (
+    <Card className='mb-4 h-fit'>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {plugins.map((plugin) => (
+          <Card key={plugin.id} className='mb-2'>
+            <CardHeader className='flex items-start justify-between'>
+              <div>
+                <CardTitle>{plugin.displayName}</CardTitle>
+                <CardDescription>{plugin.description}</CardDescription>
+              </div>
+              <Switch
+                className='data-[state=checked]:bg-green-500'
+                checked={plugin.enabled}
+                onCheckedChange={() => handleToggle(plugin)}
+              />
+            </CardHeader>
+          </Card>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
 
 const PluginsComponent = () => {
   const { data: plugins } = usePluginsServiceGetApiV1AdminPluginsSuspense();
