@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import { RepositoryType } from '@/api/requests';
+
 /**
  * Redefine or extend some data types coming from the OpenAPI Query Client for UI purposes.
  * Also define types and constants for UI usage which are not included in the query client.
@@ -178,3 +180,16 @@ export const reportFormats = [
     label: 'ORT Run Statistics',
   },
 ] as const;
+
+// Some types coming from the query client need to be shown in a more user-friendly way.
+
+const repositoryTypeLabels: Record<RepositoryType, string> = {
+  GIT: 'Git',
+  GIT_REPO: 'Git-Repo',
+  MERCURIAL: 'Mercurial',
+  SUBVERSION: 'Subversion',
+};
+
+export function getRepositoryTypeLabel(type: RepositoryType): string {
+  return repositoryTypeLabels[type] || 'Unset';
+}
