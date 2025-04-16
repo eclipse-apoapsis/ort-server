@@ -78,10 +78,12 @@ class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
         val orgId = organizationService.createOrganization(name = "name", description = "description").id
         val productId =
             organizationService.createProduct(name = "name", description = "description", organizationId = orgId).id
+        val description = "description"
         repositoryId = productService.createRepository(
             type = RepositoryType.GIT,
             url = "https://example.org/repo.git",
-            productId = productId
+            productId = productId,
+            description = description
         ).id
     }
 

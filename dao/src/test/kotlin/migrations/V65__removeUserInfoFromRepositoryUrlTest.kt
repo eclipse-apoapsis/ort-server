@@ -27,7 +27,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseMigrationTestExtension
 
 @Suppress("ClassNaming")
 class V65__removeUserInfoFromRepositoryUrlTest : StringSpec() {
-    val extension = extension(DatabaseMigrationTestExtension("64", "65"))
+    val extension = extension(DatabaseMigrationTestExtension("64", "101"))
 
     init {
         "repository migration should remove user information from the repository URL" {
@@ -35,11 +35,13 @@ class V65__removeUserInfoFromRepositoryUrlTest : StringSpec() {
             val product2 = extension.fixtures.createProduct(name = "product2")
             val repository1 = extension.fixtures.createRepository(
                 url = "https://username:password@github.com/org/repo.git",
-                productId = product1.id
+                productId = product1.id,
+                description = null
             )
             val repository2 = extension.fixtures.createRepository(
                 url = "https://username@github.com/org/repo.git",
-                productId = product2.id
+                productId = product2.id,
+                description = null
             )
 
             extension.testAppliedMigration {
@@ -55,11 +57,13 @@ class V65__removeUserInfoFromRepositoryUrlTest : StringSpec() {
             val product1 = extension.fixtures.createProduct(name = "product1")
             val repository1 = extension.fixtures.createRepository(
                 url = "https://username:password@github.com/org/repo.git",
-                productId = product1.id
+                productId = product1.id,
+                description = null
             )
             val repository2 = extension.fixtures.createRepository(
                 url = "https://otherUsername:password@github.com/org/repo.git",
-                productId = product1.id
+                productId = product1.id,
+                description = null
             )
 
             extension.testAppliedMigration {

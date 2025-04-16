@@ -99,11 +99,27 @@ class ListQueryTest : StringSpec() {
 
             val organization = organizationRepository.create("Another Organization", "for testing")
             val product = productRepository.create("TestProduct", null, organization.id)
+            val description = "description"
 
-            val repo1 = repositoryRepository.create(RepositoryType.GIT, repositoryUrl.appendIndex(1), product.id)
+            val repo1 = repositoryRepository.create(
+                RepositoryType.GIT,
+                repositoryUrl.appendIndex(1),
+                product.id,
+                description
+            )
             val repo2 =
-                repositoryRepository.create(RepositoryType.SUBVERSION, repositoryUrl.appendIndex(2), product.id)
-            val repo3 = repositoryRepository.create(RepositoryType.GIT, repositoryUrl.appendIndex(3), product.id)
+                repositoryRepository.create(
+                    RepositoryType.SUBVERSION,
+                    repositoryUrl.appendIndex(2),
+                    product.id,
+                    description
+                )
+            val repo3 = repositoryRepository.create(
+                RepositoryType.GIT,
+                repositoryUrl.appendIndex(3),
+                product.id,
+                description
+            )
 
             val parameters = ListQueryParameters(
                 sortFields = listOf(
@@ -138,7 +154,12 @@ class ListQueryTest : StringSpec() {
             val organization = organizationRepository.create("Run Organization", null)
             val product = productRepository.create("Run Product", null, organization.id)
             val repo =
-                repositoryRepository.create(RepositoryType.GIT, "https://repo.example.org/run.git", product.id)
+                repositoryRepository.create(
+                    RepositoryType.GIT,
+                    "https://repo.example.org/run.git",
+                    product.id,
+                    "description"
+                )
             val runs = (1..3).map { idx ->
                 ortRunRepository.create(
                     repo.id,

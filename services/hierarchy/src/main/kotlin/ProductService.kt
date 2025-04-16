@@ -54,8 +54,13 @@ class ProductService(
     /**
      * Create a repository inside a [product][productId].
      */
-    suspend fun createRepository(type: RepositoryType, url: String, productId: Long): Repository = db.dbQueryCatching {
-        repositoryRepository.create(type, url, productId)
+    suspend fun createRepository(
+        type: RepositoryType,
+        url: String,
+        productId: Long,
+        description: String?
+    ): Repository = db.dbQueryCatching {
+        repositoryRepository.create(type, url, productId, description)
     }.onSuccess { repository ->
         runCatching {
             authorizationService.createRepositoryPermissions(repository.id)

@@ -63,23 +63,25 @@ class DaoRepositoryRepositoryTest : StringSpec({
     "create should create an entry in the database" {
         val type = RepositoryType.GIT
         val url = "https://example.com/repo.git"
+        val description = "description"
 
-        val createdRepository = repositoryRepository.create(type, url, productId)
+        val createdRepository = repositoryRepository.create(type, url, productId, description)
 
         val dbEntry = repositoryRepository.get(createdRepository.id)
 
         dbEntry.shouldNotBeNull()
-        dbEntry shouldBe Repository(createdRepository.id, orgId, productId, type, url)
+        dbEntry shouldBe Repository(createdRepository.id, orgId, productId, type, url, description)
     }
 
     "create should throw an exception if a repository with the same url exists" {
         val type = RepositoryType.GIT
         val url = "https://example.com/repo.git"
+        val description = "description"
 
-        repositoryRepository.create(type, url, productId)
+        repositoryRepository.create(type, url, productId, description)
 
         shouldThrow<UniqueConstraintException> {
-            repositoryRepository.create(type, url, productId)
+            repositoryRepository.create(type, url, productId, description)
         }
     }
 
@@ -111,15 +113,16 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
         val url1 = "https://example.com/repo1.git"
         val url2 = "https://example.com/repo2.git"
+        val description = "description"
 
-        val createdRepository1 = repositoryRepository.create(type, url1, productId)
-        val createdRepository2 = repositoryRepository.create(type, url2, productId)
+        val createdRepository1 = repositoryRepository.create(type, url1, productId, description)
+        val createdRepository2 = repositoryRepository.create(type, url2, productId, description)
 
         repositoryRepository.listForProduct(productId) shouldBe
                 ListQueryResult(
                     data = listOf(
-                        Repository(createdRepository1.id, orgId, productId, type, url1),
-                        Repository(createdRepository2.id, orgId, productId, type, url2)
+                        Repository(createdRepository1.id, orgId, productId, type, url1, description),
+                        Repository(createdRepository2.id, orgId, productId, type, url2, description)
                     ),
                     params = ListQueryParameters.DEFAULT,
                     totalCount = 2
@@ -131,18 +134,19 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
         val url1 = "https://example.com/repo1.git"
         val url2 = "https://example.com/repo2.git"
+        val description = "description"
 
         val parameters = ListQueryParameters(
             sortFields = listOf(OrderField("url", OrderDirection.DESCENDING)),
             limit = 1
         )
 
-        repositoryRepository.create(type, url1, productId)
-        val createdRepository2 = repositoryRepository.create(type, url2, productId)
+        repositoryRepository.create(type, url1, productId, description)
+        val createdRepository2 = repositoryRepository.create(type, url2, productId, description)
 
         repositoryRepository.listForProduct(productId, parameters) shouldBe
                 ListQueryResult(
-                    data = listOf(Repository(createdRepository2.id, orgId, productId, type, url2)),
+                    data = listOf(Repository(createdRepository2.id, orgId, productId, type, url2, description)),
                     params = parameters,
                     totalCount = 2
                 )
@@ -150,7 +154,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
     "update should update an entry in the database" {
         val createdRepository =
-            repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId)
+            repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId, null)
 
         val updateType = RepositoryType.SUBVERSION.asPresent()
         val updateUrl = "https://svn.example.com/repos/org/repo/trunk".asPresent()
@@ -179,9 +183,10 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
         val url1 = "https://example.com/repo1.git"
         val url2 = "https://example.com/repo2.git"
+        val description = "description"
 
-        repositoryRepository.create(type, url1, productId)
-        val createdRepository2 = repositoryRepository.create(type, url2, productId)
+        repositoryRepository.create(type, url1, productId, description)
+        val createdRepository2 = repositoryRepository.create(type, url2, productId, description)
 
         val updateType = OptionalValue.Absent
         val updateUrl = url1.asPresent()
@@ -193,7 +198,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
     "delete should delete the database entry" {
         val createdRepository =
-            repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId)
+            repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId, "description")
 
         repositoryRepository.delete(createdRepository.id)
 
@@ -205,13 +210,23 @@ class DaoRepositoryRepositoryTest : StringSpec({
     }
 
     "get should return the repository" {
-        val repository = repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId)
+        val repository = repositoryRepository.create(
+            RepositoryType.GIT,
+            "https://example.com/repo.git",
+            productId,
+            "description"
+        )
 
         repositoryRepository.get(repository.id) shouldBe repository
     }
 
     "getHierarchy should return the structure of the repository" {
-        val repository = repositoryRepository.create(RepositoryType.GIT, "https://example.com/repo.git", productId)
+        val repository = repositoryRepository.create(
+            RepositoryType.GIT,
+            "https://example.com/repo.git",
+            productId,
+            "description"
+        )
 
         val expectedHierarchy = Hierarchy(repository, fixtures.product, fixtures.organization)
 

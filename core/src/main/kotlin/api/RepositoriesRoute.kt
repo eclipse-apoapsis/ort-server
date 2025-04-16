@@ -105,7 +105,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         val updatedRepository = repositoryService.updateRepository(
             id,
             updateRepository.type.mapToModel { it.mapToModel() },
-            updateRepository.url.mapToModel()
+            updateRepository.url.mapToModel(),
+            updateRepository.description.mapToModel()
         )
 
         call.respond(HttpStatusCode.OK, updatedRepository.mapToApi())

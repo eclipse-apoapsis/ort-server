@@ -458,7 +458,7 @@ fun ApiComparisonOperator.mapToModel() = ComparisonOperator.valueOf(name)
 
 fun Product.mapToApi() = ApiProduct(id, organizationId, name, description)
 
-fun Repository.mapToApi() = ApiRepository(id, organizationId, productId, type.mapToApi(), url)
+fun Repository.mapToApi() = ApiRepository(id, organizationId, productId, type.mapToApi(), url, description)
 
 fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 
