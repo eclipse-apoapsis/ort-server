@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.core.utils
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
 
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
@@ -38,7 +39,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-import org.eclipse.apoapsis.ortserver.core.plugins.DatabaseReady
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobDao
@@ -111,7 +111,7 @@ class JobMetrics(private val application: Application) : MeterBinder {
             .description("The duration of notifier jobs in the queue.")
             .register(registry)
 
-        application.monitor.subscribe(DatabaseReady) {
+        application.monitor.subscribe(ApplicationStarted) {
             val component = MDC.get("component")
 
             OrtRunStatus.entries.forEach { status ->
