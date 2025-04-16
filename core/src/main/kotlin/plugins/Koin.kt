@@ -26,10 +26,10 @@ import org.eclipse.apoapsis.ortserver.core.di.ortServerModule
 
 import org.koin.ktor.plugin.Koin
 
-fun Application.configureKoin() {
+fun Application.configureKoin(setupDatabase: Boolean = true) {
     install(Koin) {
         modules(
-            ortServerModule(environment.config)
+            ortServerModule(environment.config, setupDatabase)
         )
     }
 }

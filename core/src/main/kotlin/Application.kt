@@ -42,7 +42,6 @@ fun Application.module() {
     configureMonitoring()
     configureMetrics()
     configureHTTP()
-    configureDatabase()
     configureOpenApi()
     configureValidation()
 }

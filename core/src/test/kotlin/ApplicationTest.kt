@@ -39,7 +39,7 @@ fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
  *                   authentication which is always valid.
  */
 fun Application.testModule() {
-    configureKoin()
+    configureKoin(setupDatabase = false)
     configureTestAuthentication()
     configureStatusPages()
     configureRouting()
@@ -53,7 +53,7 @@ fun Application.testModule() {
  * A test application configuration that requires Keycloak to be run in the integration test.
  */
 fun Application.testAuthModule() {
-    configureKoin()
+    configureKoin(setupDatabase = false)
     configureAuthentication(get(), get())
     configureStatusPages()
     configureRouting()

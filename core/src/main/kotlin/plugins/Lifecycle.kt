@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
 
 import kotlin.concurrent.thread
 
@@ -39,7 +40,7 @@ import org.slf4j.MDC
  * [lifecycle events][https://ktor.io/docs/events.html#handle-events-application].
  */
 fun Application.configureLifecycle() {
-    monitor.subscribe(DatabaseReady) {
+    monitor.subscribe(ApplicationStarted) {
         val authorizationService by inject<AuthorizationService>()
 
         val mdcContext = MDC.getCopyOfContextMap()

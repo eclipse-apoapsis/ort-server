@@ -32,6 +32,10 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.createKeycloakClientConfiguration
+import org.eclipse.apoapsis.ortserver.dao.DataSourceConfig
+import org.eclipse.apoapsis.ortserver.dao.connect
+import org.eclipse.apoapsis.ortserver.dao.createDataSource
+import org.eclipse.apoapsis.ortserver.dao.migrate
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.DaoEvaluatorJobRepository
@@ -79,10 +83,17 @@ import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.storage.Storage
 
+import org.jetbrains.exposed.sql.Database
+
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-fun ortServerModule(config: ApplicationConfig) = module {
+/**
+ * Creates the Koin module for the ORT server. The [config] is used to configure the application and the database. For
+ * integration tests, the [setupDatabase] flag can be set to `false` as the data source will be provided by the
+ * testcontainer there.
+ */
+fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = module {
     single { config }
     single { ConfigFactory.parseMap(config.toMap()) }
 
@@ -97,6 +108,19 @@ fun ortServerModule(config: ApplicationConfig) = module {
 
     single<KeycloakClient> {
         DefaultKeycloakClient.create(get<ConfigManager>().createKeycloakClientConfiguration(), get())
+    }
+
+    if (setupDatabase) {
+        single<Database>(createdAtStart = true) {
+            val configManager = get<ConfigManager>()
+            val dataSourceConfig = DataSourceConfig.create(configManager)
+            val dataSource = createDataSource(dataSourceConfig)
+            dataSource.connect().also {
+                // This is the only place where migrations for the database are done. While other services can connect
+                // to the database, they must not handle migrations.
+                dataSource.migrate()
+            }
+        }
     }
 
     single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
