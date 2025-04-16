@@ -121,9 +121,22 @@ spec:
               value: {{ .Values.rabbitmq.auth.username }}
             - name: ORCHESTRATOR_RECEIVER_TRANSPORT_PASSWORD
               value: {{ .Values.rabbitmq.auth.password }}
+            - name: ORCHESTRATOR_SECRET_PROVIDER
+              value: "secret-file"
+            - name: ORCHESTRATOR_SECRET_FILES
+              value: "/mnt/secrets/secrets.properties"
             {{- end }}
           image: ort-server-orchestrator
           imagePullPolicy: Never
           # TODO: Add liveness probe.
           name: orchestrator
+      {{- if .Values.rabbitmq.enabled }}
+          volumeMounts:
+            - mountPath: "/mnt/secrets"
+              name: orchestrator-vol
+      volumes:
+        - name: orchestrator-vol
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-orchestrator-pvc
+      {{- end }}
       restartPolicy: Always

@@ -1,0 +1,35 @@
+{{- if .Values.rabbitmq.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    ort-server.service: {{ .Release.Name }}-orchestrator-pv
+  name: {{ .Release.Name }}-orchestrator-pv
+spec:
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadOnlyMany
+  # The volume configuration for orchestrator is split between a Persistent Volume and a Persistent Volume Claim.
+  # For Minikube, the volume type is `hostPath` which is the only supported value. In production another type will be
+  # used such as `local`.
+  hostPath:
+    # This directory should be mounted with `minikube mount` to contain orchestrator secret files
+    # The mount can be verified with `minikube ssh`.
+    path: {{ .Values.ort_server.orchestrator.secret.files.path }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    ort-server.service: {{ .Release.Name }}-orchestrator-pvc
+  name: {{ .Release.Name }}-orchestrator-pvc
+spec:
+  volumeName: {{ .Release.Name }}-orchestrator-pv
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 1Mi
+{{- end }}

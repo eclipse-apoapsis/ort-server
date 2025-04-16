@@ -88,6 +88,12 @@ minikube mount scripts/docker/keycloak:/docker-entrypoint-initdb.d &
 minikube mount scripts/docker/keycloak:/opt/bitnami/keycloak/data/import &
 ```
 
+if you are enabled rabbitmq, you have to mount the directory containing secrets files for orchestrator:
+
+```shell
+minikube mount scripts/compose:/data/orchestrator &
+```
+
 ## Usage
 
 When a dependency changes in the chart, update the version in the Chart.yml and then run:
