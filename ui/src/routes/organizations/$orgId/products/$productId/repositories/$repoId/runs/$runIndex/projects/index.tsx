@@ -35,7 +35,7 @@ import { useMemo } from 'react';
 import { useRunsServiceGetApiV1RunsByRunIdProjects } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
-import { Project } from '@/api/requests';
+import { Project, RepositoryType } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -53,6 +53,7 @@ import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
+import { getRepositoryTypeLabel } from '@/lib/types';
 import {
   declaredLicenseSearchParameterSchema,
   definitionFilePathSearchParameterSchema,
@@ -85,7 +86,8 @@ const renderSubComponent = ({ row }: { row: Row<Project> }) => {
 
       <div>
         <div className='font-semibold'>
-          {project.vcsProcessed.type} Repository
+          {getRepositoryTypeLabel(project.vcsProcessed.type as RepositoryType)}{' '}
+          Repository
         </div>
         <div className='ml-2'>
           <div className='flex gap-2'>

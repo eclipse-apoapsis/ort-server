@@ -34,7 +34,7 @@ import {
   useRunsServiceGetApiV1RunsByRunIdPackagesLicensesSuspense,
   useRunsServiceGetApiV1RunsByRunIdPackagesSuspense,
 } from '@/api/queries/suspense';
-import { Package } from '@/api/requests';
+import { Package, RepositoryType } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DependencyPaths } from '@/components/dependency-paths';
 import { FormattedValue } from '@/components/formatted-value';
@@ -54,6 +54,7 @@ import {
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-to-string';
 import { toast } from '@/lib/toast';
+import { getRepositoryTypeLabel } from '@/lib/types';
 import {
   declaredLicenseSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
@@ -85,7 +86,10 @@ const renderSubComponent = ({
         </div>
       </div>
       <div>
-        <div className='font-semibold'>{pkg.vcsProcessed.type} Repository</div>
+        <div className='font-semibold'>
+          {getRepositoryTypeLabel(pkg.vcsProcessed.type as RepositoryType)}{' '}
+          Repository
+        </div>
         <div className='ml-2'>
           <div className='flex gap-2'>
             <div className='font-semibold'>URL:</div>
