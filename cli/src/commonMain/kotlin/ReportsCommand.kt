@@ -34,7 +34,7 @@ import com.github.ajalt.clikt.parameters.types.long
 import okio.Path.Companion.toPath
 
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
-import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
 import org.eclipse.apoapsis.ortserver.cli.utils.writeFromChannel
@@ -77,7 +77,7 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
             throw UsageError("Either --run-id or --repository-id and --index must be provided.")
         }
 
-        val client = createOrtServerClient() ?: throw AuthenticationError()
+        val client = createAuthenticatedOrtServerClient() ?: throw AuthenticationError()
         val resolvedOrtRunId = runId ?: ortRunByIndex?.let {
             client.repositories.getOrtRun(it.repositoryId, it.ortRunIndex).id
         } ?: throw ProgramResult(1)

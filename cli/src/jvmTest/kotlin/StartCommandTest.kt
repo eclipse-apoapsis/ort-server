@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
 import org.eclipse.apoapsis.ortserver.cli.json
-import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
@@ -75,8 +75,8 @@ class StartCommandTest : StringSpec({
             every { repositories } returns repositoryMock
         }
 
-        mockkStatic(::createOrtServerClient)
-        every { createOrtServerClient() } returns ortServerClientMock
+        mockkStatic(::createAuthenticatedOrtServerClient)
+        every { createAuthenticatedOrtServerClient() } returns ortServerClientMock
 
         val command = OrtServerMain()
         val result = command.test(
@@ -135,8 +135,8 @@ class StartCommandTest : StringSpec({
         val ortServerClientMock = mockk<OrtServerClient> {
             every { repositories } returns repositoryMock
         }
-        mockkStatic(::createOrtServerClient)
-        every { createOrtServerClient() } returns ortServerClientMock
+        mockkStatic(::createAuthenticatedOrtServerClient)
+        every { createAuthenticatedOrtServerClient() } returns ortServerClientMock
 
         System.setProperty("POLL_INTERVAL", "1")
 
@@ -176,8 +176,8 @@ class StartCommandTest : StringSpec({
         val ortServerClientMock = mockk<OrtServerClient> {
             every { repositories } returns repositoryMock
         }
-        mockkStatic(::createOrtServerClient)
-        every { createOrtServerClient() } returns ortServerClientMock
+        mockkStatic(::createAuthenticatedOrtServerClient)
+        every { createAuthenticatedOrtServerClient() } returns ortServerClientMock
 
         val command = OrtServerMain()
         shouldThrow<NotFoundException> {

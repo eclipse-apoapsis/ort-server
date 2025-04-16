@@ -40,7 +40,7 @@ import org.eclipse.apoapsis.ortserver.client.createOrtHttpClient
  * Create an authenticated ORT Server client using the stored authentication. Returns null if the user is not
  * authenticated.
  */
-fun createOrtServerClient() = AuthenticationStorage.get()?.let { createOrtServerClient(it) }
+fun createAuthenticatedOrtServerClient() = AuthenticationStorage.get()?.let { createAuthenticatedOrtServerClient(it) }
 
 /**
  * Create a [HttpClient] using [url] for its requests.
@@ -55,7 +55,7 @@ private fun createHttpClient(url: String) = createOrtHttpClient(JSON) {
  * Create a new instance of the ORT server client using the given [authDetails] and configure an HTTP client
  * with the necessary authentication.
  */
-private fun createOrtServerClient(authDetails: HostAuthenticationDetails): OrtServerClient {
+private fun createAuthenticatedOrtServerClient(authDetails: HostAuthenticationDetails): OrtServerClient {
     val authenticatedClient = createHttpClient(authDetails.baseUrl).config {
         install(Auth) {
             bearer {

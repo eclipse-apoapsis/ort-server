@@ -53,7 +53,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
 import org.eclipse.apoapsis.ortserver.cli.model.CliInputException
 import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
-import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.read
 import org.eclipse.apoapsis.ortserver.cli.utils.useJsonFormat
@@ -102,7 +102,7 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
             )
         }
 
-        val client = createOrtServerClient() ?: throw AuthenticationError()
+        val client = createAuthenticatedOrtServerClient() ?: throw AuthenticationError()
 
         var ortRun = try {
             client.repositories.createOrtRun(repositoryId, createOrtRun)

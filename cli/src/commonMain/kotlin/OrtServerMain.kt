@@ -34,7 +34,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.cli.model.OrtServerCliException
-import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.echoError
 import org.eclipse.apoapsis.ortserver.cli.utils.useJsonFormat
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
@@ -105,7 +105,7 @@ class OrtServerMain : SuspendingCliktCommand(COMMAND_NAME) {
      * Build the version information for the CLI and (if authenticated) for the ORT Server.
      */
     private suspend fun buildVersionInformation(cliVersion: String): String {
-        val serverVersions = runCatching { createOrtServerClient()?.versions?.getVersions() }.getOrNull()
+        val serverVersions = runCatching { createAuthenticatedOrtServerClient()?.versions?.getVersions() }.getOrNull()
 
         return buildString {
             appendLine("$commandName version $cliVersion")
