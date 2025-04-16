@@ -31,9 +31,7 @@ jobs:
         uses: eclipse-apoapsis/setup-osc@main
         with:
           osc-version: 0.1.0-RC16
-          base-url: https://ort-server.example.com
-          token-url: https://auth.example.com/realms/prod/protocol/openid-connect/token
-          client-id: ort-server-prod
+          url: https://ort-server.example.com
           username: user
           password: ${{ secrets.ORT_SERVER_PASSWORD }}
 
@@ -80,8 +78,6 @@ Most operations require authentication with your ORT Server instance. The follow
 ```shell
 osc auth login \
     --url <ORT_SERVER_URL> \
-    --token-url <TOKEN_URL> \
-    --client-id <CLIENT_ID> \
     --username <USERNAME> \
     --password <PASSWORD>
 ```
@@ -122,8 +118,6 @@ For example, to authenticate:
 
 ```shell
 export OSC_ORT_SERVER_URL="<ORT_SERVER_URL>"
-export OSC_ORT_SERVER_TOKEN_URL="<TOKEN_URL>"
-export OSC_ORT_SERVER_CLIENT_ID="<CLIENT_ID>"
 export OSC_ORT_SERVER_USERNAME="<USERNAME>"
 export OSC_ORT_SERVER_PASSWORD="<PASSWORD>"
 

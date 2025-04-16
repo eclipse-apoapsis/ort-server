@@ -43,6 +43,11 @@ import org.eclipse.apoapsis.ortserver.client.createOrtHttpClient
 fun createAuthenticatedOrtServerClient() = AuthenticationStorage.get()?.let { createAuthenticatedOrtServerClient(it) }
 
 /**
+ * Create an unauthenticated ORT Server client for the given [baseUrl].
+ */
+fun createUnauthenticatedOrtServerClient(baseUrl: String) = OrtServerClient(createHttpClient(baseUrl))
+
+/**
  * Create a [HttpClient] using [url] for its requests.
  */
 private fun createHttpClient(url: String) = createOrtHttpClient(JSON) {
