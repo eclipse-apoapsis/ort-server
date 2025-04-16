@@ -33,11 +33,12 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 
 class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
-    override fun create(type: RepositoryType, url: String, productId: Long) = db.blockingQuery {
+    override fun create(type: RepositoryType, url: String, productId: Long, description: String?) = db.blockingQuery {
         RepositoryDao.new {
             this.type = type.name
             this.url = url
             this.productId = productId
+            this.description = description
         }.mapToModel()
     }
 
@@ -58,11 +59,17 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) { RepositoriesTable.productId eq productId }
     }
 
-    override fun update(id: Long, type: OptionalValue<RepositoryType>, url: OptionalValue<String>) = db.blockingQuery {
+    override fun update(
+        id: Long,
+        type: OptionalValue<RepositoryType>,
+        url: OptionalValue<String>,
+        description: OptionalValue<String?>
+    ) = db.blockingQuery {
         val repository = RepositoryDao[id]
 
         type.ifPresent { repository.type = it.name }
         url.ifPresent { repository.url = it }
+        description.ifPresent { repository.description = it }
 
         RepositoryDao[id].mapToModel()
     }

@@ -255,7 +255,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val createdProduct = createProduct()
 
                 superuserClient.delete("/api/v1/products/${createdProduct.id}") shouldHaveStatus
-                        HttpStatusCode.NoContent
+                    HttpStatusCode.NoContent
 
                 organizationService.listProductsForOrganization(orgId).data shouldBe emptyList()
             }
@@ -269,7 +269,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
                     ProductPermission.getRolesForProduct(createdProduct.id) +
-                            ProductRole.getRolesForProduct(createdProduct.id)
+                        ProductRole.getRolesForProduct(createdProduct.id)
                 )
 
                 keycloakClient.getGroups().map { it.name.value } shouldNot containAnyOf(
@@ -294,19 +294,28 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
                 val url2 = "https://example.com/repo2.git"
+                val description = "description"
 
-                val createdRepository1 =
-                    productService.createRepository(type = type, url = url1, productId = createdProduct.id)
-                val createdRepository2 =
-                    productService.createRepository(type = type, url = url2, productId = createdProduct.id)
+                val createdRepository1 = productService.createRepository(
+                    type = type,
+                    url = url1,
+                    productId = createdProduct.id,
+                    description = description
+                )
+                val createdRepository2 = productService.createRepository(
+                    type = type,
+                    url = url2,
+                    productId = createdProduct.id,
+                    description = description
+                )
 
                 val response = superuserClient.get("/api/v1/products/${createdProduct.id}/repositories")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1),
-                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)
+                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1, description),
+                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2, description)
                     ),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -325,17 +334,36 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
                 val url2 = "https://example.com/repo2.git"
+                val description = "description"
 
-                productService.createRepository(type = type, url = url1, productId = createdProduct.id)
-                val createdRepository2 =
-                    productService.createRepository(type = type, url = url2, productId = createdProduct.id)
+                productService.createRepository(
+                    type = type,
+                    url = url1,
+                    productId = createdProduct.id,
+                    description = description
+                )
+                val createdRepository2 = productService.createRepository(
+                    type = type,
+                    url = url2,
+                    productId = createdProduct.id,
+                    description = description
+                )
 
                 val response =
                     superuserClient.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
-                    listOf(Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)),
+                    listOf(
+                        Repository(
+                            createdRepository2.id,
+                            orgId,
+                            createdProduct.id,
+                            type.mapToApi(),
+                            url2,
+                            description
+                        )
+                    ),
                     PagingData(
                         limit = 1,
                         offset = 0,
@@ -359,13 +387,14 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
+                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git", "description")
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
-                response shouldHaveBody Repository(1, orgId, createdProduct.id, repository.type, repository.url)
+                response shouldHaveBody
+                    Repository(1, orgId, createdProduct.id, repository.type, repository.url, repository.description)
             }
         }
 
@@ -414,7 +443,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 keycloakClient.getRoles().map { it.name.value } should containAll(
                     RepositoryPermission.getRolesForRepository(createdRepository.id) +
-                            RepositoryRole.getRolesForRepository(createdRepository.id)
+                        RepositoryRole.getRolesForRepository(createdRepository.id)
                 )
 
                 keycloakClient.getGroups().map { it.name.value } should containAll(
@@ -506,7 +535,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val productId = createProduct().id
 
                 superuserClient.get("/api/v1/products/$productId/secrets/999999") shouldHaveStatus
-                        HttpStatusCode.NotFound
+                    HttpStatusCode.NotFound
             }
         }
 
@@ -607,7 +636,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
                 secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi() shouldBe
-                        Secret(secret.name, updatedDescription)
+                    Secret(secret.name, updatedDescription)
             }
         }
 
@@ -662,7 +691,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val secret = createSecret(productId)
 
                 superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}") shouldHaveStatus
-                        HttpStatusCode.NoContent
+                    HttpStatusCode.NoContent
 
                 secretRepository.listForProduct(productId).data shouldBe emptyList()
 
@@ -704,7 +733,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val secret = createSecret(productId, path = secretErrorPath)
 
                 superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}") shouldHaveStatus
-                        HttpStatusCode.InternalServerError
+                    HttpStatusCode.InternalServerError
 
                 secretRepository.getByProductIdAndName(productId, secret.name) shouldBe secret
             }
@@ -950,15 +979,18 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "return vulnerabilities across repositories in the product found in latest successful advisor jobs" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val description = "description"
                 val repository1Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.org/repo.git",
-                    productId = productId
+                    productId = productId,
+                    description = description
                 ).id
                 val repository2Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.org/repo2.git",
-                    productId = productId
+                    productId = productId,
+                    description = description
                 ).id
 
                 val commonVulnerability = Vulnerability(
@@ -1103,26 +1135,26 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val commonPackage = generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
 
                 val commonVulnerability = Identifier("Maven", "com.example", "example", "1.0") to
-                        listOf(
-                            generateAdvisorResult(
-                                listOf(
-                                    Vulnerability(
-                                        externalId = "CVE-2023-5234",
-                                        summary = "A vulnerability",
-                                        description = "A description",
-                                        references = listOf(
-                                            VulnerabilityReference(
-                                                url = "https://example.com",
-                                                scoringSystem = "CVSS",
-                                                severity = "CRITICAL",
-                                                score = 1.1f,
-                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-                                            )
+                    listOf(
+                        generateAdvisorResult(
+                            listOf(
+                                Vulnerability(
+                                    externalId = "CVE-2023-5234",
+                                    summary = "A vulnerability",
+                                    description = "A description",
+                                    references = listOf(
+                                        VulnerabilityReference(
+                                            url = "https://example.com",
+                                            scoringSystem = "CVSS",
+                                            severity = "CRITICAL",
+                                            score = 1.1f,
+                                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
                                         )
                                     )
                                 )
                             )
                         )
+                    )
 
                 val commonRuleViolation = OrtRuleViolation(
                     "rule",
@@ -1166,26 +1198,26 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     advJob1Id,
                     mapOf(
                         Identifier("NPM", "com.example", "example2", "1.0") to
-                                listOf(
-                                    generateAdvisorResult(
-                                        listOf(
-                                            Vulnerability(
-                                                externalId = "CVE-2021-1234",
-                                                summary = "A vulnerability",
-                                                description = "A description",
-                                                references = listOf(
-                                                    VulnerabilityReference(
-                                                        url = "https://example.com",
-                                                        scoringSystem = "CVSS",
-                                                        severity = "LOW",
-                                                        score = 1.1f,
-                                                        vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-                                                    )
+                            listOf(
+                                generateAdvisorResult(
+                                    listOf(
+                                        Vulnerability(
+                                            externalId = "CVE-2021-1234",
+                                            summary = "A vulnerability",
+                                            description = "A description",
+                                            references = listOf(
+                                                VulnerabilityReference(
+                                                    url = "https://example.com",
+                                                    scoringSystem = "CVSS",
+                                                    severity = "LOW",
+                                                    score = 1.1f,
+                                                    vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
                                                 )
                                             )
                                         )
                                     )
-                                ),
+                                )
+                            ),
                         commonVulnerability
                     )
                 )
@@ -1256,26 +1288,26 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     advJob2Id,
                     mapOf(
                         Identifier("PyPI", "", "example", "1.0") to
-                                listOf(
-                                    generateAdvisorResult(
-                                        listOf(
-                                            Vulnerability(
-                                                externalId = "CVE-2020-2346",
-                                                summary = "A vulnerability",
-                                                description = "A description",
-                                                references = listOf(
-                                                    VulnerabilityReference(
-                                                        url = "https://example.com",
-                                                        scoringSystem = "CVSS",
-                                                        severity = "MEDIUM",
-                                                        score = 5.1f,
-                                                        vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-                                                    )
+                            listOf(
+                                generateAdvisorResult(
+                                    listOf(
+                                        Vulnerability(
+                                            externalId = "CVE-2020-2346",
+                                            summary = "A vulnerability",
+                                            description = "A description",
+                                            references = listOf(
+                                                VulnerabilityReference(
+                                                    url = "https://example.com",
+                                                    scoringSystem = "CVSS",
+                                                    severity = "MEDIUM",
+                                                    score = 5.1f,
+                                                    vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
                                                 )
                                             )
                                         )
                                     )
-                                ),
+                                )
+                            ),
                         commonVulnerability
                     )
                 )
@@ -1471,15 +1503,18 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "trigger ORT runs for repositories in the product" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val description = "description"
                 val repository1Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo1.git",
-                    productId = productId
+                    productId = productId,
+                    description = description
                 ).id
                 val repository2Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo2.git",
-                    productId = productId
+                    productId = productId,
+                    description = description
                 ).id
 
                 val createOrtRunAll = CreateOrtRun(

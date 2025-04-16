@@ -137,9 +137,10 @@ class RepositoryService(
     suspend fun updateRepository(
         repositoryId: Long,
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
-        url: OptionalValue<String> = OptionalValue.Absent
+        url: OptionalValue<String> = OptionalValue.Absent,
+        description: OptionalValue<String?> = OptionalValue.Absent
     ): Repository = db.dbQuery {
-        repositoryRepository.update(repositoryId, type, url)
+        repositoryRepository.update(repositoryId, type, url, description)
     }
 
     /**

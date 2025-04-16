@@ -44,7 +44,10 @@ data class Repository(
     val type: RepositoryType,
 
     /** The url to the repository. */
-    val url: String
+    val url: String,
+
+    /** The description of the repository. */
+    val description: String? = null
 ) {
     companion object {
         const val INVALID_URL_MESSAGE = "The repository URL is malformed."
@@ -67,7 +70,8 @@ private fun String.isValidHost() = all { it.isLetterOrDigit() || it == '.' || it
 @Serializable
 data class CreateRepository(
     val type: RepositoryType,
-    val url: String
+    val url: String,
+    val description: String? = null
 ) {
     companion object {
         val validate: ValidatorFunc<CreateRepository> = { obj ->
@@ -93,6 +97,7 @@ data class CreateRepository(
 data class UpdateRepository(
     val type: OptionalValue<RepositoryType> = OptionalValue.Absent,
     val url: OptionalValue<String> = OptionalValue.Absent,
+    val description: OptionalValue<String?> = OptionalValue.Absent
 ) {
     companion object {
         val validate: ValidatorFunc<UpdateRepository> = { obj ->

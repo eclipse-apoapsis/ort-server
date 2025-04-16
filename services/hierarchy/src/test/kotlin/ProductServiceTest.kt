@@ -68,7 +68,12 @@ class ProductServiceTest : WordSpec({
             val service =
                 ProductService(db, productRepository, repositoryRepository, ortRunRepository, authorizationService)
             val repository =
-                service.createRepository(RepositoryType.GIT, "https://example.com/repo.git", fixtures.product.id)
+                service.createRepository(
+                    RepositoryType.GIT,
+                    "https://example.com/repo.git",
+                    fixtures.product.id,
+                    "Description"
+                )
 
             coVerify(exactly = 1) {
                 authorizationService.createRepositoryPermissions(repository.id)

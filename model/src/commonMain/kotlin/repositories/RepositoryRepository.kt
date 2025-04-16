@@ -33,7 +33,7 @@ interface RepositoryRepository {
     /**
      * Create a repository.
      */
-    fun create(type: RepositoryType, url: String, productId: Long): Repository
+    fun create(type: RepositoryType, url: String, productId: Long, description: String?): Repository
 
     /**
      * Get a repository by [id]. Returns null if the repository is not found.
@@ -65,7 +65,8 @@ interface RepositoryRepository {
     fun update(
         id: Long,
         type: OptionalValue<RepositoryType> = OptionalValue.Absent,
-        url: OptionalValue<String> = OptionalValue.Absent
+        url: OptionalValue<String> = OptionalValue.Absent,
+        description: OptionalValue<String?> = OptionalValue.Absent
     ): Repository
 
     /**
