@@ -21,7 +21,7 @@
 GIT_ROOT=$(git rev-parse --show-toplevel)
 
 (cd $GIT_ROOT &&
-  ./gradlew :cli:jvmRun --args='--generate-completion=bash' -DmainClass=org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt --quiet > integrations/completions/osc-completion.bash &&
-  ./gradlew :cli:jvmRun --args='--generate-completion=fish' -DmainClass=org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt --quiet > integrations/completions/osc-completion.fish &&
-  ./gradlew :cli:jvmRun --args='--generate-completion=zsh' -DmainClass=org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt --quiet > integrations/completions/osc-completion.zsh
+  ./gradlew --quiet :cli:jvmRun --args='--generate-completion=bash' -DmainClass=org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt > integrations/completions/osc-completion.bash &&
+  ./gradlew --quiet :cli:jvmRun --args='--generate-completion=fish' -DmainClass=org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt > integrations/completions/osc-completion.fish &&
+  ./gradlew --quiet :cli:jvmRun --args='--generate-completion=zsh' -DmainClass=org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt > integrations/completions/osc-completion.zsh
 )
