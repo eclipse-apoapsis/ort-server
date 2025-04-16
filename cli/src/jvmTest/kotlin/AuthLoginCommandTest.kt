@@ -62,7 +62,7 @@ class AuthLoginCommandTest : StringSpec({
                 listOf(
                     "auth",
                     "login",
-                    "--base-url", "http://localhost:8080/",
+                    "--url", "http://localhost:8080/",
                     "--token-url", "http://localhost/token",
                     "--username", "testUser",
                     "--password", "testPassword",

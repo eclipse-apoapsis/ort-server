@@ -79,7 +79,7 @@ Most operations require authentication with your ORT Server instance. The follow
 
 ```shell
 osc auth login \
-    --base-url <ORT_SERVER_URL> \
+    --url <ORT_SERVER_URL> \
     --token-url <TOKEN_URL> \
     --client-id <CLIENT_ID> \
     --username <USERNAME> \
@@ -121,7 +121,7 @@ For automated environments like CI/CD pipelines, all command-line arguments can 
 For example, to authenticate:
 
 ```shell
-export OSC_ORT_SERVER_BASE_URL="<ORT_SERVER_URL>"
+export OSC_ORT_SERVER_URL="<ORT_SERVER_URL>"
 export OSC_ORT_SERVER_TOKEN_URL="<TOKEN_URL>"
 export OSC_ORT_SERVER_CLIENT_ID="<CLIENT_ID>"
 export OSC_ORT_SERVER_USERNAME="<USERNAME>"

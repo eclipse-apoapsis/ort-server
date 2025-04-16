@@ -38,9 +38,9 @@ import org.eclipse.apoapsis.ortserver.client.createDefaultHttpClient
  */
 class LoginCommand : SuspendingCliktCommand(name = "login") {
     private val baseUrl by option(
-        "--base-url",
-        envvar = "OSC_ORT_SERVER_BASE_URL",
-        help = "The base URL of the ORT Server instance."
+        "--url",
+        envvar = "OSC_ORT_SERVER_URL",
+        help = "The base URL of the ORT Server instance without the '/api/v1' path."
     ).convert { it.ensureSuffix("/") }.required()
 
     private val tokenUrl by option(

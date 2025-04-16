@@ -172,10 +172,10 @@ _osc_auth_login() {
           (( i = i + 1 ));
           continue
           ;;
-        --base-url)
+        --url)
           __skip_opt_eq
           (( i = i + 1 ))
-          [[ ${i} -gt COMP_CWORD ]] && in_param='--base-url' || in_param=''
+          [[ ${i} -gt COMP_CWORD ]] && in_param='--url' || in_param=''
           continue
           ;;
         --token-url)
@@ -219,7 +219,7 @@ _osc_auth_login() {
   done
   local word="${COMP_WORDS[$COMP_CWORD]}"
   if [[ "${word}" =~ ^[-] ]]; then
-    COMPREPLY=($(compgen -W '--base-url --token-url --client-id --username --password -h --help' -- "${word}"))
+    COMPREPLY=($(compgen -W '--url --token-url --client-id --username --password -h --help' -- "${word}"))
     return
   fi
 
@@ -229,7 +229,7 @@ _osc_auth_login() {
   [[ -z "${in_param}" ]] && in_param=${vararg_name}
 
   case "${in_param}" in
-    "--base-url")
+    "--url")
       ;;
     "--token-url")
       ;;
