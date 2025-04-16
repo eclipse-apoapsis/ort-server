@@ -80,13 +80,13 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.koin.ktor.ext.inject
 
 @Suppress("LongMethod")
-fun Route.repositories() = route("repositories/{repositoryId}") {
-    val orchestratorService by inject<OrchestratorService>()
-    val ortRunService by inject<OrtRunService>()
-    val repositoryService by inject<RepositoryService>()
-    val secretService by inject<SecretService>()
-    val userService by inject<UserService>()
-
+fun Route.repositories(
+    orchestratorService: OrchestratorService,
+    ortRunService: OrtRunService,
+    repositoryService: RepositoryService,
+    secretService: SecretService,
+    userService: UserService
+) = route("repositories/{repositoryId}") {
     get(getRepositoryById) {
         requirePermission(RepositoryPermission.READ)
 

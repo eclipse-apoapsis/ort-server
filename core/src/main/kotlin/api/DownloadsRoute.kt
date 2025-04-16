@@ -30,19 +30,16 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-import org.koin.ktor.ext.inject
-
 /**
  * A function defining routes for downloading artifacts for specific ORT runs. What makes these routes special is the
  * fact that they do not require authentication. Instead, the caller has to provide a secure token that identifies the
  * artifact to download.
  */
-fun Route.downloads() = route("runs/{runId}/downloads") {
-    val ortRunRepository by inject<OrtRunRepository>()
-
+fun Route.downloads(
+    ortRunRepository: OrtRunRepository,
+    reportStorageService: ReportStorageService
+) = route("runs/{runId}/downloads") {
     route("report/{token}") {
-        val reportStorageService by inject<ReportStorageService>()
-
         get(getReportByRunIdAndToken) {
             call.forRun(ortRunRepository) { ortRun ->
                 val token = call.requireParameter("token")

@@ -50,12 +50,11 @@ import org.eclipse.apoapsis.ortserver.services.ContentManagementService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-import org.koin.ktor.ext.inject
-
-fun Route.admin() = route("admin") {
+fun Route.admin(
+    authorizationService: AuthorizationService,
+    userService: UserService
+) = route("admin") {
     route("sync-roles") {
-        val authorizationService by inject<AuthorizationService>()
-
         get(runPermissionsSync) {
             requireSuperuser()
 
@@ -72,8 +71,6 @@ fun Route.admin() = route("admin") {
      * For CRUD operations for users.
      */
     route("users") {
-        val userService by inject<UserService>()
-
         get(getUsers) {
             requireSuperuser()
 

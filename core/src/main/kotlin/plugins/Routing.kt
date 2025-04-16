@@ -27,7 +27,6 @@ import io.ktor.server.routing.routing
 import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.disablePlugin
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.enablePlugin
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.getInstalledPlugins
 import org.eclipse.apoapsis.ortserver.core.api.admin
 import org.eclipse.apoapsis.ortserver.core.api.authentication
 import org.eclipse.apoapsis.ortserver.core.api.downloads
@@ -43,18 +42,17 @@ import org.koin.ktor.ext.get
 fun Application.configureRouting() {
     routing {
         route("api/v1") {
-            authentication()
+            authentication(get())
             healthChecks()
-            downloads()
+            downloads(get(), get())
             authenticate(SecurityConfigurations.TOKEN) {
-                admin()
+                admin(get(), get())
                 disablePlugin(get())
                 enablePlugin(get())
-                getInstalledPlugins(get())
-                organizations()
-                products()
-                repositories()
-                runs()
+                organizations(get(), get(), get(), get(), get(), get(), get(), get(), get())
+                products(get(), get(), get(), get(), get(), get(), get(), get(), get())
+                repositories(get(), get(), get(), get(), get())
+                runs(get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
                 versions()
             }
         }

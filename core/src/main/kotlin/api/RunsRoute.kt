@@ -87,22 +87,22 @@ import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-import org.koin.ktor.ext.inject
-
 /**
  * API for the run's endpoint. This endpoint provides information related to ORT runs and their results.
  */
 @Suppress("LongMethod")
-fun Route.runs() = route("runs") {
-    val issueService by inject<IssueService>()
-    val ortRunRepository by inject<OrtRunRepository>()
-    val repositoryService by inject<RepositoryService>()
-    val vulnerabilityService by inject<VulnerabilityService>()
-    val ruleViolationService by inject<RuleViolationService>()
-    val packageService by inject<PackageService>()
-    val projectService by inject<ProjectService>()
-    val ortRunService by inject<OrtRunService>()
-
+fun Route.runs(
+    issueService: IssueService,
+    logFileService: LogFileService,
+    ortRunRepository: OrtRunRepository,
+    ortRunService: OrtRunService,
+    packageService: PackageService,
+    projectService: ProjectService,
+    reportStorageService: ReportStorageService,
+    repositoryService: RepositoryService,
+    ruleViolationService: RuleViolationService,
+    vulnerabilityService: VulnerabilityService
+) = route("runs") {
     get(getOrtRuns) {
         requireSuperuser()
 
@@ -151,8 +151,6 @@ fun Route.runs() = route("runs") {
         }
 
         route("logs") {
-            val logFileService by inject<LogFileService>()
-
             get(getLogsByRunId) {
                 call.forRun(ortRunRepository) { ortRun ->
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
@@ -268,8 +266,6 @@ fun Route.runs() = route("runs") {
         }
 
         route("reporter/{fileName}") {
-            val reportStorageService by inject<ReportStorageService>()
-
             get(getReportByRunIdAndFileName) {
                 call.forRun(ortRunRepository) { ortRun ->
                     val fileName = call.requireParameter("fileName")
