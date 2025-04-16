@@ -119,3 +119,6 @@ ort_server:
   orchestrator:
     # The queue for messages the Orchestrator will receive from the OrchestratorService (Core module).
     queueName: "orchestrator_queue"
+    secret:
+      files:
+        path: "/data/orchestrator" # only needed when rabbitmq is enabled
