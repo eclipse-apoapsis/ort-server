@@ -23,7 +23,7 @@ complete -c osc -n "__fish_seen_subcommand_from auth" -s h -l help -d 'Show this
 complete -c osc -f -n "__fish_seen_subcommand_from auth; and not __fish_seen_subcommand_from $osc_auth_subcommands" -a login -d 'Login to an ORT Server instance.'
 
 ## Options for login
-complete -c osc -n "__fish_seen_subcommand_from login" -l base-url -r -d 'The base URL of the ORT Server instance.'
+complete -c osc -n "__fish_seen_subcommand_from login" -l url -r -d 'The base URL of the ORT Server instance without the \'/api/v1\' path.'
 complete -c osc -n "__fish_seen_subcommand_from login" -l token-url -r -d 'The URL to request a token for the ORT Server instance.'
 complete -c osc -n "__fish_seen_subcommand_from login" -l client-id -r -d 'The client ID to authenticate with the ORT Server instance.'
 complete -c osc -n "__fish_seen_subcommand_from login" -l username -r -d 'The username to authenticate with the ORT Server instance.'
