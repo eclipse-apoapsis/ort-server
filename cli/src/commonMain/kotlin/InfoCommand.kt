@@ -32,7 +32,7 @@ import com.github.ajalt.clikt.parameters.types.long
 
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
 import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
-import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 
@@ -57,7 +57,7 @@ class InfoCommand : SuspendingCliktCommand(name = "info") {
             throw UsageError("Either --run-id or --repository-id and --index must be provided.")
         }
 
-        val client = createOrtServerClient() ?: throw AuthenticationError()
+        val client = createAuthenticatedOrtServerClient() ?: throw AuthenticationError()
 
         val ortRun = runId?.let {
             try {

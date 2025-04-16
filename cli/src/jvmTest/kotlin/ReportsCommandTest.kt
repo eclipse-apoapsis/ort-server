@@ -33,7 +33,7 @@ import io.mockk.runs
 import io.mockk.unmockkAll
 
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
-import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.api.RunsApi
 
@@ -49,8 +49,8 @@ class ReportsCommandTest : StringSpec({
             val ortServerClientMock = mockk<OrtServerClient> {
                 every { runs } returns runsMock
             }
-            mockkStatic(::createOrtServerClient)
-            every { createOrtServerClient() } returns ortServerClientMock
+            mockkStatic(::createAuthenticatedOrtServerClient)
+            every { createAuthenticatedOrtServerClient() } returns ortServerClientMock
 
             val command = OrtServerMain()
             val result = command.test(

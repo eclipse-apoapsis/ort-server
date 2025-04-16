@@ -38,7 +38,7 @@ import okio.Path.Companion.toPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
-import org.eclipse.apoapsis.ortserver.cli.utils.createOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
 import org.eclipse.apoapsis.ortserver.cli.utils.writeFromChannel
@@ -87,7 +87,7 @@ class LogsCommand : SuspendingCliktCommand() {
             throw UsageError("Either --run-id or --repository-id and --index must be provided.")
         }
 
-        val client = createOrtServerClient() ?: throw AuthenticationError()
+        val client = createAuthenticatedOrtServerClient() ?: throw AuthenticationError()
 
         val resolvedOrtRunId = runId ?: ortRunByIndex?.let {
             client.repositories.getOrtRun(it.repositoryId, it.ortRunIndex).id
