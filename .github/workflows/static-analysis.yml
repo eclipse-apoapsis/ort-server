@@ -40,7 +40,7 @@ jobs:
           scripts/cli/generate_completion_scripts.sh
       - name: Check if completions are up-to-date
         run: |
-          if git diff --exit-code > /dev/null; then
+          if git diff --exit-code; then
             echo "Completions are up-to-date."
           else
             echo "Completions for OSC are not up-to-date."
