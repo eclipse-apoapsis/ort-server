@@ -180,7 +180,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         repositoryId = productService.createRepository(
             type = RepositoryType.GIT,
             url = "https://example.org/repo.git",
-            productId = productId
+            productId = productId,
+            description = "description"
         ).id
 
         LogFileProviderFactoryForTesting.reset()
@@ -1411,7 +1412,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val repositoryId2 = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example2.org/repo.git",
-                    productId = productId2
+                    productId = productId2,
+                    description = "description"
                 ).id
 
                 val run1 = ortRunRepository.create(

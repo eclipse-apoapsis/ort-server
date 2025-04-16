@@ -297,19 +297,20 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
                 val url2 = "https://example.com/repo2.git"
+                val description = "description"
 
                 val createdRepository1 =
-                    productService.createRepository(type = type, url = url1, productId = createdProduct.id)
+                    productService.createRepository(type = type, url = url1, productId = createdProduct.id, description = description)
                 val createdRepository2 =
-                    productService.createRepository(type = type, url = url2, productId = createdProduct.id)
+                    productService.createRepository(type = type, url = url2, productId = createdProduct.id, description = description)
 
                 val response = superuserClient.get("/api/v1/products/${createdProduct.id}/repositories")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
-                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1),
-                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)
+                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1, description),
+                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2, description)
                     ),
                     PagingData(
                         limit = DEFAULT_LIMIT,
@@ -328,17 +329,18 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val type = RepositoryType.GIT
                 val url1 = "https://example.com/repo1.git"
                 val url2 = "https://example.com/repo2.git"
+                val description = "description"
 
-                productService.createRepository(type = type, url = url1, productId = createdProduct.id)
+                productService.createRepository(type = type, url = url1, productId = createdProduct.id, description = description)
                 val createdRepository2 =
-                    productService.createRepository(type = type, url = url2, productId = createdProduct.id)
+                    productService.createRepository(type = type, url = url2, productId = createdProduct.id, description = description)
 
                 val response =
                     superuserClient.get("/api/v1/products/${createdProduct.id}/repositories?sort=-url&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
-                    listOf(Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2)),
+                    listOf(Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2, description)),
                     PagingData(
                         limit = 1,
                         offset = 0,
@@ -362,13 +364,13 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
+                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git", "description")
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
-                response shouldHaveBody Repository(1, orgId, createdProduct.id, repository.type, repository.url)
+                response shouldHaveBody Repository(1, orgId, createdProduct.id, repository.type, repository.url, repository.description)
             }
         }
 
@@ -953,15 +955,18 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "return vulnerabilities across repositories in the product found in latest successful advisor jobs" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val description = "description"
                 val repository1Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.org/repo.git",
-                    productId = productId
+                    productId = productId,
+                    description = description
                 ).id
                 val repository2Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.org/repo2.git",
-                    productId = productId
+                    productId = productId,
+                    description = description
                 ).id
 
                 val commonVulnerability = Vulnerability(
@@ -1475,15 +1480,18 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "trigger ORT runs for repositories in the product" {
             integrationTestApplication {
                 val productId = createProduct().id
+                val description = "description"
                 val repository1Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo1.git",
-                    productId = productId
+                    productId = productId,
+                    description = description
                 ).id
                 val repository2Id = productService.createRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo2.git",
-                    productId = productId
+                    productId = productId,
+                    description = description
                 ).id
 
                 val createOrtRun = CreateOrtRun(

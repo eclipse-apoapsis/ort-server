@@ -146,8 +146,9 @@ class Fixtures(private val db: Database) {
     fun createRepository(
         type: RepositoryType = RepositoryType.GIT,
         url: String = "https://example.com/repo.git",
-        productId: Long = product.id
-    ) = repositoryRepository.create(type, url, productId)
+        productId: Long = product.id,
+        description: String? = "description"
+    ) = repositoryRepository.create(type, url, productId, description)
 
     fun createOrtRun(
         repositoryId: Long = repository.id,
