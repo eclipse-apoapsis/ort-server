@@ -21,10 +21,10 @@ package org.eclipse.apoapsis.ortserver.core.api
 
 import io.github.smiley4.ktoropenapi.delete
 import io.github.smiley4.ktoropenapi.get
+import io.github.smiley4.ktoropenapi.patch
 import io.github.smiley4.ktoropenapi.post
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -36,13 +36,18 @@ import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateContentManagementSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserByUsername
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getSectionById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSectionById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.runPermissionsSync
+import org.eclipse.apoapsis.ortserver.core.authorization.requireAuthenticated
 import org.eclipse.apoapsis.ortserver.core.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.utils.requireParameter
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
+import org.eclipse.apoapsis.ortserver.services.ContentManagementService
 import org.eclipse.apoapsis.ortserver.services.UserService
 
 import org.koin.ktor.ext.inject
@@ -99,6 +104,41 @@ fun Route.admin() = route("admin") {
             userService.deleteUser(username)
 
             call.respond(HttpStatusCode.NoContent)
+        }
+    }
+
+    /**
+     * For dynamic text sections.
+     */
+    route("content-management") {
+        val contentManagementService by inject<ContentManagementService>()
+
+        route("sections/{sectionId}") {
+            get(getSectionById) {
+                requireAuthenticated()
+
+                val id = call.requireParameter("sectionId")
+
+                val section = contentManagementService.findSectionById(id)
+                    ?: return@get call.respond(HttpStatusCode.NotFound)
+
+                call.respond(HttpStatusCode.OK, section.mapToApi())
+            }
+
+            patch(patchSectionById) {
+                requireSuperuser()
+
+                val id = call.requireParameter("sectionId")
+                val updateSection = call.receive<UpdateContentManagementSection>()
+
+                val section = contentManagementService.updateSectionById(
+                    id = id,
+                    isEnabled = updateSection.isEnabled,
+                    markdown = updateSection.markdown
+                )
+
+                call.respond(HttpStatusCode.OK, section.mapToApi())
+            }
         }
     }
 }

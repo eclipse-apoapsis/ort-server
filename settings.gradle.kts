@@ -48,6 +48,7 @@ include(":secrets:spi")
 include(":secrets:scaleway")
 include(":secrets:vault")
 include(":services:authorization")
+include(":services:content-management")
 include(":services:hierarchy")
 include(":services:infrastructure")
 include(":services:report-storage")
@@ -85,6 +86,7 @@ project(":config:spi").name = "config-spi"
 project(":logaccess:spi").name = "logaccess-spi"
 project(":secrets:spi").name = "secrets-spi"
 project(":services:authorization").name = "authorization-service"
+project(":services:content-management").name = "content-management-service"
 project(":services:hierarchy").name = "hierarchy-service"
 project(":services:infrastructure").name = "infrastructure-service"
 project(":services:report-storage").name = "report-storage-service"
