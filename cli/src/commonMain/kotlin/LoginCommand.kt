@@ -25,9 +25,11 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.OidcConfig
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationStorage
 import org.eclipse.apoapsis.ortserver.cli.model.HostAuthenticationDetails
 import org.eclipse.apoapsis.ortserver.cli.model.Tokens
+import org.eclipse.apoapsis.ortserver.cli.utils.createUnauthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient.Companion.JSON
 import org.eclipse.apoapsis.ortserver.client.auth.AuthService
@@ -47,13 +49,13 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
         "--token-url",
         envvar = "OSC_ORT_SERVER_TOKEN_URL",
         help = "The URL to request a token for the ORT Server instance."
-    ).required()
+    )
 
     private val clientId by option(
         "--client-id",
         envvar = "OSC_ORT_SERVER_CLIENT_ID",
         help = "The client ID to authenticate with the ORT Server instance."
-    ).required()
+    )
 
     private val username by option(
         "--username",
@@ -70,10 +72,22 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
     override fun help(context: Context) = "Login to an ORT Server instance."
 
     override suspend fun run() {
+        val oidcConfig = if (tokenUrl == null || clientId == null) {
+            val client = createUnauthenticatedOrtServerClient(baseUrl)
+            val serverConfig = client.auth.getCliOidcConfig()
+
+            serverConfig.copy(
+                accessTokenUrl = tokenUrl ?: serverConfig.accessTokenUrl,
+                clientId = clientId ?: serverConfig.clientId
+            )
+        } else {
+            OidcConfig(tokenUrl!!, clientId!!)
+        }
+
         val authService = AuthService(
             client = createDefaultHttpClient(JSON),
-            tokenUrl = tokenUrl,
-            clientId = clientId
+            tokenUrl = oidcConfig.accessTokenUrl,
+            clientId = oidcConfig.clientId
         )
 
         val tokenInfo = authService.generateToken(username, password, setOf("offline_access"))
@@ -81,8 +95,8 @@ class LoginCommand : SuspendingCliktCommand(name = "login") {
         AuthenticationStorage.store(
             HostAuthenticationDetails(
                 baseUrl,
-                tokenUrl,
-                clientId,
+                oidcConfig.accessTokenUrl,
+                oidcConfig.clientId,
                 username,
                 Tokens(
                     tokenInfo.accessToken,
