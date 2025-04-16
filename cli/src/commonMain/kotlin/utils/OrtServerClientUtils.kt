@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.cli.utils
 
+import io.ktor.client.HttpClient
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
@@ -42,15 +43,20 @@ import org.eclipse.apoapsis.ortserver.client.createOrtHttpClient
 fun createOrtServerClient() = AuthenticationStorage.get()?.let { createOrtServerClient(it) }
 
 /**
+ * Create a [HttpClient] using [url] for its requests.
+ */
+private fun createHttpClient(url: String) = createOrtHttpClient(JSON) {
+    defaultRequest {
+        url(url)
+    }
+}
+
+/**
  * Create a new instance of the ORT server client using the given [authDetails] and configure an HTTP client
  * with the necessary authentication.
  */
 private fun createOrtServerClient(authDetails: HostAuthenticationDetails): OrtServerClient {
-    val client = createOrtHttpClient(JSON) {
-        defaultRequest {
-            url(authDetails.baseUrl)
-        }
-
+    val authenticatedClient = createHttpClient(authDetails.baseUrl).config {
         install(Auth) {
             bearer {
                 loadTokens {
@@ -88,5 +94,5 @@ private fun createOrtServerClient(authDetails: HostAuthenticationDetails): OrtSe
         }
     }
 
-    return OrtServerClient(client)
+    return OrtServerClient(authenticatedClient)
 }
