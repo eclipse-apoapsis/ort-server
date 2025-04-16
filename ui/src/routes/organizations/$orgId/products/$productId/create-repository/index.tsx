@@ -52,6 +52,7 @@ import {
 } from '@/components/ui/select';
 import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
+import { getRepositoryTypeLabel } from '@/lib/types';
 
 const formSchema = z.object({
   url: z.string().url(),
@@ -150,7 +151,7 @@ const CreateRepositoryPage = () => {
                     <SelectContent>
                       {Object.values($RepositoryType.enum).map((type) => (
                         <SelectItem key={type} value={type}>
-                          {type}
+                          {getRepositoryTypeLabel(type)}
                         </SelectItem>
                       ))}
                     </SelectContent>
