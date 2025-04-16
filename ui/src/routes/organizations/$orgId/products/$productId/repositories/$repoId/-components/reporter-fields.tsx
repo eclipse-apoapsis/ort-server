@@ -33,7 +33,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { reportFormats } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-types';
+import { reportFormats } from '@/lib/types';
 import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
 
 type ReporterFieldsProps = {

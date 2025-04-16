@@ -40,11 +40,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { PackageManagerId, packageManagers } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import {
-  PackageManagerId,
-  packageManagers,
-} from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-types';
 import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
 
 type PackageManagerFieldProps = {

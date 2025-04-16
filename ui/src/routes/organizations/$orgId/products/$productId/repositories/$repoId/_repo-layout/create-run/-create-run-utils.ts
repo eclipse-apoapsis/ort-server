@@ -26,7 +26,7 @@ import {
   OrtRun,
   ReporterJobConfiguration,
 } from '@/api/requests';
-import { PackageManagerId, packageManagers } from '../../-types';
+import { PackageManagerId, packageManagers } from '@/lib/types';
 
 const keyValueSchema = z.object({
   key: z.string(),

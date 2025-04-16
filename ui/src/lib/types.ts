@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,13 @@
  */
 
 /**
- * Some input types for creating runs are strings in the API, but they actually take a limited set
- * of values. Define the possible values here to use in the UI.
+ * Redefine or extend some data types coming from the OpenAPI Query Client for UI purposes.
+ * Also define types and constants for UI usage which are not included in the query client.
  */
+
+// Some input types for creating runs are merely strings in the API, but they actually take a
+// limited set of values. Define the possible values here to use in the UI.
+// Note: with the upcoming plugin support, some of these types may be deprecated or changed.
 
 export const advisors = [
   {

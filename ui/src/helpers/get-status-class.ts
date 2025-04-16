@@ -23,7 +23,7 @@ import {
   Severity,
   VulnerabilityRating,
 } from '@/api/requests';
-import { PackageManagerId } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/-types';
+import { PackageManagerId } from '@/lib/types';
 
 // Combine statuses reported either by ORT Runs or the individual jobs within them.
 export type Status = JobStatus | OrtRunStatus | undefined;
