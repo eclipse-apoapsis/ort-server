@@ -20,7 +20,8 @@ vault:
 #######################################################
 
 keycloak:
-  command: ["/opt/keycloak_init/init-keycloak.sh", "/opt/bitnami/keycloak/bin/kc.sh", "start-dev"]
+  image:
+    tag: 26.2.0
   extraVolumes:
     - name: keycloak-init-volume
       persistentVolumeClaim:
