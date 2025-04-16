@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.Plugins
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
+import org.koin.ktor.ext.inject
 
 import org.ossreviewtoolkit.advisor.AdviceProviderFactory
 import org.ossreviewtoolkit.analyzer.PackageManagerFactory
@@ -48,7 +49,7 @@ import org.ossreviewtoolkit.plugins.packagemanagers.node.npm.NpmFactory
 import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 
-fun Route.getInstalledPlugins(db: Database) = get("admin/plugins", {
+fun Route.getInstalledPlugins() = get("admin/plugins", {
     operationId = "GetInstalledPlugins"
     summary = "Get installed ORT plugins"
     description = "Get a list with detailed information about all installed ORT plugins."
@@ -69,6 +70,8 @@ fun Route.getInstalledPlugins(db: Database) = get("admin/plugins", {
         }
     }
 }) {
+    val db by inject<Database>()
+
     requireSuperuser()
 
     fun isEnabled(pluginType: PluginType, pluginId: String) = db.transaction {

@@ -99,7 +99,7 @@ class GetInstalledPluginsIntegrationTest : WordSpec({
 
                     routing {
                         authenticate("test") {
-                            getInstalledPlugins(dbExtension.db)
+                            getInstalledPlugins()
                         }
                     }
                 }
@@ -135,8 +135,8 @@ class GetInstalledPluginsIntegrationTest : WordSpec({
 
                     routing {
                         authenticate("test") {
-                            disablePlugin(eventStore)
-                            getInstalledPlugins(dbExtension.db)
+                            disablePlugin()
+                            getInstalledPlugins()
                         }
                     }
                 }

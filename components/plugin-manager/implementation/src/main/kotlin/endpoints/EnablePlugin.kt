@@ -36,8 +36,9 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEvent
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.koin.ktor.ext.inject
 
-fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/enable", {
+fun Route.enablePlugin() = post("admin/plugins/{pluginType}/{pluginId}/enable", {
     operationId = "EnablePlugin"
     summary = "Enable an ORT plugin globally"
     description = "Enable an ORT plugin globally to make it generally available to all organizations."
@@ -65,6 +66,8 @@ fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{plug
         }
     }
 }) {
+    val eventStore by inject<PluginEventStore>()
+
     requireSuperuser()
 
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))

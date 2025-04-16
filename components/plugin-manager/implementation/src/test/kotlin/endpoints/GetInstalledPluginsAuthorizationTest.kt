@@ -122,7 +122,7 @@ class GetInstalledPluginsAuthorizationTest : WordSpec({
 
                     routing {
                         authenticate(SecurityConfigurations.token) {
-                            getInstalledPlugins(dbExtension.db)
+                            getInstalledPlugins()
                         }
                     }
                 }

@@ -81,8 +81,8 @@ class EnablePluginIntegrationTest : WordSpec({
 
                     routing {
                         authenticate("test") {
-                            disablePlugin(eventStore)
-                            enablePlugin(eventStore)
+                            disablePlugin()
+                            enablePlugin()
                         }
                     }
                 }
@@ -122,8 +122,8 @@ class EnablePluginIntegrationTest : WordSpec({
 
                     routing {
                         authenticate("test") {
-                            disablePlugin(eventStore)
-                            enablePlugin(eventStore)
+                            disablePlugin()
+                            enablePlugin()
                         }
                     }
                 }

@@ -36,8 +36,9 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEvent
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.koin.ktor.ext.inject
 
-fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/disable", {
+fun Route.disablePlugin() = post("admin/plugins/{pluginType}/{pluginId}/disable", {
     operationId = "DisablePlugin"
     summary = "Disable an ORT plugin globally"
     description = "Disable an ORT plugin globally to make it generally unavailable."
@@ -65,6 +66,8 @@ fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{plu
         }
     }
 }) {
+    val eventStore by inject<PluginEventStore>()
+
     requireSuperuser()
 
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
