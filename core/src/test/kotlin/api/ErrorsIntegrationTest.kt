@@ -43,7 +43,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER_PASSWORD
 import org.eclipse.apoapsis.ortserver.core.createJsonClient
-import org.eclipse.apoapsis.ortserver.core.testutils.authNoDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
@@ -75,7 +75,7 @@ class ErrorsIntegrationTest : StringSpec() {
         tags(Integration)
 
         "An unauthorized call yields the correct status code" {
-            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+            ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig) {
                 val client = createJsonClient()
 
                 client.get("/api/v1/organizations") shouldHaveStatus HttpStatusCode.Unauthorized
@@ -83,7 +83,7 @@ class ErrorsIntegrationTest : StringSpec() {
         }
 
         "Sorting by an unsupported field should be handled" {
-            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+            ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig) {
                 val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val response = client.get("/api/v1/organizations?sort=color")
@@ -96,7 +96,7 @@ class ErrorsIntegrationTest : StringSpec() {
         "An invalid limit parameter should be handled" {
             val limitValue = "a-couple-of"
 
-            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+            ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig) {
                 val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val response = client.get("/api/v1/organizations?limit=$limitValue")
@@ -111,7 +111,7 @@ class ErrorsIntegrationTest : StringSpec() {
         "An invalid offset parameter should be handled" {
             val offsetValue = "a-quarter"
 
-            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+            ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig) {
                 val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val response = client.get("/api/v1/organizations?limit=25&offset=$offsetValue")
@@ -126,7 +126,7 @@ class ErrorsIntegrationTest : StringSpec() {
         "An invalid URL path should be handled" {
             val invalidOrgId = "not_a_number"
 
-            ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig) {
+            ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig) {
                 val client = createJsonClient().configureAuthentication(superuserClientConfig, json)
 
                 val response = client.get("/api/v1/organizations/$invalidOrgId")

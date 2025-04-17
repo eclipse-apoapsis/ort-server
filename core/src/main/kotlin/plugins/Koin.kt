@@ -24,12 +24,14 @@ import io.ktor.server.application.install
 
 import org.eclipse.apoapsis.ortserver.core.di.ortServerModule
 
+import org.jetbrains.exposed.sql.Database
+
 import org.koin.ktor.plugin.Koin
 
-fun Application.configureKoin(setupDatabase: Boolean = true) {
+fun Application.configureKoin(db: Database? = null) {
     install(Koin) {
         modules(
-            ortServerModule(environment.config, setupDatabase)
+            ortServerModule(environment.config, db)
         )
     }
 }

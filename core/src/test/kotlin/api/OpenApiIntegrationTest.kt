@@ -34,7 +34,7 @@ import kotlinx.serialization.json.jsonObject
 
 import org.eclipse.apoapsis.ortserver.core.createJsonClient
 import org.eclipse.apoapsis.ortserver.core.plugins.configureOpenApi
-import org.eclipse.apoapsis.ortserver.core.testutils.noDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
@@ -45,7 +45,7 @@ class OpenApiIntegrationTest : WordSpec({
     "/swagger-ui/api.json" should {
         "return the API specification" {
             ortServerTestApplication(
-                config = noDbConfig,
+                config = TestConfig.Test,
                 additionalConfigs = mapOf("jwt.issuer" to "https://example.org")
             ) {
                 application { configureOpenApi() }

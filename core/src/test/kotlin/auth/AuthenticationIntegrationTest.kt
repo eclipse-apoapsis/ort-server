@@ -50,7 +50,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUserRoles
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
-import org.eclipse.apoapsis.ortserver.core.testutils.authNoDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
@@ -76,7 +76,7 @@ class AuthenticationIntegrationTest : StringSpec({
         onCall: RoutingContext.() -> Unit = {},
         block: suspend ApplicationTestBuilder.() -> Unit
     ) =
-        ortServerTestApplication(config = authNoDbConfig, additionalConfigs = keycloakConfig + jwtConfig) {
+        ortServerTestApplication(config = TestConfig.TestAuth, additionalConfigs = keycloakConfig + jwtConfig) {
             routing {
                 route("api/v1") {
                     authenticate(SecurityConfigurations.TOKEN) {

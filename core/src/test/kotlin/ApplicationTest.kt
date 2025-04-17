@@ -26,6 +26,8 @@ import org.eclipse.apoapsis.ortserver.core.plugins.*
 import org.eclipse.apoapsis.ortserver.core.testutils.configureTestAuthentication
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 
+import org.jetbrains.exposed.sql.Database
+
 import org.koin.ktor.ext.get
 
 fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
@@ -38,8 +40,8 @@ fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
  * * Authentication: This application does not use KeyCloak for authentication. Instead, it uses an
  *                   authentication which is always valid.
  */
-fun Application.testModule() {
-    configureKoin(setupDatabase = false)
+fun Application.testModule(db: Database) {
+    configureKoin(db)
     configureTestAuthentication()
     configureStatusPages()
     configureRouting()
@@ -52,8 +54,8 @@ fun Application.testModule() {
 /**
  * A test application configuration that requires Keycloak to be run in the integration test.
  */
-fun Application.testAuthModule() {
-    configureKoin(setupDatabase = false)
+fun Application.testAuthModule(db: Database) {
+    configureKoin(db)
     configureAuthentication(get(), get())
     configureStatusPages()
     configureRouting()
