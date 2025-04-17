@@ -44,3 +44,6 @@ class InternalServerException(message: String, cause: Throwable? = null) : OrtSe
 
 /** Generic exception for HTTP response errors. */
 class ResponseException(message: String, val status: HttpStatusCode) : OrtServerException(message)
+
+/** Exception thrown when a request fails due to a network error. */
+class HttpRequestException(message: String) : OrtServerException(message)
