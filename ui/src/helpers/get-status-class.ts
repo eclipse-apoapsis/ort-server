@@ -81,7 +81,7 @@ const RULE_VIOLATION_SEVERITY_BG_COLOR: {
 } = {
   ERROR: 'bg-traffic-light-red',
   WARNING: 'bg-traffic-light-yellow',
-  HINT: 'bg-neutral-300',
+  HINT: 'bg-blue-300',
 } as const;
 
 const ISSUE_SEVERITY_BG_COLOR: {
@@ -89,7 +89,7 @@ const ISSUE_SEVERITY_BG_COLOR: {
 } = {
   ERROR: 'bg-traffic-light-red',
   WARNING: 'bg-traffic-light-yellow',
-  HINT: 'bg-neutral-300',
+  HINT: 'bg-blue-300',
 } as const;
 
 // TailwindCSS class accessor functions
