@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.testutils
 
-import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.Application
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.config.mergeWith
@@ -27,10 +27,14 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.utils.io.KtorDsl
 
+import io.mockk.mockk
+
+import org.eclipse.apoapsis.ortserver.core.testAuthModule
+import org.eclipse.apoapsis.ortserver.core.testModule
+
 import org.jetbrains.exposed.sql.Database
 
 import org.koin.core.context.stopKoin
-import org.koin.ktor.plugin.KOIN_ATTRIBUTE_KEY
 
 /**
  * Test helper for integration tests, which configures a test application using the given [applicationConfig][config]
@@ -39,7 +43,7 @@ import org.koin.ktor.plugin.KOIN_ATTRIBUTE_KEY
 @KtorDsl
 fun ortServerTestApplication(
     db: Database? = null,
-    config: ApplicationConfig = defaultConfig,
+    config: TestConfig = TestConfig.Default,
     additionalConfigs: Map<String, Any> = mapOf(),
     block: suspend ApplicationTestBuilder.() -> Unit
 ) = testApplication {
@@ -60,7 +64,7 @@ fun ortServerTestApplication(
         }
     }
 
-    val mergedConfig = config.mergeWith(additionalConfig)
+    val mergedConfig = config.config.mergeWith(additionalConfig)
 
     environment {
         this.config = mergedConfig
@@ -73,22 +77,49 @@ fun ortServerTestApplication(
         developmentMode = false
     }
 
-    if (db != null) {
-        application {
-            monitor.subscribe(ApplicationStarted) {
-                attributes[KOIN_ATTRIBUTE_KEY].koin.declare(db)
-            }
-        }
+    application {
+        // If no database is provided, use a mock database to prevent Koin from trying to connect to a real database.
+        config.run { setupModules(db ?: mockk()) }
     }
 
     block()
 }
 
-/** The default application configuration. */
-val defaultConfig = ApplicationConfig("application.conf")
+/**
+ * Constants for different integration test configs.
+ */
+sealed interface TestConfig {
+    val config: ApplicationConfig
+    fun Application.setupModules(db: Database)
 
-/** An application configuration with token authentication, without a database. */
-val authNoDbConfig = ApplicationConfig("application-test-auth.conf")
+    /**
+     * The default application config that is used in production.
+     */
+    object Default : TestConfig {
+        override val config = ApplicationConfig("application.conf")
+        override fun Application.setupModules(db: Database) {
+            // No-op, because the default application.conf set ktor.application.modules.
+        }
+    }
 
-/** An application configuration without a database and a dummy authentication. */
-val noDbConfig = ApplicationConfig("application-test.conf")
+    /**
+     * An application config that uses a test database and expects that the Keycloak config is provided separately.
+     */
+    object TestAuth : TestConfig {
+        override val config = ApplicationConfig("application-test-auth.conf")
+        override fun Application.setupModules(db: Database) {
+            testAuthModule(db)
+        }
+    }
+
+    /**
+     * An application config that uses a test database and provides an empty Keycloak config, to be used for tests that
+     * do not require authentication.
+     */
+    object Test : TestConfig {
+        override val config = ApplicationConfig("application-test.conf")
+        override fun Application.setupModules(db: Database) {
+            testModule(db)
+        }
+    }
+}

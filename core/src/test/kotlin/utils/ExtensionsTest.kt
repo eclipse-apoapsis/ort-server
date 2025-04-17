@@ -33,7 +33,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.core.createJsonClient
-import org.eclipse.apoapsis.ortserver.core.testutils.noDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
@@ -111,7 +111,7 @@ class ExtensionsTest : WordSpec({
  * Execute a test for extracting the [PagingOptions] from the given [query] by applying the specified [check] function.
  */
 private fun testPagingOptionsExtraction(query: String?, check: PagingOptions.() -> Unit) {
-    ortServerTestApplication(config = noDbConfig) {
+    ortServerTestApplication(config = TestConfig.Test) {
         routing {
             get("/test") {
                 val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))

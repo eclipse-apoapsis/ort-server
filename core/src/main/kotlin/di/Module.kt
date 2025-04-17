@@ -91,10 +91,9 @@ import org.koin.dsl.module
 
 /**
  * Creates the Koin module for the ORT server. The [config] is used to configure the application and the database. For
- * integration tests, the [setupDatabase] flag can be set to `false` as the data source will be provided by the
- * testcontainer there.
+ * integration tests, the [database][db] from the testcontainer can be provided directly.
  */
-fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = module {
+fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single { config }
     single { ConfigFactory.parseMap(config.toMap()) }
 
@@ -111,7 +110,9 @@ fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = 
         DefaultKeycloakClient.create(get<ConfigManager>().createKeycloakClientConfiguration(), get())
     }
 
-    if (setupDatabase) {
+    if (db != null) {
+        single<Database> { db }
+    } else {
         single<Database>(createdAtStart = true) {
             val configManager = get<ConfigManager>()
             val dataSourceConfig = DataSourceConfig.create(configManager)

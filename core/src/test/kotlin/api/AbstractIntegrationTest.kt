@@ -47,7 +47,7 @@ import org.eclipse.apoapsis.ortserver.core.SUPERUSER_PASSWORD
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
 import org.eclipse.apoapsis.ortserver.core.createJsonClient
-import org.eclipse.apoapsis.ortserver.core.testutils.authNoDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
@@ -115,7 +115,7 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
     }
 
     fun integrationTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) =
-        ortServerTestApplication(dbExtension.db, authNoDbConfig, additionalConfig, block)
+        ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig, block)
 
     fun requestShouldRequireRole(
         role: String,

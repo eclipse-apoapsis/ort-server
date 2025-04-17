@@ -26,7 +26,7 @@ import io.ktor.client.request.get
 
 import org.eclipse.apoapsis.ortserver.core.createJsonClient
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
-import org.eclipse.apoapsis.ortserver.core.testutils.noDbConfig
+import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
@@ -35,7 +35,7 @@ class HealthIntegrationTest : WordSpec({
 
     "/liveness" should {
         "respond with 200 if the server is running" {
-            ortServerTestApplication(config = noDbConfig) {
+            ortServerTestApplication(config = TestConfig.Test) {
                 val client = createJsonClient()
 
                 val response = client.get("/api/v1/liveness")
