@@ -131,11 +131,11 @@ export function getVulnerabilityRatingBackgroundColor(
     case 'CRITICAL':
       return 'bg-traffic-light-red';
     case 'HIGH':
-      return 'bg-orange-600';
+      return 'bg-orange-400';
     case 'MEDIUM':
       return 'bg-traffic-light-yellow';
     case 'LOW':
-      return 'bg-yellow-400';
+      return 'bg-yellow-300';
     case 'NONE':
     default:
       return 'bg-neutral-300';
