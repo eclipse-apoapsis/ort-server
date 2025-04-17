@@ -43,6 +43,9 @@ export default {
         scanner: 'var(--scanner)',
         evaluator: 'var(--evaluator)',
         reporter: 'var(--reporter)',
+        'traffic-light-green': 'var(--traffic-light-green)',
+        'traffic-light-yellow': 'var(--traffic-light-yellow)',
+        'traffic-light-red': 'var(--traffic-light-red)',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',

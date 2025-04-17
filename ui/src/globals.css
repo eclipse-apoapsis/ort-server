@@ -85,6 +85,9 @@
     --scanner: rgb(209, 78, 96);
     --evaluator: rgb(51, 153, 204);
     --reporter: rgb(242, 144, 86);
+    --traffic-light-green: rgb(0, 164, 0);
+    --traffic-light-yellow: rgb(255, 186, 0);
+    --traffic-light-red: rgb(250, 56, 62);
   }
 
   .dark {
