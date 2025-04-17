@@ -78,13 +78,13 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Custom chart colors, taken from ORT brand colors */
-    /* https://oss-review-toolkit.org/ort/              */
-    --chart-analyzer: 178 52% 61%;
-    --chart-advisor: 270 29% 60%;
-    --chart-scanner: 351 58% 72%;
-    --chart-evaluator: 205 66% 59%;
-    --chart-reporter: 22 86% 64%;
+    /* Custom colors for workers, taken from ORT brand colors */
+    /* https://oss-review-toolkit.org/ort/                    */
+    --analyzer: rgb(0, 175, 170);
+    --advisor: rgb(153, 123, 183);
+    --scanner: rgb(209, 78, 96);
+    --evaluator: rgb(51, 153, 204);
+    --reporter: rgb(242, 144, 86);
   }
 
   .dark {
@@ -121,14 +121,6 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-
-    /* Custom chart colors, taken from ORT brand colors */
-    /* https://oss-review-toolkit.org/ort/              */
-    --chart-analyzer: 178 52% 61%;
-    --chart-advisor: 270 29% 60%;
-    --chart-scanner: 351 58% 72%;
-    --chart-evaluator: 205 66% 59%;
-    --chart-reporter: 22 86% 64%;
   }
 }
 
