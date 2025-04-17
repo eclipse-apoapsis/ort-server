@@ -26,6 +26,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Parameters
 import io.ktor.http.isSuccess
 
+import org.eclipse.apoapsis.ortserver.client.HttpRequestException
+
 /**
  * A service to generate/refresh an OAuth token to authenticate with the ORT server.
  */
@@ -38,31 +40,35 @@ class AuthService(
      * Generate a token for the given [username] and [password] using password grant type with optional [scopes].
      */
     suspend fun generateToken(username: String, password: String, scopes: Set<String> = emptySet()): TokenInfo =
-        client.submitForm(
-            url = tokenUrl,
-            formParameters = Parameters.build {
-                append("client_id", clientId)
-                append("username", username)
-                append("password", password)
-                append("grant_type", "password")
-                if (scopes.isNotEmpty()) {
-                    append("scope", scopes.joinToString(" "))
+        runCatching {
+            client.submitForm(
+                url = tokenUrl,
+                formParameters = Parameters.build {
+                    append("client_id", clientId)
+                    append("username", username)
+                    append("password", password)
+                    append("grant_type", "password")
+                    if (scopes.isNotEmpty()) {
+                        append("scope", scopes.joinToString(" "))
+                    }
                 }
-            }
-        ).let { response ->
+            )
+        }.onSuccess { response ->
             if (!response.status.isSuccess()) {
                 throw AuthenticationException(
                     "Failed to generate token: ${response.status.value}: ${response.bodyAsText()}."
                 )
             }
 
-            response.body()
-        }
+            response
+        }.getOrElse {
+            throw HttpRequestException("Failed to generate token. Check your authentication provider configuration.")
+        }.body()
 
     /**
      * Refresh the tokens for the given [refreshToken] with optional [scopes].
      */
-    suspend fun refreshToken(refreshToken: String, scopes: Set<String> = emptySet()): TokenInfo =
+    suspend fun refreshToken(refreshToken: String, scopes: Set<String> = emptySet()): TokenInfo = runCatching {
         client.submitForm(
             url = tokenUrl,
             formParameters = Parameters.build {
@@ -73,15 +79,18 @@ class AuthService(
                     append("scope", scopes.joinToString(" "))
                 }
             }
-        ).let { response ->
-            if (!response.status.isSuccess()) {
-                throw AuthenticationException(
-                    "Failed to refresh token: ${response.status.value}: ${response.bodyAsText()}."
-                )
-            }
-
-            response.body()
+        )
+    }.onSuccess { response ->
+        if (!response.status.isSuccess()) {
+            throw AuthenticationException(
+                "Failed to refresh token: ${response.status.value}: ${response.bodyAsText()}."
+            )
         }
+
+        response
+    }.getOrElse {
+        throw HttpRequestException("Failed to refresh token. Check your authentication provider configuration.")
+    }.body()
 }
 
 /**
