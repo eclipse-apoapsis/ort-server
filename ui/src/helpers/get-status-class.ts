@@ -46,12 +46,12 @@ const STATUS_BACKGROUND_COLOR: {
   [K in Exclude<Status, undefined>]: string;
 } = {
   CREATED: 'bg-gray-500',
-  SCHEDULED: 'bg-blue-300',
-  RUNNING: 'bg-blue-500',
-  ACTIVE: 'bg-blue-500',
-  FAILED: 'bg-traffic-light-red',
-  FINISHED: 'bg-traffic-light-green',
-  FINISHED_WITH_ISSUES: 'bg-traffic-light-yellow',
+  SCHEDULED: 'bg-blue-300 text-black',
+  RUNNING: 'bg-blue-500 text-black',
+  ACTIVE: 'bg-blue-500 text-black',
+  FAILED: 'bg-traffic-light-red text-black',
+  FINISHED: 'bg-traffic-light-green text-black',
+  FINISHED_WITH_ISSUES: 'bg-traffic-light-yellow text-black',
 } as const;
 
 const STATUS_FONT_COLOR: { [K in Exclude<Status, undefined>]: string } = {
@@ -79,17 +79,17 @@ const STATUS_CLASS: {
 const RULE_VIOLATION_SEVERITY_BG_COLOR: {
   [K in Severity]: string;
 } = {
-  ERROR: 'bg-traffic-light-red',
-  WARNING: 'bg-traffic-light-yellow',
-  HINT: 'bg-blue-300',
+  ERROR: 'bg-traffic-light-red text-black',
+  WARNING: 'bg-traffic-light-yellow text-black',
+  HINT: 'bg-blue-300 text-black',
 } as const;
 
 const ISSUE_SEVERITY_BG_COLOR: {
   [K in Severity]: string;
 } = {
-  ERROR: 'bg-traffic-light-red',
-  WARNING: 'bg-traffic-light-yellow',
-  HINT: 'bg-blue-300',
+  ERROR: 'bg-traffic-light-red text-black',
+  WARNING: 'bg-traffic-light-yellow text-black',
+  HINT: 'bg-blue-300 text-black',
 } as const;
 
 // TailwindCSS class accessor functions
@@ -102,7 +102,7 @@ const ISSUE_SEVERITY_BG_COLOR: {
 // Get the color class for coloring the background of elements
 export function getStatusBackgroundColor(status: Status): string {
   if (status === undefined) {
-    return 'bg-gray-300';
+    return 'bg-gray-300 text-black';
   }
   return STATUS_BACKGROUND_COLOR[status];
 }
@@ -129,16 +129,16 @@ export function getVulnerabilityRatingBackgroundColor(
 ): string {
   switch (rating) {
     case 'CRITICAL':
-      return 'bg-traffic-light-red';
+      return 'bg-traffic-light-red text-black';
     case 'HIGH':
-      return 'bg-orange-400';
+      return 'bg-orange-400 text-black';
     case 'MEDIUM':
-      return 'bg-traffic-light-yellow';
+      return 'bg-traffic-light-yellow text-black';
     case 'LOW':
-      return 'bg-yellow-300';
+      return 'bg-yellow-300 text-black';
     case 'NONE':
     default:
-      return 'bg-neutral-300';
+      return 'bg-neutral-300 text-black';
   }
 }
 
