@@ -49,9 +49,9 @@ const STATUS_BACKGROUND_COLOR: {
   SCHEDULED: 'bg-blue-300',
   RUNNING: 'bg-blue-500',
   ACTIVE: 'bg-blue-500',
-  FAILED: 'bg-red-500',
-  FINISHED: 'bg-green-500',
-  FINISHED_WITH_ISSUES: 'bg-yellow-500',
+  FAILED: 'bg-traffic-light-red',
+  FINISHED: 'bg-traffic-light-green',
+  FINISHED_WITH_ISSUES: 'bg-traffic-light-yellow',
 } as const;
 
 const STATUS_FONT_COLOR: { [K in Exclude<Status, undefined>]: string } = {
@@ -59,9 +59,9 @@ const STATUS_FONT_COLOR: { [K in Exclude<Status, undefined>]: string } = {
   SCHEDULED: 'text-blue-300',
   RUNNING: 'text-blue-500',
   ACTIVE: 'text-blue-500',
-  FAILED: 'text-red-500',
-  FINISHED: 'text-green-500',
-  FINISHED_WITH_ISSUES: 'text-yellow-500',
+  FAILED: 'text-traffic-light-red',
+  FINISHED: 'text-traffic-light-green',
+  FINISHED_WITH_ISSUES: 'text-traffic-light-yellow',
 } as const;
 
 const STATUS_CLASS: {
@@ -79,16 +79,16 @@ const STATUS_CLASS: {
 const RULE_VIOLATION_SEVERITY_BG_COLOR: {
   [K in Severity]: string;
 } = {
-  ERROR: 'bg-red-600',
-  WARNING: 'bg-amber-500',
+  ERROR: 'bg-traffic-light-red',
+  WARNING: 'bg-traffic-light-yellow',
   HINT: 'bg-neutral-300',
 } as const;
 
 const ISSUE_SEVERITY_BG_COLOR: {
   [K in Severity]: string;
 } = {
-  ERROR: 'bg-red-600',
-  WARNING: 'bg-amber-500',
+  ERROR: 'bg-traffic-light-red',
+  WARNING: 'bg-traffic-light-yellow',
   HINT: 'bg-neutral-300',
 } as const;
 
@@ -129,11 +129,11 @@ export function getVulnerabilityRatingBackgroundColor(
 ): string {
   switch (rating) {
     case 'CRITICAL':
-      return 'bg-red-600';
+      return 'bg-traffic-light-red';
     case 'HIGH':
       return 'bg-orange-600';
     case 'MEDIUM':
-      return 'bg-amber-500';
+      return 'bg-traffic-light-yellow';
     case 'LOW':
       return 'bg-yellow-400';
     case 'NONE':
