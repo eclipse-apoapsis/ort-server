@@ -94,7 +94,7 @@ import org.koin.dsl.module
  * integration tests, the [setupDatabase] flag can be set to `false` as the data source will be provided by the
  * testcontainer there.
  */
-fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = module {
+fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single { config }
     single { ConfigFactory.parseMap(config.toMap()) }
 
@@ -111,7 +111,9 @@ fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = 
         DefaultKeycloakClient.create(get<ConfigManager>().createKeycloakClientConfiguration(), get())
     }
 
-    if (setupDatabase) {
+    if (db != null) {
+        single<Database> { db }
+    } else {
         single<Database>(createdAtStart = true) {
             val configManager = get<ConfigManager>()
             val dataSourceConfig = DataSourceConfig.create(configManager)

@@ -19,18 +19,17 @@
 
 package org.eclipse.apoapsis.ortserver.core.testutils
 
-import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.config.mergeWith
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.utils.io.KtorDsl
+import org.eclipse.apoapsis.ortserver.core.testModule
 
 import org.jetbrains.exposed.sql.Database
 
 import org.koin.core.context.stopKoin
-import org.koin.ktor.plugin.KOIN_ATTRIBUTE_KEY
 
 /**
  * Test helper for integration tests, which configures a test application using the given [applicationConfig][config]
@@ -75,9 +74,10 @@ fun ortServerTestApplication(
 
     if (db != null) {
         application {
-            monitor.subscribe(ApplicationStarted) {
-                attributes[KOIN_ATTRIBUTE_KEY].koin.declare(db)
-            }
+            testModule(db)
+//            monitor.subscribe(ApplicationStarted) {
+//                attributes[KOIN_ATTRIBUTE_KEY].koin.declare(db)
+//            }
         }
     }
 
