@@ -30,7 +30,6 @@ jobs:
       - name: Setup OSC
         uses: eclipse-apoapsis/setup-osc@main
         with:
-          osc-version: 0.1.0-RC16
           url: https://ort-server.example.com
           username: user
           password: ${{ secrets.ORT_SERVER_PASSWORD }}
