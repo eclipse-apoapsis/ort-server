@@ -27,8 +27,6 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.utils.io.KtorDsl
 
-import java.lang.IllegalArgumentException
-
 import org.jetbrains.exposed.sql.Database
 
 import org.koin.core.context.stopKoin
