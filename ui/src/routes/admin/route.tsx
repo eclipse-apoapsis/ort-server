@@ -35,7 +35,7 @@ const Layout = () => {
       ],
     },
     {
-      label: 'ORT Plugin Management',
+      label: 'Plugin Management',
       items: [
         {
           title: 'Installed Plugins',
