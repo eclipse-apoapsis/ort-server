@@ -45,23 +45,23 @@ import { ToastError } from '../toast-error';
 const chartConfig = {
   analyzer: {
     label: 'Analyzer',
-    color: 'hsl(var(--chart-analyzer))',
+    color: 'var(--analyzer)',
   },
   advisor: {
     label: 'Advisor',
-    color: 'hsl(var(--chart-advisor))',
+    color: 'var(--advisor)',
   },
   scanner: {
     label: 'Scanner',
-    color: 'hsl(var(--chart-scanner))',
+    color: 'var(--scanner)',
   },
   evaluator: {
     label: 'Evaluator',
-    color: 'hsl(var(--chart-evaluator))',
+    color: 'var(--evaluator)',
   },
   reporter: {
     label: 'Reporter',
-    color: 'hsl(var(--chart-reporter))',
+    color: 'var(--reporter)',
   },
 } satisfies ChartConfig;
 

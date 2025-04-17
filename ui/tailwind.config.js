@@ -38,6 +38,11 @@ export default {
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        analyzer: 'var(--analyzer)',
+        advisor: 'var(--advisor)',
+        scanner: 'var(--scanner)',
+        evaluator: 'var(--evaluator)',
+        reporter: 'var(--reporter)',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
