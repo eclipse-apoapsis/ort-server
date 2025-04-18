@@ -23,6 +23,7 @@ import com.azure.identity.DefaultAzureCredentialBuilder
 import com.azure.messaging.servicebus.ServiceBusClientBuilder
 import com.azure.messaging.servicebus.ServiceBusErrorContext
 import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext
+import com.azure.messaging.servicebus.models.ServiceBusReceiveMode
 
 import kotlinx.coroutines.CompletableDeferred
 
@@ -54,7 +55,6 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
         val stopSignal = CompletableDeferred<Unit>()
 
         fun processMessage(context: ServiceBusReceivedMessageContext) {
-            context.complete() // Acknowledge the message to remove it from the queue.
             val message = AzureServicebusMessageConverter.toTransportMessage(context.message, serializer)
 
             MDC.put("traceId", message.header.traceId)
@@ -85,8 +85,11 @@ class AzureServicebusMessageReceiverFactory : MessageReceiverFactory {
             .credential(credential)
             .processor()
             .queueName(config.queueName)
+            .receiveMode(ServiceBusReceiveMode.RECEIVE_AND_DELETE)
             .processMessage(::processMessage)
             .processError(::processError)
+            .maxConcurrentCalls(1)
+            .prefetchCount(0)
             .buildProcessorClient()
 
         client.use {
