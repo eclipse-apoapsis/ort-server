@@ -19,54 +19,26 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
-/**
- * A descriptor holding the metadata of a plugin.
- */
-@Serializable
-data class PluginDescriptor(
-    val id: String,
-    val type: PluginType,
-    val displayName: String,
-    val description: String,
-    val options: List<PluginOption> = emptyList(),
-    val enabled: Boolean
+data class PluginEvent(
+    val pluginType: PluginType,
+    val pluginId: String,
+    val version: Long,
+    val payload: PluginEventPayload,
+    val createdAt: Instant,
+    val createdBy: String
 )
 
-/**
- * The supported types of plugins.
- */
-enum class PluginType {
-    ADVISOR,
-    PACKAGE_CONFIGURATION_PROVIDER,
-    PACKAGE_CURATION_PROVIDER,
-    PACKAGE_MANAGER,
-    REPORTER,
-    SCANNER
-}
-
-/**
- * A configuration option for a plugin.
- */
+/** The base class for all plugin event payloads. */
 @Serializable
-data class PluginOption(
-    val name: String,
-    val description: String,
-    val type: PluginOptionType,
-    val defaultValue: String?,
-    val isNullable: Boolean,
-    val isRequired: Boolean
-)
+sealed class PluginEventPayload
 
-/**
- * The supported types of plugin options.
- */
-enum class PluginOptionType {
-    BOOLEAN,
-    INTEGER,
-    LONG,
-    SECRET,
-    STRING,
-    STRING_LIST
-}
+/** The payload for a plugin enabled event. */
+@Serializable
+internal object PluginEnabled : PluginEventPayload()
+
+/** The payload for a plugin disabled event. */
+@Serializable
+internal object PluginDisabled : PluginEventPayload()

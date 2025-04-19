@@ -28,6 +28,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
@@ -93,7 +94,7 @@ import org.koin.dsl.module
  * integration tests, the [setupDatabase] flag can be set to `false` as the data source will be provided by the
  * testcontainer there.
  */
-fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = module {
+fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single { config }
     single { ConfigFactory.parseMap(config.toMap()) }
 
@@ -110,7 +111,9 @@ fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = 
         DefaultKeycloakClient.create(get<ConfigManager>().createKeycloakClientConfiguration(), get())
     }
 
-    if (setupDatabase) {
+    if (db != null) {
+        single<Database> { db }
+    } else {
         single<Database>(createdAtStart = true) {
             val configManager = get<ConfigManager>()
             val dataSourceConfig = DataSourceConfig.create(configManager)
@@ -161,4 +164,6 @@ fun ortServerModule(config: ApplicationConfig, setupDatabase: Boolean = true) = 
     single { OrtRunService(get(), get(), get(), get()) }
     singleOf(::ReportStorageService)
     singleOf(::InfrastructureServiceService)
+
+    single { PluginEventStore(get()) }
 }
