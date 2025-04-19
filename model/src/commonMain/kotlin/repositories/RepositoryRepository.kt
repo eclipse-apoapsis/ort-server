@@ -33,7 +33,7 @@ interface RepositoryRepository {
     /**
      * Create a repository.
      */
-    fun create(type: RepositoryType, url: String, productId: Long): Repository
+    fun create(type: RepositoryType, url: String, productId: Long, description: String?): Repository
 
     /**
      * Get a repository by [id]. Returns null if the repository is not found.

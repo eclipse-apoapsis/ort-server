@@ -156,11 +156,17 @@ fun Route.products() = route("products/{productId}") {
 
             val id = call.requireIdParameter("productId")
             val createRepository = call.receive<CreateRepository>()
+            val repository = productService.createRepository(
+                createRepository.type.mapToModel(),
+                createRepository.url,
+                id,
+                createRepository.description
+            )
+                .mapToApi()
 
             call.respond(
                 HttpStatusCode.Created,
-                productService.createRepository(createRepository.type.mapToModel(), createRepository.url, id)
-                    .mapToApi()
+                repository
             )
         }
     }

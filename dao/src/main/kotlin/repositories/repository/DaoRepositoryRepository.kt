@@ -33,11 +33,12 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 
 class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
-    override fun create(type: RepositoryType, url: String, productId: Long) = db.blockingQuery {
+    override fun create(type: RepositoryType, url: String, productId: Long, description: String?) = db.blockingQuery {
         RepositoryDao.new {
             this.type = type.name
             this.url = url
             this.productId = productId
+            this.description = description
         }.mapToModel()
     }
 

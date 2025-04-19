@@ -169,12 +169,14 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
     val repositoryType = RepositoryType.GIT
     val repositoryUrl = "https://example.org/repo.git"
+    val repositoryDescription = "description"
 
     suspend fun createRepository(
         type: RepositoryType = repositoryType,
         url: String = repositoryUrl,
-        prodId: Long = productId
-    ) = productService.createRepository(type, url, prodId)
+        prodId: Long = productId,
+        description: String? = repositoryDescription
+    ) = productService.createRepository(type, url, prodId, description)
 
     suspend fun addUserToGroup(username: String, organizationId: Long, groupId: String) =
         repositoryService.addUserToGroup(username, organizationId, groupId)
@@ -201,7 +203,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody
-                        Repository(createdRepository.id, orgId, productId, repositoryType.mapToApi(), repositoryUrl)
+                        Repository(createdRepository.id, orgId, productId, repositoryType.mapToApi(), repositoryUrl, repositoryDescription)
             }
         }
 
@@ -233,7 +235,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     orgId,
                     productId,
                     updateRepository.type.valueOrThrow,
-                    updateRepository.url.valueOrThrow
+                    updateRepository.url.valueOrThrow,
+                    repositoryDescription
                 )
             }
         }
