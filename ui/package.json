@@ -45,7 +45,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^1.1.1",
     "debounce": "^2.2.0",
-    "lucide-react": "^0.488.0",
+    "lucide-react": "^0.501.0",
     "oidc-client-ts": "^3.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
