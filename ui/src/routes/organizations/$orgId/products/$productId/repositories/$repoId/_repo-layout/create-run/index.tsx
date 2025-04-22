@@ -21,7 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useRepositoriesServicePostApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
@@ -124,7 +124,7 @@ const CreateRunPage = () => {
       },
     });
 
-  const form = useForm<CreateRunFormValues>({
+  const form = useForm({
     resolver: zodResolver(createRunFormSchema),
     defaultValues: defaultValues(ortRun),
   });
@@ -397,32 +397,32 @@ const CreateRunPage = () => {
               }
             >
               <AnalyzerFields
-                form={form}
+                form={form as UseFormReturn<CreateRunFormValues>}
                 value='analyzer'
                 onToggle={() => toggleAccordionOpen('analyzer')}
               />
               <AdvisorFields
-                form={form}
+                form={form as UseFormReturn<CreateRunFormValues>}
                 value='advisor'
                 onToggle={() => toggleAccordionOpen('advisor')}
               />
               <ScannerFields
-                form={form}
+                form={form as UseFormReturn<CreateRunFormValues>}
                 value='scanner'
                 onToggle={() => toggleAccordionOpen('scanner')}
               />
               <EvaluatorFields
-                form={form}
+                form={form as UseFormReturn<CreateRunFormValues>}
                 value='evaluator'
                 onToggle={() => toggleAccordionOpen('evaluator')}
               />
               <ReporterFields
-                form={form}
+                form={form as UseFormReturn<CreateRunFormValues>}
                 value='reporter'
                 onToggle={() => toggleAccordionOpen('reporter')}
               />
               <NotifierFields
-                form={form}
+                form={form as UseFormReturn<CreateRunFormValues>}
                 value='notifier'
                 onToggle={() => toggleAccordionOpen('notifier')}
               />
@@ -485,7 +485,9 @@ const CreateRunPage = () => {
                 <Label className='mt-4'>Form payload:</Label>
                 <pre className='w-full rounded-lg p-4 text-xs'>
                   {JSON.stringify(
-                    formValuesToPayload(form.getValues()),
+                    formValuesToPayload(
+                      (form as UseFormReturn<CreateRunFormValues>).getValues()
+                    ),
                     null,
                     2
                   )}
