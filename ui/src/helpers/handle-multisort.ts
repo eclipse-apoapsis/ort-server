@@ -45,7 +45,7 @@ export const updateColumnSorting = (
   const index = columns.findIndex((c) => c.id === column.id);
 
   // Initialize a new sorting array
-  let updatedSort: SortingState = [];
+  let updatedSort: SortingState;
 
   if (index >= 0) {
     // If column already exists, safely get the current sorting order
