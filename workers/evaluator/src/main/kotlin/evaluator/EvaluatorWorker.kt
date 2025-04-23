@@ -51,7 +51,7 @@ internal class EvaluatorWorker(
                 ?: throw IllegalArgumentException("The evaluator job with id '$jobId' could not be started.")
             logger.debug("Evaluator job with id '{}' started at {}.", job.id, job.startedAt)
 
-            if (job.configuration.keepAliveWorker == true) {
+            if (job.configuration.keepAliveWorker) {
                 EndpointComponent.generateKeepAliveFile()
             }
 

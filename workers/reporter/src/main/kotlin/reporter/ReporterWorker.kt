@@ -60,7 +60,7 @@ internal class ReporterWorker(
             ?: throw IllegalArgumentException("The reporter job with id '$jobId' could not be started.")
         logger.debug("Reporter job with id '{}' started at {}.", job.id, job.startedAt)
 
-        if (job.configuration.keepAliveWorker == true) {
+        if (job.configuration.keepAliveWorker) {
             EndpointComponent.generateKeepAliveFile()
         }
 

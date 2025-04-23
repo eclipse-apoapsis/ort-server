@@ -60,7 +60,7 @@ internal class AnalyzerWorker(
         logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
 
         contextFactory.withContext(job.ortRunId) { context ->
-            if (job.configuration.keepAliveWorker == true) {
+            if (job.configuration.keepAliveWorker) {
                 EndpointComponent.generateKeepAliveFile()
             }
 

@@ -48,7 +48,7 @@ internal class AdvisorWorker(
         contextFactory.withContext(job.ortRunId) { workerContext ->
             val ortRun = workerContext.ortRun
 
-            if (job.configuration.keepAliveWorker == true) {
+            if (job.configuration.keepAliveWorker) {
                 EndpointComponent.generateKeepAliveFile()
             }
 
