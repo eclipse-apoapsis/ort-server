@@ -517,14 +517,12 @@ export const Route = createFileRoute(
     if (rerunIndex === undefined) {
       return null;
     }
-    const ortRun =
-      await RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-        {
-          repositoryId: Number.parseInt(params.repoId),
-          ortRunIndex: rerunIndex,
-        }
-      );
-    return ortRun;
+    return await RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+      {
+        repositoryId: Number.parseInt(params.repoId),
+        ortRunIndex: rerunIndex,
+      }
+    );
   },
   component: CreateRunPage,
   validateSearch: rerunIndexSchema,
