@@ -17,10 +17,14 @@
  * License-Filename: LICENSE
  */
 import { useNavigate } from '@tanstack/react-router';
+import { Sigma } from 'lucide-react';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
+import { LoadingIndicator } from '@/components/loading-indicator';
+import { RunDuration } from '@/components/run-duration';
+import { ToastError } from '@/components/toast-error';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChartConfig,
@@ -39,8 +43,6 @@ import {
 } from '@/helpers/calculate-duration';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
-import { LoadingIndicator } from '../loading-indicator';
-import { ToastError } from '../toast-error';
 
 const chartConfig = {
   analyzer: {
@@ -142,8 +144,24 @@ export const JobDurations = ({
           ).durationMs
         : null;
 
+    // Calculate how many durations are non-null. This is needed for proper indexing in the tooltip,
+    // to render the total duration at the end of the tooltip.
+    const finishedJobs = [
+      analyzerDuration,
+      advisorDuration,
+      scannerDuration,
+      evaluatorDuration,
+      reporterDuration,
+    ].filter((duration) => duration !== null).length;
+
+    const createdAt = run.createdAt;
+    const finishedAt = run.finishedAt;
+
     return {
       runId: run.index,
+      finishedJobs,
+      createdAt,
+      finishedAt,
       analyzer: analyzerDuration,
       advisor: advisorDuration,
       scanner: scannerDuration,
@@ -237,27 +255,43 @@ export const JobDurations = ({
                 <ChartTooltipContent
                   hideLabel
                   className='w-[180px]'
-                  formatter={(value, name) => (
-                    <>
-                      <div className='flex w-full items-baseline justify-between'>
-                        <div className='flex items-baseline gap-2'>
-                          <div
-                            className='size-2.5 shrink-0 rounded-[2px]'
-                            style={{
-                              backgroundColor: `var(--color-${name})`,
-                            }}
-                          />
-                          <div>
-                            {chartConfig[name as keyof typeof chartConfig]
-                              ?.label || name}
+                  formatter={(value, name, item, index) => {
+                    return (
+                      <>
+                        <div className='flex w-full items-baseline justify-between'>
+                          <div className='flex items-baseline gap-2'>
+                            <div
+                              className='size-2.5 shrink-0 rounded-[2px]'
+                              style={{
+                                backgroundColor: `var(--color-${name})`,
+                              }}
+                            />
+                            <div>
+                              {chartConfig[name as keyof typeof chartConfig]
+                                ?.label || name}
+                            </div>
+                          </div>
+                          <div className='text-muted-foreground font-mono text-xs'>
+                            {convertDurationToHms(Number(value))}
                           </div>
                         </div>
-                        <div className='text-muted-foreground font-mono text-xs'>
-                          {convertDurationToHms(Number(value))}
-                        </div>
-                      </div>
-                    </>
-                  )}
+                        {index === item.payload.finishedJobs - 1 && (
+                          <div className='flex w-full items-center justify-between'>
+                            <div className='flex items-center gap-1'>
+                              <Sigma className='text-muted-foreground -ml-0.5 size-4 shrink-0' />
+                              <div>Total</div>
+                            </div>
+                            <div className='text-muted-foreground mt-0.5 font-mono text-xs'>
+                              <RunDuration
+                                createdAt={item.payload.createdAt}
+                                finishedAt={item.payload.finishedAt}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  }}
                   footer={
                     <div className='text-muted-foreground text-xs'>
                       Click bar to go to run
