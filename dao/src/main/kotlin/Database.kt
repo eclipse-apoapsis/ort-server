@@ -235,19 +235,6 @@ fun <M, D> mapAndDeduplicate(modelObjects: Collection<M>?, mapper: (M) -> D): Si
     SizedCollection(mapToSet(modelObjects, mapper).orEmpty())
 
 /**
- * Map the given [modelObjects] collection to a [Set] using the given [mapper] function and check whether the result
- * equals to the given [Collection] of [dataObjects]. This is used by _find_ functions in some Dao implementations to
- * deal with collections of child elements that cannot have duplicates and for which order does not matter.
- */
-fun <M, D> mapAndCompare(modelObjects: SizedIterable<M>, dataObjects: Collection<D>, mapper: (M) -> D): Boolean {
-    val modelObjectsList = modelObjects.toList()
-    if (modelObjectsList.size != dataObjects.size) return false
-
-    val mapped = mapToSet(modelObjects, mapper).orEmpty()
-    return mapped.containsAll(dataObjects)
-}
-
-/**
  * Map the given [modelObjects] collection to a [Set] using the given [mapper] function.
  */
 private fun <D, M> mapToSet(modelObjects: Iterable<M>?, mapper: (M) -> D): Set<D>? =
