@@ -30,6 +30,6 @@ object InfrastructureServicesRunsTable : Table("infrastructure_services_ort_runs
     val infrastructureServiceId = reference("infrastructure_service_id", InfrastructureServicesTable)
     val ortRunId = reference("ort_run_id", OrtRunsTable)
 
-    override val primaryKey: Table.PrimaryKey
+    override val primaryKey: PrimaryKey
         get() = PrimaryKey(infrastructureServiceId, ortRunId, name = "${tableName}_pkey")
 }

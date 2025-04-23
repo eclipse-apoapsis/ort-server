@@ -60,7 +60,7 @@ class PackageProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
         fun findByPackage(pkg: PackageDao): PackageProvenanceDao? =
             // TODO: Make the source code origin configurable, currently the random first finding is used when multiple
             //       provenances are found for a package.
-            PackageProvenanceDao.find {
+            find {
                 (PackageProvenancesTable.identifierId eq pkg.identifier.id) and (
                         (PackageProvenancesTable.artifactId eq pkg.sourceArtifact.id) or
                                 (PackageProvenancesTable.vcsId eq pkg.vcsProcessed.id)

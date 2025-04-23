@@ -29,5 +29,5 @@ object ReporterRunsReportsTable : Table("reporter_runs_reports") {
     val reportId = reference("report_id", ReportsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(reporterRunId, reportId, name = "${ReporterRunsReportsTable.tableName}_pkey")
+        get() = PrimaryKey(reporterRunId, reportId, name = "${tableName}_pkey")
 }

@@ -45,7 +45,7 @@ class ScannerRunsScannersDao(id: EntityID<Long>) : LongEntity(id) {
          * scanner with th given [scannerName].
          */
         fun addScanner(run: ScannerRunDao, identifier: Identifier, scannerName: String) {
-            ScannerRunsScannersDao.new {
+            new {
                 scannerRun = run
                 this.identifier = IdentifierDao.getOrPut(identifier)
                 this.scannerName = scannerName

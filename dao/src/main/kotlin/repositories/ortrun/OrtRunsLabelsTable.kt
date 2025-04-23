@@ -29,5 +29,5 @@ object OrtRunsLabelsTable : Table("ort_runs_labels") {
     val labelId = reference("label_id", LabelsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(ortRunId, labelId, name = "${OrtRunsLabelsTable.tableName}_pkey")
+        get() = PrimaryKey(ortRunId, labelId, name = "${tableName}_pkey")
 }
