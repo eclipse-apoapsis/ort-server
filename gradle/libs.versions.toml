@@ -147,7 +147,6 @@ ktorServerMetricsMicrometer = { module = "io.ktor:ktor-server-metrics-micrometer
 ktorServerNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", version.ref = "ktor" }
 ktorServerTestHost = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
-ktorServerTestsJvm = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorOpenApi" }
 ktorUtils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 ktorValidation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
