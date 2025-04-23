@@ -26,7 +26,7 @@ import io.ktor.server.auth.jwt.JWTPayloadHolder
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 
 /**
- * A [Principal] holding information about the authenticated ORT Server user.
+ * A principal holding information about the authenticated ORT Server user.
  */
 class OrtPrincipal(
     /**
