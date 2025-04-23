@@ -170,23 +170,23 @@ const config: Config = {
             },
             {
               label: 'Eclipse Foundation Website',
-              href: 'http://www.eclipse.org/',
+              href: 'https://www.eclipse.org/',
             },
             {
               label: 'Privacy policy',
-              href: 'http://www.eclipse.org/legal/privacy.php',
+              href: 'https://www.eclipse.org/legal/privacy.php',
             },
             {
               label: 'Terms of use',
-              href: 'http://www.eclipse.org/legal/termsofuse.php',
+              href: 'https://www.eclipse.org/legal/termsofuse.php',
             },
             {
               label: 'Copyright agent',
-              href: 'http://www.eclipse.org/legal/copyright.php',
+              href: 'https://www.eclipse.org/legal/copyright.php',
             },
             {
               label: 'Legal',
-              href: 'http://www.eclipse.org/legal',
+              href: 'https://www.eclipse.org/legal',
             },
           ],
         },
