@@ -79,7 +79,7 @@ class ScannerWorker(
 
             val scannerRunId = ortRunService.createScannerRun(scannerJob.id).id
 
-            if (scannerJob.configuration.keepAliveWorker == true) {
+            if (scannerJob.configuration.keepAliveWorker) {
                 EndpointComponent.generateKeepAliveFile()
             }
 
