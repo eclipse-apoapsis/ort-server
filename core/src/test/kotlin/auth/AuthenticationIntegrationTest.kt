@@ -79,7 +79,7 @@ class AuthenticationIntegrationTest : StringSpec({
         ortServerTestApplication(config = authNoDbConfig, additionalConfigs = keycloakConfig + jwtConfig) {
             routing {
                 route("api/v1") {
-                    authenticate(SecurityConfigurations.token) {
+                    authenticate(SecurityConfigurations.TOKEN) {
                         route("test") {
                             get {
                                 onCall()
@@ -134,7 +134,7 @@ class AuthenticationIntegrationTest : StringSpec({
         keycloak.keycloakAdminClient.setUpUserRoles(TEST_USER.username.value, listOf("role-1", "role-2"))
 
         authTestApplication(onCall = {
-            val principal = call.principal<OrtPrincipal>(SecurityConfigurations.token)
+            val principal = call.principal<OrtPrincipal>(SecurityConfigurations.TOKEN)
 
             principal.shouldNotBeNull()
             principal.roles should containExactlyInAnyOrder("role-1", "role-2")

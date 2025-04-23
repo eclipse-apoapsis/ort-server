@@ -60,12 +60,12 @@ fun Application.configureOpenApi() {
         pathFilter = { _, url -> url.firstOrNull() != "schemas" }
 
         security {
-            defaultSecuritySchemeNames = listOf(SecurityConfigurations.token)
+            defaultSecuritySchemeNames = listOf(SecurityConfigurations.TOKEN)
             defaultUnauthorizedResponse {
                 description = "Invalid Token"
             }
 
-            securityScheme(SecurityConfigurations.token) {
+            securityScheme(SecurityConfigurations.TOKEN) {
                 type = AuthType.OAUTH2
                 flows {
                     authorizationCode {

@@ -39,7 +39,7 @@ const val TEST_PASSWORD = "password"
  */
 fun Application.configureTestAuthentication() {
     install(Authentication) {
-        basic(SecurityConfigurations.token) {
+        basic(SecurityConfigurations.TOKEN) {
             validate { validateTestCredentials(it) }
         }
     }

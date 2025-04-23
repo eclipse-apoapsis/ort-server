@@ -42,7 +42,7 @@ fun Application.configureRouting() {
             authentication()
             healthChecks()
             downloads()
-            authenticate(SecurityConfigurations.token) {
+            authenticate(SecurityConfigurations.TOKEN) {
                 admin()
                 getInstalledPlugins()
                 organizations()
