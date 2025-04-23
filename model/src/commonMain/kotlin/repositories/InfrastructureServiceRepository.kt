@@ -136,7 +136,7 @@ interface InfrastructureServiceRepository {
     /**
      * Return a list with [InfrastructureService]s that are associated with the given [organizationId], or
      * [productId]. If there are multiple services with the same URL, instances on a lower level of
-     * the hierarchy are preferred, and others are dropped. This corresponds to an override semantics.
+     * the hierarchy are preferred, and others are dropped.
      */
     fun listForHierarchy(organizationId: Long, productId: Long): List<InfrastructureService>
 

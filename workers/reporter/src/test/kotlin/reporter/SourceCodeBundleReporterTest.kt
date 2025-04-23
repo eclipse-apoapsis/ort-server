@@ -352,8 +352,7 @@ class SourceCodeBundleReporterTest : WordSpec({
 
 /**
  * Unpack this source code bundle file to the given [outputDir] and check whether it has the expected folder structure
- * containing components for the [pkgFile], [pkgName], and [pkgVersion]. Return the sub folder with the actual
- * content.
+ * containing components for the [pkgFile], [pkgName], and [pkgVersion]. Return the subfolder with the actual content.
  */
 private fun File.checkAndUnpackBundle(outputDir: File, pkgFile: String, pkgName: String, pkgVersion: String): File {
     unpackZip(outputDir)

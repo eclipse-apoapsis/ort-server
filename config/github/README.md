@@ -16,17 +16,17 @@ Then the `resolveContext` function is used to resolve the SHA-1 of the last comm
 The `listFiles` function can be used to get the list of all the objects of type `file` located in the given path.
 It requires the provided path to refer to a directory, otherwise a `ConfigException` exception is thrown.
 
-In order to make sure that a configuration file is present in the given path, the `contains` function can be used.
+To make sure that a configuration file is present in the given path, the `contains` function can be used.
 It accepts a branch name and a path to a file and returns `true` if the file is present or `false` if the returned object is not a file, or if the specified path does not exist in the given repository at all.
 
-The `getFile` function allows to download a file from the provided path and branch.
+The `getFile` function allows downloading a file from the provided path and branch.
 This function sends a GET request to GitHub API with the header `Accept` set to GitHub’s custom content type `application/vnd.github.raw` in order to receive a raw content of the referenced file.
 If the provided path refers a directory, GitHub API will ignore the `Accept` header and return a JSON array with the directory content.
 In this case, as well as in the case when the returned 'Content Type' header is neither one of `application/vnd.github.raw` or `application/json`, or it is missing, a \[ConfigException\] is thrown with the description of the cause.
 
 ## Configuration
 
-In order to activate `GitHubConfigFileProvider`, the application configuration must contain a section `configManager` with a property `fileProvider` set to the value "github-config".
+To activate `GitHubConfigFileProvider`, the application configuration must contain a section `configManager` with a property `fileProvider` set to the value "github-config".
 In addition, there are several configuration properties required by the provider.
 The fragment below shows an example:
 

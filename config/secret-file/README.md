@@ -29,7 +29,7 @@ This implementation has the following consequences:
 
 - If multiple secret files are configured, secrets in one file can override the values of secrets in other files.
   The values with the highest priority just have to be defined in the file that is listed first.
-  This is useful for instance to support different testing environments.
+  This is useful, for instance, to support different testing environments.
   It can be achieved by having a file with default secret values; but before this file, another file is placed which overrides selected secrets that are specific for a test environment.
 
 The `ConfigSecretFileProvider` implementation is applicable in different scenarios.
@@ -37,11 +37,11 @@ It can be used in a local test setup where files with secrets are stored on the 
 
 It can also be used in production with mechanisms that inject secrets as files into containers.
 One example of such a mechanism is the [Agent sidecar injector](https://developer.hashicorp.com/vault/docs/platform/k8s/injector) of HashiCorp Vault, which can create volume mounts for Kubernetes pods containing files with secrets.
-The content of such files, which secrets to export and in which format, can be configured using annotations in interested pods.
+The content of such files, which secrets to export, and in which format, can be configured using annotations in interested pods.
 
 ## Configuration
 
-In order to activate `ConfigSecretFileProvider`, the application configuration must contain a section `configManager` with a property `secretProvider` set to the value "secret-files".
+To activate `ConfigSecretFileProvider`, the application configuration must contain a section `configManager` with a property `secretProvider` set to the value "secret-files".
 In addition, there is only one configuration property supported for the list of files with secrets to be consumed by the provider.
 Here the full paths must be specified in a comma-delimited list; this is a mandatory property.
 The fragment below shows an example:

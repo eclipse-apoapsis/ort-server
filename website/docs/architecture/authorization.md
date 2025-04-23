@@ -121,7 +121,7 @@ The roles defined above are also hierarchical, that means that, for example, the
 The idea behind this is to simplify checking for access permissions in the backend, because there are often multiple roles that can give access to a resource.
 For example, an organization administrator is also an administrator for all products in the organization.
 So, when performing an action on a product that requires admin permissions, the backend would have to check if the user is either an administrator for the product or an administrator for the organization.
-With the hierarchical concept, it only needs to check for the specific permission, because the organization administrator role contains all product administrator roles and therefore also all permissions for all products within the organization.
+With the hierarchical concept, it only needs to check for the specific permission because the organization administrator role contains all product administrator roles and therefore also all permissions for all products within the organization.
 
 ### Examples
 
@@ -168,7 +168,7 @@ This has the benefit that all role changes in Keycloak are recognized immediatel
 Another benefit is that the client roles do not have to be contained in the access token which makes it smaller.
 
 An alternative to using the Keycloak API would have been to use the [userinfo endpoint](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo).
-However, the implementation would have been more complex, because access to the API was already implemented for the role and group management.
+However, the implementation would have been more complex because access to the API was already implemented for the role and group management.
 
 ### Keycloak Configuration
 
@@ -185,7 +185,7 @@ This might later be changed by introducing API endpoints to manage permissions, 
 
 To manage user access, users should be added to the groups created for the entities.
 For example, to give a user read access to the organization with the id "1", the user should be added to the group "ORGANIZATION_1_READERS".
-Assigning roles directly to users is not recommended, because the role definitions could change with any update of the ORT Server, for example, by adding or removing permissions, or changing which permissions belong to a role.
+Assigning roles directly to users is not recommended because the role definitions could change with any update of the ORT Server, for example, by adding or removing permissions, or changing which permissions belong to a role.
 If a user is added to a group, the ORT Server [ensures](#keycloak-synchronization) that the group always has the correct roles and permissions assigned.
 
 Please note that it is possible to configure a prefix for group names, so the actual group names could be different to those used in this documentation.

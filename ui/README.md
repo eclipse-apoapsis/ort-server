@@ -27,11 +27,11 @@ Here are the instructions to start the UI in local development mode:
 
 ## Generating the UI Query Client
 
-As a precondition for generating the query client the OpenAPI specification must be generated as documented in
+As a precondition for generating the query client, the OpenAPI specification must be generated as documented in
 [Development](#development).
 
 The query client is generated automatically as part of `pnpm build`.
-To generate it manually, for example for testing local changes to the API, run `pnpm generate:api`.
+To generate it manually, for example, for testing local changes to the API, run `pnpm generate:api`.
 
 ## Docker
 

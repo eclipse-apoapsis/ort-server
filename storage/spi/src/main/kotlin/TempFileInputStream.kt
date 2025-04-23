@@ -24,14 +24,14 @@ import java.io.InputStream
 
 /**
  * A specialized [InputStream] implementation that operates on a temporary file. The read functions are implemented
- * to access the input stream from this file. When the stream is closed the file is deleted.
+ * to access the input stream from this file. When the stream is closed, the file is deleted.
  *
  * This class is used to work around the limitation that PostgreSQL large objects can only be accessed during a
  * transaction. Most use cases, however, require reading the stream after the transaction. Therefore, to avoid that the
  * whole data needs to be read in memory, the storage provider implementation creates a temporary file first and then
  * exposes the stream from this file.
  *
- * Note: This would be good use case for delegation, but unfortunately, this only works for interfaces.
+ * Note: This would be a good use case for delegation, but unfortunately, this only works for interfaces.
  */
 class TempFileInputStream(
     /** The temporary file to wrap. */

@@ -39,7 +39,7 @@ interface ReporterJobRepository : WorkerJobRepository<ReporterJob> {
 
     /**
      * Get a report for the given [ortRunId] by its [token]. The token allows access to the report without
-     * authentication. Result is *null* if the token cannot be resolved or has expired.
+     * authentication. Returns *null* if the token cannot be resolved or has expired.
      */
     fun getReportByToken(ortRunId: Long, token: String): Report?
 

@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory
 
 /**
  * Type alias for a function that allows encoding the value of a secret before it gets inserted into a generated
- * configuration file. This is needed for instance if usernames or passwords which may contain special characters have
+ * configuration file. This is needed, for instance, if usernames or passwords which may contain special characters have
  * to be added to URLs.
  */
 typealias SecretEncodingFun = (String) -> String
@@ -70,7 +70,7 @@ class ConfigFileBuilder(val context: WorkerContext) {
 
         /**
          * Print the given [multiLineText] making sure that the correct line endings are used. This function is
-         * intended to be used with a Kotlin multiline string. In multiline strings line endings are always
+         * intended to be used with a Kotlin multiline string. In multiline strings, line endings are always
          * represented by single newline characters. This function replaces this character with the platform-specific
          * newline character.
          */

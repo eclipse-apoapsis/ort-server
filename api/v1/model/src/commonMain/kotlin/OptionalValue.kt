@@ -31,7 +31,7 @@ import kotlinx.serialization.encoding.Encoder
  * * [OptionalValue.Absent]
  *
  * This make generic PATCH requests possible that take all upgradable properties as parameters and only update the
- * ones that are [present][OptionalValue.Present]. Otherwise, for nullable properties there would be no way to
+ * ones that are [present][OptionalValue.Present]. Otherwise, for nullable properties, there would be no way to
  * distinguish if the property should be ignored or updated.
  */
 @Serializable(with = OptionalValueSerializer::class)

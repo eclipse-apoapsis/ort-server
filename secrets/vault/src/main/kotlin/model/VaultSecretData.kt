@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
 /**
  * A data class representing the data stored for a secret in Vault.
  *
- * Vault allows an arbitrary number of key value pairs to be stored in a secret. The secrets abstraction in contrast,
+ * Vault allows an arbitrary number of key value pairs to be stored in a secret. The secrets abstraction, in contrast,
  * expects a single value to be stored at a specific path. To handle this discrepancy, the Vault implementation creates
  * secrets under the specified paths with a default key containing the value.
  *

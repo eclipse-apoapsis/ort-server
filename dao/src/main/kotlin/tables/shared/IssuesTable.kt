@@ -56,7 +56,7 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
 
         /**
          * Return an [IssueDao] to represent the given [issue]. If the properties of the [issue] can be matched,
-         * an existing [IssueDao] is returned, otherwise a new one is created.
+         * an existing [IssueDao] is returned. Otherwise, a new one is created.
          */
         fun createByIssue(issue: Issue): IssueDao =
             findByIssue(issue) ?: new {
@@ -67,8 +67,8 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
             }
 
         /**
-         * Execute the given [query] and return the result as a list of [Issue] objects. This function allows to
-         * load issues from different sources, e.g. the issues from an ORT run or from a scan result. The query must
+         * Execute the given [query] and return the result as a list of [Issue] objects. This function allows loading
+         * issues from different sources, e.g., the issues from an ORT run or from a scan result. The query must
          * return the properties of an issue in the following order:
          * 1. timestamp
          * 2. source
@@ -112,7 +112,7 @@ class IssueDao(id: EntityID<Long>) : LongEntity(id) {
 @Suppress("ComplexCondition")
 fun ResultRow.toIssue(): Issue {
     // The exposed library seems not to fully support fields on alias queries when unions are used.
-    // Use the field indexes in order to extract the values from the ResultRow instead of the field names.
+    // Use the field indexes to extract the values from the ResultRow instead of the field names.
     // Disadvantage: More fragility, losing type safety at compile time.
     val columns = fieldIndex.keys.toList()
 

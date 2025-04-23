@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory
  * This generator class produces an entry for the _.netrc_ file for each [InfrastructureService] it is provided. See
  * https://daniel.haxx.se/blog/2022/05/31/netrc-pains/ for a discussion of the format and its limitations. The file
  * written by this class is intended to be read by ORT's _NetRcAuthenticator_ class. As this class does not support
- * any advanced features (e.g. special characters in passwords, quoting, or escaping), those aspects are ignored here
+ * any advanced features (e.g., special characters in passwords, quoting, or escaping), those aspects are ignored here
  * as well.
  *
  * For the _.netrc_ file, only the host names of machines are relevant. In case there are multiple infrastructure

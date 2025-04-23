@@ -103,13 +103,13 @@ internal class WorkerScheduleContext(
         jobs[endpoint.configPrefix]?.isCompleted() ?: false
 
     /**
-     * Return a flag whether this [OrtRun] has failed, i.e. it has at least one job in failed state.
+     * Return a flag whether this [OrtRun] has failed, i.e., it has at least one job in failed state.
      */
     fun isFailed(): Boolean =
         failed || jobs.values.any { it.status == JobStatus.FAILED }
 
     /**
-    * Return a flag whether this [OrtRun] has finished with issues, i.e. it has at least one job with this state.
+    * Return a flag whether this [OrtRun] has finished with issues, i.e., it has at least one job with this state.
     */
     fun isFinishedWithIssues(): Boolean =
         !isFailed() && jobs.values.any { it.status == JobStatus.FINISHED_WITH_ISSUES }

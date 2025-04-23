@@ -10,7 +10,7 @@ The container started by the Kubernetes Job acts as the receiver and constructs 
 
 ## Configuration
 
-In order to use this module, the `type` property in the transport configuration must be set to `kubernetes`.
+To use this module, the `type` property in the transport configuration must be set to `kubernetes`.
 For the sender part, a number of properties can be provided to configure the resulting pods as shown in the fragment below:
 
 ```
@@ -84,7 +84,7 @@ The properties have the following meaning:
 </tr>
 <tr class="odd">
 <td><p>commands</p></td>
-<td><p>The commands to be executed in the container. This can be used to overwrite the container’s default command and corresponds to the <code>command</code> property in the <a href="https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/">Kubernetes pod configuration</a>. Here a string can be specified. In order to obtain the array with commands expected by Kubernetes, the string is split at whitespaces, unless the whitespace occurs in double quotes.</p></td>
+<td><p>The commands to be executed in the container. This can be used to overwrite the container’s default command and corresponds to the <code>command</code> property in the <a href="https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/">Kubernetes pod configuration</a>. Here a string can be specified. To obtain the array with commands expected by Kubernetes, the string is split at whitespaces, unless the whitespace occurs in double quotes.</p></td>
 <td><p>empty</p></td>
 </tr>
 <tr class="even">
@@ -94,7 +94,7 @@ The properties have the following meaning:
 </tr>
 <tr class="odd">
 <td><p>mountSecrets</p></td>
-<td><p>With this property, it is possible to mount the contents of Kubernetes <a href="https://kubernetes.io/docs/concepts/configuration/secret/">secrets</a> as files into the resulting pod. The string is interpreted as a sequence of mount declarations separated by whitespace. Each mount declaration has the form <em>secret→mountPath</em>, where <em>secret</em> is the name of a secret, and <em>mountPath</em> is a path in the container where the content of the secret should be made available. At this path, for each key of the secret a file is created whose content is the value of the key. To achieve this, the Kubernetes Transport implementation generates corresponding <code>volume</code> and <code>volumeMount</code> declarations in the pod configuration. This mechanism is useful not only for secrets but also for other kinds of external data that should be accessible from a pod, for instance custom certificates.</p></td>
+<td><p>With this property, it is possible to mount the contents of Kubernetes <a href="https://kubernetes.io/docs/concepts/configuration/secret/">secrets</a> as files into the resulting pod. The string is interpreted as a sequence of mount declarations separated by whitespace. Each mount declaration has the form <em>secret→mountPath</em>, where <em>secret</em> is the name of a secret, and <em>mountPath</em> is a path in the container where the content of the secret should be made available. On this path, for each key of the secret a file is created whose content is the value of the key. To achieve this, the Kubernetes Transport implementation generates corresponding <code>volume</code> and <code>volumeMount</code> declarations in the pod configuration. This mechanism is useful not only for secrets but also for other kinds of external data that should be accessible from a pod, for instance, custom certificates.</p></td>
 <td><p>empty</p></td>
 </tr>
 <tr class="even">
@@ -142,10 +142,10 @@ VAR1=annotation1=value1 VAR2=annotation2=value2
 </tbody>
 </table>
 
-While the configuration is static for a deployment of ORT Server, there are use cases that require changing some of the settings dynamically for a specific ORT run.
+While the configuration is static for a deployment of ORT Server, there are use cases that require changing some settings dynamically for a specific ORT run.
 For instance, if the run processes a large repository, the memory limits might need to be increased.
 To make this possible, the values of some properties can contain variables that are resolved from the properties of the current message.
-The table above indicates, which properties support this mechanism.
+The table above indicates which properties support this mechanism.
 Variables follow the popular syntax `$+{variable}+`.
 
 To give an example, an excerpt from the configuration could look as follows:
@@ -174,13 +174,13 @@ Then the memory limit of the pod to be created will be set to 768 megabytes.
 ## Inheritance of environment variables
 
 Per default, when creating a new job, the `KubernetesMessageSender` passes all environment variables defined for the current pod to the specification of the new job.
-That way common variables like service credentials can be shared between pods.
+That way, common variables like service credentials can be shared between pods.
 
-A problem can arise though if there are name clashes with environment variables, e.g. if the new job requires a different value in a variable than the current pod.
+A problem can arise though if there are name clashes with environment variables, e.g., if the new job requires a different value in a variable than the current pod.
 To address such problems, the Kubernetes transport protocol supports a simple mapping mechanism for variable names that start with a prefix derived from the target endpoint:
-When setting up the environment variables for the new job it checks for variables whose name starts with the prefix name of the target endpoint in capital letters followed by an underscore.
+When setting up the environment variables for the new job, it checks for variables whose name starts with the prefix name of the target endpoint in capital letters followed by an underscore.
 This prefix is then removed from the variable in the environment of the new job.
 
-For instance, in order to set the `HOME` variable for the Analyzer worker to a specific value, define a variable `ANALYZER_HOME` in the Orchestrator pod.
+For instance, to set the `HOME` variable for the Analyzer worker to a specific value, define a variable `ANALYZER_HOME` in the Orchestrator pod.
 When then a new Analyzer job is created, its `HOME` variable get initialized from the value of the `ANALYZER_HOME` variable.
 An existing `HOME` variable in the Orchestrator pod will not conflict with this other value.

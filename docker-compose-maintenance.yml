@@ -19,7 +19,7 @@ version: "3.9"
 services:
   flyway:
     image: flyway/flyway:latest
-    # Flyway has a `repair` command that should help recover failed migration. Unfortunately it does not seem to work.
+    # Flyway has a `repair` command that should help recover failed migration. Unfortunately, it does not seem to work.
     # Therefore, `clean` is used instead which empties the whole schema.
     command: >-
       -url=jdbc:postgresql://postgres/ort_server -schemas=ort_server -user=postgres -password=postgres -connectRetries=60

@@ -1384,7 +1384,6 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val productId = createProduct().id
 
-                // Using two users that are prepared for test, just to have their user names
                 addUserToGroup(TEST_USER.username.value, productId, "READERS")
                 addUserToGroup(SUPERUSER.username.value, productId, "WRITERS")
                 addUserToGroup(SUPERUSER.username.value, productId, "ADMINS")

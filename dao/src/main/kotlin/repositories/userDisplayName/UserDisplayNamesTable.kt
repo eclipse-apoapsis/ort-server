@@ -33,14 +33,14 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.upsert
 
 /**
- * A table to represent names to identify a user. This is **not** used for any authentication or authorization purposes,
- * it is only used to store users' names in a central table, where it is easier to keep them up to date or remove them
- * after a time of inactivity.
+ * A table to represent names to identify a user. This is **not** used for any authentication or authorization, it is
+ * only used to store users' names in a central table, where it is easier to keep them up to date or remove them after a
+ * time of inactivity.
  */
 object UserDisplayNamesTable : IdTable<String>("user_display_names") {
 
     /**
-     * Unique user identifier, for example derived from JWT `sub` claim. This is stable over time.
+     * Unique user identifier, for example, derived from JWT `sub` claim. This is stable over time.
      */
     override val id: Column<EntityID<String>> = varchar("user_id", 40).entityId()
 
@@ -50,7 +50,7 @@ object UserDisplayNamesTable : IdTable<String>("user_display_names") {
     val username = text("username")
 
     /**
-     * UX friendly display name. This may change over time.
+     * UX-friendly display name. This may change over time.
      */
     val fullName = text("full_name").nullable()
 

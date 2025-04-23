@@ -28,16 +28,16 @@ import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
  * [Hikari connection pool](https://github.com/brettwooldridge/HikariCP).
  */
 data class DataSourceConfig(
-    /** The host of the database, for example 'localhost'. */
+    /** The host of the database, for example, 'localhost'. */
     val host: String,
 
-    /** The port of the database, for example '5432'. */
+    /** The port of the database, for example, '5432'. */
     val port: Int,
 
-    /** The name of the database, for example 'postgres'. */
+    /** The name of the database, for example, 'postgres'. */
     val name: String,
 
-    /** The schema to use, for example 'public'. */
+    /** The schema to use, for example, 'public'. */
     val schema: String,
 
     /** The username used for connecting to the database. */
@@ -110,7 +110,7 @@ data class DataSourceConfig(
 
     /**
      * An optional SQL statement that is executed when a new database connection is created. This can be used to
-     * set some defaults, for instance the schema search path.
+     * set some defaults, for instance, the schema search path.
      */
     val initSqlStatement: String?
 ) {

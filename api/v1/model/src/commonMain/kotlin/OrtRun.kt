@@ -134,7 +134,7 @@ data class OrtRun(
     val traceId: String?,
 
     /**
-     * Display name of the user that triggered the scan.
+     * The display name of the user that triggered the scan.
      */
     val userDisplayName: UserDisplayName? = null
 )

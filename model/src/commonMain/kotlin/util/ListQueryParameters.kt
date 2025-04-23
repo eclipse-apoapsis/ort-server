@@ -47,7 +47,7 @@ data class OrderField(
 /**
  * A data class defining standard parameters for queries that can return multiple entities.
  *
- * Via the properties defined here, query results can be customized, e.g. by applying ordering or paging. This is a
+ * Via the properties defined here, query results can be customized, e.g., by applying ordering or paging. This is a
  * generic mechanism supported by all query functions returning lists.
  */
 @Serializable

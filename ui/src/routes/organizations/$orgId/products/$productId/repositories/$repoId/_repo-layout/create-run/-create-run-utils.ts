@@ -49,7 +49,7 @@ const packageManagerOptionsSchema = z.object({
 // Ensure that when environment variables are used, the name and value
 // are both non-empty strings, otherwise the Analyzer job will fail.
 //
-// "value" field must be made both nullable and optional, to conform with
+// The "value" field must be made both nullable and optional, to conform with
 // the API's EnvironmentVariableDeclaration, which defines the value as
 // string | null | undefined.
 const environmentVariableSchema = z.object({

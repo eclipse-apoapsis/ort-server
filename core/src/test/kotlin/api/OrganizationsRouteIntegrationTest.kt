@@ -1966,7 +1966,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                // Using two users that are prepared for test, just to have their user names
                 addUserToGroup(TEST_USER.username.value, orgId, "READERS")
                 addUserToGroup(SUPERUSER.username.value, orgId, "WRITERS")
                 addUserToGroup(SUPERUSER.username.value, orgId, "ADMINS")

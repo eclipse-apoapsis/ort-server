@@ -35,7 +35,7 @@ typealias RepositoryEnvironmentDefinitions = Map<String, List<Options>>
  *
  * The environment configuration of a repository defines the infrastructure services this repository depends on and by
  * which package managers those are referenced. Based on this information, an environment can be created in which the
- * repository can be analysed.
+ * repository can be analyzed.
  */
 @Serializable
 data class EnvironmentConfig(

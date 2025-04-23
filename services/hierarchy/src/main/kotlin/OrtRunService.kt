@@ -53,7 +53,7 @@ class OrtRunService(
 
     /**
      * Delete the ORT run with the [ortRunId] and all its reports from storage and dependent database entities.
-     * In case a report does not exist in storage, although it should, the operation continues, because
+     * In case a report does not exist in storage, although it should, the operation continues because
      * the report might have been manually deleted from storage. However, if there is a technical issue
      * during the deletion of a report from storage, the function fails and the ORT run is not deleted,
      * allowing to retry the delete operation.

@@ -62,7 +62,7 @@ export function DataTablePagination({
   const navigate = useNavigate();
   const [page, setPage] = useState(currentPage);
 
-  // The current page lives in the URL state but a local state is used to handle the page input field.
+  // The current page lives in the URL state, but a local state is used to handle the page input field.
   // This effect synchronizes the local state with the URL state.
   useEffect(() => {
     setPage(currentPage);

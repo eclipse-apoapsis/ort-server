@@ -149,7 +149,7 @@ class OrtRunServiceTest : WordSpec() {
                 val service = createService(mockReportStorageService)
                 service.deleteOrtRun(ortRunId)
 
-                // Check if the remaining reports were deleted although one report was not found.
+                // Check if the remaining reports were deleted, although one report was not found.
                 coVerify(exactly = 2) {
                     mockReportStorageService.deleteReport(
                         eq(ortRunId),

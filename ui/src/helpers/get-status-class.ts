@@ -156,7 +156,7 @@ export function getIssueSeverityBackgroundColor(severity: Severity): string {
 
 // Get the color class for coloring the background of ecosystems.
 // These color classes are defined as follows:
-// 1. To avoid clashing with "status indicator colors" (eg. red for "FAILED")
+// 1. To avoid clashing with "status indicator colors" (e.g., red for "FAILED")
 //    elsewhere in the UI, those TailwindCSS color palettes which are already
 //    used for status indicators are excluded, which leaves 15 different color
 //    palettes to choose from.

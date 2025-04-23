@@ -73,5 +73,5 @@ The utils modules contain utility functions that are used across the project.
 
 ## Workers
 
-The worker modules contain code that run the individual ORT tools, like the analyzer.
+The worker modules contain code that runs the individual ORT tools, like the analyzer.
 They run independently of the backend to process the jobs of an ORT run.

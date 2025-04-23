@@ -377,7 +377,7 @@ data class KubernetesSenderConfig(
         get() = interpolatedProperty(MEMORY_REQUEST_PROPERTY)
 
     /**
-     * Return a [KubernetesSenderConfig] with settings updated for the given [message]. This function  enables variable
+     * Return a [KubernetesSenderConfig] with settings updated for the given [message]. This function enables variable
      * interpolation based on the properties of the given [message].
      */
     fun forMessage(message: Message<*>): KubernetesSenderConfig =

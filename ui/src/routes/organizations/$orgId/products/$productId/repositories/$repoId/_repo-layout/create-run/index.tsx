@@ -507,7 +507,7 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/create-run/'
 )({
   // This is used to access the search params in the loader.
-  // As search params we use the index of the ORT run on which this run will be based.
+  // As search params, we use the index of the ORT run on which this run will be based.
   loaderDeps: ({ search: { rerunIndex } }) => ({ rerunIndex }),
   // The loader fetches the ORT Run that is being rerun.
   // It is important to notice that if no rerunIndex is provided to this route,

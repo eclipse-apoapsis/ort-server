@@ -82,8 +82,8 @@ class AnalyzerRunner(
 
         /**
          * The name of the property defining the separator for splitting the fork commands into multiple parts. This
-         * is needed, since the full command line is defined via a single property or environment variable, but in
-         * order to actually execute it, it needs to be split into the command and its arguments.
+         * is needed since the full command line is defined via a single property or environment variable, but to
+         * actually execute it, it needs to be split into the command and its arguments.
          */
         private const val FORK_COMMAND_SEPARATOR = "analyzer.forkCommandSeparator"
 
@@ -102,11 +102,11 @@ class AnalyzerRunner(
 
         /**
          * An alternative function for calling the [AnalyzerRunner]. This function is used when the JVM needs to be
-         * forked in order to make newly set environment variables effective. In this case, parameters are passed via
-         * command line arguments. The first argument is a temporary directory to be used for exchanging data between
-         * the parent and the forked process. Here, the serialized [AnalyzerJobConfiguration] is expected, and the
-         * resulting [OrtResult] will be stored in this directory, too. The second argument is the path to the project
-         * to be analyzed.
+         * forked to make newly set environment variables effective. In this case, parameters are passed via command
+         * line arguments. The first argument is a temporary directory to be used for exchanging data between the parent
+         * and the forked process. Here, the serialized [AnalyzerJobConfiguration] is expected, and the resulting
+         * [OrtResult] will be stored in this directory, too. The second argument is the path to the project to be
+         * analyzed.
          */
         @JvmStatic
         fun main(args: Array<String>) {

@@ -38,7 +38,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClient
 import org.keycloak.admin.client.Keycloak
 
 class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
-    // For performance reasons the test realm is created only once per spec. Therefore, all tests that modify data must
+    // For performance reasons, the test realm is created only once per spec. Therefore, all tests that modify data must
     // not modify the predefined test data and clean up after themselves to ensure that tests are isolated.
     private val keycloak = install(KeycloakTestExtension(clientTestRealm)) {
         setUpConfidentialClientRoles()

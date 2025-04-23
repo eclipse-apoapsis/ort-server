@@ -48,7 +48,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 /**
  * A test extension for integration tests that need database access. The extension sets up a test container with a
  * Postgres database and creates a data source for this database. Schema migration is run before each test. After each
- * test a cleanup is performed, so that every test sees a fresh database.
+ *  test, a cleanup is performed, so that every test sees a fresh database.
  *
  * The execution order of lifecycle callbacks in Kotest depends on the way the extension is installed and the test class
  * implements the callbacks. To ensure that the database migrations have already been performed, do not override the

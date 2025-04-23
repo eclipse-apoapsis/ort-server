@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
 
 /**
  * A task class that handles the deletion of database entities orphaned after deletion of ORT run. The task delegates
- * to [OrphanRemovalService] to trigger the deletion of entities that are not longer referencing ORT runs deleted
+ * to [OrphanRemovalService] to trigger the deletion of entities that are no longer referencing ORT runs deleted
  * during [DeleteOldOrtRunsTask] run.
  */
 class DeleteOrphanedEntitiesTask(

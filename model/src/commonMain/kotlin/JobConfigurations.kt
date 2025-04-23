@@ -252,8 +252,8 @@ data class EvaluatorJobConfiguration(
 @Serializable
 data class ReporterAsset(
     /**
-     * The source path of this asset in the configuration. This path is passed to the configuration manager in order to
-     * download this asset.
+     * The source path of this asset in the configuration. This path is passed to the configuration manager to download
+     * this asset.
      */
     val sourcePath: String,
 

@@ -45,9 +45,9 @@ class UniqueConstrainsViolationTest : StringSpec() {
         "An exception about a unique constraint violation is handled by repeating the transaction" {
             val callCount = AtomicInteger()
 
-            // In order to simulate the situation in worker pods, the creation of entities has to happen in
-            // nested query calls. A worker runner typically starts a query/transaction and invokes
-            // OrtRunService. The service calls repositories, which again invoke a query function.
+            // To simulate the situation in worker pods, the creation of entities has to happen in nested query calls. A
+            // worker runner typically starts a query/transaction and invokes OrtRunService. The service calls
+            // repositories, which again invoke a query function.
             dbExtension.db.dbQuery {
                 runCreateArtifactTest(db, callCount)
             }

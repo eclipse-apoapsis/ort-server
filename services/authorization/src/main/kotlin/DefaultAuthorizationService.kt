@@ -615,7 +615,7 @@ class DefaultAuthorizationService(
 
     /**
      * Create Keycloak roles for all roles in [requiredRoles] that are not contained in [roles], and delete all Keycloak
-     * roles which are not contained in [roles] and start with [rolePrefix].
+     * roles that are not contained in [roles] and start with [rolePrefix].
      */
     private suspend fun synchronizeKeycloakRoles(roles: Set<String>, requiredRoles: List<String>, rolePrefix: String) {
         val missingRoles = requiredRoles.filter { it !in roles }
@@ -701,7 +701,7 @@ class DefaultAuthorizationService(
 
     /**
      * Create Keycloak groups for all groups in [requiredGroups] that are not contained in [groups], and delete all
-     * Keycloak groups which are not contained in [groups] and start with [groupPrefix].
+     * Keycloak groups that are not contained in [groups] and start with [groupPrefix].
      */
     private suspend fun synchronizeKeycloakGroups(
         groups: Set<String>,

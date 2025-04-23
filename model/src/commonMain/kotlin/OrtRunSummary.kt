@@ -114,7 +114,7 @@ data class OrtRunSummary(
     val environmentConfigPath: String? = null,
 
     /**
-     * Display name of the user that triggered this run.
+     * The display name of the user that triggered this run.
      */
     val userDisplayName: UserDisplayName? = null,
 )

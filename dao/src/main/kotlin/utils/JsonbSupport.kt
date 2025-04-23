@@ -28,7 +28,7 @@ import org.jetbrains.exposed.sql.json.jsonb
 
 /**
  * Create a JSONB column using [jsonForJsonbColumns] for serialization and deserialization. As the null character
- * "\u0000" is not allowed in PostgreSQL JSONB columns it is handled using [escapeNull] and [unescapeNull].
+ * "\u0000" is not allowed in PostgreSQL JSONB columns, it is handled using [escapeNull] and [unescapeNull].
  */
 inline fun <reified T : Any> Table.jsonb(name: String): Column<T> =
     jsonb(

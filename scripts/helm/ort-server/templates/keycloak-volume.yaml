@@ -10,10 +10,10 @@ spec:
   accessModes:
     - ReadOnlyMany
   # The volume configuration for Keycloak is split between a Persistent Volume and a Persistent Volume Claim.
-  # For Minikube, the volume type is `hostPath` which is the only supported value. In production another type will be
+  # For Minikube, the volume type is `hostPath` which is the only supported value. In production, another type will be
   # used such as `local`.
   hostPath:
-    # This directory should be mounted with `minikube mount` to contain Keycloak initialization script.
+    # This directory should be mounted with `minikube mount` to contain the Keycloak initialization script.
     # The mount can be verified with `minikube ssh`.
     path: {{ .Values.ort_server.keycloak.init_location }}
 ---

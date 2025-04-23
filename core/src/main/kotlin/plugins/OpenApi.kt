@@ -95,7 +95,7 @@ fun Application.configureOpenApi() {
         }
 
         // OpenAPI provides tags not only on operation level, but also on root level.
-        // This allows to provide additional information to the tags, and actually the order
+        // This allows providing additional information to the tags, and actually the order
         // of the tags on root level also defines the order of appearance of the operations
         // (belonging to these tags) in the Swagger UI.
         // See https://swagger.io/docs/specification/grouping-operations-with-tags/ for details.

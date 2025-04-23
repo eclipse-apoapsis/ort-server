@@ -23,7 +23,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * A data class defining the relevant fields of a response sent for a Vault login request. From this response the
+ * A data class defining the relevant fields of a response sent for a Vault login request. From this response, the
  * token can be obtained that needs to be provided in all further interactions with Vault.
  */
 @Serializable

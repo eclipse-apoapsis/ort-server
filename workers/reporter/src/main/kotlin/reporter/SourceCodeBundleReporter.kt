@@ -107,7 +107,7 @@ class SourceCodeBundleReporter(
 
     companion object {
         /**
-         * Name of the property that specifies the type of package for source code bundle
+         * Name of the property that specifies the type of package for the source code bundle.
          */
         const val PACKAGE_TYPE_PROPERTY = "packageType"
 

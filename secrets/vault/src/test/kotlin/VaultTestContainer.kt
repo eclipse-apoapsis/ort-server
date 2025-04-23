@@ -187,7 +187,7 @@ class VaultTestContainer {
     }
 
     /**
-     * Trigger the configuration of the managed Vault service. Set up the AppRole authentication method and obtain
+     * Trigger the configuration of the managed Vault service. Set up the AppRole authentication method and obtain the
      * corresponding credentials.
      */
     private fun setUpCredentials(): VaultCredentials {

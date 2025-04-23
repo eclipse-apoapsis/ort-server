@@ -54,7 +54,7 @@ private val logger = LoggerFactory.getLogger(DirPackageCurationProvider::class.j
  *
  * There are some corner cases with identifiers that cannot be mapped directly to paths on a file system. These are
  * handled as follows:
- * - An empty component of the identifier (e.g. a missing namespace) is mapped to the underscore character ("_").
+ * - An empty component of the identifier (e.g., a missing namespace) is mapped to the underscore character ("_").
  * - Some special characters that are problematic in file names are mapped to their numeric hexadecimal representation
  *   (%XX).
  */

@@ -32,7 +32,7 @@ import java.io.InputStream
 interface ConfigFileProvider {
     /**
      * Return a resolved or normalized [Context] for the passed in [context]. This function is useful for contexts
-     * that can change over time, for instance if configuration files are stored in a VCS in a specific branch.
+     * that can change over time, for instance, if configuration files are stored in a VCS in a specific branch.
      * Throughout an ORT run, the same configuration files should be used. Therefore, at the beginning, the context is
      * resolved and stored, so that it can be reused later.
      */
@@ -40,7 +40,7 @@ interface ConfigFileProvider {
 
     /**
      * Return an [InputStream] for reading the content of the configuration file with the given [path] in the given
-     * [context]. Throw an exception if the file cannot be resolved or access is not possible for whatever reasons.
+     * [context]. Throw an exception if the file cannot be resolved or access is not possible for whatever reason.
      */
     fun getFile(context: Context, path: Path): InputStream
 
@@ -52,7 +52,7 @@ interface ConfigFileProvider {
 
     /**
      * Return a [Set] with the [Path]s to the configuration files contained in the given [path] and [context]. Throw
-     * an exception if the [path] is invalid, e.g. does not point to an existing subdirectory.
+     * an exception if the [path] is invalid, e.g., does not point to an existing subdirectory.
      */
     fun listFiles(context: Context, path: Path): Set<Path>
 }

@@ -50,7 +50,7 @@ interface WorkerContext : AutoCloseable {
 
     /**
      * Return a new temporary directory that can be used by a worker to deal with temporary files. When this context
-     * is closed this directory is deleted with all its content.
+     * is closed, this directory is deleted with all its content.
      */
     fun createTempDir(): File
 

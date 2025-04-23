@@ -26,7 +26,7 @@ import org.eclipse.apoapsis.ortserver.storage.StorageProviderFactory
 /**
  * [StorageProviderFactory] implementation for the database storage implementation. This factory creates a
  * [StorageProvider] that uses a database table with a column referencing a PostgreSQL large object for storing
- * arbitrary data. Large objects are used, since they do not require the whole data to be kept in memory. They
+ * arbitrary data. Large objects are used since they do not require the whole data to be kept in memory. They
  * have, however, the limitation that data can only be accessed in a transaction. This is problematic here because
  * clients of the [StorageProvider] interface consume the returned stream later. To solve this, the implementation
  * actually reads data into memory if it is small enough. Otherwise, it copies the data into a temporary file which
@@ -54,7 +54,7 @@ class DatabaseStorageProviderFactory : StorageProviderFactory {
 
         /**
          * The name of the configuration property that determines up to which size BLOBs can be loaded into memory.
-         * When the data size is beyond this limit data is buffered in temporary files.
+         * When the data size is beyond this limit, data is buffered in temporary files.
          */
         const val MEMORY_LIMIT_PROPERTY = "inMemoryLimit"
     }

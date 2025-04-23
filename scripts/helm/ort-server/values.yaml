@@ -40,7 +40,7 @@ keycloak:
       enabled: true
     ports:
       http: 8081
-      # Unfortunately HTTPS does not seem to be working. The server does not provide any certificate:
+      # Unfortunately, HTTPS does not seem to be working. The server does not provide any certificate:
       # openssl s_client -connect keycloak:8082
       # -> SSL handshake has read 0 bytes and written 311 bytes
       https: 8082
@@ -103,8 +103,8 @@ ort_server:
     location: "/data/postgres-pv"
     databaseSchema: "ort_server"
   keycloak:
-    ## Location, in the cluster, where Keycloak initialization script is available. This will be made available to the
-    ## container with a 'hostPath' volume mount.
+    ## Location in the cluster, where the Keycloak initialization script is available. This will be made available to
+    ## the container with a 'hostPath' volume mount.
     ## You can verify the location in the cluster with `minikube ssh`.
     ## Additionally, you can mount a directory of the host with `minikube mount` to this location.
     init_location: "/data/init-keycloak"

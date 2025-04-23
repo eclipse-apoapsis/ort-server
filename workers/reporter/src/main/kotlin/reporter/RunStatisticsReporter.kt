@@ -30,7 +30,7 @@ import org.ossreviewtoolkit.reporter.ReporterInput
 
 /**
  * A custom reporter which exports the statistics of the run. Unlike ORT's EvaluatedModelReporter, which also exports
- * statistics data, this reporter does not include any other information to the produced reports thus making them more
+ * statistics data, this reporter does not include any other information to the produced reports, thus making them more
  * memory-efficient.
  */
 @OrtPlugin(

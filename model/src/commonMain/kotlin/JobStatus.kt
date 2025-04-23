@@ -47,7 +47,7 @@ enum class JobStatus(
     /** The job was processed successfully. */
     FINISHED(true, true),
 
-    /** The job has finished but there were some issues over the threshold. */
+    /** The job has finished, but there were some issues over the threshold. */
     FINISHED_WITH_ISSUES(true, true);
 
     companion object {

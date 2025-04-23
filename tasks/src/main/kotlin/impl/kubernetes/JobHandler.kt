@@ -79,7 +79,7 @@ internal class JobHandler(
                 Endpoint.entries().joinToString(",", prefix = "(", postfix = ")") { it.configPrefix }
 
         /**
-         * Return a flag whether this job has failed. For jobs that are still running the result is *false*.
+         * Return a flag whether this job has failed. For jobs that are still running, the result is `false`.
          */
         fun V1Job.isFailed(): Boolean = status?.conditions.orEmpty().any { it.type == FAILED_CONDITION }
 

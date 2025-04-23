@@ -68,7 +68,7 @@ const val TEST_SUBJECT_CLIENT = "subjectClient"
  *   The [KeycloakClient] can be configured to authenticate to this client using [TEST_REALM_ADMIN_USERNAME] and
  *   [TEST_REALM_ADMIN_PASSWORD].
  * - [TEST_CONFIDENTIAL_CLIENT] is a confidential client that supports the client credentials flow with
- *   [TEST_CLIENT_SECRET] as secret. Note: In order to use it, it must be assigned corresponding client roles.
+ *   [TEST_CLIENT_SECRET] as secret. Note: To use it, it must be assigned corresponding client roles.
  *
  * There is one additional [client][TEST_SUBJECT_CLIENT] that is the subject of role manipulations. It is not used for
  * authentication, but role manipulations are done on this client.

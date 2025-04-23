@@ -41,7 +41,7 @@ enum class LogLevel {
     companion object {
         /**
          * Return a [Set] containing the given [level] and all [LogLevel]s that are higher than this one. When
-         * filtering log files for a specific level the semantics is typically that not only log statements with the
+         * filtering log files for a specific level, the semantics is typically that not only log statements with the
          * given level are selected but also statements with levels of increased severity. For instance a log file of
          * level [INFO] contains logs with the levels [WARN] and [ERROR] as well. This function can be used to obtain
          * all the levels to be taken into account when applying such a filter.

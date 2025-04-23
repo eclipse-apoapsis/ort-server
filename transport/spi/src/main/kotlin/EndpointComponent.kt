@@ -109,7 +109,7 @@ abstract class EndpointComponent<T : Any>(
     protected val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     /**
-     * Start this endpoint and perform necessary initialization, so that incoming messages can be received and
+     * Start this endpoint and perform the necessary initialization, so that incoming messages can be received and
      * processed.
      */
     suspend fun start() {

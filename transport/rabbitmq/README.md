@@ -12,7 +12,7 @@ The messages to be processed are converted to AMQP messages.
 The payload is serialized to JSON and transferred in the text body of the message.
 Metadata from the message header is represented by AMQP message properties.
 
-In order to use this module, the `type` property in the transport configuration must be set to `rabbitMQ`.
+To use this module, the `type` property in the transport configuration must be set to `rabbitMQ`.
 
 ## Configuration
 

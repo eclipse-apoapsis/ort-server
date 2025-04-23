@@ -51,7 +51,7 @@ The concept is described in detail at [Support for Different Tool Versions](../w
 
 ### Factories
 
-In order to send or receive messages, the infrastructure for message exchange must have been properly set up.
+To send or receive messages, the infrastructure for message exchange must have been properly set up.
 This is done via the factory interfaces `MessageSenderFactory` and `MessageReceiverFactory`.
 Both interfaces provide static `create` functions that can be used to create sender or receiver instances compatible with the current environment.
 They work as follows:
@@ -87,16 +87,16 @@ This fragment shows an example configuration for the Analyzer component (which i
 Here `analyzer` is the configuration prefix defined for the Analyzer endpoint.
 Under `receiver` the receiver is configured.
 The `type` property is the one inspected by the factories to obtain the name of the concrete transport implementation; it must always be present.
-There can be further optional properties specific to the protocol, e.g. to define connection strings, message queue names, etc.
+There can be further optional properties specific to the protocol, e.g., to define connection strings, message queue names, etc.
 
 The Analyzer component sends messages to the Orchestrator and has therefore a configuration section for this component.
 Its structure is analogous, but as it is used for sending messages, the transport implementation and its properties are listed below `sender`.
 
-The following sections contain examples how to use this mechanism in practice.
+The following sections contain examples of how to use this mechanism in practice.
 
 ### Sending Messages
 
-In order to send a message to a specific endpoint, one has to obtain a [MessageSender](spi/src/main/kotlin/MessageSender.kt) from a [MessageSenderFactory](spi/src/main/kotlin/MessageSenderFactory.kt).
+To send a message to a specific endpoint, one has to obtain a [MessageSender](spi/src/main/kotlin/MessageSender.kt) from a [MessageSenderFactory](spi/src/main/kotlin/MessageSenderFactory.kt).
 Based on the example configuration contained at [Factories](#factories), this fragment shows how a message to the Orchestrator can be sent:
 
 ``` kotlin
@@ -115,7 +115,7 @@ Note that the interface is typesafe; you can only send messages to an endpoint t
 
 A component that can handle messages should set up a corresponding receiver when it starts.
 This is done via the [MessageReceiverFactory](spi/src/main/kotlin/MessageReceiverFactory.kt) interface and involves specifying a handler function or lambda that is invoked for the incoming messages.
-The example fragment below shows how the initialization code of the Orchestrator might look like:
+The example fragment below shows what the initialization code of the Orchestrator might look like:
 
 ``` kotlin
 // Message handler function

@@ -50,15 +50,15 @@ import org.slf4j.LoggerFactory
  *
  * The configuration file contains the following elements:
  * - The `strict` flag. The flag determines how (non-critical) errors in the configuration file should be handled.
- *   Such errors are typically caused by unresolvable references, e.g. to a non-existing secret or service. If set to
+ *   Such errors are typically caused by unresolvable references, e.g., to a non-existing secret or service. If set to
  *   *true* (which is the default), they cause the run to fail with a corresponding error message. If set to *false*,
  *   only a warning is logged, the affected declaration is ignored, and the analysis continues. This is likely to
  *   cause issues later when repositories cannot be accessed.
  * - A list with the infrastructure services specific to this repository. These are services only used by this
- *   repository and that have not been declared on the product or organization level.
+ *   repository, and that have not been declared on the product or organization level.
  * - A list with environment definitions. Such definitions can reference infrastructure services (either declared in
  *   this configuration file or assigned to the owning product or organization) and specify the context in which
- *   those are used (e.g. in a Maven `settings.xml` file, in a `npmrc` file, etc.). It is also possible to declare
+ *   those are used (e.g., in a Maven `settings.xml` file, in a `npmrc` file, etc.). It is also possible to declare
  *   environment variables and their values.
  * - A list with environment variables. These are environment variables that must be set when analyzing the repository.
  *   The values of these variables are obtained from secrets.

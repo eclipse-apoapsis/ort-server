@@ -43,8 +43,8 @@ private val logger = LoggerFactory.getLogger(EnvironmentService::class.java)
  *
  * When executing ORT logic - especially the analyzer and the scanner - some important configuration files for the
  * underlying tools must be available, so that external repositories can be accessed and dependencies can be
- * downloaded. The exact content of these configuration files is determined dynamically for each individual ORT run
- * based on settings and configurations assigned to the current organization, product, and repository.
+ * downloaded. The exact content of these configuration files is determined dynamically for each ORT run based on
+ * settings and configurations assigned to the current organization, product, and repository.
  *
  * This service can be used by workers to prepare the environment before their execution.
  */

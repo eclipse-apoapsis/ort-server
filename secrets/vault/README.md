@@ -10,13 +10,13 @@ The interaction with the Vault service is done via the [KV Secrets Engine Versio
 
 For authentication, the [AppRole](https://developer.hashicorp.com/vault/api-docs/auth/approle) authentication method is used.
 The ORT Server application must be assigned a role with a policy that grants the required access rights to the secrets to be managed.
-The ID of this role and a corresponding *secret Id* must be provided as credentials.
+The ID of this role and a corresponding *secret ID* must be provided as credentials.
 Based on this, the provider implementation can obtain an access token from the Vault service.
 Refer to the [AppRole Pull Authentication Tutorial](https://developer.hashicorp.com/vault/tutorials/auth-methods/approle) for further details.
 
 The Secrets Abstraction Layer operates on plain keys for secrets and does not support any hierarchical relations between keys.
 To map those keys to specific paths in Vault, the provider implementation can be configured with a *root path* that is simply prefixed to the passed in paths for accessing secrets.
-Via this mechanism, it is possible for instance that different provider instances (e.g. for production or test) access different parts of the Vault storage.
+Via this mechanism, it is possible for instance that different provider instances (e.g., for production or test) access different parts of the Vault storage.
 
 Another difference between the abstraction layer and Vault is that secrets in Vault can have an arbitrary number of key value pairs stored under the secret’s path, while the abstraction layer assigns only a single value to the secret.
 This implementation handles this by using a default key internally.
