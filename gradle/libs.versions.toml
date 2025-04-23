@@ -179,7 +179,6 @@ ortReporters = { module = "org.ossreviewtoolkit.plugins:reporters", version.ref 
 ortScanner = { module = "org.ossreviewtoolkit:scanner", version.ref = "ort" }
 ortScanners = { module = "org.ossreviewtoolkit.plugins:scanners", version.ref = "ort" }
 ortScriptingUtils = { module = "org.ossreviewtoolkit.utils:scripting-utils", version.ref = "ort" }
-ortTestUtils = { module = "org.ossreviewtoolkit.utils:test-utils", version.ref = "ort" }
 ortUtils = { module = "org.ossreviewtoolkit.utils:ort-utils", version.ref = "ort" }
 ortVersionControlSystemGit = { module = "org.ossreviewtoolkit.plugins.versioncontrolsystems:git-version-control-system", version.ref = "ort" }
 ortVersionControlSystems = { module = "org.ossreviewtoolkit.plugins:version-control-systems", version.ref = "ort" }
@@ -192,7 +191,6 @@ schemaKeneratorJsonschema = { module = "io.github.smiley4:schema-kenerator-jsons
 schemaKeneratorReflection = { module = "io.github.smiley4:schema-kenerator-reflection", version.ref = "schemaKenerator" }
 schemaKeneratorSwagger = { module = "io.github.smiley4:schema-kenerator-swagger", version.ref = "schemaKenerator" }
 slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
-slf4jNop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4j" }
 sqs = { module = "aws.sdk.kotlin:sqs", version.ref = "awsSdk" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
