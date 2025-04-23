@@ -48,7 +48,6 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.alias
-import org.jetbrains.exposed.sql.count
 import org.jetbrains.exposed.sql.innerJoin
 
 /**
