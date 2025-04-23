@@ -94,9 +94,7 @@ export function DataTableHeader<TData>({
                       desc:
                         column.getIsSorted() === 'desc'
                           ? undefined
-                          : column.getIsSorted() === 'asc'
-                            ? true
-                            : false,
+                          : column.getIsSorted() === 'asc',
                     })}
                   >
                     <Button
