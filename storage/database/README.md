@@ -1,6 +1,6 @@
 # Database Storage Implementation
 
-This module provides an implementation of the [Storage Abstraction](../README.adoc) that is backed by a database table.
+This module provides an implementation of the [Storage Abstraction](../README.md) that is backed by a database table.
 Arbitrary data is stored using the [Large Objects](https://jdbc.postgresql.org/documentation/binary-data/) mechanism of PostgreSQL.
 
 ## Synopsis

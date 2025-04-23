@@ -18,7 +18,7 @@ In order to use this module, the `type` property in the transport configuration 
 
 The configuration for message senders and receivers is identical.
 Both require the URI and the credentials to the message broker server and the name of the involved message queue.
-The credentials are obtained as secrets from the [ConfigManager](../../config/README.adoc).
+The credentials are obtained as secrets from the [ConfigManager](../../config/README.md).
 
 The following fragment shows the general structure:
 

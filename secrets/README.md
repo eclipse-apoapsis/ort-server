@@ -20,7 +20,7 @@ There is, however, a difference between secrets and other entities managed by us
 Secrets have to be kept strictly confidential.
 To achieve this, they are typically stored in dedicated secret storages, and not in the database like other data.
 
-Analogously to the [Transport layer abstraction](../transport/README.adoc), the ORT server should not set on a specific secret storage product, but be agnostic to the environment it is running on.
+Analogously to the [Transport layer abstraction](../transport/README.md), the ORT server should not set on a specific secret storage product, but be agnostic to the environment it is running on.
 To support arbitrary products, again an abstraction for a secret storage service has to be defined.
 
 ## Service Provider Interfaces
