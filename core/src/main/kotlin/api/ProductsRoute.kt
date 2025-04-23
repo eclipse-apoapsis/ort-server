@@ -414,7 +414,7 @@ fun Route.products() = route("products/{productId}") {
                 createOrtRun.repositoryIds
             }
 
-            val createdRuns = repositoryIds.mapNotNull { repositoryId ->
+            val createdRuns = repositoryIds.map { repositoryId ->
                 orchestratorService.createOrtRun(
                     repositoryId,
                     createOrtRun.revision,
