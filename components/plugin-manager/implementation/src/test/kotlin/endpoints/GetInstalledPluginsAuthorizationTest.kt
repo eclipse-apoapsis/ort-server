@@ -118,7 +118,7 @@ class GetInstalledPluginsAuthorizationTest : WordSpec({
                     configureAuthentication(config, keycloakClient)
 
                     routing {
-                        authenticate(SecurityConfigurations.token) {
+                        authenticate(SecurityConfigurations.TOKEN) {
                             getInstalledPlugins()
                         }
                     }

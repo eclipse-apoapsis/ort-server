@@ -70,7 +70,7 @@ fun Application.configureAuthentication(config: ApplicationConfig, keycloakClien
         .asCache<String, Set<String>>()
 
     install(Authentication) {
-        jwt(SecurityConfigurations.token) {
+        jwt(SecurityConfigurations.TOKEN) {
             realm = configuredRealm
             verifier(jwkProvider, issuer) {
                 acceptLeeway(10)
@@ -133,5 +133,5 @@ object SecurityConfigurations {
      * Security configuration for the normal API endpoints called by users. Users must provide a valid JWT in order to
      * use an API endpoint.
      */
-    const val token = "token"
+    const val TOKEN = "token"
 }
