@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsSca
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesIssuesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
@@ -176,7 +177,8 @@ class IssueService(private val db: Database) {
             .innerJoin(ScannerRunsTable, { ScannerJobsTable.id }, { scannerJobId })
             .innerJoin(ScannerRunsScanResultsTable, { ScannerRunsTable.id }, { scannerRunId })
             .innerJoin(ScanResultsTable, { ScannerRunsScanResultsTable.scanResultId }, { ScanResultsTable.id })
-            .innerJoin(ScanSummariesIssuesTable, { ScanResultsTable.id }, { scanSummaryId })
+            .innerJoin(ScanSummariesTable, { ScanResultsTable.scanSummaryId }, { ScanSummariesTable.id })
+            .innerJoin(ScanSummariesIssuesTable, { ScanSummariesTable.id }, { scanSummaryId })
             .innerJoin(IssuesTable, { ScanSummariesIssuesTable.issueId }, { IssuesTable.id })
 
     /**
