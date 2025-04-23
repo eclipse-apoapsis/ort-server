@@ -47,7 +47,7 @@ It consists of
 In the message header, a map with properties to be evaluated by the transport implementation is contained.
 The map is populated from the labels passed to the current ORT run; so it basically stems from the caller.
 Using this mechanism, it is possible to customize the behavior of the transport for a specific run.
-The concept is described in detail at [Support for Different Tool Versions](../docs/architecture/different_tool_versions.adoc).
+The concept is described in detail at [Support for Different Tool Versions](../website/docs/guides/different-tool-versions.adoc).
 
 ### Factories
 

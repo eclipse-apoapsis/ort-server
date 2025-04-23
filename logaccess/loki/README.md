@@ -1,6 +1,6 @@
 # Grafana Loki Log Access Implementation
 
-This module provides an implementation of the [Log access abstraction](../README.adoc) based on [Grafana Loki](https://grafana.com/oss/loki/).
+This module provides an implementation of the [Log access abstraction](../README.md) based on [Grafana Loki](https://grafana.com/oss/loki/).
 
 ## Synopsis
 
