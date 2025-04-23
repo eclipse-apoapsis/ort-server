@@ -51,7 +51,7 @@ class SnippetChoicesDao(id: EntityID<Long>) : LongEntity(id) {
             }
 
         fun getOrPut(provenanceSnippetChoices: ProvenanceSnippetChoices): SnippetChoicesDao =
-            findByProvenanceSnippetChoices(provenanceSnippetChoices) ?: SnippetChoicesDao.new {
+            findByProvenanceSnippetChoices(provenanceSnippetChoices) ?: new {
                 provenance = provenanceSnippetChoices.provenance.url
                 choices = mapAndDeduplicate(provenanceSnippetChoices.choices, ChoicesDao::getOrPut)
             }

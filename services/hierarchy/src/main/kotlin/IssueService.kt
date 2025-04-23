@@ -38,7 +38,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection.DESCENDING
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 import org.jetbrains.exposed.sql.Count
@@ -69,7 +68,7 @@ class IssueService(private val db: Database) {
         // There always has to be some sort order defined, else the rows would be returned in random order
         // and tests that rely on a deterministic order would fail.
         val sortFields = parameters.sortFields.ifEmpty {
-            listOf(OrderField("timestamp", DESCENDING))
+            listOf(OrderField("timestamp", OrderDirection.DESCENDING))
         }
 
         ListQueryResult(
@@ -236,7 +235,7 @@ internal fun List<Issue>.sort(sortFields: List<OrderField>): List<Issue> {
     }.let {
         sortedWith(it.thenBy { issue -> issue.hashCode() })
     }.let {
-        return if (sortField.direction == DESCENDING) it.reversed() else it
+        return if (sortField.direction == OrderDirection.DESCENDING) it.reversed() else it
     }
 }
 

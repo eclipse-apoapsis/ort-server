@@ -29,5 +29,5 @@ object SnippetFindingsSnippetsTable : Table("snippet_findings_snippets") {
     val snippetId = reference("snippet_id", SnippetsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(snippetFindingId, snippetId, name = "${SnippetFindingsSnippetsTable.tableName}_pkey")
+        get() = PrimaryKey(snippetFindingId, snippetId, name = "${tableName}_pkey")
 }

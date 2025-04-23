@@ -860,7 +860,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         now.epochSeconds - timestamp.epochSeconds shouldBeLessThan 10
                         source shouldBe "Maven"
                         message shouldBe "Issue 2"
-                        severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
+                        severity shouldBe ApiSeverity.WARNING
                         affectedPath shouldBe "path"
                         worker shouldBe "analyzer"
 
@@ -959,7 +959,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         timestamp.epochSeconds shouldBe now.epochSeconds
                         source shouldBe "Advisor"
                         message shouldBe "Issue 2"
-                        severity shouldBe org.eclipse.apoapsis.ortserver.api.v1.model.Severity.WARNING
+                        severity shouldBe ApiSeverity.WARNING
                         affectedPath shouldBe "path"
                         worker shouldBe "advisor"
 

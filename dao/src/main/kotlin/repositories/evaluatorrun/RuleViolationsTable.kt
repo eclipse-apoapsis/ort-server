@@ -46,7 +46,7 @@ object RuleViolationsTable : SortableTable("rule_violations") {
 class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<RuleViolationDao>(RuleViolationsTable) {
         fun getOrPut(ruleViolation: OrtRuleViolation): RuleViolationDao =
-            findByRuleViolation(ruleViolation) ?: RuleViolationDao.new {
+            findByRuleViolation(ruleViolation) ?: new {
                 rule = ruleViolation.rule
                 packageIdentifierId = getPackageIdentifierDaoOrNull(ruleViolation)
                 license = ruleViolation.license
@@ -59,7 +59,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
         private fun findByRuleViolation(ruleViolation: OrtRuleViolation): RuleViolationDao? {
             val identifierDao = getPackageIdentifierDaoOrNull(ruleViolation)
 
-            return RuleViolationDao.find {
+            return find {
                 RuleViolationsTable.rule eq ruleViolation.rule and
                         (RuleViolationsTable.packageIdentifierId eq identifierDao?.id) and
                         (RuleViolationsTable.license eq ruleViolation.license) and
