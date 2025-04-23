@@ -52,7 +52,7 @@ enum class RepositoryRole(
 
     /** A role that grants all permissions for a [Repository]. */
     ADMIN(
-        permissions = RepositoryPermission.values().toSet()
+        permissions = RepositoryPermission.entries.toSet()
     );
 
     companion object {
