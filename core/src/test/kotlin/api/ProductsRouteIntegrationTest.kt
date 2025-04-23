@@ -1392,7 +1392,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/products/$productId/users")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse<ApiUserWithGroups>(
+                response shouldHaveBody PagedResponse(
                     listOf(
                         ApiUserWithGroups(
                             ApiUser(SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email),

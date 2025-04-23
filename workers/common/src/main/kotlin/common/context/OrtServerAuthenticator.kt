@@ -74,7 +74,7 @@ internal class OrtServerAuthenticator(
      * expected that the services are updated concurrently, but they may be accessed from different threads.
      * Therefore, an atomic reference is used to ensure safe publishing of changes.
      */
-    private val refServices = AtomicReference<ServiceData>(ServiceData(emptyMap()))
+    private val refServices = AtomicReference(ServiceData(emptyMap()))
 
     /**
      * A reference to the listener to be notified about successful authentications. This listener can be set
