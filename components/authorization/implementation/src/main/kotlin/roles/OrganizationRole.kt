@@ -58,7 +58,7 @@ enum class OrganizationRole(
 
     /** A role that grants all permissions for an [Organization]. */
     ADMIN(
-        permissions = OrganizationPermission.values().toSet(),
+        permissions = OrganizationPermission.entries.toSet(),
         includedProductRole = ProductRole.ADMIN
     );
 

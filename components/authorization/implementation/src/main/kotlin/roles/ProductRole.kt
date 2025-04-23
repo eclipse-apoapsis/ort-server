@@ -59,7 +59,7 @@ enum class ProductRole(
 
     /** A role that grants all permissions for a [Product]. */
     ADMIN(
-        permissions = ProductPermission.values().toSet(),
+        permissions = ProductPermission.entries.toSet(),
         includedRepositoryRole = RepositoryRole.ADMIN
     );
 
