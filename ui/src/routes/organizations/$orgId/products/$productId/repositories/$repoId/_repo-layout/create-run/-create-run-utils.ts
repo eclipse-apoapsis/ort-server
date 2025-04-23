@@ -375,7 +375,7 @@ export function defaultValues(
   // when a rerun action has been taken, fetched from the ORT Run that is
   // being rerun. Whenever a rerun job config parameter is missing, use the
   // default value.
-  const defaultValues = ortRun
+  return ortRun
     ? {
         revision: ortRun.revision || baseDefaults.revision,
         path: ortRun.path || baseDefaults.path,
@@ -531,8 +531,6 @@ export function defaultValues(
           ortRun.jobConfigContext || baseDefaults.jobConfigContext,
       }
     : baseDefaults;
-
-  return defaultValues;
 }
 
 /**
@@ -798,7 +796,7 @@ export function formValuesToPayload(
     : undefined;
   const labels = values.labels ? convertArrayToMap(values.labels) : undefined;
 
-  const requestBody = {
+  return {
     revision: values.revision,
     path: values.path,
     jobConfigs: {
@@ -813,6 +811,4 @@ export function formValuesToPayload(
     labels: labels,
     jobConfigContext: values.jobConfigContext,
   };
-
-  return requestBody;
 }
