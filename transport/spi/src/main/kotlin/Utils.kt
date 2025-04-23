@@ -23,7 +23,7 @@ import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
 import org.slf4j.Logger
 
-private val ORT_SERVER_BANNER = """
+private const val ORT_SERVER_BANNER = """
   ___    ____    _____           ____                                       
  / _ \  |  _ \  |_   _|         / ___|    ___   _ __  __   __   ___   _ __  
 | | | | | |_) |   | |    _____  \___ \   / _ \ | '__| \ \ / /  / _ \ | '__| 
