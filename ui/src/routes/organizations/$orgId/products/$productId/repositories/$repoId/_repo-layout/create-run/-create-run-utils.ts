@@ -35,14 +35,12 @@ const keyValueSchema = z.object({
 
 const packageManagerOptionsSchema = z.object({
   enabled: z.boolean(),
+  // An optional array of package manager IDs (as enums) that must run after the current one.
   mustRunAfter: z
     .array(
-      z
-        .string()
-        // Only accept valid package manager IDs to the string array in the form.
-        .refine((pkgMgr): pkgMgr is PackageManagerId =>
-          packageManagers.some((pm) => pm.id === pkgMgr)
-        )
+      z.nativeEnum(
+        Object.fromEntries(packageManagers.map((pm) => [pm.id, pm.id]))
+      )
     )
     .optional(),
   options: z.array(keyValueSchema).optional(),
