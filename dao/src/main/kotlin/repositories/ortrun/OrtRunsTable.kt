@@ -151,11 +151,11 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
      */
     fun mapToSummaryModel(): OrtRunSummary {
         val jobSummaries = JobSummaries(
-            advisor = advisorJob?.let { it.mapToJobSummaryModel() },
-            analyzer = analyzerJob?.let { it.mapToJobSummaryModel() },
-            evaluator = evaluatorJob?.let { it.mapToJobSummaryModel() },
-            scanner = scannerJob?.let { it.mapToJobSummaryModel() },
-            reporter = reporterJob?.let { it.mapToJobSummaryModel() }
+            advisor = advisorJob?.mapToJobSummaryModel(),
+            analyzer = analyzerJob?.mapToJobSummaryModel(),
+            evaluator = evaluatorJob?.mapToJobSummaryModel(),
+            scanner = scannerJob?.mapToJobSummaryModel(),
+            reporter = reporterJob?.mapToJobSummaryModel()
         )
 
         return OrtRunSummary(

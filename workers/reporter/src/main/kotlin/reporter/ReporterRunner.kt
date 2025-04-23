@@ -198,9 +198,7 @@ class ReporterRunner(
                             "No reporter found for the configured format '$format'."
                         }
 
-                        val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.let { options ->
-                            options.mapToOrt()
-                        }.orEmpty()
+                        val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.mapToOrt().orEmpty()
 
                         val reporter = reporterFactory.create(reporterConfig)
                         val reportFileResults = reporter.generateReport(reporterInput, outputDir)
