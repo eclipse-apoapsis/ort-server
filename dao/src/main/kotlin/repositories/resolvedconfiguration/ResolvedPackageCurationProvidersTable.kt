@@ -19,7 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration
 
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -27,7 +29,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 
 /**
- * A table to represent a [PackageCurationProvider], the resolved [PackageCuration]s, and the [rank] of the provider
+ * A table to represent a package curation provider, the resolved [PackageCuration]s, and the [rank] of the provider
  * within the [ResolvedConfiguration].
  */
 object ResolvedPackageCurationProvidersTable : LongIdTable("resolved_package_curation_providers") {
