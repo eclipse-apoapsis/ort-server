@@ -71,7 +71,7 @@ interface MessageSenderFactory {
     }
 
     /**
-     * A unique name of this factory. Via this name a concrete sender implementation can be selected in the server's
+     * A unique name of this factory. Via this name, a concrete sender implementation can be selected in the server's
      * configuration.
      */
     val name: String

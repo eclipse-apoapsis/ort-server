@@ -21,7 +21,7 @@ import { z } from 'zod';
 
 const emptyStringToUndefined = z.literal('').transform(() => undefined);
 
-// This function will allow to have optional fields in the form, which also
+// This function will allow having optional fields in the form, which also
 // contain restricting Zod validation schemas.
 //
 // Example usage:

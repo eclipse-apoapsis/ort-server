@@ -29,7 +29,7 @@ data class ScanSummary(
 
     /**
      * A hash value for this scan summary. The hash is calculated based on all properties and associated entities.
-     * It allows to detect if two scan summaries are equal without comparing all properties.
+     * It allows detecting if two scan summaries are equal without comparing all properties.
      */
     val hash: String,
 

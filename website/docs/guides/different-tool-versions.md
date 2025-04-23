@@ -14,13 +14,13 @@ A prominent example is the Java version:
 ORT runs itself on a Java VM, and Java-based build tools are invoked in this VM.
 This naturally restricts the Java versions of projects that can be analyzed.
 So it is typically not possible to handle a project that requires a newer Java version than the one ORT is using.
-But also the opposite direction, a project targeting an old Java version, can be problematic. For instance, older Gradle versions are unable to run on newer Java SDKs.
+But also in the opposite direction, a project targeting an old Java version can be problematic. For instance, older Gradle versions are unable to run on newer Java SDKs.
 
 Java is not the only example for issues in this category. Such conflicts can occur for other (build) tools as well.
 Even the ORT version itself could be a source of problems, for instance, if breaking changes are introduced that are required by one project, but would break another one.
 
 In the original usage scenario with ORT as a command line tool, such conflicts are less of an issue.
-It is possible to set up the local environment according to the specific project needs or use an ORT Docker image containing the tools in the desired versions (when building a custom Docker image for ORT the versions of most tools can be specified).
+It is possible to set up the local environment according to the specific project needs or use an ORT Docker image containing the tools in the desired versions (when building a custom Docker image for ORT, the versions of most tools can be specified).
 With ORT Server, the situation looks different.
 A server should always be up; it is not an option to redeploy the whole system whenever a specific project requires different tool versions.
 So, a dynamic solution is needed that supports selecting different tool versions at runtime.
@@ -48,7 +48,7 @@ Let's look at some concrete examples:
   In this scenario, container images with specific tool versions are listening on dedicated messages queues and are processing only compatible projects.
   Supporting a new tool version would mean adding a new message queue and deploying a corresponding listener service.
 
-After the basic idea has been presented, the next section discusses how the specification of tool version constraints and the corresponding dispatching could look like.
+After the basic idea has been presented, the next section discusses what the specification of tool version constraints and the corresponding dispatching could look like.
 
 ## Configuration
 

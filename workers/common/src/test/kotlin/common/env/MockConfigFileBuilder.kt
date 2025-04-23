@@ -41,7 +41,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
  * An instance of this class provides a fully prepared mock of a [ConfigFileBuilder] that can be passed to a
  * generator object under test. It is then possible to inspect the content that has been generated.
  *
- * References to secrets are generated in a deterministic way using the [testSecretRef] function. So, it can be
+ * References to secrets are generated deterministically using the [testSecretRef] function. So, it can be
  * tested whether the generated content contains the expected secret values.
  */
 class MockConfigFileBuilder {
@@ -122,14 +122,14 @@ class MockConfigFileBuilder {
 
     /**
      * Return the text of a configuration file that was generated using this mock builder specified by either
-     * [targetFile] or [homeFileName]. Result is *null* if no matching file was found.
+     * [targetFile] or [homeFileName]. The result is *null* if no matching file was found.
      */
     fun generatedTextFor(targetFile: File? = null, homeFileName: String? = null): String? =
         generatedFiles.firstOrNull { it.targetFile == targetFile && it.homeFileName == homeFileName }?.content
 
     /**
      * Return the single text lines that were generated using this mock builder for the specified [targetFile] or
-     * [homeFileName]. Result is an empty list if no matching file was found.
+     * [homeFileName]. The result is an empty list if no matching file was found.
      */
     fun generatedLinesFor(targetFile: File? = null, homeFileName: String? = null): List<String> {
         val lines = generatedTextFor(targetFile, homeFileName)?.split(System.lineSeparator()).orEmpty()

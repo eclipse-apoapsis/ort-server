@@ -33,8 +33,8 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 
 /**
- * An implementation of [KeycloakClient] that can be used for testing, for example when using the Keycloak testcontainer
- * is too expensive and mocking the client becomes too complex.
+ * An implementation of [KeycloakClient] that can be used for testing, for example, when using the Keycloak
+ * testcontainer is too expensive and mocking the client becomes too complex.
  */
 @Suppress("TooManyFunctions", "LongParameterList")
 class KeycloakTestClient(

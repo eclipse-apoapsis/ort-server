@@ -45,7 +45,7 @@ internal class TimeHelper(
 
     /**
      * Return a timestamp that lies the given [duration] before the current time as an [OffsetDateTime]. This format
-     * is used by the Kubernetes API; so it can be used directly to compare against the timestamps of jobs.
+     * is used by the Kubernetes API, so it can be used directly to compare against the timestamps of jobs.
      */
     fun before(duration: Duration): OffsetDateTime =
         java.time.Instant.ofEpochSecond(clock.now().minus(duration).epochSeconds).atOffset(systemZoneOffset)

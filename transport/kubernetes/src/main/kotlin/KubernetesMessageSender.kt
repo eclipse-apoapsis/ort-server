@@ -50,7 +50,7 @@ private const val TRACE_LABEL_LENGTH = 60
 private const val RUN_ID_LABEL = "run-id"
 
 /**
- * The label to store the name of the worker. This is used, so that jobs for specific workers can be easily looked
+ * The label to store the name of the worker. This is used so that jobs for specific workers can be easily looked
  * up via label selectors.
  */
 private const val WORKER_LABEL = "ort-worker"
@@ -202,7 +202,7 @@ internal class KubernetesMessageSender<T : Any>(
 
     /**
      * Create a map with labels to cover the given [traceId]. The [traceId] may be longer than the maximum size
-     * allowed for a label value. Therefore, may be split into multiple labels.
+     * allowed for a label value. Therefore, it may be split into multiple labels.
      */
     private fun createTraceIdLabels(traceId: String): Map<String, String> =
         traceId.chunked(TRACE_LABEL_LENGTH).withIndex().fold(mapOf()) { map, value ->

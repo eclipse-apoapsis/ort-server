@@ -1,6 +1,6 @@
 # Configuration
 
-This document gives an overview over the configuration options supported by ORT Server.
+This document gives an overview of the configuration options supported by ORT Server.
 It also shortly describes the configuration mechanism in place.
 
 :::note
@@ -14,7 +14,7 @@ This section describes the way configuration options can be defined for ORT Serv
 
 In general, ORT Server distinguishes between non-sensitive and sensitive configuration information.
 To the first group belong options like URLs to services, or options that customize the behavior of services or ORT Server itself.
-The second group is mainly related to credentials for infrastructure services; they require a special treatment, so that they are not exposed to the public.
+The second group is mainly related to credentials for infrastructure services; they require special treatment, so that they are not exposed to the public.
 These different options are discussed separately below.
 
 ### Non-sensitive Configuration Options
@@ -47,7 +47,7 @@ When a secret is requested from `ConfigManager`, it first checks whether a prope
 If so, it returns the value of this setting; otherwise, it delegates to the secret provider.
 This means that the values of secrets can be set via environment variables in the same way as other configuration options.
 The fallback mechanism is active by default, but can be disabled to enforce that secrets can only be obtained from a provider.
-Refer to the [documentation](https://github.com/eclipse-apoapsis/ort-server/blob/main/config/README.md) of the configuration component for further information how to control this setting.
+Refer to the [documentation](https://github.com/eclipse-apoapsis/ort-server/blob/main/config/README.md) of the configuration component for further information on how to control this setting.
 
 ## Available Configuration Options
 

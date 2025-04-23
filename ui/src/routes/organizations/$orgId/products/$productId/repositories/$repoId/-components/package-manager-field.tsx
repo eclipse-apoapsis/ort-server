@@ -187,7 +187,7 @@ const FieldWithOptions = ({ form, pmIndex, pmName }: FieldWithOptionsProps) => {
 
   // When using a rerun functionality, it is best to open up those
   // accordions that have options set. This way the user can see the
-  // options that were set previously, and doesn't nee to search for
+  // options that were set previously, and doesn't have to search for
   // them.
   const defaultOpenAccordions = packageManagers
     .filter((pm) => {

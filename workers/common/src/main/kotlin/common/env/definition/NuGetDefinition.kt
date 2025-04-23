@@ -45,7 +45,7 @@ class NuGetDefinition(
 
     /**
      * The NuGet server protocol version to be used. The current version is "3". Defaults to version "2" when not
-     * pointing to a package source URL ending in .json (e.g. https://api.nuget.org/v3/index.json). Supported in
+     * pointing to a package source URL ending in .json (e.g., https://api.nuget.org/v3/index.json). Supported in
      * NuGet 3.0+.
      *
      * See [NuGet Server API](https://learn.microsoft.com/en-us/nuget/api/overview) for more information about the

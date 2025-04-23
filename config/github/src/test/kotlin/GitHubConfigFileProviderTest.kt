@@ -551,7 +551,7 @@ private fun WireMockServer.stubFileNotFound() {
 }
 
 /**
- * A stub returning a response with unexpected json content type.
+ * A stub returning a response with unexpected JSON content type.
  */
 private fun WireMockServer.stubUnexpectedJsonContentType() {
     stubFor(
@@ -575,7 +575,7 @@ private fun WireMockServer.stubUnexpectedJsonContentType() {
 }
 
 /**
- * A stub for successfully getting a file information in JSON format.
+ * A stub for successfully getting file information in JSON format.
  */
 @OptIn(ExperimentalEncodingApi::class)
 private fun WireMockServer.stubJsonFileContentType() {

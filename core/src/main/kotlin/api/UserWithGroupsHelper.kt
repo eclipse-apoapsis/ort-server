@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.UserGroup
 /**
  * Sort and paginate the list of [UserWithGroups] by the given [PagingOptions].
  * As records returned from Keycloak have no sort and paging capabilities, this class is used to do so.
- * Although the API supports to have more than one sort order field, this implementation only supports a single
+ * Although the API supports having more than one sort order field, this implementation only supports a single
  * sort field.
  */
 internal object UserWithGroupsHelper {

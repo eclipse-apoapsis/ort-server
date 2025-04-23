@@ -13,19 +13,19 @@ These use cases have in common that arbitrary data has to be stored under a spec
 A suitable abstraction would therefore be a generic storage interface oriented on a key/value storage.
 With regard to potential implementations, there are different options that depend on the concrete storage characteristics of specific data, such as
 
-- which data needs to be stored
-- how big is it
-- how long is the data to be stored (short-term caching vs long-term persistence)
+- Which data needs to be stored?
+- How big is it?
+- How long does the data need to be stored (short-term caching vs. long-term persistence)?
 
 Bringing this together, there can be a generic, key-value-based storage interface defining operations to access and manipulate data on a storage.
 For this interface, different implementations exist.
-This is in-line with other abstraction layer implementations used within ORT Server, e.g. for storing secrets or passing messages.
+This is in-line with other abstraction layer implementations used within ORT Server, e.g., for storing secrets or passing messages.
 It allows integrating various storage mechanisms supported by the platform on which the ORT Server application is running.
 In addition, a single application instance can be configured to use multiple storage implementations for different kinds of data, so that a high flexibility can be achieved.
 
 ## Service Provider Interfaces
 
-This section describes the interfaces that need to be implemented in order to integrate a concrete storage product.
+This section describes the interfaces that need to be implemented to integrate a concrete storage product.
 
 ### Access Interface
 
@@ -72,7 +72,7 @@ A concrete implementation can define and evaluate custom configuration options w
 ## Using a Storage
 
 With the [Storage](spi/src/main/kotlin/Storage.kt) class, the storage abstraction defines a facade class that handles the creation and initialization of a concrete `StorageProvider` instance and simplifies the usage of the storage API by providing a number of convenience functions.
-In order to access a storage for a specific use case, a `Storage` instance has to be created using the `create()` function from the companion object.
+To access a storage for a specific use case, a `Storage` instance has to be created using the `create()` function from the companion object.
 The function expects an object with the current application configuration and a string defining the current use case.
 As mentioned earlier, different storage implementations can be configured for different data to be stored.
 To resolve the desired implementation for the current use case, the `create()` function searches for a configuration section under the given identifier.

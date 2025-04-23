@@ -73,7 +73,7 @@ export const Sidebar = ({ sections, className, ...props }: SidebarNavProps) => {
                   <Link
                     key={item.title}
                     // When a link is disabled, make it point to completely separate
-                    // (but existing) route on the server, otherwise all disabled links
+                    // (but existing) route on the server. Otherwise, all disabled links
                     // are grouped together with an existing one in the UI.
                     to={disabled ? '/' : item.to}
                     disabled={disabled}

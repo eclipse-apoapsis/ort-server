@@ -59,8 +59,8 @@ data class InfrastructureService(
      * The set of [CredentialsType]s for this infrastructure service. This determines in which configuration files the
      * credentials of the service are listed when generating the runtime environment for a worker. All services
      * involved in an ORT run are installed in the authenticator, so that their credentials are available when
-     * accessing the corresponding URLs from within the JVM. In case, the credentials are also required from external
-     * tools (e.g. the Git CLI), this needs to be indicated by adding the corresponding constant. Per default, the set
+     * accessing the corresponding URLs from within the JVM. If the credentials are also required from external tools
+     * (e.g., the Git CLI), this needs to be indicated by adding the corresponding constant. Per default, the set
      * is empty, so that the services are only used by the authenticator of the JVM.
      */
     val credentialsTypes: Set<CredentialsType> = emptySet()

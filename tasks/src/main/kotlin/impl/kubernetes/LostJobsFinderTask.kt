@@ -53,11 +53,11 @@ import org.slf4j.MDC
  * jobs, and the associated ORT runs would stay forever in the "running" state.
  *
  * To detect and remedy such scenarios, this task class does a sync between the ORT Server database and the job
- * status in Kubernetes. It looks for jobs that should be running according to the database, but do not exist
+ * status in Kubernetes. It looks for jobs that should be running, according to the database, but do not exist
  * (anymore) in Kubernetes. For such jobs, it sends a notification to the Orchestrator, to give it the chance to act
  * accordingly.
  *
- * Another problem detected by this class is missing schedules, i.e. active ORT runs for which all jobs have been
+ * Another problem detected by this class is missing schedules, i.e., active ORT runs for which all jobs have been
  * completed. For such runs, a different type of notification is sent to the Orchestrator, so that it can try to resume
  * the run.
  */
@@ -182,7 +182,7 @@ internal class LostJobsFinderTask(
     private fun checkForLostSchedules(ortRunsWithJobs: Set<Long>) {
         val referenceTime = timeHelper.now() - monitorConfig.lostJobsMinAge
 
-        // The ORT runs with job take only workers into account for which a database representation exists.
+        // The ORT runs with jobs take only workers into account for which a database representation exists.
         // This is not the case for the Config worker, so those need to be added manually.
         val ortRunsWithConfigJobs = jobHandler.findJobsForWorker(ConfigEndpoint)
             .mapNotNullTo(mutableSetOf()) { it.ortRunId }

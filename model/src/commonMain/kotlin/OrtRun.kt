@@ -110,8 +110,8 @@ data class OrtRun(
     val vcsProcessedId: Long?,
 
     /**
-     * A map of nested repositories, for example Git submodules or Git-Repo modules. The key is the path to the
-     * nested repository relative to the root of the main repository and the value is the id of its VCS information.
+     * A map of nested repositories, for example, Git submodules or Git-Repo modules. The key is the path to the
+     * nested repository relative to the root of the main repository, and the value is the id of its VCS information.
      */
     val nestedRepositoryIds: Map<String, Long>?,
 
@@ -141,7 +141,7 @@ data class OrtRun(
     val resolvedJobConfigContext: String?,
 
     /**
-     * The optional path to a environment configuration file. If this is not defined, the environment configuration is
+     * The optional path to an environment configuration file. If this is not defined, the environment configuration is
      * read from the default location `.ort.env.yml`.
      */
     val environmentConfigPath: String? = null,

@@ -40,7 +40,7 @@ private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
  * sources of authentication information are queried in the correct order:
  * - If the URL contains credentials, these are used first.
  * - If there was already an [Authenticator] installed when this instance was created, it is invoked next. This allows
- *   to override the default authentication mechanism temporarily.
+ *   overriding the default authentication mechanism temporarily.
  * - If the former steps did not yield a result, the class obtains the credentials from the best-matching
  *   infrastructure service if any.
  *
@@ -126,7 +126,7 @@ private data class ServiceData(
 ) {
     /**
      * Find the best-matching [AuthenticatedService] for the given [host] and optional [url]. If there are multiple
-     * services for the same host, the one with the longest matching URL is returned. Result is *null* if no
+     * services for the same host, the one with the longest matching URL is returned. Returns `null` if no
      * matching service is found.
      */
     fun getAuthenticatedService(host: String, url: URL?): AuthenticatedService? {

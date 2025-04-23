@@ -25,7 +25,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 
 /**
- * The resolved configuration for an ORT run. This contains configuration resolved during a job, for example the
+ * The resolved configuration for an ORT run. This contains configuration resolved during a job, for example, the
  * [PackageCuration]s resolved during an [AnalyzerJob], to ensure that all configuration is resolved only once during an
  * ORT run and that all jobs use the same configuration.
  */

@@ -105,8 +105,8 @@ private const val VARIABLE_SUFFIX = "}"
 /**
  * Return the string value at the given [path] applying variable interpolation using the given map of [variables].
  * The value in the configuration can contain placeholders using the typical `${variable}` syntax. This function
- * replaces such placeholders by the corresponding values in the map. If a variable cannot be resolved, the placeholder
- * remains unchanged.
+ * replaces such placeholders with the corresponding values in the map. If a variable cannot be resolved, the
+ * placeholder remains unchanged.
  */
 fun Config.getInterpolatedString(path: String, variables: Map<String, String>): String {
     val str = getString(path)

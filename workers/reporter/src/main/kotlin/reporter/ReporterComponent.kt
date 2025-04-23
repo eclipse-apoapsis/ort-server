@@ -55,14 +55,14 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
          * A prefix used by the reporter worker to mark options in the job configuration as template files. When
          * processing the job options, all values starting with this prefix are interpreted as template files that
          * need to be downloaded via the config manager. Via this mechanism, arbitrary template files can be
-         * specified in a generic way.
+         * specified generically.
          */
         const val TEMPLATE_REFERENCE = "reporter-template://"
 
         /**
          * A placeholder that can be used in reporter options to refer to the current working directory. It is
          * replaced by the temporary directory in which reporter templates and asset files are located. Some reporters
-         * need this information, for instance to define the search path for fonts.
+         * need this information, for instance, to define the search path for fonts.
          */
         const val WORK_DIR_PLACEHOLDER = "\${workdir}"
 

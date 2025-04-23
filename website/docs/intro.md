@@ -22,4 +22,4 @@ The ORT core functionality is extended with:
 - Keycloak integration for authentication and role management.
 - A central database to enable data analysis across projects.
 
-The ORT Server developers are also contributors to ORT and both projects work in close collaboration.
+The ORT Server developers are also contributors to ORT, and both projects work in close collaboration.

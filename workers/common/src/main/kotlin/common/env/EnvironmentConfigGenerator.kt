@@ -29,8 +29,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentS
  */
 interface EnvironmentConfigGenerator<T : EnvironmentServiceDefinition> {
     /**
-     * The class for the environment definitions supported by this generator. Based on this type, a filtering for the
-     * relevant definitions can be done.
+     * The class for the environment definitions supported by this generator. Based on this type, relevant definitions
+     * can be filtered.
      */
     val environmentDefinitionType: Class<T>
 

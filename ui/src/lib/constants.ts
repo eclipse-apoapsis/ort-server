@@ -21,6 +21,6 @@
 // When the limit is not set, the queries return a default number of items.
 // As some components, like the item distribution color bar, require all items to calculate the distribution,
 // the limit is set to (an arbitrary) high number to ensure that all items are returned.
-// This probably needs to be changed in the future to a more sophisticated solution, e.g. by using a separate query
+// This probably needs to be changed in the future to a more sophisticated solution, e.g., by using a separate query
 // to get the distribution of items without fetching all items from back-end, which is costly.
 export const ALL_ITEMS = 100000;

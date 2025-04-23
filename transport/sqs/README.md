@@ -13,7 +13,7 @@ The messages to be processed are converted to send message requests.
 Metadata from the message header is represented by message attributes values.
 The payload is serialized to JSON and transferred in the text body of the message.
 
-In order to use this module, the `type` property in the transport configuration must be set to `SQS`.
+To use this module, the `type` property in the transport configuration must be set to `SQS`.
 
 ## Configuration
 

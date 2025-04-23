@@ -37,7 +37,7 @@ class AuthService(
     private val clientId: String
 ) {
     /**
-     * Generate a token for the given [username] and [password] using password grant type with optional [scopes].
+     * Generate a token for the given [username] and [password] using the password grant type with optional [scopes].
      */
     suspend fun generateToken(username: String, password: String, scopes: Set<String> = emptySet()): TokenInfo =
         runCatching {

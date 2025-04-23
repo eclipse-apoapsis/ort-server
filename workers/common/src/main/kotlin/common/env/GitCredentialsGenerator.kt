@@ -34,10 +34,10 @@ import org.slf4j.LoggerFactory
  * the _.netrc_ file. However, in some special cases, this mechanism is not working, and authentication against the
  * repository is only possible if the credentials are placed in a _.git-credentials_ file. This generator is able to
  * produce such a file, together with a Git configuration file that references it. It only processes infrastructure
- * services whose credentials types contain [CredentialsType.GIT_CREDENTIALS_FILE].
+ * services whose credential types contain [CredentialsType.GIT_CREDENTIALS_FILE].
  *
  * There is a dependency to the [GitConfigGenerator] class, which generates a `credential` section in the Git
- * configuration file _.gitconfig_ in order to reference the generated _.git-credentials_ file.
+ * configuration file _.gitconfig_ to reference the generated _.git-credentials_ file.
  */
 class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> {
     companion object {

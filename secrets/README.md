@@ -5,7 +5,7 @@ different secret storage products.
 
 ## Purpose
 
-In order to access source code and artifact repositories for doing analysis runs, the ORT server must have correct credentials.
+To access source code and artifact repositories for doing analysis runs, the ORT server must have correct credentials.
 The infrastructure to be accessed is defined dynamically by users - by setting up the hierarchical structures for organizations, products, and repositories.
 While doing this, the corresponding credentials must be provided as well.
 This implies that an API is available to create, read, modify, and update secrets or credentials.
@@ -18,19 +18,19 @@ themselves - without needing support from server administrators.
 This means that the ORT server needs to store secrets on behalf of its users.
 There is, however, a difference between secrets and other entities managed by users:
 Secrets have to be kept strictly confidential.
-To achieve this, they are typically stored in dedicated secret storages, and not in the database like other data.
+To achieve this, they are typically stored in dedicated secret storages and not in the database like other data.
 
 Analogously to the [Transport layer abstraction](../transport/README.md), the ORT server should not set on a specific secret storage product, but be agnostic to the environment it is running on.
-To support arbitrary products, again an abstraction for a secret storage service has to be defined.
+To support arbitrary products, again, an abstraction for a secret storage service has to be defined.
 
 ## Service Provider Interfaces
 
-This section describes the interfaces that need to be implemented in order to integrate a concrete secret storage product.
+This section describes the interfaces that need to be implemented to integrate a concrete secret storage product.
 
 ### Access Interface
 
 The secrets abstraction layer defines a basic interface, [SecretsProvider](spi/src/main/kotlin/SecretsProvider.kt), with CRUD operations on secrets.
-This interface has to be implemented in order to integrate a concrete storage product.
+This interface has to be implemented to integrate a concrete storage product.
 To simplify potential implementations, the interface is reduced to a bare minimum and just offers functions for the basic use cases:
 
 - read secrets
@@ -46,7 +46,7 @@ Additional metadata that will be required to actually use the secret - such as a
 
 There are a few further assumptions taken by the abstraction layer implementation to simplify concrete implementations of the `SecretsProvider` interface:
 
-- When querying a secret for a non-existing path an implementation should return **null**.
+- When querying a secret for a non-existing path, an implementation should return **null**.
   This result can be interpreted by the abstraction, and a concrete implementation does not need to bother with throwing specific exceptions.
 
 - A concrete implementation can throw arbitrary, proprietary exceptions.

@@ -211,7 +211,7 @@ class GitHubConfigFileProvider(
 
         /**
          * Check whether the given [response] indicates a request that failed because the current rate limit is
-         * exceeded. If so, return the time in seconds until the rate limit will be reset. Otherwise, return *null*.
+         * exceeded. If so, return the time in seconds until the rate limit is reset. Otherwise, return *null*.
          */
         private fun checkForRateLimitRetry(response: HttpResponse): Long? {
             if (response.status != HttpStatusCode.Forbidden) return null
@@ -248,9 +248,9 @@ class GitHubConfigFileProvider(
     }
 
     /**
-     * This function can be used to download the raw file content from a GitHub repository. If the provided path
-     * refers a directory, GitHub API will return a JSON array with the directory content. In this case, as well as in
-     * the case when the returned 'Content Type' header is neither of raw file or json, or it is missing, a
+     * This function can be used to download the raw file content from a GitHub repository. If the provided path refers
+     * to a directory, the GitHub API will return a JSON array with the directory content. In this case, as well as in
+     * the case when the returned 'Content Type' header is neither a raw file nor JSON, or it is missing, a
      * [ConfigException] is thrown with the description of the cause.
      */
     override fun getFile(context: Context, path: Path): InputStream = runBlocking {

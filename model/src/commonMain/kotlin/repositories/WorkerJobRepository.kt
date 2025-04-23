@@ -84,17 +84,17 @@ interface WorkerJobRepository<T : WorkerJob> {
 
     /**
      * Mark a job by [id] as completed if it is not yet in a completed state. This function works similar to
-     * [complete], but first checks the [JobStatus] of the affected job. It can be used to complete jobs in a safe
-     * way, in case multiple completion messages are received. If the update is possible, return the updated entity;
-     * otherwise, return *null*.
+     * [complete], but first checks the [JobStatus] of the affected job. It can be used to complete jobs safely, in case
+     * multiple completion messages are received. If the update is possible, return the updated entity; otherwise,
+     * return *null*.
      */
     fun tryComplete(id: Long, finishedAt: Instant, status: JobStatus): T? =
         if (getStatus(id) !in completedJobStates) complete(id, finishedAt, status) else null
 
     /**
      * Return a list with all jobs managed by this repository that have not yet been finished. Optionally, a
-     * [date][before] can be specified; then only jobs created before this timestamp are returned. This can be used
-     * for instance to find jobs that are running for a longer time. If unspecified, all active jobs are returned.
+     * [date][before] can be specified; then only jobs created before this timestamp are returned. This can be used,
+     * for instance, to find jobs that are running for a longer time. If unspecified, all active jobs are returned.
      * A job is considered active if it does not have a finished timestamp. Note that the [JobStatus] is not taken
      * into account here, since the finished timestamp is always set together with a completed status.
      */

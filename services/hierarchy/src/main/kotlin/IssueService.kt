@@ -65,7 +65,7 @@ class IssueService(private val db: Database) {
             IssueDao.createFromQuery(ortRunIssuesQuery) +
             IssueDao.createFromQuery(scanSummaryIssuesQuery)
 
-        // There always has to be some sort order defined, else the rows would be returned in random order
+        // There always has to be some sort order defined, else the rows would be returned in random order,
         // and tests that rely on a deterministic order would fail.
         val sortFields = parameters.sortFields.ifEmpty {
             listOf(OrderField("timestamp", OrderDirection.DESCENDING))
@@ -180,9 +180,9 @@ class IssueService(private val db: Database) {
             .innerJoin(IssuesTable, { ScanSummariesIssuesTable.issueId }, { IssuesTable.id })
 
     /**
-     * Create a [Query] to get the issues from the scan summaries. In order to be able to directly merge the results
-     * to the issues return of the query created by [createOrtRunIssuesQuery], the columns have to be the same,
-     * and for this reason some colum values are set to NULL.
+     * Create a [Query] to get the issues from the scan summaries. To be able to directly merge the results to the
+     * issues return of the query created by [createOrtRunIssuesQuery], the columns have to be the same, and for this
+     * reason some colum values are set to NULL.
      */
     private fun createScanSummaryIssuesQuery(ortRunId: Long) =
         createScanSummaryIssuesJoin().select(
@@ -212,7 +212,7 @@ internal fun Identifier.toConcatenatedString() = "$type $namespace $name $versio
 
 /**
  * Sort the list of issues by the given [sortFields], also using the hash code of the issue as a second sort criterion
- * to get a stable sort order. Although the API supports to have more than one sort order field, this implementation
+ * to get a stable sort order. Although the API supports having more than one sort order field, this implementation
  * only supports a single sort field.
  */
 internal fun List<Issue>.sort(sortFields: List<OrderField>): List<Issue> {

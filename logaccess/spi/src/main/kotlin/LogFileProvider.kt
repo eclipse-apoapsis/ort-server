@@ -34,8 +34,8 @@ import org.eclipse.apoapsis.ortserver.model.LogSource
 interface LogFileProvider {
     /**
      * Download a log file for the given [source] of the specified [ortRunId]. Include only log statements of the
-     * provided [levels]. Obtain log data between the given [startTime] and [endTime]. (The time range is provided
-     * by the caller in case it is needed by a concrete implementation.) Store the results in the given [directory] in
+     * provided [levels]. Obtain log data between the given [startTime] and [endTime]. The time range is provided
+     * by the caller in case it is needed by a concrete implementation. Store the results in the given [directory] in
      * a file with the given [fileName].
      */
     suspend fun downloadLogFile(

@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.model
 import kotlinx.serialization.Serializable
 
 /**
- * A repository represents a source code repository, for example a [Git][RepositoryType.GIT] repository.
+ * A repository represents a source code repository, for example, a [Git][RepositoryType.GIT] repository.
  */
 @Serializable
 data class Repository(

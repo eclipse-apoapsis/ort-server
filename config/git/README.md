@@ -17,16 +17,16 @@ Note that
 The `listFiles` function can be used to get the list of all the objects of type `file` located in the given path.
 It takes in the context (as returned by the `resolveContext` function) and requires the provided path to refer to a directory, otherwise a `ConfigException` is thrown.
 
-In order to make sure that a configuration file is present in the given path, the `contains` function can be used.
+To make sure that a configuration file is present in the given path, the `contains` function can be used.
 It takes in the context and a path to a file and returns `true` if the file is present or `false` if the returned object is not a file, or if the specified path does not exist in the given repository at all.
 
-The `getFile` function returns an `InputStream` for reading the content of a configuration file with the given `path` in the given `context`, throwing an exception if the file cannot be resolved or access is not possible for whatever reasons.
+The `getFile` function returns an `InputStream` for reading the content of a configuration file with the given `path` in the given `context`, throwing an exception if the file cannot be resolved or access is not possible for whatever reason.
 
 ## Configuration
 
 ### Enabling the provider (static configuration)
 
-In order to activate `GitConfigFileProvider`, the application configuration must contain a section `configManager` with a property `fileProvider` set to the value "git-config".
+To activate `GitConfigFileProvider`, the application configuration must contain a section `configManager` with a property `fileProvider` set to the value "git-config".
 In addition, the URL of the git repository is needed, for example:
 
 ```
@@ -35,7 +35,7 @@ configManager {
   gitUrl = "https://config.repository.git"
 }
 ```
-In order to avoid hard-coding the configuration of the provider in the `application.conf` files, environment variables should be used, for example
+To avoid hard-coding the configuration of the provider in the `application.conf` files, environment variables should be used, for example
 ```
 configManager {
   fileProvider = ${?ANALYZER_CONFIG_FILE_PROVIDER}
@@ -68,4 +68,4 @@ Because the git configuration file provider is capable of returning files using 
 ```
 
 In this example, all configuration files are located in their respective directories in the repository.
-Note that for example customer-specific rules could have many versions in their respective branches, and by varying the `jobConfigContext` parameter, different versions of the rules can be used in jobs.
+Note that, for example, customer-specific rules could have many versions in their respective branches, and by varying the `jobConfigContext` parameter, different versions of the rules can be used in jobs.

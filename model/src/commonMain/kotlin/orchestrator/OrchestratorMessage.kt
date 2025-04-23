@@ -59,8 +59,8 @@ data class ConfigWorkerError(
 
 /**
  * A common interface for messages that are sent by workers to the Orchestrator. The interface allows access to the
- * job ID of the affected worker. This can be used to handle such messages in a generic way. Note that the Config
- * worker is a bit special here; it does only initial preparations, but does not have its own job table.
+ * job ID of the affected worker. This can be used to handle such messages generically. Note that the Config worker is a
+ * bit special here; it does only initial preparations, but does not have its own job table.
  */
 interface WorkerMessage {
     val jobId: Long

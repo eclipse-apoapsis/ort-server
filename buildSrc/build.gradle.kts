@@ -23,7 +23,7 @@ plugins {
 }
 
 repositories {
-    // Allow to resolve external plugins from precompiled script plugins.
+    // Allow resolving external plugins from precompiled script plugins.
     gradlePluginPortal()
 }
 

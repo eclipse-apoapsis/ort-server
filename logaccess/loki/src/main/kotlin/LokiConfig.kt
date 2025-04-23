@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
  * A data class storing configuration options for accessing a Grafana Loki instance.
  *
  * Note that according to [Grafana docs](https://grafana.com/docs/loki/latest/operations/authentication/), Loki does not
- * support an authentication by itself, but requires a reverse proxy for this purpose. This means that in theory
+ * support an authentication by itself, but requires a reverse proxy for this purpose. This means that in theory,
  * multiple different options for authentication could be supported. This implementation is currently limited to an
  * optional basic authentication: If both a username and password are configured, the corresponding authorization header
  * is set; otherwise, it is skipped.

@@ -35,7 +35,7 @@ export const isJobFinished = (status: JobStatus | undefined) => {
  * A helper function to determine the contents of the statistics cards for the run.
  * @param status The job status.
  * @param jobIncluded Is the job included in the run?
- * @param total Total number of items (issues, vulnerabilities etc.) found by the job.
+ * @param total Total number of items (issues, vulnerabilities, etc.) found by the job.
  * @returns A value and description for the value, to be consumed by the statistics cards.
  */
 export const jobStatusTexts = (

@@ -29,25 +29,24 @@ import org.slf4j.LoggerFactory
 /**
  * A specialized generator class to generate a Git configuration file.
  *
- * Source code repositories may have submodules locations specified using SSH URLs. This imposes a problem, because
- * the required SSH keys to fetch the submodules are not available in the execution environment. To work around this
- * issue, Git allows to define URL `insteadOf` sections in the _.gitconfig_ file. This generator creates such
- * sections from a static configuration file, which can be customized via an environment variable.
+ * Source code repositories may have submodule locations specified using SSH URLs. This is a problem when the required
+ * SSH keys to fetch the submodules are not available in the execution environment. To work around this issue, Git
+ * allows defining URL `insteadOf` sections in the _.gitconfig_ file. This generator creates such sections from a static
+ * configuration file, which can be customized via an environment variable.
  *
- * The `insteadOf` sections can either be generated using default values in
- * `application.conf` or customized via the environment variable
- * `GIT_CONFIG_URL_INSTEAD_OF`. This allows flexibility in defining what
- * URL `insteadOf` sections are created in `.gitconfig`.
+ * The `insteadOf` sections can either be generated using default values in `application.conf` or customized via the
+ * environment variable `GIT_CONFIG_URL_INSTEAD_OF`. This allows flexibility in defining what URL `insteadOf` sections
+ * are created in `.gitconfig`.
  *
- * The expected format is a comma-separated list of base URLs and their corresponding insteadOf URLs,
- * separated by an equal sign. For example:
+ * The expected format is a comma-separated list of base URLs and their corresponding `insteadOf` URLs, separated by an
+ * equal sign. For example:
  * `https://github.com=ssh://git@github.com,https://github.com/=git@github.com:`
  *
  * See also: [Git documentation](https://git-scm.com/docs/git-config#Documentation/git-config.txt-urlltbasegtinsteadOf)
  *
  * There is a coupling between this generator class and the generator class for Git credentials
- * [GitCredentialsGenerator]. If Git credentials are generated, then this class also generates a `credential`
- * section in the Git configuration file _.gitconfig_ in order to reference the generated _.git-credentials_ file.
+ * [GitCredentialsGenerator]. If Git credentials are generated, then this class also generates a `credential` section in
+ * the Git configuration file _.gitconfig_ to reference the generated _.git-credentials_ file.
  */
 class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, String>) :
     EnvironmentConfigGenerator<EnvironmentServiceDefinition> {

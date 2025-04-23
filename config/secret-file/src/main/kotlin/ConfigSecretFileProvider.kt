@@ -28,8 +28,8 @@ import org.eclipse.apoapsis.ortserver.config.Path
  * An implementation of the [ConfigSecretProvider] interface that reads secrets from files.
  *
  * An instance is initialized with a collection of [File]s that contain the available secrets. Each file is expected to
- * be a text file that defines secrets in its lines. The syntax corresponds to properties file; so each line should be
- * of the form `key=value`. Empty lines and lines starting with a '#' character are ignored.
+ * be a text file that defines secrets in its lines. The syntax corresponds to property files; so each line should be of
+ * the form `key=value`. Empty lines and lines starting with a '#' character are ignored.
  *
  * When the provider is queried for a secret, it reads the files in the provided order, line by line, until it finds
  * a key that matches the requested path. The value defined on this line is returned as secret value. So if there are

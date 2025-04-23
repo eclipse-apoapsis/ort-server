@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
  * A data class representing the declaration of an environment variable.
  *
  * This class can be used to describe environment variables that are referenced during an ORT run. When triggering an
- * ORT run the list of required variables can be specified. During the Analyzer step, these variables are then
+ * ORT run, the list of required variables can be specified. During the Analyzer step, these variables are then
  * defined. The variable values are obtained from secrets, which are referenced by their names. Either a value or a
  * secret name can be provided.
  */

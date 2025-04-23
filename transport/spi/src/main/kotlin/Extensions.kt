@@ -26,9 +26,9 @@ private const val PROPERTY_SEPARATOR = "."
  * Return a map that contains only the keys of this original [Map] that start with the provided [prefix], but with this
  * prefix removed. This function is intended to be used for the transport properties in a [MessageHeader]. The idea is
  * that the property keys start with the name of the transport they apply to. A concrete transport implementation can
- * use this function to obtain the properties relevant for it. Since the prefix gets stripped, it can then match on
- * simple property names. Per convention, the prefix is separated by a dot character ('.'); this character is added to
- * the passed in [prefix] if it is missing.
+ * use this function to obtain the relevant properties. Since the prefix gets stripped, it can then match on simple
+ * property names. Per convention, the prefix is separated by a dot character ('.'); this character is added to the
+ * passed in [prefix] if it is missing.
  */
 fun Map<String, String>.selectByPrefix(prefix: String): Map<String, String> {
     val prefixWithSeparator = prefix.takeIf { it.endsWith(PROPERTY_SEPARATOR) } ?: "${prefix}$PROPERTY_SEPARATOR"

@@ -130,8 +130,8 @@ private fun Application.validateJwtPayload(payload: Payload): Boolean =
  */
 object SecurityConfigurations {
     /**
-     * Security configuration for the normal API endpoints called by users. Users must provide a valid JWT in order to
-     * use an API endpoint.
+     * Security configuration for the normal API endpoints called by users. Users must provide a valid JWT to use an API
+     * endpoint.
      */
     const val TOKEN = "token"
 }

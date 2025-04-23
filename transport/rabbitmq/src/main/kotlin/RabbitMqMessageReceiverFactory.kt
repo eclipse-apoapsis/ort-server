@@ -111,7 +111,7 @@ class RabbitMqMessageReceiverFactory : MessageReceiverFactory {
 
     /**
      * Create a [Consumer] for processing the messages received via the given [channel]. Use the provided [serializer]
-     * to de-serialize messages. Use the functionality of this [ProducerScope] to send the received messages and to
+     * to deserialize messages. Use the functionality of this [ProducerScope] to send the received messages and to
      * cancel message processing when the consumer is canceled.
      */
     private fun <T : Any> ProducerScope<Message<T>>.createConsumer(

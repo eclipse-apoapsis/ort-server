@@ -43,7 +43,7 @@ interface StorageProvider {
      * with the given [key]. This function can be used for both creating and updating entries. The [length] may be
      * required explicitly by some implementations. Since it cannot be determined from the passed in [InputStream]
      * easily, it has to be provided by the caller. The [contentType] is optional; it may be useful when reading out
-     * the data again, e.g. to download it via an HTTP request. The string provided here should thus follow the format
+     * the data again, e.g., to download it via an HTTP request. The string provided here should thus follow the format
      * expected by a *Content-Type* header. This function does not close the [InputStream][data]; this needs to be
      * done by the caller. Throw an exception if the write operation fails.
      */

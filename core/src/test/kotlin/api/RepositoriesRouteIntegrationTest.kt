@@ -1224,7 +1224,6 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                // Using two users that are prepared for test, just to have their user names
                 addUserToGroup(TEST_USER.username.value, repositoryId, "READERS")
                 addUserToGroup(SUPERUSER.username.value, repositoryId, "WRITERS")
                 addUserToGroup(SUPERUSER.username.value, repositoryId, "ADMINS")

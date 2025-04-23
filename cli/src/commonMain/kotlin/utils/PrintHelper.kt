@@ -33,7 +33,7 @@ import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
 var useJsonFormat = false
 
 /**
- * Print the [message] of an error to stderr. If required as a [json][CliError] object.
+ * Print the [message] of an error to stderr. If required, as a [json][CliError] object.
  */
 internal fun SuspendingCliktCommand.echoError(message: String?) {
     if (useJsonFormat) {
@@ -44,7 +44,7 @@ internal fun SuspendingCliktCommand.echoError(message: String?) {
 }
 
 /**
- * Print the [message] to stdout. If required as a json object.
+ * Print the [message] to stdout. If required, as a JSON object.
  */
 internal fun SuspendingCliktCommand.echoMessage(message: CliPrintable) {
     if (useJsonFormat) {

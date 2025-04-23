@@ -100,7 +100,7 @@ data class VaultConfiguration(
         /**
          * Return the root path from the given [config] in a form, so that it can be used in a convenient way:
          * - If no root path has been provided, return an empty string.
-         * - If a root path is defined, make sure that is has a trailing separator character.
+         * - If a root path is defined, make sure that it has a trailing separator character.
          */
         private fun getOptionalRootPath(config: Config): String =
             config.getStringOrNull(ROOT_PATH_PROPERTY)?.let { rootPath ->

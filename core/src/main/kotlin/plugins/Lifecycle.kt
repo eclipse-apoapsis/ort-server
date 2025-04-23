@@ -55,7 +55,7 @@ fun Application.configureLifecycle() {
 }
 
 /**
- * Trigger the synchronization of permissions and roles in Keycloak. The synchronization then runs in background.
+ * Trigger the synchronization of permissions and roles in Keycloak. The synchronization then runs in the background.
  */
 private suspend fun syncRoles(authorizationService: AuthorizationService) {
     withMdcContext("component" to "core") {

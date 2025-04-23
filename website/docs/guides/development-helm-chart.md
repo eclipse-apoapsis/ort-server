@@ -27,13 +27,13 @@ Add the Bitnami repository to your Helm command:
 helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
 
-Add the HashiCorp repository your Helm environment:
+Add the HashiCorp repository to your Helm environment:
 
 ```shell
 helm repo add hashicorp https://helm.releases.hashicorp.com
 ```
 
-### Delete previous database (if any)
+### Delete a previous database (if any)
 
 Please also delete your database content.
 Bitnami Helm charts create a specific configuration, which is skipped by Postgres' Docker entrypoint if a database already exists.
@@ -81,14 +81,14 @@ Then the different images of ORT Server:
 
 ### Mount initialization directory
 
-Finally, mount the directory containing Keycloak initialization script and realms for importing:
+Finally, mount the directory containing the Keycloak initialization script and realms for importing:
 
 ```shell
 minikube mount scripts/docker/keycloak:/docker-entrypoint-initdb.d &
 minikube mount scripts/docker/keycloak:/opt/bitnami/keycloak/data/import &
 ```
 
-if you are enabled rabbitmq, you have to mount the directory containing secrets files for orchestrator:
+if you are enabled rabbitmq, you have to mount the directory containing secret files for orchestrator:
 
 ```shell
 minikube mount scripts/compose:/data/orchestrator &

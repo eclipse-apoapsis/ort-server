@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.config
 /**
  * A class representing a context for querying the application configuration.
  *
- * When querying the configuration of ORT Server clients have to provide a context, which uniquely defines the
+ * When querying the configuration of ORT Server, clients have to provide a context, which uniquely defines the
  * configuration to be used. The exact meaning is specific to a concrete implementation of the service provider
  * interface, but in general, via the context a set of configuration properties can be selected if there are multiple
  * such sets. For instance, if the configuration is stored in a version control system, the context could be the

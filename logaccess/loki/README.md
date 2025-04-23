@@ -6,7 +6,7 @@ This module provides an implementation of the [Log access abstraction](../README
 
 The [LokiLogFileProvider](src/main/kotlin/LokiLogFileProvider.kt) class provided by this module sends requests against the [HTTP API](https://grafana.com/docs/loki/latest/reference/api/) of a configured Grafana Loki instance to retrieve the logs of a specific ORT run.
 
-In order to obtain the logs of a specific ORT run step, the provider sends a single [LogQL](https://grafana.com/docs/loki/latest/query/) query to the server which selects the ORT run by its ID, a configurable (Kubernetes) namespace, and the log source - which corresponds to the worker responsible for this step.
+To obtain the logs of a specific ORT run step, the provider sends a single [LogQL](https://grafana.com/docs/loki/latest/query/) query to the server which selects the ORT run by its ID, a configurable (Kubernetes) namespace, and the log source - which corresponds to the worker responsible for this step.
 Typically, it is not possible to fetch all log statements in a single call.
 The responses from Loki are rather verbose and therefore consume a certain amount of memory.
 To prevent issues with excessive memory consumption, the Loki API always applies a limit to query results.

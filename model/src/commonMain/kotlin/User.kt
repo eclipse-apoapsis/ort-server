@@ -37,7 +37,7 @@ data class User(
 )
 
 /**
- * Enum class representing user group (privilege level)
+ * Enum class representing user groups (privilege level).
  */
 enum class UserGroup {
     READERS,

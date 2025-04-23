@@ -2,12 +2,12 @@ This document describes the configuration abstraction used within the ORT server
 
 ## Purpose
 
-While simple configuration properties in ORT Server are accessed via the [Typesafe Config library](https://github.com/lightbend/config), there is other configuration information which needs to be treated in a special way.
-Reasons for this could be that the information is confidential (e.g. credentials for accessing specific infrastructure services) and is therefore managed by a secret storage.
+While simple configuration properties in ORT Server are accessed via the [Typesafe Config library](https://github.com/lightbend/config), there is other configuration information that needs to be treated specially.
+Reasons for this could be that the information is confidential (e.g., credentials for accessing specific infrastructure services) and is therefore managed by a secret storage.
 Or the size of the configuration data is bigger, so that it is not feasible to inject it via environment variables, but an external storage is needed (maybe a version control system).
 
 According to the philosophy of ORT Server, it should be flexible to be integrated with different mechanisms for accessing such special configuration data.
-A concrete runtime environment may offer specific services that are suitable for the use cases at hand, for instance key vaults for storing credentials.
+A concrete runtime environment may offer specific services that are suitable for the use cases at hand, for instance, key vaults for storing credentials.
 By implementing the corresponding interfaces, it should be possible to integrate such mechanisms with ORT server.
 
 The use cases addressed by this abstraction, that go beyond simple configuration properties, are the following:
@@ -23,7 +23,7 @@ The use cases addressed by this abstraction, that go beyond simple configuration
 
 ## Service Provider Interfaces
 
-This section describes the interfaces that need to be implemented in order to obtain configuration data from special sources.
+This section describes the interfaces that need to be implemented to obtain configuration data from special sources.
 There are dedicated interfaces for different use cases that are discussed in their own subsections.
 
 ### Access to Configuration Files
@@ -40,7 +40,7 @@ Paths to configuration files are represented by a special value class named `Pat
 The interpretation of such a path is implementation-specific.
 Typically, it will reference some kind of relative path below a root folder.
 
-In order to uniquely identify a specific version of a configuration file, there is another property involved, the so-called *context*.
+To uniquely identify a specific version of a configuration file, there is another property involved, the so-called *context*.
 In terms of the interface, this is another string-based value class whose meaning depends on a concrete implementation.
 The idea behind this property is that there could be multiple sets of configuration files that could change over time (e.g. when they are stored in a version control system) or apply to different (staging) environments.
 A concrete implementation can assign a suitable semantic to this string value.
@@ -74,7 +74,7 @@ It should throw an exception if the requested secret does not exist or cannot be
 
 Other functionality, like contains checks or listing secrets, is not required.
 In typical use cases, the secrets to be looked up are directly referenced by their names; so it is sufficient to resolve these names and obtain the corresponding values.
-This also simplifies concrete implementations, which could for instance lookup the values from environment variables, from files, or from a specific storage for secrets.
+This also simplifies concrete implementations, which could, for instance, look up the values from environment variables, from files, or from a specific storage for secrets.
 
 #### Factory Interface
 
@@ -96,11 +96,11 @@ But except for convenience, there is another reason for storing the context:
 it should remain constant during a whole ORT run to warrant consistency.
 Consider the case that configuration data is stored in a version control system.
 The context could then reference a branch that contains the configuration files.
-This branch may change, however, while an ORT run is in progress, so that a worker executed later may see a different configuration than a one started earlier.
+This branch may change, however, while an ORT run is in progress, so that a worker executed later may see a different configuration than the one that started earlier.
 To address this issue, the `ConfigFileProvider` interface defines a `resolveContext()` function that expects a `Context` argument and returns a normalized or resolved context.
 When constructing a `ConfigManager` instance, a flag can be passed whether this function should be called and the resolved context should be stored.
 In the example of the version control system, the provider implementation could in its `resolveContext` operation replace a branch name by the corresponding commit ID to pinpoint the configuration files.
-To support such constellations, at the beginning of an ORT run the context should be resolved once and then stored in the database.
+To support such constellations, at the beginning of an ORT run, the context should be resolved once and then stored in the database.
 Workers started later in the pipeline should obtain it from there.
 
 The interface of the `ConfigManager` class is similar to the ones of the wrapped provider interfaces with a few convenience functions.

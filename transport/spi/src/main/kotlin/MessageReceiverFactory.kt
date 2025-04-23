@@ -46,9 +46,9 @@ enum class EndpointHandlerResult {
 /**
  * Factory interface for setting up a receiver for an [Endpoint].
  *
- * Via this interface endpoints can be implemented that are independent on a concrete message transport mechanism. The
+ * Via this interface, endpoints can be implemented that are independent of a concrete message transport mechanism. The
  * idea is that the endpoint implementation just provides an [EndpointHandler] function. The factory constructs the
- * necessary infrastructure to receive messages (e.g. by registering a listener on a message queue or starting an
+ * necessary infrastructure to receive messages (e.g., by registering a listener on a message queue or starting an
  * HTTP endpoint). When a message is received the infrastructure calls the [EndpointHandler], so that it can be
  * processed. Note that no direct interactions are done with this infrastructure; therefore, there is no explicit
  * _MessageReceiver_ type.
@@ -98,7 +98,7 @@ interface MessageReceiverFactory {
     }
 
     /**
-     * A unique name of this factory. Via this name a concrete sender implementation can be selected in the server's
+     * A unique name of this factory. Via this name, a concrete sender implementation can be selected in the server's
      * configuration.
      */
     val name: String

@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.model
 
 /**
- * A product represent a group of [repositories][Repository] that belong together.
+ * A product represents a group of [repositories][Repository] that belong together.
  */
 data class Product(
     /**

@@ -105,7 +105,7 @@ private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
  *   referenced by any run.
  * - `kubernetes-reaper`: Cleans up completed Kubernetes jobs and also notifies the Orchestrator about failed jobs.
  *   This task is part of the Kubernetes Job Monitor.
- * - `kubernetes-lost-jobs-finder`: Checks for jobs that are active according to the database, but for which no
+ * - `kubernetes-lost-jobs-finder`: Checks for jobs that are active, according to the database, but for which no
  *   running Kubernetes job exists. Such a constellation indicates a fatal crash of a worker job. This task is part of
  *   the Kubernetes Job Monitor.
  * - `kubernetes-long-running-jobs-finder`: Checks for worker jobs in Kubernetes that are running longer than a

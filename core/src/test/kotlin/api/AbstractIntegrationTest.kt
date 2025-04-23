@@ -93,7 +93,7 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
 
     /**
      * A convenience property to create an [HttpClient] which authenticates as [SUPERUSER]. Note that each call to the
-     * property creates a new client, so if the client is used multiple times in a test consider storing it in a
+     * property creates a new client, so if the client is used multiple times in a test, consider storing it in a
      * variable.
      */
     val ApplicationTestBuilder.superuserClient: HttpClient
@@ -101,7 +101,7 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
 
     /**
      * A convenience property to create an [HttpClient] which authenticates as [TEST_USER]. Note that each call to the
-     * property creates a new client, so if the client is used multiple times in a test consider storing it in a
+     * property creates a new client, so if the client is used multiple times in a test, consider storing it in a
      * variable.
      */
     val ApplicationTestBuilder.testUserClient: HttpClient

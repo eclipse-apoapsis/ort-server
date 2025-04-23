@@ -97,7 +97,7 @@ internal fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
 }
 
 /**
- * Run the [query] using the [parameters] to create a [ListQueryResult]. The entities are mapped to the  corresponding
+ * Run the [query] using the [parameters] to create a [ListQueryResult]. The entities are mapped to the corresponding
  * model objects using the provided [entityMapper].
  */
 fun <E : LongEntity, M, T : AbstractQuery<T>> SortableEntityClass<E>.listCustomQuery(

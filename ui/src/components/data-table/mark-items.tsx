@@ -39,7 +39,7 @@ interface MarkItemsProps<TData> {
 export function MarkItems<TData>({ row, setMarked }: MarkItemsProps<TData>) {
   // Copy the URL with marked item to clipboard.
   // Because TanStack Router updates the URL asynchronously,
-  // a small delay is used before copying, to ensure the new
+  // a small delay is used before copying to ensure the new
   // URL is copied properly instead of the old one.
   const urlToClipboard = async () => {
     setTimeout(async () => {

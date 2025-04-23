@@ -12,7 +12,7 @@ The messages to be processed are converted to JMS text messages.
 The payload is serialized to JSON and transferred in the text body of the message.
 Metadata from the message header is represented by JMS message properties.
 
-In order to use this module, the `type` property in the transport configuration must be set to `activeMQ`.
+To use this module, the `type` property in the transport configuration must be set to `activeMQ`.
 
 ## Configuration
 

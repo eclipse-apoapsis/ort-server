@@ -11,7 +11,7 @@ In the data model of ORT Server, so-called _job configurations_ are used to spec
 - The rules to be processed by the Evaluator must be loaded from somewhere. Where are they located and how can they be accessed?
 - The situation for template files to be consumed by the Reporter is similar; they also need to be retrieved from a specific location.
 
-Requiring such deep knowledge from callers may be fine in some situations; e.g. if ORT Server is called from an external system. End users, however, will not have this information, nor should they (especially when it comes to access credentials to external systems).
+Requiring such deep knowledge from callers may be fine in some situations, e.g., if ORT Server is called from an external system. End users, however, will not have this information, nor should they (especially when it comes to access credentials to external systems).
 
 So the job configurations are typically not a suitable model for end users to specify the parameters of an ORT run. They also do not support other use cases that may come up when integrating ORT Server with local compliance guidelines, for instance of a company. Depending on a concrete setup, there might be restrictions on the parameters that can be specified by users; or other parameters are needed that are not known to the standard model of ORT Server. Examples could be:
 
@@ -81,7 +81,7 @@ Could be transformed to these job configurations:
 Here the request passed to Orchestrator contains a number of simple key-value pairs. The validation script reads this input and performs the following transformations:
 
 - It detects that FossID should be used. Therefore, it makes sure that the output contains a `ScannerJobConfiguration` with options that include a map for FossID-related parameters.
-- Users specify the FossID instance to be used as an enumeration constant - _QM_ in this case. The script can check whether this is an allowed value. If so, it adds the data of the selected instance to the FossID configuration - in this case the URL and the credentials. _Note:_ The credentials are represented as names of secrets that need to be looked up later, not as the actual secret values.
+- Users specify the FossID instance to be used as an enumeration constant - _QM_ in this case. The script can check whether this is an allowed value. If so, it adds the data of the selected instance to the FossID configuration - in this case, the URL and the credentials. _Note:_ The credentials are represented as names of secrets that need to be looked up later, not as the actual secret values.
 - Further parameters related to FossID, e.g., the number of delta scans to keep, are also added to the FossID options in the scanner configuration.
 - The _applicationCategory_ parameter is also checked for correctness. In this example, the category determines the Evaluator configuration to be used, i.e., the rule set and the license classifications. The validation script therefore creates an `EvaluatorJobConfiguration` and populates it accordingly.
 

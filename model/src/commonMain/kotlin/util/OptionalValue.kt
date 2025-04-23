@@ -25,7 +25,7 @@ package org.eclipse.apoapsis.ortserver.model.util
  * * [OptionalValue.Absent]
  *
  * This makes generic update functions possible that take all upgradable properties as parameters and only update the
- * ones that are [present][OptionalValue.Present]. Otherwise, for nullable properties there would be no way to
+ * ones that are [present][OptionalValue.Present]. Otherwise, for nullable properties, there would be no way to
  * distinguish if the property should be ignored or updated.
  */
 sealed interface OptionalValue<out T> {

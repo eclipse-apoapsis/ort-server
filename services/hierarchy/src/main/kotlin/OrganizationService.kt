@@ -153,8 +153,8 @@ class OrganizationService(
 
         val groupName = organizationRole.groupName(organizationId)
 
-        // As the AuthorizationService does not distinguish between technical exceptions (e.g. cannot connect to
-        // Keycloak) and business exceptions (e.g. user not found), we can't do special exception handling here
+        // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
+        // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
         // and just let the exception propagate.
         authorizationService.addUserToGroup(username, groupName)
     }
@@ -181,8 +181,8 @@ class OrganizationService(
 
         val groupName = organizationRole.groupName(organizationId)
 
-        // As the AuthorizationService does not distinguish between technical exceptions (e.g. cannot connect to
-        // Keycloak) and business exceptions (e.g. user not found), we can't do special exception handling here
+        // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
+        // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
         // and just let the exception propagate.
         authorizationService.removeUserFromGroup(username, groupName)
     }

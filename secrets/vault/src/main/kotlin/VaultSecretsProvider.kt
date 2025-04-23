@@ -149,7 +149,7 @@ class VaultSecretsProvider(
     }
 
     /**
-     * Configure the given [client] to request a new Vault token if necessary, i.e. if a request with the previous
+     * Configure the given [client] to request a new Vault token if necessary, i.e., if a request with the previous
      * token is rejected with a Forbidden status. Vault is a bit special in this regard; so it uses a proprietary
      * header for the token and does not return the default 401 Unauthorized status code. Therefore, the standard
      * bearer-authentication offered by KTor cannot be used here.

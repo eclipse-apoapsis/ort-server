@@ -717,7 +717,7 @@ class ReporterRunnerTest : WordSpec({
             )
             runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null, context)
 
-            // Verify that a correct provider was passed to the reporter input.
+            // Verify that a valid provider was passed to the reporter input.
             reporterInputSlot.isCaptured shouldBe true
             with(reporterInputSlot.captured.licenseTextProvider as CustomLicenseTextProvider) {
                 licenseTextDir shouldBe Path(customLicenseTextsPath)

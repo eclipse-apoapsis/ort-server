@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
 import org.eclipse.apoapsis.ortserver.model.Severity
 
 /**
- * A data class describing an rule violation that occurred during an ORT run.
+ * A data class describing a rule violation that occurred during an ORT run.
  */
 @Serializable
 data class OrtRuleViolation(
