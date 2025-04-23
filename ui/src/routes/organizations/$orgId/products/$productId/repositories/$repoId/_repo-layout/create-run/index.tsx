@@ -21,7 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useRepositoriesServicePostApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
@@ -397,32 +397,32 @@ const CreateRunPage = () => {
               }
             >
               <AnalyzerFields
-                form={form as UseFormReturn<CreateRunFormValues>}
+                form={form}
                 value='analyzer'
                 onToggle={() => toggleAccordionOpen('analyzer')}
               />
               <AdvisorFields
-                form={form as UseFormReturn<CreateRunFormValues>}
+                form={form}
                 value='advisor'
                 onToggle={() => toggleAccordionOpen('advisor')}
               />
               <ScannerFields
-                form={form as UseFormReturn<CreateRunFormValues>}
+                form={form}
                 value='scanner'
                 onToggle={() => toggleAccordionOpen('scanner')}
               />
               <EvaluatorFields
-                form={form as UseFormReturn<CreateRunFormValues>}
+                form={form}
                 value='evaluator'
                 onToggle={() => toggleAccordionOpen('evaluator')}
               />
               <ReporterFields
-                form={form as UseFormReturn<CreateRunFormValues>}
+                form={form}
                 value='reporter'
                 onToggle={() => toggleAccordionOpen('reporter')}
               />
               <NotifierFields
-                form={form as UseFormReturn<CreateRunFormValues>}
+                form={form}
                 value='notifier'
                 onToggle={() => toggleAccordionOpen('notifier')}
               />
@@ -485,9 +485,7 @@ const CreateRunPage = () => {
                 <Label className='mt-4'>Form payload:</Label>
                 <pre className='w-full rounded-lg p-4 text-xs'>
                   {JSON.stringify(
-                    formValuesToPayload(
-                      (form as UseFormReturn<CreateRunFormValues>).getValues()
-                    ),
+                    formValuesToPayload(form.getValues()),
                     null,
                     2
                   )}
