@@ -30,50 +30,70 @@ const Layout = () => {
   const { productId, repoId, runIndex } = useParams({ strict: false });
   const user = useUser();
 
-  const navItems: SidebarNavProps['sections'][number]['items'] = [
+  const sections: SidebarNavProps['sections'] = [
     {
-      title: 'Overview',
-      to: '/organizations/$orgId/products/$productId',
-      icon: () => <Eye className='h-4 w-4' />,
+      items: [
+        {
+          title: 'Overview',
+          to: '/organizations/$orgId/products/$productId',
+          icon: () => <Eye className='h-4 w-4' />,
+        },
+      ],
     },
     {
-      title: 'Vulnerabilities',
-      to: '/organizations/$orgId/products/$productId/vulnerabilities',
-      search: {
-        sortBy: [
-          { id: 'rating', desc: true },
-          { id: 'count', desc: true },
-        ],
-      },
-      icon: () => <ShieldQuestion className='h-4 w-4' />,
+      label: 'Compliance',
+      items: [
+        {
+          title: 'Vulnerabilities',
+          to: '/organizations/$orgId/products/$productId/vulnerabilities',
+          search: {
+            sortBy: [
+              { id: 'rating', desc: true },
+              { id: 'count', desc: true },
+            ],
+          },
+          icon: () => <ShieldQuestion className='h-4 w-4' />,
+        },
+      ],
     },
     {
-      title: 'Secrets',
-      to: '/organizations/$orgId/products/$productId/secrets',
-      icon: () => <BookLock className='h-4 w-4' />,
-      visible: user.hasRole([
-        'superuser',
-        `permission_product_${productId}_write_secrets`,
-      ]),
-    },
-    {
-      title: 'Users',
-      to: '/organizations/$orgId/products/$productId/users',
-      icon: () => <User className='h-4 w-4' />,
-      visible: user.hasRole(['superuser', `role_product_${productId}_admin`]),
-    },
-    {
-      title: 'Settings',
-      to: '/organizations/$orgId/products/$productId/settings',
-      icon: () => <Settings className='h-4 w-4' />,
-      visible: user.hasRole(['superuser', `role_product_${productId}_admin`]),
+      label: 'Product',
+      items: [
+        {
+          title: 'Secrets',
+          to: '/organizations/$orgId/products/$productId/secrets',
+          icon: () => <BookLock className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `permission_product_${productId}_write_secrets`,
+          ]),
+        },
+        {
+          title: 'Users',
+          to: '/organizations/$orgId/products/$productId/users',
+          icon: () => <User className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_product_${productId}_admin`,
+          ]),
+        },
+        {
+          title: 'Settings',
+          to: '/organizations/$orgId/products/$productId/settings',
+          icon: () => <Settings className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_product_${productId}_admin`,
+          ]),
+        },
+      ],
     },
   ];
 
   return (
     <>
       {!runIndex && !repoId ? (
-        <PageLayout sections={[{ items: navItems }]}>
+        <PageLayout sections={sections}>
           <Outlet />
         </PageLayout>
       ) : (
