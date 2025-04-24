@@ -37,56 +37,79 @@ const Layout = () => {
   const { orgId, productId, repoId, runIndex } = useParams({ strict: false });
   const user = useUser();
 
-  const navItems: SidebarNavProps['sections'][number]['items'] = [
+  const sections: SidebarNavProps['sections'] = [
     {
-      title: 'Overview',
-      to: '/organizations/$orgId',
-      icon: () => <Eye className='h-4 w-4' />,
+      items: [
+        {
+          title: 'Overview',
+          to: '/organizations/$orgId',
+          icon: () => <Eye className='h-4 w-4' />,
+        },
+      ],
     },
     {
-      title: 'Vulnerabilities',
-      to: '/organizations/$orgId/vulnerabilities',
-      search: {
-        sortBy: [
-          { id: 'rating', desc: true },
-          { id: 'repositoriesCount', desc: true },
-        ],
-      },
-      icon: () => <ShieldQuestion className='h-4 w-4' />,
+      label: 'Compliance',
+      items: [
+        {
+          title: 'Vulnerabilities',
+          to: '/organizations/$orgId/vulnerabilities',
+          search: {
+            sortBy: [
+              { id: 'rating', desc: true },
+              { id: 'repositoriesCount', desc: true },
+            ],
+          },
+          icon: () => <ShieldQuestion className='h-4 w-4' />,
+        },
+      ],
     },
     {
-      title: 'Secrets',
-      to: '/organizations/$orgId/secrets',
-      icon: () => <BookLock className='h-4 w-4' />,
-      visible: user.hasRole([
-        'superuser',
-        `permission_organization_${orgId}_write_secrets`,
-      ]),
-    },
-    {
-      title: 'Infrastructure Services',
-      to: '/organizations/$orgId/infrastructure-services',
-      icon: () => <ServerCog className='h-4 w-4' />,
-      visible: user.hasRole(['superuser', `role_organization_${orgId}_admin`]),
-    },
-    {
-      title: 'Users',
-      to: '/organizations/$orgId/users',
-      icon: () => <User className='h-4 w-4' />,
-      visible: user.hasRole(['superuser', `role_organization_${orgId}_admin`]),
-    },
-    {
-      title: 'Settings',
-      to: '/organizations/$orgId/settings',
-      icon: () => <Settings className='h-4 w-4' />,
-      visible: user.hasRole(['superuser', `role_organization_${orgId}_admin`]),
+      label: 'Organization',
+      items: [
+        {
+          title: 'Secrets',
+          to: '/organizations/$orgId/secrets',
+          icon: () => <BookLock className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `permission_organization_${orgId}_write_secrets`,
+          ]),
+        },
+        {
+          title: 'Infrastructure Services',
+          to: '/organizations/$orgId/infrastructure-services',
+          icon: () => <ServerCog className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_organization_${orgId}_admin`,
+          ]),
+        },
+        {
+          title: 'Users',
+          to: '/organizations/$orgId/users',
+          icon: () => <User className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_organization_${orgId}_admin`,
+          ]),
+        },
+        {
+          title: 'Settings',
+          to: '/organizations/$orgId/settings',
+          icon: () => <Settings className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_organization_${orgId}_admin`,
+          ]),
+        },
+      ],
     },
   ];
 
   return (
     <>
       {!productId && !repoId && !runIndex ? (
-        <PageLayout sections={[{ items: navItems }]}>
+        <PageLayout sections={sections}>
           <Outlet />
         </PageLayout>
       ) : (
