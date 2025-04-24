@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { BookLock, History, Settings, User } from 'lucide-react';
+import { BookLock, Eye, Settings, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
@@ -28,37 +28,52 @@ const RepoLayout = () => {
   const { repoId } = Route.useParams();
   const user = useUser();
 
-  const navItems: SidebarNavProps['sections'][number]['items'] = [
+  const sections: SidebarNavProps['sections'] = [
     {
-      title: 'Runs',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs',
-      icon: () => <History className='h-4 w-4' />,
+      items: [
+        {
+          title: 'Overview',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs',
+          icon: () => <Eye className='h-4 w-4' />,
+        },
+      ],
     },
     {
-      title: 'Secrets',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
-      icon: () => <BookLock className='h-4 w-4' />,
-      visible: user.hasRole([
-        'superuser',
-        `permission_repository_${repoId}_write_secrets`,
-      ]),
-    },
-    {
-      title: 'Users',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
-      icon: () => <User className='h-4 w-4' />,
-      visible: user.hasRole(['superuser', `role_repository_${repoId}_admin`]),
-    },
-    {
-      title: 'Settings',
-      to: '/organizations/$orgId/products/$productId/repositories/$repoId/settings',
-      icon: () => <Settings className='h-4 w-4' />,
-      visible: user.hasRole(['superuser', `role_repository_${repoId}_admin`]),
+      label: 'Repository',
+      items: [
+        {
+          title: 'Secrets',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
+          icon: () => <BookLock className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `permission_repository_${repoId}_write_secrets`,
+          ]),
+        },
+        {
+          title: 'Users',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
+          icon: () => <User className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_repository_${repoId}_admin`,
+          ]),
+        },
+        {
+          title: 'Settings',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/settings',
+          icon: () => <Settings className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_repository_${repoId}_admin`,
+          ]),
+        },
+      ],
     },
   ];
 
   return (
-    <PageLayout sections={[{ items: navItems }]}>
+    <PageLayout sections={sections}>
       <Outlet />
     </PageLayout>
   );
