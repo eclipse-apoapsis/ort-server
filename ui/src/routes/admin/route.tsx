@@ -43,12 +43,12 @@ const Layout = () => {
       ],
     },
     {
-      label: 'Plugin Management',
+      label: 'Status',
       items: [
         {
-          title: 'Installed Plugins',
-          to: '/admin/plugins',
-          icon: () => <Blocks className='h-4 w-4' />,
+          title: 'Runs',
+          to: '/admin/runs',
+          icon: () => <ListVideo className='h-4 w-4' />,
         },
       ],
     },
@@ -68,12 +68,12 @@ const Layout = () => {
       ],
     },
     {
-      label: 'Status',
+      label: 'Plugin Management',
       items: [
         {
-          title: 'Runs',
-          to: '/admin/runs',
-          icon: () => <ListVideo className='h-4 w-4' />,
+          title: 'Installed Plugins',
+          to: '/admin/plugins',
+          icon: () => <Blocks className='h-4 w-4' />,
         },
       ],
     },
