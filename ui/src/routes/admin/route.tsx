@@ -23,6 +23,7 @@ import {
   Eye,
   KeyRound,
   ListVideo,
+  Palette,
   PanelBottom,
   User,
 } from 'lucide-react';
@@ -79,6 +80,11 @@ const Layout = () => {
     {
       label: 'Content Management',
       items: [
+        {
+          title: 'Colors',
+          to: '/admin/colors',
+          icon: () => <Palette className='h-4 w-4' />,
+        },
         {
           title: 'Footer',
           to: '/admin/content-management/footer',
