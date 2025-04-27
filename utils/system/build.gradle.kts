@@ -29,7 +29,7 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.utils"
 
 buildConfig {
-    buildConfigField("ORT_SERVER_VERSION", provider { "${project.version}" })
+    buildConfigField("ORT_SERVER_VERSION", provider { project.version.toString() })
 }
 
 kotlin {
