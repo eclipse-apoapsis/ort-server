@@ -130,6 +130,12 @@ services:
     - type: bind
       source: ./scripts/compose/graphite/storage
       target: /opt/graphite/storage
+    - type: bind
+      source: ./scripts/compose/graphite/conf/storage-schemas.conf
+      target: /opt/graphite/conf/storage-schemas.conf
+    - type: bind
+      source: ./scripts/compose/graphite/conf/storage-aggregation.conf
+      target: /opt/graphite/conf/storage-aggregation.conf
     logging:
       driver: gelf
       options:
