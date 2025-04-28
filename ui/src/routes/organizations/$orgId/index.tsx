@@ -17,12 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { CatchBoundary, createFileRoute, Link } from '@tanstack/react-router';
 import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries';
 import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
+import { ErrorComponent } from '@/components/error-component';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -84,77 +85,84 @@ const OrganizationComponent = () => {
           orgId={params.orgId}
         />
       </div>
-      <div className='grid grid-cols-4 gap-2'>
-        <Link
-          to='/organizations/$orgId/vulnerabilities'
-          params={{
-            orgId: params.orgId,
-          }}
-          search={{
-            sortBy: [
-              { id: 'rating', desc: true },
-              { id: 'repositoriesCount', desc: true },
-            ],
-          }}
-        >
+      <CatchBoundary
+        getResetKey={() => 'reset'}
+        errorComponent={ErrorComponent}
+      >
+        <div className='grid grid-cols-4 gap-2'>
+          <Link
+            to='/organizations/$orgId/vulnerabilities'
+            params={{
+              orgId: params.orgId,
+            }}
+            search={{
+              sortBy: [
+                { id: 'rating', desc: true },
+                { id: 'repositoriesCount', desc: true },
+              ],
+            }}
+          >
+            <Suspense
+              fallback={
+                <StatisticsCard
+                  title='Vulnerabilities'
+                  icon={() => (
+                    <ShieldQuestion className='h-4 w-4 text-orange-500' />
+                  )}
+                  value={<LoadingIndicator />}
+                  className='hover:bg-muted/50 h-full'
+                />
+              }
+            >
+              <OrganizationVulnerabilitiesStatisticsCard
+                organizationId={organization.id}
+              />
+            </Suspense>
+          </Link>
           <Suspense
             fallback={
               <StatisticsCard
-                title='Vulnerabilities'
-                icon={() => (
-                  <ShieldQuestion className='h-4 w-4 text-orange-500' />
-                )}
+                title='Issues'
+                icon={() => <Bug className='h-4 w-4 text-orange-500' />}
                 value={<LoadingIndicator />}
                 className='hover:bg-muted/50 h-full'
               />
             }
           >
-            <OrganizationVulnerabilitiesStatisticsCard
+            <OrganizationIssuesStatisticsCard
               organizationId={organization.id}
             />
           </Suspense>
-        </Link>
-        <Suspense
-          fallback={
-            <StatisticsCard
-              title='Issues'
-              icon={() => <Bug className='h-4 w-4 text-orange-500' />}
-              value={<LoadingIndicator />}
-              className='hover:bg-muted/50 h-full'
+          <Suspense
+            fallback={
+              <StatisticsCard
+                title='Rule Violations'
+                icon={() => <Scale className='h-4 w-4 text-orange-500' />}
+                value={<LoadingIndicator />}
+                className='hover:bg-muted/50 h-full'
+              />
+            }
+          >
+            <OrganizationViolationsStatisticsCard
+              organizationId={organization.id}
             />
-          }
-        >
-          <OrganizationIssuesStatisticsCard organizationId={organization.id} />
-        </Suspense>
-        <Suspense
-          fallback={
-            <StatisticsCard
-              title='Rule Violations'
-              icon={() => <Scale className='h-4 w-4 text-orange-500' />}
-              value={<LoadingIndicator />}
-              className='hover:bg-muted/50 h-full'
+          </Suspense>
+          <Suspense
+            fallback={
+              <StatisticsCard
+                title='Packages'
+                icon={() => <Boxes className='h-4 w-4 text-orange-500' />}
+                value={<LoadingIndicator />}
+                className='hover:bg-muted/50 h-full'
+              />
+            }
+          >
+            <OrganizationPackagesStatisticsCard
+              organizationId={organization.id}
             />
-          }
-        >
-          <OrganizationViolationsStatisticsCard
-            organizationId={organization.id}
-          />
-        </Suspense>
-        <Suspense
-          fallback={
-            <StatisticsCard
-              title='Packages'
-              icon={() => <Boxes className='h-4 w-4 text-orange-500' />}
-              value={<LoadingIndicator />}
-              className='hover:bg-muted/50 h-full'
-            />
-          }
-        >
-          <OrganizationPackagesStatisticsCard
-            organizationId={organization.id}
-          />
-        </Suspense>
-      </div>
+          </Suspense>
+        </div>
+      </CatchBoundary>
       <Card>
         <CardContent className='my-4'>
           <OrganizationProductTable />
