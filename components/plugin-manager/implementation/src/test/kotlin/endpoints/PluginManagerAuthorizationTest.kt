@@ -59,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigura
 import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
@@ -221,7 +222,7 @@ class PluginManagerAuthorizationTest : WordSpec({
 
                     routing {
                         authenticate(SecurityConfigurations.TOKEN) {
-                            getInstalledPlugins(dbExtension.db)
+                            getInstalledPlugins(PluginService(dbExtension.db))
                         }
                     }
                 }

@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
@@ -100,7 +101,7 @@ class GetInstalledPluginsIntegrationTest : WordSpec({
 
                     routing {
                         authenticate("test") {
-                            getInstalledPlugins(dbExtension.db)
+                            getInstalledPlugins(PluginService(dbExtension.db))
                         }
                     }
                 }
@@ -137,7 +138,7 @@ class GetInstalledPluginsIntegrationTest : WordSpec({
                     routing {
                         authenticate("test") {
                             disablePlugin(eventStore)
-                            getInstalledPlugins(dbExtension.db)
+                            getInstalledPlugins(PluginService(dbExtension.db))
                         }
                     }
                 }
