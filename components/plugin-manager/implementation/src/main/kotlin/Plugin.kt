@@ -21,7 +21,9 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
 internal enum class PluginState { ENABLED, DISABLED }
 
-internal class Plugin(private var state: PluginState = PluginState.ENABLED) {
+internal class Plugin {
+    private var state: PluginState = PluginState.ENABLED
+
     var version: Long = 0
         private set
 
