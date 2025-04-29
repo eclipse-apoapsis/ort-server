@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
@@ -38,14 +39,52 @@ object VulnerabilitiesTable : SortableTable("vulnerabilities") {
 
 class VulnerabilityDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<VulnerabilityDao>(VulnerabilitiesTable) {
+        /**
+         * Find a vulnerability by its external ID and the related references in order to avoid duplicates.
+         * Intentionally use the Exposed DSL API for finding the vulnerability to prevent excessive growth of the
+         * EntityCache.
+         */
         fun findByVulnerability(vulnerability: Vulnerability): VulnerabilityDao? =
-            find {
-                VulnerabilitiesTable.externalId eq vulnerability.externalId and
-                        (VulnerabilitiesTable.summary eq vulnerability.summary)
-            }.firstOrNull {
-                it.description == vulnerability.description &&
-                        it.references.map(VulnerabilityReferenceDao::mapToModel) == vulnerability.references
-            }
+            VulnerabilitiesTable
+                .select(
+                    VulnerabilitiesTable.id,
+                )
+                .where {
+                    (VulnerabilitiesTable.externalId eq vulnerability.externalId) and
+                            (VulnerabilitiesTable.summary eq vulnerability.summary) and
+                            (VulnerabilitiesTable.description eq vulnerability.description)
+                }
+                .asSequence()
+                .map { resultRow ->
+                    val vulnerabilityId = resultRow[VulnerabilitiesTable.id]
+                    val references = VulnerabilityReferencesTable
+                        .select(
+                            VulnerabilityReferencesTable.url,
+                            VulnerabilityReferencesTable.scoringSystem,
+                            VulnerabilityReferencesTable.severity,
+                            VulnerabilityReferencesTable.score,
+                            VulnerabilityReferencesTable.vector
+                        )
+                        .where { VulnerabilityReferencesTable.vulnerabilityId eq vulnerabilityId }
+                        .map {
+                            VulnerabilityReference(
+                                it[VulnerabilityReferencesTable.url],
+                                it[VulnerabilityReferencesTable.scoringSystem],
+                                it[VulnerabilityReferencesTable.severity],
+                                it[VulnerabilityReferencesTable.score],
+                                it[VulnerabilityReferencesTable.vector]
+                            )
+                        }
+                        .toSet()
+
+                    Pair(vulnerabilityId, references)
+                }
+                .firstOrNull { (_, references) ->
+                    references == vulnerability.references.toSet()
+                }
+                ?.let { (vulnerabilityId, _) ->
+                    VulnerabilityDao[vulnerabilityId] // Return as DAO
+                }
 
         fun getOrPut(vulnerability: Vulnerability): VulnerabilityDao =
             findByVulnerability(vulnerability) ?: new {
