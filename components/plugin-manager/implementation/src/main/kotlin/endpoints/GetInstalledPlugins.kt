@@ -30,26 +30,16 @@ import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOption
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginsReadModel
 
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.and
-
-import org.ossreviewtoolkit.advisor.AdviceProviderFactory
-import org.ossreviewtoolkit.analyzer.PackageManagerFactory
-import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 import org.ossreviewtoolkit.plugins.api.PluginDescriptor as OrtPluginDescriptor
 import org.ossreviewtoolkit.plugins.api.PluginOption as OrtPluginOption
 import org.ossreviewtoolkit.plugins.api.PluginOptionType as OrtPluginOptionType
-import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
-import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCurationProviderFactory
 import org.ossreviewtoolkit.plugins.packagemanagers.node.npm.NpmFactory
-import org.ossreviewtoolkit.reporter.ReporterFactory
-import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 
-fun Route.getInstalledPlugins(db: Database) = get("admin/plugins", {
+fun Route.getInstalledPlugins(pluginService: PluginService) = get("admin/plugins", {
     operationId = "GetInstalledPlugins"
     summary = "Get installed ORT plugins"
     description = "Get a list with detailed information about all installed ORT plugins."
@@ -72,45 +62,7 @@ fun Route.getInstalledPlugins(db: Database) = get("admin/plugins", {
 }) {
     requireSuperuser()
 
-    fun isEnabled(pluginType: PluginType, pluginId: String) = db.transaction {
-        PluginsReadModel.select(PluginsReadModel.enabled)
-            .where { PluginsReadModel.pluginType eq pluginType and (PluginsReadModel.pluginId eq pluginId) }
-            .firstOrNull()?.get(PluginsReadModel.enabled) ?: true
-    }
-
-    val advisors = AdviceProviderFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.ADVISOR, isEnabled(PluginType.ADVISOR, it.descriptor.id))
-    }
-    val packageConfigurationProviders = PackageConfigurationProviderFactory.ALL.values.map {
-        it.descriptor.mapToApi(
-            PluginType.PACKAGE_CONFIGURATION_PROVIDER,
-            isEnabled(PluginType.PACKAGE_CONFIGURATION_PROVIDER, it.descriptor.id)
-        )
-    }
-    val packageCurationProviders = PackageCurationProviderFactory.ALL.values.map {
-        it.descriptor.mapToApi(
-            PluginType.PACKAGE_CURATION_PROVIDER,
-            isEnabled(PluginType.PACKAGE_CURATION_PROVIDER, it.descriptor.id)
-        )
-    }
-    val packageManagers = PackageManagerFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.PACKAGE_MANAGER, isEnabled(PluginType.PACKAGE_MANAGER, it.descriptor.id))
-    }
-    val reporters = ReporterFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.REPORTER, isEnabled(PluginType.REPORTER, it.descriptor.id))
-    }
-    val scanners = ScannerWrapperFactory.ALL.values.map {
-        it.descriptor.mapToApi(PluginType.SCANNER, isEnabled(PluginType.SCANNER, it.descriptor.id))
-    }
-
-    val allPlugins = advisors +
-            packageConfigurationProviders +
-            packageCurationProviders +
-            packageManagers +
-            reporters +
-            scanners
-
-    call.respond(HttpStatusCode.OK, allPlugins)
+    call.respond(HttpStatusCode.OK, pluginService.getPlugins())
 }
 
 internal fun OrtPluginDescriptor.mapToApi(type: PluginType, enabled: Boolean) = PluginDescriptor(
