@@ -161,8 +161,7 @@ fun Route.products() = route("products/{productId}") {
                 createRepository.url,
                 id,
                 createRepository.description
-            )
-                .mapToApi()
+            ).mapToApi()
 
             call.respond(
                 HttpStatusCode.Created,
