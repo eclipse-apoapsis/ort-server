@@ -78,8 +78,8 @@ class PluginEventStore(private val db: Database) {
         pluginId = this[PluginEvents.pluginId],
         version = this[PluginEvents.version],
         payload = this[PluginEvents.payload],
-        createdAt = this[PluginEvents.createdAt],
-        createdBy = this[PluginEvents.createdBy]
+        createdBy = this[PluginEvents.createdBy],
+        createdAt = this[PluginEvents.createdAt]
     )
 }
 
@@ -91,8 +91,8 @@ internal object PluginEvents : Table("plugin_events") {
     val pluginId = text("plugin_id")
     val version = long("version")
     val payload = jsonb<PluginEventPayload>("payload")
-    val createdAt = timestamp("created_at")
     val createdBy = text("created_by")
+    val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(pluginType, pluginId, version)
 }
