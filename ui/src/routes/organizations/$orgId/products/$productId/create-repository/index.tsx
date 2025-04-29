@@ -25,6 +25,8 @@ import { z } from 'zod';
 
 import { useProductsServicePostApiV1ProductsByProductIdRepositories } from '@/api/queries';
 import { $RepositoryType, ApiError } from '@/api/requests';
+import { asOptionalField } from '@/components/form/as-optional-field.ts';
+import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,6 +58,7 @@ import { getRepositoryTypeLabel } from '@/lib/types';
 
 const formSchema = z.object({
   url: z.string().url(),
+  description: asOptionalField(z.string().min(1)),
   type: z.enum($RepositoryType.enum),
 });
 
@@ -107,6 +110,7 @@ const CreateRepositoryPage = () => {
       productId: Number.parseInt(params.productId),
       requestBody: {
         url: values.url,
+        description: values.description,
         type: values.type,
       },
     });
@@ -128,6 +132,19 @@ const CreateRepositoryPage = () => {
                   <FormLabel>URL</FormLabel>
                   <FormControl autoFocus>
                     <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='description'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <OptionalInput {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
