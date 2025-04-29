@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -28,8 +29,8 @@ data class PluginEvent(
     val pluginId: String,
     val version: Long,
     val payload: PluginEventPayload,
-    val createdAt: Instant,
-    val createdBy: String
+    val createdBy: String,
+    val createdAt: Instant = Clock.System.now()
 )
 
 /** The base class for all plugin event payloads. */

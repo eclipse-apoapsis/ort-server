@@ -26,8 +26,6 @@ import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import kotlinx.datetime.Clock
-
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
@@ -80,7 +78,7 @@ fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{plu
         call.respond(HttpStatusCode.NotModified)
     } else {
         val nextVersion = events.maxOfOrNull { it.version }?.plus(1) ?: 1L
-        val newEvent = PluginEvent(pluginType, pluginId, nextVersion, PluginDisabled, Clock.System.now(), userId)
+        val newEvent = PluginEvent(pluginType, pluginId, nextVersion, PluginDisabled, userId)
         eventStore.appendEvent(newEvent)
         call.respond(HttpStatusCode.Accepted)
     }

@@ -25,8 +25,6 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 
-import kotlinx.datetime.Clock
-
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
@@ -51,20 +49,14 @@ class PluginServiceTest : WordSpec({
         }
 
         "return true if the plugin was disabled and enabled again" {
-            pluginEventStore.appendEvent(
-                PluginEvent(pluginType, pluginId, 1, PluginDisabled, Clock.System.now(), "user")
-            )
-            pluginEventStore.appendEvent(
-                PluginEvent(pluginType, pluginId, 2, PluginEnabled, Clock.System.now(), "user")
-            )
+            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginDisabled, "user"))
+            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 2, PluginEnabled, "user"))
 
             pluginService.isEnabled(pluginType, pluginId) shouldBe true
         }
 
         "return false if the plugin was disabled" {
-            pluginEventStore.appendEvent(
-                PluginEvent(pluginType, pluginId, 1, PluginDisabled, Clock.System.now(), "user")
-            )
+            pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginDisabled, "user"))
 
             pluginService.isEnabled(pluginType, pluginId) shouldBe false
         }

@@ -37,11 +37,11 @@ import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
  */
 class PluginService(private val db: Database) {
     /**
-     * Returns `true` if the plugin with the given [type] and [id] is enabled, `false` otherwise.
+     * Returns `true` if the plugin with the given [pluginType] and [pluginId] is enabled, `false` otherwise.
      */
-    fun isEnabled(type: PluginType, id: String) = db.transaction {
+    fun isEnabled(pluginType: PluginType, pluginId: String) = db.transaction {
         PluginsReadModel.select(PluginsReadModel.enabled)
-            .where { PluginsReadModel.pluginType eq type and (PluginsReadModel.pluginId eq id) }
+            .where { PluginsReadModel.pluginType eq pluginType and (PluginsReadModel.pluginId eq pluginId) }
             .firstOrNull()?.get(PluginsReadModel.enabled) ?: true
     }
 
