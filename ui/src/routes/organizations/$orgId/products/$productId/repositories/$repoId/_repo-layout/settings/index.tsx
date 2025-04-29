@@ -60,6 +60,7 @@ import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   url: z.string(),
+  description: z.string().optional(),
   type: z.enum($RepositoryType.enum),
 });
 
@@ -105,6 +106,7 @@ const RepositorySettingsPage = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       url: repository.url,
+      description: repository.description || '',
       type: repository.type,
     },
   });
@@ -114,6 +116,7 @@ const RepositorySettingsPage = () => {
       repositoryId: repository.id,
       requestBody: {
         url: values.url,
+        description: values.description,
         type: values.type,
       },
     });
@@ -164,6 +167,19 @@ const RepositorySettingsPage = () => {
                   <FormItem>
                     <FormLabel>URL</FormLabel>
                     <FormControl autoFocus>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='description'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
                       <Input {...field} />
                     </FormControl>
                     <FormMessage />
