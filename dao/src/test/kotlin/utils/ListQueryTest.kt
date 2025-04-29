@@ -107,13 +107,12 @@ class ListQueryTest : StringSpec() {
                 product.id,
                 description
             )
-            val repo2 =
-                repositoryRepository.create(
-                    RepositoryType.SUBVERSION,
-                    repositoryUrl.appendIndex(2),
-                    product.id,
-                    description
-                )
+            val repo2 = repositoryRepository.create(
+                RepositoryType.SUBVERSION,
+                repositoryUrl.appendIndex(2),
+                product.id,
+                description
+            )
             val repo3 = repositoryRepository.create(
                 RepositoryType.GIT,
                 repositoryUrl.appendIndex(3),
