@@ -77,6 +77,14 @@ const RepositoryRunsComponent = () => {
 
   return (
     <div className='flex flex-col gap-4'>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {repo.type}: {repo.url}
+          </CardTitle>
+          <CardDescription>{repo.description}</CardDescription>
+        </CardHeader>
+      </Card>
       <JobDurations
         repoId={params.repoId}
         pageIndex={pageIndex}
@@ -85,7 +93,6 @@ const RepositoryRunsComponent = () => {
       <Card>
         <CardHeader>
           <CardTitle>Runs</CardTitle>
-          <CardDescription>All runs for {repo.url}</CardDescription>
           <div className='py-2'>
             <Button asChild size='sm' className='ml-auto gap-1'>
               <Link

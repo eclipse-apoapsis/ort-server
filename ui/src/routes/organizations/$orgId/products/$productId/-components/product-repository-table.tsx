@@ -63,6 +63,7 @@ const columns = [
           </Link>
           <div className='text-muted-foreground text-sm md:inline'>
             {row.original.type}
+            {row.original.description ? ` | ${row.original.description}` : ''}
           </div>
         </>
       ),
