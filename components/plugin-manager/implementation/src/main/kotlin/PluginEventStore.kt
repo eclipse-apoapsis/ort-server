@@ -53,6 +53,12 @@ class PluginEventStore(private val db: Database) {
         updateReadModel(pluginEvent)
     }
 
+    /**
+     * Get the current state of the plugin with the given [pluginType] and [pluginId].
+     */
+    internal fun getPlugin(pluginType: PluginType, pluginId: String) =
+        Plugin().applyAll(loadEvents(pluginType, pluginId))
+
     private fun updateReadModel(pluginEvent: PluginEvent): Unit = db.transaction {
         when (pluginEvent.payload) {
             is PluginDisabled -> {
