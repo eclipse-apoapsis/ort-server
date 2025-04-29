@@ -33,14 +33,14 @@ import org.jetbrains.exposed.sql.upsert
 import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
 
 class PluginEventStore(private val db: Database) {
-    fun loadEvents(pluginType: PluginType, pluginId: String): List<PluginEvent> = db.transaction {
+    private fun loadEvents(pluginType: PluginType, pluginId: String): List<PluginEvent> = db.transaction {
         PluginEvents.selectAll()
             .where { PluginEvents.pluginType eq pluginType and (PluginEvents.pluginId eq pluginId) }
             .orderBy(PluginEvents.version)
             .map { it.toPluginEvent() }
     }
 
-    fun appendEvent(pluginEvent: PluginEvent): Unit = db.transaction {
+    internal fun appendEvent(pluginEvent: PluginEvent): Unit = db.transaction {
         PluginEvents.insert {
             it[pluginType] = pluginEvent.pluginType
             it[pluginId] = pluginEvent.pluginId

@@ -24,7 +24,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-data class PluginEvent(
+internal data class PluginEvent(
     val pluginType: PluginType,
     val pluginId: String,
     val version: Long,
@@ -35,7 +35,7 @@ data class PluginEvent(
 
 /** The base class for all plugin event payloads. */
 @Serializable
-sealed class PluginEventPayload
+internal sealed class PluginEventPayload
 
 /** The payload for a plugin enabled event. */
 @Serializable
