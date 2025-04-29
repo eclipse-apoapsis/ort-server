@@ -219,7 +219,7 @@ export const Header = () => {
                       type='text'
                       name='runId'
                       placeholder='Enter Run ID'
-                      className='w-25 text-xs'
+                      className='w-28 text-xs'
                     />
                   </FormControl>
                 </FormItem>
