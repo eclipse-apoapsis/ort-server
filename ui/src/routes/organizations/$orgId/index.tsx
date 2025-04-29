@@ -87,7 +87,9 @@ const OrganizationComponent = () => {
       </div>
       <CatchBoundary
         getResetKey={() => 'reset'}
-        errorComponent={ErrorComponent}
+        errorComponent={(props) => (
+          <ErrorComponent {...props} title='Could not load statistics' />
+        )}
       >
         <div className='grid grid-cols-4 gap-2'>
           <Link
