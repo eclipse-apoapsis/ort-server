@@ -26,16 +26,35 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
-export const ErrorComponent = ({ error }: ErrorComponentProps) => {
+type Props = ErrorComponentProps & {
+  title?: string;
+  className?: string;
+  showStackTrace?: boolean;
+};
+
+export const ErrorComponent = ({
+  error,
+  title = 'Oops, something went wrong...',
+  className,
+  showStackTrace = false,
+}: Props) => {
   return (
-    <Card className='flex h-full gap-4'>
+    <Card className={cn('flex h-full', className)}>
       <CardHeader>
         <CardTitle className='flex gap-2 align-baseline'>
           <TriangleAlert className='text-traffic-light-red size-5' />
-          <div>Oops, something went wrong...</div>
+          <div>{title}</div>
         </CardTitle>
         <CardDescription>{`Error: ${error.message}`}</CardDescription>
+        {showStackTrace && (
+          <CardDescription className='text-xs'>
+            {error.stack
+              ?.split('\n')
+              .map((line, index) => <div key={index}>{line}</div>)}
+          </CardDescription>
+        )}
       </CardHeader>
     </Card>
   );
