@@ -24,6 +24,8 @@ import { Button } from './ui/button';
 
 type DeleteIconButtonProps = {
   disabled?: boolean;
+  icon?: React.ReactNode;
+  srDescription?: string;
 };
 
 const DeleteIconButton = forwardRef<HTMLButtonElement, DeleteIconButtonProps>(
@@ -36,8 +38,8 @@ const DeleteIconButton = forwardRef<HTMLButtonElement, DeleteIconButtonProps>(
         className='h-8 px-2 text-red-500'
         ref={ref}
       >
-        <span className='sr-only'>Delete</span>
-        <TrashIcon size={16} />
+        <span className='sr-only'>{props.srDescription || 'Delete'}</span>
+        {props.icon || <TrashIcon size={16} />}
       </Button>
     );
   }
