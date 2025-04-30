@@ -104,6 +104,39 @@ class EnablePluginIntegrationTest : WordSpec({
             }
         }
 
+        "return NotFound if the plugin is not installed" {
+            val principal = mockk<OrtPrincipal> {
+                every { getUserId() } returns "userId"
+                every { hasRole(any()) } returns true
+            }
+
+            val eventStore = PluginEventStore(dbExtension.db)
+
+            testApplication {
+                application {
+                    install(ContentNegotiation) {
+                        serialization(ContentType.Application.Json, Json)
+                    }
+
+                    install(Authentication) {
+                        register(FakeAuthenticationProvider(DummyConfig(principal)))
+                    }
+
+                    routing {
+                        authenticate("test") {
+                            enablePlugin(eventStore)
+                        }
+                    }
+                }
+
+                val pluginType = PluginType.ADVISOR
+
+                val client = createJsonClient()
+
+                client.post("/admin/plugins/$pluginType/unknown/enable") shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
         "return NotModified if the plugin was already enabled" {
             val principal = mockk<OrtPrincipal> {
                 every { getUserId() } returns "userId"
