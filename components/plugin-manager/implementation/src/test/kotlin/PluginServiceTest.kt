@@ -55,6 +55,11 @@ class PluginServiceTest : WordSpec({
             pluginService.isEnabled(pluginType, pluginId) shouldBe true
         }
 
+        "normalize the plugin ID" {
+            pluginService.isEnabled(pluginType, pluginId.lowercase()) shouldBe true
+            pluginService.isEnabled(pluginType, pluginId.uppercase()) shouldBe true
+        }
+
         "return false if the plugin was disabled" {
             pluginEventStore.appendEvent(PluginEvent(pluginType, pluginId, 1, PluginDisabled, "user"))
 
