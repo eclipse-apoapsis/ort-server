@@ -226,7 +226,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             helper.createSecret("testPassword2", repository = repository)
 
             val exception = shouldThrow<EnvironmentConfigException> {
-                parseConfig(".ort.env.definitions-errors.yml", helper).resolve(helper)
+                parseConfig("invalid/.ort.env.definitions-errors.yml", helper).resolve(helper)
             }
 
             exception.message shouldContain "'Non-existing service'"
@@ -243,7 +243,7 @@ class EnvironmentConfigLoaderTest : StringSpec() {
 
             val service = createTestService(1, userSecret, pass1Secret)
 
-            val config = parseConfig(".ort.env.definitions-errors-non-strict.yml", helper).resolve(helper)
+            val config = parseConfig("invalid/.ort.env.definitions-errors-non-strict.yml", helper).resolve(helper)
 
             config.shouldContainDefinition<MavenDefinition>(service) { it.id == "repo1" }
         }
