@@ -41,6 +41,11 @@ class PluginService(private val db: Database) {
     }
 
     /**
+     * Returns `true` if the plugin with the given [pluginType] and [pluginId] is installed, `false` otherwise.
+     */
+    fun isInstalled(pluginType: PluginType, pluginId: String) = normalizePluginId(pluginType, pluginId) != null
+
+    /**
      * Returns the [PluginDescriptor]s for all installed ORT plugins.
      */
     fun getPlugins(): List<PluginDescriptor> {
