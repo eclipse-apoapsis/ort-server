@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDisabled
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEvent
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.normalizePluginId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/disable", {
@@ -58,6 +59,10 @@ fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{plu
             description = "The plugin was disabled successfully."
         }
 
+        HttpStatusCode.NotFound to {
+            description = "The plugin was not found."
+        }
+
         HttpStatusCode.NotModified to {
             description = "The plugin is already disabled."
         }
@@ -66,7 +71,12 @@ fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{plu
     requireSuperuser()
 
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
-    val pluginId = call.requireParameter("pluginId")
+    val pluginId = normalizePluginId(pluginType, call.requireParameter("pluginId"))
+
+    if (pluginId == null) {
+        call.respond(HttpStatusCode.NotFound)
+        return@post
+    }
 
     val userId = checkNotNull(call.principal<OrtPrincipal>()).getUserId()
 
