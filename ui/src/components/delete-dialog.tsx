@@ -51,6 +51,13 @@ interface DeleteDialogProps {
   thingId?: string;
 
   /**
+   * An optional item from which to delete. This is to generalise the delete dialog,
+   * as sometimes, for example a user is only deleted from an organization, not
+   * completely.
+   */
+  itemName?: string;
+
+  /**
    * The UI component to show as part of the delete dialog.
    */
   uiComponent: ReactNode;
@@ -59,13 +66,26 @@ interface DeleteDialogProps {
    * The action to perform on deletion.
    */
   onDelete: () => void | Promise<void>;
+
+  /**
+   * The tooltip for the delete button.
+   */
+  tooltip?: string;
+
+  /**
+   * The title of the delete dialog.
+   */
+  title?: string;
 }
 
 export const DeleteDialog = ({
   thingName,
   thingId,
+  itemName,
   uiComponent,
   onDelete,
+  tooltip,
+  title,
 }: DeleteDialogProps) => {
   const [input, setInput] = useState('');
   const [open, setOpen] = useState(false);
@@ -85,14 +105,14 @@ export const DeleteDialog = ({
         <TooltipTrigger asChild>
           <AlertDialogTrigger asChild>{uiComponent}</AlertDialogTrigger>
         </TooltipTrigger>
-        <TooltipContent>Delete</TooltipContent>
+        <TooltipContent>{tooltip || 'Delete'}</TooltipContent>
       </Tooltip>
       {/* Adding the preventDefault will prevent focusing on the trigger after closing the modal (which would cause the tooltip to show) */}
       <AlertDialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
         <AlertDialogHeader>
           <div className='flex items-center'>
             <OctagonAlert className='h-8 w-8 pr-2 text-red-500' />
-            <AlertDialogTitle>Confirm deletion</AlertDialogTitle>
+            <AlertDialogTitle>{title || 'Confirm deletion'}</AlertDialogTitle>
           </div>
         </AlertDialogHeader>
         <div className='flex flex-col gap-2'>
@@ -104,8 +124,9 @@ export const DeleteDialog = ({
             <>
               <AlertDialogDescription>
                 If you are sure to delete the {thingName}{' '}
-                <span className='font-bold'>{thingId}</span>, enter the bold
-                text below for confirmation.
+                <span className='font-bold'>{thingId}</span>{' '}
+                {itemName ? `from the ${itemName}` : ''}, enter the bold text
+                below for confirmation.
               </AlertDialogDescription>
               <Input
                 autoFocus
