@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEnabled
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEvent
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.normalizePluginId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/enable", {
@@ -58,6 +59,10 @@ fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{plug
             description = "The plugin was enabled successfully."
         }
 
+        HttpStatusCode.NotFound to {
+            description = "The plugin was not found."
+        }
+
         HttpStatusCode.NotModified to {
             description = "The plugin is already enabled."
         }
@@ -66,7 +71,12 @@ fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{plug
     requireSuperuser()
 
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
-    val pluginId = call.requireParameter("pluginId")
+    val pluginId = normalizePluginId(pluginType, call.requireParameter("pluginId"))
+
+    if (pluginId == null) {
+        call.respond(HttpStatusCode.NotFound)
+        return@post
+    }
 
     val userId = checkNotNull(call.principal<OrtPrincipal>()).getUserId()
 
