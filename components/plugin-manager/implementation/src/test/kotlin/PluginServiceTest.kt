@@ -62,6 +62,21 @@ class PluginServiceTest : WordSpec({
         }
     }
 
+    "isInstalled" should {
+        "return true if the plugin is installed" {
+            pluginService.isInstalled(pluginType, pluginId) shouldBe true
+        }
+
+        "normalize the plugin ID" {
+            pluginService.isInstalled(pluginType, pluginId.lowercase()) shouldBe true
+            pluginService.isInstalled(pluginType, pluginId.uppercase()) shouldBe true
+        }
+
+        "return false if the plugin is not installed" {
+            pluginService.isInstalled(pluginType, "unknown") shouldBe false
+        }
+    }
+
     "getPlugins" should {
         "return all plugin types" {
             val plugins = pluginService.getPlugins()
