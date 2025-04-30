@@ -40,3 +40,10 @@ internal fun getInstalledPlugins(pluginType: PluginType): List<PluginDescriptor>
         PluginType.REPORTER -> ReporterFactory.ALL.values.map { it.descriptor }
         PluginType.SCANNER -> ScannerWrapperFactory.ALL.values.map { it.descriptor }
     }
+
+/**
+ * Returns the normalized plugin ID for the given [pluginId] that exactly equals the case-sensitive ID of the plugin
+ * descriptor. If no match is found, `null` is returned.
+ */
+internal fun normalizePluginId(pluginType: PluginType, pluginId: String): String? =
+    getInstalledPlugins(pluginType).firstOrNull { it.id.equals(pluginId, ignoreCase = true) }?.id
