@@ -24,10 +24,9 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Eye, Pen, Shield } from 'lucide-react';
+import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
 import {
-  useAdminServiceDeleteApiV1AdminUsers,
   useProductsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
   useProductsServiceGetApiV1ProductsByProductIdUsers,
   useProductsServiceGetApiV1ProductsByProductIdUsersKey,
@@ -103,27 +102,6 @@ const columns = [
       const queryClient = useQueryClient();
       const params = routeApi.useParams();
       const productId = Number.parseInt(params.productId);
-
-      const { mutateAsync: delUser } = useAdminServiceDeleteApiV1AdminUsers({
-        onSuccess() {
-          toast.info('Delete User', {
-            description: `User "${row.original.user.username}" deleted successfully.`,
-          });
-          queryClient.invalidateQueries({
-            queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
-          });
-        },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      });
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
         useProductsServicePutApiV1ProductsByProductIdGroupsByGroupId({
@@ -216,6 +194,41 @@ const columns = [
         });
       }
 
+      // Remove the user from the product
+      // This is identical to removing the user from all groups.
+      async function removeFromProduct() {
+        try {
+          await Promise.all(
+            row.original.groups.map((group) =>
+              leaveGroup({
+                productId: productId,
+                groupId: group,
+                requestBody: {
+                  username: row.original.user.username,
+                },
+              })
+            )
+          );
+          // Upon successful removal of the user, invalidate the users query
+          // to refresh the data in the table.
+          queryClient.invalidateQueries({
+            queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
+          });
+          toast.info('Remove User from Product', {
+            description: `User "${row.original.user.username}" removed from the product successfully.`,
+          });
+        } catch (error) {
+          toast.error('Failed to remove the user from product', {
+            description: <ToastError error={error as ApiError} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        }
+      }
+
       return row.original.user.username !== useUser().username ? (
         <div className='flex gap-2'>
           <Tooltip delayDuration={300}>
@@ -232,15 +245,24 @@ const columns = [
           </Tooltip>
 
           <DeleteDialog
-            thingName={'user'}
+            tooltip='Remove user from this product'
+            title='Confirm removal of the user from this product'
+            thingName='user'
             thingId={row.original.user.username}
-            uiComponent={<DeleteIconButton />}
-            onDelete={() => delUser({ username: row.original.user.username })}
+            itemName='product'
+            uiComponent={
+              <DeleteIconButton
+                icon={<FileOutput size={16} />}
+                disabled={isLeaveGroupPending}
+                srDescription='Remove user from this product'
+              />
+            }
+            onDelete={() => removeFromProduct()}
           />
         </div>
       ) : (
         <div>
-          <DeleteIconButton disabled={true} />
+          <DeleteIconButton icon={<FileOutput size={16} />} disabled={true} />
         </div>
       );
     },
