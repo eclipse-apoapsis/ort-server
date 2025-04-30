@@ -32,12 +32,20 @@ import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
  */
 class PluginService(private val db: Database) {
     /**
-     * Returns `true` if the plugin with the given [pluginType] and [pluginId] is enabled, `false` otherwise.
+     * Returns `true` if the plugin with the given [pluginType] and [pluginId] is installed and  enabled, `false`
+     * otherwise.
      */
-    fun isEnabled(pluginType: PluginType, pluginId: String) = db.transaction {
-        PluginsReadModel.select(PluginsReadModel.enabled)
-            .where { PluginsReadModel.pluginType eq pluginType and (PluginsReadModel.pluginId eq pluginId) }
-            .firstOrNull()?.get(PluginsReadModel.enabled) ?: true
+    fun isEnabled(pluginType: PluginType, pluginId: String): Boolean {
+        val normalizedPluginId = normalizePluginId(pluginType, pluginId) ?: return false
+
+        return db.transaction {
+            PluginsReadModel.select(PluginsReadModel.enabled)
+                .where {
+                    PluginsReadModel.pluginType eq pluginType and
+                            (PluginsReadModel.pluginId eq normalizedPluginId)
+                }
+                .firstOrNull()?.get(PluginsReadModel.enabled) ?: true
+        }
     }
 
     /**
