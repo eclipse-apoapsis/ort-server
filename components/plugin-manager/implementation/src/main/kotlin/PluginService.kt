@@ -25,13 +25,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 
-import org.ossreviewtoolkit.advisor.AdviceProviderFactory
-import org.ossreviewtoolkit.analyzer.PackageManagerFactory
 import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
-import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
-import org.ossreviewtoolkit.plugins.packagecurationproviders.api.PackageCurationProviderFactory
-import org.ossreviewtoolkit.reporter.ReporterFactory
-import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
 
 /**
  * A service to query ORT plugins and their configuration.
@@ -64,37 +58,34 @@ class PluginService(private val db: Database) {
 
         fun isPluginEnabled(pluginType: PluginType, pluginId: String) = pluginInfo[pluginType]?.get(pluginId) ?: true
 
-        val advisors = AdviceProviderFactory.ALL.values.map {
-            it.descriptor.mapToApi(PluginType.ADVISOR, isPluginEnabled(PluginType.ADVISOR, it.descriptor.id))
+        val advisors = getInstalledPlugins(PluginType.ADVISOR).map {
+            it.mapToApi(PluginType.ADVISOR, isPluginEnabled(PluginType.ADVISOR, it.id))
         }
 
-        val packageConfigurationProviders = PackageConfigurationProviderFactory.ALL.values.map {
-            it.descriptor.mapToApi(
+        val packageConfigurationProviders = getInstalledPlugins(PluginType.PACKAGE_CONFIGURATION_PROVIDER).map {
+            it.mapToApi(
                 PluginType.PACKAGE_CONFIGURATION_PROVIDER,
-                isPluginEnabled(PluginType.PACKAGE_CONFIGURATION_PROVIDER, it.descriptor.id)
+                isPluginEnabled(PluginType.PACKAGE_CONFIGURATION_PROVIDER, it.id)
             )
         }
 
-        val packageCurationProviders = PackageCurationProviderFactory.ALL.values.map {
-            it.descriptor.mapToApi(
+        val packageCurationProviders = getInstalledPlugins(PluginType.PACKAGE_CURATION_PROVIDER).map {
+            it.mapToApi(
                 PluginType.PACKAGE_CURATION_PROVIDER,
-                isPluginEnabled(PluginType.PACKAGE_CURATION_PROVIDER, it.descriptor.id)
+                isPluginEnabled(PluginType.PACKAGE_CURATION_PROVIDER, it.id)
             )
         }
 
-        val packageManagers = PackageManagerFactory.ALL.values.map {
-            it.descriptor.mapToApi(
-                PluginType.PACKAGE_MANAGER,
-                isPluginEnabled(PluginType.PACKAGE_MANAGER, it.descriptor.id)
-            )
+        val packageManagers = getInstalledPlugins(PluginType.PACKAGE_MANAGER).map {
+            it.mapToApi(PluginType.PACKAGE_MANAGER, isPluginEnabled(PluginType.PACKAGE_MANAGER, it.id))
         }
 
-        val reporters = ReporterFactory.ALL.values.map {
-            it.descriptor.mapToApi(PluginType.REPORTER, isPluginEnabled(PluginType.REPORTER, it.descriptor.id))
+        val reporters = getInstalledPlugins(PluginType.REPORTER).map {
+            it.mapToApi(PluginType.REPORTER, isPluginEnabled(PluginType.REPORTER, it.id))
         }
 
-        val scanners = ScannerWrapperFactory.ALL.values.map {
-            it.descriptor.mapToApi(PluginType.SCANNER, isPluginEnabled(PluginType.SCANNER, it.descriptor.id))
+        val scanners = getInstalledPlugins(PluginType.SCANNER).map {
+            it.mapToApi(PluginType.SCANNER, isPluginEnabled(PluginType.SCANNER, it.id))
         }
 
         return advisors +
