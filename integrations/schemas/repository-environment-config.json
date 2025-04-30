@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ORT Server Repository Environment Configuration",
+  "description": "The ORT Server provides the possibility to configure infrastructure services, environment variables, and package manager-specific settings in a file called `.ort.env.yml`. This schema validates the structure and content of this configuration file. For more details on ORT Server, see https://eclipse-apoapsis.github.io/ort-server",
+  "type": "object",
+  "$defs": {
+    "credentialsType": {
+      "title": "Credentials Type",
+      "description": "Defines the type of credentials used for authentication",
+      "type": "string",
+      "enum": ["NETRC_FILE", "GIT_CREDENTIALS_FILE"]
+    }
+  },
+  "properties": {
+    "strict": {
+      "type": "boolean",
+      "description": "If true, sematic errors are treated as fatal.",
+      "default": false
+    },
+    "infrastructureServices": {
+      "type": "array",
+      "description": "Infrastructure services required for this repository's environment",
+      "items": {
+        "type": "object",
+        "required": ["name", "url", "usernameSecret", "passwordSecret"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of this infrastructure service"
+          },
+          "url": {
+            "type": "string",
+            "description": "The URL of this infrastructure service"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description for this infrastructure service"
+          },
+          "usernameSecret": {
+            "type": "string",
+            "description": "The reference to the secret containing the username for this service"
+          },
+          "passwordSecret": {
+            "type": "string",
+            "description": "The reference to the secret containing the password for this service"
+          },
+          "credentialsTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/credentialsType"
+            },
+            "description": "The credential types for this infrastructure service"
+          }
+        }
+      }
+    },
+    "environmentVariables": {
+      "type": "array",
+      "description": "Environment variables required for this repository's environment",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the environment variable"
+          },
+          "secretName": {
+            "type": "string",
+            "description": "The reference to the secret's name from which the value is obtained"
+          },
+          "value": {
+            "type": "string",
+            "description": "The direct value of the environment variable"
+          }
+        },
+        "oneOf": [
+          { "required": ["secretName"] },
+          { "required": ["value"] }
+        ]
+      }
+    },
+    "environmentDefinitions": {
+      "title": "Environment Definitions",
+      "description": "Package manager specific configuration",
+      "type": "object",
+      "properties": {
+        "conan": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["service", "name"],
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "The reference to the infrastructure service to use"
+              },
+              "name": {
+                "type": "string",
+                "description": "The name of the Conan remote"
+              },
+              "url": {
+                "type": "string",
+                "description": "The URL of the Conan remote"
+              },
+              "verifySsl": {
+                "type": ["string", "boolean"],
+                "description": "Whether to verify SSL certificates"
+              }
+            }
+          }
+        },
+        "maven": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["service", "id"],
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "The reference to the infrastructure service to use"
+              },
+              "id": {
+                "type": "string",
+                "description": "The ID of the Maven repository as defined in settings.xml"
+              },
+              "credentialsTypes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/credentialsType"
+                },
+                "description": "The credential types for this Maven repository"
+              }
+            }
+          }
+        },
+        "npm": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["service"],
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "The reference to the infrastructure service to use"
+              },
+              "scope": {
+                "type": "string",
+                "description": "The scope for the NPM registry"
+              },
+              "email": {
+                "type": "string",
+                "description": "The email address to use for authentication"
+              },
+              "authMode": {
+                "type": "string",
+                "description": "The authentication mode"
+              }
+            }
+          }
+        },
+        "nuget": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["service", "sourceName", "sourcePath"],
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "The reference to the infrastructure service to use"
+              },
+              "sourceName": {
+                "type": "string",
+                "description": "The name of the NuGet source"
+              },
+              "sourcePath": {
+                "type": "string",
+                "description": "The path to the NuGet source"
+              },
+              "sourceProtocolVersion": {
+                "type": "string",
+                "description": "The protocol version of the NuGet source"
+              },
+              "authMode": {
+                "type": "string",
+                "description": "The authentication mode"
+              }
+            }
+          }
+        },
+        "yarn": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["service"],
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "The reference to the infrastructure service to use"
+              },
+              "alwaysAuth": {
+                "type": ["string", "boolean"],
+                "description": "Whether to always send authentication"
+              },
+              "authMode": {
+                "type": "string",
+                "description": "The authentication mode"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
