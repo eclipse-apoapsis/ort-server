@@ -24,10 +24,9 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Eye, Pen, Shield } from 'lucide-react';
+import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
 import {
-  useAdminServiceDeleteApiV1AdminUsers,
   useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsers,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
@@ -103,29 +102,6 @@ const columns = [
       const queryClient = useQueryClient();
       const params = routeApi.useParams();
       const repoId = Number.parseInt(params.repoId);
-
-      const { mutateAsync: delUser } = useAdminServiceDeleteApiV1AdminUsers({
-        onSuccess() {
-          toast.info('Delete User', {
-            description: `User "${row.original.user.username}" deleted successfully.`,
-          });
-          queryClient.invalidateQueries({
-            queryKey: [
-              useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-            ],
-          });
-        },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      });
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
         useRepositoriesServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId(
@@ -224,6 +200,43 @@ const columns = [
         });
       }
 
+      // Remove the user from the repository
+      // This is identical to removing the user from all groups.
+      async function removeFromRepository() {
+        try {
+          await Promise.all(
+            row.original.groups.map((group) =>
+              leaveGroup({
+                repositoryId: repoId,
+                groupId: group,
+                requestBody: {
+                  username: row.original.user.username,
+                },
+              })
+            )
+          );
+          // Upon successful removal of the user, invalidate the users query
+          // to refresh the data in the table.
+          queryClient.invalidateQueries({
+            queryKey: [
+              useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
+            ],
+          });
+          toast.info('Remove User from Repository', {
+            description: `User "${row.original.user.username}" removed from the repository successfully.`,
+          });
+        } catch (error) {
+          toast.error('Failed to remove the user from repository', {
+            description: <ToastError error={error as ApiError} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        }
+      }
+
       return row.original.user.username !== useUser().username ? (
         <div className='flex gap-2'>
           <Tooltip delayDuration={300}>
@@ -240,15 +253,24 @@ const columns = [
           </Tooltip>
 
           <DeleteDialog
-            thingName={'user'}
+            tooltip='Remove user from this repository'
+            title='Confirm removal of the user from this repository'
+            thingName='user'
             thingId={row.original.user.username}
-            uiComponent={<DeleteIconButton />}
-            onDelete={() => delUser({ username: row.original.user.username })}
+            itemName='repository'
+            uiComponent={
+              <DeleteIconButton
+                icon={<FileOutput size={16} />}
+                disabled={isLeaveGroupPending}
+                srDescription='Remove user from this repository'
+              />
+            }
+            onDelete={() => removeFromRepository()}
           />
         </div>
       ) : (
         <div>
-          <DeleteIconButton disabled={true} />
+          <DeleteIconButton icon={<FileOutput size={16} />} disabled={true} />
         </div>
       );
     },

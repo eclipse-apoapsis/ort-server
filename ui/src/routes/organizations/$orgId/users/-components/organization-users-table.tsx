@@ -24,10 +24,9 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Eye, Pen, Shield } from 'lucide-react';
+import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
 import {
-  useAdminServiceDeleteApiV1AdminUsers,
   useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsers,
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
@@ -103,29 +102,6 @@ const columns = [
       const queryClient = useQueryClient();
       const params = routeApi.useParams();
       const organizationId = Number.parseInt(params.orgId);
-
-      const { mutateAsync: delUser } = useAdminServiceDeleteApiV1AdminUsers({
-        onSuccess() {
-          toast.info('Delete User', {
-            description: `User "${row.original.user.username}" deleted successfully.`,
-          });
-          queryClient.invalidateQueries({
-            queryKey: [
-              useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-            ],
-          });
-        },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      });
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
         useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId(
@@ -224,6 +200,43 @@ const columns = [
         });
       }
 
+      // Remove the user from the organization.
+      // This is identical to removing the user from all groups.
+      async function removeFromOrganization() {
+        try {
+          await Promise.all(
+            row.original.groups.map((group) =>
+              leaveGroup({
+                organizationId: organizationId,
+                groupId: group,
+                requestBody: {
+                  username: row.original.user.username,
+                },
+              })
+            )
+          );
+          // Upon successful removal of the user, invalidate the users query
+          // to refresh the data in the table.
+          queryClient.invalidateQueries({
+            queryKey: [
+              useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+            ],
+          });
+          toast.info('Remove User from Organization', {
+            description: `User "${row.original.user.username}" removed from the organization successfully.`,
+          });
+        } catch (error) {
+          toast.error('Failed to remove the user from organization', {
+            description: <ToastError error={error as ApiError} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        }
+      }
+
       return row.original.user.username !== useUser().username ? (
         <div className='flex gap-2'>
           <Tooltip delayDuration={300}>
@@ -240,15 +253,24 @@ const columns = [
           </Tooltip>
 
           <DeleteDialog
-            thingName={'user'}
+            tooltip='Remove user from this organization'
+            title='Confirm removal of the user from this organization'
+            thingName='user'
             thingId={row.original.user.username}
-            uiComponent={<DeleteIconButton />}
-            onDelete={() => delUser({ username: row.original.user.username })}
+            itemName='organization'
+            uiComponent={
+              <DeleteIconButton
+                icon={<FileOutput size={16} />}
+                disabled={isLeaveGroupPending}
+                srDescription='Remove user from this organization'
+              />
+            }
+            onDelete={() => removeFromOrganization()}
           />
         </div>
       ) : (
         <div>
-          <DeleteIconButton disabled={true} />
+          <DeleteIconButton icon={<FileOutput size={16} />} disabled={true} />
         </div>
       );
     },
