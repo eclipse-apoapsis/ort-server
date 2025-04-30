@@ -37,6 +37,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { toast } from '@/lib/toast';
+import { getRepositoryTypeLabel } from '@/lib/types';
 import { paginationSearchParameterSchema } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { RepositoryRunsTable } from '../../-components/repository-runs-table';
@@ -80,7 +81,10 @@ const RepositoryRunsComponent = () => {
       <Card>
         <CardHeader>
           <CardTitle>
-            {repo.type}: {repo.url}
+            <span className='font-normal'>
+              {getRepositoryTypeLabel(repo.type)} repository
+            </span>{' '}
+            {repo.url}
           </CardTitle>
           <CardDescription>{repo.description}</CardDescription>
         </CardHeader>
