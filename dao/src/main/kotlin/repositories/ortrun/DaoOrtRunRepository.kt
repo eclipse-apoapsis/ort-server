@@ -47,9 +47,11 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.delete
 import org.jetbrains.exposed.sql.deleteWhere
@@ -150,9 +152,27 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
         }.map { ActiveOrtRun(it.id.value, it.createdAt, it.traceId) }
     }
 
+    /**
+     * Return a [List] with the IDs of all ORT runs that have finished before [before], except the latest run per
+     * repository, in case there is no newer one at all.
+     */
     override fun findRunsBefore(before: Instant): List<Long> = db.blockingQuery {
-        OrtRunsTable.select(OrtRunsTable.id)
-            .where { OrtRunsTable.finishedAt less before }
+        val maxIdAlias = OrtRunsTable.id.max().alias("max_id")
+        val latestRunPerRepository = OrtRunsTable
+            .select(OrtRunsTable.repositoryId, maxIdAlias)
+            .groupBy(OrtRunsTable.repositoryId)
+            .alias("latest_id_per_repository")
+
+        val maxIdCol = latestRunPerRepository[maxIdAlias]
+        val repositoryIdCol = latestRunPerRepository[OrtRunsTable.repositoryId]
+
+        OrtRunsTable
+            .join(latestRunPerRepository, JoinType.LEFT) {
+                (OrtRunsTable.id eq maxIdCol) and
+                        (OrtRunsTable.repositoryId eq repositoryIdCol)
+            }
+            .select(OrtRunsTable.id)
+            .where { (OrtRunsTable.finishedAt less before) and (maxIdCol.isNull()) }
             .map { it[OrtRunsTable.id].value }
     }
 

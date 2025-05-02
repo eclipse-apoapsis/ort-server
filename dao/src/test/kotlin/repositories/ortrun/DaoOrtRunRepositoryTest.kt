@@ -526,6 +526,48 @@ class DaoOrtRunRepositoryTest : WordSpec({
             val expectedIds = runs.take(2).map(OrtRun::id)
             runsBefore shouldContainExactlyInAnyOrder expectedIds
         }
+
+        "retain the latest run, even when before a given time" {
+            val refTime = Instant.parse("2025-01-15T08:34:48Z")
+            val finishedTimes = listOf(
+                refTime - 20.seconds,
+                refTime - 15.seconds,
+                refTime - 10.seconds,
+                refTime - 5.seconds
+            )
+
+            // Mock the clock to have defined finishedAt times for the test ORT runs.
+            // For each run, the repository queries the clock twice: for the creation and the completion time.
+            val mockTimes = buildList {
+                finishedTimes.forEach {
+                    add(it - 30.seconds)
+                    add(it)
+                }
+            }
+            mockkObject(Clock.System)
+            every {
+                Clock.System.now()
+            } returnsMany mockTimes
+
+            fun createFinishedRun(): OrtRun =
+                ortRunRepository.create(
+                    repositoryId,
+                    "revision",
+                    null,
+                    jobConfigurations,
+                    null,
+                    labelsMap,
+                    traceId = "irrelevant",
+                    null
+                ).run { ortRunRepository.update(id, status = OrtRunStatus.FINISHED.asPresent()) }
+
+            val runs = List(4) { createFinishedRun() }
+
+            val runsBefore = ortRunRepository.findRunsBefore(refTime)
+
+            val expectedIds = runs.take(3).map(OrtRun::id)
+            runsBefore shouldContainExactlyInAnyOrder expectedIds
+        }
     }
 
     "update" should {
