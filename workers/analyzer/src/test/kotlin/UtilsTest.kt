@@ -20,9 +20,17 @@
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.every
+import io.mockk.mockk
+
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
@@ -72,6 +80,22 @@ class UtilsTest : WordSpec({
                 scope shouldBe "dependencies"
                 path.size shouldBe 3
             }
+        }
+    }
+
+    "getDefaultPackageManagers()" should {
+        "return all enabled package managers" {
+            val pluginService = mockk<PluginService> {
+                every { getPlugins() } returns listOf(
+                    PluginDescriptor("Maven", PluginType.PACKAGE_MANAGER, "Maven", "description", enabled = false),
+                    PluginDescriptor("NPM", PluginType.PACKAGE_MANAGER, "NPM", "description", enabled = true),
+                    PluginDescriptor("OSV", PluginType.ADVISOR, "OSV", "description", enabled = true)
+                )
+            }
+
+            val defaultPackageManagers = getDefaultPackageManagers(pluginService)
+
+            defaultPackageManagers should containExactlyInAnyOrder("NPM")
         }
     }
 })
