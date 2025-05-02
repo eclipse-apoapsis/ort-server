@@ -137,7 +137,8 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
             {ortRun.userDisplayName.username ? (
               <Tooltip>
                 <TooltipTrigger className='cursor-pointer'>
-                  {ortRun.userDisplayName.fullName}
+                  {ortRun.userDisplayName.fullName ||
+                    ortRun.userDisplayName.username}
                 </TooltipTrigger>
                 <TooltipContent>
                   {ortRun.userDisplayName.username}
