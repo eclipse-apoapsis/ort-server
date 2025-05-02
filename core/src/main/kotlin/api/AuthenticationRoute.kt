@@ -31,14 +31,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getCliOidcConfig
 import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 
-import org.koin.ktor.ext.inject
-
 /**
  * Endpoints related to the authentication of users with the system.
  */
-fun Route.authentication() = route("auth") {
-    val applicationConfig by inject<ApplicationConfig>()
-
+fun Route.authentication(applicationConfig: ApplicationConfig) = route("auth") {
     route("oidc-config/cli") {
         get(getCliOidcConfig) {
             val oidcConfig = OidcConfig(

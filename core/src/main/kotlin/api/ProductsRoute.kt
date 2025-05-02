@@ -86,20 +86,18 @@ import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-import org.koin.ktor.ext.inject
-
 @Suppress("LongMethod")
-fun Route.products() = route("products/{productId}") {
-    val productService by inject<ProductService>()
-    val repositoryService by inject<RepositoryService>()
-    val secretService by inject<SecretService>()
-    val vulnerabilityService by inject<VulnerabilityService>()
-    val issueService by inject<IssueService>()
-    val ruleViolationService by inject<RuleViolationService>()
-    val packageService by inject<PackageService>()
-    val userService by inject<UserService>()
-    val orchestratorService by inject<OrchestratorService>()
-
+fun Route.products(
+    issueService: IssueService,
+    orchestratorService: OrchestratorService,
+    packageService: PackageService,
+    productService: ProductService,
+    repositoryService: RepositoryService,
+    ruleViolationService: RuleViolationService,
+    secretService: SecretService,
+    userService: UserService,
+    vulnerabilityService: VulnerabilityService
+) = route("products/{productId}") {
     get(getProductById) {
         requirePermission(ProductPermission.READ)
 

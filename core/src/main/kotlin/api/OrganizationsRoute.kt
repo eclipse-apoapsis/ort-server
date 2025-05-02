@@ -90,20 +90,18 @@ import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-import org.koin.ktor.ext.inject
-
 @Suppress("LongMethod")
-fun Route.organizations() = route("organizations") {
-    val organizationService by inject<OrganizationService>()
-    val secretService by inject<SecretService>()
-    val infrastructureServiceService by inject<InfrastructureServiceService>()
-    val repositoryService by inject<RepositoryService>()
-    val vulnerabilityService by inject<VulnerabilityService>()
-    val issueService by inject<IssueService>()
-    val ruleViolationService by inject<RuleViolationService>()
-    val packageService by inject<PackageService>()
-    val userService by inject<UserService>()
-
+fun Route.organizations(
+    infrastructureServiceService: InfrastructureServiceService,
+    issueService: IssueService,
+    organizationService: OrganizationService,
+    packageService: PackageService,
+    repositoryService: RepositoryService,
+    ruleViolationService: RuleViolationService,
+    secretService: SecretService,
+    userService: UserService,
+    vulnerabilityService: VulnerabilityService
+) = route("organizations") {
     get(getOrganizations) {
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
