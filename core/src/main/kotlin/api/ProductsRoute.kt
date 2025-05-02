@@ -51,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.getUsername
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
@@ -70,6 +71,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
+import org.eclipse.apoapsis.ortserver.core.utils.getDisabledPlugins
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.Secret
@@ -91,6 +93,7 @@ import org.koin.ktor.ext.inject
 @Suppress("LongMethod")
 fun Route.products() = route("products/{productId}") {
     val productService by inject<ProductService>()
+    val pluginService by inject<PluginService>()
     val repositoryService by inject<RepositoryService>()
     val secretService by inject<SecretService>()
     val vulnerabilityService by inject<VulnerabilityService>()
@@ -404,6 +407,17 @@ fun Route.products() = route("products/{productId}") {
             val createOrtRun = call.receive<CreateOrtRun>()
             val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
                 UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
+            }
+
+            // Check if disabled plugins are used.
+            val disabledPlugins = createOrtRun.getDisabledPlugins(pluginService)
+            if (disabledPlugins.isNotEmpty()) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "The following plugins are disabled in this ORT Server instance: " +
+                            disabledPlugins.joinToString { (type, id) -> "$id ($type)" }
+                )
+                return@post
             }
 
             val repositoryIds = if (createOrtRun.repositoryIds.isEmpty()) {
