@@ -36,8 +36,8 @@ importers:
         specifier: 4.4.0
         version: 4.4.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
       docusaurus-theme-openapi-docs:
-        specifier: 4.3.7
-        version: 4.3.7(@docusaurus/theme-common@3.7.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.0)(docusaurus-plugin-openapi-docs@4.4.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0))(docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.85.0)(webpack@5.97.1))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(webpack@5.97.1)
+        specifier: 4.4.0
+        version: 4.4.0(@docusaurus/theme-common@3.7.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.0)(docusaurus-plugin-openapi-docs@4.4.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0))(docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.85.0)(webpack@5.98.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(webpack@5.98.0)
       prism-react-renderer:
         specifier: ^2.3.0
         version: 2.4.1(react@19.1.0)
@@ -2811,8 +2811,8 @@ packages:
       '@docusaurus/core': ^2.0.0-beta || ^3.0.0-alpha
       sass: ^1.30.0
 
-  docusaurus-theme-openapi-docs@4.3.7:
-    resolution: {integrity: sha512-VRKA8gFVIlSBUu7EAYOY3JDF2WetCSVsYx5WeFo8g6/7LJWHhX7/A7Wo2fJ0B61VE/c53BSdbmvVWSJoUqnkoA==}
+  docusaurus-theme-openapi-docs@4.4.0:
+    resolution: {integrity: sha512-wmc2b946rqBcdjgEHi6Up7e8orasYk5RnIUerTfmZ/Hi006I8FIjMnJEmHAF6t5PbFiiYnlkB6vYK0CC5xBnCQ==}
     engines: {node: '>=14'}
     peerDependencies:
       '@docusaurus/theme-common': ^3.5.0
@@ -7637,7 +7637,7 @@ snapshots:
       '@slorber/remark-comment': 1.0.0
       escape-html: 1.0.3
       estree-util-value-to-estree: 3.1.2
-      file-loader: 6.2.0(webpack@5.97.1)
+      file-loader: 6.2.0(webpack@5.98.0)
       fs-extra: 11.2.0
       image-size: 1.1.1
       mdast-util-mdx: 3.0.0
@@ -10098,17 +10098,17 @@ snapshots:
       - encoding
       - supports-color
 
-  docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.85.0)(webpack@5.97.1):
+  docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.85.0)(webpack@5.98.0):
     dependencies:
       '@docusaurus/core': 3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(debug@4.4.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)
       sass: 1.85.0
-      sass-loader: 10.5.2(sass@1.85.0)(webpack@5.97.1)
+      sass-loader: 10.5.2(sass@1.85.0)(webpack@5.98.0)
     transitivePeerDependencies:
       - fibers
       - node-sass
       - webpack
 
-  docusaurus-theme-openapi-docs@4.3.7(@docusaurus/theme-common@3.7.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.0)(docusaurus-plugin-openapi-docs@4.4.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0))(docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.85.0)(webpack@5.97.1))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(webpack@5.97.1):
+  docusaurus-theme-openapi-docs@4.4.0(@docusaurus/theme-common@3.7.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.0)(docusaurus-plugin-openapi-docs@4.4.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0))(docusaurus-plugin-sass@0.2.5(@docusaurus/core@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.85.0)(webpack@5.98.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(webpack@5.98.0):
     dependencies:
       '@docusaurus/theme-common': 3.7.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@hookform/error-message': 2.0.1(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.54.2(react@19.1.0))(react@19.1.0)
@@ -10119,7 +10119,7 @@ snapshots:
       copy-text-to-clipboard: 3.2.0
       crypto-js: 4.2.0
       docusaurus-plugin-openapi-docs: 4.4.0(@docusaurus/plugin-content-docs@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.7.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
-      docusaurus-plugin-sass: 0.2.5(@docusaurus/core@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.85.0)(webpack@5.97.1)
+      docusaurus-plugin-sass: 0.2.5(@docusaurus/core@3.7.0(@mdx-js/react@3.1.0(@types/react@19.1.0)(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.85.0)(webpack@5.98.0)
       file-saver: 2.0.5
       lodash: 4.17.21
       pako: 2.1.0
@@ -10138,7 +10138,7 @@ snapshots:
       rehype-raw: 6.1.1
       remark-gfm: 3.0.1
       sass: 1.85.0
-      sass-loader: 16.0.5(sass@1.85.0)(webpack@5.97.1)
+      sass-loader: 16.0.5(sass@1.85.0)(webpack@5.98.0)
       unist-util-visit: 5.0.0
       url: 0.11.4
       xml-formatter: 2.6.1
@@ -13500,23 +13500,23 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sass-loader@10.5.2(sass@1.85.0)(webpack@5.97.1):
+  sass-loader@10.5.2(sass@1.85.0)(webpack@5.98.0):
     dependencies:
       klona: 2.0.6
       loader-utils: 2.0.4
       neo-async: 2.6.2
       schema-utils: 3.3.0
       semver: 7.7.1
-      webpack: 5.97.1
+      webpack: 5.98.0
     optionalDependencies:
       sass: 1.85.0
 
-  sass-loader@16.0.5(sass@1.85.0)(webpack@5.97.1):
+  sass-loader@16.0.5(sass@1.85.0)(webpack@5.98.0):
     dependencies:
       neo-async: 2.6.2
     optionalDependencies:
       sass: 1.85.0
-      webpack: 5.97.1
+      webpack: 5.98.0
 
   sass@1.85.0:
     dependencies:
@@ -14150,7 +14150,7 @@ snapshots:
       schema-utils: 3.3.0
       webpack: 5.97.1
     optionalDependencies:
-      file-loader: 6.2.0(webpack@5.97.1)
+      file-loader: 6.2.0(webpack@5.98.0)
 
   url-loader@4.1.1(file-loader@6.2.0(webpack@5.97.1))(webpack@5.98.0):
     dependencies:
@@ -14159,7 +14159,7 @@ snapshots:
       schema-utils: 3.3.0
       webpack: 5.98.0
     optionalDependencies:
-      file-loader: 6.2.0(webpack@5.97.1)
+      file-loader: 6.2.0(webpack@5.98.0)
 
   url@0.11.4:
     dependencies:
