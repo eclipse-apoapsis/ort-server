@@ -123,7 +123,7 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
           <Label className='font-semibold'>Run ID:</Label>
           <div>{ortRun.id}</div>
         </div>
-        <div className='text-sm'>
+        <div className='flex gap-2 text-sm'>
           <Label className='font-semibold'>Revision:</Label> {ortRun.revision}
           {ortRun.resolvedRevision &&
             ortRun.revision !== ortRun.resolvedRevision &&
