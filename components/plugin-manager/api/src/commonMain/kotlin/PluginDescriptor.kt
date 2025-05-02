@@ -35,7 +35,8 @@ data class PluginDescriptor(
 )
 
 /**
- * The supported types of plugins.
+ * The supported types of ORT plugins. This does not include command and VCS plugins because the server does not use
+ * commands and VCS plugins are not configurable via the API.
  */
 enum class PluginType {
     ADVISOR,
