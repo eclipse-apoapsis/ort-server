@@ -208,11 +208,12 @@ class OrtRunServiceTest : WordSpec() {
                 }
 
                 fixtures.ortRunRepository.get(ortRunId1) shouldBe null
-                fixtures.ortRunRepository.get(ortRunId2) shouldBe null
+                // Run 2 is the latest run in the repository and is intentionally retained.
+                fixtures.ortRunRepository.get(ortRunId2) shouldNotBe null
                 fixtures.ortRunRepository.get(ortRunId3) shouldNotBe null
 
                 fixtures.reporterRunRepository.getByJobId(reporterjobId1) shouldBe null
-                fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldBe null
+                fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldNotBe null
                 fixtures.reporterRunRepository.getByJobId(reporterjobId3) shouldNotBe null
             }
 
@@ -230,12 +231,13 @@ class OrtRunServiceTest : WordSpec() {
                 service.deleteRunsCreatedBefore(Clock.System.now())
 
                 fixtures.ortRunRepository.get(ortRunId1) shouldBe null
-                fixtures.ortRunRepository.get(ortRunId2) shouldBe null
+                // Run 2 is the latest run in the repository and is intentionally retained.
+                fixtures.ortRunRepository.get(ortRunId2) shouldNotBe null
                 // Run 3 is active and should not be deleted
                 fixtures.ortRunRepository.get(ortRunId3) shouldNotBe null
 
                 fixtures.reporterRunRepository.getByJobId(reporterjobId1) shouldBe null
-                fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldBe null
+                fixtures.reporterRunRepository.getByJobId(reporterjobId2) shouldNotBe null
                 fixtures.reporterRunRepository.getByJobId(reporterjobId3) shouldNotBe null
             }
         }
