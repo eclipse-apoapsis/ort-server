@@ -58,6 +58,7 @@ tasks.withType<JibTask> {
 
 dependencies {
     implementation(projects.api.v1.apiV1Model)
+    implementation(projects.components.pluginManager.implementation)
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.transport.transportSpi)

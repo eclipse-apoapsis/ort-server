@@ -40,6 +40,9 @@ import java.io.File
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
@@ -59,6 +62,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
+
+import org.ossreviewtoolkit.analyzer.PackageManagerFactory
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"
@@ -155,7 +160,8 @@ class AnalyzerWorkerTest : StringSpec({
             AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             contextFactory,
-            envService
+            envService,
+            mockPluginService()
         )
 
         mockkTransaction {
@@ -213,7 +219,8 @@ class AnalyzerWorkerTest : StringSpec({
             AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             contextFactory,
-            envService
+            envService,
+            mockPluginService()
         )
 
         mockkTransaction {
@@ -275,7 +282,8 @@ class AnalyzerWorkerTest : StringSpec({
             AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             contextFactory,
-            envService
+            envService,
+            mockPluginService()
         )
 
         mockkTransaction {
@@ -295,7 +303,11 @@ class AnalyzerWorkerTest : StringSpec({
 
     "AnalyzerRunner should be invoked correctly with an environment config from the job configuration" {
         val envConfig = mockk<EnvironmentConfig>()
-        val jobConfig = AnalyzerJobConfiguration(environmentConfig = envConfig)
+        val pluginService = mockPluginService()
+        val jobConfig = AnalyzerJobConfiguration(
+            environmentConfig = envConfig,
+            enabledPackageManagers = getDefaultPackageManagers(pluginService)
+        )
         val job = analyzerJob.copy(configuration = jobConfig)
 
         val ortRunService = mockk<OrtRunService> {
@@ -334,7 +346,8 @@ class AnalyzerWorkerTest : StringSpec({
             runner,
             ortRunService,
             contextFactory,
-            envService
+            envService,
+            pluginService
         )
 
         mockkTransaction {
@@ -371,9 +384,19 @@ class AnalyzerWorkerTest : StringSpec({
             coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns resolvedEnvConfig
         }
 
+        val pluginService = mockPluginService()
+        val analyzerConfig =
+            analyzerJob.configuration.copy(enabledPackageManagers = getDefaultPackageManagers(pluginService))
         val testException = IllegalStateException("AnalyzerRunner test exception")
         val runner = mockk<AnalyzerRunner> {
-            coEvery { run(context, any(), analyzerJob.configuration, resolvedEnvConfig) } throws testException
+            coEvery {
+                run(
+                    context,
+                    any(),
+                    analyzerConfig,
+                    resolvedEnvConfig
+                )
+            } throws testException
         }
 
         val worker = AnalyzerWorker(
@@ -382,7 +405,8 @@ class AnalyzerWorkerTest : StringSpec({
             runner,
             ortRunService,
             contextFactory,
-            envService
+            envService,
+            pluginService
         )
 
         mockkTransaction {
@@ -405,7 +429,8 @@ class AnalyzerWorkerTest : StringSpec({
             AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             mockk(),
-            mockk()
+            mockk(),
+            mockPluginService()
         )
 
         mockkTransaction {
@@ -428,7 +453,8 @@ class AnalyzerWorkerTest : StringSpec({
             AnalyzerRunner(ConfigFactory.empty()),
             ortRunService,
             mockk(),
-            mockk()
+            mockk(),
+            mockPluginService()
         )
 
         mockkTransaction {
@@ -480,7 +506,8 @@ class AnalyzerWorkerTest : StringSpec({
             runnerMock,
             ortRunService,
             contextFactory,
-            envService
+            envService,
+            mockPluginService()
         )
 
         mockkTransaction {
@@ -500,5 +527,19 @@ private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextF
         coEvery { withContext(analyzerJob.ortRunId, capture(slot)) } coAnswers {
             slot.captured(context)
         }
+    }
+}
+
+private fun mockPluginService() = mockk<PluginService> {
+    every { getPlugins() } returns PackageManagerFactory.ALL.values.map { packageManagerFactory ->
+        val ortDescriptor = packageManagerFactory.descriptor
+        PluginDescriptor(
+            id = ortDescriptor.id,
+            type = PluginType.PACKAGE_MANAGER,
+            displayName = ortDescriptor.displayName,
+            description = ortDescriptor.description,
+            options = emptyList(),
+            enabled = true
+        )
     }
 }

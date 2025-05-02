@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.analyzer
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
@@ -93,5 +94,6 @@ class AnalyzerComponent : EndpointComponent<AnalyzerRequest>(AnalyzerEndpoint) {
         singleOf(::AnalyzerDownloader)
         singleOf(::AnalyzerRunner)
         singleOf(::AnalyzerWorker)
+        singleOf(::PluginService)
     }
 }
