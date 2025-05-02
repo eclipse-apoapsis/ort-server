@@ -19,7 +19,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
-import { CircleUser, Home, Menu } from 'lucide-react';
+import { Home, Menu } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -247,7 +247,12 @@ export const Header = () => {
               size='icon'
               className='ml-auto rounded-full'
             >
-              <CircleUser className='h-5 w-5' />
+              <Avatar className='h-8 w-8'>
+                <AvatarFallback className='h-8 w-8 bg-red-400'>
+                  {extractInitials(user.fullName) ??
+                    user.username?.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <span className='sr-only'>Toggle user menu</span>
             </Button>
           </DropdownMenuTrigger>
@@ -255,7 +260,8 @@ export const Header = () => {
             <DropdownMenuItem className='flex gap-2' disabled>
               <Avatar className='h-8 w-8'>
                 <AvatarFallback className='h-8 w-8 bg-red-400'>
-                  {extractInitials(user.fullName) ?? '??'}
+                  {extractInitials(user.fullName) ??
+                    user.username?.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
