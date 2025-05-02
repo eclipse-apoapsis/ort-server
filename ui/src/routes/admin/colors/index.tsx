@@ -28,6 +28,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  getEcosystemBackgroundColor,
   getRuleViolationSeverityBackgroundColor,
   getStatusBackgroundColor,
   getVulnerabilityRatingBackgroundColor,
@@ -121,6 +130,191 @@ const ColorsComponent = () => {
               {severity}
             </Badge>
           ))}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Ecosystem colors</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Language</TableHead>
+                <TableHead>Ecosystems</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>C/C++</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Bazel', 'Conan', 'SpdxDocumentFile'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Dart/Flutter</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Pub'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Go</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['GoMod'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Haskell</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Stack'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Java/Kotlin</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Gradle', 'GradleInspector', 'Maven'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>JavaScript/Node.js</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Bower', 'NPM', 'PNPM', 'Yarn', 'Yarn2'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>.NET</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['NuGet'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Objective-C</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Carthage', 'CocoaPods'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>PHP</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Composer'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Python</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['PIP', 'Pipenv', 'Poetry'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Ruby</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Bundler'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Rust</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['Cargo'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Scala</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['SBT'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Swift</TableCell>
+                <TableCell className='flex gap-2'>
+                  {['SwiftPM'].map((p) => (
+                    <Badge
+                      className={`border ${getEcosystemBackgroundColor(p)}`}
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
