@@ -27,8 +27,14 @@ import { z } from 'zod';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { extractInitials } from '@/helpers/extract-initials.ts';
 import { useUser } from '@/hooks/use-user';
+import favicon from '../../public/favicon.svg';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -117,13 +123,18 @@ export const Header = () => {
     <header className='bg-background sticky top-0 z-50 flex h-16 justify-between gap-4 border-b px-4 md:px-6'>
       <div className='flex flex-row items-center gap-4'>
         <nav className='hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6'>
-          <Link
-            to='/'
-            className='flex items-center gap-2 text-lg font-semibold md:text-base'
-          >
-            <Home className='h-6 w-6' />
-            <span className='sr-only'>Home</span>
-          </Link>
+          <Tooltip>
+            <TooltipTrigger>
+              <Link
+                to='/'
+                className='flex items-center gap-2 text-lg font-semibold md:text-base'
+              >
+                <img src={favicon} alt='ORT Server' className='size-6' />
+                <span className='sr-only'>Home</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Home</TooltipContent>
+          </Tooltip>
         </nav>
         <Sheet>
           <SheetTrigger asChild>
