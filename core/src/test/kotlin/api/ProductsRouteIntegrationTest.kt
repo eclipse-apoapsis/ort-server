@@ -44,6 +44,7 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
@@ -52,11 +53,14 @@ import java.util.EnumSet
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
+import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
@@ -64,8 +68,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
+import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
+import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
@@ -84,6 +91,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.permissions.Produ
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
@@ -117,6 +126,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
     lateinit var organizationService: OrganizationService
+    lateinit var pluginService: PluginService
     lateinit var productService: ProductService
     lateinit var secretRepository: SecretRepository
     lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
@@ -139,6 +149,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.fixtures.productRepository,
             authorizationService
         )
+
+        pluginService = PluginService(dbExtension.db)
 
         productService = ProductService(
             dbExtension.db,
@@ -1564,6 +1576,75 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
                 }
                 repositoryIdsSpecific shouldContainExactlyInAnyOrder listOf(repository1Id)
+            }
+        }
+
+        "respond with 'BadRequest' if disabled plugins are used" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val repositoryId = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.org/repo.git",
+                    productId = productId,
+                    description = null
+                ).id
+
+                val installedPlugins = pluginService.getPlugins()
+                val advisorPluginId = installedPlugins.first { it.type == PluginType.ADVISOR }.id
+                val packageConfigurationProviderPluginId =
+                    installedPlugins.first { it.type == PluginType.PACKAGE_CONFIGURATION_PROVIDER }.id
+                val packageCurationProviderPluginId =
+                    installedPlugins.first { it.type == PluginType.PACKAGE_CURATION_PROVIDER }.id
+                val packageManagerPluginId = installedPlugins.first { it.type == PluginType.PACKAGE_MANAGER }.id
+                val reporterPluginId = installedPlugins.first { it.type == PluginType.REPORTER }.id
+                val scannerPluginId = installedPlugins.first { it.type == PluginType.SCANNER }.id
+
+                // Disable one plugin of each type.
+                suspend fun disablePlugin(pluginType: PluginType, pluginId: String) =
+                    superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/disable")
+
+                disablePlugin(PluginType.ADVISOR, advisorPluginId)
+                disablePlugin(PluginType.PACKAGE_CONFIGURATION_PROVIDER, packageConfigurationProviderPluginId)
+                disablePlugin(PluginType.PACKAGE_CURATION_PROVIDER, packageCurationProviderPluginId)
+                disablePlugin(PluginType.PACKAGE_MANAGER, packageManagerPluginId)
+                disablePlugin(PluginType.REPORTER, reporterPluginId)
+                disablePlugin(PluginType.SCANNER, scannerPluginId)
+
+                // Create a run with disabled plugins.
+                val createRun = CreateOrtRun(
+                    revision = "main",
+                    jobConfigs = JobConfigurations(
+                        analyzer = AnalyzerJobConfiguration(
+                            enabledPackageManagers = listOf(packageManagerPluginId),
+                            packageCurationProviders = listOf(
+                                ProviderPluginConfiguration(type = packageCurationProviderPluginId)
+                            )
+                        ),
+                        advisor = AdvisorJobConfiguration(advisors = listOf(advisorPluginId)),
+                        scanner = ScannerJobConfiguration(scanners = listOf(scannerPluginId)),
+                        evaluator = EvaluatorJobConfiguration(
+                            packageConfigurationProviders = listOf(
+                                ProviderPluginConfiguration(type = packageConfigurationProviderPluginId)
+                            )
+                        ),
+                        reporter = ReporterJobConfiguration(
+                            formats = listOf(reporterPluginId)
+                        )
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                    setBody(createRun)
+                }
+
+                response.status shouldBe HttpStatusCode.BadRequest
+                val errorMessage = response.bodyAsText()
+                errorMessage shouldContain advisorPluginId
+                errorMessage shouldContain packageConfigurationProviderPluginId
+                errorMessage shouldContain packageCurationProviderPluginId
+                errorMessage shouldContain packageManagerPluginId
+                errorMessage shouldContain reporterPluginId
+                errorMessage shouldContain scannerPluginId
             }
         }
 

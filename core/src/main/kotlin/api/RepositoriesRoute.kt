@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.getUsername
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunByIndex
@@ -67,6 +68,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToRepositoryGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
+import org.eclipse.apoapsis.ortserver.core.utils.getDisabledPlugins
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
@@ -83,6 +85,7 @@ import org.koin.ktor.ext.inject
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val orchestratorService by inject<OrchestratorService>()
     val ortRunService by inject<OrtRunService>()
+    val pluginService by inject<PluginService>()
     val repositoryService by inject<RepositoryService>()
     val secretService by inject<SecretService>()
     val userService by inject<UserService>()
@@ -145,6 +148,17 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 // Extract the user information from the principal.
                 val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
                     UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
+                }
+
+                // Check if disabled plugins are used.
+                val disabledPlugins = createOrtRun.getDisabledPlugins(pluginService)
+                if (disabledPlugins.isNotEmpty()) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        "The following plugins are disabled in this ORT Server instance: " +
+                                disabledPlugins.joinToString { (type, id) -> "$id ($type)" }
+                    )
+                    return@post
                 }
 
                 call.respond(
