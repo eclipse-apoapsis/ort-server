@@ -84,7 +84,13 @@ const RepositoryRunsComponent = () => {
             <span className='font-normal'>
               {getRepositoryTypeLabel(repo.type)} repository
             </span>{' '}
-            {repo.url}
+            <Link
+              className='font-semibold break-all hover:text-blue-400 hover:underline'
+              to={repo.url}
+              target='_blank'
+            >
+              {repo.url}
+            </Link>
           </CardTitle>
           <CardDescription>{repo.description}</CardDescription>
         </CardHeader>
