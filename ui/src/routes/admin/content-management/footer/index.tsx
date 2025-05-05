@@ -154,7 +154,7 @@ function FooterEditorComponent() {
                     <textarea
                       placeholder='Write some markdown...'
                       rows={25}
-                      className='border-input bg-background bg-muted/50 min-h-[200px] w-full rounded-md border p-2 font-mono text-sm'
+                      className='border-input bg-muted/50 min-h-[200px] w-full rounded-md border p-2 font-mono text-sm'
                       {...field}
                     />
                   </FormControl>
