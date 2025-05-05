@@ -24,6 +24,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import homeIcon from '@/assets/home-icon.svg';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
@@ -34,7 +35,6 @@ import {
 } from '@/components/ui/tooltip';
 import { extractInitials } from '@/helpers/extract-initials.ts';
 import { useUser } from '@/hooks/use-user';
-import favicon from '../../public/favicon.svg';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -129,7 +129,7 @@ export const Header = () => {
                 to='/'
                 className='flex items-center gap-2 text-lg font-semibold md:text-base'
               >
-                <img src={favicon} alt='ORT Server' className='size-6' />
+                <img src={homeIcon} alt='ORT Server' className='size-6' />
                 <span className='sr-only'>Home</span>
               </Link>
             </TooltipTrigger>
