@@ -28,7 +28,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
-group = "org.eclipse.apoapsis.ortserver.cli"
+group = "org.eclipse.apoapsis.ortserver"
 
 kotlin {
     jvm {

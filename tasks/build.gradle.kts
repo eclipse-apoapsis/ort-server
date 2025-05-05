@@ -31,7 +31,7 @@ plugins {
     alias(libs.plugins.jib)
 }
 
-group = "org.eclipse.apoapsis.ortserver.tasks"
+group = "org.eclipse.apoapsis.ortserver"
 
 tasks.withType<JibTask> {
     notCompatibleWithConfigurationCache("https://github.com/GoogleContainerTools/jib/issues/3132")

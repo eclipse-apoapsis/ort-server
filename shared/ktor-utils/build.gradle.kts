@@ -22,7 +22,7 @@ plugins {
     id("ort-server-publication-conventions")
 }
 
-group = "org.eclipse.apoapsis.ortserver.shared.ktor-utils"
+group = "org.eclipse.apoapsis.ortserver.shared"
 
 dependencies {
     implementation(libs.ktorServerCore)
