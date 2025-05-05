@@ -24,3 +24,7 @@
 // This probably needs to be changed in the future to a more sophisticated solution, e.g., by using a separate query
 // to get the distribution of items without fetching all items from back-end, which is costly.
 export const ALL_ITEMS = 100000;
+
+// The base download URL for the downloadable assets of the latest ORT Server release.
+export const GITHUB_LATEST_RELEASE_DOWNLOAD_URL =
+  'https://github.com/eclipse-apoapsis/ort-server/releases/latest/download';
