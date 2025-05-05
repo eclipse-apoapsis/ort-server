@@ -100,7 +100,7 @@ importers:
         version: 0.507.0(react@19.1.0)
       oidc-client-ts:
         specifier: ^3.0.1
-        version: 3.2.0
+        version: 3.2.1
       react:
         specifier: ^19.0.0
         version: 19.1.0
@@ -115,7 +115,7 @@ importers:
         version: 10.1.0(@types/react@19.1.2)(react@19.1.0)
       react-oidc-context:
         specifier: ^3.0.0
-        version: 3.3.0(oidc-client-ts@3.2.0)(react@19.1.0)
+        version: 3.3.0(oidc-client-ts@3.2.1)(react@19.1.0)
       recharts:
         specifier: ^2.15.1
         version: 2.15.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -2631,8 +2631,8 @@ packages:
   ohash@1.1.4:
     resolution: {integrity: sha512-FlDryZAahJmEF3VR3w1KogSEdWX3WhA5GPakFx4J81kEAiHyLMpdLLElS8n8dfNadMgAne/MywcvmogzscVt4g==}
 
-  oidc-client-ts@3.2.0:
-    resolution: {integrity: sha512-wUvVcG3SXzZDKHxi/VGQGaTUk9qguMKfYh26Y1zOVrQsu1zp85JWx/SjZzKSXK5j3NA1RcasgMoaHe6gt1WNtw==}
+  oidc-client-ts@3.2.1:
+    resolution: {integrity: sha512-hS5AJ5s/x4bXhHvNJT1v+GGvzHUwdRWqNQQbSrp10L1IRmzfRGKQ3VWN3dstJb+oF3WtAyKezwD2+dTEIyBiAA==}
     engines: {node: '>=18'}
 
   once@1.4.0:
@@ -5865,7 +5865,7 @@ snapshots:
 
   ohash@1.1.4: {}
 
-  oidc-client-ts@3.2.0:
+  oidc-client-ts@3.2.1:
     dependencies:
       jwt-decode: 4.0.0
 
@@ -6010,9 +6010,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  react-oidc-context@3.3.0(oidc-client-ts@3.2.0)(react@19.1.0):
+  react-oidc-context@3.3.0(oidc-client-ts@3.2.1)(react@19.1.0):
     dependencies:
-      oidc-client-ts: 3.2.0
+      oidc-client-ts: 3.2.1
       react: 19.1.0
 
   react-refresh@0.17.0: {}
