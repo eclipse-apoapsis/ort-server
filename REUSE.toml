@@ -196,6 +196,11 @@ SPDX-FileCopyrightText = "2018 OWASP Foundation, Inc (see <https://cyclonedx.org
 SPDX-License-Identifier = "CC-BY-ND-4.0"
 
 [[annotations]]
+path = "ui/src/assets/home-icon.svg"
+SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = "ui/src/assets/spdx-logo-color.svg"
 SPDX-FileCopyrightText = "2011 The Linux Foundation"
 SPDX-License-Identifier = "CC-BY-3.0"
