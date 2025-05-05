@@ -68,15 +68,14 @@ dependencies {
 
     testImplementation(testFixtures(projects.clients.keycloak))
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.kotlinxSerializationJson)
-    testImplementation(libs.ktorClientContentNegotiation)
     testImplementation(libs.ktorKotlinxSerialization)
     testImplementation(libs.ktorServerAuth)
-    testImplementation(libs.ktorServerAuthJwt)
     testImplementation(libs.ktorServerContentNegotiation)
     testImplementation(libs.ktorServerStatusPages)
     testImplementation(libs.ktorServerTestHost)

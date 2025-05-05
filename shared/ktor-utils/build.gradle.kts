@@ -18,6 +18,10 @@
  */
 
 plugins {
+    // Apply core plugins.
+    `java-test-fixtures`
+
+    // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
     id("ort-server-publication-conventions")
 }
@@ -26,4 +30,19 @@ group = "org.eclipse.apoapsis.ortserver.shared.ktor-utils"
 
 dependencies {
     implementation(libs.ktorServerCore)
+
+    testFixturesApi(projects.components.authorization.implementation)
+    testFixturesApi(projects.utils.test)
+    testFixturesApi(testFixtures(projects.dao))
+
+    testFixturesImplementation(libs.kotestFrameworkApi)
+    testFixturesImplementation(libs.kotlinxSerializationJson)
+    testFixturesImplementation(libs.ktorServerCore)
+    testFixturesImplementation(libs.ktorClientContentNegotiation)
+    testFixturesImplementation(libs.ktorKotlinxSerialization)
+    testFixturesImplementation(libs.ktorServerAuth)
+    testFixturesImplementation(libs.ktorServerAuthJwt)
+    testFixturesImplementation(libs.ktorServerContentNegotiation)
+    testFixturesImplementation(libs.ktorServerTestHost)
+    testFixturesImplementation(libs.mockk)
 }

@@ -20,67 +20,25 @@
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
-import io.kotest.core.spec.style.WordSpec
 
 import io.ktor.client.request.post
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.kotlinx.serialization
-import io.ktor.server.application.install
-import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.routing
-import io.ktor.server.testing.testApplication
 
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkAll
-
-import kotlinx.serialization.json.Json
-
-import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
-import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
-import org.eclipse.apoapsis.ortserver.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
-class EnablePluginIntegrationTest : WordSpec({
-    tags(Integration)
-
-    val dbExtension = extension(DatabaseTestExtension())
-
-    beforeSpec {
-        mockkStatic(RoutingContext::hasRole)
-    }
-
-    afterSpec { unmockkAll() }
-
+class EnablePluginIntegrationTest : AbstractIntegrationTest({
     "EnablePlugin" should {
         "return Accepted if the plugin was enabled" {
-            val principal = mockk<OrtPrincipal> {
-                every { getUserId() } returns "userId"
-                every { hasRole(any()) } returns true
-            }
-
             val eventStore = PluginEventStore(dbExtension.db)
 
-            testApplication {
+            integrationTestApplication { client ->
                 application {
-                    install(ContentNegotiation) {
-                        serialization(ContentType.Application.Json, Json)
-                    }
-
-                    install(Authentication) {
-                        register(FakeAuthenticationProvider(DummyConfig(principal)))
-                    }
-
                     routing {
                         authenticate("test") {
                             disablePlugin(eventStore)
@@ -91,8 +49,6 @@ class EnablePluginIntegrationTest : WordSpec({
 
                 val pluginType = PluginType.ADVISOR
                 val pluginId = VulnerableCodeFactory.descriptor.id
-
-                val client = createJsonClient()
 
                 // Disable the plugin first because it is enabled by default.
                 client.post("/admin/plugins/$pluginType/$pluginId/disable")
@@ -105,23 +61,10 @@ class EnablePluginIntegrationTest : WordSpec({
         }
 
         "return NotFound if the plugin is not installed" {
-            val principal = mockk<OrtPrincipal> {
-                every { getUserId() } returns "userId"
-                every { hasRole(any()) } returns true
-            }
-
             val eventStore = PluginEventStore(dbExtension.db)
 
-            testApplication {
+            integrationTestApplication { client ->
                 application {
-                    install(ContentNegotiation) {
-                        serialization(ContentType.Application.Json, Json)
-                    }
-
-                    install(Authentication) {
-                        register(FakeAuthenticationProvider(DummyConfig(principal)))
-                    }
-
                     routing {
                         authenticate("test") {
                             enablePlugin(eventStore)
@@ -131,30 +74,15 @@ class EnablePluginIntegrationTest : WordSpec({
 
                 val pluginType = PluginType.ADVISOR
 
-                val client = createJsonClient()
-
                 client.post("/admin/plugins/$pluginType/unknown/enable") shouldHaveStatus HttpStatusCode.NotFound
             }
         }
 
         "return NotModified if the plugin was already enabled" {
-            val principal = mockk<OrtPrincipal> {
-                every { getUserId() } returns "userId"
-                every { hasRole(any()) } returns true
-            }
-
             val eventStore = PluginEventStore(dbExtension.db)
 
-            testApplication {
+            integrationTestApplication { client ->
                 application {
-                    install(ContentNegotiation) {
-                        serialization(ContentType.Application.Json, Json)
-                    }
-
-                    install(Authentication) {
-                        register(FakeAuthenticationProvider(DummyConfig(principal)))
-                    }
-
                     routing {
                         authenticate("test") {
                             disablePlugin(eventStore)
@@ -165,8 +93,6 @@ class EnablePluginIntegrationTest : WordSpec({
 
                 val pluginType = PluginType.ADVISOR
                 val pluginId = VulnerableCodeFactory.descriptor.id
-
-                val client = createJsonClient()
 
                 client.post("/admin/plugins/$pluginType/$pluginId/enable") shouldHaveStatus HttpStatusCode.NotModified
 
