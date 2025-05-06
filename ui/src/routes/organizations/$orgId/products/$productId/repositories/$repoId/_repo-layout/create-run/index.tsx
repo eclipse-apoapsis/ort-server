@@ -517,7 +517,7 @@ export const Route = createFileRoute(
     if (rerunIndex === undefined) {
       return null;
     }
-    return await RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+    return RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
       {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: rerunIndex,
