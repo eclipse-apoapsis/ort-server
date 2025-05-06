@@ -65,7 +65,6 @@ dependencies {
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.transport.transportSpi))
-    testImplementation(testFixtures(projects.workers.common))
 
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)

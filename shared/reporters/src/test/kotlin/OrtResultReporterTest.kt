@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.reporter
+package org.eclipse.apoapsis.ortserver.shared.reporters
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
@@ -28,7 +28,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
 
-import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
+import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.readValue

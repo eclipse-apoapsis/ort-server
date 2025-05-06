@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.reporter
+package org.eclipse.apoapsis.ortserver.shared.reporters
 
 import java.io.File
 

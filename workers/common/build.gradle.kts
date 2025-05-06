@@ -20,7 +20,6 @@
 plugins {
     // Apply core plugins.
     application
-    `java-test-fixtures`
 
     // Apply precompiled plugins.
     id("ort-server-kotlin-jvm-conventions")
@@ -57,6 +56,8 @@ dependencies {
     api(libs.ortScanner)
     api(libs.typesafeConfig)
 
+    testImplementation(projects.shared.ortTestData)
+
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.secrets.secretsSpi))
@@ -66,7 +67,4 @@ dependencies {
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-
-    testFixturesApi(libs.kotlinxDatetime)
-    testFixturesApi(libs.ortModel)
 }
