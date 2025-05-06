@@ -34,7 +34,6 @@ plugins {
 
     // Apply third-party plugins.
     alias(libs.plugins.jib)
-    alias(libs.plugins.ksp)
 }
 
 tasks.withType<JibTask> {
@@ -47,6 +46,7 @@ dependencies {
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.model)
+    implementation(projects.shared.reporters)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.logging)
@@ -59,9 +59,6 @@ dependencies {
     implementation(libs.ortReporter)
     implementation(libs.typesafeConfig)
 
-    ksp(libs.ortPluginCompiler)
-    ksp(libs.ortReporter)
-
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))
     runtimeOnly(platform(projects.storage))
@@ -71,11 +68,12 @@ dependencies {
     runtimeOnly(libs.logback)
     runtimeOnly(platform(libs.ortReporters))
 
+    testImplementation(projects.shared.ortTestData)
+
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.storage.storageSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
-    testImplementation(testFixtures(projects.workers.common))
 
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)

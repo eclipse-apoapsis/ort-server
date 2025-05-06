@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.reporter
+package org.eclipse.apoapsis.ortserver.shared.reporters
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
@@ -45,7 +45,7 @@ import io.mockk.verify
 import java.io.File
 import java.nio.file.Files
 
-import org.eclipse.apoapsis.ortserver.workers.common.OrtTestData
+import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 
 import org.ossreviewtoolkit.downloader.DownloadException
 import org.ossreviewtoolkit.downloader.Downloader

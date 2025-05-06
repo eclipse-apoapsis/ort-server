@@ -90,6 +90,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerDetail
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
+import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 
 import org.ossreviewtoolkit.model.VcsType
 

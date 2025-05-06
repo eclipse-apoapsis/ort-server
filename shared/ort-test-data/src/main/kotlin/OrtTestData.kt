@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common
+package org.eclipse.apoapsis.ortserver.shared.orttestdata
 
 import java.io.File
 import java.net.URI
