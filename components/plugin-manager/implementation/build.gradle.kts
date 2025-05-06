@@ -59,13 +59,6 @@ dependencies {
     implementation(libs.ortReporter)
     implementation(libs.ortScanner)
 
-    implementation(platform(libs.ortAdvisors))
-    implementation(platform(libs.ortPackageConfigurationProviders))
-    implementation(platform(libs.ortPackageCurationProviders))
-    implementation(platform(libs.ortPackageManagers))
-    implementation(platform(libs.ortReporters))
-    implementation(platform(libs.ortScanners))
-
     testImplementation(testFixtures(projects.clients.keycloak))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.shared.ktorUtils))
@@ -80,4 +73,11 @@ dependencies {
     testImplementation(libs.ktorServerStatusPages)
     testImplementation(libs.ktorServerTestHost)
     testImplementation(libs.mockk)
+
+    testImplementation(platform(libs.ortAdvisors))
+    testImplementation(platform(libs.ortPackageConfigurationProviders))
+    testImplementation(platform(libs.ortPackageCurationProviders))
+    testImplementation(platform(libs.ortPackageManagers))
+    testImplementation(platform(libs.ortReporters))
+    testImplementation(platform(libs.ortScanners))
 }

@@ -110,6 +110,14 @@ dependencies {
     runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.transport))
 
+    // Dependencies on ORT plugins are required to provide information about them via the API.
+    runtimeOnly(platform(libs.ortAdvisors))
+    runtimeOnly(platform(libs.ortPackageConfigurationProviders))
+    runtimeOnly(platform(libs.ortPackageCurationProviders))
+    runtimeOnly(platform(libs.ortPackageManagers))
+    runtimeOnly(platform(libs.ortReporters))
+    runtimeOnly(platform(libs.ortScanners))
+
     runtimeOnly(libs.logback)
 
     testImplementation(testFixtures(projects.clients.keycloak))
