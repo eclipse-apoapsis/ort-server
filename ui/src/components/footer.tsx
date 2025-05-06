@@ -53,7 +53,7 @@ export function Footer() {
   const columnsAlignedRight = extractColumns(markdown, 'right');
   return (
     enabled && (
-      <footer className='bg-muted text-muted-foreground w-full border-t text-sm'>
+      <footer className='text-muted-foreground w-full text-sm'>
         <div className='mx-auto flex max-w-screen-xl flex-col items-center justify-between gap-4 p-4 sm:flex-row md:gap-8 md:p-8'>
           <nav className='flex flex-col gap-4 sm:flex-row sm:items-start'>
             {columnsAlignedLeft.map((content, index) => (
