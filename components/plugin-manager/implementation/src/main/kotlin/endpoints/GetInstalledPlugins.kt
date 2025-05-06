@@ -33,11 +33,9 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 
-import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 import org.ossreviewtoolkit.plugins.api.PluginDescriptor as OrtPluginDescriptor
 import org.ossreviewtoolkit.plugins.api.PluginOption as OrtPluginOption
 import org.ossreviewtoolkit.plugins.api.PluginOptionType as OrtPluginOptionType
-import org.ossreviewtoolkit.plugins.packagemanagers.node.npm.NpmFactory
 
 fun Route.getInstalledPlugins(pluginService: PluginService) = get("admin/plugins", {
     operationId = "GetInstalledPlugins"
@@ -52,8 +50,40 @@ fun Route.getInstalledPlugins(pluginService: PluginService) = get("admin/plugins
                 mediaTypes = setOf(ContentType.Application.Json)
                 example("List of ORT plugins") {
                     value = listOf(
-                        VulnerableCodeFactory.descriptor.mapToApi(PluginType.ADVISOR, true),
-                        NpmFactory.descriptor.mapToApi(PluginType.PACKAGE_MANAGER, false)
+                        PluginDescriptor(
+                            id = "VulnerableCode",
+                            type = PluginType.ADVISOR,
+                            displayName = "VulnerableCode",
+                            description = "An advisor that uses a VulnerableCode instance to find vulnerabilities.",
+                            options = listOf(
+                                PluginOption(
+                                    name = "serverUrl",
+                                    description = "The base URL of the VulnerableCode REST API.",
+                                    type = PluginOptionType.STRING,
+                                    defaultValue = "https://public.vulnerablecode.io/api/",
+                                    isNullable = false,
+                                    isRequired = false
+                                )
+                            ),
+                            enabled = true
+                        ),
+                        PluginDescriptor(
+                            id = "NPM",
+                            type = PluginType.PACKAGE_MANAGER,
+                            displayName = "NPM",
+                            description = "The Node package manager for Node.js.",
+                            options = listOf(
+                                PluginOption(
+                                    name = "legacyPeerDeps",
+                                    description = "If true, the '--legacy-peer-deps' flag is passed to NPM.",
+                                    type = PluginOptionType.BOOLEAN,
+                                    defaultValue = "false",
+                                    isNullable = false,
+                                    isRequired = false
+                                )
+                            ),
+                            enabled = false
+                        )
                     )
                 }
             }
