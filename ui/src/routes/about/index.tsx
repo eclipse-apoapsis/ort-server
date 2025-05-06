@@ -59,7 +59,7 @@ export const About = () => {
             ))}
           </div>
           <h3 className='mt-8 mb-4 font-semibold'>
-            Download ORT Server Client CLI (osc)
+            ORT Server Client (osc) Download
           </h3>
           <div className='grid grid-cols-[auto_1fr] gap-x-8 gap-y-1'>
             <div className='text-muted-foreground font-semibold'>Linux</div>
