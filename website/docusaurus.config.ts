@@ -106,7 +106,7 @@ const config: Config = {
       title: 'ORT Server',
       logo: {
         alt: 'ORT Server Logo',
-        src: 'img/logo.svg',
+        src: 'img/ort-server-logo.svg',
       },
       items: [
         {

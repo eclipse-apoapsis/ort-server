@@ -14,7 +14,7 @@ function HomepageHeader() {
       <div className='container'>
         <div className='text--center'>
           <img
-            src='img/logo.svg'
+            src='img/ort-server-logo.svg'
             alt='ORT Server Logo'
             className={styles.heroLogo}
           />
