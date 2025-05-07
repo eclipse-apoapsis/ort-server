@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 
 /**
  * An interface providing information and services useful to multiple worker implementations.

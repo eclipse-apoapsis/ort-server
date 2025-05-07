@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.context
+package org.eclipse.apoapsis.ortserver.workers.common.auth
 
 /**
  * A data class describing a service with credentials for authentication.
