@@ -23,11 +23,14 @@ import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.upsert
 
 import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
 
@@ -49,6 +52,8 @@ class PluginTemplateEventStore(private val db: Database) {
             it[createdBy] = pluginTemplateEvent.createdBy
             it[createdAt] = pluginTemplateEvent.createdAt
         }
+
+        updateReadModel(pluginTemplateEvent)
     }
 
     /**
@@ -56,6 +61,29 @@ class PluginTemplateEventStore(private val db: Database) {
      */
     internal fun getPluginTemplate(name: String, pluginType: PluginType, pluginId: String) =
         PluginTemplateState().applyAll(loadEvents(pluginType, pluginId))
+
+    private fun updateReadModel(pluginTemplateEvent: PluginTemplateEvent): Unit = db.transaction {
+        when (pluginTemplateEvent.payload) {
+            is Updated -> {
+                PluginTemplatesReadModel.upsert {
+                    it[name] = pluginTemplateEvent.name
+                    it[pluginType] = pluginTemplateEvent.pluginType
+                    it[pluginId] = pluginTemplateEvent.pluginId
+                    it[options] = pluginTemplateEvent.payload.options
+                    it[isGlobal] = pluginTemplateEvent.payload.isGlobal
+                    it[organizationIds] = pluginTemplateEvent.payload.organizationIds ?: emptyList()
+                }
+            }
+
+            is Deleted -> {
+                PluginTemplatesReadModel.deleteWhere {
+                    PluginTemplatesReadModel.name eq pluginTemplateEvent.name
+                    (PluginTemplatesReadModel.pluginType eq pluginTemplateEvent.pluginType) and
+                            (PluginTemplatesReadModel.pluginId eq pluginTemplateEvent.pluginId)
+                }
+            }
+        }
+    }
 
     private fun ResultRow.toPluginTemplateEvent() = PluginTemplateEvent(
         name = this[PluginTemplateEvents.name],
@@ -78,4 +106,16 @@ internal object PluginTemplateEvents : Table("plugin_template_events") {
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(name, pluginType, pluginId, version)
+}
+
+internal object PluginTemplatesReadModel : Table("plugin_templates_read_model") {
+    val name = text("name")
+    val pluginType = enumerationByName<PluginType>("plugin_type", 255)
+    val pluginId = text("plugin_id")
+    val options = jsonb<List<PluginOptionTemplate>>("options")
+    val isGlobal = bool("is_global")
+    val organizationIds = array<Long>("organization_ids")
+    val enabled = bool("enabled")
+
+    override val primaryKey = PrimaryKey(name, pluginType, pluginId)
 }
