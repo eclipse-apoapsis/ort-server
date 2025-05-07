@@ -22,7 +22,7 @@ import { MarkdownRenderer } from '@/components/markdown-renderer.tsx';
 
 function extractColumns(
   markdown: string,
-  alignment: 'left' | 'right'
+  alignment: 'left' | 'center' | 'right'
 ): string[] {
   const regex = new RegExp(
     `:::\\s?align-${alignment}\\s+([\\s\\S]*?)\\s+:::`,
@@ -50,13 +50,20 @@ export function Footer() {
   const enabled = data?.isEnabled || false;
 
   const columnsAlignedLeft = extractColumns(markdown, 'left');
+  const columnsAlignedCenter = extractColumns(markdown, 'center');
   const columnsAlignedRight = extractColumns(markdown, 'right');
+
   return (
     enabled && (
       <footer className='text-muted-foreground w-full text-sm'>
         <div className='mx-auto flex max-w-screen-xl flex-col items-center justify-between gap-4 p-4 sm:flex-row md:gap-8 md:p-8'>
           <nav className='flex flex-col gap-4 sm:flex-row sm:items-start'>
             {columnsAlignedLeft.map((content, index) => (
+              <MarkdownRenderer key={index} markdown={content} />
+            ))}
+          </nav>
+          <nav className='flex flex-col gap-4 sm:flex-row sm:items-start'>
+            {columnsAlignedCenter.map((content, index) => (
               <MarkdownRenderer key={index} markdown={content} />
             ))}
           </nav>
