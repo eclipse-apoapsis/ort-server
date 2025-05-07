@@ -63,7 +63,7 @@ import org.eclipse.apoapsis.ortserver.secrets.Path as SecretPath
 import org.eclipse.apoapsis.ortserver.secrets.Secret as SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticatedService
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 
@@ -464,7 +464,7 @@ class WorkerContextFactoryTest : WordSpec({
     "setupAuthentication" should {
         "pass services with resolved secrets to the ORT Server authenticator" {
             val authenticator = mockk<OrtServerAuthenticator> {
-                every { updateAuthenticatedServices(any()) } just runs
+                every { updateAuthenticationInfo(any()) } just runs
                 every { updateAuthenticationListener(any()) } just runs
             }
             every { OrtServerAuthenticator.install() } returns authenticator
@@ -509,17 +509,22 @@ class WorkerContextFactoryTest : WordSpec({
 
             context.setupAuthentication(listOf(service1, service2), listener)
 
-            val slotAuthServices = slot<Collection<AuthenticatedService>>()
+            val slotAuthServices = slot<AuthenticationInfo>()
             verify {
-                authenticator.updateAuthenticatedServices(capture(slotAuthServices))
+                authenticator.updateAuthenticationInfo(capture(slotAuthServices))
                 authenticator.updateAuthenticationListener(listener)
             }
 
-            val expectedAuthServices = listOf(
-                AuthenticatedService(service1.name, service1.url, username1.value, password1.value),
-                AuthenticatedService(service2.name, service2.url, username2.value, password2.value)
+            val expectedSecrets = mapOf(
+                secUser1.path to username1.value,
+                secPass1.path to password1.value,
+                secUser2.path to username2.value,
+                secPass2.path to password2.value
             )
-            slotAuthServices.captured shouldContainExactlyInAnyOrder expectedAuthServices
+            with(slotAuthServices.captured) {
+                services shouldContainExactlyInAnyOrder listOf(service1, service2)
+                secrets shouldContainExactly expectedSecrets
+            }
         }
     }
 })

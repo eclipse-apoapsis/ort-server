@@ -43,7 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
-import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticatedService
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 
@@ -181,14 +181,10 @@ internal class WorkerContextImpl(
             listOf(service.usernameSecret, service.passwordSecret)
         }
 
-        val resolvedSecrets = resolveSecrets(*serviceSecrets.toTypedArray())
-        val authServices = services.map { service ->
-            val username = resolvedSecrets.getValue(service.usernameSecret)
-            val password = resolvedSecrets.getValue(service.passwordSecret)
-            AuthenticatedService(service.name, service.url, username, password)
-        }
+        val resolvedSecrets = resolveSecrets(*serviceSecrets.toTypedArray()).mapKeys { it.key.path }
+        val authInfo = AuthenticationInfo(resolvedSecrets, services.toList())
 
-        authenticator.updateAuthenticatedServices(authServices)
+        authenticator.updateAuthenticationInfo(authInfo)
         authenticator.updateAuthenticationListener(listener)
     }
 

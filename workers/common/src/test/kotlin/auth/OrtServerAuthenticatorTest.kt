@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.auth
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -37,6 +38,9 @@ import io.mockk.verify
 import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.URI
+
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.Secret
 
 import org.ossreviewtoolkit.utils.common.Os
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
@@ -107,11 +111,10 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
             "return an authentication for a matching host name" {
                 val authenticator = OrtServerAuthenticator.install()
-                authenticator.updateAuthenticatedServices(
-                    listOf(
-                        AuthenticatedService("service", "https://example.com", USERNAME, PASSWORD)
-                    )
+                val services = listOf(
+                    createService("service", "https://example.com", usernameSecret, passwordSecret)
                 )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
                 val pwd =
                     Authenticator.requestPasswordAuthentication("example.com", null, 443, "tcp", "hello", "https")
@@ -124,11 +127,10 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 val url = "https://repo.example.com/org/repo"
 
                 val authenticator = OrtServerAuthenticator.install()
-                authenticator.updateAuthenticatedServices(
-                    listOf(
-                        AuthenticatedService("service", url, USERNAME, PASSWORD)
-                    )
+                val services = listOf(
+                    createService("service", url, usernameSecret, passwordSecret)
                 )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
                 val pwd = Authenticator.requestPasswordAuthentication(
                     "host.does.not.matter",
@@ -155,11 +157,10 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
                 val authenticator = OrtServerAuthenticator.install()
                 authenticator.updateAuthenticationListener(listener)
-                authenticator.updateAuthenticatedServices(
-                    listOf(
-                        AuthenticatedService(serviceName, url, USERNAME, PASSWORD)
-                    )
+                val services = listOf(
+                    createService(serviceName, url, usernameSecret, passwordSecret)
                 )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
                 Authenticator.requestPasswordAuthentication(
                     "host.does.not.matter",
@@ -181,11 +182,10 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 val url = "https://repo.example.com/org/repo"
 
                 val authenticator = OrtServerAuthenticator.install()
-                authenticator.updateAuthenticatedServices(
-                    listOf(
-                        AuthenticatedService("service", url, USERNAME, PASSWORD)
-                    )
+                val services = listOf(
+                    createService("service", url, usernameSecret, passwordSecret)
                 )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
                 val pwd = Authenticator.requestPasswordAuthentication(
                     "repo.example.com",
@@ -205,17 +205,16 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 val url = "https://repo.example.com/org/repo"
 
                 val authenticator = OrtServerAuthenticator.install()
-                authenticator.updateAuthenticatedServices(
-                    listOf(
-                        AuthenticatedService("s1", "https://repo.example.com", "user1", "password1"),
-                        AuthenticatedService("s2", "https://repo2.example.org/org/repo", "user2", "password2"),
-                        AuthenticatedService("s3", "https://repo.example.com/org", "user3", "password3"),
-                        AuthenticatedService("s4", url, USERNAME, PASSWORD),
-                        AuthenticatedService("s5", "$url/sub-repo", "user5", "password5"),
-                        AuthenticatedService("s6", "${url}sitory", "user6", "password6"),
-                        AuthenticatedService("s7", "https://repo.example.com/org/repo2", "user7", "password7")
-                    )
+                val services = listOf(
+                    createService("s1", "https://repo.example.com"),
+                    createService("s2", "https://repo2.example.org/org/repo"),
+                    createService("s3", "https://repo.example.com/org"),
+                    createService("s4", url, usernameSecret, passwordSecret),
+                    createService("s5", "$url/sub-repo"),
+                    createService("s6", "${url}sitory"),
+                    createService("s7", "https://repo.example.com/org/repo2")
                 )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
                 val pwd = Authenticator.requestPasswordAuthentication(
                     "repo.example.com",
@@ -236,11 +235,10 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 val url = "https://repo.example.com/org/repo"
 
                 val authenticator = OrtServerAuthenticator.install()
-                authenticator.updateAuthenticatedServices(
-                    listOf(
-                        AuthenticatedService("service", url, "other_$USERNAME", "other_$PASSWORD")
-                    )
+                val services = listOf(
+                    createService("service", url)
                 )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
                 val pwd = Authenticator.requestPasswordAuthentication(
                     "host.does.not.matter",
@@ -296,11 +294,10 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 Authenticator.setDefault(originalAuthenticator)
 
                 val authenticator = OrtServerAuthenticator.install()
-                authenticator.updateAuthenticatedServices(
-                    listOf(
-                        AuthenticatedService("service", authUrl.toString(), "other_$USERNAME", "other_$PASSWORD")
-                    )
+                val services = listOf(
+                    createService("service", authUrl.toString())
                 )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
                 val pwd = Authenticator.requestPasswordAuthentication(
                     authUrl.host,
@@ -323,13 +320,12 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 val url = "https://repo.example.com/org/repo"
 
                 val authenticator = OrtServerAuthenticator.install()
-                authenticator.updateAuthenticatedServices(
-                    listOf(
-                        AuthenticatedService("someService", "https://repo.example.com", "user1", "password1"),
-                        AuthenticatedService("matchingService", url, USERNAME, PASSWORD),
-                        AuthenticatedService("invalidService", "?! an invalid URL :-(", "user7", "password7")
-                    )
+                val services = listOf(
+                    createService("someService", "https://repo.example.com"),
+                    createService("matchingService", url, usernameSecret, passwordSecret),
+                    createService("invalidService", "?! an invalid URL :-(")
                 )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
                 val pwd = Authenticator.requestPasswordAuthentication(
                     "repo.example.com",
@@ -346,6 +342,27 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 pwd.password shouldBe PASSWORD.toCharArray()
             }
         }
+
+        "authenticationInfo" should {
+            "initially be empty" {
+                val authenticator = OrtServerAuthenticator.install()
+
+                authenticator.authenticationInfo.services should beEmpty()
+                authenticator.authenticationInfo.secrets.keys should beEmpty()
+            }
+
+            "return the current authentication information" {
+                val services = listOf(
+                    createService("service", "https://repo.example.com")
+                )
+                val info = createAuthInfo(services)
+
+                val authenticator = OrtServerAuthenticator.install()
+                authenticator.updateAuthenticationInfo(info)
+
+                authenticator.authenticationInfo shouldBe info
+            }
+        }
     }
 }
 
@@ -354,3 +371,45 @@ private const val USERNAME = "scott"
 
 /** A test password. */
 private const val PASSWORD = "tiger"
+
+/** A secret referencing the test username. */
+private val usernameSecret = createSecret("username")
+
+/** A secret referencing the test password. */
+private val passwordSecret = createSecret("password")
+
+/**
+ * Create a [Secret] based on the given [path].
+ */
+private fun createSecret(path: String): Secret =
+    Secret(0, path, "$path-secret", null, null, null, null)
+
+/**
+ * Create an [InfrastructureService] object with the given [name], [url], and optional [username] and [password].
+ */
+private fun createService(
+    name: String,
+    url: String,
+    username: Secret? = null,
+    password: Secret? = null
+): InfrastructureService =
+    InfrastructureService(
+        name = name,
+        url = url,
+        usernameSecret = username ?: createSecret("unknown-username"),
+        passwordSecret = password ?: createSecret("unknown-password"),
+        organization = null,
+        product = null
+    )
+
+/**
+ * Create an [AuthenticationInfo] object with the given [services] and the secrets used for testing.
+ */
+private fun createAuthInfo(services: List<InfrastructureService>): AuthenticationInfo =
+    AuthenticationInfo(
+        secrets = mapOf(
+            usernameSecret.path to USERNAME,
+            passwordSecret.path to PASSWORD
+        ),
+        services = services
+    )
