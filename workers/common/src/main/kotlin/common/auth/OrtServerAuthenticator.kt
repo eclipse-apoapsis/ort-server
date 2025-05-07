@@ -25,6 +25,8 @@ import java.net.URI
 import java.net.URL
 import java.util.concurrent.atomic.AtomicReference
 
+import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
 import org.ossreviewtoolkit.utils.ort.UserInfoAuthenticator
 
@@ -55,6 +57,9 @@ internal class OrtServerAuthenticator(
     original: Authenticator? = null
 ) : OrtAuthenticator(original) {
     companion object {
+        /** Empty authentication information to be used before this authenticator gets initialized. */
+        private val emptyAuthenticationInfo = AuthenticationInfo(emptyMap(), emptyList())
+
         /**
          * Install this authenticator as the global default if it is not already installed.
          */
@@ -74,13 +79,17 @@ internal class OrtServerAuthenticator(
      * expected that the services are updated concurrently, but they may be accessed from different threads.
      * Therefore, an atomic reference is used to ensure safe publishing of changes.
      */
-    private val refServices = AtomicReference(ServiceData(emptyMap()))
+    private val refServices = AtomicReference(ServiceData(emptyMap(), emptyAuthenticationInfo))
 
     /**
      * A reference to the listener to be notified about successful authentications. This listener can be set
      * dynamically when setting up the environment for a worker.
      */
     private val refListener = AtomicReference<AuthenticationListener>()
+
+    /** The current authentication information. */
+    val authenticationInfo
+        get() = refServices.get().authenticationInfo
 
     override val delegateAuthenticators: List<Authenticator> = listOfNotNull(
         UserInfoAuthenticator(),
@@ -89,22 +98,23 @@ internal class OrtServerAuthenticator(
     )
 
     /**
-     * Update the list of [services] for which authentication information is available. The authenticator is able to
-     * handle password requests for these services.
+     * Update the current [information about authentication][info]. This function is called when there are changes in
+     * the credentials currently available, for instance if new infrastructure services are declared in the
+     * repository that is currently processed.
      */
-    fun updateAuthenticatedServices(services: Collection<AuthenticatedService>) {
-        logger.info("Updating the list of authenticated services. Setting ${services.size} services.")
+    fun updateAuthenticationInfo(info: AuthenticationInfo) {
+        logger.info("Updating the list of authenticated services. Setting ${info.services.size} services.")
 
-        val validatedServices = services.mapNotNull { service ->
+        val validatedServices = info.services.mapNotNull { service ->
             runCatching {
-                URI.create(service.uri) to service
+                URI.create(service.url) to service
             }.onFailure {
-                logger.error("Invalid URI for service '${service.name}': '${service.uri}'. Ignoring service.", it)
+                logger.error("Invalid URI for service '${service.name}': '${service.url}'. Ignoring service.", it)
             }.getOrNull()
         }.groupBy { it.first.host }
             .mapValues { e -> e.value.map { it.second.withTrailingSlash() } }
 
-        refServices.set(ServiceData(validatedServices))
+        refServices.set(ServiceData(validatedServices, info))
     }
 
     /**
@@ -122,22 +132,25 @@ internal class OrtServerAuthenticator(
  */
 private data class ServiceData(
     /** A [Map] storing the known services grouped by their host name. */
-    private val servicesByHost: Map<String, Collection<AuthenticatedService>>
+    private val servicesByHost: Map<String, Collection<InfrastructureService>>,
+
+    /** The object with authentication information. */
+    val authenticationInfo: AuthenticationInfo
 ) {
     /**
-     * Find the best-matching [AuthenticatedService] for the given [host] and optional [url]. If there are multiple
+     * Find the best-matching [InfrastructureService] for the given [host] and optional [url]. If there are multiple
      * services for the same host, the one with the longest matching URL is returned. Returns `null` if no
      * matching service is found.
      */
-    fun getAuthenticatedService(host: String, url: URL?): AuthenticatedService? {
+    fun getAuthenticatedService(host: String, url: URL?): InfrastructureService? {
         val services = servicesByHost[url?.host ?: host].orEmpty()
 
         val matchingServices = url?.let { requestUrl ->
             val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
-            services.filter { strUrl.startsWith(it.uri) || it.uri == strUrl }
+            services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
         } ?: services
 
-        return matchingServices.maxByOrNull { it.uri.length }
+        return matchingServices.maxByOrNull { it.url.length }
     }
 }
 
@@ -156,21 +169,25 @@ private class ServicesAuthenticator(
 
         logger.info("Request for password authentication for '${requestingURL ?: requestingHost}'.")
 
-        return refServices.get().getAuthenticatedService(requestingHost, requestingURL)?.let { service ->
-            logger.info("Using credentials from service '${service.name}'.")
+        return with(refServices.get()) {
+            getAuthenticatedService(requestingHost, requestingURL)?.let { service ->
+                logger.info("Using credentials from service '${service.name}'.")
 
-            authenticationListener.get()?.also { listener ->
-                listener.onAuthentication(AuthenticationEvent(service.name))
+                authenticationListener.get()?.also { listener ->
+                    listener.onAuthentication(AuthenticationEvent(service.name))
+                }
+
+                val username = authenticationInfo.resolveSecret(service.usernameSecret)
+                val password = authenticationInfo.resolveSecret(service.passwordSecret)
+                PasswordAuthentication(username, password.toCharArray())
             }
-
-            PasswordAuthentication(service.username, service.password.toCharArray())
         }
     }
 }
 
 /**
- * Return an [AuthenticatedService] instance whose URI is guaranteed to end on a slash. This is needed for correct
+ * Return an [InfrastructureService] instance whose URI is guaranteed to end on a slash. This is needed for correct
  * prefix matching.
  */
-private fun AuthenticatedService.withTrailingSlash(): AuthenticatedService =
-    this.takeIf { uri.endsWith('/') } ?: copy(uri = "$uri/")
+private fun InfrastructureService.withTrailingSlash(): InfrastructureService =
+    this.takeIf { url.endsWith('/') } ?: copy(url = "$url/")
