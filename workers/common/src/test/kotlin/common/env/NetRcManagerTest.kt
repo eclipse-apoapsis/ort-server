@@ -38,7 +38,7 @@ import java.net.URI
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.context.AuthenticationEvent
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition

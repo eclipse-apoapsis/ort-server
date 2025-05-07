@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.context
+package org.eclipse.apoapsis.ortserver.workers.common.auth
 
 /**
  * A data class defining an event that is triggered when [OrtServerAuthenticator] successfully authenticates a request.

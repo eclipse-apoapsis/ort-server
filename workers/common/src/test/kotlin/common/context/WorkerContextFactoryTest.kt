@@ -63,6 +63,9 @@ import org.eclipse.apoapsis.ortserver.secrets.Path as SecretPath
 import org.eclipse.apoapsis.ortserver.secrets.Secret as SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticatedService
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
 

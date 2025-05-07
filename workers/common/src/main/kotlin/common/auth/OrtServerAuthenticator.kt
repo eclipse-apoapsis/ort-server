@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.context
+package org.eclipse.apoapsis.ortserver.workers.common.auth
 
 import java.net.Authenticator
 import java.net.PasswordAuthentication
@@ -44,11 +44,11 @@ private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
  * - If the former steps did not yield a result, the class obtains the credentials from the best-matching
  *   infrastructure service if any.
  *
- * When setting up a new [WorkerContext], this authenticator is installed as the default authenticator. It is
+ * When setting up a new worker context, this authenticator is installed as the default authenticator. It is
  * uninstalled when the context is closed. Since the set of infrastructure services can change during the execution
  * time of a worker (for instance after parsing the `.env.ort.yml` file), this implementation can be modified
  * dynamically. Workers do not interact with this class directly, but use functionality provided by the
- * [WorkerContext] interface instead.
+ * worker context interface instead.
  */
 internal class OrtServerAuthenticator(
     /** The original authenticator that was active when this instance was installed. */

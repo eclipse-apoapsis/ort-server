@@ -43,6 +43,9 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticatedService
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator

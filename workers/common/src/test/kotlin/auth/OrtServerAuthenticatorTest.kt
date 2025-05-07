@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.context
+package org.eclipse.apoapsis.ortserver.workers.common.auth
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir

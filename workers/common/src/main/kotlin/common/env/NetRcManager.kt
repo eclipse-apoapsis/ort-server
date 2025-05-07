@@ -27,8 +27,8 @@ import kotlinx.coroutines.sync.withLock
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
-import org.eclipse.apoapsis.ortserver.workers.common.context.AuthenticationEvent
-import org.eclipse.apoapsis.ortserver.workers.common.context.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
+import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
