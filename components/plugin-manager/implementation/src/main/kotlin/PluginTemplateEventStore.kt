@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 
+import org.jetbrains.exposed.sql.CustomFunction
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -30,7 +31,10 @@ import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.sql.longLiteral
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.upsert
 
 import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
 
@@ -86,6 +90,8 @@ class PluginTemplateEventStore(private val db: Database) {
 
             else -> Unit
         }
+
+        updateReadModel(pluginTemplateEvent)
     }
 
     /**
@@ -96,6 +102,83 @@ class PluginTemplateEventStore(private val db: Database) {
         loadEvents(name, pluginType, pluginId).takeIf { it.isNotEmpty() }?.let {
             PluginTemplateState(name, pluginType, pluginId).applyAll(it)
         }
+
+    private fun updateReadModel(pluginTemplateEvent: PluginTemplateEvent) {
+        when (pluginTemplateEvent.payload) {
+            is Deleted -> {
+                PluginTemplatesReadModel.deleteWhere {
+                    PluginTemplatesReadModel.name eq pluginTemplateEvent.name and
+                            (PluginTemplatesReadModel.pluginType eq pluginTemplateEvent.pluginType) and
+                            (PluginTemplatesReadModel.pluginId eq pluginTemplateEvent.pluginId)
+                }
+            }
+
+            is GlobalEnabled -> {
+                PluginTemplatesReadModel.update(where = {
+                    PluginTemplatesReadModel.name eq pluginTemplateEvent.name and
+                            (PluginTemplatesReadModel.pluginType eq pluginTemplateEvent.pluginType) and
+                            (PluginTemplatesReadModel.pluginId eq pluginTemplateEvent.pluginId)
+                }) {
+                    it[isGlobal] = true
+                }
+            }
+
+            is GlobalDisabled -> {
+                PluginTemplatesReadModel.update(where = {
+                    PluginTemplatesReadModel.name eq pluginTemplateEvent.name and
+                            (PluginTemplatesReadModel.pluginType eq pluginTemplateEvent.pluginType) and
+                            (PluginTemplatesReadModel.pluginId eq pluginTemplateEvent.pluginId)
+                }) {
+                    it[isGlobal] = false
+                }
+            }
+
+            is OptionsUpdated -> {
+                PluginTemplatesReadModel.upsert {
+                    it[name] = pluginTemplateEvent.name
+                    it[pluginType] = pluginTemplateEvent.pluginType
+                    it[pluginId] = pluginTemplateEvent.pluginId
+                    it[options] = pluginTemplateEvent.payload.options
+                }
+            }
+
+            is OrganizationAdded -> {
+                PluginTemplatesReadModel.update(where = {
+                    PluginTemplatesReadModel.name eq pluginTemplateEvent.name and
+                            (PluginTemplatesReadModel.pluginType eq pluginTemplateEvent.pluginType) and
+                            (PluginTemplatesReadModel.pluginId eq pluginTemplateEvent.pluginId)
+                }) {
+                    it.update(
+                        PluginTemplatesReadModel.organizationIds,
+                        CustomFunction(
+                            functionName = "array_append",
+                            columnType = PluginTemplatesReadModel.organizationIds.columnType,
+                            PluginTemplatesReadModel.organizationIds,
+                            longLiteral(pluginTemplateEvent.payload.organizationId)
+                        )
+                    )
+                }
+            }
+
+            is OrganizationRemoved -> {
+                PluginTemplatesReadModel.update(where = {
+                    PluginTemplatesReadModel.name eq pluginTemplateEvent.name and
+                            (PluginTemplatesReadModel.pluginType eq pluginTemplateEvent.pluginType) and
+                            (PluginTemplatesReadModel.pluginId eq pluginTemplateEvent.pluginId)
+                }) {
+                    it.update(
+                        PluginTemplatesReadModel.organizationIds,
+                        CustomFunction(
+                            functionName = "array_remove",
+                            columnType = PluginTemplatesReadModel.organizationIds.columnType,
+                            PluginTemplatesReadModel.organizationIds,
+                            longLiteral(pluginTemplateEvent.payload.organizationId)
+                        )
+                    )
+                }
+            }
+        }
+    }
 
     private fun ResultRow.toPluginTemplateEvent() = PluginTemplateEvent(
         name = this[PluginTemplateEvents.name],
@@ -131,4 +214,15 @@ internal object PluginTemplateOrganizationAssignments : Table("plugin_template_o
     val template_name = text("template_name")
 
     override val primaryKey = PrimaryKey(pluginType, pluginId, organizationId)
+}
+
+internal object PluginTemplatesReadModel : Table("plugin_templates_read_model") {
+    val name = text("name")
+    val pluginType = enumerationByName<PluginType>("plugin_type", 255)
+    val pluginId = text("plugin_id")
+    val options = jsonb<List<PluginOptionTemplate>>("options")
+    val isGlobal = bool("is_global")
+    val organizationIds = array<Long>("organization_ids")
+
+    override val primaryKey = PrimaryKey(name, pluginType, pluginId)
 }
