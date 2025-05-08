@@ -24,6 +24,7 @@ import java.io.PrintWriter
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
+import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveCredentials
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
@@ -104,7 +105,7 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
      * Generate the part of the configuration for the given [definition] that deals with authentication using the
      * given [builder] and the given [fragment] as prefix.
      */
-    private suspend fun generateAuthentication(
+    private fun generateAuthentication(
         builder: ConfigFileBuilder,
         definition: NpmDefinition,
         fragment: String
@@ -118,7 +119,7 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 """.trimIndent()
 
                 NpmAuthMode.PASSWORD_BASE64 -> {
-                    val password = builder.context.resolveSecret(service.passwordSecret).base64()
+                    val password = builder.resolverFun(service.passwordSecret).base64()
                     """
                     $fragment:username=${builder.secretRef(service.usernameSecret)}
                     $fragment:_password=$password
@@ -132,7 +133,8 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                     "$fragment:_authToken=${builder.secretRef(service.passwordSecret)}"
 
                 NpmAuthMode.USERNAME_PASSWORD_AUTH -> {
-                    val secretValues = builder.context.resolveSecrets(
+                    val secretValues = resolveCredentials(
+                        builder.resolverFun,
                         service.usernameSecret,
                         service.passwordSecret
                     )

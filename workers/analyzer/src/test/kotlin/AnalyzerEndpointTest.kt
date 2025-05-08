@@ -316,11 +316,13 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                 every { getOrCreateForRun(any(), any()) } answers { firstArg() }
             }
 
+            val secretsMap = mapOf(
+                usernameSecret to USERNAME,
+                passwordSecret to PASSWORD
+            )
             val context = mockk<WorkerContext> {
-                coEvery { resolveSecrets(*anyVararg()) } returns mapOf(
-                    usernameSecret to USERNAME,
-                    passwordSecret to PASSWORD
-                )
+                coEvery { resolveSecrets(*anyVararg()) } returns secretsMap
+                every { credentialResolverFun } returns(secretsMap::getValue)
                 every { hierarchy } returns testHierarchy
                 every { ortRun } returns OrtRun(
                     id = 20230627071600L,

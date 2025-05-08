@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 
 /**
  * An interface providing information and services useful to multiple worker implementations.
@@ -48,6 +49,13 @@ interface WorkerContext : AutoCloseable {
 
     /** The object providing access to the ORT Server configuration. */
     val configManager: ConfigManager
+
+    /**
+     * A function that can be used to resolve secrets for the infrastructure services involved in the current
+     * processing phase. In contrast to [resolveSecret], this function does not work for arbitrary secrets but only
+     * for those related to services which have been set via [setupAuthentication].
+     */
+    val credentialResolverFun: CredentialResolverFun
 
     /**
      * Return a new temporary directory that can be used by a worker to deal with temporary files. When this context

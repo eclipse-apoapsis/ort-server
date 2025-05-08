@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
-import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
 import org.slf4j.LoggerFactory
@@ -45,8 +45,8 @@ import org.slf4j.LoggerFactory
  * should prevent conflicts with multiple services for the same host.
  */
 internal class NetRcManager(
-    /** The current [WorkerContext]. */
-    private val context: WorkerContext,
+    /** The function to resolve credentials. */
+    private val resolverFun: CredentialResolverFun,
 
     /** The currently known set of infrastructure services. */
     services: Collection<InfrastructureService>
@@ -55,10 +55,10 @@ internal class NetRcManager(
         private val logger = LoggerFactory.getLogger(NetRcManager::class.java)
 
         /**
-         * Create a new instance of [NetRcManager] and initialize it with the given [context] and [services].
+         * Create a new instance of [NetRcManager] and initialize it with the given [resolverFun] and [services].
          */
-        fun create(context: WorkerContext, services: Collection<InfrastructureService>): NetRcManager =
-            NetRcManager(context, services)
+        fun create(resolverFun: CredentialResolverFun, services: Collection<InfrastructureService>): NetRcManager =
+            NetRcManager(resolverFun, services)
     }
 
     /** A map with all relevant services using the service name as key. */
@@ -85,7 +85,7 @@ internal class NetRcManager(
     /**
      * Return a new instance of [ConfigFileBuilder] to be used for creating the `.netrc` file.
      */
-    internal fun createConfigFileBuilder(): ConfigFileBuilder = ConfigFileBuilder(context)
+    internal fun createConfigFileBuilder(): ConfigFileBuilder = ConfigFileBuilder(resolverFun)
 
     /**
      * Return a new instance of [NetRcGenerator] that is going to be called to generate the `.netrc` file.

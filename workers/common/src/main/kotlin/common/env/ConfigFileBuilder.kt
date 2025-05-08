@@ -28,7 +28,8 @@ import java.nio.charset.StandardCharsets
 import kotlin.random.Random
 
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
+import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveCredentials
 
 import org.slf4j.LoggerFactory
 
@@ -52,7 +53,10 @@ typealias SecretEncodingFun = (String) -> String
  * - The implementation expects that configuration files are not big; therefore, the whole content of the file is
  *   kept in memory before it is written to disk.
  */
-class ConfigFileBuilder(val context: WorkerContext) {
+class ConfigFileBuilder(
+    /** The function to resolve secrets for the credentials of environment services. */
+    val resolverFun: CredentialResolverFun
+) {
     companion object {
         private val logger = LoggerFactory.getLogger(ConfigFileBuilder::class.java)
 
@@ -153,7 +157,10 @@ class ConfigFileBuilder(val context: WorkerContext) {
 
         printWriter.block()
 
-        val secretValues = context.resolveSecrets(*secretReferences.values.map(SecretReference::secret).toTypedArray())
+        val secretValues = resolveCredentials(
+            resolverFun,
+            *secretReferences.values.map(SecretReference::secret).toTypedArray()
+        )
         val content = secretReferences.entries.fold(writer.toString()) { text, (placeholder, reference) ->
             val encodedValue = reference.encodingFun(secretValues.getValue(reference.secret))
             text.replace(placeholder, encodedValue)
