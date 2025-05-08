@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import org.ossreviewtoolkit.utils.ort.Environment
+import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
 val defaultReportFormats = listOf(
     "cyclonedx",
@@ -52,6 +52,6 @@ context.ortRun.jobConfigs.scanner?.let { scannerJobConfig ->
 validationResult = ConfigValidationResultSuccess(
     resolvedConfigurations = resolvedJobConfigs,
     labels = mapOf(
-        "createdBy" to "ORT Server $ORT_SERVER_VERSION running ORT ${Environment.ORT_VERSION} in Docker Compose."
+        "createdBy" to "ORT Server $ORT_SERVER_VERSION running ORT $ORT_VERSION in Docker Compose."
     )
 )
