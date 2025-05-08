@@ -149,10 +149,10 @@ function FooterEditorComponent() {
               name='markdown'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Footer Content</FormLabel>
+                  <FormLabel>Content</FormLabel>
                   <FormControl>
                     <textarea
-                      placeholder='Write some markdown...'
+                      placeholder='Write some Markdown...'
                       rows={25}
                       className='border-input bg-muted/50 min-h-[200px] w-full rounded-md border p-2 font-mono text-sm'
                       {...field}
