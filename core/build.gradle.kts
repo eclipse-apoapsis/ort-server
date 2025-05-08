@@ -63,6 +63,7 @@ repositories {
 dependencies {
     implementation(projects.api.v1.apiV1Mapping)
     implementation(projects.clients.keycloak)
+    implementation(projects.components.adminConfig.backend)
     implementation(projects.components.authorization.implementation)
     implementation(projects.components.pluginManager.implementation)
     implementation(projects.config.configSpi)
