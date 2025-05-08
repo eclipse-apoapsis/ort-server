@@ -73,7 +73,7 @@ class WorkerContextFactoryTest : WordSpec({
     beforeEach {
         mockkObject(OrtServerAuthenticator)
 
-        every { OrtServerAuthenticator.install() } returns mockk()
+        every { OrtServerAuthenticator.install() } returns mockk(relaxed = true)
     }
 
     afterEach {
@@ -525,6 +525,81 @@ class WorkerContextFactoryTest : WordSpec({
                 services shouldContainExactlyInAnyOrder listOf(service1, service2)
                 secrets shouldContainExactly expectedSecrets
             }
+        }
+    }
+
+    "credentialsResolverFunc" should {
+        "always fail if there are no current services" {
+            val helper = ContextFactoryTestHelper()
+            val context = helper.context()
+
+            val resolverFun = context.credentialResolverFun
+
+            shouldThrow<IllegalArgumentException> {
+                resolverFun(createSecret("foo"))
+            }
+        }
+
+        "resolve a secret from an active infrastructure service" {
+            val helper = ContextFactoryTestHelper()
+            val context = helper.context()
+
+            // Make sure the secrets provider is initialized.
+            context.resolveSecret(createSecret(SecretsProviderFactoryForTesting.PASSWORD_PATH.path))
+
+            val secretsProvider = SecretsProviderFactoryForTesting.instance()
+            val secUser = createSecret("serviceUser1")
+            val username = SecretValue("uname1")
+            val secPass = createSecret("servicePassword1")
+            val password = SecretValue("secret-01")
+            secretsProvider.writeSecret(SecretPath(secUser.path), username)
+            secretsProvider.writeSecret(SecretPath(secPass.path), password)
+
+            val service = InfrastructureService(
+                name = "service",
+                url = "https://example.com/service",
+                usernameSecret = secUser,
+                passwordSecret = secPass,
+                organization = null,
+                product = null
+            )
+            context.setupAuthentication(listOf(service), mockk())
+
+            val resolverFun = context.credentialResolverFun
+
+            resolverFun(secUser) shouldBe username.value
+            resolverFun(secPass) shouldBe password.value
+        }
+
+        "be aware of later changes of authentication data" {
+            val helper = ContextFactoryTestHelper()
+            val context = helper.context()
+
+            // Make sure the secrets provider is initialized.
+            context.resolveSecret(createSecret(SecretsProviderFactoryForTesting.PASSWORD_PATH.path))
+
+            val resolverFun = context.credentialResolverFun
+
+            val secretsProvider = SecretsProviderFactoryForTesting.instance()
+            val secUser = createSecret("serviceUser1")
+            val username = SecretValue("uname1")
+            val secPass = createSecret("servicePassword1")
+            val password = SecretValue("secret-01")
+            secretsProvider.writeSecret(SecretPath(secUser.path), username)
+            secretsProvider.writeSecret(SecretPath(secPass.path), password)
+
+            val service = InfrastructureService(
+                name = "service",
+                url = "https://example.com/service",
+                usernameSecret = secUser,
+                passwordSecret = secPass,
+                organization = null,
+                product = null
+            )
+            context.setupAuthentication(listOf(service), mockk())
+
+            resolverFun(secUser) shouldBe username.value
+            resolverFun(secPass) shouldBe password.value
         }
     }
 })

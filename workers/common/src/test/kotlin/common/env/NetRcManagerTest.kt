@@ -39,7 +39,7 @@ import java.net.URI
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
-import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
@@ -50,18 +50,18 @@ class NetRcManagerTest : WordSpec({
 
     "createConfigFileBuilder()" should {
         "create a correct builder object" {
-            val context = mockk<WorkerContext>()
-            val manager = NetRcManager.create(context, emptyList())
+            val resolverFun = mockk<CredentialResolverFun>()
+            val manager = NetRcManager.create(resolverFun, emptyList())
 
             val builder = manager.createConfigFileBuilder()
 
-            builder.context shouldBe context
+            builder.resolverFun shouldBe resolverFun
         }
     }
 
     "createNetRcGenerator()" should {
         "create a correct generator object" {
-            val context = mockk<WorkerContext>()
+            val resolverFun = mockk<CredentialResolverFun>()
             val mockBuilder = MockConfigFileBuilder()
             val definition = EnvironmentServiceDefinition(
                 createInfrastructureService(
@@ -71,7 +71,7 @@ class NetRcManagerTest : WordSpec({
                 )
             )
 
-            val manager = NetRcManager.create(context, emptyList())
+            val manager = NetRcManager.create(resolverFun, emptyList())
             val generator = manager.createNetRcGenerator()
 
             generator.generate(mockBuilder.builder, listOf(definition))

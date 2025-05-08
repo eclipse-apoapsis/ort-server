@@ -25,7 +25,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
-import io.mockk.coEvery
+import io.mockk.every
 
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinition
@@ -121,8 +121,8 @@ class NpmRcGeneratorTest : WordSpec({
             val password = "theRegistry'sSecretPwd"
             val passwordBase64 = "dGhlUmVnaXN0cnknc1NlY3JldFB3ZA=="
             val mockBuilder = MockConfigFileBuilder()
-            coEvery {
-                mockBuilder.contextMock.resolveSecret(passwordSecret)
+            every {
+                mockBuilder.resolverFun.invoke(passwordSecret)
             } returns password
 
             NpmRcGenerator().generate(mockBuilder.builder, listOf(definition))
@@ -184,9 +184,8 @@ class NpmRcGeneratorTest : WordSpec({
             val password = "tiger"
             val authBase64 = "c2NvdHQ6dGlnZXI="
             val mockBuilder = MockConfigFileBuilder()
-            coEvery {
-                mockBuilder.contextMock.resolveSecrets(usernameSecret, passwordSecret)
-            } returns mapOf(usernameSecret to username, passwordSecret to password)
+            every { mockBuilder.resolverFun.invoke(usernameSecret) } returns username
+            every { mockBuilder.resolverFun.invoke(passwordSecret) } returns password
 
             NpmRcGenerator().generate(mockBuilder.builder, listOf(definition))
 

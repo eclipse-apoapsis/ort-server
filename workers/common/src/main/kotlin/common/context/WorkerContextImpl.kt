@@ -23,6 +23,7 @@ import java.io.File
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.atomic.AtomicReference
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +46,10 @@ import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
+import org.eclipse.apoapsis.ortserver.workers.common.auth.credentialResolver
+import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
 
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
@@ -94,6 +98,12 @@ internal class WorkerContextImpl(
      */
     private val authenticator = OrtServerAuthenticator.install()
 
+    /**
+     * A reference to hold the function for resolving credentials. The function is updated whenever new authentication
+     * information becomes available. Since this can happen from different threads, an atomic reference is used.
+     */
+    private val refCredentialResolverFun = AtomicReference(undefinedCredentialResolver)
+
     override val ortRun: OrtRun by lazy {
         requireNotNull(ortRunRepository.get(ortRunId)) { "Could not resolve ORT run ID $ortRunId" }
     }
@@ -101,6 +111,11 @@ internal class WorkerContextImpl(
     override val hierarchy: Hierarchy by lazy {
         repositoryRepository.getHierarchy(ortRun.repositoryId)
     }
+
+    override val credentialResolverFun: CredentialResolverFun
+        get() = { secret ->
+            refCredentialResolverFun.get().invoke(secret)
+        }
 
     override fun createTempDir(): File =
         createOrtTempDir(ortRunId.toString()).also(tempDirectories::add)
@@ -186,6 +201,7 @@ internal class WorkerContextImpl(
 
         authenticator.updateAuthenticationInfo(authInfo)
         authenticator.updateAuthenticationListener(listener)
+        refCredentialResolverFun.set(credentialResolver(authInfo))
     }
 
     override fun close() {

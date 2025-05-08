@@ -51,6 +51,8 @@ import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
+import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.REPOSITORY_URL
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
@@ -212,6 +214,7 @@ class EnvironmentServiceTest : WordSpec({
             val context = mockk<WorkerContext> {
                 every { hierarchy } returns repositoryHierarchy
                 every { ortRun } returns ortRunWithEnvironment
+                every { credentialResolverFun } returns undefinedCredentialResolver
                 coEvery { setupAuthentication(any(), any()) } just runs
             }
 
@@ -376,7 +379,9 @@ class EnvironmentServiceTest : WordSpec({
 
     "setupAuthentication" should {
         "setup the authenticator with the services" {
+            val resolverFun = mockk<CredentialResolverFun>()
             val context = mockk<WorkerContext> {
+                every { credentialResolverFun } returns resolverFun
                 coEvery { setupAuthentication(any(), any()) } just runs
             }
 
@@ -390,7 +395,7 @@ class EnvironmentServiceTest : WordSpec({
 
             mockkObject(NetRcManager)
             val netRcManager = mockk<NetRcManager>()
-            every { NetRcManager.create(context, services) } returns netRcManager
+            every { NetRcManager.create(resolverFun, services) } returns netRcManager
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
             environmentService.setupAuthentication(context, services)
@@ -402,6 +407,7 @@ class EnvironmentServiceTest : WordSpec({
     "setupAuthenticationForCurrentRun" should {
         "setup the authenticator with services stored in the database" {
             val context = mockContext()
+            val resolverFun = context.credentialResolverFun
             val services = listOf(
                 createInfrastructureService(),
                 createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
@@ -413,7 +419,7 @@ class EnvironmentServiceTest : WordSpec({
 
             mockkObject(NetRcManager)
             val netRcManager = mockk<NetRcManager>()
-            every { NetRcManager.create(context, services) } returns netRcManager
+            every { NetRcManager.create(resolverFun, services) } returns netRcManager
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
             environmentService.setupAuthenticationForCurrentRun(context)
@@ -552,6 +558,7 @@ private fun mockContext(): WorkerContext =
     mockk {
         every { hierarchy } returns repositoryHierarchy
         every { ortRun } returns currentOrtRun
+        every { credentialResolverFun } returns mockk()
         coEvery { setupAuthentication(any(), any()) } just runs
     }
 
@@ -614,7 +621,7 @@ private fun <T : EnvironmentServiceDefinition> EnvironmentConfigGenerator<T>.ver
         generateApplicable(capture(slotBuilder), capture(slotDefinitions))
     }
 
-    slotBuilder.captured.context shouldBe context
+    slotBuilder.captured.resolverFun shouldBe context.credentialResolverFun
 
     if (expectedDefinitions != null) {
         slotDefinitions.captured shouldBe expectedDefinitions

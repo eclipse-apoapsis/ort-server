@@ -34,7 +34,7 @@ import java.util.EnumSet
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 
 /**
  * A helper class for testing concrete environment generator classes and the configuration files they produce.
@@ -95,8 +95,8 @@ class MockConfigFileBuilder {
     /** A map to store the encoding functions used when creating secret references. */
     private val encodingFunctions = mutableMapOf<String, SecretEncodingFun>()
 
-    /** The mock for the [WorkerContext] used by the mock [ConfigFileBuilder]. */
-    val contextMock = mockk<WorkerContext>()
+    /** The mock for the [CredentialResolverFun] used by the mock [ConfigFileBuilder]. */
+    val resolverFun = mockk<CredentialResolverFun>()
 
     /** A list of the files that have been generated via this mock builder's [ConfigFileBuilder.build] function. */
     val targetFiles: List<File>
@@ -178,7 +178,7 @@ class MockConfigFileBuilder {
                 reference
             }
 
-            every { context } returns contextMock
+            every { resolverFun } returns this@MockConfigFileBuilder.resolverFun
         }
 
     /**

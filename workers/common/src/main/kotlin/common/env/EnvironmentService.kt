@@ -138,16 +138,16 @@ class EnvironmentService(
         context: WorkerContext,
         definitions: Collection<EnvironmentServiceDefinition>
     ) {
+        val services = definitions.map(EnvironmentServiceDefinition::service)
+        val netRcManager = NetRcManager.create(context.credentialResolverFun, services)
+        context.setupAuthentication(services, netRcManager)
+
         withContext(Dispatchers.IO) {
             generators.map { generator ->
-                val builder = ConfigFileBuilder(context)
+                val builder = ConfigFileBuilder(context.credentialResolverFun)
                 async { generator.generateApplicable(builder, definitions) }
             }.awaitAll()
         }
-
-        val services = definitions.map(EnvironmentServiceDefinition::service)
-        val netRcManager = NetRcManager.create(context, services)
-        context.setupAuthentication(services, netRcManager)
     }
 
     /**
