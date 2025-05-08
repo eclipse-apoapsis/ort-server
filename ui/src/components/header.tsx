@@ -270,17 +270,20 @@ export const Header = () => {
                 <span>{user.username}</span>
               </div>
             </DropdownMenuItem>
+            {user.hasRole(['superuser']) && (
+              <>
+                <DropdownMenuSeparator />
+                <Link to='/admin'>
+                  <DropdownMenuItem>Administration</DropdownMenuItem>
+                </Link>
+              </>
+            )}
             <DropdownMenuSeparator />
+            <Link to='/settings'>
+              <DropdownMenuItem>User Settings</DropdownMenuItem>
+            </Link>
             <Link to='/about'>
               <DropdownMenuItem>About</DropdownMenuItem>
-            </Link>
-            {user.hasRole(['superuser']) && (
-              <Link to='/admin'>
-                <DropdownMenuItem>Admin</DropdownMenuItem>
-              </Link>
-            )}
-            <Link to='/settings'>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
             </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem
