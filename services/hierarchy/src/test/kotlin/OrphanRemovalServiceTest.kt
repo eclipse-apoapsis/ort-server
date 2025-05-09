@@ -60,6 +60,9 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.P
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VcsInfoCurationDataTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsSnippetsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsTable
@@ -432,6 +435,50 @@ class OrphanRemovalServiceTest : WordSpec() {
                 }
             }
         }
+
+        "deleteOrphanedSnippets" should {
+            "only delete a limited number of orphaned snippets at a time" {
+                val numberOfSnippets = 100
+                db.dbQuery {
+                    repeat(numberOfSnippets) {
+                        createSnippetsTableEntry()
+                    }
+                }
+
+                service.deleteRunsOrphanedEntities(createConfigManager())
+
+                db.dbQuery(readOnly = true) {
+                    SnippetsTable.selectAll().count() shouldBe (numberOfSnippets - 10) // 10 is the limit in this test
+                }
+            }
+
+            "does not delete snippets that have snipped findings" {
+                val numberOfSnippets = 100
+                db.dbQuery {
+                    val snippedFindingId = createSnippetFindingTableEntry(
+                        scanSummaryId = createScanSummariesTableEntry().value
+                    )
+
+                    repeat(numberOfSnippets) {
+                        val snippedId = createSnippetsTableEntry()
+                        createSnippetFindingsSnippetsTableEntry(snippedFindingId.value, snippedId.value)
+                    }
+                }
+
+                // Add 5 orphan snippets
+                db.dbQuery {
+                    repeat(5) {
+                        createSnippetsTableEntry()
+                    }
+                }
+
+                service.deleteRunsOrphanedEntities(createConfigManager())
+
+                db.dbQuery(readOnly = true) {
+                    SnippetsTable.selectAll().count() shouldBe (numberOfSnippets) // Nothing deleted but the orphans
+                }
+            }
+        }
     }
 
     @Suppress("LongParameterList")
@@ -672,6 +719,31 @@ class OrphanRemovalServiceTest : WordSpec() {
         it[this.vcsId] = vcsId
     } get NestedRepositoriesTable.id
 
+    private fun createScanSummariesTableEntry() = ScanSummariesTable.insert {
+        it[this.startTime] = Clock.System.now()
+        it[this.endTime] = Clock.System.now()
+    } get ScanSummariesTable.id
+
+    private fun createSnippetFindingTableEntry(
+        scanSummaryId: Long,
+        path: String = "path/" + Random.nextInt(0, 10000),
+        startLine: Int = Random.nextInt(0, 10000),
+        endLine: Int = Random.nextInt(0, 10000),
+    ) = SnippetFindingsTable.insert {
+        it[this.scanSummaryId] = scanSummaryId
+        it[this.path] = path
+        it[this.startLine] = startLine
+        it[this.endLine] = endLine
+    } get SnippetFindingsTable.id
+
+    private fun createSnippetFindingsSnippetsTableEntry(
+        snippedFindingId: Long,
+        snippedId: Long
+    ) = SnippetFindingsSnippetsTable.insert {
+        it[this.snippetFindingId] = snippedFindingId
+        it[this.snippetId] = snippedId
+    }
+
     @Suppress("LongParameterList")
     private fun createSnippetsTableEntry(
         purl: String = "purl_" + Random.nextInt(0, 10000),
@@ -773,7 +845,9 @@ private fun createConfigManager(): ConfigManager {
         "vcsInfo.limit" to "10",
         "vcsInfo.chunkSize" to "2",
         "remoteArtifacts.limit" to "10",
-        "remoteArtifacts.chunkSize" to "2"
+        "remoteArtifacts.chunkSize" to "2",
+        "snippets.limit" to "10",
+        "snippets.chunkSize" to "5",
     )
 
     return ConfigManager.create(ConfigFactory.parseMap(configMap))
