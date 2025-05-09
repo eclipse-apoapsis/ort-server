@@ -28,6 +28,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.api.v1.model.Curation
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
@@ -427,6 +428,16 @@ val getPackagesByRunId: RouteConfig.() -> Unit = {
                                             Identifier("Maven", "org.example", "some", "1.0"),
                                             Identifier("Maven", "org.example", "other", "1.0")
                                         )
+                                    )
+                                ),
+                                curations = listOf(
+                                    Curation(
+                                        concludedLicense = "MIT",
+                                        comment = "A comment",
+                                        description = "",
+                                        homepageUrl = "https://example.com/namespace/name",
+                                        authors = listOf("John Doe <john.doe@example.com>"),
+                                        declaredLicenseMapping = emptyMap()
                                     )
                                 )
                             )

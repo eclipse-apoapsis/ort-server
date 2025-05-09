@@ -24,6 +24,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -39,6 +40,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -148,8 +156,8 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 2
                 results.totalCount shouldBe 3
 
-                results.data.first().pkg.identifier.name shouldBe "example3"
-                results.data.last().pkg.identifier.name shouldBe "example2"
+                results.data.first().pkg.identifier.name shouldBe "example"
+                results.data.last().pkg.identifier.name shouldBe "example3"
             }
 
             "allow sorting by identifier" {
@@ -163,9 +171,9 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        fixtures.generatePackage(identifier1),
                         fixtures.generatePackage(identifier2),
                         fixtures.generatePackage(identifier3),
+                        fixtures.generatePackage(identifier1),
                         fixtures.generatePackage(identifier4),
                         fixtures.generatePackage(identifier5)
                     )
@@ -289,17 +297,6 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 2
 
                 with(results.data.first()) {
-                    pkg.identifier shouldBe identifier2
-                    shortestDependencyPaths shouldBe listOf(
-                        ShortestDependencyPath(
-                            project1.identifier,
-                            "compileClassPath",
-                            listOf(identifier1)
-                        )
-                    )
-                }
-
-                with(results.data.last()) {
                     pkg.identifier shouldBe identifier1
                     shortestDependencyPaths shouldBe listOf(
                         ShortestDependencyPath(
@@ -313,6 +310,94 @@ class PackageServiceTest : WordSpec() {
                             emptyList()
                         )
                     )
+                }
+
+                with(results.data.last()) {
+                    pkg.identifier shouldBe identifier2
+                    shortestDependencyPaths shouldBe listOf(
+                        ShortestDependencyPath(
+                            project1.identifier,
+                            "compileClassPath",
+                            listOf(identifier1)
+                        )
+                    )
+                }
+            }
+
+            "return package curations" {
+                val service = PackageService(db)
+
+                val project1 = fixtures.getProject()
+                val project2 = fixtures.getProject(Identifier("Gradle", "", "project2", "1.0"))
+
+                val identifier1 = Identifier("Maven", "com.example", "example", "1.0")
+                val identifier2 = Identifier("Maven", "com.example", "example2", "1.0")
+
+                val ortRunId = createAnalyzerRunWithPackages(
+                    projects = setOf(project1, project2),
+                    packages = setOf(
+                        fixtures.generatePackage(identifier1),
+                        fixtures.generatePackage(identifier2)
+                    )
+                ).id
+
+                fixtures.repositoryConfigurationRepository.create(
+                    ortRunId = ortRunId,
+                    curations = Curations(
+                        packages = listOf(
+                            PackageCuration(
+                                id = identifier1,
+                                data = PackageCurationData(
+                                    comment = "comment1_a",
+                                    description = "description1_a",
+                                    concludedLicense = "license1_a",
+                                    authors = setOf("auth1a_a", "auth1b_a")
+                                )
+                            ),
+                            PackageCuration(
+                                id = identifier1,
+                                data = PackageCurationData(
+                                    comment = "comment1_b",
+                                    description = "description1_b",
+                                    concludedLicense = "license1_b",
+                                    authors = setOf("auth1a_b", "auth1b_b")
+                                )
+                            )
+                        )
+                    ),
+                    analyzerConfig = RepositoryAnalyzerConfiguration(),
+                    excludes = Excludes(),
+                    resolutions = Resolutions(),
+                    packageConfigurations = listOf(),
+                    licenseChoices = LicenseChoices(),
+                    provenanceSnippetChoices = listOf()
+                )
+
+                val results = service.listForOrtRunId(
+                    ortRunId,
+                    ListQueryParameters(listOf(OrderField("purl", OrderDirection.DESCENDING)))
+                )
+
+                results.data shouldHaveSize 2
+
+                with(results.data.first()) {
+                    pkg.identifier shouldBe identifier1
+                    curations shouldHaveSize 0
+                }
+
+                with(results.data.last()) {
+                    pkg.identifier shouldBe identifier2
+                    val curr1 = curations.find { it.comment == "comment1_a" }
+                    curr1.shouldNotBeNull()
+                    curr1.comment shouldBe "comment1_a"
+                    curr1.description shouldBe "description1_a"
+                    curr1.concludedLicense shouldBe "license1_a"
+
+                    val curr2 = curations.find { it.comment == "comment1_b" }
+                    curr2.shouldNotBeNull()
+                    curr2.comment shouldBe "comment1_b"
+                    curr2.description shouldBe "description1_b"
+                    curr2.concludedLicense shouldBe "license1_b"
                 }
             }
 

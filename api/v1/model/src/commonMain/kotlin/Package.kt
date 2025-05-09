@@ -37,7 +37,8 @@ data class Package(
     val vcsProcessed: VcsInfo,
     val isMetadataOnly: Boolean = false,
     val isModified: Boolean = false,
-    val shortestDependencyPaths: List<ShortestDependencyPath>
+    val shortestDependencyPaths: List<ShortestDependencyPath>,
+    val curations: List<Curation>
 )
 
 /**
