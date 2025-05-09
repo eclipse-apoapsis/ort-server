@@ -20,8 +20,9 @@
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.matchers.shouldBe
 
-import io.ktor.client.request.post
+import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
@@ -32,15 +33,18 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
-import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
+import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
-class DisablePluginIntegrationTest : AbstractIntegrationTest({
-    lateinit var eventStore: PluginEventStore
+class DeleteTemplateIntegrationTest : AbstractIntegrationTest({
+    lateinit var pluginEventStore: PluginEventStore
     lateinit var pluginService: PluginService
     lateinit var pluginTemplateService: PluginTemplateService
 
+    val pluginType = PluginType.ADVISOR
+    val pluginId = OssIndexFactory.descriptor.id
+
     beforeEach {
-        eventStore = PluginEventStore(dbExtension.db)
+        pluginEventStore = PluginEventStore(dbExtension.db)
         pluginService = PluginService(dbExtension.db)
         pluginTemplateService = PluginTemplateService(
             dbExtension.db,
@@ -50,43 +54,39 @@ class DisablePluginIntegrationTest : AbstractIntegrationTest({
         )
     }
 
-    "DisablePlugin" should {
-        "return Accepted if the plugin was disabled" {
+    "DeleteTemplate" should {
+        "delete a template if it exists" {
             integrationTestApplication(
-                routes = { pluginManagerRoutes(eventStore, pluginService, pluginTemplateService) }
+                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                val pluginType = PluginType.ADVISOR
-                val pluginId = VulnerableCodeFactory.descriptor.id
+                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
 
-                // Disable the plugin first because it is enabled by default.
-                client.post("/admin/plugins/$pluginType/$pluginId/disable") shouldHaveStatus HttpStatusCode.Accepted
+                client.delete("/admin/plugins/$pluginType/$pluginId/templates/template1") shouldHaveStatus
+                        HttpStatusCode.OK
 
-                // Verify again that the plugin can be disabled after it was enabled.
-                client.post("/admin/plugins/$pluginType/$pluginId/enable")
-                client.post("/admin/plugins/$pluginType/$pluginId/disable") shouldHaveStatus HttpStatusCode.Accepted
+                pluginTemplateService.getTemplate("template1", pluginType, pluginId).isErr shouldBe true
             }
         }
 
-        "return NotFound if the plugin is not installed" {
+        "return NotFound if the template does not exist" {
             integrationTestApplication(
-                routes = { pluginManagerRoutes(eventStore, pluginService, pluginTemplateService) }
+                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                val pluginType = PluginType.ADVISOR
-
-                client.post("/admin/plugins/$pluginType/unknown/disable") shouldHaveStatus HttpStatusCode.NotFound
+                client.delete("/admin/plugins/$pluginType/$pluginId/templates/non-existing") shouldHaveStatus
+                        HttpStatusCode.NotFound
             }
         }
 
-        "return NotModified if the plugin was already disabled" {
+        "normalize the plugin ID" {
             integrationTestApplication(
-                routes = { pluginManagerRoutes(eventStore, pluginService, pluginTemplateService) }
+                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                val pluginType = PluginType.ADVISOR
-                val pluginId = VulnerableCodeFactory.descriptor.id
+                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
 
-                // Disable the plugin first because it is enabled by default.
-                client.post("/admin/plugins/$pluginType/$pluginId/disable")
-                client.post("/admin/plugins/$pluginType/$pluginId/disable") shouldHaveStatus HttpStatusCode.NotModified
+                client.delete("/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1") shouldHaveStatus
+                        HttpStatusCode.OK
+
+                pluginTemplateService.getTemplate("template1", pluginType, pluginId).isErr shouldBe true
             }
         }
     }

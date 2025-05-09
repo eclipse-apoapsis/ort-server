@@ -30,6 +30,8 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
@@ -209,4 +211,6 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
 
     singleOf(::PluginEventStore)
     singleOf(::PluginService)
+    singleOf(::PluginTemplateEventStore)
+    singleOf(::PluginTemplateService)
 }
