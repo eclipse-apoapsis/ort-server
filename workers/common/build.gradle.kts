@@ -44,6 +44,7 @@ dependencies {
 
     implementation(libs.kaml)
     implementation(libs.kotlinxCoroutines)
+    implementation(libs.kotlinxSerializationJson)
 
     api(projects.config.configSpi)
     api(projects.storage.storageSpi)
