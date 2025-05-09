@@ -21,13 +21,33 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
 import io.ktor.server.routing.Route
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.addTemplateToOrganization
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.deleteTemplate
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.disableGlobalTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.disablePlugin
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.enableGlobalTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.enablePlugin
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.getInstalledPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.getTemplate
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.getTemplates
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.removeTemplateFromOrganization
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.updateTemplateOptions
 
 /** Add routes for all plugin-manager endpoints. */
-fun Route.pluginManagerRoutes(eventStore: PluginEventStore, pluginService: PluginService) {
+fun Route.pluginManagerRoutes(
+    eventStore: PluginEventStore,
+    pluginService: PluginService,
+    pluginTemplateService: PluginTemplateService
+) {
+    addTemplateToOrganization(pluginTemplateService)
+    deleteTemplate(pluginTemplateService)
+    disableGlobalTemplate(pluginTemplateService)
     disablePlugin(eventStore)
+    enableGlobalTemplate(pluginTemplateService)
     enablePlugin(eventStore)
     getInstalledPlugins(pluginService)
+    getTemplate(pluginTemplateService)
+    getTemplates(pluginTemplateService)
+    removeTemplateFromOrganization(pluginTemplateService)
+    updateTemplateOptions(pluginTemplateService)
 }

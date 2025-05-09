@@ -49,7 +49,7 @@ fun Application.configureRouting() {
                 admin()
                 adminConfigRoutes(get())
                 organizations()
-                pluginManagerRoutes(get(), get())
+                pluginManagerRoutes(get(), get(), get())
                 products()
                 repositories()
                 runs()
