@@ -60,6 +60,9 @@ data class PluginOptionTemplate(
     /**
      * The value of the option. It will be cast to the option [type]. If `null`, the plugin option will be set to `null`
      * if it is nullable, otherwise this will cause an error.
+     *
+     * If the option [type] is [PluginOptionType.SECRET], the value refers to the name of the secret and will be
+     * resolved at runtime.
      */
     val value: String?,
 

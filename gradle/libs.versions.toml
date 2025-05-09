@@ -58,6 +58,7 @@ kotest = "5.9.1"
 kotestAssertionsKotlinxDatetime = "1.1.0"
 kotestAssertionsKtor = "2.0.0"
 kotestExtensionTestContainers = "2.0.2"
+kotlinResult = "2.0.1"
 ktor = "3.2.0"
 ktorOpenApi = "5.0.2"
 kubernetesClient = "23.0.0"
@@ -122,6 +123,7 @@ kotestAssertionsKtor = { module = "io.kotest.extensions:kotest-assertions-ktor",
 kotestExtensionsTestContainer = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotestExtensionTestContainers" }
 kotestFrameworkApi = { module = "io.kotest:kotest-framework-api", version.ref = "kotest" }
 kotestRunnerJunit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotlinResult = { module = "com.michael-bull.kotlin-result:kotlin-result", version.ref = "kotlinResult" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxCoroutinesSlf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlinxCoroutines" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
