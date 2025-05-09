@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedStringOrDefaul
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
+import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
@@ -117,6 +118,7 @@ class AnalyzerRunner(
             runCatching {
                 val workerOrtConfig = WorkerOrtConfig.create()
                 workerOrtConfig.setUpOrtEnvironment()
+                EnvironmentForkHelper.setupFork(System.`in`)
 
                 val projectDir = File(args[1])
                 val configFile = exchangeDir.resolve(ANALYZER_CONFIG_FILE)
@@ -219,6 +221,10 @@ class AnalyzerRunner(
         logger.info("Starting forked AnalyzerRunner with command: ${processBuilder.command()}")
         withContext(Dispatchers.IO) {
             val process = processBuilder.start()
+            process.outputStream.use { pipe ->
+                EnvironmentForkHelper.prepareFork(pipe)
+            }
+
             val exitCode = process.waitFor()
 
             logger.info("Forked AnalyzerRunner process finished with exit code $exitCode.")

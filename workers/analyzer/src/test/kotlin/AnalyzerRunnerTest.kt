@@ -46,8 +46,10 @@ import io.mockk.spyk
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import java.io.OutputStream
 import java.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
@@ -56,6 +58,7 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
+import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
@@ -316,9 +319,13 @@ class AnalyzerRunnerTest : WordSpec({
 
             val context = createWorkerContext(tempDir = exchangeDir)
 
-            val process = mockk<Process> {
-                every { waitFor() } returns 0
+            val processStream = mockk<OutputStream> {
+                every { close() } just runs
             }
+
+            mockkObject(EnvironmentForkHelper)
+            every { EnvironmentForkHelper.prepareFork(processStream) } just runs
+            val process = createProcessMock(processStream)
 
             val processBuilder = mockk<ProcessBuilder> {
                 every { start() } returns process
@@ -365,6 +372,8 @@ class AnalyzerRunnerTest : WordSpec({
             verify {
                 processBuilder.start()
                 process.waitFor()
+                EnvironmentForkHelper.prepareFork(processStream)
+                processStream.close()
             }
         }
 
@@ -374,10 +383,7 @@ class AnalyzerRunnerTest : WordSpec({
 
             val context = createWorkerContext(tempDir = exchangeDir)
 
-            val process = mockk<Process> {
-                every { waitFor() } returns 0
-            }
-
+            val process = createProcessMock()
             val processBuilder = mockk<ProcessBuilder> {
                 every { start() } returns process
                 every { command() } returns listOf("some", "command")
@@ -408,10 +414,7 @@ class AnalyzerRunnerTest : WordSpec({
 
             val context = createWorkerContext(tempDir = exchangeDir)
 
-            val process = mockk<Process> {
-                every { waitFor() } returns 1
-            }
-
+            val process = createProcessMock()
             val processBuilder = mockk<ProcessBuilder> {
                 every { start() } returns process
                 every { command() } returns listOf("some", "command")
@@ -519,10 +522,7 @@ class AnalyzerRunnerTest : WordSpec({
                 )
             )
 
-            val process = mockk<Process> {
-                every { waitFor() } returns 0
-            }
-
+            val process = createProcessMock()
             val processBuilder = mockk<ProcessBuilder> {
                 every { start() } returns process
                 every { command() } returns listOf("some", "command")
@@ -638,6 +638,9 @@ class AnalyzerRunnerTest : WordSpec({
     }
 
     "main" should {
+        mockkObject(EnvironmentForkHelper)
+        every { EnvironmentForkHelper.setupFork(any()) } just runs
+
         "produce a correct ORT result" {
             val exchangeDir = tempdir()
 
@@ -694,7 +697,17 @@ class AnalyzerRunnerTest : WordSpec({
 
             verify {
                 workerOrtConfigMock.setUpOrtEnvironment()
+                EnvironmentForkHelper.setupFork(System.`in`)
             }
         }
     }
 })
+
+/**
+ * Create a mock for a [Process] that is prepared to expect some standard interactions.
+ */
+private fun createProcessMock(pipeStream: OutputStream = ByteArrayOutputStream()): Process =
+    mockk {
+        every { waitFor() } returns 0
+        every { outputStream } returns pipeStream
+    }
