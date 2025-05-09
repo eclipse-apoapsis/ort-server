@@ -62,19 +62,19 @@ const SettingsPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setPackageIdType(values.packageIdType);
-    toast.info('User Settings', {
-      description: `User settings saved to browser.`,
+    toast.info('Preferences', {
+      description: `Preferences saved to browser cookies.`,
     });
   }
 
   return (
     <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader>
-        <h2 className='text-3xl font-bold tracking-tight'>User Settings</h2>
+        <h2 className='text-3xl font-bold tracking-tight'>Preferences</h2>
         <CardDescription>
-          These user-specific settings are saved as cookies in the browser.
-          Clearing browser cookies will result in settings to be reset to their
-          defaults.
+          These user-specific choices are saved as cookies in the browser.
+          Clearing browser cookies will result in preferences to be reset to
+          their defaults.
         </CardDescription>
       </CardHeader>
       <Separator />
