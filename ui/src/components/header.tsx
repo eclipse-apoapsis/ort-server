@@ -280,7 +280,7 @@ export const Header = () => {
             )}
             <DropdownMenuSeparator />
             <Link to='/settings'>
-              <DropdownMenuItem>User Settings</DropdownMenuItem>
+              <DropdownMenuItem>Preferences</DropdownMenuItem>
             </Link>
             <Link to='/about'>
               <DropdownMenuItem>About</DropdownMenuItem>
