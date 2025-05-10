@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceSubRepositories
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsSnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
@@ -55,6 +56,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.inSubQuery
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.intLiteral
 import org.jetbrains.exposed.sql.notExists
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.union
@@ -261,6 +263,14 @@ private enum class OrphanEntityHandler(
                 )
 
             unionCondition(subQuery, table.id)
+        }
+    },
+
+    SNIPPETS(SnippetsTable, "snippets") {
+        override fun filterOrphanedEntities(): SqlExpressionBuilder.() -> AbstractQuery<*> = {
+            SnippetFindingsSnippetsTable
+                .select(intLiteral(1))
+                .where(SnippetFindingsSnippetsTable.snippetId eq table.id)
         }
     };
 
