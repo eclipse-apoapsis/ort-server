@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
@@ -33,6 +34,7 @@ import org.ossreviewtoolkit.model.PackageType
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.SourceCodeOrigin
+import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.model.utils.FileArchiver
@@ -85,7 +87,20 @@ class ScannerRunner(
                 ?: listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
         )
 
-        val workingTreeCache = DefaultWorkingTreeCache()
+        // If the submodule fetch strategy is set to TOP_LEVEL_ONLY, for git use a plugin config that prevents that
+        // submodules are fetched recursively.
+        val vcsPluginConfigs = if (config.submoduleFetchStrategy == SubmoduleFetchStrategy.TOP_LEVEL_ONLY) {
+            mapOf(
+                VcsType.GIT.toString() to PluginConfig(
+                    options = mapOf("updateNestedSubmodules" to "false")
+                )
+            )
+        } else {
+            emptyMap()
+        }
+
+        val workingTreeCache = DefaultWorkingTreeCache().addVcsPluginConfigs(vcsPluginConfigs)
+
         val provenanceDownloader = DefaultProvenanceDownloader(downloaderConfig, workingTreeCache)
         val packageProvenanceResolver = DefaultPackageProvenanceResolver(
             scanStorages.packageProvenanceStorage,
