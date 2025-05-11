@@ -51,7 +51,7 @@ jsonSchemaSerialization = "0.6.6"
 jsonSchemaValidator = "1.5.6"
 kaml = "0.77.1"
 keycloakTestcontainerVersion = "3.7.0"
-koin = "4.1.0-Beta8"
+koin = "4.1.0-Beta11"
 konform = "0.11.1"
 kotest = "5.9.1"
 kotestAssertionsKotlinxDatetime = "1.1.0"
@@ -111,7 +111,7 @@ jsonSchemaSerialization = { module = "com.github.Ricky12Awesome:json-schema-seri
 jsonSchemaValidator = { module = "com.networknt:json-schema-validator", version.ref = "jsonSchemaValidator" }
 kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
 koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-koinKtor = { module = "io.insert-koin:koin-ktor3", version.ref = "koin" }
+koinKtor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
 koinTest = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 konform = { module = "io.konform:konform", version.ref = "konform" }
 kotestAssertionsCore = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
