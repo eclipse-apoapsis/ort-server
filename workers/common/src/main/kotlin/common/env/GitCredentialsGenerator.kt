@@ -25,8 +25,6 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
-import org.slf4j.LoggerFactory
-
 /**
  * A specialized generator class to generate files with special credentials for Git.
  *
@@ -44,15 +42,20 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
         /** The name of the file storing the actual credentials. */
         private const val GIT_CREDENTIALS_FILE_NAME = ".git-credentials"
 
-        private val logger = LoggerFactory.getLogger(GitCredentialsGenerator::class.java)
-
         /**
          * Return a string with the URL of this [InfrastructureService] with the credentials embedded as needed within
          * the _.git-credentials_ file. Use [builder] to obtain secret references. Return *null* if the URL is invalid.
          */
         private fun InfrastructureService.urlWithCredentials(builder: ConfigFileBuilder): String? = runCatching {
+            val serviceUrl = URI.create(url).toURL()
+
+            GeneratorLogger.entryAdded(
+                "${serviceUrl.protocol}://username:****@${serviceUrl.authority}${serviceUrl.path}",
+                GIT_CREDENTIALS_FILE_NAME,
+                this
+            )
+
             buildString {
-                val serviceUrl = URI.create(url).toURL()
                 append(serviceUrl.protocol)
                 append("://")
                 append(builder.secretRef(usernameSecret, ConfigFileBuilder.urlEncoding)).append(':')
@@ -61,7 +64,7 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
                 append(serviceUrl.path)
             }
         }.onFailure {
-            logger.error("Invalid URL for service '{}'. Ignoring it.", this, it)
+            GeneratorLogger.error("Invalid URL for service '$this'. Ignoring it.", GIT_CREDENTIALS_FILE_NAME, it)
         }.getOrNull()
     }
 

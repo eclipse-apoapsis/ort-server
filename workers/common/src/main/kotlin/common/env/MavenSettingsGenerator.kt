@@ -76,6 +76,12 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
                 printTag("username", builder.secretRef(definition.service.usernameSecret))
                 printTag("password", builder.secretRef(definition.service.passwordSecret))
                 println("</server>".prependIndent(INDENT_8_SPACES))
+
+                GeneratorLogger.entryAdded(
+                    "server '${definition.id}': username/password",
+                    TARGET_NAME,
+                    definition.service
+                )
             }
 
             println("</servers>".prependIndent(INDENT_4_SPACES))
@@ -87,9 +93,18 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
                 println("<proxies>".prependIndent(INDENT_4_SPACES))
                 proxyConfig.httpProxy?.let {
                     printSingleProxy(it.host, it.port, "http", proxyConfig.nonProxyHosts)
+                    GeneratorLogger.proxySettingAdded(
+                        "http ${it.host}:${it.port} noproxy: ${proxyConfig.nonProxyHosts}",
+                        TARGET_NAME
+                    )
                 }
+
                 proxyConfig.httpsProxy?.let {
                     printSingleProxy(it.host, it.port, "https", proxyConfig.nonProxyHosts)
+                    GeneratorLogger.proxySettingAdded(
+                        "https ${it.host}:${it.port} noproxy: ${proxyConfig.nonProxyHosts}",
+                        TARGET_NAME
+                    )
                 }
                 println("</proxies>".prependIndent(INDENT_4_SPACES))
             }

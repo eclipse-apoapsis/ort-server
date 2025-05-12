@@ -179,9 +179,7 @@ class ConfigFileBuilder(
      * given [block].
      */
     suspend fun buildInUserHome(name: String, block: suspend PrintWriter.() -> Unit) {
-        val file = File(System.getProperty("user.home"), name)
-
-        build(file, block)
+        build(File(System.getProperty("user.home"), name), block)
     }
 
     /**
