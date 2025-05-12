@@ -48,6 +48,13 @@ class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
                     print("protocolVersion=\"${definition.sourceProtocolVersion}\" ")
                 }
                 println("/>")
+
+                GeneratorLogger.entryAdded(
+                    "package source ${definition.sourceName}:${definition.sourcePath} " +
+                        "protocol version: ${definition.sourceProtocolVersion.orEmpty()}",
+                    TARGET,
+                    definition.service
+                )
             }
             println("</packageSources>".prependIndent(INDENT_2_SPACES))
             println()
@@ -58,6 +65,12 @@ class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
                 println(generateUsernameBlock(builder, definition))
                 println(generatePasswordBlock(builder, definition))
                 println("</${definition.sourceName}>".prependIndent(INDENT_4_SPACES))
+
+                GeneratorLogger.entryAdded(
+                    "package credentials ${definition.sourceName}:username/password",
+                    TARGET,
+                    definition.service
+                )
             }
             println("</packageSourceCredentials>".prependIndent(INDENT_2_SPACES))
             println()
@@ -65,6 +78,12 @@ class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
             println("<apikeys>".prependIndent(INDENT_2_SPACES))
             definitions.filter { it.authMode == NuGetAuthMode.API_KEY }.forEach { definition ->
                 println(generateApiKeyBlock(definition, builder))
+
+                GeneratorLogger.entryAdded(
+                    "auth api key ${definition.sourcePath}:apiKey",
+                    TARGET,
+                    definition.service
+                )
             }
             println("</apikeys>".prependIndent(INDENT_2_SPACES))
 

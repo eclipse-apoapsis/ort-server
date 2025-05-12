@@ -98,21 +98,21 @@ class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, Str
                     if (hasCredentials) {
                         println("[credential]")
                         println("\thelper = store")
+                        GeneratorLogger.entryAdded("[credential]\n\thelper = store", GIT_CONFIG_FILE_NAME)
                     }
 
                     // Create `url.<base>.insteadOf` sections.
                     gitConfigUrlInsteadOfPairs.forEach {
                         println("[url \"${it.key}\"]")
                         println("\tinsteadOf = \"${it.value}\"")
+                        GeneratorLogger.entryAdded(
+                            "[url \"${it.key}\"]\n\tinsteadOf = \"${it.value}\"",
+                            GIT_CONFIG_FILE_NAME
+                        )
                     }
                 }
-                logger.debug(
-                    "Generated .gitconfig file hasCredentials={} insteadOf={}",
-                    hasCredentials,
-                    gitConfigUrlInsteadOfPairs
-                )
             } else {
-                logger.debug("Not generating .gitconfig file.")
+                logger.debug("Not generating {} file.", GIT_CONFIG_FILE_NAME)
             }
         }
     }

@@ -25,8 +25,6 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
-import org.slf4j.LoggerFactory
-
 /**
  * A specialized generator class to generate the content of the .netrc file.
  *
@@ -47,8 +45,6 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
         /** The name of the file to be generated. */
         private const val TARGET_NAME = ".netrc"
 
-        private val logger = LoggerFactory.getLogger(NetRcGenerator::class.java)
-
         /**
          * Obtain the host name of this [InfrastructureService] from its URL or *null* if the URL is not valid.
          */
@@ -56,7 +52,7 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
             runCatching {
                 URI.create(url).host
             }.onFailure {
-                logger.error("Could not extract host for service '{}'. Ignoring it.", this, it)
+                GeneratorLogger.error("Could not extract host for service '$this'. Ignoring it.", TARGET_NAME, it)
             }.getOrNull()
     }
 
@@ -79,6 +75,8 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
                 val password = builder.secretRef(service.passwordSecret)
 
                 println("machine $host login $username password $password")
+
+                GeneratorLogger.entryAdded("'$host:username/password'", TARGET_NAME, service)
             }
         }
     }

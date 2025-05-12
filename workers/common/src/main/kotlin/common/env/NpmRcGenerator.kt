@@ -80,23 +80,32 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 val uriFragment = serviceUri.substringAfter(':')
                 definition.scope?.let {
                     println("@${definition.scope}:registry=$serviceUri")
+                    GeneratorLogger.entryAdded("@${definition.scope}:registry=$serviceUri", TARGET, definition.service)
                 }
 
                 printLines(generateAuthentication(builder, definition, uriFragment))
 
                 definition.email?.let {
                     println("$uriFragment:email=$it")
+                    GeneratorLogger.entryAdded("$uriFragment:email=$it", TARGET, definition.service)
                 }
                 if (definition.alwaysAuth) {
                     println("$uriFragment:always-auth=true")
+                    GeneratorLogger.entryAdded("$uriFragment:always-auth=true", TARGET, definition.service)
                 }
             }
 
             printProxySettings { proxyConfig ->
                 println()
+
                 printProxySetting(PROXY_SETTING, proxyConfig.httpProxy)
+                GeneratorLogger.proxySettingAdded("$PROXY_SETTING=${proxyConfig.httpProxy}", TARGET)
+
                 printProxySetting(HTTPS_PROXY_SETTING, proxyConfig.httpsProxy)
+                GeneratorLogger.proxySettingAdded("$HTTPS_PROXY_SETTING=${proxyConfig.httpsProxy}", TARGET)
+
                 printProxySetting(NO_PROXY_SETTING, proxyConfig.noProxy)
+                GeneratorLogger.proxySettingAdded("$NO_PROXY_SETTING=${proxyConfig.noProxy}", TARGET)
             }
         }
     }
@@ -112,25 +121,36 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
     ): String =
         with(definition) {
             when (authMode) {
-                NpmAuthMode.PASSWORD ->
+                NpmAuthMode.PASSWORD -> {
+                    GeneratorLogger.entryAdded("$fragment:username=[username],_password=[password]", TARGET, service)
+
                     """
                     $fragment:username=${builder.secretRef(definition.service.usernameSecret)}
                     $fragment:_password=${builder.secretRef(definition.service.passwordSecret)}
                 """.trimIndent()
+                }
 
                 NpmAuthMode.PASSWORD_BASE64 -> {
                     val password = builder.resolverFun(service.passwordSecret).base64()
+                    GeneratorLogger.entryAdded("$fragment:username=[username],_password=[base64]", TARGET, service)
+
                     """
                     $fragment:username=${builder.secretRef(service.usernameSecret)}
                     $fragment:_password=$password
                 """.trimIndent()
                 }
 
-                NpmAuthMode.PASSWORD_AUTH ->
-                    "$fragment:_auth=${builder.secretRef(service.passwordSecret)}"
+                NpmAuthMode.PASSWORD_AUTH -> {
+                    GeneratorLogger.entryAdded("$fragment:_auth=[password]", TARGET, service)
 
-                NpmAuthMode.PASSWORD_AUTH_TOKEN ->
+                    "$fragment:_auth=${builder.secretRef(service.passwordSecret)}"
+                }
+
+                NpmAuthMode.PASSWORD_AUTH_TOKEN -> {
+                    GeneratorLogger.entryAdded("$fragment:_authToken=[token]", TARGET, service)
+
                     "$fragment:_authToken=${builder.secretRef(service.passwordSecret)}"
+                }
 
                 NpmAuthMode.USERNAME_PASSWORD_AUTH -> {
                     val secretValues = resolveCredentials(
@@ -139,6 +159,8 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                         service.passwordSecret
                     )
                     val auth = "${secretValues[service.usernameSecret]}:${secretValues[service.passwordSecret]}"
+                    GeneratorLogger.entryAdded("$fragment:_auth=[base64]", TARGET, service)
+
                     "$fragment:_auth=${auth.base64()}"
                 }
             }

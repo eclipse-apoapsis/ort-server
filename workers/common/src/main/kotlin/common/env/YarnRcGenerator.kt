@@ -39,7 +39,10 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
          * Print a line for the given [key] and [value] if the value is not null.
          */
         private fun PrintWriter.printOptionalSetting(key: String, value: String?) {
-            value?.let { println("$key: \"$value\"") }
+            value?.let {
+                println("$key: \"${value}\"")
+                GeneratorLogger.entryAdded("$key: \"$value\"", TARGET)
+            }
         }
     }
 
@@ -60,21 +63,33 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
                     println()
                 }
 
-                println("\"${definition.service.url}\":".prependIndent(INDENT_2_SPACES))
+                val logEntry = StringBuilder()
 
-                if (definition.alwaysAuth) { println("npmAlwaysAuth: true".prependIndent(INDENT_4_SPACES)) }
+                println("\"${definition.service.url}\":".prependIndent(INDENT_2_SPACES))
+                logEntry.append("url: \"${definition.service.url}\":")
+
+                if (definition.alwaysAuth) {
+                    println("npmAlwaysAuth: true".prependIndent(INDENT_4_SPACES))
+                    logEntry.append("npmAlwaysAuth: true")
+                }
 
                 when (definition.authMode) {
-                    YarnAuthMode.AUTH_IDENT ->
+                    YarnAuthMode.AUTH_IDENT -> {
                         println(
                             generateUsernamePasswordAuthentication(builder, definition)
                         )
+                        logEntry.append("npmAuthIdent: [username:password]")
+                    }
 
-                    YarnAuthMode.AUTH_TOKEN ->
+                    YarnAuthMode.AUTH_TOKEN -> {
                         println(
                             generateTokenAuthentication(builder, definition)
                         )
+                        logEntry.append("npmAuthToken:[token]")
+                    }
                 }
+
+                GeneratorLogger.entryAdded(logEntry.toString(), TARGET, definition.service)
             }
         }
     }
