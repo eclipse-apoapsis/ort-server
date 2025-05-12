@@ -75,6 +75,7 @@ dependencies {
     implementation(projects.services.contentManagementService)
     implementation(projects.services.hierarchyService)
     implementation(projects.services.infrastructureService)
+    implementation(projects.services.ortRunService)
     implementation(projects.services.reportStorageService)
     implementation(projects.services.secretService)
     implementation(projects.shared.apiModel)
