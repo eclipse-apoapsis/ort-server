@@ -395,7 +395,7 @@ class EnvironmentServiceTest : WordSpec({
 
             mockkObject(NetRcManager)
             val netRcManager = mockk<NetRcManager>()
-            every { NetRcManager.create(resolverFun, services) } returns netRcManager
+            every { NetRcManager.create(resolverFun) } returns netRcManager
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
             environmentService.setupAuthentication(context, services)
@@ -419,7 +419,7 @@ class EnvironmentServiceTest : WordSpec({
 
             mockkObject(NetRcManager)
             val netRcManager = mockk<NetRcManager>()
-            every { NetRcManager.create(resolverFun, services) } returns netRcManager
+            every { NetRcManager.create(resolverFun) } returns netRcManager
 
             val environmentService = EnvironmentService(serviceRepository, emptyList(), mockk())
             environmentService.setupAuthenticationForCurrentRun(context)

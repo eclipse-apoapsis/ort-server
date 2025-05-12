@@ -176,7 +176,7 @@ private class ServicesAuthenticator(
                 logger.info("Using credentials from service '${service.name}'.")
 
                 authenticationListener.get()?.also { listener ->
-                    listener.onAuthentication(AuthenticationEvent(service.name))
+                    listener.onAuthentication(AuthenticationEvent(service))
                 }
 
                 val username = authenticationInfo.resolveSecret(service.usernameSecret)

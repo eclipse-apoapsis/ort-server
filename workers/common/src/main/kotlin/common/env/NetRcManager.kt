@@ -38,32 +38,24 @@ import org.slf4j.LoggerFactory
  * An internal helper class to dynamically update the content of the `.netrc` file when there is a change in the
  * authentication state.
  *
- * An instance of this class is created when setting up the environment for executing a worker. It is initialized with
- * the set of infrastructure services currently available. It is also registered at the central authenticator used by
- * ORT Server. Its task is to figure out, based on authentication events, which infrastructure services are currently
- * referenced. These are then written into the `.netrc` file, if they have the corresponding credentials type. This
- * should prevent conflicts with multiple services for the same host.
+ * An instance of this class is created when setting up the environment for executing a worker. It is registered at the
+ * central authenticator used by ORT Server. Its task is to figure out, based on authentication events, which
+ * infrastructure services are currently referenced. These are then written into the `.netrc` file, if they have the
+ * corresponding credentials type. This should prevent conflicts with multiple services for the same host.
  */
 internal class NetRcManager(
     /** The function to resolve credentials. */
-    private val resolverFun: CredentialResolverFun,
-
-    /** The currently known set of infrastructure services. */
-    services: Collection<InfrastructureService>
+    private val resolverFun: CredentialResolverFun
 ) : AuthenticationListener {
     companion object {
         private val logger = LoggerFactory.getLogger(NetRcManager::class.java)
 
         /**
-         * Create a new instance of [NetRcManager] and initialize it with the given [resolverFun] and [services].
+         * Create a new instance of [NetRcManager] and initialize it with the given [resolverFun].
          */
-        fun create(resolverFun: CredentialResolverFun, services: Collection<InfrastructureService>): NetRcManager =
-            NetRcManager(resolverFun, services)
+        fun create(resolverFun: CredentialResolverFun): NetRcManager =
+            NetRcManager(resolverFun)
     }
-
-    /** A map with all relevant services using the service name as key. */
-    private val netRcServices = services.filter { CredentialsType.NETRC_FILE in it.credentialsTypes }
-        .associateBy { it.name }
 
     /**
      * Stores the services for which authentication events have been received. These are the services that are
@@ -75,10 +67,10 @@ internal class NetRcManager(
     private val mutex = Mutex()
 
     override fun onAuthentication(authenticationEvent: AuthenticationEvent) {
-        logger.info("Received authentication event for service '${authenticationEvent.serviceName}'.")
+        logger.info("Received authentication event for service '${authenticationEvent.service.name}'.")
 
-        netRcServices[authenticationEvent.serviceName]?.also { service ->
-            runBlocking { updateNetRcServices(service) }
+        if (CredentialsType.NETRC_FILE in authenticationEvent.service.credentialsTypes) {
+            runBlocking { updateNetRcServices(authenticationEvent.service) }
         }
     }
 

@@ -32,6 +32,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 
@@ -149,7 +150,6 @@ class OrtServerAuthenticatorTest : WordSpec() {
             }
 
             "invoke a registered authentication listener for a successful authentication" {
-                val serviceName = "matchingService"
                 val url = "https://repo.example.com/org/repo"
 
                 val listener = mockk<AuthenticationListener> {
@@ -158,10 +158,8 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
                 val authenticator = OrtServerAuthenticator.install()
                 authenticator.updateAuthenticationListener(listener)
-                val services = listOf(
-                    createService(serviceName, url, usernameSecret, passwordSecret)
-                )
-                authenticator.updateAuthenticationInfo(createAuthInfo(services))
+                val service = createService("matchingService", url, usernameSecret, passwordSecret)
+                authenticator.updateAuthenticationInfo(createAuthInfo(listOf<InfrastructureService>(service)))
 
                 Authenticator.requestPasswordAuthentication(
                     "host.does.not.matter",
@@ -174,9 +172,13 @@ class OrtServerAuthenticatorTest : WordSpec() {
                     Authenticator.RequestorType.SERVER
                 )
 
+                val slotEvent = slot<AuthenticationEvent>()
                 verify(exactly = 1) {
-                    listener.onAuthentication(AuthenticationEvent(serviceName))
+                    listener.onAuthentication(capture(slotEvent))
                 }
+
+                slotEvent.captured.service.name shouldBe service.name
+                slotEvent.captured.service.credentialsTypes shouldBe service.credentialsTypes
             }
 
             "return null for a proxy authentication" {

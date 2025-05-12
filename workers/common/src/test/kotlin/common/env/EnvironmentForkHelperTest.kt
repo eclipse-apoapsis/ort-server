@@ -127,8 +127,8 @@ class EnvironmentForkHelperTest : StringSpec({
             }
 
             with(slotListener.captured) {
-                onAuthentication(AuthenticationEvent(service1.name))
-                onAuthentication(AuthenticationEvent(service2.name))
+                onAuthentication(AuthenticationEvent(service1))
+                onAuthentication(AuthenticationEvent(service2))
             }
         }
 

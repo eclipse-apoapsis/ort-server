@@ -37,7 +37,6 @@ import io.mockk.unmockkAll
 import java.net.URI
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder.Companion.createInfrastructureService
@@ -51,7 +50,7 @@ class NetRcManagerTest : WordSpec({
     "createConfigFileBuilder()" should {
         "create a correct builder object" {
             val resolverFun = mockk<CredentialResolverFun>()
-            val manager = NetRcManager.create(resolverFun, emptyList())
+            val manager = NetRcManager.create(resolverFun)
 
             val builder = manager.createConfigFileBuilder()
 
@@ -71,7 +70,7 @@ class NetRcManagerTest : WordSpec({
                 )
             )
 
-            val manager = NetRcManager.create(resolverFun, emptyList())
+            val manager = NetRcManager.create(resolverFun)
             val generator = manager.createNetRcGenerator()
 
             generator.generate(mockBuilder.builder, listOf(definition))
@@ -89,9 +88,9 @@ class NetRcManagerTest : WordSpec({
             val mockGenerator = mockk<NetRcGenerator> {
                 coEvery { generate(mockBuilder, any()) } just runs
             }
-            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator, services)
+            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator)
 
-            manager.onAuthentication(AuthenticationEvent(service.name))
+            manager.onAuthentication(AuthenticationEvent(service))
 
             val slotServices = slot<Collection<EnvironmentServiceDefinition>>()
             coVerify {
@@ -101,28 +100,13 @@ class NetRcManagerTest : WordSpec({
             slotServices.captured.map(EnvironmentServiceDefinition::service) shouldContainExactlyInAnyOrder services
         }
 
-        "ignore services with unknown names" {
-            val service1 = createInfrastructureService()
-            val service2 = createInfrastructureService(url = "https://repo.example.org/other")
-
-            val mockBuilder = mockk<ConfigFileBuilder>()
-            val mockGenerator = mockk<NetRcGenerator>()
-            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator, listOf(service1))
-
-            manager.onAuthentication(AuthenticationEvent(service2.name))
-
-            coVerify(exactly = 0) {
-                mockGenerator.generate(any(), any())
-            }
-        }
-
         "ignore services with other credentials types" {
             val service = createInfrastructureService(credentialsTypes = setOf(CredentialsType.GIT_CREDENTIALS_FILE))
             val mockBuilder = mockk<ConfigFileBuilder>()
             val mockGenerator = mockk<NetRcGenerator>()
-            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator, listOf(service))
+            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator)
 
-            manager.onAuthentication(AuthenticationEvent(service.name))
+            manager.onAuthentication(AuthenticationEvent(service))
 
             coVerify(exactly = 0) {
                 mockGenerator.generate(any(), any())
@@ -138,10 +122,10 @@ class NetRcManagerTest : WordSpec({
             val mockGenerator = mockk<NetRcGenerator> {
                 coEvery { generate(mockBuilder, any()) } just runs
             }
-            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator, services)
+            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator)
 
-            manager.onAuthentication(AuthenticationEvent(service1.name))
-            manager.onAuthentication(AuthenticationEvent(service2.name))
+            manager.onAuthentication(AuthenticationEvent(service1))
+            manager.onAuthentication(AuthenticationEvent(service2))
 
             val slotServices = mutableListOf<Collection<EnvironmentServiceDefinition>>()
             coVerify {
@@ -161,10 +145,10 @@ class NetRcManagerTest : WordSpec({
             val mockGenerator = mockk<NetRcGenerator> {
                 coEvery { generate(mockBuilder, any()) } just runs
             }
-            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator, listOf(service1, service2))
+            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator)
 
-            manager.onAuthentication(AuthenticationEvent(service1.name))
-            manager.onAuthentication(AuthenticationEvent(service2.name))
+            manager.onAuthentication(AuthenticationEvent(service1))
+            manager.onAuthentication(AuthenticationEvent(service2))
 
             val slotServices = mutableListOf<Collection<EnvironmentServiceDefinition>>()
             coVerify {
@@ -182,10 +166,10 @@ class NetRcManagerTest : WordSpec({
             val mockGenerator = mockk<NetRcGenerator> {
                 coEvery { generate(mockBuilder, any()) } just runs
             }
-            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator, listOf(service))
+            val manager = createNetRcManagerSpy(mockBuilder, mockGenerator)
 
-            manager.onAuthentication(AuthenticationEvent(service.name))
-            manager.onAuthentication(AuthenticationEvent(service.name))
+            manager.onAuthentication(AuthenticationEvent(service))
+            manager.onAuthentication(AuthenticationEvent(service))
 
             coVerify(exactly = 1) {
                 mockGenerator.generate(mockBuilder, any())
@@ -195,15 +179,13 @@ class NetRcManagerTest : WordSpec({
 })
 
 /**
- * Create a spy for a [NetRcManager] instance that is prepared to use the given [mockBuilder] and [mockBuilder], and
- * which is initialized with the given [services].
+ * Create a spy for a [NetRcManager] instance that is prepared to use the given [mockBuilder] and [mockGenerator].
  */
 private fun createNetRcManagerSpy(
     mockBuilder: ConfigFileBuilder,
-    mockGenerator: NetRcGenerator,
-    services: Collection<InfrastructureService>
+    mockGenerator: NetRcGenerator
 ): NetRcManager =
-    spyk(NetRcManager.create(mockk(), services)) {
+    spyk(NetRcManager.create(mockk())) {
         every { createConfigFileBuilder() } returns mockBuilder
         every { createNetRcGenerator() } returns mockGenerator
     }
