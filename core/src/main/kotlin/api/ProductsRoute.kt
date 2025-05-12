@@ -414,8 +414,11 @@ fun Route.products() = route("products/{productId}") {
             if (disabledPlugins.isNotEmpty()) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    "The following plugins are disabled in this ORT Server instance: " +
-                            disabledPlugins.joinToString { (type, id) -> "$id ($type)" }
+                    ErrorResponse(
+                        message = "Disabled plugins are used.",
+                        cause = "The following plugins are disabled in this ORT Server instance: " +
+                                disabledPlugins.joinToString { (type, id) -> "$id ($type)" }
+                    )
                 )
                 return@post
             }
