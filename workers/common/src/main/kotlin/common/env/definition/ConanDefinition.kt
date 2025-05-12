@@ -39,12 +39,20 @@ class ConanDefinition(
     val name: String,
 
     /**
-     * Indicates the URL to be used by Conan to search for the recipes/binaries.
+     * Indicates the URL to be used by Conan to search for the recipes/binaries. If not defined, the URL is obtained
+     * from the associated [InfrastructureService].
      */
-    val url: String,
+    val url: String?,
 
     /**
      * Verify SSL certificate of the specified url.
      */
     val verifySsl: Boolean
-) : EnvironmentServiceDefinition(service, credentialsTypes)
+) : EnvironmentServiceDefinition(service, credentialsTypes) {
+    /**
+     * The URL of the Conan remote repository defined by this definition. This URL can either be specified directly in
+     * this definition or it is obtained from the associated [InfrastructureService].
+     */
+    val remoteUrl: String
+        get() = url ?: service.url
+}

@@ -122,6 +122,62 @@ class ConanGeneratorTest : WordSpec({
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
+
+        "obtain the url from the service if not defined" {
+            val definition = ConanDefinition(
+                MockConfigFileBuilder.createInfrastructureService(REMOTE_URL),
+                emptySet(),
+                REMOTE_NAME,
+                null,
+                true
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            ConanGenerator().generate(mockBuilder.builder, listOf(definition))
+
+            val expectedLines = listOf(
+                "{",
+                "  \"remotes\": [",
+                "    {",
+                "      \"name\": \"$REMOTE_NAME\",",
+                "      \"url\": \"$REMOTE_URL\",",
+                "      \"verify_ssl\": true",
+                "    }",
+                "  ]",
+                "}"
+            )
+            val lines = mockBuilder.generatedLines()
+            lines shouldContainExactly expectedLines
+        }
+
+        "allow overriding the service URL in the definition" {
+            val definition = ConanDefinition(
+                MockConfigFileBuilder.createInfrastructureService("https://example.com"),
+                emptySet(),
+                REMOTE_NAME,
+                REMOTE_URL,
+                true
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            ConanGenerator().generate(mockBuilder.builder, listOf(definition))
+
+            val expectedLines = listOf(
+                "{",
+                "  \"remotes\": [",
+                "    {",
+                "      \"name\": \"$REMOTE_NAME\",",
+                "      \"url\": \"$REMOTE_URL\",",
+                "      \"verify_ssl\": true",
+                "    }",
+                "  ]",
+                "}"
+            )
+            val lines = mockBuilder.generatedLines()
+            lines shouldContainExactly expectedLines
+        }
     }
 })
 
