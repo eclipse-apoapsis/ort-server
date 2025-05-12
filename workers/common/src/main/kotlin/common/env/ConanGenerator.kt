@@ -47,7 +47,7 @@ class ConanGenerator : EnvironmentConfigGenerator<ConanDefinition> {
                 println("{".prependIndent(INDENT_4_SPACES))
 
                 println("\"name\": \"${definition.name}\",".prependIndent(INDENT_6_SPACES))
-                println("\"url\": \"${definition.url}\",".prependIndent(INDENT_6_SPACES))
+                println("\"url\": \"${definition.remoteUrl}\",".prependIndent(INDENT_6_SPACES))
                 println("\"verify_ssl\": ${definition.verifySsl}".prependIndent(INDENT_6_SPACES))
 
                 print("}".prependIndent(INDENT_4_SPACES))
