@@ -1066,7 +1066,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     "test description",
                     userSecret.name,
                     passSecret.name,
-                    credentialsTypes = emptySet()
+                    credentialsTypes = setOf(
+                        ApiCredentialsType.GIT_CREDENTIALS_FILE,
+                        ApiCredentialsType.NETRC_FILE,
+                        ApiCredentialsType.NO_AUTHENTICATION
+                    )
                 )
                 val response = superuserClient.post("/api/v1/organizations/$orgId/infrastructure-services") {
                     setBody(createInfrastructureService)
@@ -1078,7 +1082,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     createInfrastructureService.description,
                     userSecret.name,
                     passSecret.name,
-                    emptySet()
+                    setOf(
+                        ApiCredentialsType.GIT_CREDENTIALS_FILE,
+                        ApiCredentialsType.NETRC_FILE,
+                        ApiCredentialsType.NO_AUTHENTICATION
+                    )
                 )
 
                 response shouldHaveStatus HttpStatusCode.Created

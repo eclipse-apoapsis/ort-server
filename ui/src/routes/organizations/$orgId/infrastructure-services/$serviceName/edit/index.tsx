@@ -66,7 +66,9 @@ const formSchema = z.object({
   description: z.string().optional(),
   usernameSecretRef: z.string(),
   passwordSecretRef: z.string(),
-  credentialsTypes: z.array(z.enum(['NETRC_FILE', 'GIT_CREDENTIALS_FILE'])),
+  credentialsTypes: z.array(
+    z.enum(['NETRC_FILE', 'GIT_CREDENTIALS_FILE', 'NO_AUTHENTICATION'])
+  ),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
@@ -318,6 +320,10 @@ const EditInfrastructureServicePage = () => {
                 {
                   id: 'GIT_CREDENTIALS_FILE',
                   label: 'Git Credentials File',
+                },
+                {
+                  id: 'NO_AUTHENTICATION',
+                  label: 'Do not use for authentication',
                 },
               ]}
               className='mt-4!'
