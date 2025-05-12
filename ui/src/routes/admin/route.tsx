@@ -21,6 +21,7 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 import {
   Blocks,
   Eye,
+  House,
   KeyRound,
   ListVideo,
   Palette,
@@ -80,6 +81,11 @@ const Layout = () => {
     {
       label: 'Content Management',
       items: [
+        {
+          title: 'Home Icon',
+          to: '/admin/content-management/home-icon',
+          icon: () => <House className='h-4 w-4' />,
+        },
         {
           title: 'Colors',
           to: '/admin/colors',
