@@ -25,6 +25,7 @@ import java.net.URI
 import java.net.URL
 import java.util.concurrent.atomic.AtomicReference
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
@@ -105,13 +106,14 @@ internal class OrtServerAuthenticator(
     fun updateAuthenticationInfo(info: AuthenticationInfo) {
         logger.info("Updating the list of authenticated services. Setting ${info.services.size} services.")
 
-        val validatedServices = info.services.mapNotNull { service ->
-            runCatching {
-                URI.create(service.url) to service
-            }.onFailure {
-                logger.error("Invalid URI for service '${service.name}': '${service.url}'. Ignoring service.", it)
-            }.getOrNull()
-        }.groupBy { it.first.host }
+        val validatedServices = info.services.filterNot { CredentialsType.NO_AUTHENTICATION in it.credentialsTypes }
+            .mapNotNull { service ->
+                runCatching {
+                    URI.create(service.url) to service
+                }.onFailure {
+                    logger.error("Invalid URI for service '${service.name}': '${service.url}'. Ignoring service.", it)
+                }.getOrNull()
+            }.groupBy { it.first.host }
             .mapValues { e -> e.value.map { it.second.withTrailingSlash() } }
 
         refServices.set(ServiceData(validatedServices, info))

@@ -24,7 +24,7 @@ package org.eclipse.apoapsis.ortserver.model
  * Depending on the type(s) set, the credentials of the service are added to different configuration files. Note that
  * infrastructure services can be assigned multiple credential types. It is also possible that they have no type;
  * then they are ignored when generating configuration files for credentials. They are, however, always considered by
- * the global authenticator of the JVM.
+ * the global authenticator of the JVM, unless the [NO_AUTHENTICATION] flag is set.
  */
 enum class CredentialsType {
     /**
@@ -39,5 +39,12 @@ enum class CredentialsType {
      * This flag should typically be set for services representing Git repositories to make sure that the Git CLI can
      * obtain their credentials.
      */
-    GIT_CREDENTIALS_FILE
+    GIT_CREDENTIALS_FILE,
+
+    /**
+     * Credentials type indicating that this service does not require any authentication. This type is evaluated by
+     * the authenticator; if it is present, the authenticator will not return any authentication information. This is
+     * useful for instance for public repositories or services like Maven Central.
+     */
+    NO_AUTHENTICATION
 }

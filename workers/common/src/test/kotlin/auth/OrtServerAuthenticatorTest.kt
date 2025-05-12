@@ -39,6 +39,7 @@ import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.URI
 
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 
@@ -313,6 +314,35 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 pwd.userName shouldBe USERNAME
                 pwd.password shouldBe PASSWORD.toCharArray()
             }
+
+            "ignore a service with credentials type NO_AUTHENTICATION" {
+                val url = "https://repo.example.com/org/repo"
+
+                val authenticator = OrtServerAuthenticator.install()
+                val services = listOf(
+                    createService(
+                        "service",
+                        url,
+                        usernameSecret,
+                        passwordSecret,
+                        credentialsTypes = setOf(CredentialsType.NO_AUTHENTICATION)
+                    )
+                )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
+
+                val pwd = Authenticator.requestPasswordAuthentication(
+                    "repo.example.com",
+                    null,
+                    443,
+                    "tcp",
+                    "hello",
+                    "https",
+                    URI.create(url).toURL(),
+                    Authenticator.RequestorType.SERVER
+                )
+
+                pwd should beNull()
+            }
         }
 
         "updateAuthenticatedServices()" should {
@@ -385,13 +415,15 @@ private fun createSecret(path: String): Secret =
     Secret(0, path, "$path-secret", null, null, null, null)
 
 /**
- * Create an [InfrastructureService] object with the given [name], [url], and optional [username] and [password].
+ * Create an [InfrastructureService] object with the given [name], [url], and optional [username], [password], and
+ * [credentialsTypes].
  */
 private fun createService(
     name: String,
     url: String,
     username: Secret? = null,
-    password: Secret? = null
+    password: Secret? = null,
+    credentialsTypes: Set<CredentialsType> = emptySet()
 ): InfrastructureService =
     InfrastructureService(
         name = name,
@@ -399,7 +431,8 @@ private fun createService(
         usernameSecret = username ?: createSecret("unknown-username"),
         passwordSecret = password ?: createSecret("unknown-password"),
         organization = null,
-        product = null
+        product = null,
+        credentialsTypes = credentialsTypes
     )
 
 /**
