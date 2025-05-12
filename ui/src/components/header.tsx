@@ -24,6 +24,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { useAdminServiceGetApiV1AdminConfigByKey } from '@/api/queries';
 import homeIcon from '@/assets/home-icon.svg';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -35,6 +36,9 @@ import {
 } from '@/components/ui/tooltip';
 import { extractInitials } from '@/helpers/extract-initials.ts';
 import { useUser } from '@/hooks/use-user';
+import { toast } from '@/lib/toast';
+import { LoadingIndicator } from './loading-indicator';
+import { ToastError } from './toast-error';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -62,6 +66,15 @@ const formSchema = z.object({
 export const Header = () => {
   const user = useUser();
   const navigate = useNavigate();
+
+  const {
+    data: dbHomeIcon,
+    isPending,
+    isError,
+    error,
+  } = useAdminServiceGetApiV1AdminConfigByKey({
+    key: 'HOME_ICON_URL',
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -119,6 +132,22 @@ export const Header = () => {
     }
   }, [organizationMatch, productMatch, repoMatch]);
 
+  if (isPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (isError) {
+    toast.error('Unable to load data', {
+      description: <ToastError error={error} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
+  }
+
   return (
     <header className='bg-background sticky top-0 z-50 flex h-16 justify-between gap-4 border-b px-4 md:px-6'>
       <div className='flex flex-row items-center gap-4'>
@@ -129,7 +158,15 @@ export const Header = () => {
                 to='/'
                 className='flex items-center gap-2 text-lg font-semibold md:text-base'
               >
-                <img src={homeIcon} alt='ORT Server' className='size-6' />
+                <img
+                  src={
+                    dbHomeIcon.isEnabled && dbHomeIcon.value
+                      ? dbHomeIcon.value
+                      : homeIcon
+                  }
+                  alt='ORT Server'
+                  className='size-6'
+                />
                 <span className='sr-only'>Home</span>
               </Link>
             </TooltipTrigger>
