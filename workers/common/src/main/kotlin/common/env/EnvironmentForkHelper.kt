@@ -81,10 +81,7 @@ object EnvironmentForkHelper {
         val authenticator = OrtServerAuthenticator.install()
         authenticator.updateAuthenticationInfo(authInfo)
 
-        val netrcManager = NetRcManager.create(
-            resolverFun = credentialResolver(authInfo),
-            services = authInfo.services
-        )
+        val netrcManager = NetRcManager.create(credentialResolver(authInfo))
         authenticator.updateAuthenticationListener(netrcManager)
     }
 

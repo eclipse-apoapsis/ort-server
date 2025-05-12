@@ -139,7 +139,7 @@ class EnvironmentService(
         definitions: Collection<EnvironmentServiceDefinition>
     ) {
         val services = definitions.map(EnvironmentServiceDefinition::service)
-        val netRcManager = NetRcManager.create(context.credentialResolverFun, services)
+        val netRcManager = NetRcManager.create(context.credentialResolverFun)
         context.setupAuthentication(services, netRcManager)
 
         withContext(Dispatchers.IO) {
