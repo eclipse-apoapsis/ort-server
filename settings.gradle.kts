@@ -55,6 +55,7 @@ include(":services:authorization")
 include(":services:content-management")
 include(":services:hierarchy")
 include(":services:infrastructure")
+include(":services:ort-run")
 include(":services:report-storage")
 include(":services:secret")
 include(":shared:api-model")
@@ -97,6 +98,7 @@ project(":services:authorization").name = "authorization-service"
 project(":services:content-management").name = "content-management-service"
 project(":services:hierarchy").name = "hierarchy-service"
 project(":services:infrastructure").name = "infrastructure-service"
+project(":services:ort-run").name = "ort-run-service"
 project(":services:report-storage").name = "report-storage-service"
 project(":services:secret").name = "secret-service"
 project(":storage:spi").name = "storage-spi"
