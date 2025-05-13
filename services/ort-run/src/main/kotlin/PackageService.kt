@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services
+package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.services.toSortOrder
 
 import org.jetbrains.exposed.sql.Case
 import org.jetbrains.exposed.sql.Count
