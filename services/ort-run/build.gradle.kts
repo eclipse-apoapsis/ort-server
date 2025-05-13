@@ -31,8 +31,17 @@ dependencies {
     api(projects.services.hierarchyService)
     api(projects.services.reportStorageService)
 
-    testImplementation(testFixtures(projects.dao))
+    api(libs.ortModel)
+    api(libs.ortScanner)
 
+    implementation(projects.utils.logging)
+
+    testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.storage.storageSpi))
+
+    testImplementation(projects.shared.ortTestData)
+
+    testImplementation(libs.jacksonModuleKotlin)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

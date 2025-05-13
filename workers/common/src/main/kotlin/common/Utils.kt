@@ -19,15 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import org.eclipse.apoapsis.ortserver.model.WorkerJob
 
-import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
-
-import org.ossreviewtoolkit.model.FileList
-import org.ossreviewtoolkit.model.KnownProvenance
-import org.ossreviewtoolkit.scanner.utils.FileListResolver
 import org.ossreviewtoolkit.utils.ort.printStackTrace
 
 /**
@@ -38,19 +31,15 @@ fun enableOrtStackTraces() {
 }
 
 /**
- * Use the [fileListResolver] to get the [FileList]s for the provided [provenances]. If a [FileList] is not
- * available for a provenance, it is ignored and not included in the result.
+ * Validate this [WorkerJob] before it can be processed by the corresponding worker. Check whether the job
+ * exists and has a state that allows it to be processed.
  */
-internal fun getFileLists(fileListResolver: FileListResolver, provenances: Set<KnownProvenance>) =
-    runBlocking(Dispatchers.IO.limitedParallelism(20)) {
-        provenances.map { provenance ->
-            async {
-                fileListResolver.get(provenance)?.let { fileList ->
-                    FileList(
-                        provenance,
-                        fileList.files.mapTo(mutableSetOf()) { FileList.Entry(it.path, it.sha1) }
-                    )
-                }
-            }
-        }.awaitAll().filterNotNull()
+inline fun <reified T : WorkerJob> T?.validateForProcessing(jobId: Long): T {
+    requireNotNull(this) { "The ${T::class.simpleName} '$jobId' does not exist in the database." }
+
+    if (status.final) {
+        throw JobIgnoredException("The ${T::class.simpleName} '$jobId' is in a final state.")
     }
+
+    return this
+}

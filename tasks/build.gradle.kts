@@ -51,6 +51,8 @@ dependencies {
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kubernetesClient)
     implementation(libs.logback)
+    implementation(libs.ortDownloader)
+    implementation(libs.ortScanner)
     implementation(libs.typesafeConfig)
 
     runtimeOnly(platform(projects.storage))
