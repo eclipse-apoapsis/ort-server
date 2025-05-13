@@ -49,8 +49,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
-import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 
 import org.ossreviewtoolkit.model.OrtResult
 
@@ -140,7 +140,7 @@ class NotifierOrtResultGeneratorTest : StringSpec({
     }
 })
 
-private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.workers.common.OrtServerMappingsKt"
+private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
 
 private const val ORT_RUN_ID = 20240502084016L
 private const val REPOSITORY_ID = 20240502084048L

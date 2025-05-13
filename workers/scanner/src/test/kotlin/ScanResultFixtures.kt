@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerDetail
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.Snippet
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.SnippetFinding
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 
 import org.ossreviewtoolkit.model.ScanResult as OrtScanResult
 import org.ossreviewtoolkit.scanner.ScannerMatcher

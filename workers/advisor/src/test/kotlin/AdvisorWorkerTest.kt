@@ -43,17 +43,17 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
-import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
 import org.ossreviewtoolkit.model.OrtResult
 
-private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.workers.common.OrtServerMappingsKt"
+private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
 
 private const val ANALYZER_JOB_ID = 1L
 private const val ADVISOR_JOB_ID = 1L

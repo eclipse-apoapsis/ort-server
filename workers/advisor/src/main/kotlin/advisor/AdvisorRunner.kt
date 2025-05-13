@@ -20,8 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.advisor.AdviceProviderFactory
 import org.ossreviewtoolkit.advisor.Advisor

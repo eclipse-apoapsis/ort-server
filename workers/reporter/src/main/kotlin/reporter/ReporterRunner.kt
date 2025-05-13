@@ -41,9 +41,9 @@ import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapOptions
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
