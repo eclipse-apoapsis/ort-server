@@ -423,9 +423,7 @@ fun Route.products() = route("products/{productId}") {
                 return@post
             }
 
-            val repositoryIds = if (createOrtRun.repositoryIds.isEmpty()) {
-                productService.getRepositoryIdsForProduct(productId)
-            } else {
+            val repositoryIds = if (createOrtRun.repositoryIds.isNotEmpty()) {
                 val productRepoIds = productService.getRepositoryIdsForProduct(productId)
                 require(createOrtRun.repositoryIds.all { it in productRepoIds }) {
                     """
@@ -434,6 +432,17 @@ fun Route.products() = route("products/{productId}") {
                     """.trimIndent()
                 }
                 createOrtRun.repositoryIds
+            } else if (createOrtRun.repositoryFailedIds.isNotEmpty()) {
+                val repositoryIds = productService.getLatestOrtRunWithFailedStatusForProduct(productId)
+                require(createOrtRun.repositoryFailedIds.all { it in repositoryIds }) {
+                    """
+                    The following repository IDs do not have a failed ORT run for product $productId:
+                    ${createOrtRun.repositoryFailedIds.filter { it !in repositoryIds }}
+                    """.trimIndent()
+                }
+                createOrtRun.repositoryFailedIds
+            } else {
+                productService.getRepositoryIdsForProduct(productId)
             }
 
             val createdRuns = repositoryIds.map { repositoryId ->

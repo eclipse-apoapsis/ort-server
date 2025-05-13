@@ -98,6 +98,7 @@ import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
@@ -1576,6 +1577,69 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
                 }
                 repositoryIdsSpecific shouldContainExactlyInAnyOrder listOf(repository1Id)
+            }
+        }
+
+        "trigger ORT runs FAILED for repositories in the product" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val description = "description"
+                val repository1Id = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo1.git",
+                    productId = productId,
+                    description = description
+                ).id
+                val repository2Id = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo2.git",
+                    productId = productId,
+                    description = description
+                ).id
+                val repository3Id = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.com/repo3.git",
+                    productId = productId,
+                    description = description
+                ).id
+
+                val ortRun1 = dbExtension.fixtures.createOrtRun(repository1Id)
+                dbExtension.fixtures.createOrtRun(repository2Id)
+                val ortRun3 = dbExtension.fixtures.createOrtRun(repository3Id)
+
+                /*update status ort run */
+                dbExtension.fixtures.ortRunRepository.update(
+                    id = ortRun1.id,
+                    status = OrtRunStatus.FAILED.asPresent2()
+                )
+
+                dbExtension.fixtures.ortRunRepository.update(
+                    id = ortRun3.id,
+                    status = OrtRunStatus.FAILED.asPresent2()
+                )
+
+                val createOrtRunFailed = CreateOrtRun(
+                    revision = "main",
+                    path = "",
+                    jobConfigs = JobConfigurations(),
+                    jobConfigContext = null,
+                    labels = emptyMap(),
+                    environmentConfigPath = null,
+                    repositoryFailedIds = listOf(repository1Id, repository3Id)
+                )
+
+                val responseSpecific = superuserClient.post("/api/v1/products/$productId/runs") {
+                    setBody(createOrtRunFailed)
+                }
+
+                responseSpecific shouldHaveStatus HttpStatusCode.Created
+
+                val createdRunsSpecific = responseSpecific.body<List<OrtRun>>()
+                createdRunsSpecific shouldHaveSize 2
+
+                val repositoryIdsSpecific = createdRunsSpecific.map { it.repositoryId }
+
+                repositoryIdsSpecific shouldContainExactlyInAnyOrder listOf(repository1Id, repository3Id)
             }
         }
 
