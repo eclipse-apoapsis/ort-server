@@ -19,7 +19,7 @@
 
 @file:Suppress("TooManyFunctions")
 
-package org.eclipse.apoapsis.ortserver.workers.common
+package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import kotlinx.datetime.toKotlinInstant
 

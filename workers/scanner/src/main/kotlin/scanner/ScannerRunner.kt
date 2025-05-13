@@ -21,9 +21,9 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
-import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileListStorage
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerFileListStorage
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 

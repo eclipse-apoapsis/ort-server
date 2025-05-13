@@ -36,22 +36,41 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.DaoAnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.DaoEvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.DaoNotifierJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.notifierrun.DaoNotifierRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.DaoReporterJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun.DaoReporterRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.DaoRepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.DaoResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.DaoScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.NotifierRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.services.OrphanRemovalService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOldOrtRunsTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.DeleteOrphanedEntitiesTask
@@ -72,6 +91,11 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+
+import org.ossreviewtoolkit.downloader.DefaultWorkingTreeCache
+import org.ossreviewtoolkit.model.config.DownloaderConfiguration
+import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
+import org.ossreviewtoolkit.scanner.utils.FileListResolver
 
 import org.slf4j.LoggerFactory
 
@@ -189,6 +213,14 @@ private fun tasksModule(): Module =
         }
         singleOf(::OrphanRemovalService)
 
+        single {
+            val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
+            FileListResolver(
+                OrtServerFileListStorage(storage),
+                DefaultProvenanceDownloader(DownloaderConfiguration(), DefaultWorkingTreeCache())
+            )
+        }
+
         single<Task>(named("delete-old-ort-runs")) { DeleteOldOrtRunsTask.create(get(), get()) }
         single<Task>(named("delete-orphaned-entities")) { DeleteOrphanedEntitiesTask.create(get(), get()) }
 
@@ -199,12 +231,21 @@ private fun tasksModule(): Module =
         single { CoreV1Api(get()) }
         single { MessageSenderFactory.createSender(OrchestratorEndpoint, get()) }
         single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+        single<AdvisorRunRepository> { DaoAdvisorRunRepository(get()) }
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+        single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
         single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+        single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
         single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<ReporterRunRepository> { DaoReporterRunRepository(get()) }
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
+        single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
         single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
+        single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
+        single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
+        single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
         singleOf(::FailedJobNotifier)
         singleOf(::JobHandler)
         single<Task>(named("kubernetes-reaper")) { ReaperTask(get(), get(), get()) }

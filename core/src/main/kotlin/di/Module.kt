@@ -39,8 +39,11 @@ import org.eclipse.apoapsis.ortserver.dao.connect
 import org.eclipse.apoapsis.ortserver.dao.createDataSource
 import org.eclipse.apoapsis.ortserver.dao.migrate
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.DaoAnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.DaoEvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.DaoEvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.DaoNotifierJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierrun.DaoNotifierRunRepository
@@ -50,12 +53,18 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductReposit
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterjob.DaoReporterJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.reporterrun.DaoReporterRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.DaoRepositoryConfigurationRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.DaoResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.DaoScannerJobRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.DaoScannerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierRunRepository
@@ -64,8 +73,11 @@ import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ReporterRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ResolvedConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
@@ -84,12 +96,18 @@ import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.storage.Storage
 
 import org.jetbrains.exposed.sql.Database
 
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
+
+import org.ossreviewtoolkit.downloader.DefaultWorkingTreeCache
+import org.ossreviewtoolkit.model.config.DownloaderConfiguration
+import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
+import org.ossreviewtoolkit.scanner.utils.FileListResolver
 
 /**
  * Creates the Koin module for the ORT server. The [config] is used to configure the application and the database. For
@@ -128,11 +146,15 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     }
 
     single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+    single<AdvisorRunRepository> { DaoAdvisorRunRepository(get()) }
     single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+    single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
     single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+    single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
     single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
     single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
     single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
+    single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
     single<OrganizationRepository> { DaoOrganizationRepository(get()) }
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
     single<ProductRepository> { DaoProductRepository(get()) }
@@ -141,10 +163,19 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
     single<SecretRepository> { DaoSecretRepository(get()) }
     single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
+    single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
+    single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
 
     single { SecretStorage.createStorage(get()) }
     single { ConfigManager.create(get()) }
     single { LogFileService.create(get()) }
+    single {
+        val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
+        FileListResolver(
+            OrtServerFileListStorage(storage),
+            DefaultProvenanceDownloader(DownloaderConfiguration(), DefaultWorkingTreeCache())
+        )
+    }
 
     single<AuthorizationService> {
         val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
@@ -161,7 +192,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single { PackageService(get()) }
     single { ProjectService(get()) }
     single { UserService(get()) }
-    single { OrtRunService(get(), get(), get(), get()) }
+    singleOf(::OrtRunService)
     single { ContentManagementService(get()) }
     single {
         val storage = Storage.create("reportStorage", get())

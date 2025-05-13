@@ -41,7 +41,7 @@ import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.runs.notifier.NotifierRun
-import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -49,7 +49,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactor
 import org.ossreviewtoolkit.model.NotifierRun as OrtNotifierRun
 import org.ossreviewtoolkit.model.OrtResult
 
-private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.workers.common.OrtServerMappingsKt"
+private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
 
 private const val NOTIFIER_JOB_ID = 1L
 private const val REPOSITORY_ID = 1L

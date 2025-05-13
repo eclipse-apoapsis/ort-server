@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.kotlinxSerializationJson)
 
     api(projects.config.configSpi)
+    api(projects.services.ortRunService)
     api(projects.storage.storageSpi)
 
     api(libs.jacksonModuleKotlin)
