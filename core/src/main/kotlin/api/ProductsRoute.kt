@@ -422,17 +422,39 @@ fun Route.products() = route("products/{productId}") {
                 return@post
             }
 
-            val repositoryIds = if (createOrtRun.repositoryIds.isEmpty()) {
-                productService.getRepositoryIdsForProduct(productId)
-            } else {
-                val productRepoIds = productService.getRepositoryIdsForProduct(productId)
-                require(createOrtRun.repositoryIds.all { it in productRepoIds }) {
-                    """
-                    The following repository IDs do not belong to product $productId: 
-                    ${createOrtRun.repositoryIds.filter { it !in productRepoIds }}
-                    """.trimIndent()
+            val repositoryIds = when {
+                createOrtRun.repositoryIds.isNotEmpty() -> {
+                    val productRepoIds = productService.getRepositoryIdsForProduct(productId)
+                    require(createOrtRun.repositoryIds.all { it in productRepoIds }) {
+                        """
+                        The following repository IDs do not belong to product $productId: 
+                        ${createOrtRun.repositoryIds.filter { it !in productRepoIds }}
+                        """.trimIndent()
+                    }
+                    createOrtRun.repositoryIds
                 }
-                createOrtRun.repositoryIds
+
+                createOrtRun.repositoryFailedIds.isNotEmpty() -> {
+                    val productRepoIds = productService.getLatestOrtRunWithFailedStatusForProduct(productId)
+
+                    val repoIdsNotInProduct = createOrtRun.repositoryFailedIds.filter { it !in productRepoIds }
+
+                    if (repoIdsNotInProduct.isNotEmpty()) {
+                        call.respond(
+                            HttpStatusCode.Conflict,
+                            ErrorResponse(
+                                message =
+                                    "The repositories do not have a latest ORT run " +
+                                            "with status FAILED for product $productId.",
+                                cause = "Invalid repository IDs: ${repoIdsNotInProduct.joinToString()}"
+                            )
+                        )
+                        return@post
+                    }
+                    createOrtRun.repositoryFailedIds
+                }
+
+                else -> productService.getRepositoryIdsForProduct(productId)
             }
 
             val createdRuns = repositoryIds.map { repositoryId ->

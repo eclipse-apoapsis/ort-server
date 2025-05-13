@@ -22,8 +22,10 @@ package org.eclipse.apoapsis.ortserver.services
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
@@ -36,6 +38,9 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.services.utils.toJoinedString
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.max
 
 import org.slf4j.LoggerFactory
 
@@ -175,6 +180,28 @@ class ProductService(
         RepositoriesTable
             .select(RepositoriesTable.id)
             .where { RepositoriesTable.productId eq productId }
+            .map { it[RepositoriesTable.id].value }
+    }
+
+    /**
+     * Get the ID of the latest ORT run of the repository where the status is failed.
+     **/
+    suspend fun getLatestOrtRunWithFailedStatusForProduct(productId: Long): List<Long> = db.dbQuery {
+        RepositoriesTable
+            .innerJoin(OrtRunsTable)
+            .select(
+                RepositoriesTable.id,
+            )
+            .where {
+                (RepositoriesTable.productId eq productId) and
+                        (
+                          OrtRunsTable.index eqSubQuery OrtRunsTable
+                            .select(OrtRunsTable.index.max())
+                            .where { OrtRunsTable.repositoryId eq RepositoriesTable.id }
+                                and (OrtRunsTable.status eq OrtRunStatus.FAILED)
+                                )
+            }
+            .orderBy(OrtRunsTable.index, SortOrder.DESC)
             .map { it[RepositoriesTable.id].value }
     }
 }

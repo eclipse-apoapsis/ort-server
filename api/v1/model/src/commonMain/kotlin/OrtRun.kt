@@ -179,7 +179,12 @@ data class CreateOrtRun(
     /**
      * The IDs of the repositories for this run.
      */
-    val repositoryIds: List<Long> = emptyList()
+    val repositoryIds: List<Long> = emptyList(),
+
+    /**
+     * The IDs of the repositories for this run that failed.
+     */
+    val repositoryFailedIds: List<Long> = emptyList()
 )
 
 enum class OrtRunStatus {
