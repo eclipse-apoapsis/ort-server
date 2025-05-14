@@ -26,6 +26,7 @@ import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.groups.cooccurring
 import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.split
@@ -35,6 +36,7 @@ import okio.Path.Companion.toPath
 
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
 import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.currentWorkingDir
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
 import org.eclipse.apoapsis.ortserver.cli.utils.writeFromChannel
@@ -62,9 +64,9 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
         "--output-dir",
         "-o",
         envvar = "OSC_DOWNLOAD_REPORTS_OUTPUT_DIR",
-        help = "The directory to download the reports to."
+        help = "The directory to download the reports to. If not provided, the current working directory will be used."
     ).convert { it.expandTilde().toPath() }
-        .required()
+        .default(currentWorkingDir)
 
     override fun help(context: Context) = "Download reports for a run."
 
