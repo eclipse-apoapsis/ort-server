@@ -28,7 +28,6 @@ import com.github.ajalt.clikt.parameters.groups.cooccurring
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.long
 
@@ -56,9 +55,9 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
         "--file-names",
         "--filenames",
         envvar = "OSC_DOWNLOAD_REPORTS_FILE_NAMES",
-        help = "The names of the files to download, separated by commas."
+        help = "The names of the files to download, separated by commas. If not provided, all report files will be " +
+                "downloaded."
     ).split(",")
-        .required()
 
     private val outputDir by option(
         "--output-dir",
@@ -86,7 +85,13 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
 
         outputDir.mkdirs()
 
-        fileNames.forEach { fileName ->
+        val reportNames = fileNames ?: run {
+            val ortRun = client.runs.getOrtRun(resolvedOrtRunId)
+
+            ortRun.jobs.reporter?.reportFilenames
+        }.orEmpty()
+
+        reportNames.forEach { fileName ->
             val reportFile = outputDir.resolve(fileName)
 
             try {
