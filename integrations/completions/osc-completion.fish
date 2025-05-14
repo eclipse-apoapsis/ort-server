@@ -75,7 +75,7 @@ complete -c osc -n "__fish_seen_subcommand_from reports" -l run-id -r -d 'The ID
 complete -c osc -n "__fish_seen_subcommand_from reports" -l repository-id -r -d 'The ID of the repository.'
 complete -c osc -n "__fish_seen_subcommand_from reports" -l index -r -d 'The index of the ORT run.'
 complete -c osc -n "__fish_seen_subcommand_from reports" -l file-names -l filenames -r -d 'The names of the files to download, separated by commas.'
-complete -c osc -n "__fish_seen_subcommand_from reports" -l output-dir -s o -r -d 'The directory to download the reports to.'
+complete -c osc -n "__fish_seen_subcommand_from reports" -l output-dir -s o -r -d 'The directory to download the reports to. If not provided, the current working directory will be used.'
 complete -c osc -n "__fish_seen_subcommand_from reports" -s h -l help -d 'Show this message and exit'
 
 

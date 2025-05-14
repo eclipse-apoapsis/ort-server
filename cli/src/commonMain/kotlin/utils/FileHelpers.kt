@@ -24,10 +24,17 @@ import io.ktor.utils.io.readAvailable
 
 import okio.FileSystem
 import okio.Path
+import okio.Path.Companion.toPath
 import okio.SYSTEM
 import okio.Source
 import okio.buffer
 import okio.use
+
+/**
+ * Get the current working directory as a [Path].
+ */
+internal val currentWorkingDir: Path
+    get() = FileSystem.SYSTEM.canonicalize(".".toPath())
 
 /**
  * Create a [Source] for this [Path].

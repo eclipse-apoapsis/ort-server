@@ -28,7 +28,6 @@ import com.github.ajalt.clikt.parameters.groups.cooccurring
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
@@ -39,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
 import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
+import org.eclipse.apoapsis.ortserver.cli.utils.currentWorkingDir
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
 import org.eclipse.apoapsis.ortserver.cli.utils.mkdirs
 import org.eclipse.apoapsis.ortserver.cli.utils.writeFromChannel
@@ -60,7 +60,7 @@ class LogsCommand : SuspendingCliktCommand() {
         envvar = "OSC_DOWNLOAD_LOGS_OUTPUT_DIR",
         help = "The directory to download the logs to."
     ).convert { it.expandTilde().toPath() }
-        .required()
+        .default(currentWorkingDir)
 
     private val level by option(
         "--level",
