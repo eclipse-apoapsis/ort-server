@@ -20,121 +20,165 @@
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackageDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProcessedDeclaredLicensesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDependencyPathsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.utils.applyFilterNullable
-import org.eclipse.apoapsis.ortserver.dao.utils.applyILike
-import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQueryCustomOrders
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
+import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
-import org.eclipse.apoapsis.ortserver.services.toSortOrder
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
-import org.jetbrains.exposed.sql.Case
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Expression
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.concat
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.stringLiteral
 
 /**
  * A service to interact with packages.
  */
-class PackageService(private val db: Database) {
-    suspend fun listForOrtRunId(
+class PackageService(private val db: Database, private val ortRunService: OrtRunService) {
+    fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: PackageFilters = PackageFilters()
-    ): ListQueryResult<PackageWithShortestDependencyPaths> = db.dbQuery {
-        val orders = mutableListOf<Pair<Expression<*>, SortOrder>>()
+    ): ListQueryResult<PackageWithShortestDependencyPaths> {
+        val ortRun = ortRunService.getOrtRun(ortRunId)
 
-        parameters.sortFields.forEach {
-            val sortOrder = it.direction.toSortOrder()
-            when (it.name) {
+        if (ortRun == null) {
+            return ListQueryResult(emptyList(), parameters, 0)
+        }
+
+        var comparator = compareBy<PackageWithShortestDependencyPaths> { 0 }
+
+        parameters.sortFields.forEach { orderField ->
+            when (orderField.name) {
                 "identifier" -> {
-                    orders += IdentifiersTable.type to sortOrder
-                    orders += IdentifiersTable.namespace to sortOrder
-                    orders += IdentifiersTable.name to sortOrder
-                    orders += IdentifiersTable.version to sortOrder
+                    comparator = when (orderField.direction) {
+                        OrderDirection.ASCENDING -> {
+                            comparator.thenBy { it.pkg.identifier.type }
+                                .thenBy { it.pkg.identifier.namespace }
+                                .thenBy { it.pkg.identifier.name }
+                                .thenBy { it.pkg.identifier.version }
+                        }
+
+                        OrderDirection.DESCENDING -> {
+                            comparator.thenByDescending { it.pkg.identifier.type }
+                                .thenByDescending { it.pkg.identifier.namespace }
+                                .thenByDescending { it.pkg.identifier.name }
+                                .thenByDescending { it.pkg.identifier.version }
+                        }
+                    }
                 }
-                "purl" -> orders += PackagesTable.purl to sortOrder
-                "processedDeclaredLicense" -> orders += ProcessedDeclaredLicensesTable.spdxExpression to sortOrder
-                else -> throw QueryParametersException("Unsupported field for sorting: '${it.name}'.")
+
+                "purl" -> {
+                    comparator = when (orderField.direction) {
+                        OrderDirection.ASCENDING -> comparator.thenBy { it.pkg.purl.substringBefore('@') }
+                            .thenBy { it.pkg.purl.substringAfter('@') }
+
+                        OrderDirection.DESCENDING -> comparator.thenByDescending { it.pkg.purl.substringBefore('@') }
+                            .thenByDescending { it.pkg.purl.substringAfter('@') }
+                    }
+                }
+
+                "processedDeclaredLicense" -> {
+                    comparator = when (orderField.direction) {
+                        OrderDirection.ASCENDING -> comparator.thenBy { it.pkg.processedDeclaredLicense.spdxExpression }
+                        OrderDirection.DESCENDING ->
+                            comparator.thenByDescending { it.pkg.processedDeclaredLicense.spdxExpression }
+                    }
+                }
+
+                else -> throw QueryParametersException("Unsupported field for sorting: '${orderField.name}'.")
             }
         }
 
-        var condition: Op<Boolean> = Op.TRUE
+        val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false)
+        val packages = ortResult.getPackages()
 
-        filters.purl?.let {
-            condition = condition and PackagesTable.purl.applyILike(it.value)
-        }
-
-        filters.identifier?.let {
-            val namespaceWithSlash = Case()
-                .When(
-                    IdentifiersTable.namespace neq stringLiteral(""),
-                    concat(IdentifiersTable.namespace, stringLiteral("/"))
-                )
-                .Else(stringLiteral(""))
-
-            val concatenatedIdentifier = concat(
-                IdentifiersTable.type,
-                stringLiteral(":"),
-                namespaceWithSlash,
-                IdentifiersTable.name,
-                stringLiteral("@"),
-                IdentifiersTable.version
-            )
-
-            condition = condition and concatenatedIdentifier.applyILike(it.value)
-        }
-
-        filters.processedDeclaredLicense?.let {
-            condition = condition and ProcessedDeclaredLicensesTable.spdxExpression.applyFilterNullable(
-                it.operator,
-                it.value
+        val result = packages.map { pkg ->
+            pkg.metadata.mapToModel()
+            PackageWithShortestDependencyPaths(
+                pkg = pkg.metadata.mapToModel(),
+                pkgId = 0L,
+                shortestDependencyPaths = emptyList()
             )
         }
 
-        val listQueryResult =
-            listCustomQueryCustomOrders(parameters, orders, ResultRow::toPackageWithShortestDependencyPaths) {
-                PackagesTable.joinAnalyzerTables()
-                    .innerJoin(IdentifiersTable)
-                    .innerJoin(ProcessedDeclaredLicensesTable)
-                    .select(PackagesTable.columns)
-                    .where { (AnalyzerJobsTable.ortRunId eq ortRunId) and condition }
+        var filteredResult = result
+
+        filters.identifier?.let { filter ->
+            require(filter.operator == ComparisonOperator.ILIKE) {
+                "Unsupported operator for identifier filter: ${filter.operator}"
             }
 
-        val data = listQueryResult.data.map { pkg ->
-            val shortestPaths = ShortestDependencyPathsTable
-                .innerJoin(PackagesTable)
-                .innerJoin(AnalyzerRunsTable)
-                .innerJoin(AnalyzerJobsTable)
-                .select(ShortestDependencyPathsTable.columns)
-                .where { (AnalyzerJobsTable.ortRunId eq ortRunId) and (PackagesTable.id eq pkg.pkgId) }
-                .map { ShortestDependencyPathDao.wrapRow(it).mapToModel() }
-
-            pkg.copy(
-                shortestDependencyPaths = shortestPaths
-            )
+            filteredResult = filteredResult.filter { pkg ->
+                val identifierString = buildString {
+                    append(pkg.pkg.identifier.type)
+                    append(":")
+                    if (pkg.pkg.identifier.namespace.isNotEmpty()) {
+                        append(pkg.pkg.identifier.namespace)
+                        append("/")
+                    }
+                    append(pkg.pkg.identifier.name)
+                    append("@")
+                    append(pkg.pkg.identifier.version)
+                }
+                identifierString.contains(Regex(filter.value, RegexOption.IGNORE_CASE))
+            }
         }
 
-        ListQueryResult(data, parameters, listQueryResult.totalCount)
+        filters.purl?.let { filter ->
+            require(filter.operator == ComparisonOperator.ILIKE) {
+                "Unsupported operator for identifier filter: ${filter.operator}"
+            }
+
+            filteredResult = filteredResult.filter { pkg ->
+                pkg.pkg.purl.contains(Regex(filter.value, RegexOption.IGNORE_CASE))
+            }
+        }
+
+        filters.processedDeclaredLicense?.let { filter ->
+            require(filter.operator == ComparisonOperator.IN || filter.operator == ComparisonOperator.NOT_IN) {
+                "Unsupported operator for identifier filter: ${filter.operator}"
+            }
+
+            filteredResult = filteredResult.filter { pkg ->
+                when (filter.operator) {
+                    ComparisonOperator.IN -> pkg.pkg.processedDeclaredLicense.spdxExpression in filter.value
+                    ComparisonOperator.NOT_IN -> pkg.pkg.processedDeclaredLicense.spdxExpression !in filter.value
+                    else -> false
+                }
+            }
+        }
+
+        val sortedResult = filteredResult.sortedWith(comparator)
+
+        val limitedResult = sortedResult
+            .drop(parameters.offset?.toInt() ?: 0)
+            .take(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT)
+
+        // The shortest paths could also be requested from the dependency navigator of the ORT result, but loading the
+        // precalculated shortest paths from the database is a lot faster.
+        val shortestPathsByPackage = db.blockingQuery {
+            ShortestDependencyPathsTable.getForOrtRunId(ortRunId)
+        }
+
+        val finalResult = limitedResult.map {
+            it.copy(shortestDependencyPaths = shortestPathsByPackage[it.pkg.identifier].orEmpty())
+        }
+
+        return ListQueryResult(
+            data = finalResult,
+            params = parameters,
+            totalCount = filteredResult.size.toLong()
+        )
     }
 
     /** Count packages found in provided ORT runs. */
@@ -175,14 +219,6 @@ class PackageService(private val db: Database) {
                 .mapNotNull { it[ProcessedDeclaredLicensesTable.spdxExpression] }
         }
 }
-
-private fun ResultRow.toPackageWithShortestDependencyPaths(): PackageWithShortestDependencyPaths =
-    PackageWithShortestDependencyPaths(
-        pkg = PackageDao.wrapRow(this).mapToModel(),
-        pkgId = get(PackagesTable.id).value,
-        // Temporarily set the shortestDependencyPaths into an empty list, as they will be added in a subsequent step.
-        shortestDependencyPaths = emptyList()
-    )
 
 private fun PackagesTable.joinAnalyzerTables() =
     innerJoin(PackagesAnalyzerRunsTable)

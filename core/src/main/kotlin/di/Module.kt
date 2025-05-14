@@ -189,7 +189,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single { VulnerabilityService(get()) }
     single { IssueService(get()) }
     single { RuleViolationService(get()) }
-    single { PackageService(get()) }
+    single { PackageService(get(), get()) }
     single { ProjectService(get()) }
     single { UserService(get()) }
     singleOf(::OrtRunService)
