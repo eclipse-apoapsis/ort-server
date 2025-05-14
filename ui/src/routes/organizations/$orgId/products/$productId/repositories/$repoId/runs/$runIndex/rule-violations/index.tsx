@@ -20,6 +20,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
+  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
   getFilteredRowModel,
@@ -29,7 +30,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import {
@@ -38,6 +39,7 @@ import {
 } from '@/api/queries/suspense';
 import { RuleViolation, Severity } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -56,6 +58,7 @@ import { identifierToString } from '@/helpers/identifier-to-string';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import {
+  markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   severitySchema,
@@ -101,20 +104,36 @@ const RuleViolationsComponent = () => {
       size: 50,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
-          <Button
-            variant='outline'
-            size='sm'
-            {...{
-              onClick: row.getToggleExpandedHandler(),
-              style: { cursor: 'pointer' },
-            }}
-          >
-            {row.getIsExpanded() ? (
-              <ChevronUp className='h-4 w-4' />
-            ) : (
-              <ChevronDown className='h-4 w-4' />
-            )}
-          </Button>
+          <div className='flex items-center gap-1'>
+            <Button
+              variant='outline'
+              size='sm'
+              {...{
+                onClick: row.getToggleExpandedHandler(),
+                style: { cursor: 'pointer' },
+              }}
+            >
+              {row.getIsExpanded() ? (
+                <ChevronUp className='h-4 w-4' />
+              ) : (
+                <ChevronDown className='h-4 w-4' />
+              )}
+            </Button>
+            <MarkItems
+              row={row}
+              setMarked={(marked) => {
+                return {
+                  to: Route.to,
+                  search: {
+                    ...search,
+                    // If no items are marked for inspection, remove the "marked" parameter
+                    // from search parameters.
+                    marked: marked === '' ? undefined : marked,
+                  },
+                };
+              }}
+            />
+          </div>
         ) : (
           'No info'
         );
@@ -243,6 +262,10 @@ const RuleViolationsComponent = () => {
       limit: ALL_ITEMS,
     });
 
+  const [expanded, setExpanded] = useState<ExpandedState>(
+    search.marked ? { [search.marked]: true } : {}
+  );
+
   const table = useReactTable({
     data: ruleViolations?.data || [],
     columns,
@@ -253,7 +276,9 @@ const RuleViolationsComponent = () => {
       },
       columnFilters,
       sorting: sortBy,
+      expanded: expanded,
     },
+    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -313,7 +338,8 @@ export const Route = createFileRoute(
   validateSearch: paginationSearchParameterSchema
     .merge(severitySearchParameterSchema)
     .merge(packageIdentifierSearchParameterSchema)
-    .merge(sortingSearchParameterSchema),
+    .merge(sortingSearchParameterSchema)
+    .merge(markedSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
       context.queryClient,
