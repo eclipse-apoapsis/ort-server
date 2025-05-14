@@ -86,7 +86,6 @@ class ReporterRunner(
     private val fileArchiver: FileArchiver
 ) {
     suspend fun run(
-        runId: Long,
         ortResult: OrtResult,
         config: ReporterJobConfiguration,
         evaluatorConfig: EvaluatorJobConfiguration?,
@@ -161,10 +160,48 @@ class ReporterRunner(
             HowToFixTextProvider.NONE
         }
 
-        val outputDir = context.createTempDir()
-        val issues = mutableListOf<Issue>()
+        val (successes, issues) = generateReports(
+            context,
+            config,
+            resolvedOrtResult,
+            copyrightGarbage,
+            licenseClassifications,
+            howToFixTextProvider
+        )
 
-        val successes = withContext(Dispatchers.IO) {
+        val reports = successes.associate { (name, report) ->
+            logger.info("Successfully created '$name' report.")
+            name to report.keys.toList()
+        }
+
+        // Only return the package configurations and resolutions if they were not already resolved by the
+        // evaluator.
+        return ReporterRunnerResult(
+            reports,
+            resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
+            resolvedOrtResult.resolvedConfiguration.resolutions.takeIf { evaluatorConfig == null },
+            issues = issues
+        )
+    }
+
+    /**
+     * Generate all reports for the current [context] as defined by the given [config] using as input the given
+     * [resolvedOrtResult], [copyrightGarbage], [licenseClassifications], and [howToFixTextProvider]. Return
+     * a pair with a list of reports that were created successfully (consisting of the format name and the
+     * generated files) and a list of issues that occurred during the report generation.
+     */
+    private suspend fun generateReports(
+        context: WorkerContext,
+        config: ReporterJobConfiguration,
+        resolvedOrtResult: OrtResult,
+        copyrightGarbage: CopyrightGarbage,
+        licenseClassifications: LicenseClassifications,
+        howToFixTextProvider: HowToFixTextProvider,
+    ): Pair<List<Pair<String, Map<String, File>>>, List<Issue>> =
+        withContext(Dispatchers.IO) {
+            val outputDir = context.createTempDir()
+            val issues = mutableListOf<Issue>()
+
             val deferredTransformedOptions = async { processReporterOptions(context, config) }
 
             val deferredReporterInput = async {
@@ -189,7 +226,7 @@ class ReporterRunner(
             val reporterInput = deferredReporterInput.await()
             val transformedOptions = deferredTransformedOptions.await()
 
-            config.formats.map { format ->
+            val success = config.formats.map { format ->
                 async {
                     logger.info("Generating the '$format' report...")
 
@@ -218,26 +255,13 @@ class ReporterRunner(
                     result.getOrNull()?.let { (reporter, reportFiles) ->
                         val nameMapper = ReportNameMapper.create(config, reporter.descriptor.id)
                         format to nameMapper.mapReportNames(reportFiles)
-                            .also { reportStorage.storeReportFiles(runId, it) }
+                            .also { reportStorage.storeReportFiles(context.ortRun.id, it) }
                     }
                 }
             }.awaitAll().filterNotNull()
-        }
 
-        val reports = successes.associate { (name, report) ->
-            logger.info("Successfully created '$name' report.")
-            name to report.keys.toList()
+            success to issues
         }
-
-        // Only return the package configurations and resolutions if they were not already resolved by the
-        // evaluator.
-        return ReporterRunnerResult(
-            reports,
-            resolvedOrtResult.resolvedConfiguration.packageConfigurations.takeIf { evaluatorConfig == null },
-            resolvedOrtResult.resolvedConfiguration.resolutions.takeIf { evaluatorConfig == null },
-            issues = issues
-        )
-    }
 
     /**
      * Prepare the generation of reports by processing the options passed to the single reporters in the given

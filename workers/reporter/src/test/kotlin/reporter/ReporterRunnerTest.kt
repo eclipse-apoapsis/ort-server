@@ -103,13 +103,15 @@ class ReporterRunnerTest : WordSpec({
     val outputDirectory = tempdir()
 
     /**
-     * Return a mock context. The context mock is prepared to create a temporary directory.
+     * Return a mock context. The context mock is prepared to create a temporary directory and return some default
+     * data.
      */
     fun mockContext(
         providerPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
         resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = providerPluginConfigs
     ): WorkerContext =
         mockk {
+            every { ortRun.id } returns RUN_ID
             every { ortRun.resolvedJobConfigContext } returns configurationContext.name
             every { createTempDir() } returnsMany listOf(outputDirectory, configDirectory)
             every { close() } just runs
@@ -137,7 +139,7 @@ class ReporterRunnerTest : WordSpec({
                 formats = listOf(reportType),
                 nameMappings = mapOf(reportType to mapping)
             )
-            val result = runner.run(RUN_ID, OrtResult.EMPTY, config, null, mockContext())
+            val result = runner.run(OrtResult.EMPTY, config, null, mockContext())
 
             result.reports shouldBe mapOf(reportType to listOf("testReport.html"))
             result.issues should beEmpty()
@@ -196,7 +198,7 @@ class ReporterRunnerTest : WordSpec({
                 configManager,
                 mockk()
             )
-            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null, context)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             val slotPlainPluginConfiguration = slot<OrtPluginConfig>()
             val slotTemplatePluginConfiguration = slot<OrtPluginConfig>()
@@ -251,7 +253,7 @@ class ReporterRunnerTest : WordSpec({
                 configManager,
                 mockk()
             )
-            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null, context)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             val slotPluginConfiguration = slot<OrtPluginConfig>()
             verify {
@@ -285,7 +287,7 @@ class ReporterRunnerTest : WordSpec({
                 configManager,
                 mockk()
             )
-            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null, mockContext())
+            runner.run(OrtResult.EMPTY, jobConfig, null, mockContext())
 
             val slotPluginConfiguration = slot<OrtPluginConfig>()
             verify {
@@ -318,7 +320,7 @@ class ReporterRunnerTest : WordSpec({
                 configManager,
                 mockk()
             )
-            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null, mockContext())
+            runner.run(OrtResult.EMPTY, jobConfig, null, mockContext())
 
             val slotPluginConfiguration = slot<OrtPluginConfig>()
             verify {
@@ -352,7 +354,6 @@ class ReporterRunnerTest : WordSpec({
             )
 
             val result = runner.run(
-                RUN_ID,
                 OrtResult.EMPTY,
                 ReporterJobConfiguration(formats = listOf(failureReportFormat, successReportFormat)),
                 null,
@@ -385,7 +386,6 @@ class ReporterRunnerTest : WordSpec({
             )
 
             val result = runner.run(
-                RUN_ID,
                 OrtResult.EMPTY,
                 ReporterJobConfiguration(formats = listOf(unsupportedReportFormat, supportedReportFormat)),
                 null,
@@ -417,7 +417,6 @@ class ReporterRunnerTest : WordSpec({
             mockReporterFactoryAll(format to reporter)
 
             val result = runner.run(
-                runId = RUN_ID,
                 ortResult = OrtTestData.result,
                 config = ReporterJobConfiguration(formats = listOf(format)),
                 evaluatorConfig = EvaluatorJobConfiguration(),
@@ -458,7 +457,6 @@ class ReporterRunnerTest : WordSpec({
             mockReporterFactoryAll(format to reporter)
 
             val result = runner.run(
-                runId = RUN_ID,
                 ortResult = OrtTestData.result,
                 config = ReporterJobConfiguration(formats = listOf(format)),
                 evaluatorConfig = null,
@@ -516,7 +514,6 @@ class ReporterRunnerTest : WordSpec({
             mockReporterFactoryAll(format to reporter)
 
             runner.run(
-                runId = RUN_ID,
                 ortResult = OrtTestData.result,
                 config = ReporterJobConfiguration(
                     formats = listOf(format),
@@ -551,7 +548,6 @@ class ReporterRunnerTest : WordSpec({
             val ruleViolation = RuleViolation("RULE", null, null, null, OrtSeverity.ERROR, "message", "howToFix")
 
             val result = runner.run(
-                runId = RUN_ID,
                 ortResult = OrtTestData.result.copy(
                     evaluator = EvaluatorRun(
                         startTime = Clock.System.now().toJavaInstant(),
@@ -587,7 +583,6 @@ class ReporterRunnerTest : WordSpec({
             mockReporterFactoryAll(format to reporter)
 
             val result = runner.run(
-                runId = RUN_ID,
                 ortResult = OrtTestData.result.copy(
                     evaluator = EvaluatorRun(
                         startTime = Clock.System.now().toJavaInstant(),
@@ -642,7 +637,7 @@ class ReporterRunnerTest : WordSpec({
                 configManager,
                 mockk()
             )
-            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null, context)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             downloadedAssets shouldContainExactlyInAnyOrder assetFiles
         }
@@ -681,7 +676,7 @@ class ReporterRunnerTest : WordSpec({
                 configManager,
                 mockk()
             )
-            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null, context)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             downloadedAssets.keys shouldHaveSize 2
             downloadedAssets[Path("data")] shouldBe configDirectory
@@ -715,7 +710,7 @@ class ReporterRunnerTest : WordSpec({
                 configManager,
                 mockk()
             )
-            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null, context)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             // Verify that a valid provider was passed to the reporter input.
             reporterInputSlot.isCaptured shouldBe true
@@ -762,7 +757,7 @@ class ReporterRunnerTest : WordSpec({
                 configManager,
                 mockk()
             )
-            runner.run(RUN_ID, OrtResult.EMPTY, jobConfig, null, context)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             reporterInputSlot.isCaptured shouldBe true
             reporterInputSlot.captured.howToFixTextProvider shouldBe mockHowToFixTextProvider

@@ -92,7 +92,6 @@ internal class ReporterWorker(
             environmentService.setupAuthenticationForCurrentRun(context)
 
             val reporterRunnerResult = runner.run(
-                job.ortRunId,
                 ortResult,
                 job.configuration,
                 ortRunService.getEvaluatorJobForOrtRun(ortRun.id)?.configuration,

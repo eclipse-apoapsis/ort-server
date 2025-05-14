@@ -172,7 +172,7 @@ class ReporterWorkerTest : StringSpec({
         )
         val runner = mockk<ReporterRunner> {
             coEvery {
-                run(ORT_RUN_ID, ortResult, reporterJob.configuration, evaluatorJob.configuration, context)
+                run(ortResult, reporterJob.configuration, evaluatorJob.configuration, context)
             } returns runnerResult
         }
 
@@ -288,7 +288,7 @@ class ReporterWorkerTest : StringSpec({
         )
         val runner = mockk<ReporterRunner> {
             coEvery {
-                run(ORT_RUN_ID, ortResult, reporterJob.configuration, evaluatorJob.configuration, context)
+                run(ortResult, reporterJob.configuration, evaluatorJob.configuration, context)
             } returns runnerResult
         }
 
