@@ -24,18 +24,24 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 
 /**
- * Returns all globally disabled plugins used in the [CreateOrtRun] object.
+ * Returns all [UnavailablePlugins] used in the [CreateOrtRun] object.
  */
-fun CreateOrtRun.getDisabledPlugins(pluginService: PluginService): List<Pair<PluginType, String>> =
-    buildList {
-        getPlugins().forEach { (pluginType, pluginIds) ->
-            pluginIds.forEach { pluginId ->
-                if (!pluginService.isEnabled(pluginType, pluginId)) {
-                    add(pluginType to pluginId)
-                }
+fun CreateOrtRun.getUnavailablePlugins(pluginService: PluginService): UnavailablePlugins {
+    val notInstalled = mutableListOf<Pair<PluginType, String>>()
+    val disabled = mutableListOf<Pair<PluginType, String>>()
+
+    getPlugins().forEach { (pluginType, pluginIds) ->
+        pluginIds.forEach { pluginId ->
+            if (!pluginService.isInstalled(pluginType, pluginId)) {
+                notInstalled += pluginType to pluginId
+            } else if (!pluginService.isEnabled(pluginType, pluginId)) {
+                disabled += pluginType to pluginId
             }
         }
     }
+
+    return UnavailablePlugins(notInstalled, disabled)
+}
 
 /**
  * Returns all plugins configured in the [CreateOrtRun] object.
@@ -67,3 +73,23 @@ private fun CreateOrtRun.getPlugins(): Map<PluginType, Set<String>> =
         }
         put(PluginType.SCANNER, scanners)
     }
+
+data class UnavailablePlugins(
+    val notInstalled: List<Pair<PluginType, String>>,
+    val disabled: List<Pair<PluginType, String>>
+) {
+    fun isNotEmpty() = notInstalled.isNotEmpty() || disabled.isNotEmpty()
+
+    fun errorMessage() = buildString {
+        if (notInstalled.isNotEmpty()) {
+            append("The following plugins are not installed: ")
+            append(notInstalled.joinToString { (type, id) -> "$id ($type)" })
+        }
+
+        if (disabled.isNotEmpty()) {
+            if (notInstalled.isNotEmpty()) appendLine()
+            append("The following plugins are disabled: ")
+            append(disabled.joinToString { (type, id) -> "$id ($type)" })
+        }
+    }
+}
