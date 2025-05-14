@@ -21,6 +21,7 @@ import { TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
+  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
   getFilteredRowModel,
@@ -30,13 +31,14 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useRunsServiceGetApiV1RunsByRunIdProjects } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { Project, RepositoryType } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -57,6 +59,7 @@ import { getRepositoryTypeLabel } from '@/lib/types';
 import {
   declaredLicenseSearchParameterSchema,
   definitionFilePathSearchParameterSchema,
+  markedSearchParameterSchema,
   paginationSearchParameterSchema,
   projectIdentifierSearchParameterSchema,
   sortingSearchParameterSchema,
@@ -213,20 +216,36 @@ const ProjectsComponent = () => {
       size: 50,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
-          <Button
-            variant='outline'
-            size='sm'
-            {...{
-              onClick: row.getToggleExpandedHandler(),
-              style: { cursor: 'pointer' },
-            }}
-          >
-            {row.getIsExpanded() ? (
-              <ChevronUp className='h-4 w-4' />
-            ) : (
-              <ChevronDown className='h-4 w-4' />
-            )}
-          </Button>
+          <div className='flex items-center gap-1'>
+            <Button
+              variant='outline'
+              size='sm'
+              {...{
+                onClick: row.getToggleExpandedHandler(),
+                style: { cursor: 'pointer' },
+              }}
+            >
+              {row.getIsExpanded() ? (
+                <ChevronUp className='h-4 w-4' />
+              ) : (
+                <ChevronDown className='h-4 w-4' />
+              )}
+            </Button>
+            <MarkItems
+              row={row}
+              setMarked={(marked) => {
+                return {
+                  to: Route.to,
+                  search: {
+                    ...search,
+                    // If no items are marked for inspection, remove the "marked" parameter
+                    // from search parameters.
+                    marked: marked === '' ? undefined : marked,
+                  },
+                };
+              }}
+            />
+          </div>
         ) : (
           'No info'
         );
@@ -326,6 +345,10 @@ const ProjectsComponent = () => {
     }),
   ];
 
+  const [expanded, setExpanded] = useState<ExpandedState>(
+    search.marked ? { [search.marked]: true } : {}
+  );
+
   const table = useReactTable({
     data: projects?.data || [],
     columns,
@@ -336,7 +359,9 @@ const ProjectsComponent = () => {
       },
       columnFilters,
       sorting: sortBy,
+      expanded: expanded,
     },
+    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -411,7 +436,8 @@ export const Route = createFileRoute(
     .merge(definitionFilePathSearchParameterSchema)
     .merge(paginationSearchParameterSchema)
     .merge(projectIdentifierSearchParameterSchema)
-    .merge(sortingSearchParameterSchema),
+    .merge(sortingSearchParameterSchema)
+    .merge(markedSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
       context.queryClient,
