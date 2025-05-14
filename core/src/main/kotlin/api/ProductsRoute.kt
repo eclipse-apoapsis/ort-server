@@ -71,7 +71,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
-import org.eclipse.apoapsis.ortserver.core.utils.getDisabledPlugins
+import org.eclipse.apoapsis.ortserver.core.utils.getUnavailablePlugins
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.Secret
@@ -410,15 +410,14 @@ fun Route.products() = route("products/{productId}") {
                 UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
             }
 
-            // Check if disabled plugins are used.
-            val disabledPlugins = createOrtRun.getDisabledPlugins(pluginService)
-            if (disabledPlugins.isNotEmpty()) {
+            // Check if unavailable plugins are used.
+            val unavailablePlugins = createOrtRun.getUnavailablePlugins(pluginService)
+            if (unavailablePlugins.isNotEmpty()) {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     ErrorResponse(
-                        message = "Disabled plugins are used.",
-                        cause = "The following plugins are disabled in this ORT Server instance: " +
-                                disabledPlugins.joinToString { (type, id) -> "$id ($type)" }
+                        message = "Unavailable plugins are used.",
+                        cause = unavailablePlugins.errorMessage()
                     )
                 )
                 return@post

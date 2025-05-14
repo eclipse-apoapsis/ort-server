@@ -1580,6 +1580,62 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with 'BadRequest' if not installed plugins are used" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val repositoryId = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.org/repo.git",
+                    productId = productId,
+                    description = null
+                ).id
+
+                val advisorPluginId = "notInstalledAdvisor"
+                val packageConfigurationProviderPluginId = "notInstalledPackageConfigurationProvider"
+                val packageCurationProviderPluginId = "notInstalledPackageCurationProvider"
+                val packageManagerPluginId = "notInstalledPackageManager"
+                val reporterPluginId = "notInstalledReporter"
+                val scannerPluginId = "notInstalledScanner"
+
+                // Create a run with not installed plugins.
+                val createRun = CreateOrtRun(
+                    revision = "main",
+                    jobConfigs = JobConfigurations(
+                        analyzer = AnalyzerJobConfiguration(
+                            enabledPackageManagers = listOf(packageManagerPluginId),
+                            packageCurationProviders = listOf(
+                                ProviderPluginConfiguration(type = packageCurationProviderPluginId)
+                            )
+                        ),
+                        advisor = AdvisorJobConfiguration(advisors = listOf(advisorPluginId)),
+                        scanner = ScannerJobConfiguration(scanners = listOf(scannerPluginId)),
+                        evaluator = EvaluatorJobConfiguration(
+                            packageConfigurationProviders = listOf(
+                                ProviderPluginConfiguration(type = packageConfigurationProviderPluginId)
+                            )
+                        ),
+                        reporter = ReporterJobConfiguration(
+                            formats = listOf(reporterPluginId)
+                        )
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                    setBody(createRun)
+                }
+
+                response.status shouldBe HttpStatusCode.BadRequest
+                val errorMessage = response.bodyAsText()
+                errorMessage shouldContain "not installed"
+                errorMessage shouldContain advisorPluginId
+                errorMessage shouldContain packageConfigurationProviderPluginId
+                errorMessage shouldContain packageCurationProviderPluginId
+                errorMessage shouldContain packageManagerPluginId
+                errorMessage shouldContain reporterPluginId
+                errorMessage shouldContain scannerPluginId
+            }
+        }
+
         "respond with 'BadRequest' if disabled plugins are used" {
             integrationTestApplication {
                 val productId = createProduct().id
@@ -1640,6 +1696,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 response.status shouldBe HttpStatusCode.BadRequest
                 val errorMessage = response.bodyAsText()
+                errorMessage shouldContain "disabled"
                 errorMessage shouldContain advisorPluginId
                 errorMessage shouldContain packageConfigurationProviderPluginId
                 errorMessage shouldContain packageCurationProviderPluginId
