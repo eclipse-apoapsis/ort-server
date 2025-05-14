@@ -20,12 +20,14 @@
 import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
+  ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
   Row,
   useReactTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 
 import { useRunsServiceGetApiV1RunsByRunIdPackages } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
@@ -36,6 +38,7 @@ import {
 } from '@/api/queries/suspense';
 import { Package, RepositoryType } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
+import { MarkItems } from '@/components/data-table/mark-items';
 import { DependencyPaths } from '@/components/dependency-paths';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -57,6 +60,7 @@ import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import {
   declaredLicenseSearchParameterSchema,
+  markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   PackageIdType,
   paginationSearchParameterSchema,
@@ -179,20 +183,36 @@ const PackagesComponent = () => {
       id: 'moreInfo',
       header: 'Details',
       size: 50,
-      cell: ({ row }) => {
+      cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={row.getToggleExpandedHandler()}
-            style={{ cursor: 'pointer' }}
-          >
-            {row.getIsExpanded() ? (
-              <ChevronUp className='h-4 w-4' />
-            ) : (
-              <ChevronDown className='h-4 w-4' />
-            )}
-          </Button>
+          <div className='flex items-center gap-1'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={row.getToggleExpandedHandler()}
+              style={{ cursor: 'pointer' }}
+            >
+              {row.getIsExpanded() ? (
+                <ChevronUp className='h-4 w-4' />
+              ) : (
+                <ChevronDown className='h-4 w-4' />
+              )}
+            </Button>
+            <MarkItems
+              row={row}
+              setMarked={(marked) => {
+                return {
+                  to: Route.to,
+                  search: {
+                    ...search,
+                    // If no items are marked for inspection, remove the "marked" parameter
+                    // from search parameters.
+                    marked: marked === '' ? undefined : marked,
+                  },
+                };
+              }}
+            />
+          </div>
         ) : (
           'No info'
         );
@@ -281,6 +301,10 @@ const PackagesComponent = () => {
   // Match the column id properly when ORT ID or PURL is used for the column data.
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
 
+  const [expanded, setExpanded] = useState<ExpandedState>(
+    search.marked ? { [search.marked]: true } : {}
+  );
+
   const table = useReactTable({
     data: packages?.data || [],
     columns,
@@ -291,11 +315,13 @@ const PackagesComponent = () => {
         pageSize,
       },
       sorting: search.sortBy,
+      expanded: expanded,
       columnFilters: [
         { id: columnId, value: packageId },
         { id: 'processedDeclaredLicense', value: declaredLicense },
       ],
     },
+    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowCanExpand: () => true,
@@ -372,7 +398,8 @@ export const Route = createFileRoute(
   validateSearch: paginationSearchParameterSchema
     .merge(sortingSearchParameterSchema)
     .merge(packageIdentifierSearchParameterSchema)
-    .merge(declaredLicenseSearchParameterSchema),
+    .merge(declaredLicenseSearchParameterSchema)
+    .merge(markedSearchParameterSchema),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
       context.queryClient,
