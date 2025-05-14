@@ -110,6 +110,7 @@ import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.utils.test.Integration

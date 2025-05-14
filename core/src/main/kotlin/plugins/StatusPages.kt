@@ -29,7 +29,6 @@ import io.ktor.server.response.respond
 
 import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationException
 import org.eclipse.apoapsis.ortserver.core.api.AuthenticationException
-import org.eclipse.apoapsis.ortserver.core.api.ErrorResponse
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
@@ -37,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.services.OrganizationNotEmptyException
 import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.UrlPathFormatException
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
