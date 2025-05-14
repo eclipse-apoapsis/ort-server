@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigTable
 import org.eclipse.apoapsis.ortserver.components.authorization.requireAuthenticated
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.jetbrains.exposed.sql.Database
@@ -76,9 +77,9 @@ fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
     }.getOrElse {
         call.respond(
             HttpStatusCode.BadRequest,
-            mapOf(
-                "message" to "Invalid configuration key: $keyParameter",
-                "cause" to "Allowed keys: ${ConfigKey.entries.joinToString(", ")}"
+            ErrorResponse(
+                message = "Invalid configuration key: $keyParameter",
+                cause = "Allowed keys: ${ConfigKey.entries.joinToString(", ")}"
             )
         )
         return@get
