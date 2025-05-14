@@ -27,6 +27,8 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.mockk.mockk
+
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
@@ -52,17 +54,40 @@ class PackageServiceTest : WordSpec() {
 
     private lateinit var db: Database
     private lateinit var fixtures: Fixtures
+    private lateinit var service: PackageService
 
     init {
         beforeEach {
             db = dbExtension.db
             fixtures = dbExtension.fixtures
+
+            val ortRunService = OrtRunService(
+                db,
+                fixtures.advisorJobRepository,
+                fixtures.advisorRunRepository,
+                fixtures.analyzerJobRepository,
+                fixtures.analyzerRunRepository,
+                fixtures.evaluatorJobRepository,
+                fixtures.evaluatorRunRepository,
+                fixtures.ortRunRepository,
+                fixtures.reporterJobRepository,
+                fixtures.reporterRunRepository,
+                fixtures.notifierJobRepository,
+                fixtures.notifierRunRepository,
+                fixtures.repositoryConfigurationRepository,
+                fixtures.repositoryRepository,
+                fixtures.resolvedConfigurationRepository,
+                fixtures.scannerJobRepository,
+                fixtures.scannerRunRepository,
+                mockk(),
+                mockk()
+            )
+
+            service = PackageService(db, ortRunService)
         }
 
         "listForOrtRunId" should {
             "return the packages for the given ORT run id" {
-                val service = PackageService(db)
-
                 val pkg1 = fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
 
                 val pkg2 = fixtures.generatePackage(
@@ -87,8 +112,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "return non-empty maps and sets for authors, declared licenses, and mapped and unmapped licenses" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(
@@ -130,8 +153,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "limit and sort the result based on query options" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
@@ -153,8 +174,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "allow sorting by identifier" {
-                val service = PackageService(db)
-
                 val identifier1 = Identifier("NPM", "", "which", "2.0.2")
                 val identifier2 = Identifier("Maven", "com.fasterxml.jackson.core", "jackson-databind", "2.9.6")
                 val identifier3 = Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
@@ -189,8 +208,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "allow sorting by processed declared license" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(
@@ -234,8 +251,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "return an empty list if no packages were found in an ORT run" {
-                val service = PackageService(db)
-
                 val ortRun = createAnalyzerRunWithPackages(emptySet())
 
                 val results = service.listForOrtRunId(ortRun.id).data
@@ -244,8 +259,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "return the shortest dependency paths for packages" {
-                val service = PackageService(db)
-
                 val project1 = fixtures.getProject()
                 val project2 = fixtures.getProject(Identifier("Gradle", "", "project2", "1.0"))
 
@@ -317,8 +330,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "allow filtering by identifier" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
@@ -346,8 +357,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "have a match when filtering by an identifier that doesn't have a namespace" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(Identifier("NPM", "", "example", "1.0")),
@@ -370,8 +379,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "use case insensitive filtering for purl and identifier filtering" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
@@ -409,8 +416,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "allow filtering by purl" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
@@ -437,8 +442,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "allow filtering by processed declared license" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(
@@ -496,8 +499,6 @@ class PackageServiceTest : WordSpec() {
 
         "countForOrtRunId" should {
             "return count for packages found in an ORT run" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
@@ -509,8 +510,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "return count for packages found in ORT runs" {
-                val service = PackageService(db)
-
                 val repositoryId = fixtures.createRepository().id
 
                 val pkg1 = fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0"))
@@ -526,8 +525,6 @@ class PackageServiceTest : WordSpec() {
 
         "countEcosystemsForOrtRunIds" should {
             "list package types and counts for packages found in an ORT run" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
@@ -546,8 +543,6 @@ class PackageServiceTest : WordSpec() {
             }
 
             "list package types and counts for packages found in ORT runs" {
-                val service = PackageService(db)
-
                 val repositoryId = fixtures.createRepository().id
 
                 val ortRun1Id = createAnalyzerRunWithPackages(
@@ -581,8 +576,6 @@ class PackageServiceTest : WordSpec() {
 
         "getProcessedDeclaredLicenses" should {
             "return the distinct processed declared SPDX licenses found in packages in the ORT run" {
-                val service = PackageService(db)
-
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
                         fixtures.generatePackage(
