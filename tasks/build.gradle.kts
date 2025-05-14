@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.dao)
     implementation(projects.utils.logging)
     implementation(projects.services.hierarchyService)
+    implementation(projects.services.ortRunService)
     implementation(projects.services.reportStorageService)
     implementation(projects.storage.storageSpi)
     implementation(projects.transport.transportSpi)
@@ -50,6 +51,8 @@ dependencies {
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kubernetesClient)
     implementation(libs.logback)
+    implementation(libs.ortDownloader)
+    implementation(libs.ortScanner)
     implementation(libs.typesafeConfig)
 
     runtimeOnly(platform(projects.storage))

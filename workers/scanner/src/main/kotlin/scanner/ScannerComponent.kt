@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.transport.EndpointHandler
@@ -33,7 +34,6 @@ import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileArchiveStorage
-import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.workerContextModule
 import org.eclipse.apoapsis.ortserver.workers.common.env.buildEnvironmentModule

@@ -67,9 +67,9 @@ import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
 
 import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.Issue

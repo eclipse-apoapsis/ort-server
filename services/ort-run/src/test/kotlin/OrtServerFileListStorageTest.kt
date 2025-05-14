@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common
+package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import com.fasterxml.jackson.module.kotlin.readValue
 

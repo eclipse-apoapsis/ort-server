@@ -17,11 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common
+package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
+import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
@@ -31,9 +33,9 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
-import org.eclipse.apoapsis.ortserver.model.WorkerJob
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
@@ -62,7 +64,12 @@ import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ProvenanceResolutionResult
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScanResult
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
+import org.eclipse.apoapsis.ortserver.services.ReportStorageService
+import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
@@ -80,6 +87,11 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
 import org.ossreviewtoolkit.scanner.utils.filterScanResultsByVcsPaths
 import org.ossreviewtoolkit.scanner.utils.getVcsPathsForProvenances
 
+import org.slf4j.LoggerFactory
+
+/**
+ * A service to interact with ORT runs.
+ */
 @Suppress("LongParameterList", "TooManyFunctions")
 class OrtRunService(
     private val db: Database,
@@ -99,23 +111,66 @@ class OrtRunService(
     private val resolvedConfigurationRepository: ResolvedConfigurationRepository,
     private val scannerJobRepository: ScannerJobRepository,
     private val scannerRunRepository: ScannerRunRepository,
-    private val fileListResolver: FileListResolver
+    private val fileListResolver: FileListResolver,
+    private val reportStorageService: ReportStorageService
 ) {
     companion object {
         private const val RUN_ID_LABEL = "runId"
+    }
 
-        /**
-         * Validate this [WorkerJob] before it can be processed by the corresponding worker. Check whether the job
-         * exists and has a state that allows it to be processed.
-         */
-        inline fun <reified T : WorkerJob> T?.validateForProcessing(jobId: Long): T {
-            requireNotNull(this) { "The ${T::class.simpleName} '$jobId' does not exist in the database." }
+    private val logger = LoggerFactory.getLogger(OrtRunService::class.java)
 
-            if (status.final) {
-                throw JobIgnoredException("The ${T::class.simpleName} '$jobId' is in a final state.")
+    suspend fun listOrtRuns(
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filters: OrtRunFilters? = null
+    ): ListQueryResult<OrtRun> = db.dbQuery {
+        ortRunRepository.list(parameters, filters)
+    }
+
+    /**
+     * Delete the ORT run with the [ortRunId] and all its reports from storage and dependent database entities.
+     * In case a report does not exist in storage, although it should, the operation continues because
+     * the report might have been manually deleted from storage. However, if there is a technical issue
+     * during the deletion of a report from storage, the function fails and the ORT run is not deleted,
+     * allowing to retry the delete operation.
+     */
+    suspend fun deleteOrtRun(ortRunId: Long) {
+        reporterJobRepository.getForOrtRun(ortRunId)?.filenames?.forEach { filename ->
+            runCatching {
+                reportStorageService.deleteReport(ortRunId, filename)
+            }.onFailure { e ->
+                if (e is ReportNotFoundException) {
+                    logger.warn("Report $filename for ORT run $ortRunId not found in storage. Continuing.")
+                } else {
+                    throw e
+                }
             }
+        }
 
-            return this
+        if (ortRunRepository.delete(ortRunId) == 0) {
+            throw ResourceNotFoundException("ORT run with id '$ortRunId' not found.")
+        }
+    }
+
+    /**
+     * Delete all ORT runs that are older than the given [before] timestamp. Runs are deleted from the database and
+     * their reports are deleted from storage.
+     */
+    suspend fun deleteRunsCreatedBefore(before: Instant) {
+        val runIds = ortRunRepository.findRunsBefore(before)
+
+        logger.info("Deleting ${runIds.size} ORT runs older than $before.")
+
+        var failureCount = 0
+        runIds.forEach { runId ->
+            runCatching {
+                deleteOrtRun(runId)
+            }.onFailure { failureCount++ }
+        }
+
+        logger.info("Deleted ${runIds.size - failureCount} old ORT runs successfully.")
+        if (failureCount > 0) {
+            logger.warn("Failed to delete $failureCount old ORT runs.")
         }
     }
 

@@ -30,8 +30,8 @@ import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
-import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op

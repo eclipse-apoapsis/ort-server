@@ -77,13 +77,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.services.IssueService
-import org.eclipse.apoapsis.ortserver.services.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.PackageService
 import org.eclipse.apoapsis.ortserver.services.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 

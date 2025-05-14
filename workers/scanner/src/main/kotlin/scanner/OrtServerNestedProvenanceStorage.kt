@@ -27,8 +27,8 @@ import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoTable
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
-import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder

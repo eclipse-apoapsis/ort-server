@@ -23,7 +23,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createArtifactProvenance
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createIssue
 import org.eclipse.apoapsis.ortserver.workers.scanner.ScanResultFixtures.createRepositoryProvenance

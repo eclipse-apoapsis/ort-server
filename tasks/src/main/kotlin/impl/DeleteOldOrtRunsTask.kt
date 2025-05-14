@@ -25,7 +25,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.services.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.tasks.Task
 
 import org.slf4j.LoggerFactory

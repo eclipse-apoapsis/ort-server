@@ -19,70 +19,63 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.containExactlyInAnyOrder
-import io.kotest.matchers.should
+import io.kotest.inspectors.forAll
+import io.kotest.matchers.string.shouldContainIgnoringCase
 
-import io.mockk.every
-import io.mockk.mockk
+import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
+import org.eclipse.apoapsis.ortserver.model.JobStatus
 
-import org.ossreviewtoolkit.model.ArtifactProvenance
-import org.ossreviewtoolkit.model.FileList as ModelFileList
-import org.ossreviewtoolkit.model.Hash
-import org.ossreviewtoolkit.model.KnownProvenance
-import org.ossreviewtoolkit.model.RemoteArtifact
-import org.ossreviewtoolkit.model.RepositoryProvenance
-import org.ossreviewtoolkit.model.VcsInfo
-import org.ossreviewtoolkit.model.VcsType
-import org.ossreviewtoolkit.scanner.FileList as ScannerFileList
-import org.ossreviewtoolkit.scanner.utils.FileListResolver
+import org.jetbrains.exposed.sql.Database
 
 class UtilsTest : WordSpec({
-    "getFileLists" should {
-        "return the expected file lists" {
-            val provenance1 = RepositoryProvenance(VcsInfo(VcsType.GIT, "url", "revision"), "resolvedRevision")
-            val provenance2 = ArtifactProvenance(RemoteArtifact("url", Hash.NONE))
+    val dbExtension = extension(DatabaseTestExtension())
 
-            val fileList1 = ScannerFileList(
-                ignorePatterns = setOf("ignorePattern1"),
-                files = setOf(ScannerFileList.FileEntry("path1", "sha1"))
-            )
-            val fileList2 = ScannerFileList(
-                ignorePatterns = setOf("ignorePattern2"),
-                files = setOf(ScannerFileList.FileEntry("path2", "sha1"))
-            )
+    lateinit var db: Database
+    lateinit var fixtures: Fixtures
 
-            val fileListResolver = mockk<FileListResolver> {
-                every { get(provenance1) } returns fileList1
-                every { get(provenance2) } returns fileList2
+    beforeEach {
+        db = dbExtension.db
+        fixtures = dbExtension.fixtures
+    }
+
+    "validateForProcessing" should {
+        "throw an exception for a job that could not be resolved" {
+            val jobId = 42L
+            val job: AnalyzerJob? = null
+
+            val exception = shouldThrow<IllegalArgumentException> {
+                job.validateForProcessing(jobId)
             }
 
-            val fileLists = getFileLists(fileListResolver, setOf(provenance1, provenance2))
-
-            fileLists should containExactlyInAnyOrder(
-                ModelFileList(
-                    provenance1,
-                    setOf(ModelFileList.Entry("path1", "sha1"))
-                ),
-                ModelFileList(
-                    provenance2,
-                    setOf(ModelFileList.Entry("path2", "sha1"))
-                )
-            )
+            exception.message shouldContainIgnoringCase jobId.toString()
         }
 
-        "ignore provenances without stored file lists" {
-            val provenance1 = RepositoryProvenance(VcsInfo(VcsType.GIT, "url", "revision"), "resolvedRevision")
-            val provenance2 = ArtifactProvenance(RemoteArtifact("url", Hash.NONE))
+        "succeed for jobs with valid states" {
+            val validStates = JobStatus.entries.filterNot { it.final }
 
-            val fileListResolver = mockk<FileListResolver> {
-                every { get(any<KnownProvenance>()) } returns null
+            validStates.forAll { status ->
+                val job = fixtures.analyzerJob.copy(status = status)
+
+                job.validateForProcessing(job.id)
             }
+        }
 
-            val fileLists = getFileLists(fileListResolver, setOf(provenance1, provenance2))
+        "throw a JobIgnoredException for jobs with invalid states" {
+            val invalidStates = JobStatus.entries.filter { it.final }
 
-            fileLists should beEmpty()
+            invalidStates.forAll { status ->
+                val job = fixtures.analyzerJob.copy(status = status)
+
+                val exception = shouldThrow<JobIgnoredException> {
+                    job.validateForProcessing(job.id)
+                }
+
+                exception.message shouldContainIgnoringCase job.id.toString()
+            }
         }
     }
 })

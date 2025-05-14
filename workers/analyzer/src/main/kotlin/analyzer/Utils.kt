@@ -23,7 +23,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
-import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration

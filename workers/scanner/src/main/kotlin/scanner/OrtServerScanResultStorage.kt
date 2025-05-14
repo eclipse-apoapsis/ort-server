@@ -41,8 +41,8 @@ import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummaryDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetDao
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingDao
 import org.eclipse.apoapsis.ortserver.dao.utils.JsonHashFunction
-import org.eclipse.apoapsis.ortserver.workers.common.mapToModel
-import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Expression

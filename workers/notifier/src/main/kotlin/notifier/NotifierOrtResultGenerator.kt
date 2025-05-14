@@ -23,13 +23,13 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.WorkerJob
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Endpoint
 import org.eclipse.apoapsis.ortserver.transport.EvaluatorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ReporterEndpoint
 import org.eclipse.apoapsis.ortserver.transport.ScannerEndpoint
-import org.eclipse.apoapsis.ortserver.workers.common.OrtRunService
 
 import org.ossreviewtoolkit.model.OrtResult
 
