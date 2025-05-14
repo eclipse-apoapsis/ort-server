@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,28 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.api
+plugins {
+    // Apply precompiled plugins.
+    id("ort-server-kotlin-multiplatform-conventions")
+    id("ort-server-publication-conventions")
 
-import kotlinx.serialization.Serializable
+    // Apply third-party plugins.
+    alias(libs.plugins.kotlinSerialization)
+}
 
-/**
- * A common model, used for failed requests.
- */
-@Serializable
-data class ErrorResponse(
-    val message: String,
-    val cause: String?
-)
+group = "org.eclipse.apoapsis.ortserver.shared"
+
+kotlin {
+    linuxX64()
+    macosArm64()
+    macosX64()
+    mingwX64()
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation(libs.kotlinxSerializationJson)
+            }
+        }
+    }
+}

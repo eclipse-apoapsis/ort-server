@@ -77,6 +77,7 @@ dependencies {
     implementation(projects.services.infrastructureService)
     implementation(projects.services.reportStorageService)
     implementation(projects.services.secretService)
+    implementation(projects.shared.apiModel)
     implementation(projects.shared.ktorUtils)
     implementation(projects.shared.reporters)
     implementation(projects.storage.storageSpi)
