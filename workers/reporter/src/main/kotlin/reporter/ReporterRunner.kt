@@ -20,10 +20,15 @@
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
+
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTimedValue
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -170,7 +175,6 @@ class ReporterRunner(
         )
 
         val reports = successes.associate { (name, report) ->
-            logger.info("Successfully created '$name' report.")
             name to report.keys.toList()
         }
 
@@ -226,28 +230,37 @@ class ReporterRunner(
             val reporterInput = deferredReporterInput.await()
             val transformedOptions = deferredTransformedOptions.await()
 
+            val activeReporters = ConcurrentHashMap<String, Boolean>()
+            val monitorJob = launch { logActiveReporters(activeReporters.keys) }
+
             val success = config.formats.map { format ->
                 async {
                     logger.info("Generating the '$format' report...")
+                    activeReporters += format to true
 
                     val result = runCatching {
-                        val reporterFactory = requireNotNull(ReporterFactory.ALL[format]) {
-                            "No reporter found for the configured format '$format'."
-                        }
-
-                        val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.mapToOrt().orEmpty()
-
-                        val reporter = reporterFactory.create(reporterConfig)
-                        val reportFileResults = reporter.generateReport(reporterInput, outputDir)
-
-                        val reportFiles = reportFileResults.mapNotNull { result ->
-                            result.getOrElse {
-                                issues += createAndLogReporterIssue(format, it)
-                                null
+                        measureTimedValue {
+                            val reporterFactory = requireNotNull(ReporterFactory.ALL[format]) {
+                                "No reporter found for the configured format '$format'."
                             }
-                        }
 
-                        reportFiles.takeUnless { it.isEmpty() }?.let { reporter to reportFiles }
+                            val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.mapToOrt().orEmpty()
+
+                            val reporter = reporterFactory.create(reporterConfig)
+                            val reportFileResults = reporter.generateReport(reporterInput, outputDir)
+
+                            val reportFiles = reportFileResults.mapNotNull { result ->
+                                result.getOrElse {
+                                    issues += createAndLogReporterIssue(format, it)
+                                    null
+                                }
+                            }
+
+                            reportFiles.takeUnless { it.isEmpty() }?.let { reporter to reportFiles }
+                        }.let {
+                            logger.info("Successfully created '$format' report in ${it.duration}.")
+                            it.value
+                        }
                     }.onFailure {
                         issues += createAndLogReporterIssue(format, it)
                     }
@@ -256,12 +269,26 @@ class ReporterRunner(
                         val nameMapper = ReportNameMapper.create(config, reporter.descriptor.id)
                         format to nameMapper.mapReportNames(reportFiles)
                             .also { reportStorage.storeReportFiles(context.ortRun.id, it) }
+                    }.also {
+                        activeReporters -= format
                     }
                 }
             }.awaitAll().filterNotNull()
 
+            monitorJob.cancel()
             success to issues
         }
+
+    /**
+     * Periodically log the reporters that have not yet finished based on the given set of [activeReporters]. This is
+     * useful to identify reporters taking unusually long to finish.
+     */
+    private suspend fun logActiveReporters(activeReporters: Set<String>) {
+        while (true) {
+            delay(30.seconds)
+            logger.debug("Report generation in progress for the following reporters: {}.", activeReporters)
+        }
+    }
 
     /**
      * Prepare the generation of reports by processing the options passed to the single reporters in the given
