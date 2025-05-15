@@ -372,16 +372,26 @@ class OrtRunService(
      * add a number of common labels that can be evaluated by different types of workers to obtain further information
      * about the run.
      *
+     * [loadAdvisorRun], [loadScannerRun], and [loadEvaluatorRun] can be set to `false` to skip loading these parts of
+     * the ORT result if they are not required. For example, if only vulnerability information is needed, loading the
+     * scanner and evaluator runs can be skipped.
+     *
      * If [failIfRepoInfoMissing] is *true*, throw an [IllegalArgumentException] if the repository information
      * is missing; otherwise, return an empty [Repository] object.
      */
-    fun generateOrtResult(ortRun: OrtRun, failIfRepoInfoMissing: Boolean = true): OrtResult {
+    fun generateOrtResult(
+        ortRun: OrtRun,
+        loadAdvisorRun: Boolean = true,
+        loadScannerRun: Boolean = true,
+        loadEvaluatorRun: Boolean = true,
+        failIfRepoInfoMissing: Boolean = true
+    ): OrtResult {
         val repository = getOrtRepositoryInformation(ortRun, failIfMissing = failIfRepoInfoMissing)
         val resolvedConfiguration = getResolvedConfiguration(ortRun)
         val analyzerRun = getAnalyzerRunForOrtRun(ortRun.id)
-        val advisorRun = getAdvisorRunForOrtRun(ortRun.id)
-        val scannerRun = getScannerRunForOrtRun(ortRun.id)
-        val evaluatorRun = getEvaluatorRunForOrtRun(ortRun.id)
+        val advisorRun = if (loadAdvisorRun) getAdvisorRunForOrtRun(ortRun.id) else null
+        val scannerRun = if (loadScannerRun) getScannerRunForOrtRun(ortRun.id) else null
+        val evaluatorRun = if (loadEvaluatorRun) getEvaluatorRunForOrtRun(ortRun.id) else null
 
         val filteredOrtScanResults = filterScanResultsByVcsPath(scannerRun?.provenances, scannerRun?.scanResults)
 

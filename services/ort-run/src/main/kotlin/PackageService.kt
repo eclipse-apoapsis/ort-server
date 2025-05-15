@@ -99,7 +99,13 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             }
         }
 
-        val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false)
+        val ortResult = ortRunService.generateOrtResult(
+            ortRun,
+            loadAdvisorRun = false,
+            loadScannerRun = false,
+            loadEvaluatorRun = false,
+            failIfRepoInfoMissing = false
+        )
         val packages = ortResult.getPackages()
 
         val result = packages.map { pkg ->
