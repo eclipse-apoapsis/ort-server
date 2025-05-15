@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.workers.common.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapToOrt
@@ -33,6 +34,7 @@ import org.ossreviewtoolkit.model.PackageType
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.SourceCodeOrigin
+import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.model.utils.FileArchiver
@@ -50,6 +52,18 @@ class ScannerRunner(
     private val fileArchiver: FileArchiver,
     private val fileListStorage: OrtServerFileListStorage
 ) {
+    companion object {
+        /**
+         * Convert the VCS plugin configurations to a canonical string representation. If there are no VCS plugin
+         * configurations, return null.
+         */
+        fun createCanonicalVcsPluginConfigs(vcsPluginConfigs: Map<String, PluginConfig>) =
+            vcsPluginConfigs.keys.sorted().joinToString(separator = "&") { vcs ->
+                vcsPluginConfigs[vcs]?.options.orEmpty()
+                    .toSortedMap().entries.joinToString(separator = "&") { (key, value) -> "$vcs/$key/$value" }
+            }.ifEmpty { null }
+    }
+
     suspend fun run(
         context: WorkerContext,
         ortResult: OrtResult,
@@ -73,7 +87,11 @@ class ScannerRunner(
 
         val packageProvenanceCache = PackageProvenanceCache()
         val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId, packageProvenanceCache)
-        val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(db, packageProvenanceCache)
+        val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(
+            db,
+            packageProvenanceCache,
+            canonicalVcsPluginConfigs
+        )
         val scanResultStorage = OrtServerScanResultStorage(db, scannerRunId)
 
         val scanStorages = ScanStorages(

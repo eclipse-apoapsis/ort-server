@@ -42,7 +42,8 @@ import org.ossreviewtoolkit.utils.ort.runBlocking
 
 class OrtServerNestedProvenanceStorage(
     private val db: Database,
-    private val packageProvenanceCache: PackageProvenanceCache
+    private val packageProvenanceCache: PackageProvenanceCache,
+    private val vcsPluginConfigs: String?
 ) : NestedProvenanceStorage {
     override fun writeNestedProvenance(
         root: RepositoryProvenance,
@@ -64,6 +65,7 @@ class OrtServerNestedProvenanceStorage(
             rootVcs = vcsDao
             rootResolvedRevision = root.resolvedRevision
             hasOnlyFixedRevisions = result.hasOnlyFixedRevisions
+            vcsPluginConfigs = this@OrtServerNestedProvenanceStorage.vcsPluginConfigs
         }
 
         result.nestedProvenance.subRepositories.forEach { (path, repositoryProvenance) ->
@@ -89,7 +91,11 @@ class OrtServerNestedProvenanceStorage(
                 .where {
                     VcsInfoTable.type eq resolvedVcs.type.name and
                             (VcsInfoTable.url eq resolvedVcs.url) and
-                            (VcsInfoTable.revision eq resolvedVcs.revision)
+                            (VcsInfoTable.revision eq resolvedVcs.revision) and
+                            (
+                                    NestedProvenancesTable.vcsPluginConfigs eq
+                                            this@OrtServerNestedProvenanceStorage.vcsPluginConfigs
+                                    )
                 }.orderBy(NestedProvenancesTable.id to SortOrder.DESC)
                 .limit(1)
                 .singleOrNull()
