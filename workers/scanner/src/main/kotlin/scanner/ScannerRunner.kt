@@ -58,6 +58,19 @@ class ScannerRunner(
     ): OrtScannerResult {
         val pluginConfigs = context.resolvePluginConfigSecrets(config.config)
 
+        // If the submodule fetch strategy is set to TOP_LEVEL_ONLY, for git use a plugin config that prevents that
+        // submodules are fetched recursively.
+        val vcsPluginConfigs = if (config.submoduleFetchStrategy == SubmoduleFetchStrategy.TOP_LEVEL_ONLY) {
+            mapOf(
+                VcsType.GIT.toString() to PluginConfig(
+                    options = mapOf("updateNestedSubmodules" to "false")
+                )
+            )
+        } else {
+            emptyMap()
+        }
+        val canonicalVcsPluginConfigs = createCanonicalVcsPluginConfigs(vcsPluginConfigs)
+
         val packageProvenanceCache = PackageProvenanceCache()
         val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId, packageProvenanceCache)
         val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(db, packageProvenanceCache)
@@ -85,7 +98,8 @@ class ScannerRunner(
                 ?: listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
         )
 
-        val workingTreeCache = DefaultWorkingTreeCache()
+        val workingTreeCache = DefaultWorkingTreeCache().addVcsPluginConfigs(vcsPluginConfigs)
+
         val provenanceDownloader = DefaultProvenanceDownloader(downloaderConfig, workingTreeCache)
         val packageProvenanceResolver = DefaultPackageProvenanceResolver(
             scanStorages.packageProvenanceStorage,
