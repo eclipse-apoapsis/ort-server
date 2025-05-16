@@ -67,19 +67,24 @@ export const Cvss23RadarChart = ({ cvssScore }: Cvss23RadarChartProps) => {
   //
   // The CVSS v3.1 specification indicates that when Temporal and Environmental metrics are not defined,
   // they are treated in a way that the Base Score remains unaffected. Therefore, for the purpose of rendering
-  // the radar chart, use the Base Score for these metrics.
+  // the radar chart, use the Base Score for these metrics, and indicate true data points with a dot.
   //
   // See: https://www.first.org/cvss/v3-1/specification-document
   const chartData = [
-    { component: 'Base', score: base },
+    { component: 'Base', score: base, dot: true },
     {
       component: 'Modified Impact',
       score: modifiedImpact || impact,
+      dot: !!modifiedImpact,
     },
-    { component: 'Impact', score: impact },
-    { component: 'Temporal', score: temporal || base },
-    { component: 'Exploitability', score: exploitability },
-    { component: 'Environmental', score: environmental || base },
+    { component: 'Impact', score: impact, dot: true },
+    { component: 'Temporal', score: temporal || base, dot: !!temporal },
+    { component: 'Exploitability', score: exploitability, dot: true },
+    {
+      component: 'Environmental',
+      score: environmental || base,
+      dot: !!environmental,
+    },
   ];
 
   const chartConfig = {
@@ -149,6 +154,14 @@ export const Cvss23RadarChart = ({ cvssScore }: Cvss23RadarChartProps) => {
               fillOpacity={0}
               stroke='hsl(var(--chart-1))'
               strokeWidth={2}
+              dot={(props) => {
+                const { payload } = props;
+                return payload.payload.dot ? (
+                  <circle cx={payload.x} cy={payload.y} r='6' fill='orange' />
+                ) : (
+                  <g />
+                );
+              }}
             />
           </RadarChart>
         </ChartContainer>
