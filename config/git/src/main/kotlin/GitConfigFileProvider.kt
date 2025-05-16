@@ -144,7 +144,7 @@ class GitConfigFileProvider internal constructor(
 
             // Update the working tree to the requested revision.
             withAuthenticator(username, token) {
-                measureTime { git.updateWorkingTree(workingTree, revision, recursive = true) }.also {
+                measureTime { git.updateWorkingTree(workingTree, revision, recursive = true).getOrThrow() }.also {
                     logger.debug("Updated Git working tree to revision '$revision' in $it.")
                 }
             }

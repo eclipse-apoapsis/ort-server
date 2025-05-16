@@ -25,6 +25,8 @@ import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
+import java.io.IOException
+
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -60,6 +62,14 @@ class GitConfigFileProviderTest : WordSpec({
             val context = provider.resolveContext(Context(GIT_BRANCH_DEV))
 
             context.name shouldBe GIT_REVISION_DEV
+        }
+
+        "throw an exception for a non-resolvable context" {
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+
+            shouldThrow<IOException> {
+                provider.resolveContext(Context("non-existent-branch"))
+            }
         }
     }
 
