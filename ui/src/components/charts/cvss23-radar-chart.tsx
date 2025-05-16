@@ -17,7 +17,13 @@
  * License-Filename: LICENSE
  */
 
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from 'recharts';
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+} from 'recharts';
 
 import {
   Card,
@@ -129,6 +135,12 @@ export const Cvss23RadarChart = ({ cvssScore }: Cvss23RadarChartProps) => {
                     ? 'Temp'
                     : value.slice(0, 3);
               }}
+            />
+            <PolarRadiusAxis
+              style={{ visibility: 'hidden' }}
+              angle={60}
+              tickCount={6}
+              domain={[0, 10]}
             />
             <PolarGrid radialLines={false} />
             <Radar
