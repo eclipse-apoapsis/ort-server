@@ -58,7 +58,7 @@ class WorkerContextFactory(
      * Return a [WorkerContext] for the given [ID of an ORT run][ortRunId]. The context is lazily initialized; so the
      * instance creation is not an expensive operation. When functionality is used, data may be loaded dynamically.
      */
-    internal fun createContext(ortRunId: Long): WorkerContext {
+    fun createContext(ortRunId: Long): WorkerContext {
         val ortConfig = WorkerOrtConfig.create(configManager)
         ortConfig.setUpOrtEnvironment()
 
