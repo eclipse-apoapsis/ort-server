@@ -35,6 +35,11 @@ object NestedProvenancesTable : LongIdTable("nested_provenances") {
 
     val rootResolvedRevision = text("root_resolved_revision")
     val hasOnlyFixedRevisions = bool("has_only_fixed_revisions")
+
+    // If specific VCS plugin configurations are used, store a canonical string representation of these configuration
+    // options in this column. This ensures that results are only reused for scans with identical VCS plugin
+    // configurations.
+    val vcsPluginConfigs = text("vcs_plugin_configs").nullable()
 }
 
 class NestedProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
@@ -44,6 +49,7 @@ class NestedProvenanceDao(id: EntityID<Long>) : LongEntity(id) {
 
     var rootResolvedRevision by NestedProvenancesTable.rootResolvedRevision
     var hasOnlyFixedRevisions by NestedProvenancesTable.hasOnlyFixedRevisions
+    var vcsPluginConfigs by NestedProvenancesTable.vcsPluginConfigs
 
     val packageProvenances by PackageProvenanceDao optionalReferrersOn PackageProvenancesTable.nestedProvenanceId
     val subRepositories by NestedProvenanceSubRepositoryDao referrersOn
