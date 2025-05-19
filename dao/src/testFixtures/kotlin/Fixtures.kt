@@ -318,12 +318,12 @@ class Fixtures(private val db: Database) {
         homepageUrl: String = "https://example.com",
         binaryArtifact: RemoteArtifact = RemoteArtifact(
             "https://example.com/example-1.0.jar",
-            "sha1:value",
+            "0123456789abcdef0123456789abcdef01234567",
             "SHA-1"
         ),
         sourceArtifact: RemoteArtifact = RemoteArtifact(
             "https://example.com/example-1.0-sources.jar",
-            "sha1:value",
+            "0123456789abcdef0123456789abcdef01234567",
             "SHA-1"
         ),
         vcs: VcsInfo = VcsInfo(

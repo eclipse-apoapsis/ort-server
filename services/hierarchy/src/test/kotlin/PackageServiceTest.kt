@@ -71,12 +71,12 @@ class PackageServiceTest : WordSpec() {
                     homepageUrl = "https://example2.com",
                     binaryArtifact = RemoteArtifact(
                         "https://example.com/example2-1.0.jar",
-                        "sha1:binary",
+                        "0123456789abcdef0123456789abcdef01234567",
                         "SHA-1"
                     ),
                     sourceArtifact = RemoteArtifact(
                         "https://example.com/example2-1.0-sources.jar",
-                        "sha1:source",
+                        "0123456789abcdef0123456789abcdef01234567",
                         "SHA-1"
                     )
                 )
@@ -96,12 +96,12 @@ class PackageServiceTest : WordSpec() {
                             authors = setOf("Author One", "Author Two", "Author Three"),
                             declaredLicenses = setOf("License 1", "License 2", "License 3", "License 4"),
                             processedDeclaredLicense = ProcessedDeclaredLicense(
-                                spdxExpression = "License Expression",
+                                spdxExpression = "LicenseRef-license",
                                 mappedLicenses = mapOf(
-                                    "License 1" to "Mapped License 1",
-                                    "License 2" to "Mapped License 2",
+                                    "License 1" to "LicenseRef-mapped-1",
+                                    "License 2" to "LicenseRef-mapped-2",
                                 ),
-                                unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
+                                unmappedLicenses = setOf("License 3", "License 4")
                             ),
                         )
                     )
@@ -118,13 +118,13 @@ class PackageServiceTest : WordSpec() {
                     declaredLicenses shouldBe setOf("License 1", "License 2", "License 3", "License 4")
 
                     with(processedDeclaredLicense) {
-                        spdxExpression shouldBe "License Expression"
+                        spdxExpression shouldBe "LicenseRef-license"
                         mappedLicenses shouldBe mapOf(
-                            "License 1" to "Mapped License 1",
-                            "License 2" to "Mapped License 2",
+                            "License 1" to "LicenseRef-mapped-1",
+                            "License 2" to "LicenseRef-mapped-2",
                         )
-                        unmappedLicenses shouldHaveSize 4
-                        unmappedLicenses shouldBe setOf("License 1", "License 2", "License 3", "License 4")
+                        unmappedLicenses shouldHaveSize 2
+                        unmappedLicenses shouldBe setOf("License 3", "License 4")
                     }
                 }
             }

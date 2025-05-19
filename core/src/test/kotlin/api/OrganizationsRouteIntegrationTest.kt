@@ -1782,12 +1782,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     homepageUrl = "https://example.com",
                     binaryArtifact = RemoteArtifact(
                         "https://example.com/example-1.0.jar",
-                        "sha1:value",
+                        "0123456789abcdef0123456789abcdef01234567",
                         "SHA-1"
                     ),
                     sourceArtifact = RemoteArtifact(
                         "https://example.com/example-1.0-sources.jar",
-                        "sha1:value",
+                        "0123456789abcdef0123456789abcdef01234567",
                         "SHA-1"
                     ),
                     vcs = VcsInfo(
