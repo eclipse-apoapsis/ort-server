@@ -130,7 +130,7 @@ class OrtServerScanResultStorage(
             }
         }
 
-    override fun write(scanResult: ScanResult) {
+    override fun write(scanResult: ScanResult): Boolean {
         val provenance = scanResult.provenance
         storeIssues(provenance, scanResult.summary)
 
@@ -142,11 +142,16 @@ class OrtServerScanResultStorage(
             throw ScanStorageException("Repository provenances with a non-empty VCS path are not supported.")
         }
 
-        withLoggedTime("writing scan result for provenance: '$provenance'.") {
+        return withLoggedTime("writing scan result for provenance: '$provenance'.") {
             db.blockingQuery {
-                val resultDao = findExistingScanResult(scanResult) ?: createNewScanResult(scanResult, provenance)
-
-                associateScanResultWithScannerRun(resultDao)
+                val resultDao = findExistingScanResult(scanResult)
+                if (resultDao != null) {
+                    associateScanResultWithScannerRun(resultDao)
+                    false
+                } else {
+                    associateScanResultWithScannerRun(createNewScanResult(scanResult, provenance))
+                    true
+                }
             }
         }
     }
