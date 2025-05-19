@@ -182,10 +182,11 @@ private fun tasksModule(): Module =
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
         single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
 
-        single { Storage.create("reportStorage", get()) }
-
         singleOf(::OrtRunService)
-        singleOf(::ReportStorageService)
+        single {
+            val storage = Storage.create("reportStorage", get())
+            ReportStorageService(storage, get())
+        }
         singleOf(::OrphanRemovalService)
 
         single<Task>(named("delete-old-ort-runs")) { DeleteOldOrtRunsTask.create(get(), get()) }
