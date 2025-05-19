@@ -30,4 +30,13 @@ object PackagesAuthorsTable : Table("packages_authors") {
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(authorId, packageId, name = "${tableName}_pkey")
+
+    /** Get the authors for the provided [packageIds]. */
+    fun getAuthorsByPackageIds(packageIds: Set<Long>): Map<Long, Set<String>> =
+        innerJoin(AuthorsTable)
+            .select(packageId, AuthorsTable.name)
+            .where { packageId inList packageIds }
+            .groupBy({ it[packageId] }) { it[AuthorsTable.name] }
+            .mapKeys { it.key.value }
+            .mapValues { it.value.toSet() }
 }

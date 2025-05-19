@@ -30,4 +30,12 @@ object EnvironmentsVariablesTable : Table("environments_variables") {
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(environmentId, variableId, name = "${tableName}_pkey")
+
+    /** Get the variables for a given [environmentId]. */
+    fun getVariablesByEnvironmentId(environmentId: Long): Map<String, String> =
+        innerJoin(VariablesTable)
+            .select(VariablesTable.name, VariablesTable.value)
+            .where { EnvironmentsVariablesTable.environmentId eq environmentId }.associate { resultRow ->
+                resultRow[VariablesTable.name] to resultRow[VariablesTable.value]
+            }
 }

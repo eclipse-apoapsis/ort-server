@@ -30,4 +30,12 @@ object EnvironmentsToolVersionsTable : Table("environments_tool_versions") {
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(environmentId, toolVersionId, name = "${tableName}_pkey")
+
+    /** Get the tool versions for a given [environmentId]. */
+    fun getToolVersionsByEnvironmentId(environmentId: Long): Map<String, String> =
+        innerJoin(ToolVersionsTable)
+            .select(ToolVersionsTable.name, ToolVersionsTable.version)
+            .where { EnvironmentsToolVersionsTable.environmentId eq environmentId }.associate { resultRow ->
+                resultRow[ToolVersionsTable.name] to resultRow[ToolVersionsTable.version]
+            }
 }

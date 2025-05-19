@@ -24,7 +24,6 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
-import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicenseDao
@@ -102,15 +101,14 @@ class DaoAnalyzerRunRepository(private val db: Database) : AnalyzerRunRepository
                 OrtRunIssueDao.createByIssue(jobDao.ortRun.id.value, analyzerIssue)
             }
 
-            analyzerRun.mapToModel()
+            checkNotNull(get(analyzerRun.id.value))
         }
     }
 
-    override fun get(id: Long): AnalyzerRun? = db.entityQuery { AnalyzerRunDao[id].mapToModel() }
+    override fun get(id: Long): AnalyzerRun? = db.blockingQuery { AnalyzerRunsTable.getById(id) }
 
-    override fun getByJobId(analyzerJobId: Long): AnalyzerRun? = db.blockingQuery {
-        AnalyzerRunDao.find { AnalyzerRunsTable.analyzerJobId eq analyzerJobId }.firstOrNull()?.mapToModel()
-    }
+    override fun getByJobId(analyzerJobId: Long): AnalyzerRun? =
+        db.blockingQuery { AnalyzerRunsTable.getByAnalyzerJobId(analyzerJobId) }
 }
 
 private fun createAnalyzerConfiguration(

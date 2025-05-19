@@ -48,6 +48,13 @@ object AnalyzerJobsTable : LongIdTable("analyzer_jobs") {
     val finishedAt = timestamp("finished_at").nullable()
     val configuration = jsonb<AnalyzerJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
+
+    /** Get the ORT run ID for the given job [id]. Returns `null` if no job is found. */
+    fun getOrtRunIdById(id: Long): Long? =
+        select(ortRunId)
+            .where { AnalyzerJobsTable.id eq id }
+            .map { it[ortRunId].value }
+            .firstOrNull()
 }
 
 class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
