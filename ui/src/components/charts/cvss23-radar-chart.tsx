@@ -151,7 +151,7 @@ export const Cvss23RadarChart = ({ cvssScore }: Cvss23RadarChartProps) => {
             <Radar
               dataKey='score'
               fill='hsl(var(--chart-1))'
-              fillOpacity={0}
+              fillOpacity={0.2}
               stroke='hsl(var(--chart-1))'
               strokeWidth={2}
               dot={(props) => {
@@ -159,7 +159,12 @@ export const Cvss23RadarChart = ({ cvssScore }: Cvss23RadarChartProps) => {
                 return payload.payload.dot ? (
                   <circle cx={payload.x} cy={payload.y} r='6' fill='orange' />
                 ) : (
-                  <g />
+                  <circle
+                    cx={payload.x}
+                    cy={payload.y}
+                    r='4'
+                    fill='hsl(var(--chart-1))'
+                  />
                 );
               }}
             />
