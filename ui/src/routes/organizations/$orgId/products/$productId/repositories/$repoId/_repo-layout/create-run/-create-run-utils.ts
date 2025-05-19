@@ -255,9 +255,11 @@ export function defaultValues(
     if (ortRun) {
       return {
         enabled:
-          ortRun.jobConfigs.analyzer?.enabledPackageManagers?.includes(
-            packageManagerId
-          ) || false,
+          ortRun.jobConfigs.analyzer?.enabledPackageManagers === undefined
+            ? enabledByDefault
+            : ortRun.jobConfigs.analyzer?.enabledPackageManagers?.includes(
+                packageManagerId
+              ) || false,
         mustRunAfter:
           (ortRun.jobConfigs.analyzer?.packageManagerOptions?.[packageManagerId]
             ?.mustRunAfter as PackageManagerId[]) || [],
