@@ -143,7 +143,6 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
 
     single { SecretStorage.createStorage(get()) }
-    single { Storage.create("reportStorage", get()) }
     single { ConfigManager.create(get()) }
     single { LogFileService.create(get()) }
 
@@ -164,7 +163,10 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single { UserService(get()) }
     single { OrtRunService(get(), get(), get(), get()) }
     single { ContentManagementService(get()) }
-    singleOf(::ReportStorageService)
+    single {
+        val storage = Storage.create("reportStorage", get())
+        ReportStorageService(storage, get())
+    }
     singleOf(::InfrastructureServiceService)
 
     single { PluginEventStore(get()) }

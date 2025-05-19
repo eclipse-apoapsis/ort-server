@@ -136,11 +136,14 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
         )
 
     private fun reporterModule(): Module = module {
-        single { Storage.create(ReportStorage.STORAGE_TYPE, get()) }
-
         single {
             val storage = Storage.create(OrtServerFileArchiveStorage.STORAGE_TYPE, get())
             FileArchiver(LicenseFilePatterns.DEFAULT.allLicenseFilenames, OrtServerFileArchiveStorage(storage))
+        }
+
+        single {
+            val storage = Storage.create(ReportStorage.STORAGE_TYPE, get())
+            ReportStorage(storage)
         }
 
         single {
@@ -153,7 +156,6 @@ class ReporterComponent : EndpointComponent<ReporterRequest>(ReporterEndpoint) {
             }
         }
 
-        singleOf(::ReportStorage)
         singleOf(::ReporterRunner)
         singleOf(::ReporterWorker)
     }
