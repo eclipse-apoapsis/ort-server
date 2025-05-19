@@ -32,4 +32,13 @@ object PackagesDeclaredLicensesTable : Table("packages_declared_licenses") {
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(packageId, declaredLicenseId, name = "${tableName}_pkey")
+
+    /** Get the declared licenses for the provided [packageIds]. */
+    fun getDeclaredLicensesByPackageIds(packageIds: Set<Long>): Map<Long, Set<String>> =
+        innerJoin(DeclaredLicensesTable)
+            .select(packageId, DeclaredLicensesTable.name)
+            .where { packageId inList packageIds }
+            .groupBy({ it[packageId] }) { it[DeclaredLicensesTable.name] }
+            .mapKeys { it.key.value }
+            .mapValues { it.value.toSet() }
 }

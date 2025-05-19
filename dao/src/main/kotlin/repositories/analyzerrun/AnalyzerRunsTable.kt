@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobDa
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
@@ -32,7 +33,9 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.sql.selectAll
 
 /**
  * A table to represent an analyzer run.
@@ -44,6 +47,42 @@ object AnalyzerRunsTable : LongIdTable("analyzer_runs") {
     val startTime = timestamp("start_time")
     val endTime = timestamp("end_time")
     val dependencyGraphs = jsonb<DependencyGraphsWrapper>("dependency_graphs")
+
+    /** Get the [AnalyzerRun] for the given [id]. Returns `null` if no run is found. */
+    fun getById(id: Long): AnalyzerRun? =
+        selectAll().where { AnalyzerRunsTable.id eq id }.singleOrNull()?.let {
+            loadAnalyzerRun(it)
+        }
+
+    /** Get the [AnalyzerRun] for the given [analyzerJobId]. Returns `null` if no run is found. */
+    fun getByAnalyzerJobId(analyzerJobId: Long): AnalyzerRun? =
+        selectAll().where { AnalyzerRunsTable.analyzerJobId eq analyzerJobId }.singleOrNull()?.let {
+            loadAnalyzerRun(it)
+        }
+
+    private fun loadAnalyzerRun(resultRow: ResultRow): AnalyzerRun {
+        val analyzerRunId = resultRow[id].value
+        val analyzerJobId = resultRow[analyzerJobId].value
+        val environment = checkNotNull(EnvironmentsTable.getById(resultRow[environmentId].value))
+        val config = checkNotNull(AnalyzerConfigurationsTable.getByAnalyzerRunId(analyzerRunId))
+        val projects = ProjectsAnalyzerRunsTable.getProjectsByAnalyzerRunId(analyzerRunId)
+        val packages = PackagesAnalyzerRunsTable.getPackagesByAnalyzerRunId(analyzerRunId)
+        val ortRunId = checkNotNull(AnalyzerJobsTable.getOrtRunIdById(analyzerJobId))
+        val issues = OrtRunsIssuesTable.getIssuesByOrtRunId(ortRunId, AnalyzerRunDao.ISSUE_WORKER_TYPE)
+
+        return AnalyzerRun(
+            id = analyzerRunId,
+            analyzerJobId = analyzerJobId,
+            startTime = resultRow[startTime],
+            endTime = resultRow[endTime],
+            environment = environment,
+            config = config,
+            projects = projects,
+            packages = packages,
+            issues = issues,
+            dependencyGraphs = resultRow[dependencyGraphs].dependencyGraphs
+        )
+    }
 }
 
 class AnalyzerRunDao(id: EntityID<Long>) : LongEntity(id) {

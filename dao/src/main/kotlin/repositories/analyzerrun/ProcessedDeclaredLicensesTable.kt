@@ -25,6 +25,10 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.selectAll
 
 /**
  * A table to store the results of processing declared licenses.
@@ -34,6 +38,54 @@ object ProcessedDeclaredLicensesTable : LongIdTable("processed_declared_licenses
     val projectId = reference("project_id", ProjectsTable).nullable()
 
     val spdxExpression = text("spdx_expression").nullable()
+
+    /** Get the [ProcessedDeclaredLicense]s for the provided [packageIds]. */
+    fun getByPackageIds(packageIds: Set<Long>): Map<Long, ProcessedDeclaredLicense?> =
+        getByIds({ packageId inList packageIds }, { this[packageId]?.value })
+
+    /** Get the [ProcessedDeclaredLicense]s for the provided [projectIds]. */
+    fun getByProjectIds(projectIds: Set<Long>): Map<Long, ProcessedDeclaredLicense?> =
+        getByIds({ projectId inList projectIds }, { this[projectId]?.value })
+
+    /**
+     * Get the [ProcessedDeclaredLicense]s matching the provided [whereCondition], associated by the provided
+     * [idSelector].
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun getByIds(
+        whereCondition: SqlExpressionBuilder.() -> Op<Boolean>,
+        idSelector: ResultRow.() -> Long?
+    ): Map<Long, ProcessedDeclaredLicense?> =
+        leftJoin(ProcessedDeclaredLicensesMappedDeclaredLicensesTable)
+            .leftJoin(MappedDeclaredLicensesTable)
+            .leftJoin(ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable)
+            .leftJoin(UnmappedDeclaredLicensesTable)
+            .selectAll()
+            .where(whereCondition)
+            .groupBy { it.idSelector() }
+            .mapValues { (_, resultRows) ->
+                if (resultRows.isEmpty()) return@mapValues null
+
+                // The compiler wrongly assumes that the declaredLicense, mappedLicense, and unmappedLicense columns
+                // cannot be null, but they can be if there are no entries in the joined tables, so they must be cast
+                // to nullable.
+                val nullableMappedLicenses = resultRows.associate {
+                    it[MappedDeclaredLicensesTable.declaredLicense] to
+                            it[MappedDeclaredLicensesTable.mappedLicense]
+                } as Map<String?, String>
+
+                val mappedLicenses = nullableMappedLicenses.filterKeys { it != null } as Map<String, String>
+
+                val unmappedLicenses = resultRows
+                    .mapTo(mutableListOf<String?>()) { it[UnmappedDeclaredLicensesTable.unmappedLicense] }
+                    .filterNotNullTo(mutableSetOf())
+
+                ProcessedDeclaredLicense(
+                    spdxExpression = resultRows[0][spdxExpression],
+                    mappedLicenses = mappedLicenses,
+                    unmappedLicenses = unmappedLicenses
+                )
+            } as Map<Long, ProcessedDeclaredLicense?>
 }
 
 class ProcessedDeclaredLicenseDao(id: EntityID<Long>) : LongEntity(id) {

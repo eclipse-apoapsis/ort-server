@@ -30,4 +30,13 @@ object ProjectsAuthorsTable : Table("projects_authors") {
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(authorId, projectId, name = "${tableName}_pkey")
+
+    /** Get the authors for the provided [projectIds]. */
+    fun getAuthorsByProjectIds(projectIds: Set<Long>): Map<Long, Set<String>> =
+        innerJoin(AuthorsTable)
+            .select(projectId, AuthorsTable.name)
+            .where { projectId inList projectIds }
+            .groupBy({ it[projectId] }) { it[AuthorsTable.name] }
+            .mapKeys { it.key.value }
+            .mapValues { it.value.toSet() }
 }

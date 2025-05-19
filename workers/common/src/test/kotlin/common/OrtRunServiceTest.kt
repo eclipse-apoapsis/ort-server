@@ -789,7 +789,7 @@ class OrtRunServiceTest : WordSpec({
                     allowDynamicVersions = true,
                     enabledPackageManagers = emptyList(),
                     disabledPackageManagers = null,
-                    packageManagers = emptyMap(),
+                    packageManagers = null,
                     skipExcluded = true
                 ),
                 projects = emptySet(),

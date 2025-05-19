@@ -27,6 +27,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
 
 /**
  * A table to represent the environment settings.
@@ -37,6 +38,26 @@ object EnvironmentsTable : LongIdTable("environments") {
     val os = text("os")
     val processors = integer("processors")
     val maxMemory = long("max_memory")
+
+    /** Get the [Environment] for the given [id]. Returns `null` if no environment is found. */
+    fun getById(id: Long): Environment? {
+        val resultRow = selectAll().where { EnvironmentsTable.id eq id }.singleOrNull()
+
+        if (resultRow == null) return null
+
+        val variables = EnvironmentsVariablesTable.getVariablesByEnvironmentId(id)
+        val toolVersions = EnvironmentsToolVersionsTable.getToolVersionsByEnvironmentId(id)
+
+        return Environment(
+            ortVersion = resultRow[ortVersion],
+            javaVersion = resultRow[javaVersion],
+            os = resultRow[os],
+            processors = resultRow[processors],
+            maxMemory = resultRow[maxMemory],
+            variables = variables,
+            toolVersions = toolVersions
+        )
+    }
 }
 
 class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
