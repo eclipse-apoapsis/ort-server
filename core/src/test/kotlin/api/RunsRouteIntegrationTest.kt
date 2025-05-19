@@ -1026,8 +1026,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             ProcessedDeclaredLicense(
                                 spdxExpression = "Expression",
                                 mappedLicenses = mapOf(
-                                    "License 1" to "Mapped License 1",
-                                    "License 2" to "Mapped License 2",
+                                    "License 1" to "LicenseRef-mapped-1",
+                                    "License 2" to "LicenseRef-mapped-2",
                                 ),
                                 unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
                             ),
@@ -1035,12 +1035,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             homepageUrl = "https://example.com",
                             binaryArtifact = RemoteArtifact(
                                 "https://example.com/example-1.0.jar",
-                                "sha1:value",
+                                "0123456789abcdef0123456789abcdef01234567",
                                 "SHA-1"
                             ),
                             sourceArtifact = RemoteArtifact(
                                 "https://example.com/example-1.0-sources.jar",
-                                "sha1:value",
+                                "0123456789abcdef0123456789abcdef01234567",
                                 "SHA-1"
                             ),
                             vcs = VcsInfo(
@@ -1073,12 +1073,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             homepageUrl = "https://example.com",
                             binaryArtifact = RemoteArtifact(
                                 "https://example.com/example2-1.0.jar",
-                                "sha1:value",
+                                "0123456789abcdef0123456789abcdef01234567",
                                 "SHA-1"
                             ),
                             sourceArtifact = RemoteArtifact(
                                 "https://example.com/example2-1.0-sources.jar",
-                                "sha1:value",
+                                "0123456789abcdef0123456789abcdef01234567",
                                 "SHA-1"
                             ),
                             vcs = VcsInfo(
@@ -1339,8 +1339,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             ProcessedDeclaredLicense(
                                 spdxExpression = "Expression",
                                 mappedLicenses = mapOf(
-                                    "License 1" to "Mapped License 1",
-                                    "License 2" to "Mapped License 2",
+                                    "License 1" to "LicenseRef-mapped-1",
+                                    "License 2" to "LicenseRef-mapped-2",
                                 ),
                                 unmappedLicenses = setOf("License 1", "License 2", "License 3", "License 4")
                             ),
@@ -1816,12 +1816,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             homepageUrl = "https://example.com",
                             binaryArtifact = RemoteArtifact(
                                 "https://example.com/example-1.0.jar",
-                                "sha1:value",
+                                "0123456789abcdef0123456789abcdef01234567",
                                 "SHA-1"
                             ),
                             sourceArtifact = RemoteArtifact(
                                 "https://example.com/example-1.0-sources.jar",
-                                "sha1:value",
+                                "0123456789abcdef0123456789abcdef01234567",
                                 "SHA-1"
                             ),
                             vcs = VcsInfo(
@@ -1854,12 +1854,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             homepageUrl = "https://example.com",
                             binaryArtifact = RemoteArtifact(
                                 "https://example.com/example2-1.0.jar",
-                                "sha1:value",
+                                "0123456789abcdef0123456789abcdef01234567",
                                 "SHA-1"
                             ),
                             sourceArtifact = RemoteArtifact(
                                 "https://example.com/example2-1.0-sources.jar",
-                                "sha1:value",
+                                "0123456789abcdef0123456789abcdef01234567",
                                 "SHA-1"
                             ),
                             vcs = VcsInfo(
