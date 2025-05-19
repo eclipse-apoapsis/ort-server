@@ -1,5 +1,5 @@
-/.kotlin/
 .gradle/
+.kotlin/
 build/
 out/
 /*.iml
