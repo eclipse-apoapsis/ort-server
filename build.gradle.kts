@@ -19,6 +19,8 @@
 
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
+import git.semver.plugin.gradle.PrintTask
+
 val dockerBaseBuildArgs: String by project
 val dockerBaseImageTag: String by project
 val dockerImageTag: String by project
@@ -87,6 +89,15 @@ tasks.register("allDependencies") {
         b.mustRunAfter(a)
     }
 }
+
+open class OrtServerPrintTask : PrintTask({ "" }, "Prints the current project version") {
+    private val projectVersion = project.version.toString()
+
+    @TaskAction
+    fun printVersion() = println(projectVersion)
+}
+
+tasks.replace("printVersion", OrtServerPrintTask::class.java)
 
 rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.forEach { dockerfile ->
     val name = dockerfile.name.substringBeforeLast('.')
