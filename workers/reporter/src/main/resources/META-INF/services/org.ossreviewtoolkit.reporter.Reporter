@@ -1,3 +1,0 @@
-org.eclipse.apoapsis.ortserver.workers.reporter.OrtResultReporter
-org.eclipse.apoapsis.ortserver.workers.reporter.RunStatisticsReporter
-org.eclipse.apoapsis.ortserver.workers.reporter.SourceCodeBundleReporter
