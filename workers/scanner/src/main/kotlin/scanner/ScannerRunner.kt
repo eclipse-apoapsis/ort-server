@@ -52,6 +52,18 @@ class ScannerRunner(
     private val fileArchiver: FileArchiver,
     private val fileListStorage: OrtServerFileListStorage
 ) {
+    companion object {
+        /**
+         * Convert the VCS plugin configurations to a canonical string representation. If there are no VCS plugin
+         * configurations, return null.
+         */
+        fun createCanonicalVcsPluginConfigs(vcsPluginConfigs: Map<String, PluginConfig>) =
+            vcsPluginConfigs.keys.sorted().joinToString(separator = "&") { vcs ->
+                vcsPluginConfigs[vcs]?.options.orEmpty()
+                    .toSortedMap().entries.joinToString(separator = "&") { (key, value) -> "$vcs/$key/$value" }
+            }.ifEmpty { null }
+    }
+
     suspend fun run(
         context: WorkerContext,
         ortResult: OrtResult,
@@ -78,9 +90,14 @@ class ScannerRunner(
             )
         }
 
+        val canonicalVcsPluginConfigs = createCanonicalVcsPluginConfigs(vcsPluginConfigs)
         val packageProvenanceCache = PackageProvenanceCache()
         val packageProvenanceStorage = OrtServerPackageProvenanceStorage(db, scannerRunId, packageProvenanceCache)
-        val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(db, packageProvenanceCache)
+        val nestedProvenanceStorage = OrtServerNestedProvenanceStorage(
+            db,
+            packageProvenanceCache,
+            canonicalVcsPluginConfigs
+        )
         val scanResultStorage = OrtServerScanResultStorage(db, scannerRunId)
 
         val scanStorages = ScanStorages(

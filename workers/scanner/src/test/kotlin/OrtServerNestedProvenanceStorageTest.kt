@@ -64,7 +64,11 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
             packageProvenanceCache = PackageProvenanceCache()
             packageProvenanceStorage =
                 OrtServerPackageProvenanceStorage(dbExtension.db, scannerRun.id, packageProvenanceCache)
-            nestedProvenanceStorage = OrtServerNestedProvenanceStorage(dbExtension.db, packageProvenanceCache)
+            nestedProvenanceStorage = OrtServerNestedProvenanceStorage(
+                dbExtension.db,
+                packageProvenanceCache,
+                ""
+            )
 
             packageProvenanceStorage.writeProvenance(id, vcsInfo, packageProvenance)
         }
@@ -209,7 +213,11 @@ class OrtServerNestedProvenanceStorageTest : WordSpec() {
                 packageProvenanceCache = PackageProvenanceCache()
                 packageProvenanceStorage =
                     OrtServerPackageProvenanceStorage(dbExtension.db, scannerRun.id, packageProvenanceCache)
-                nestedProvenanceStorage = OrtServerNestedProvenanceStorage(dbExtension.db, packageProvenanceCache)
+                nestedProvenanceStorage = OrtServerNestedProvenanceStorage(
+                    dbExtension.db,
+                    packageProvenanceCache,
+                    ""
+                )
 
                 val subInfo1 = vcsInfo.copy(path = "sub1")
                 val subProvenance1 = RepositoryProvenance(subInfo1, subInfo1.revision)
