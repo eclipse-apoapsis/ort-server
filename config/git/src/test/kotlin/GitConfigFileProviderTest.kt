@@ -126,11 +126,14 @@ class GitConfigFileProviderTest : WordSpec({
     "listFiles" should {
         "return a list of files inside a given directory" {
             val filesPath = "customer2/product2"
-            val expectedFiles =
-                listOf("copyright-garbage.yml", "evaluator.rules.kts", "license-classifications.yml")
+            val expectedFiles = listOf(
+                "customer2/product2/copyright-garbage.yml",
+                "customer2/product2/evaluator.rules.kts",
+                "customer2/product2/license-classifications.yml"
+            )
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
 
-            val listFiles = provider.listFiles(RESOLVED_CONTEXT_MAIN, Path(filesPath)).map { it.nameComponent }
+            val listFiles = provider.listFiles(RESOLVED_CONTEXT_MAIN, Path(filesPath)).map { it.path }
 
             listFiles shouldContainExactlyInAnyOrder expectedFiles
         }
