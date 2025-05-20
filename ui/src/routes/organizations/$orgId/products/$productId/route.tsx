@@ -21,7 +21,7 @@ import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { BookLock, Eye, Settings, ShieldQuestion, User } from 'lucide-react';
 
 import { useProductsServiceGetApiV1ProductsByProductIdKey } from '@/api/queries';
-import { ProductsService } from '@/api/requests';
+import { ApiError, ProductsService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 import { useUser } from '@/hooks/use-user';
@@ -107,17 +107,23 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId'
 )({
   loader: async ({ context, params }) => {
-    const product = await context.queryClient.ensureQueryData({
-      queryKey: [
-        useProductsServiceGetApiV1ProductsByProductIdKey,
-        params.productId,
-      ],
-      queryFn: () =>
-        ProductsService.getApiV1ProductsByProductId({
-          productId: Number.parseInt(params.productId),
-        }),
-    });
-    context.breadcrumbs.product = product.name;
+    try {
+      const product = await context.queryClient.ensureQueryData({
+        queryKey: [
+          useProductsServiceGetApiV1ProductsByProductIdKey,
+          params.productId,
+        ],
+        queryFn: () =>
+          ProductsService.getApiV1ProductsByProductId({
+            productId: Number.parseInt(params.productId),
+          }),
+      });
+      context.breadcrumbs.product = product.name;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 403) {
+        context.breadcrumbs.product = undefined;
+      }
+    }
   },
   component: Layout,
 });

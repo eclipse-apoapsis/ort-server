@@ -198,30 +198,37 @@ export const Header = () => {
         </Sheet>
         <Breadcrumb>
           <BreadcrumbList>
-            {organizationMatch?.context && (
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to={organizationMatch.pathname}>
-                    {organizationMatch.context.breadcrumbs.organization}
-                  </Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-            )}
-            {productMatch?.context && (
-              <>
-                <BreadcrumbSeparator />
+            {organizationMatch?.context &&
+              organizationMatch.context.breadcrumbs.organization !==
+                undefined && (
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link to={productMatch.pathname}>
-                      {productMatch.context.breadcrumbs.product}
+                    <Link to={organizationMatch.pathname}>
+                      {organizationMatch.context.breadcrumbs.organization}
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-              </>
-            )}
+              )}
+            {productMatch?.context &&
+              productMatch.context.breadcrumbs.product !== undefined && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link to={productMatch.pathname}>
+                        {productMatch.context.breadcrumbs.product}
+                      </Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                </>
+              )}
             {repoMatch?.context && (
               <>
-                <BreadcrumbSeparator />
+                {(organizationMatch?.context.breadcrumbs.organization !==
+                  undefined ||
+                  productMatch?.context.breadcrumbs.product !== undefined) && (
+                  <BreadcrumbSeparator />
+                )}
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link
