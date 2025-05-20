@@ -187,7 +187,14 @@ data class ScannerJobConfiguration(
      * Keep the worker alive after it has finished. This is useful for manual problem analysis directly
      * within the pod's execution environment.
      */
-    val keepAliveWorker: Boolean = false
+    val keepAliveWorker: Boolean = false,
+
+    /**
+     * Specifies how submodules are fetched when resolving provenances. Currently supported only for Git repositories.
+     * If set to [SubmoduleFetchStrategy.FULLY_RECURSIVE] (default), all submodules are fetched recursively. If set
+     * to [SubmoduleFetchStrategy.TOP_LEVEL_ONLY], only the top-level submodules are fetched.
+     */
+    val submoduleFetchStrategy: SubmoduleFetchStrategy = SubmoduleFetchStrategy.FULLY_RECURSIVE
 )
 
 /**
