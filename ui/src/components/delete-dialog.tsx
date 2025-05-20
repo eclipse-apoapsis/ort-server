@@ -124,8 +124,8 @@ export const DeleteDialog = ({
             <>
               <AlertDialogDescription>
                 If you are sure to delete the {thingName}{' '}
-                <span className='font-bold'>{thingId}</span>{' '}
-                {itemName ? `from the ${itemName}` : ''}, enter the bold text
+                <span className='font-bold'>{thingId}</span>
+                {itemName ? ` from the ${itemName}` : ''}, enter the bold text
                 below for confirmation.
               </AlertDialogDescription>
               <Input
