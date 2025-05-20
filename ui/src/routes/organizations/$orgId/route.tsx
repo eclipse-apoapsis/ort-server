@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKey } from '@/api/queries';
-import { OrganizationsService } from '@/api/requests';
+import { ApiError, OrganizationsService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 import { useUser } from '@/hooks/use-user';
@@ -121,17 +121,23 @@ const Layout = () => {
 
 export const Route = createFileRoute('/organizations/$orgId')({
   loader: async ({ context, params }) => {
-    const organization = await context.queryClient.ensureQueryData({
-      queryKey: [
-        useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKey,
-        params.orgId,
-      ],
-      queryFn: () =>
-        OrganizationsService.getApiV1OrganizationsByOrganizationId({
-          organizationId: Number.parseInt(params.orgId),
-        }),
-    });
-    context.breadcrumbs.organization = organization.name;
+    try {
+      const organization = await context.queryClient.ensureQueryData({
+        queryKey: [
+          useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKey,
+          params.orgId,
+        ],
+        queryFn: () =>
+          OrganizationsService.getApiV1OrganizationsByOrganizationId({
+            organizationId: Number.parseInt(params.orgId),
+          }),
+      });
+      context.breadcrumbs.organization = organization.name;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 403) {
+        context.breadcrumbs.organization = undefined;
+      }
+    }
   },
   component: Layout,
 });
