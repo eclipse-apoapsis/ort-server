@@ -27,8 +27,9 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
 interface KeycloakClient {
     /**
      * Return a set of all [groups][Group], which currently exist in the Keycloak realm.
+     * Optionally [groupNameFilter] can be applied to filter the groups by their name.
      */
-    suspend fun getGroups(): Set<Group>
+    suspend fun getGroups(groupNameFilter: String? = null): Set<Group>
 
     /**
      * Return exactly the [group][Group] with the given [id].

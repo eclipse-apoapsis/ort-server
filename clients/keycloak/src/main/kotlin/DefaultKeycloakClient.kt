@@ -62,7 +62,11 @@ class DefaultKeycloakClient(
     private val apiUrl: String,
 
     /** The clientId of the client inside the Keycloak realm, which will be accessed/modified by this client. */
-    private val clientId: String
+    private val clientId: String,
+
+    /** Number of records to retrieve from Keycloak API in one chunk. */
+    private val dataGetChunkSize: Int
+
 ) : KeycloakClient {
     companion object {
         private val logger = LoggerFactory.getLogger(KeycloakClient::class.java)
@@ -70,7 +74,7 @@ class DefaultKeycloakClient(
         fun create(config: KeycloakClientConfiguration, json: Json): KeycloakClient {
             val httpClient = createHttpClient(config, json)
 
-            return DefaultKeycloakClient(httpClient, config.apiUrl, config.subjectClientId)
+            return DefaultKeycloakClient(httpClient, config.apiUrl, config.subjectClientId, config.dataGetChunkSize)
         }
 
         private fun createHttpClient(config: KeycloakClientConfiguration, json: Json): HttpClient =
@@ -153,12 +157,36 @@ class DefaultKeycloakClient(
         internalClientId ?: findClientId(clientId).also { internalClientId = it }
     }
 
-    override suspend fun getGroups(): Set<Group> =
+    override suspend fun getGroups(groupNameFilter: String?): Set<Group> =
         runCatching {
-            httpClient.get("$apiUrl/groups")
+            val groupCount = httpClient.get("$apiUrl/groups/count") {
+                url {
+                    groupNameFilter?.also { filter ->
+                        parameters.append("search", filter)
+                    }
+                }
+            }.body<GroupCount>().count
+
+            buildSet(groupCount) {
+                var first = 0
+
+                while (first < groupCount) {
+                    val chunk = httpClient.get("$apiUrl/groups") {
+                        url {
+                            parameters.append("first", first.toString())
+                            parameters.append("max", dataGetChunkSize.toString())
+                            groupNameFilter?.also { filter ->
+                                parameters.append("search", filter)
+                            }
+                        }
+                    }.body<List<Group>>()
+                    addAll(chunk)
+                    first += chunk.size
+                }
+            }
         }.getOrElse {
             throw KeycloakClientException("Failed to load groups.", it)
-        }.body()
+        }
 
     override suspend fun getGroup(id: GroupId): Group =
         runCatching {

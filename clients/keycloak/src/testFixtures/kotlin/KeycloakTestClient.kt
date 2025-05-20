@@ -52,7 +52,10 @@ class KeycloakTestClient(
     private var userCounter = 0
     private val credentials = mutableMapOf<UserId, MutableList<UserCredentials>>()
 
-    override suspend fun getGroups() = groups
+    override suspend fun getGroups(groupNameFilter: String?) =
+        groupNameFilter?.let {
+            groups.filter { group -> group.name.value.contains(groupNameFilter) }.toSet()
+        } ?: groups
 
     override suspend fun getGroup(id: GroupId) =
         groups.find { it.id == id } ?: throw KeycloakClientException("")
