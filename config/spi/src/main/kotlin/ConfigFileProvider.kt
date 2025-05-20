@@ -51,8 +51,10 @@ interface ConfigFileProvider {
     fun contains(context: Context, path: Path): Boolean
 
     /**
-     * Return a [Set] with the [Path]s to the configuration files contained in the given [path] and [context]. Throw
-     * an exception if the [path] is invalid, e.g., does not point to an existing subdirectory.
+     * Return a [Set] with the [Path]s to the configuration files contained in the given [path] and [context]. The
+     * paths in the returned set are relative to the root folder; so, they can be used directly as input to other
+     * methods for further processing, for instance, to [getFile] to download the content of files. Throw an exception
+     * if the [path] is invalid, e.g., does not point to an existing subdirectory.
      */
     fun listFiles(context: Context, path: Path): Set<Path>
 }
