@@ -58,6 +58,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters as ApiOrtRunFil
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData as ApiPackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse as ApiPagedResponse2
@@ -88,6 +89,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName as ApiUserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
+import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfoCurationData as ApiVcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
@@ -157,6 +159,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -878,7 +882,31 @@ fun PackageRunData.mapToApi() = ApiPackage(
     pkg.vcsProcessed.mapToApi(),
     pkg.isMetadataOnly,
     pkg.isModified,
-    shortestDependencyPaths.map { it.mapToApi() }
+    shortestDependencyPaths.map { it.mapToApi() },
+    curations.map { it.mapToApi() }
+)
+
+fun PackageCurationData.mapToApi() = ApiPackageCurationData(
+    comment = comment,
+    purl = purl,
+    cpe = cpe,
+    authors = authors,
+    concludedLicense = concludedLicense,
+    description = description,
+    homepageUrl = homepageUrl,
+    binaryArtifact = binaryArtifact?.mapToApi(),
+    sourceArtifact = sourceArtifact?.mapToApi(),
+    vcs = vcs?.mapToApi(),
+    isMetadataOnly = isMetadataOnly,
+    isModified = isModified,
+    declaredLicenseMapping = declaredLicenseMapping
+)
+
+fun VcsInfoCurationData.mapToApi() = ApiVcsInfoCurationData(
+    type = type?.mapToApi(),
+    url = url,
+    revision = revision,
+    path = path
 )
 
 fun ApiPackageFilters.mapToModel(): PackageFilters =

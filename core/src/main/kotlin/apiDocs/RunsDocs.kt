@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
@@ -427,6 +428,23 @@ val getPackagesByRunId: RouteConfig.() -> Unit = {
                                             Identifier("Maven", "org.example", "some", "1.0"),
                                             Identifier("Maven", "org.example", "other", "1.0")
                                         )
+                                    )
+                                ),
+                                curations = listOf(
+                                    PackageCurationData(
+                                        comment = "Fix the homepage URL.",
+                                        purl = null,
+                                        cpe = null,
+                                        authors = null,
+                                        concludedLicense = null,
+                                        description = null,
+                                        homepageUrl = "https://example.org",
+                                        binaryArtifact = null,
+                                        sourceArtifact = null,
+                                        vcs = null,
+                                        isMetadataOnly = null,
+                                        isModified = null,
+                                        declaredLicenseMapping = emptyMap()
                                     )
                                 )
                             )
