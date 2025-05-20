@@ -21,9 +21,11 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.containExactly as containExactlyEntries
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -34,6 +36,8 @@ import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
@@ -41,6 +45,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -493,6 +499,63 @@ class PackageServiceTest : WordSpec() {
                 with(results.data.last().pkg) {
                     identifier shouldBe Identifier("NPM", "com.example", "example2", "1.0")
                     processedDeclaredLicense.spdxExpression shouldBe "MIT"
+                }
+            }
+
+            "apply curations and include applied curations" {
+                val pkg1 = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "example1", "1.0")
+                )
+
+                val pkg2 = fixtures.generatePackage(
+                    Identifier("Maven", "com.example", "example2", "1.0"),
+                    declaredLicenses = setOf("LicenseRef-declared1", "invalid-license")
+                )
+
+                val ortRunId = createAnalyzerRunWithPackages(setOf(pkg1, pkg2)).id
+
+                val curation1 = PackageCuration(
+                    id = pkg1.identifier,
+                    data = PackageCurationData(
+                        comment = "comment1",
+                        authors = setOf("author1", "author2"),
+                        concludedLicense = "LicenseRef-concluded1"
+                    )
+                )
+
+                val curation2 = PackageCuration(
+                    id = pkg2.identifier,
+                    data = PackageCurationData(
+                        comment = "comment2",
+                        declaredLicenseMapping = mapOf("invalid-license" to "LicenseRef-mapped"),
+                        concludedLicense = "LicenseRef-concluded2"
+                    )
+                )
+
+                val resolvedPackageCurations = ResolvedPackageCurations(
+                    provider = PackageCurationProviderConfig("test"),
+                    curations = listOf(curation1, curation2)
+                )
+
+                fixtures.resolvedConfigurationRepository.addPackageCurations(ortRunId, listOf(resolvedPackageCurations))
+
+                val packages = service.listForOrtRunId(ortRunId)
+                packages.data shouldHaveSize 2
+
+                with(packages.data.single { it.pkg.identifier == pkg1.identifier }) {
+                    pkg.authors should containExactly(*curation1.data.authors.orEmpty().toTypedArray())
+                    concludedLicense shouldBe curation1.data.concludedLicense
+                    curations shouldHaveSize 1
+                    curations.first() shouldBe curation1.data
+                }
+
+                with(packages.data.single { it.pkg.identifier == pkg2.identifier }) {
+                    pkg.processedDeclaredLicense.spdxExpression shouldBe "LicenseRef-declared1 AND LicenseRef-mapped"
+                    pkg.processedDeclaredLicense.mappedLicenses should
+                            containExactlyEntries("invalid-license" to "LicenseRef-mapped")
+                    concludedLicense shouldBe curation2.data.concludedLicense
+                    curations shouldHaveSize 1
+                    curations.first() shouldBe curation2.data
                 }
             }
         }

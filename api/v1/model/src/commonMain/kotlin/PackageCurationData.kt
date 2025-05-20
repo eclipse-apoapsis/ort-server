@@ -17,26 +17,23 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.model.runs
+package org.eclipse.apoapsis.ortserver.api.v1.model
 
-import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import kotlinx.serialization.Serializable
 
-/**
- * A data class representing a [Package] with additional data specific to an ORT run.
- */
-data class PackageRunData(
-    /** A package. */
-    val pkg: Package,
-
-    /** Package ID */
-    val pkgId: Long,
-
-    /** The shortest dependency path for the package. */
-    val shortestDependencyPaths: List<ShortestDependencyPath>,
-
-    /** The optional concluded license if set by the [curations]. */
+@Serializable
+data class PackageCurationData(
+    val comment: String?,
+    val purl: String?,
+    val cpe: String?,
+    val authors: Set<String>?,
     val concludedLicense: String?,
-
-    /** The list of curations applied to the package. */
-    val curations: List<PackageCurationData>
+    val description: String?,
+    val homepageUrl: String?,
+    val binaryArtifact: RemoteArtifact?,
+    val sourceArtifact: RemoteArtifact?,
+    val vcs: VcsInfoCurationData?,
+    val isMetadataOnly: Boolean?,
+    val isModified: Boolean?,
+    val declaredLicenseMapping: Map<String, String>
 )

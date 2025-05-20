@@ -113,7 +113,9 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             PackageRunData(
                 pkg = pkg.metadata.mapToModel(),
                 pkgId = 0L,
-                shortestDependencyPaths = emptyList()
+                shortestDependencyPaths = emptyList(),
+                concludedLicense = pkg.metadata.concludedLicense?.toString(),
+                curations = pkg.curations.map { it.mapToModel() }
             )
         }
 
