@@ -290,7 +290,7 @@ class DefaultAuthorizationService(
     override suspend fun synchronizeRoles() {
         withContext(Dispatchers.IO) {
             val roles = keycloakClient.getRoles().mapTo(mutableSetOf()) { it.name.value }
-            val groups = keycloakClient.getGroups().map { it.name.value }
+            val groups = keycloakClient.getGroups(keycloakGroupPrefix).map { it.name.value }
                 .filterTo(mutableSetOf()) { it.startsWith(keycloakGroupPrefix) }
 
             synchronizeOrganizationRoles(roles)
