@@ -191,7 +191,7 @@ class DefaultKeycloakClient(
             }
         }.getOrElse {
             throw KeycloakClientException("Failed to loads groups.", it)
-        }.body<List<Group>>().toSet()
+        }.body<Set<Group>>()
 
     override suspend fun createGroup(name: GroupName) {
         runCatching {
