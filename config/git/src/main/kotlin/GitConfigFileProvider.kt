@@ -112,7 +112,8 @@ class GitConfigFileProvider internal constructor(
             throw ConfigException("The provided path '${path.path}' does not refer a directory.", null)
         }
 
-        return dir.walk().maxDepth(1).filter { it.isFile }.mapTo(mutableSetOf()) { Path(it.path) }
+        return dir.walk().maxDepth(1).filter { it.isFile }
+            .mapTo(mutableSetOf()) { Path(it.relativeTo(configDir).path) }
     }
 
     /**
