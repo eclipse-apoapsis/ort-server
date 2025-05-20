@@ -38,5 +38,12 @@ data class KeycloakClientConfiguration(
      * The (external) ID of the client to be manipulated by the Keycloak client. The roles of this client will be
      * updated.
      */
-    val subjectClientId: String
+    val subjectClientId: String,
+
+    /**
+     * The size of the chunks in which data is fetched from Keycloak. This is used to avoid timeouts when fetching
+     * large lists of results (i.e. groups). In the future this param can be parameterized just by adding an entry
+     * to the [ConfigManager.createKeycloakClientConfiguration] method.
+     */
+    val dataGetChunkSize: Int = 5000
 )
