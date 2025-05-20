@@ -74,7 +74,7 @@ import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
-import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
+import org.eclipse.apoapsis.ortserver.model.runs.PackageRunData
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.ProjectService
@@ -245,7 +245,7 @@ fun Route.runs() = route("runs") {
                         .listForOrtRunId(ortRun.id, pagingOptions.mapToModel(), filters.mapToModel())
 
                     val pagedResponse = packagesForOrtRun
-                        .mapToApi(PackageWithShortestDependencyPaths::mapToApi)
+                        .mapToApi(PackageRunData::mapToApi)
                         .toSearchResponse(filters)
 
                     call.respond(HttpStatusCode.OK, pagedResponse)
