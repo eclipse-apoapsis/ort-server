@@ -37,6 +37,7 @@ plugins {
 }
 
 dependencies {
+    testImplementation(project(":utils:logging"))
     testImplementation(project(":utils:test"))
 }
 
