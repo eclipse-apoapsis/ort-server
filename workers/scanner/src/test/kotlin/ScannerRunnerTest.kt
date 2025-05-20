@@ -44,6 +44,7 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
+import org.ossreviewtoolkit.plugins.api.PluginConfig as OrtPluginConfig
 import org.ossreviewtoolkit.scanner.LocalPathScannerWrapper
 import org.ossreviewtoolkit.scanner.Scanner
 import org.ossreviewtoolkit.scanner.ScannerWrapperFactory
@@ -182,6 +183,43 @@ class ScannerRunnerTest : WordSpec({
             val result = runner.run(mockContext(), OrtResult.EMPTY, ScannerJobConfiguration(), 0L)
 
             result.issues shouldBe issuesMap
+        }
+    }
+
+    "createCanonicalVcsPluginConfigs" should {
+        "return null if no VCS config plugins are used at all." {
+            val vcsPluginConfigs = emptyMap<String, OrtPluginConfig>()
+
+            val result = ScannerRunner.createCanonicalVcsPluginConfigs(vcsPluginConfigs)
+
+            result shouldBe null
+        }
+
+        "return a canonical string of VCS plugin configs." {
+            val vcsPluginConfigs = mapOf(
+                "VCS-Z" to OrtPluginConfig(
+                    options = mapOf(
+                        "option-z" to "1",
+                        "option-a" to "2"
+                    ),
+                    secrets = mapOf(
+                        "some-secret" to "my-secret"
+                    )
+                ),
+                "VCS-A" to OrtPluginConfig(
+                    options = mapOf(
+                        "option-x" to "3",
+                        "option-b" to "4"
+                    ),
+                    secrets = mapOf(
+                        "some-secret" to "my-secret"
+                    )
+                )
+            )
+
+            val result = ScannerRunner.createCanonicalVcsPluginConfigs(vcsPluginConfigs)
+
+            result shouldBe "VCS-A/option-b/4&VCS-A/option-x/3&VCS-Z/option-a/2&VCS-Z/option-z/1"
         }
     }
 })
