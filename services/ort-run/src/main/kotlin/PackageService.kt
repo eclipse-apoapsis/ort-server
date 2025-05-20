@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ShortestDepen
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
-import org.eclipse.apoapsis.ortserver.model.runs.PackageWithShortestDependencyPaths
+import org.eclipse.apoapsis.ortserver.model.runs.PackageRunData
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -48,14 +48,14 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: PackageFilters = PackageFilters()
-    ): ListQueryResult<PackageWithShortestDependencyPaths> {
+    ): ListQueryResult<PackageRunData> {
         val ortRun = ortRunService.getOrtRun(ortRunId)
 
         if (ortRun == null) {
             return ListQueryResult(emptyList(), parameters, 0)
         }
 
-        var comparator = compareBy<PackageWithShortestDependencyPaths> { 0 }
+        var comparator = compareBy<PackageRunData> { 0 }
 
         parameters.sortFields.forEach { orderField ->
             when (orderField.name) {
@@ -110,7 +110,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
 
         val result = packages.map { pkg ->
             pkg.metadata.mapToModel()
-            PackageWithShortestDependencyPaths(
+            PackageRunData(
                 pkg = pkg.metadata.mapToModel(),
                 pkgId = 0L,
                 shortestDependencyPaths = emptyList()

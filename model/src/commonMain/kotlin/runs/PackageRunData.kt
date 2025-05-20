@@ -20,10 +20,9 @@
 package org.eclipse.apoapsis.ortserver.model.runs
 
 /**
- * A data class representing a package, and the shortest dependency path that the package is found in (relative to a
- * project found in a run).
+ * A data class representing a [Package] with additional data specific to an ORT run.
  */
-data class PackageWithShortestDependencyPaths(
+data class PackageRunData(
     /** A package. */
     val pkg: Package,
 
