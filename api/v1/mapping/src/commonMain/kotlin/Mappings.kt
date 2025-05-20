@@ -578,7 +578,8 @@ fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
     skipExcluded,
     sourceCodeOrigins?.map { it.mapToApi() },
     config?.mapValues { it.value.mapToApi() },
-    keepAliveWorker
+    keepAliveWorker,
+    submoduleFetchStrategy.mapToApi()
 )
 
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
@@ -590,7 +591,8 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     skipExcluded,
     sourceCodeOrigins?.map { it.mapToModel() },
     config?.mapValues { it.value.mapToModel() },
-    keepAliveWorker
+    keepAliveWorker,
+    submoduleFetchStrategy.mapToModel()
 )
 
 fun Secret.mapToApi() = ApiSecret(name, description)
