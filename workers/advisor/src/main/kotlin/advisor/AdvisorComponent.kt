@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.databaseModule
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.DaoAdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.DaoAdvisorRunRepository
@@ -97,8 +96,6 @@ class AdvisorComponent : EndpointComponent<AdvisorRequest>(AdvisorEndpoint) {
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
         single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
-
-        single { ConfigManager.create(get()) }
 
         singleOf(::AdvisorRunner)
         singleOf(::AdvisorWorker)
