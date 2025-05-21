@@ -166,8 +166,8 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
     single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
 
-    single { SecretStorage.createStorage(get()) }
-    single { ConfigManager.create(get()) }
+    singleOf(SecretStorage::createStorage)
+    singleOf(ConfigManager::create)
     single { LogFileService.create(get()) }
     single {
         val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
@@ -181,25 +181,25 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
         val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
         DefaultAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
     }
-    single { OrchestratorService(get(), get(), get()) }
-    single { OrganizationService(get(), get(), get(), get()) }
-    single { ProductService(get(), get(), get(), get(), get()) }
-    single { RepositoryService(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    single { SecretService(get(), get(), get(), get()) }
-    single { VulnerabilityService(get()) }
-    single { IssueService(get()) }
-    single { RuleViolationService(get()) }
-    single { PackageService(get(), get()) }
-    single { ProjectService(get()) }
-    single { UserService(get()) }
+    singleOf(::OrchestratorService)
+    singleOf(::OrganizationService)
+    singleOf(::ProductService)
+    singleOf(::RepositoryService)
+    singleOf(::SecretService)
+    singleOf(::VulnerabilityService)
+    singleOf(::IssueService)
+    singleOf(::RuleViolationService)
+    singleOf(::PackageService)
+    singleOf(::ProjectService)
+    singleOf(::UserService)
     singleOf(::OrtRunService)
-    single { ContentManagementService(get()) }
+    singleOf(::ContentManagementService)
     single {
         val storage = Storage.create("reportStorage", get())
         ReportStorageService(storage, get())
     }
     singleOf(::InfrastructureServiceService)
 
-    single { PluginEventStore(get()) }
-    single { PluginService(get()) }
+    singleOf(::PluginEventStore)
+    singleOf(::PluginService)
 }

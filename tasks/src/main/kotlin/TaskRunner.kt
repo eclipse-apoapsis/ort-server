@@ -88,6 +88,8 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.core.error.NoDefinitionFoundException
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.named
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -218,12 +220,18 @@ private fun tasksModule(): Module =
             )
         }
 
-        single<Task>(named("delete-old-ort-runs")) { DeleteOldOrtRunsTask.create(get(), get()) }
-        single<Task>(named("delete-orphaned-entities")) { DeleteOrphanedEntitiesTask.create(get(), get()) }
+        singleOf(DeleteOldOrtRunsTask::create) {
+            named("delete-old-ort-runs")
+            bind<Task>()
+        }
+        singleOf(DeleteOrphanedEntitiesTask::create) {
+            named("delete-orphaned-entities")
+            bind<Task>()
+        }
 
         single { TimeHelper() }
-        single { MonitorConfig.create(get()) }
-        single { ClientBuilder.defaultClient() }
+        singleOf(MonitorConfig::create)
+        singleOf(ClientBuilder::defaultClient)
         single { BatchV1Api(get()) }
         single { CoreV1Api(get()) }
         single { MessageSenderFactory.createSender(OrchestratorEndpoint, get()) }
@@ -245,23 +253,18 @@ private fun tasksModule(): Module =
         single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
         singleOf(::FailedJobNotifier)
         singleOf(::JobHandler)
-        single<Task>(named("kubernetes-reaper")) { ReaperTask(get(), get(), get()) }
-        single<Task>(named("kubernetes-lost-jobs-finder")) {
-            LostJobsFinderTask(
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get()
-            )
+        singleOf(::ReaperTask) {
+            named("kubernetes-reaper")
+            bind<Task>()
         }
-        single<Task>(named("kubernetes-long-running-jobs-finder")) { LongRunningJobsFinderTask(get(), get(), get()) }
+        singleOf(::LostJobsFinderTask) {
+            named("kubernetes-lost-jobs-finder")
+            bind<Task>()
+        }
+        singleOf(::LongRunningJobsFinderTask) {
+            named("kubernetes-long-running-jobs-finder")
+            bind<Task>()
+        }
     }
 
 /**
