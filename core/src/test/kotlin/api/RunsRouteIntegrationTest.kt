@@ -1018,12 +1018,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     projects = setOf(project),
                     packages = setOf(
                         Package(
-                            identifier1,
+                            identifier = identifier1,
                             purl = "pkg:maven/com.example/example@1.0",
                             cpe = null,
                             authors = setOf("Author One", "Author Two"),
                             declaredLicenses = setOf("License1", "License2", "License3"),
-                            ProcessedDeclaredLicense(
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
                                 spdxExpression = "Expression",
                                 mappedLicenses = mapOf(
                                     "License 1" to "LicenseRef-mapped-1",
@@ -1059,12 +1059,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             isModified = false
                         ),
                         Package(
-                            identifier2,
+                            identifier = identifier2,
                             purl = "pkg:maven/com.example/example2@1.0",
                             cpe = null,
                             authors = emptySet(),
                             declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
                                 spdxExpression = "Expression",
                                 mappedLicenses = emptyMap(),
                                 unmappedLicenses = emptySet()
@@ -1802,7 +1802,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     projects = emptySet(),
                     packages = setOf(
                         Package(
-                            Identifier("Maven", "com.example", "example", "1.0"),
+                            identifier = Identifier("Maven", "com.example", "example", "1.0"),
                             purl = "pkg:maven/com.example/example@1.0",
                             cpe = null,
                             authors = emptySet(),
@@ -1840,12 +1840,12 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             isModified = false
                         ),
                         Package(
-                            Identifier("NPM", "com.example", "example2", "1.0"),
+                            identifier = Identifier("NPM", "com.example", "example2", "1.0"),
                             purl = "pkg:npm/com.example/example2@1.0",
                             cpe = null,
                             authors = emptySet(),
                             declaredLicenses = emptySet(),
-                            ProcessedDeclaredLicense(
+                            processedDeclaredLicense = ProcessedDeclaredLicense(
                                 spdxExpression = null,
                                 mappedLicenses = emptyMap(),
                                 unmappedLicenses = emptySet()
