@@ -167,8 +167,8 @@ const columns = [
         useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
           {
             onSuccess() {
-              toast.info('Delete ORT Run', {
-                description: `ORT Run "${row.original.index}" deleted successfully.`,
+              toast.info('Delete Run', {
+                description: `Run "${row.original.index}" deleted successfully.`,
               });
               queryClient.invalidateQueries({
                 queryKey: [
@@ -236,9 +236,7 @@ const columns = [
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              Create a new ORT run based on this run
-            </TooltipContent>
+            <TooltipContent>Create a new run based on this run</TooltipContent>
           </Tooltip>
           <DeleteDialog
             thingName={

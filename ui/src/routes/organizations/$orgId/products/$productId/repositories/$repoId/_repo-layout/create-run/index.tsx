@@ -100,8 +100,8 @@ const CreateRunPage = () => {
   const { mutateAsync, isPending } =
     useRepositoriesServicePostApiV1RepositoriesByRepositoryIdRuns({
       onSuccess() {
-        toast.info('Create ORT Run', {
-          description: 'New ORT run created successfully for this repository.',
+        toast.info('Create Run', {
+          description: 'New run created successfully for this repository.',
         });
         navigate({
           to: '/organizations/$orgId/products/$productId/repositories/$repoId',
@@ -187,7 +187,7 @@ const CreateRunPage = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create an ORT Run</CardTitle>
+        <CardTitle>Create a Run</CardTitle>
       </CardHeader>
       <Form {...form}>
         <form
@@ -387,7 +387,7 @@ const CreateRunPage = () => {
 
             <h3 className='mt-4'>Enable and configure jobs</h3>
             <div className='text-sm text-gray-500'>
-              Configure the jobs to be included in the ORT Run.
+              Configure the jobs to be included in the run.
             </div>
             <Accordion
               type='multiple'

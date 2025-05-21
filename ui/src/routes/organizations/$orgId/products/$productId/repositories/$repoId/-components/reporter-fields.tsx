@@ -70,7 +70,7 @@ export const ReporterFields = ({
             name='jobConfigs.reporter.formats'
             label='Report formats'
             description={
-              <>Select the report formats to generate from the ORT Run.</>
+              <>Select the report formats to generate from the run.</>
             }
             options={reportFormats}
           />

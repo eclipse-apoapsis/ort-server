@@ -90,7 +90,7 @@ export const AdvisorFields = ({
             form={form}
             name='jobConfigs.advisor.advisors'
             label='Enabled advisors'
-            description={<>Select the advisors enabled for this ORT Run.</>}
+            description={<>Select the advisors enabled for this run.</>}
             options={advisors}
           />
         </AccordionContent>

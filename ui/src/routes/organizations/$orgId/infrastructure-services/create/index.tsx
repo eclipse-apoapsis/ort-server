@@ -142,11 +142,11 @@ const CreateInfrastructureServicePage = () => {
         <CardTitle>Create Infrastructure Service</CardTitle>
         <CardDescription>
           An infrastructure service refers to essential services required by a
-          repository during an ORT run. These services can, for instance,
-          include source code or artifact repositories that help resolve
-          dependencies for the repository being analyzed. Defining these
-          services is crucial for setting up the build environment and ensuring
-          the necessary credentials are available for access.
+          repository during a run. These services can, for instance, include
+          source code or artifact repositories that help resolve dependencies
+          for the repository being analyzed. Defining these services is crucial
+          for setting up the build environment and ensuring the necessary
+          credentials are available for access.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
