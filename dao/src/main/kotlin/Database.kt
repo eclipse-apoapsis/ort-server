@@ -48,6 +48,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.transactionManager
 
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 import org.slf4j.LoggerFactory
@@ -121,7 +122,7 @@ fun createDataSource(config: DataSourceConfig): DataSource {
  * Depending on the [startEager] parameter, the database connection is established either eagerly or lazily.
  */
 fun databaseModule(startEager: Boolean = true): Module = module {
-    single { DataSourceConfig.create(get()) }
+    singleOf(DataSourceConfig::create)
 
     single(createdAtStart = startEager) { createDataSource(get()).connect() }
 }

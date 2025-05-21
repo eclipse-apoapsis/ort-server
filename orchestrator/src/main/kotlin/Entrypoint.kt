@@ -126,7 +126,7 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
 
-        single { WorkerJobRepositories(get(), get(), get(), get(), get(), get()) }
+        singleOf(::WorkerJobRepositories)
 
         singleOf(::Orchestrator)
     }
