@@ -33,8 +33,8 @@ import org.koin.dsl.module
  * [WorkerContext] can integrate this module and then obtain a factory via injection.
  */
 fun workerContextModule(): Module = module {
-    single<RepositoryRepository> { DaoRepositoryRepository(get()) }
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+    single<RepositoryRepository> { DaoRepositoryRepository(get()) }
 
     singleOf(::WorkerContextFactory)
 }

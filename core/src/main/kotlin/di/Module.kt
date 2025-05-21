@@ -116,6 +116,7 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
 fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single { config }
     single { ConfigFactory.parseMap(config.toMap()) }
+    singleOf(ConfigManager::create)
 
     single {
         Json {
@@ -151,24 +152,23 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
     single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
     single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
-    single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+    single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
     single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
-    single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
-    single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
+    single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
     single<OrganizationRepository> { DaoOrganizationRepository(get()) }
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
     single<ProductRepository> { DaoProductRepository(get()) }
-    single<RepositoryRepository> { DaoRepositoryRepository(get()) }
+    single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
     single<ReporterRunRepository> { DaoReporterRunRepository(get()) }
-    single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
-    single<SecretRepository> { DaoSecretRepository(get()) }
-    single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
     single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
+    single<RepositoryRepository> { DaoRepositoryRepository(get()) }
     single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
+    single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
+    single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
+    single<SecretRepository> { DaoSecretRepository(get()) }
 
     singleOf(SecretStorage::createStorage)
-    singleOf(ConfigManager::create)
-    single { LogFileService.create(get()) }
+
     single {
         val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
         FileListResolver(
@@ -177,28 +177,31 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
         )
     }
 
+    singleOf(::ContentManagementService)
+    singleOf(::InfrastructureServiceService)
+    singleOf(::IssueService)
+    single { LogFileService.create(get()) }
+    singleOf(::OrchestratorService)
+    singleOf(::OrganizationService)
+    singleOf(::OrtRunService)
+    singleOf(::PackageService)
+    singleOf(::ProductService)
+    singleOf(::ProjectService)
+    singleOf(::RepositoryService)
+    singleOf(::RuleViolationService)
+    singleOf(::SecretService)
+    singleOf(::UserService)
+    singleOf(::VulnerabilityService)
+
     single<AuthorizationService> {
         val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
         DefaultAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
     }
-    singleOf(::OrchestratorService)
-    singleOf(::OrganizationService)
-    singleOf(::ProductService)
-    singleOf(::RepositoryService)
-    singleOf(::SecretService)
-    singleOf(::VulnerabilityService)
-    singleOf(::IssueService)
-    singleOf(::RuleViolationService)
-    singleOf(::PackageService)
-    singleOf(::ProjectService)
-    singleOf(::UserService)
-    singleOf(::OrtRunService)
-    singleOf(::ContentManagementService)
+
     single {
         val storage = Storage.create("reportStorage", get())
         ReportStorageService(storage, get())
     }
-    singleOf(::InfrastructureServiceService)
 
     singleOf(::PluginEventStore)
     singleOf(::PluginService)
