@@ -203,9 +203,6 @@ internal fun configModule(): Module =
  */
 private fun tasksModule(): Module =
     module {
-        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
-        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
-
         singleOf(::OrtRunService)
         single {
             val storage = Storage.create("reportStorage", get())
