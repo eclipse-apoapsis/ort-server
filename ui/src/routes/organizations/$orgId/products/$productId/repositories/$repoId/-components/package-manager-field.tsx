@@ -68,8 +68,8 @@ export const PackageManagerField = ({
           <FormDescription className='pb-4'>
             {
               <>
-                Select the package managers enabled for this ORT Run. Note that
-                the 'Unmanaged' package manager is always enabled.
+                Select the package managers enabled for this run. Note that the
+                'Unmanaged' package manager is always enabled.
               </>
             }
           </FormDescription>

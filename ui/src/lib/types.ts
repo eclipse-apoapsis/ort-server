@@ -177,7 +177,7 @@ export const reportFormats = [
   },
   {
     id: 'RunStatistics',
-    label: 'ORT Run Statistics',
+    label: 'Run Statistics',
   },
 ] as const;
 

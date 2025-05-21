@@ -94,7 +94,7 @@ const OverviewContent = () => {
         </Link>
         <Link to='/admin/runs'>
           <StatisticsCard
-            title='ORT runs'
+            title='Runs'
             icon={() => <ListVideo className='h-4 w-4' />}
             value={
               runsIsLoading ? (

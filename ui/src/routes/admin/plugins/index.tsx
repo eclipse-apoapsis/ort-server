@@ -178,7 +178,7 @@ const PluginsComponent = () => {
       />
       <PluginListCard
         title='Reporters'
-        description='Reporters generate reports like SBOMs from the ORT run data.'
+        description='Reporters generate reports like SBOMs from the data collected in a run.'
         plugins={reporters}
       />
       <PluginListCard

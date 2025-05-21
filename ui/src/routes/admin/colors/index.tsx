@@ -82,7 +82,7 @@ const ColorsComponent = () => {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>ORT run and job statuses</CardTitle>
+          <CardTitle>Run and job statuses</CardTitle>
         </CardHeader>
         <CardContent className='flex gap-2'>
           <Badge className={`border ${getStatusBackgroundColor(undefined)}`}>

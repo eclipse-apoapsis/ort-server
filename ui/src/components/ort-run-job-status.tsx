@@ -67,8 +67,7 @@ export const OrtRunJobStatus = ({
             <div className='flex gap-2'>
               <div>Analyzer:</div>
               <div>
-                {jobs.analyzer?.status ||
-                  'Not started / not included in ORT Run'}
+                {jobs.analyzer?.status || 'Not started / not included in run'}
               </div>
             </div>
             <div>
@@ -104,8 +103,7 @@ export const OrtRunJobStatus = ({
             <div className='flex gap-2'>
               <div>Advisor:</div>
               <div>
-                {jobs.advisor?.status ||
-                  'Not started / not included in ORT Run'}
+                {jobs.advisor?.status || 'Not started / not included in run'}
               </div>
             </div>
             <div>
@@ -141,8 +139,7 @@ export const OrtRunJobStatus = ({
             <div className='flex gap-2'>
               <div>Scanner:</div>
               <div>
-                {jobs.scanner?.status ||
-                  'Not started / not included in ORT Run'}
+                {jobs.scanner?.status || 'Not started / not included in run'}
               </div>
             </div>
             <div>
@@ -178,8 +175,7 @@ export const OrtRunJobStatus = ({
             <div className='flex gap-2'>
               <div>Evaluator:</div>
               <div>
-                {jobs.evaluator?.status ||
-                  'Not started / not included in ORT Run'}
+                {jobs.evaluator?.status || 'Not started / not included in run'}
               </div>
             </div>
             <div>
@@ -215,8 +211,7 @@ export const OrtRunJobStatus = ({
             <div className='flex gap-2'>
               <div>Reporter:</div>
               <div>
-                {jobs.reporter?.status ||
-                  'Not started / not included in ORT Run'}
+                {jobs.reporter?.status || 'Not started / not included in run'}
               </div>
             </div>
             <div>
