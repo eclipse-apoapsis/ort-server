@@ -75,11 +75,11 @@ fun ortRunServiceModule(): Module = module {
     single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
     single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
     single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
+    single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
+    single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
     single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
     single<ReporterRunRepository> { DaoReporterRunRepository(get()) }
-    single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
-    single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
     single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
     single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }

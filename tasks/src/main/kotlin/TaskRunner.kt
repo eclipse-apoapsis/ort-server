@@ -205,12 +205,10 @@ internal fun configModule(): Module =
  */
 private fun tasksModule(): Module =
     module {
-        singleOf(::OrtRunService)
         single {
             val storage = Storage.create("reportStorage", get())
             ReportStorageService(storage, get())
         }
-        singleOf(::OrphanRemovalService)
 
         single {
             val storage = Storage.create(OrtServerFileListStorage.STORAGE_TYPE, get())
@@ -220,6 +218,37 @@ private fun tasksModule(): Module =
             )
         }
 
+        singleOf(ClientBuilder::defaultClient)
+        single { BatchV1Api(get()) }
+        single { CoreV1Api(get()) }
+
+        single { MessageSenderFactory.createSender(OrchestratorEndpoint, get()) }
+
+        single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
+        single<AdvisorRunRepository> { DaoAdvisorRunRepository(get()) }
+        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
+        single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
+        single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
+        single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
+        single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
+        single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
+        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
+        single<ReporterRunRepository> { DaoReporterRunRepository(get()) }
+        single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
+        single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
+        single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
+        single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
+
+        singleOf(::FailedJobNotifier)
+        singleOf(::JobHandler)
+        singleOf(MonitorConfig::create)
+        single { TimeHelper() }
+
+        singleOf(::OrphanRemovalService)
+        singleOf(::OrtRunService)
+
         singleOf(DeleteOldOrtRunsTask::create) {
             named("delete-old-ort-runs")
             bind<Task>()
@@ -228,41 +257,16 @@ private fun tasksModule(): Module =
             named("delete-orphaned-entities")
             bind<Task>()
         }
-
-        single { TimeHelper() }
-        singleOf(MonitorConfig::create)
-        singleOf(ClientBuilder::defaultClient)
-        single { BatchV1Api(get()) }
-        single { CoreV1Api(get()) }
-        single { MessageSenderFactory.createSender(OrchestratorEndpoint, get()) }
-        single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
-        single<AdvisorRunRepository> { DaoAdvisorRunRepository(get()) }
-        single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
-        single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
-        single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
-        single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
-        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
-        single<ReporterRunRepository> { DaoReporterRunRepository(get()) }
-        single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
-        single<ScannerRunRepository> { DaoScannerRunRepository(get()) }
-        single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
-        single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
-        single<OrtRunRepository> { DaoOrtRunRepository(get()) }
-        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
-        single<RepositoryConfigurationRepository> { DaoRepositoryConfigurationRepository(get()) }
-        single<ResolvedConfigurationRepository> { DaoResolvedConfigurationRepository(get()) }
-        singleOf(::FailedJobNotifier)
-        singleOf(::JobHandler)
-        singleOf(::ReaperTask) {
-            named("kubernetes-reaper")
+        singleOf(::LongRunningJobsFinderTask) {
+            named("kubernetes-long-running-jobs-finder")
             bind<Task>()
         }
         singleOf(::LostJobsFinderTask) {
             named("kubernetes-lost-jobs-finder")
             bind<Task>()
         }
-        singleOf(::LongRunningJobsFinderTask) {
-            named("kubernetes-long-running-jobs-finder")
+        singleOf(::ReaperTask) {
+            named("kubernetes-reaper")
             bind<Task>()
         }
     }

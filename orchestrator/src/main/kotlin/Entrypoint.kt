@@ -120,10 +120,10 @@ class OrchestratorComponent : EndpointComponent<OrchestratorMessage>(Orchestrato
         single<AdvisorJobRepository> { DaoAdvisorJobRepository(get()) }
         single<AnalyzerJobRepository> { DaoAnalyzerJobRepository(get()) }
         single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
-        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
         single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
-        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
         single<OrtRunRepository> { DaoOrtRunRepository(get()) }
+        single<ReporterJobRepository> { DaoReporterJobRepository(get()) }
+        single<RepositoryRepository> { DaoRepositoryRepository(get()) }
         single<ScannerJobRepository> { DaoScannerJobRepository(get()) }
 
         singleOf(::WorkerJobRepositories)
