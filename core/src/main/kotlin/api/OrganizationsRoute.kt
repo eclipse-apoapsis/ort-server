@@ -267,9 +267,7 @@ fun Route.organizations() = route("organizations") {
                         createSecret.name,
                         createSecret.value,
                         createSecret.description,
-                        organizationId,
-                        null,
-                        null
+                        OrganizationId(organizationId)
                     ).mapToApi()
                 )
             }

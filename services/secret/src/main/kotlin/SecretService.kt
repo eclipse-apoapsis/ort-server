@@ -21,9 +21,6 @@ package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
-import org.eclipse.apoapsis.ortserver.model.ProductId
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
@@ -54,11 +51,8 @@ class SecretService(
         name: String,
         value: String,
         description: String?,
-        organizationId: Long?,
-        productId: Long?,
-        repositoryId: Long?
+        id: HierarchyId
     ): Secret = db.dbQuery {
-        val id = requireUnambiguousSecret(organizationId, productId, repositoryId)
         val path = secretStorage.createPath(id, name)
         val secret = secretRepository.create(path.path, name, description, id)
 
@@ -116,18 +110,6 @@ class SecretService(
         }
 
         secret
-    }
-
-    private fun requireUnambiguousSecret(organizationId: Long?, productId: Long?, repositoryId: Long?): HierarchyId {
-        val ids = listOfNotNull(
-            organizationId?.let { OrganizationId(it) },
-            productId?.let { ProductId(it) },
-            repositoryId?.let { RepositoryId(it) }
-        )
-
-        return requireNotNull(ids.singleOrNull()) {
-            "The secret should belong to one of the following: Organization, Product or Repository."
-        }
     }
 
     /**

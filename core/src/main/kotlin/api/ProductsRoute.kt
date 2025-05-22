@@ -243,9 +243,7 @@ fun Route.products() = route("products/{productId}") {
                     createSecret.name,
                     createSecret.value,
                     createSecret.description,
-                    null,
-                    productId,
-                    null
+                    ProductId(productId)
                 ).mapToApi()
             )
         }

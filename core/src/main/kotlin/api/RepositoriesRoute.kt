@@ -277,9 +277,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     createSecret.name,
                     createSecret.value,
                     createSecret.description,
-                    null,
-                    null,
-                    repositoryId
+                    RepositoryId(repositoryId)
                 ).mapToApi()
             )
         }
