@@ -25,10 +25,13 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
@@ -39,138 +42,52 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(DaoSecretRepository::class.java)
 
 class DaoSecretRepository(private val db: Database) : SecretRepository {
-    override fun create(
-        path: String,
-        name: String,
-        description: String?,
-        organizationId: Long?,
-        productId: Long?,
-        repositoryId: Long?
-    ) = db.blockingQuery {
+    override fun create(path: String, name: String, description: String?, id: HierarchyId) = db.blockingQuery {
         SecretDao.new {
             this.path = path
             this.name = name
             this.description = description
-            this.organizationId = organizationId
-            this.productId = productId
-            this.repositoryId = repositoryId
+            this.organizationId = (id as? OrganizationId)?.value
+            this.productId = (id as? ProductId)?.value
+            this.repositoryId = (id as? RepositoryId)?.value
         }.mapToModel()
     }
 
-    override fun getByOrganizationIdAndName(organizationId: Long, name: String) = db.entityQuery {
-        findSecretByParentEntityId(organizationId, null, null, name)?.mapToModel()
+    override fun getByIdAndName(id: HierarchyId, name: String) = db.entityQuery {
+        SecretDao.find(byNameCondition(id, name)).firstOrNull()?.mapToModel()
     }
 
-    override fun getByProductIdAndName(productId: Long, name: String): Secret? = db.entityQuery {
-        findSecretByParentEntityId(null, productId, null, name)?.mapToModel()
-    }
+    override fun listForId(id: HierarchyId, parameters: ListQueryParameters) = db.blockingQueryCatching {
+        val query: ConditionBuilder = when (id) {
+            is OrganizationId -> { { SecretsTable.organizationId eq id.value } }
+            is ProductId -> { { SecretsTable.productId eq id.value } }
+            is RepositoryId -> { { SecretsTable.repositoryId eq id.value } }
+        }
 
-    override fun getByRepositoryIdAndName(repositoryId: Long, name: String): Secret? = db.entityQuery {
-        findSecretByParentEntityId(null, null, repositoryId, name)?.mapToModel()
-    }
-
-    override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters) = db.blockingQueryCatching {
-        SecretDao.listQuery(parameters, SecretDao::mapToModel) { SecretsTable.organizationId eq organizationId }
+        SecretDao.listQuery(parameters, SecretDao::mapToModel, query)
     }.getOrElse {
-        logger.error("Cannot list secrets for organization id $organizationId.", it)
+        logger.error("Cannot list secrets for $id.", it)
         throw it
     }
 
-    override fun listForProduct(productId: Long, parameters: ListQueryParameters): ListQueryResult<Secret> =
-        db.blockingQueryCatching {
-            SecretDao.listQuery(parameters, SecretDao::mapToModel) { SecretsTable.productId eq productId }
-        }.getOrElse {
-            logger.error("Cannot list secrets for product id $productId.", it)
-            throw it
+    override fun updateForIdAndName(id: HierarchyId, name: String, description: OptionalValue<String?>): Secret =
+        db.blockingQuery {
+            val secret = SecretDao.findSingle(byNameCondition(id, name))
+            description.ifPresent { secret.description = it }
+            secret.mapToModel()
         }
 
-    override fun listForRepository(repositoryId: Long, parameters: ListQueryParameters): ListQueryResult<Secret> =
-        db.blockingQueryCatching {
-            SecretDao.listQuery(parameters, SecretDao::mapToModel) { SecretsTable.repositoryId eq repositoryId }
-        }.getOrElse {
-            logger.error("Cannot list secrets for repository id $repositoryId.", it)
-            throw it
-        }
-
-    override fun updateForOrganizationAndName(
-        organizationId: Long,
-        name: String,
-        description: OptionalValue<String?>
-    ): Secret = db.blockingQuery {
-        val secret = SecretDao.findSingle(byNameCondition(organizationId, null, null, name))
-
-        description.ifPresent { secret.description = it }
-
-        secret.mapToModel()
-    }
-
-    override fun updateForProductAndName(
-        productId: Long,
-        name: String,
-        description: OptionalValue<String?>
-    ): Secret = db.blockingQuery {
-        val secret = SecretDao.findSingle(byNameCondition(null, productId, null, name))
-
-        description.ifPresent { secret.description = it }
-
-        secret.mapToModel()
-    }
-
-    override fun updateForRepositoryAndName(
-        repositoryId: Long,
-        name: String,
-        description: OptionalValue<String?>
-    ): Secret = db.blockingQuery {
-        val secret = SecretDao.findSingle(byNameCondition(null, null, repositoryId, name))
-
-        description.ifPresent { secret.description = it }
-
-        secret.mapToModel()
-    }
-
-    override fun deleteForOrganizationAndName(organizationId: Long, name: String) = db.blockingQuery {
-        val secret = SecretDao.findSingle(byNameCondition(organizationId, null, null, name))
-
-        secret.delete()
-    }
-
-    override fun deleteForProductAndName(productId: Long, name: String) = db.blockingQuery {
-        val secret = SecretDao.findSingle(byNameCondition(null, productId, null, name))
-
-        secret.delete()
-    }
-
-    override fun deleteForRepositoryAndName(repositoryId: Long, name: String) = db.blockingQuery {
-        val secret = SecretDao.findSingle(byNameCondition(null, null, repositoryId, name))
-
-        secret.delete()
+    override fun deleteForIdAndName(id: HierarchyId, name: String) = db.blockingQuery {
+        SecretDao.findSingle(byNameCondition(id, name)).delete()
     }
 }
 
 /**
- * Generate a WHERE condition to find a [Secret] entity with a specific [name] that is associated with one of the
- * given [organizationId], [productId], or [repositoryId].
+ * Generate a WHERE condition to find a [Secret] entity within the hierarchy [id] and the given [name].
  */
-private fun byNameCondition(
-    organizationId: Long?,
-    productId: Long?,
-    repositoryId: Long?,
-    name: String
-): ConditionBuilder = {
-    SecretsTable.organizationId eq organizationId and
-            (SecretsTable.productId eq productId) and
-            (SecretsTable.repositoryId eq repositoryId) and
+private fun byNameCondition(id: HierarchyId, name: String): ConditionBuilder = {
+    SecretsTable.organizationId eq (id as? OrganizationId)?.value and
+            (SecretsTable.productId eq (id as? ProductId)?.value) and
+            (SecretsTable.repositoryId eq (id as? RepositoryId)?.value) and
             (SecretsTable.name eq name)
 }
-
-/**
- * Find a [Secret] entity with a specific [name] that is associated with one of the given [organizationId],
- * [productId], or [repositoryId].
- */
-private fun findSecretByParentEntityId(
-    organizationId: Long?,
-    productId: Long?,
-    repositoryId: Long?,
-    name: String
-): SecretDao? =
-    SecretDao.find(byNameCondition(organizationId, productId, repositoryId, name)).firstOrNull()

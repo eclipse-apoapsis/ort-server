@@ -56,6 +56,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
@@ -308,7 +309,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             val usernameSecret = Secret(20230627040646L, "p1", "repositoryUsername", null, null, null, repository)
             val passwordSecret = Secret(20230627070543L, "p2", "repositoryPassword", null, null, null, repository)
             declareMock<SecretRepository> {
-                every { listForRepository(repository.id) } returns
+                every { listForId(RepositoryId(repository.id)) } returns
                         ListQueryResult(listOf(usernameSecret, passwordSecret), ListQueryParameters.DEFAULT, 2)
             }
 

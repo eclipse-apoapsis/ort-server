@@ -75,6 +75,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToOrganizationGroup
 import org.eclipse.apoapsis.ortserver.core.utils.paginate
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
@@ -205,7 +206,7 @@ fun Route.organizations() = route("organizations") {
                 val orgId = call.requireIdParameter("organizationId")
                 val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-                val secretsForOrganization = secretService.listForOrganization(orgId, pagingOptions.mapToModel())
+                val secretsForOrganization = secretService.listForId(OrganizationId(orgId), pagingOptions.mapToModel())
 
                 val pagedResponse = secretsForOrganization.mapToApi(Secret::mapToApi)
 
@@ -216,10 +217,10 @@ fun Route.organizations() = route("organizations") {
                 get(getSecretByOrganizationIdAndName) {
                     requirePermission(OrganizationPermission.READ)
 
-                    val organizationId = call.requireIdParameter("organizationId")
+                    val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
                     val secretName = call.requireParameter("secretName")
 
-                    secretService.getSecretByOrganizationIdAndName(organizationId, secretName)
+                    secretService.getSecretByIdAndName(organizationId, secretName)
                         ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
                         ?: call.respond(HttpStatusCode.NotFound)
                 }
@@ -227,13 +228,13 @@ fun Route.organizations() = route("organizations") {
                 patch(patchSecretByOrganizationIdAndName) {
                     requirePermission(OrganizationPermission.WRITE_SECRETS)
 
-                    val organizationId = call.requireIdParameter("organizationId")
+                    val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
                     val secretName = call.requireParameter("secretName")
                     val updateSecret = call.receive<UpdateSecret>()
 
                     call.respond(
                         HttpStatusCode.OK,
-                        secretService.updateSecretByOrganizationAndName(
+                        secretService.updateSecretByIdAndName(
                             organizationId,
                             secretName,
                             updateSecret.value.mapToModel(),
@@ -245,10 +246,10 @@ fun Route.organizations() = route("organizations") {
                 delete(deleteSecretByOrganizationIdAndName) {
                     requirePermission(OrganizationPermission.WRITE_SECRETS)
 
-                    val organizationId = call.requireIdParameter("organizationId")
+                    val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
                     val secretName = call.requireParameter("secretName")
 
-                    secretService.deleteSecretByOrganizationAndName(organizationId, secretName)
+                    secretService.deleteSecretByIdAndName(organizationId, secretName)
 
                     call.respond(HttpStatusCode.NoContent)
                 }

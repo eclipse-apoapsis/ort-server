@@ -98,6 +98,7 @@ import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
@@ -185,7 +186,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         path: String = secretPath,
         name: String = secretName,
         description: String = secretDescription,
-    ) = secretRepository.create(path, name, description, null, productId, null)
+    ) = secretRepository.create(path, name, description, ProductId(productId))
 
     suspend fun addUserToGroup(username: String, organizationId: Long, groupId: String) =
         productService.addUserToGroup(username, organizationId, groupId)
@@ -575,7 +576,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody Secret(secret.name, secret.description)
 
-                secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi() shouldBe
+                secretRepository.getByIdAndName(ProductId(productId), secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
 
                 val provider = SecretsProviderFactoryForTesting.instance()
@@ -613,7 +614,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for CreateSecret"
 
-                secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi().shouldBeNull()
+                secretRepository.getByIdAndName(ProductId(productId), secret.name)?.mapToApi().shouldBeNull()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path("product_${productId}_${secret.name}"))?.value shouldBe null
@@ -648,7 +649,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByProductIdAndName(productId, secret.name)?.mapToApi() shouldBe
+                secretRepository.getByIdAndName(ProductId(productId), secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, updatedDescription)
             }
         }
@@ -681,7 +682,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
 
-                secretRepository.getByProductIdAndName(productId, secret.name) shouldBe secret
+                secretRepository.getByIdAndName(ProductId(productId), secret.name) shouldBe secret
             }
         }
 
@@ -706,7 +707,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}") shouldHaveStatus
                     HttpStatusCode.NoContent
 
-                secretRepository.listForProduct(productId).data shouldBe emptyList()
+                secretRepository.listForId(ProductId(productId)).data shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
@@ -748,7 +749,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/products/$productId/secrets/${secret.name}") shouldHaveStatus
                     HttpStatusCode.InternalServerError
 
-                secretRepository.getByProductIdAndName(productId, secret.name) shouldBe secret
+                secretRepository.getByIdAndName(ProductId(productId), secret.name) shouldBe secret
             }
         }
 

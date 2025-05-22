@@ -45,8 +45,11 @@ import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
@@ -176,9 +179,9 @@ class EnvironmentConfigLoaderTest : StringSpec() {
 
             parseConfig(".ort.env.simple.yml", helper).resolve(helper)
 
-            verify(exactly = 0) {
-                helper.secretRepository.listForProduct(any(), any())
-                helper.secretRepository.listForOrganization(any(), any())
+            // There should be only one call for the repository hierarchy.
+            verify(exactly = 1) {
+                helper.secretRepository.listForId(any(), any())
             }
         }
 
@@ -541,17 +544,19 @@ private class TestHelper(
      */
     private fun initSecretRepository() {
         every {
-            secretRepository.listForRepository(repository.id)
+            secretRepository.listForId(RepositoryId(repository.id))
         } returns mockk<ListQueryResult<Secret>> {
             every { data } returns secrets.filter { it.repository != null }
         }
+
         every {
-            secretRepository.listForProduct(product.id)
+            secretRepository.listForId(ProductId(product.id))
         } returns mockk<ListQueryResult<Secret>> {
             every { data } returns secrets.filter { it.product != null }
         }
+
         every {
-            secretRepository.listForOrganization(organization.id)
+            secretRepository.listForId(OrganizationId(organization.id))
         } returns mockk<ListQueryResult<Secret>> {
             every { data } returns secrets.filter { it.organization != null }
         }

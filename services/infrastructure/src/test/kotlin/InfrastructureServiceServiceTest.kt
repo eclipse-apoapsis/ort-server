@@ -41,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -103,7 +104,7 @@ class InfrastructureServiceServiceTest : WordSpec({
             testWithHelper(verifyTx = false) {
                 mockOrganizationSecret(USERNAME_SECRET)
                 coEvery {
-                    secretService.getSecretByOrganizationIdAndName(ORGANIZATION_ID, PASSWORD_SECRET)
+                    secretService.getSecretByIdAndName(OrganizationId(ORGANIZATION_ID), PASSWORD_SECRET)
                 } returns null
 
                 val exception = shouldThrow<InvalidSecretReferenceException> {
@@ -184,7 +185,7 @@ class InfrastructureServiceServiceTest : WordSpec({
 
         "throw an exception if a secret reference cannot be resolved" {
             testWithHelper(verifyTx = false) {
-                coEvery { secretService.getSecretByOrganizationIdAndName(any(), any()) } returns null
+                coEvery { secretService.getSecretByIdAndName(any(), any()) } returns null
 
                 shouldThrow<InvalidSecretReferenceException> {
                     service.updateForOrganization(
@@ -267,7 +268,7 @@ private class TestHelper(
     fun mockOrganizationSecret(name: String): Secret {
         val secret = mockk<Secret>()
         coEvery {
-            secretService.getSecretByOrganizationIdAndName(ORGANIZATION_ID, name)
+            secretService.getSecretByIdAndName(OrganizationId(ORGANIZATION_ID), name)
         } returns secret
 
         return secret

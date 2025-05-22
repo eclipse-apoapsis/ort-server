@@ -100,6 +100,7 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
@@ -203,7 +204,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         path: String = secretPath,
         name: String = secretName,
         description: String = secretDescription,
-    ) = secretRepository.create(path, name, description, null, null, repositoryId)
+    ) = secretRepository.create(path, name, description, RepositoryId(repositoryId))
 
     "GET /repositories/{repositoryId}" should {
         "return a single repository" {
@@ -972,7 +973,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody Secret(secret.name, secret.description)
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)?.mapToApi() shouldBe
+                secretRepository.getByIdAndName(RepositoryId(repositoryId), secret.name)?.mapToApi() shouldBe
                     Secret(secret.name, secret.description)
 
                 val provider = SecretsProviderFactoryForTesting.instance()
@@ -1021,7 +1022,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for CreateSecret"
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)?.mapToApi().shouldBeNull()
+                secretRepository.getByIdAndName(RepositoryId(repositoryId), secret.name)?.mapToApi().shouldBeNull()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path("repository_${repositoryId}_${secret.name}"))?.value.shouldBeNull()
@@ -1045,7 +1046,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name)
+                secretRepository.getByIdAndName(RepositoryId(repositoryId), secret.name)
                     ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
             }
         }
@@ -1078,7 +1079,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name) shouldBe secret
+                secretRepository.getByIdAndName(RepositoryId(repositoryId), secret.name) shouldBe secret
             }
         }
 
@@ -1102,7 +1103,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}") shouldHaveStatus
                     HttpStatusCode.NoContent
 
-                secretRepository.listForRepository(repositoryId).data shouldBe emptyList()
+                secretRepository.listForId(RepositoryId(repositoryId)).data shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
@@ -1117,7 +1118,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/repositories/$repositoryId/secrets/${secret.name}") shouldHaveStatus
                     HttpStatusCode.InternalServerError
 
-                secretRepository.getByRepositoryIdAndName(repositoryId, secret.name) shouldBe secret
+                secretRepository.getByIdAndName(RepositoryId(repositoryId), secret.name) shouldBe secret
             }
         }
 

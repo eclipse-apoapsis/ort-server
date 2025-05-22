@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.services
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -132,7 +133,7 @@ class InfrastructureServiceService(
      * reference cannot be resolved.
      */
     private suspend fun resolveOrganizationSecret(organizationId: Long, secretName: String): Secret =
-        secretService.getSecretByOrganizationIdAndName(organizationId, secretName)
+        secretService.getSecretByIdAndName(OrganizationId(organizationId), secretName)
             ?: throw InvalidSecretReferenceException(secretName)
 
     /**
