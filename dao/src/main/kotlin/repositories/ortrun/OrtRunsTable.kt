@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.NotifierJobDao
@@ -82,6 +83,14 @@ object OrtRunsTable : SortableTable("ort_runs") {
     val traceId = text("trace_id").nullable()
     val environmentConfigPath = text("environment_config_path").nullable()
     val userDisplayName = reference("user_id", UserDisplayNamesTable.id).nullable()
+
+    /** Get the id of the analyzer run for the given ORT run [id]. Returns `null` if no run is found. */
+    fun getAnalyzerRunIdById(id: Long): Long? =
+        innerJoin(AnalyzerJobsTable)
+            .innerJoin(AnalyzerRunsTable)
+            .select(AnalyzerRunsTable.id)
+            .where { OrtRunsTable.id eq id }
+            .singleOrNull()?.let { it[AnalyzerRunsTable.id].value }
 }
 
 class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
