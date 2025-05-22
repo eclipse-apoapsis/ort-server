@@ -73,6 +73,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getUnavailablePlugins
 import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
@@ -178,10 +179,10 @@ fun Route.products() = route("products/{productId}") {
         get(getSecretsByProductId) {
             requirePermission(ProductPermission.READ)
 
-            val productId = call.requireIdParameter("productId")
+            val productId = ProductId(call.requireIdParameter("productId"))
             val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-            val secretsForProduct = secretService.listForProduct(productId, pagingOptions.mapToModel())
+            val secretsForProduct = secretService.listForId(productId, pagingOptions.mapToModel())
 
             val pagedResponse = secretsForProduct.mapToApi(Secret::mapToApi)
 
@@ -192,10 +193,10 @@ fun Route.products() = route("products/{productId}") {
             get(getSecretByProductIdAndName) {
                 requirePermission(ProductPermission.READ)
 
-                val productId = call.requireIdParameter("productId")
+                val productId = ProductId(call.requireIdParameter("productId"))
                 val secretName = call.requireParameter("secretName")
 
-                secretService.getSecretByProductIdAndName(productId, secretName)
+                secretService.getSecretByIdAndName(productId, secretName)
                     ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
                     ?: call.respond(HttpStatusCode.NotFound)
             }
@@ -203,13 +204,13 @@ fun Route.products() = route("products/{productId}") {
             patch(patchSecretByProductIdAndName) {
                 requirePermission(ProductPermission.WRITE_SECRETS)
 
-                val productId = call.requireIdParameter("productId")
+                val productId = ProductId(call.requireIdParameter("productId"))
                 val secretName = call.requireParameter("secretName")
                 val updateSecret = call.receive<UpdateSecret>()
 
                 call.respond(
                     HttpStatusCode.OK,
-                    secretService.updateSecretByProductAndName(
+                    secretService.updateSecretByIdAndName(
                         productId,
                         secretName,
                         updateSecret.value.mapToModel(),
@@ -221,10 +222,10 @@ fun Route.products() = route("products/{productId}") {
             delete(deleteSecretByProductIdAndName) {
                 requirePermission(ProductPermission.WRITE_SECRETS)
 
-                val productId = call.requireIdParameter("productId")
+                val productId = ProductId(call.requireIdParameter("productId"))
                 val secretName = call.requireParameter("secretName")
 
-                secretService.deleteSecretByProductAndName(productId, secretName)
+                secretService.deleteSecretByIdAndName(productId, secretName)
 
                 call.respond(HttpStatusCode.NoContent)
             }

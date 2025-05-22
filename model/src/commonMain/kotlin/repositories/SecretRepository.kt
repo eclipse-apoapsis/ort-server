@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.repositories
 
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -27,98 +28,32 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 /**
  * A repository of [secrets][Secret].
  */
-@Suppress("TooManyFunctions")
 interface SecretRepository {
     /**
-     * Create a secret for either [organization][organizationId], [product][productId] or [repository][repositoryId]
+     * Create a secret for the given hierarchy [id].
      */
-    fun create(
-        path: String,
-        name: String,
-        description: String?,
-        organizationId: Long?,
-        productId: Long?,
-        repositoryId: Long?
-    ): Secret
+    fun create(path: String, name: String, description: String?, id: HierarchyId): Secret
 
     /**
-     * Get a secret by [organizationId] and [name]. Returns null if the secret is not found.
+     * Get a secret by [id] and [name]. Returns null if the secret is not found.
      */
-    fun getByOrganizationIdAndName(organizationId: Long, name: String): Secret?
+    fun getByIdAndName(id: HierarchyId, name: String): Secret?
 
     /**
-     * Get a secret by [productId] and [name]. Returns null if the secret is not found.
+     * List all secrets for an [id] according to the given [parameters].
      */
-    fun getByProductIdAndName(productId: Long, name: String): Secret?
-
-    /**
-     * Get a secret by [repositoryId] and [name]. Returns null if the secret is not found.
-     */
-    fun getByRepositoryIdAndName(repositoryId: Long, name: String): Secret?
-
-    /**
-     * List all secrets for an [organization][organizationId] according to the given [parameters].
-     */
-    fun listForOrganization(
-        organizationId: Long,
+    fun listForId(
+        id: HierarchyId,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<Secret>
 
     /**
-     * List all secrets for a [product][productId] according to the given [parameters].
+     * Update a secret by [id] and name with the [present][OptionalValue.Present] values.
      */
-    fun listForProduct(
-        productId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): ListQueryResult<Secret>
+    fun updateForIdAndName(id: HierarchyId, name: String, description: OptionalValue<String?>): Secret
 
     /**
-     * List all secrets for a [repository][repositoryId] according to the given [parameters].
+     * Delete a secret by [id] and secret's [name].
      */
-    fun listForRepository(
-        repositoryId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): ListQueryResult<Secret>
-
-    /**
-     * Update a secret by [organizationId] and name with the [present][OptionalValue.Present] values.
-     */
-    fun updateForOrganizationAndName(
-        organizationId: Long,
-        name: String,
-        description: OptionalValue<String?>
-    ): Secret
-
-    /**
-     * Update a secret by [productId] and name with the [present][OptionalValue.Present] values.
-     */
-    fun updateForProductAndName(
-        productId: Long,
-        name: String,
-        description: OptionalValue<String?>
-    ): Secret
-
-    /**
-     * Update a secret by [repositoryId] and name with the [present][OptionalValue.Present] values.
-     */
-    fun updateForRepositoryAndName(
-        repositoryId: Long,
-        name: String,
-        description: OptionalValue<String?>
-    ): Secret
-
-    /**
-     * Delete a secret by [organizationId] and secret's [name].
-     */
-    fun deleteForOrganizationAndName(organizationId: Long, name: String)
-
-    /**
-     * Delete a secret by [productId] and secret's [name].
-     */
-    fun deleteForProductAndName(productId: Long, name: String)
-
-    /**
-     * Delete a secret by [repositoryId] and secret's [name].
-     */
-    fun deleteForRepositoryAndName(repositoryId: Long, name: String)
+    fun deleteForIdAndName(id: HierarchyId, name: String)
 }

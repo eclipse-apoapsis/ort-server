@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -70,8 +71,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
             ortRunRepository = dbExtension.fixtures.ortRunRepository
             fixtures = dbExtension.fixtures
 
-            usernameSecret = secretRepository.create("p1", "user", null, fixtures.organization.id, null, null)
-            passwordSecret = secretRepository.create("p2", "pass", null, fixtures.organization.id, null, null)
+            usernameSecret = secretRepository.create("p1", "user", null, OrganizationId(fixtures.organization.id))
+            passwordSecret = secretRepository.create("p2", "pass", null, OrganizationId(fixtures.organization.id))
         }
 
         "create" should {
@@ -299,8 +300,10 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
         "updateForOrganizationAndName" should {
             "update the properties of a service" {
-                val newUser = secretRepository.create("p3", "newUser", null, fixtures.organization.id, null, null)
-                val newPassword = secretRepository.create("p4", "newPass", null, fixtures.organization.id, null, null)
+                val newUser = secretRepository.create("p3", "newUser", null, OrganizationId(fixtures.organization.id))
+                val newPassword = secretRepository.create(
+                    "p4", "newPass", null, OrganizationId(fixtures.organization.id)
+                )
                 val service = createInfrastructureService(organization = fixtures.organization)
                 val updatedService = createInfrastructureService(
                     url = "https://repo.example.org/newRepo",
@@ -347,8 +350,10 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
         "updateForProductAndName" should {
             "update the properties of a service" {
-                val newUser = secretRepository.create("p3", "newUser", null, fixtures.organization.id, null, null)
-                val newPassword = secretRepository.create("p4", "newPass", null, fixtures.organization.id, null, null)
+                val newUser = secretRepository.create("p3", "newUser", null, OrganizationId(fixtures.organization.id))
+                val newPassword = secretRepository.create(
+                    "p4", "newPass", null, OrganizationId(fixtures.organization.id)
+                )
                 val service = createInfrastructureService(product = fixtures.product)
                 val updatedService = createInfrastructureService(
                     url = "https://repo.example.org/newRepo",
@@ -562,9 +567,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     path = "p3",
                     name = "otherUser",
                     description = null,
-                    organizationId = fixtures.organization.id,
-                    productId = null,
-                    repositoryId = null
+                    id = OrganizationId(fixtures.organization.id)
                 )
 
                 val service3 = createInfrastructureService(

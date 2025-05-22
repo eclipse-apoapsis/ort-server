@@ -29,6 +29,9 @@ import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
@@ -232,9 +235,9 @@ class EnvironmentConfigLoader(
             }
         }
 
-        fetchSecrets { secretRepository.listForRepository(hierarchy.repository.id).data }
-        fetchSecrets { secretRepository.listForProduct(hierarchy.product.id).data }
-        fetchSecrets { secretRepository.listForOrganization(hierarchy.organization.id).data }
+        fetchSecrets { secretRepository.listForId(RepositoryId(hierarchy.repository.id)).data }
+        fetchSecrets { secretRepository.listForId(ProductId(hierarchy.product.id)).data }
+        fetchSecrets { secretRepository.listForId(OrganizationId(hierarchy.organization.id)).data }
 
         if (allSecretsNames.isNotEmpty()) {
             val message = "Invalid secret names. The following names cannot be resolved: $allSecretsNames"
