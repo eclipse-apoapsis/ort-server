@@ -27,6 +27,7 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.minus
 
+import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -46,7 +47,6 @@ import org.jetbrains.exposed.sql.QueryParameter
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greater
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
@@ -87,7 +87,7 @@ fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANO
 internal fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
     parameters: ListQueryParameters,
     entityMapper: (E) -> M,
-    query: SqlExpressionBuilder.() -> Op<Boolean>
+    query: ConditionBuilder
 ): ListQueryResult<M> {
     val filterQuery = find(query)
     val totalCount = filterQuery.count()

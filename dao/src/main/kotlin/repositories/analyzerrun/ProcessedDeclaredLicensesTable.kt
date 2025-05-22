@@ -19,15 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
+import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.selectAll
 
 /**
@@ -53,7 +52,7 @@ object ProcessedDeclaredLicensesTable : LongIdTable("processed_declared_licenses
      */
     @Suppress("UNCHECKED_CAST")
     private fun getByIds(
-        whereCondition: SqlExpressionBuilder.() -> Op<Boolean>,
+        whereCondition: ConditionBuilder,
         idSelector: ResultRow.() -> Long?
     ): Map<Long, ProcessedDeclaredLicense?> =
         leftJoin(ProcessedDeclaredLicensesMappedDeclaredLicensesTable)
