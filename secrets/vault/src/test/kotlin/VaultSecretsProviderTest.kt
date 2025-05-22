@@ -27,6 +27,9 @@ import io.kotest.matchers.shouldBe
 
 import io.ktor.client.plugins.ClientRequestException
 
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.Secret
 
@@ -119,21 +122,21 @@ class VaultSecretsProviderTest : WordSpec() {
         "createPath" should {
             "generate a path for an organization secret" {
                 val provider = vault.createProvider()
-                val result = provider.createPath(1, null, null, "newSecret")
+                val result = provider.createPath(OrganizationId(1), "newSecret")
 
                 result shouldBe Path("organization_1_newSecret")
             }
 
             "generate a path for a product secret" {
                 val provider = vault.createProvider()
-                val result = provider.createPath(null, 1, null, "newSecret")
+                val result = provider.createPath(ProductId(1), "newSecret")
 
                 result shouldBe Path("product_1_newSecret")
             }
 
             "generate a path for a repository secret" {
                 val provider = vault.createProvider()
-                val result = provider.createPath(null, null, 1, "newSecret")
+                val result = provider.createPath(RepositoryId(1), "newSecret")
 
                 result shouldBe Path("repository_1_newSecret")
             }

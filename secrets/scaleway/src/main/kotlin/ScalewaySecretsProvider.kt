@@ -43,6 +43,10 @@ import java.net.URLEncoder
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.Secret
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
@@ -205,14 +209,11 @@ class ScalewaySecretsProvider(
         logger.debug("Deleted the secret at $path.")
     }
 
-    override fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String): Path {
-        val secretType = when {
-            organizationId != null -> "organization_$organizationId"
-            productId != null -> "product_$productId"
-            repositoryId != null -> "repository_$repositoryId"
-            else -> throw IllegalArgumentException(
-                "Either one of organizationId, productId or repositoryId should be specified to create a path."
-            )
+    override fun createPath(id: HierarchyId, secretName: String): Path {
+        val secretType = when (id) {
+            is OrganizationId -> "organization_${id.value}"
+            is ProductId -> "product_${id.value}"
+            is RepositoryId -> "repository_${id.value}"
         }
 
         // There should be no characters that need encoding. Actually, Scaleway is even stricter to require its path and

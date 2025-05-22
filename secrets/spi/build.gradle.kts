@@ -30,6 +30,7 @@ group = "org.eclipse.apoapsis.ortserver.secrets"
 
 dependencies {
     api(projects.config.configSpi)
+    api(projects.model)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)
