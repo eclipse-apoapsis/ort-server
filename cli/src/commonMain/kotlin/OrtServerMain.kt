@@ -44,6 +44,8 @@ import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 
 const val COMMAND_NAME = "osc"
 
+private var showStacktrace = false
+
 fun main(args: Array<String>) {
     val cli = OrtServerMain()
 
@@ -56,6 +58,8 @@ fun main(args: Array<String>) {
 
         exitProcess(0)
     }.onFailure { e ->
+        if (showStacktrace) e.printStackTrace()
+
         when (e) {
             is AuthenticationException -> cli.echoError("Authentication failed. Please check your credentials.")
             is OrtServerCliException, is OrtServerException -> cli.echoError(e.message)
@@ -92,6 +96,11 @@ class OrtServerMain : SuspendingCliktCommand(COMMAND_NAME) {
         help = "Print CLI messages as JSON."
     ).flag()
 
+    private val stacktrace by option(
+        "--stacktrace",
+        help = "Print the stacktrace of any error."
+    ).flag()
+
     override fun help(context: Context) = """
         The ORT Server Client (OSC) is a Command Line Interface (CLI) to interact with an ORT Server instance.
     """.trimIndent()
@@ -99,6 +108,8 @@ class OrtServerMain : SuspendingCliktCommand(COMMAND_NAME) {
     override suspend fun run() {
         // Make the jsonFormat flag available globally.
         useJsonFormat = jsonFormat
+
+        showStacktrace = stacktrace
     }
 
     /**

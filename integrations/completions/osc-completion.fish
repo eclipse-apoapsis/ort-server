@@ -8,6 +8,7 @@ set -l osc_subcommands 'auth runs'
 ## Options for osc
 complete -c osc -n "not __fish_seen_subcommand_from $osc_subcommands" -l version -s v -d 'Show the version of the CLI and the ORT Server if authenticated.'
 complete -c osc -n "not __fish_seen_subcommand_from $osc_subcommands" -l json -d 'Print CLI messages as JSON.'
+complete -c osc -n "not __fish_seen_subcommand_from $osc_subcommands" -l stacktrace -d 'Print the stacktrace of any error.'
 complete -c osc -n "not __fish_seen_subcommand_from $osc_subcommands" -s h -l help -d 'Show this message and exit'
 
 
