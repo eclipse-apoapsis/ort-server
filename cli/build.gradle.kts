@@ -19,6 +19,7 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
     id("ort-server-kotlin-multiplatform-conventions")
@@ -47,10 +48,9 @@ kotlin {
 
     targets.withType<KotlinNativeTarget> {
         binaries {
-            executable {
+            executable(setOf(NativeBuildType.RELEASE)) {
                 entryPoint = "org.eclipse.apoapsis.ortserver.cli.main"
                 baseName = "osc"
-                optimized = true
             }
         }
     }
