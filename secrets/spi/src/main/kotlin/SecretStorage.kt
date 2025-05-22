@@ -23,9 +23,7 @@ import java.util.ServiceLoader
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
-import org.eclipse.apoapsis.ortserver.model.ProductId
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 
 /**
  * A class providing convenient access to secrets based on a [SecretsProvider].
@@ -135,19 +133,10 @@ class SecretStorage(
     fun removeSecretCatching(path: Path): Result<Unit> = runCatching { removeSecret(path) }
 
     /**
-     * Generate a [Path] for the secret basing on the [organizationId], [productId] or [repositoryId] they belong to
-     * and the [secretName].
+     * Generate a [Path] in the hierarchy identified by [id] that is named [secretName].
      */
-    fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String) =
-        wrapExceptions {
-            val ids = listOfNotNull(
-                organizationId?.let { OrganizationId(it) },
-                productId?.let { ProductId(it) },
-                repositoryId?.let { RepositoryId(it) }
-            )
-
-            provider.createPath(ids.single(), secretName)
-        }
+    fun createPath(id: HierarchyId, secretName: String) =
+        wrapExceptions { provider.createPath(id, secretName) }
 }
 
 /**
