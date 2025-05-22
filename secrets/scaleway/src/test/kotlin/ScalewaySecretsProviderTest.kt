@@ -24,6 +24,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.secrets.Secret
 
 class ScalewaySecretsProviderTest : WordSpec({
@@ -35,14 +36,7 @@ class ScalewaySecretsProviderTest : WordSpec({
     )
 
     val provider = ScalewaySecretsProvider(config)
-
-    val path = provider.createPath(
-        organizationId = 1,
-        productId = null,
-        repositoryId = null,
-        secretName = "This_is_a_29-chr._secret_name"
-    )
-
+    val path = provider.createPath(OrganizationId(1), "This_is_a_29-chr._secret_name")
     val secret = Secret("Ernie & Bert live at Sesame Street!")
 
     "createPath()" should {

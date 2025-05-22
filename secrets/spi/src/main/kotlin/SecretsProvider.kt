@@ -19,6 +19,11 @@
 
 package org.eclipse.apoapsis.ortserver.secrets
 
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
+
 /**
  * Definition of an interface for accessing secrets stored in a specific storage implementation.
  *
@@ -50,19 +55,16 @@ interface SecretsProvider {
     fun removeSecret(path: Path)
 
     /**
-     * Generate a [Path] for the secret belonging to the given [organizationId], [productId] and [repositoryId], as well
-     * as the [secretName]. The default implementation concatenates these properties with underscores.
+     * Generate a [Path] in the hierarchy identified by [id] that is named [secretName]. This default implementation
+     * concatenates the property names with underscores.
      */
-    fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String): Path {
-        val secretType = when {
-            organizationId != null -> "organization"
-            productId != null -> "product"
-            repositoryId != null -> "repository"
-            else -> throw IllegalArgumentException(
-                "Either one of organizationId, productId or repositoryId should be specified to create a path."
-            )
+    fun createPath(id: HierarchyId, secretName: String): Path {
+        val secretType = when (id) {
+            is OrganizationId -> "organization"
+            is ProductId -> "product"
+            is RepositoryId -> "repository"
         }
 
-        return Path(listOfNotNull(secretType, organizationId, productId, repositoryId, secretName).joinToString("_"))
+        return Path("${secretType}_${id.value}_$secretName")
     }
 }

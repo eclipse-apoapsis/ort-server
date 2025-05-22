@@ -21,6 +21,10 @@ package org.eclipse.apoapsis.ortserver.secrets.azurekeyvault
 
 import com.azure.security.keyvault.secrets.SecretClient
 
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.Secret
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
@@ -44,18 +48,15 @@ class AzureKeyvaultProvider(private val secretClient: SecretClient) : SecretsPro
         secretClient.beginDeleteSecret(path.path)
     }
 
-    override fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String): Path {
+    override fun createPath(id: HierarchyId, secretName: String): Path {
         check(secretName.matches(PATH_REGEX)) {
             "The secret name '$secretName' does not match the allowed pattern '$PATH_REGEX'."
         }
 
-        val secretType = when {
-            organizationId != null -> "organization-$organizationId"
-            productId != null -> "product-$productId"
-            repositoryId != null -> "repository-$repositoryId"
-            else -> throw IllegalArgumentException(
-                "Either one of organizationId, productId or repositoryId should be specified to create a path."
-            )
+        val secretType = when (id) {
+            is OrganizationId -> "organization-${id.value}"
+            is ProductId -> "product-${id.value}"
+            is RepositoryId -> "repository-${id.value}"
         }
 
         return Path("$secretType-$secretName")

@@ -23,6 +23,9 @@ import java.util.ServiceLoader
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 
 /**
  * A class providing convenient access to secrets based on a [SecretsProvider].
@@ -136,7 +139,15 @@ class SecretStorage(
      * and the [secretName].
      */
     fun createPath(organizationId: Long?, productId: Long?, repositoryId: Long?, secretName: String) =
-        wrapExceptions { provider.createPath(organizationId, productId, repositoryId, secretName) }
+        wrapExceptions {
+            val ids = listOfNotNull(
+                organizationId?.let { OrganizationId(it) },
+                productId?.let { ProductId(it) },
+                repositoryId?.let { RepositoryId(it) }
+            )
+
+            provider.createPath(ids.single(), secretName)
+        }
 }
 
 /**
