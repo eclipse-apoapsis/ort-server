@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
-import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.jsonb
@@ -52,10 +51,9 @@ object ShortestDependencyPathsTable : LongIdTable("shortest_dependency_paths") {
     fun getForOrtRunId(ortRunId: Long): Map<Identifier, List<ShortestDependencyPath>> {
         val projectIdentifiersTable = IdentifiersTable.alias("project_identifiers")
 
-        return innerJoin(AnalyzerRunsTable)
-            .innerJoin(AnalyzerJobsTable)
-            .innerJoin(OrtRunsTable)
-            .innerJoin(PackagesTable)
+        val analyzerRunId = OrtRunsTable.getAnalyzerRunIdById(ortRunId)
+
+        return innerJoin(PackagesTable)
             .innerJoin(ProjectsTable)
             .join(
                 IdentifiersTable,
@@ -70,7 +68,7 @@ object ShortestDependencyPathsTable : LongIdTable("shortest_dependency_paths") {
                 projectIdentifiersTable[IdentifiersTable.id]
             )
             .selectAll()
-            .where { OrtRunsTable.id eq ortRunId }
+            .where { ShortestDependencyPathsTable.analyzerRunId eq analyzerRunId }
             .map { resultRow ->
                 val packageIdentifier = Identifier(
                     type = resultRow[IdentifiersTable.type],
