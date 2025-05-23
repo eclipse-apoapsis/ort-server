@@ -99,38 +99,6 @@ class EndpointTest : KoinTest, StringSpec() {
             }
         }
     }
-
-    /**
-     * Simulate an incoming request to check the configuration of an ORT run.
-     */
-    private suspend fun sendConfigRequest() {
-        mockkTransaction {
-            val message = Message(messageHeader, configRequest)
-            MessageReceiverFactoryForTesting.receive(ConfigEndpoint, message)
-        }
-    }
-
-    /**
-     * Run [block] as a test for the Analyzer endpoint. Start the endpoint with a configuration that selects the
-     * testing transport. Then execute the given [block].
-     */
-    private suspend fun runEndpointTest(block: suspend () -> Unit) {
-        withMockDatabaseModule {
-            val environment = mapOf(
-                "CONFIG_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-                "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-                "CONFIG_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME
-            )
-
-            withEnvironment(environment) {
-                main()
-
-                MockProvider.register { mockkClass(it) }
-
-                block()
-            }
-        }
-    }
 }
 
 private const val RUN_ID = 20230803092449L
@@ -139,3 +107,35 @@ private const val TRACE_ID = "trace-id"
 private val messageHeader = MessageHeader(TRACE_ID, 24)
 
 private val configRequest = ConfigRequest(RUN_ID)
+
+/**
+ * Simulate an incoming request to check the configuration of an ORT run.
+ */
+private suspend fun sendConfigRequest() {
+    mockkTransaction {
+        val message = Message(messageHeader, configRequest)
+        MessageReceiverFactoryForTesting.receive(ConfigEndpoint, message)
+    }
+}
+
+/**
+ * Run [block] as a test for the Analyzer endpoint. Start the endpoint with a configuration that selects the
+ * testing transport. Then execute the given [block].
+ */
+private suspend fun runEndpointTest(block: suspend () -> Unit) {
+    withMockDatabaseModule {
+        val environment = mapOf(
+            "CONFIG_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
+            "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
+            "CONFIG_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME
+        )
+
+        withEnvironment(environment) {
+            main()
+
+            MockProvider.register { mockkClass(it) }
+
+            block()
+        }
+    }
+}
