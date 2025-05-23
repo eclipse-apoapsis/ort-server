@@ -54,7 +54,7 @@ import {
 } from '@/components/ui/card';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
-import { identifierToString } from '@/helpers/identifier-to-string';
+import { identifierToString } from '@/helpers/identifier-conversion';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import {

@@ -20,7 +20,10 @@
 import { MoveRight } from 'lucide-react';
 
 import { Package, ShortestDependencyPath } from '@/api/requests';
-import { identifierToString } from '@/helpers/identifier-to-string';
+import {
+  identifierToPurl,
+  identifierToString,
+} from '@/helpers/identifier-conversion.ts';
 import { cn } from '@/lib/utils';
 import { PackageIdType } from '@/schemas';
 
@@ -72,7 +75,9 @@ const DependencyPath = ({
         <div className='flex flex-wrap gap-x-2 align-middle' key={index}>
           <MoveRight size={20} />
           <div>
-            {pkgIdType === 'ORT_ID' ? identifierToString(path) : pkg.purl}
+            {pkgIdType === 'ORT_ID'
+              ? identifierToString(path)
+              : identifierToPurl(path)}
           </div>
         </div>
       ))}

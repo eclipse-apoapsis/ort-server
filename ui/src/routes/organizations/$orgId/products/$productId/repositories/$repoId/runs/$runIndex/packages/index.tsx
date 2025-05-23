@@ -55,7 +55,7 @@ import {
   convertToBackendSorting,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
-import { identifierToString } from '@/helpers/identifier-to-string';
+import { identifierToString } from '@/helpers/identifier-conversion';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import {

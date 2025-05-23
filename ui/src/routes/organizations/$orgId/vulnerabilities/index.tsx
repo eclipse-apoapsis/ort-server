@@ -60,7 +60,7 @@ import {
   convertToBackendSorting,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
-import { identifierToString } from '@/helpers/identifier-to-string';
+import { identifierToString } from '@/helpers/identifier-conversion';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
 import {
