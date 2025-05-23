@@ -29,11 +29,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggColumnEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggTwoColumnsEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
-import org.eclipse.apoapsis.ortserver.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
-import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
@@ -41,7 +37,6 @@ import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.andHaving
 import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.selectAll
 
 /**
  * A table to represent a software package as a project.
@@ -56,67 +51,6 @@ object ProjectsTable : SortableTable("projects") {
     val definitionFilePath = text("definition_file_path")
     val description = text("description")
     val homepageUrl = text("homepage_url")
-
-    fun getByIds(projectIds: Set<Long>): Set<Project> {
-        val vcsProcessedTable = VcsInfoTable.alias("vcs_processed_info")
-
-        val resultRows = innerJoin(IdentifiersTable)
-            .join(VcsInfoTable, JoinType.LEFT, vcsId, VcsInfoTable.id)
-            .join(vcsProcessedTable, JoinType.LEFT, vcsProcessedId, vcsProcessedTable[VcsInfoTable.id])
-            .selectAll()
-            .where { id inList projectIds }
-            .toList()
-
-        val authorsByProjectId = ProjectsAuthorsTable.getAuthorsByProjectIds(projectIds)
-        val declaredLicensesByProjectId = ProjectsDeclaredLicensesTable.getDeclaredLicensesByProjectIds(projectIds)
-        val processedDeclaredLicenseByProjectId = ProcessedDeclaredLicensesTable.getByProjectIds(projectIds)
-        val scopeNamesByProjectId = ProjectScopesTable.getScopesByProjectIds(projectIds)
-
-        return resultRows.mapTo(mutableSetOf()) { resultRow ->
-            val projectId = resultRow[id].value
-
-            val identifier = Identifier(
-                type = resultRow[IdentifiersTable.type],
-                namespace = resultRow[IdentifiersTable.namespace],
-                name = resultRow[IdentifiersTable.name],
-                version = resultRow[IdentifiersTable.version]
-            )
-
-            val processedDeclaredLicense = processedDeclaredLicenseByProjectId[projectId] ?: ProcessedDeclaredLicense(
-                spdxExpression = null,
-                mappedLicenses = emptyMap(),
-                unmappedLicenses = emptySet()
-            )
-
-            val vcs = VcsInfo(
-                type = RepositoryType.forName(resultRow[VcsInfoTable.type]),
-                url = resultRow[VcsInfoTable.url],
-                revision = resultRow[VcsInfoTable.revision],
-                path = resultRow[VcsInfoTable.path]
-            )
-
-            val vcsProcessed = VcsInfo(
-                type = RepositoryType.forName(resultRow[vcsProcessedTable[VcsInfoTable.type]]),
-                url = resultRow[vcsProcessedTable[VcsInfoTable.url]],
-                revision = resultRow[vcsProcessedTable[VcsInfoTable.revision]],
-                path = resultRow[vcsProcessedTable[VcsInfoTable.path]]
-            )
-
-            Project(
-                identifier = identifier,
-                cpe = resultRow[cpe],
-                definitionFilePath = resultRow[definitionFilePath],
-                authors = authorsByProjectId[projectId].orEmpty(),
-                declaredLicenses = declaredLicensesByProjectId[projectId].orEmpty(),
-                processedDeclaredLicense = processedDeclaredLicense,
-                vcs = vcs,
-                vcsProcessed = vcsProcessed,
-                description = resultRow[description],
-                homepageUrl = resultRow[homepageUrl],
-                scopeNames = scopeNamesByProjectId[projectId].orEmpty()
-            )
-        }
-    }
 }
 
 class ProjectDao(id: EntityID<Long>) : LongEntity(id) {

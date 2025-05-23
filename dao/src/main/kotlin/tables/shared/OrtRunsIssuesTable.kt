@@ -22,16 +22,13 @@ package org.eclipse.apoapsis.ortserver.dao.tables.shared
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
-import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.selectAll
 
 /**
  * An intermediate table to store references from [OrtRunsTable] and [IssuesTable] together with some additional
@@ -43,35 +40,6 @@ object OrtRunsIssuesTable : LongIdTable("ort_runs_issues") {
     val identifierId = reference("identifier_id", IdentifiersTable).nullable()
     val worker = text("worker").nullable()
     val timestamp = timestamp("timestamp")
-
-    /** Get the [Issue]s for the given [ortRunId] and [issueWorkerType]. */
-    fun getIssuesByOrtRunId(ortRunId: Long, issueWorkerType: String): List<Issue> {
-        return innerJoin(IssuesTable)
-            .leftJoin(IdentifiersTable)
-            .selectAll()
-            .where { OrtRunsIssuesTable.ortRunId eq ortRunId }
-            .andWhere { worker eq issueWorkerType }
-            .mapNotNull {
-                val identifier = it[identifierId]?.let { id ->
-                    Identifier(
-                        type = it[IdentifiersTable.type],
-                        namespace = it[IdentifiersTable.namespace],
-                        name = it[IdentifiersTable.name],
-                        version = it[IdentifiersTable.version]
-                    )
-                }
-
-                Issue(
-                    timestamp = it[timestamp],
-                    source = it[IssuesTable.issueSource],
-                    message = it[IssuesTable.message],
-                    severity = it[IssuesTable.severity],
-                    affectedPath = it[IssuesTable.affectedPath],
-                    identifier = identifier,
-                    worker = it[worker]
-                )
-            }
-    }
 }
 
 class OrtRunIssueDao(id: EntityID<Long>) : LongEntity(id) {
