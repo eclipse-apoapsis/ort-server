@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.cli
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.completion.CompletionCandidates
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
@@ -80,7 +81,8 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
             "--parameters-file",
             envvar = "OSC_RUNS_START_PARAMETERS_FILE",
             help = "The path to a JSON file containing the run configuration " +
-                    "(see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run)."
+                    "(see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run).",
+            completionCandidates = CompletionCandidates.Path
         ).convert { it.expandTilde().toPath().read() },
         option(
             "--parameters",

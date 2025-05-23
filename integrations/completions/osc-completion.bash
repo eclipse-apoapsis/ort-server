@@ -738,6 +738,7 @@ _osc_runs_start() {
     "--wait")
       ;;
     "--parameters-file")
+       __complete_files "${word}"
       ;;
     "--parameters")
       ;;
