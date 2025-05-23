@@ -33,22 +33,20 @@ import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesti
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 
-class LocalConfigFileProviderFactoryTest : WordSpec() {
-    init {
-        "A correctly initialized provider instance" should {
-            "be created" {
-                val content = "content"
-                val path = Path("config-file")
-                val directory = tempdir()
-                directory.resolve(path.path).writeText(content)
+class LocalConfigFileProviderFactoryTest : WordSpec({
+    "A correctly initialized provider instance" should {
+        "be created" {
+            val content = "content"
+            val path = Path("config-file")
+            val directory = tempdir()
+            directory.resolve(path.path).writeText(content)
 
-                val manager = createConfigManager(directory)
-                manager.getFile(Context(""), path).bufferedReader(Charsets.UTF_8)
-                    .use { it.readText() } shouldBe content
-            }
+            val manager = createConfigManager(directory)
+            manager.getFile(Context(""), path).bufferedReader(Charsets.UTF_8)
+                .use { it.readText() } shouldBe content
         }
     }
-}
+})
 
 /**
  * Create a [ConfigManager] object that uses a [LocalConfigFileProvider] to read config files from the provided

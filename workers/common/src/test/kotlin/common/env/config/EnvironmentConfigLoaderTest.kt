@@ -66,377 +66,375 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinit
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariableDefinition
 
-class EnvironmentConfigLoaderTest : StringSpec() {
-    init {
-        "An empty configuration is returned if there is no configuration file" {
-            val tempDir = tempdir()
-            val helper = TestHelper()
+class EnvironmentConfigLoaderTest : StringSpec({
+    "An empty configuration is returned if there is no configuration file" {
+        val tempDir = tempdir()
+        val helper = TestHelper()
 
-            val config = helper.loader().resolveAndParse(tempDir)
+        val config = helper.loader().resolveAndParse(tempDir)
 
-            config.infrastructureServices should beEmpty()
-        }
+        config.infrastructureServices should beEmpty()
+    }
 
-        "A default configuration file is loaded if no custom file is requested" {
-            val helper = TestHelper()
-            val config = copyConfig(".ort.env.definitions.yml")
+    "A default configuration file is loaded if no custom file is requested" {
+        val helper = TestHelper()
+        val config = copyConfig(".ort.env.definitions.yml")
 
-            val resolvedFileName = helper.loader().resolveEnvironmentConfigFile(config.parentFile)
+        val resolvedFileName = helper.loader().resolveEnvironmentConfigFile(config.parentFile)
 
-            resolvedFileName.shouldNotBeNull {
-                name shouldBe EnvironmentConfigLoader.DEFAULT_CONFIG_FILE_PATH
-            }
-        }
-
-        "A custom configuration file is loaded if requested" {
-            val helper = TestHelper()
-            val config = copyConfig(".ort.env.definitions.yml", ".ort.env.definitions.yml")
-
-            val resolvedFileName = helper.loader().resolveEnvironmentConfigFile(
-                config.parentFile,
-                ".ort.env.definitions.yml"
-            )
-
-            resolvedFileName.shouldNotBeNull {
-                name shouldBe ".ort.env.definitions.yml"
-            }
-        }
-
-        "A default configuration file is loaded if a custom file is requested but does not exist" {
-            val helper = TestHelper()
-            val config = copyConfig(".ort.env.definitions.yml")
-
-            val resolvedFileName = helper.loader().resolveEnvironmentConfigFile(
-                config.parentFile,
-                ".ort.env.definitions.yml"
-            )
-
-            resolvedFileName.shouldNotBeNull {
-                name shouldBe EnvironmentConfigLoader.DEFAULT_CONFIG_FILE_PATH
-            }
-        }
-
-        "A configuration file can be handled that does not contain any services" {
-            val helper = TestHelper()
-
-            val config = parseConfig(".ort.env.no-services.yml", helper).resolve(helper)
-
-            config shouldBe ResolvedEnvironmentConfig()
-        }
-
-        "A configuration file can be read" {
-            val helper = TestHelper()
-            val userSecret = helper.createSecret("testUser", repository = repository)
-            val pass1Secret = helper.createSecret("testPassword1", repository = repository)
-            val pass2Secret = helper.createSecret("testPassword2", repository = repository)
-
-            val expectedServices = listOf(
-                createTestService(1, userSecret, pass1Secret),
-                createTestService(2, userSecret, pass2Secret)
-            )
-
-            val config = parseConfig(".ort.env.simple.yml", helper).resolve(helper)
-
-            config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
-        }
-
-        "Empty credentials type can be specified" {
-            val helper = TestHelper()
-            val userSecret = helper.createSecret("testUser", repository = repository)
-            val pass1Secret = helper.createSecret("testPassword1", repository = repository)
-            val pass2Secret = helper.createSecret("testPassword2", repository = repository)
-
-            val expectedServices = listOf(
-                createTestService(1, userSecret, pass1Secret),
-                createTestService(2, userSecret, pass2Secret).copy(credentialsTypes = emptySet())
-            )
-
-            val config = parseConfig(".ort.env.no-credentials-types.yml", helper).resolve(helper)
-
-            config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
-        }
-
-        "Secrets can be resolved from products and organizations" {
-            val helper = TestHelper()
-            val userSecret = helper.createSecret("testUser", repository = repository)
-            val pass1Secret = helper.createSecret("testPassword1", product = product)
-            val pass2Secret = helper.createSecret("testPassword2", organization = organization)
-
-            val expectedServices = listOf(
-                createTestService(1, userSecret, pass1Secret),
-                createTestService(2, userSecret, pass2Secret)
-            )
-
-            val config = parseConfig(".ort.env.simple.yml", helper).resolve(helper)
-
-            config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
-        }
-
-        "Secrets are only queried if necessary" {
-            val helper = TestHelper()
-            helper.createSecret("testUser", repository = repository)
-            helper.createSecret("testPassword1", repository = repository)
-            helper.createSecret("testPassword2", repository = repository)
-
-            parseConfig(".ort.env.simple.yml", helper).resolve(helper)
-
-            // There should be only one call for the repository hierarchy.
-            verify(exactly = 1) {
-                helper.secretRepository.listForId(any(), any())
-            }
-        }
-
-        "Unresolved secrets cause an exception in strict mode" {
-            val helper = TestHelper()
-            helper.createSecret("testPassword1", organization = organization)
-
-            val exception = shouldThrow<EnvironmentConfigException> {
-                parseConfig(".ort.env.simple.yml", helper).resolve(helper)
-            }
-
-            exception.message shouldContain "testUser"
-            exception.message shouldContain "testPassword2"
-        }
-
-        "Services with unresolved secrets are ignored in non-strict mode" {
-            val helper = TestHelper()
-            val userSecret = helper.createSecret("testUser", repository = repository)
-            val pass2Secret = helper.createSecret("testPassword2", repository = repository)
-
-            val expectedServices = listOf(createTestService(2, userSecret, pass2Secret))
-
-            val config = parseConfig(".ort.env.non-strict.yml", helper).resolve(helper)
-
-            config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
-        }
-
-        "Environment definitions are processed" {
-            val helper = TestHelper()
-            val userSecret = helper.createSecret("testUser", repository = repository)
-            val pass1Secret = helper.createSecret("testPassword1", repository = repository)
-            helper.createSecret("testPassword2", repository = repository)
-
-            val service = createTestService(1, userSecret, pass1Secret)
-
-            val config = parseConfig(".ort.env.definitions.yml", helper).resolve(helper)
-
-            config.shouldContainDefinition<MavenDefinition>(service) { it.id == "repo1" }
-        }
-
-        "Invalid definitions cause exceptions" {
-            val helper = TestHelper()
-            helper.createSecret("testUser", repository = repository)
-            helper.createSecret("testPassword1", repository = repository)
-            helper.createSecret("testPassword2", repository = repository)
-
-            val exception = shouldThrow<EnvironmentConfigException> {
-                parseConfig("invalid/.ort.env.definitions-errors.yml", helper).resolve(helper)
-            }
-
-            exception.message shouldContain "'Non-existing service'"
-            exception.message shouldContain "Missing service reference"
-            exception.message shouldContain "Unsupported definition type 'unknown'"
-            exception.message shouldContain "Missing required properties"
-        }
-
-        "Invalid definitions are ignored in non-strict mode" {
-            val helper = TestHelper()
-            val userSecret = helper.createSecret("testUser", repository = repository)
-            val pass1Secret = helper.createSecret("testPassword1", repository = repository)
-            helper.createSecret("testPassword2", repository = repository)
-
-            val service = createTestService(1, userSecret, pass1Secret)
-
-            val config = parseConfig("invalid/.ort.env.definitions-errors-non-strict.yml", helper).resolve(helper)
-
-            config.shouldContainDefinition<MavenDefinition>(service) { it.id == "repo1" }
-        }
-
-        "Services can be resolved in the hierarchy" {
-            val helper = TestHelper()
-            val userSecret = helper.createSecret("testUser", repository = repository)
-            val passSecret = helper.createSecret("testPassword1", repository = repository)
-
-            val prodService = createTestService(2, userSecret, passSecret)
-            val orgService = createTestService(3, userSecret, passSecret)
-            val shadowedOrgService = createTestService(2, userSecret, passSecret)
-                .copy(url = "https://another-repo.example.org/test.git")
-            helper.withProductService(prodService)
-                .withOrganizationService(orgService)
-                .withOrganizationService(shadowedOrgService)
-
-            val config = parseConfig(".ort.env.definitions-hierarchy-services.yml", helper).resolve(helper)
-
-            config.shouldContainDefinition<MavenDefinition>(prodService) { it.id == "repo2" }
-            config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
-        }
-
-        "Environment variable definitions with missing secrets cause exceptions" {
-            val helper = TestHelper()
-            helper.createSecret("testSecret1", repository = repository)
-
-            val exception = shouldThrow<EnvironmentConfigException> {
-                parseConfig(".ort.env.variables.yml", helper).resolve(helper)
-            }
-
-            exception.message shouldContain "testSecret2"
-        }
-
-        "Environment variable definitions are processed" {
-            val helper = TestHelper()
-            val secret1 = helper.createSecret("testSecret1", repository = repository)
-            val secret2 = helper.createSecret("testSecret2", repository = repository)
-
-            val config = parseConfig(".ort.env.variables.yml", helper).resolve(helper)
-
-            config.environmentVariables shouldContainExactlyInAnyOrder listOf(
-                SecretVariableDefinition("variable1", secret1),
-                SecretVariableDefinition("variable2", secret2)
-            )
-        }
-
-        "Environment variable definitions with missing secrets are ignored in non-strict mode" {
-            val helper = TestHelper()
-            val secret1 = helper.createSecret("testSecret1", repository = repository)
-
-            val config = parseConfig(".ort.env.variables-non-strict.yml", helper).resolve(helper)
-
-            config.environmentVariables shouldContainExactlyInAnyOrder listOf(
-                SecretVariableDefinition("variable1", secret1),
-            )
-        }
-
-        "A configuration can be resolved" {
-            val helper = TestHelper()
-            val userSecret = helper.createSecret("testUser", repository = repository)
-            val pass1Secret = helper.createSecret("testPassword1", repository = repository)
-            val pass2Secret = helper.createSecret("testPassword2", repository = repository)
-
-            val declarations = listOf(
-                InfrastructureServiceDeclaration(
-                    serviceName(1),
-                    serviceUrl(1),
-                    serviceDescription(1),
-                    userSecret.name,
-                    pass1Secret.name,
-                    EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
-                ),
-                InfrastructureServiceDeclaration(
-                    serviceName(2),
-                    serviceUrl(2),
-                    serviceDescription(2),
-                    userSecret.name,
-                    pass2Secret.name,
-                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
-                )
-            )
-            val envDefinitions = mapOf(
-                "maven" to listOf(mapOf("service" to serviceName(1), "id" to "repo1"))
-            )
-            val variables = listOf(
-                EnvironmentVariableDeclaration("USERNAME", userSecret.name),
-                EnvironmentVariableDeclaration("PASSWORD", pass1Secret.name)
-            )
-            val envConfig = EnvironmentConfig(declarations, envDefinitions, variables, strict = false)
-
-            val expectedServices = listOf(
-                createTestService(1, userSecret, pass1Secret),
-                createTestService(2, userSecret, pass2Secret)
-            )
-            val expectedVariables = listOf(
-                SecretVariableDefinition("USERNAME", userSecret),
-                SecretVariableDefinition("PASSWORD", pass1Secret)
-            )
-
-            val config = helper.loader().resolve(envConfig, hierarchy)
-
-            config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
-            config.shouldContainDefinition<MavenDefinition>(expectedServices[0]) { it.id == "repo1" }
-            config.environmentVariables shouldContainExactlyInAnyOrder expectedVariables
-        }
-
-        "Resolving of a configuration works correctly if `strict` is false" {
-            val helper = TestHelper()
-            val userSecret = helper.createSecret("testUser", repository = repository)
-            val pass2Secret = helper.createSecret("testPassword2", repository = repository)
-
-            val serviceDeclarations = listOf(
-                InfrastructureServiceDeclaration(
-                    serviceName(1),
-                    serviceUrl(1),
-                    serviceDescription(1),
-                    userSecret.name,
-                    "anUnknownSecret"
-                ),
-                InfrastructureServiceDeclaration(
-                    serviceName(2),
-                    serviceUrl(2),
-                    serviceDescription(2),
-                    userSecret.name,
-                    pass2Secret.name,
-                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
-                )
-            )
-            val variableDeclarations = listOf(
-                EnvironmentVariableDeclaration("USERNAME", userSecret.name),
-                EnvironmentVariableDeclaration("PASSWORD", "someOtherUnknownSecret")
-            )
-            val envConfig =
-                EnvironmentConfig(serviceDeclarations, environmentVariables = variableDeclarations, strict = false)
-
-            val expectedServices = listOf(createTestService(2, userSecret, pass2Secret))
-            val expectedVariables = listOf(SecretVariableDefinition("USERNAME", userSecret))
-
-            val config = helper.loader().resolve(envConfig, hierarchy)
-
-            config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
-            config.environmentVariables shouldContainExactlyInAnyOrder expectedVariables
-        }
-
-        "Resolving a configuration works correctly if `strict` is true and there are invalid service declarations" {
-            val helper = TestHelper()
-
-            val declarations = listOf(
-                InfrastructureServiceDeclaration(
-                    serviceName(1),
-                    serviceUrl(1),
-                    serviceDescription(1),
-                    "unknownUser",
-                    "unknownPassword"
-                )
-            )
-            val envConfig = EnvironmentConfig(declarations, strict = true)
-
-            shouldThrow<EnvironmentConfigException> {
-                helper.loader().resolve(envConfig, hierarchy)
-            }
-        }
-
-        "Resolving a configuration works correctly if `strict` is true and there are invalid variable declarations" {
-            val helper = TestHelper()
-
-            val variableDeclarations = listOf(
-                EnvironmentVariableDeclaration("USERNAME", "unknownSecret")
-            )
-            val envConfig = EnvironmentConfig(environmentVariables = variableDeclarations, strict = true)
-
-            shouldThrow<EnvironmentConfigException> {
-                helper.loader().resolve(envConfig, hierarchy)
-            }
-        }
-
-        "Simple environment variable definitions are processed" {
-            val helper = TestHelper()
-
-            val config = parseConfig(".ort.env.direct-variables.yml", helper).resolve(helper)
-
-            config.environmentVariables shouldContainExactlyInAnyOrder listOf(
-                SimpleVariableDefinition("variable1", value = "testValue1"),
-                SimpleVariableDefinition("variable2", value = "testValue2")
-            )
+        resolvedFileName.shouldNotBeNull {
+            name shouldBe EnvironmentConfigLoader.DEFAULT_CONFIG_FILE_PATH
         }
     }
-}
+
+    "A custom configuration file is loaded if requested" {
+        val helper = TestHelper()
+        val config = copyConfig(".ort.env.definitions.yml", ".ort.env.definitions.yml")
+
+        val resolvedFileName = helper.loader().resolveEnvironmentConfigFile(
+            config.parentFile,
+            ".ort.env.definitions.yml"
+        )
+
+        resolvedFileName.shouldNotBeNull {
+            name shouldBe ".ort.env.definitions.yml"
+        }
+    }
+
+    "A default configuration file is loaded if a custom file is requested but does not exist" {
+        val helper = TestHelper()
+        val config = copyConfig(".ort.env.definitions.yml")
+
+        val resolvedFileName = helper.loader().resolveEnvironmentConfigFile(
+            config.parentFile,
+            ".ort.env.definitions.yml"
+        )
+
+        resolvedFileName.shouldNotBeNull {
+            name shouldBe EnvironmentConfigLoader.DEFAULT_CONFIG_FILE_PATH
+        }
+    }
+
+    "A configuration file can be handled that does not contain any services" {
+        val helper = TestHelper()
+
+        val config = parseConfig(".ort.env.no-services.yml", helper).resolve(helper)
+
+        config shouldBe ResolvedEnvironmentConfig()
+    }
+
+    "A configuration file can be read" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val pass1Secret = helper.createSecret("testPassword1", repository = repository)
+        val pass2Secret = helper.createSecret("testPassword2", repository = repository)
+
+        val expectedServices = listOf(
+            createTestService(1, userSecret, pass1Secret),
+            createTestService(2, userSecret, pass2Secret)
+        )
+
+        val config = parseConfig(".ort.env.simple.yml", helper).resolve(helper)
+
+        config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+    }
+
+    "Empty credentials type can be specified" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val pass1Secret = helper.createSecret("testPassword1", repository = repository)
+        val pass2Secret = helper.createSecret("testPassword2", repository = repository)
+
+        val expectedServices = listOf(
+            createTestService(1, userSecret, pass1Secret),
+            createTestService(2, userSecret, pass2Secret).copy(credentialsTypes = emptySet())
+        )
+
+        val config = parseConfig(".ort.env.no-credentials-types.yml", helper).resolve(helper)
+
+        config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+    }
+
+    "Secrets can be resolved from products and organizations" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val pass1Secret = helper.createSecret("testPassword1", product = product)
+        val pass2Secret = helper.createSecret("testPassword2", organization = organization)
+
+        val expectedServices = listOf(
+            createTestService(1, userSecret, pass1Secret),
+            createTestService(2, userSecret, pass2Secret)
+        )
+
+        val config = parseConfig(".ort.env.simple.yml", helper).resolve(helper)
+
+        config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+    }
+
+    "Secrets are only queried if necessary" {
+        val helper = TestHelper()
+        helper.createSecret("testUser", repository = repository)
+        helper.createSecret("testPassword1", repository = repository)
+        helper.createSecret("testPassword2", repository = repository)
+
+        parseConfig(".ort.env.simple.yml", helper).resolve(helper)
+
+        // There should be only one call for the repository hierarchy.
+        verify(exactly = 1) {
+            helper.secretRepository.listForId(any(), any())
+        }
+    }
+
+    "Unresolved secrets cause an exception in strict mode" {
+        val helper = TestHelper()
+        helper.createSecret("testPassword1", organization = organization)
+
+        val exception = shouldThrow<EnvironmentConfigException> {
+            parseConfig(".ort.env.simple.yml", helper).resolve(helper)
+        }
+
+        exception.message shouldContain "testUser"
+        exception.message shouldContain "testPassword2"
+    }
+
+    "Services with unresolved secrets are ignored in non-strict mode" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val pass2Secret = helper.createSecret("testPassword2", repository = repository)
+
+        val expectedServices = listOf(createTestService(2, userSecret, pass2Secret))
+
+        val config = parseConfig(".ort.env.non-strict.yml", helper).resolve(helper)
+
+        config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+    }
+
+    "Environment definitions are processed" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val pass1Secret = helper.createSecret("testPassword1", repository = repository)
+        helper.createSecret("testPassword2", repository = repository)
+
+        val service = createTestService(1, userSecret, pass1Secret)
+
+        val config = parseConfig(".ort.env.definitions.yml", helper).resolve(helper)
+
+        config.shouldContainDefinition<MavenDefinition>(service) { it.id == "repo1" }
+    }
+
+    "Invalid definitions cause exceptions" {
+        val helper = TestHelper()
+        helper.createSecret("testUser", repository = repository)
+        helper.createSecret("testPassword1", repository = repository)
+        helper.createSecret("testPassword2", repository = repository)
+
+        val exception = shouldThrow<EnvironmentConfigException> {
+            parseConfig("invalid/.ort.env.definitions-errors.yml", helper).resolve(helper)
+        }
+
+        exception.message shouldContain "'Non-existing service'"
+        exception.message shouldContain "Missing service reference"
+        exception.message shouldContain "Unsupported definition type 'unknown'"
+        exception.message shouldContain "Missing required properties"
+    }
+
+    "Invalid definitions are ignored in non-strict mode" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val pass1Secret = helper.createSecret("testPassword1", repository = repository)
+        helper.createSecret("testPassword2", repository = repository)
+
+        val service = createTestService(1, userSecret, pass1Secret)
+
+        val config = parseConfig("invalid/.ort.env.definitions-errors-non-strict.yml", helper).resolve(helper)
+
+        config.shouldContainDefinition<MavenDefinition>(service) { it.id == "repo1" }
+    }
+
+    "Services can be resolved in the hierarchy" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val passSecret = helper.createSecret("testPassword1", repository = repository)
+
+        val prodService = createTestService(2, userSecret, passSecret)
+        val orgService = createTestService(3, userSecret, passSecret)
+        val shadowedOrgService = createTestService(2, userSecret, passSecret)
+            .copy(url = "https://another-repo.example.org/test.git")
+        helper.withProductService(prodService)
+            .withOrganizationService(orgService)
+            .withOrganizationService(shadowedOrgService)
+
+        val config = parseConfig(".ort.env.definitions-hierarchy-services.yml", helper).resolve(helper)
+
+        config.shouldContainDefinition<MavenDefinition>(prodService) { it.id == "repo2" }
+        config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
+    }
+
+    "Environment variable definitions with missing secrets cause exceptions" {
+        val helper = TestHelper()
+        helper.createSecret("testSecret1", repository = repository)
+
+        val exception = shouldThrow<EnvironmentConfigException> {
+            parseConfig(".ort.env.variables.yml", helper).resolve(helper)
+        }
+
+        exception.message shouldContain "testSecret2"
+    }
+
+    "Environment variable definitions are processed" {
+        val helper = TestHelper()
+        val secret1 = helper.createSecret("testSecret1", repository = repository)
+        val secret2 = helper.createSecret("testSecret2", repository = repository)
+
+        val config = parseConfig(".ort.env.variables.yml", helper).resolve(helper)
+
+        config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+            SecretVariableDefinition("variable1", secret1),
+            SecretVariableDefinition("variable2", secret2)
+        )
+    }
+
+    "Environment variable definitions with missing secrets are ignored in non-strict mode" {
+        val helper = TestHelper()
+        val secret1 = helper.createSecret("testSecret1", repository = repository)
+
+        val config = parseConfig(".ort.env.variables-non-strict.yml", helper).resolve(helper)
+
+        config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+            SecretVariableDefinition("variable1", secret1),
+        )
+    }
+
+    "A configuration can be resolved" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val pass1Secret = helper.createSecret("testPassword1", repository = repository)
+        val pass2Secret = helper.createSecret("testPassword2", repository = repository)
+
+        val declarations = listOf(
+            InfrastructureServiceDeclaration(
+                serviceName(1),
+                serviceUrl(1),
+                serviceDescription(1),
+                userSecret.name,
+                pass1Secret.name,
+                EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
+            ),
+            InfrastructureServiceDeclaration(
+                serviceName(2),
+                serviceUrl(2),
+                serviceDescription(2),
+                userSecret.name,
+                pass2Secret.name,
+                credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
+            )
+        )
+        val envDefinitions = mapOf(
+            "maven" to listOf(mapOf("service" to serviceName(1), "id" to "repo1"))
+        )
+        val variables = listOf(
+            EnvironmentVariableDeclaration("USERNAME", userSecret.name),
+            EnvironmentVariableDeclaration("PASSWORD", pass1Secret.name)
+        )
+        val envConfig = EnvironmentConfig(declarations, envDefinitions, variables, strict = false)
+
+        val expectedServices = listOf(
+            createTestService(1, userSecret, pass1Secret),
+            createTestService(2, userSecret, pass2Secret)
+        )
+        val expectedVariables = listOf(
+            SecretVariableDefinition("USERNAME", userSecret),
+            SecretVariableDefinition("PASSWORD", pass1Secret)
+        )
+
+        val config = helper.loader().resolve(envConfig, hierarchy)
+
+        config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+        config.shouldContainDefinition<MavenDefinition>(expectedServices[0]) { it.id == "repo1" }
+        config.environmentVariables shouldContainExactlyInAnyOrder expectedVariables
+    }
+
+    "Resolving of a configuration works correctly if `strict` is false" {
+        val helper = TestHelper()
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val pass2Secret = helper.createSecret("testPassword2", repository = repository)
+
+        val serviceDeclarations = listOf(
+            InfrastructureServiceDeclaration(
+                serviceName(1),
+                serviceUrl(1),
+                serviceDescription(1),
+                userSecret.name,
+                "anUnknownSecret"
+            ),
+            InfrastructureServiceDeclaration(
+                serviceName(2),
+                serviceUrl(2),
+                serviceDescription(2),
+                userSecret.name,
+                pass2Secret.name,
+                credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
+            )
+        )
+        val variableDeclarations = listOf(
+            EnvironmentVariableDeclaration("USERNAME", userSecret.name),
+            EnvironmentVariableDeclaration("PASSWORD", "someOtherUnknownSecret")
+        )
+        val envConfig =
+            EnvironmentConfig(serviceDeclarations, environmentVariables = variableDeclarations, strict = false)
+
+        val expectedServices = listOf(createTestService(2, userSecret, pass2Secret))
+        val expectedVariables = listOf(SecretVariableDefinition("USERNAME", userSecret))
+
+        val config = helper.loader().resolve(envConfig, hierarchy)
+
+        config.infrastructureServices shouldContainExactlyInAnyOrder expectedServices
+        config.environmentVariables shouldContainExactlyInAnyOrder expectedVariables
+    }
+
+    "Resolving a configuration works correctly if `strict` is true and there are invalid service declarations" {
+        val helper = TestHelper()
+
+        val declarations = listOf(
+            InfrastructureServiceDeclaration(
+                serviceName(1),
+                serviceUrl(1),
+                serviceDescription(1),
+                "unknownUser",
+                "unknownPassword"
+            )
+        )
+        val envConfig = EnvironmentConfig(declarations, strict = true)
+
+        shouldThrow<EnvironmentConfigException> {
+            helper.loader().resolve(envConfig, hierarchy)
+        }
+    }
+
+    "Resolving a configuration works correctly if `strict` is true and there are invalid variable declarations" {
+        val helper = TestHelper()
+
+        val variableDeclarations = listOf(
+            EnvironmentVariableDeclaration("USERNAME", "unknownSecret")
+        )
+        val envConfig = EnvironmentConfig(environmentVariables = variableDeclarations, strict = true)
+
+        shouldThrow<EnvironmentConfigException> {
+            helper.loader().resolve(envConfig, hierarchy)
+        }
+    }
+
+    "Simple environment variable definitions are processed" {
+        val helper = TestHelper()
+
+        val config = parseConfig(".ort.env.direct-variables.yml", helper).resolve(helper)
+
+        config.environmentVariables shouldContainExactlyInAnyOrder listOf(
+            SimpleVariableDefinition("variable1", value = "testValue1"),
+            SimpleVariableDefinition("variable2", value = "testValue2")
+        )
+    }
+})
 
 /**
  * Copy the test configuration with the given [name] from the resources to a temporary directory, with the given
