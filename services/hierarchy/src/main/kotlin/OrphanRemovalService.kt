@@ -312,6 +312,14 @@ private enum class OrphanEntityHandler(
                 .select(intLiteral(1))
                 .where(SnippetFindingsSnippetsTable.snippetId eq table.id)
         }
+    },
+
+    SNIPPET_FINDINGS(SnippetFindingsTable, "snippetFindings") {
+        override fun filterOrphanedEntities(): SqlExpressionBuilder.() -> AbstractQuery<*> = {
+            SnippetFindingsSnippetsTable
+                .select(intLiteral(1))
+                .where(SnippetFindingsSnippetsTable.snippetFindingId eq table.id)
+        }
     };
 
     /**
