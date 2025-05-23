@@ -415,7 +415,6 @@ data class NotifierJobConfiguration(
     val keepAliveWorker: Boolean = false
 )
 
-@Serializable
 /**
  * The strategy to use for fetching submodules.
  */

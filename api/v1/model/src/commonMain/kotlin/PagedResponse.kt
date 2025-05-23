@@ -109,7 +109,6 @@ data class SortProperty(
     val direction: SortDirection
 )
 
-@Serializable
 /**
  * An enum class defining constants for the direction in which properties are sorted.
  */
