@@ -507,6 +507,50 @@ class OrphanRemovalServiceTest : WordSpec() {
                     SnippetsTable.selectAll().count() shouldBe (numberOfSnippets) // Nothing deleted but the orphans
                 }
             }
+
+            "delete a limited number of orphaned snippet findings at a time" {
+                val numberOfSnippetFindings = 100
+                db.dbQuery {
+                    val summary = createScanSummariesTableEntry().value
+                    repeat(numberOfSnippetFindings) {
+                        createSnippetFindingTableEntry(summary)
+                    }
+                }
+
+                service.deleteRunsOrphanedEntities(createConfigManager())
+
+                db.dbQuery(readOnly = true) {
+                    SnippetFindingsTable
+                        .selectAll().count() shouldBe (numberOfSnippetFindings - 11) // 11 is the limit in this test
+                }
+            }
+
+            "not delete snippet findings that have snippets" {
+                val numberOfSnippetFindings = 100
+                db.dbQuery {
+                    val runId = createOrtRunTableEntry().value
+                    val scanSummaryId = createScanSummariesTableEntry().value
+                    assignScanSummaryWithRun(runId, scanSummaryId)
+
+                    repeat(numberOfSnippetFindings) {
+                        val snippedFindingId = createSnippetFindingTableEntry(scanSummaryId = scanSummaryId)
+                        val snippedId = createSnippetsTableEntry()
+                        createSnippetFindingsSnippetsTableEntry(snippedFindingId.value, snippedId.value)
+                    }
+
+                    // Add 5 orphan snippet findings
+                    repeat(5) {
+                        createSnippetFindingTableEntry(scanSummaryId)
+                    }
+                }
+
+                service.deleteRunsOrphanedEntities(createConfigManager())
+
+                db.dbQuery(readOnly = true) {
+                    SnippetsTable
+                        .selectAll().count() shouldBe (numberOfSnippetFindings) // Nothing deleted but the orphans
+                }
+            }
         }
     }
 
@@ -907,6 +951,8 @@ private fun createConfigManager(): ConfigManager {
         "remoteArtifacts.chunkSize" to "2",
         "snippets.limit" to "10",
         "snippets.chunkSize" to "5",
+        "snippetFindings.limit" to "11",
+        "snippetFindings.chunkSize" to "7"
     )
 
     return ConfigManager.create(ConfigFactory.parseMap(configMap))
