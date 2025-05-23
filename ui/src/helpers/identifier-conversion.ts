@@ -34,22 +34,28 @@ export function identifierToString(pkg: Identifier | undefined | null): string {
     return '';
   }
   const { type, namespace, name, version } = pkg;
-  return `${type ? type.concat(':') : ''}${namespace ? namespace.concat('/') : ''}${name ? name : ''}${version ? '@'.concat(version) : ''}`;
+  return `${type}:${namespace}:${name}:${version}`;
 }
 
 if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest;
 
-  it('identifierToPurl', () => {
-    const id = {
-      type: 'Maven',
-      namespace: 'com.google.guava',
-      name: 'listenablefuture',
-      version: '9999.0-empty-to-avoid-conflict-with-guava',
-    };
+  const id = {
+    type: 'Maven',
+    namespace: 'com.google.guava',
+    name: 'listenablefuture',
+    version: '9999.0-empty-to-avoid-conflict-with-guava',
+  };
 
+  it('identifierToPurl', () => {
     expect(identifierToPurl(id)).toBe(
       'pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava'
+    );
+  });
+
+  it('identifierToString', () => {
+    expect(identifierToString(id)).toBe(
+      'Maven:com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
     );
   });
 }
