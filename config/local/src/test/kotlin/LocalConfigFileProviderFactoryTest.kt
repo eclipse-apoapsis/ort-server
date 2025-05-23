@@ -48,27 +48,27 @@ class LocalConfigFileProviderFactoryTest : WordSpec() {
             }
         }
     }
+}
 
-    /**
-     * Create a [ConfigManager] object that uses a [LocalConfigFileProvider] to read config files from the provided
-     * [directory].
-     */
-    private fun createConfigManager(directory: File): ConfigManager =
-        ConfigManager.create(createProviderConfig(directory))
+/**
+ * Create a [ConfigManager] object that uses a [LocalConfigFileProvider] to read config files from the provided
+ * [directory].
+ */
+private fun createConfigManager(directory: File): ConfigManager =
+    ConfigManager.create(createProviderConfig(directory))
 
-    /**
-     * Create a [Config] that can be used to instantiate a [ConfigManager] which uses a [LocalConfigFileProvider] to
-     * read config files from the provided [directory].
-     */
-    private fun createProviderConfig(directory: File): Config {
-        val providerMap = mapOf(
-            ConfigManager.FILE_PROVIDER_NAME_PROPERTY to LocalConfigFileProviderFactory.NAME,
-            ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
-            LocalConfigFileProvider.CONFIG_DIR to directory.absolutePath
-        )
+/**
+ * Create a [Config] that can be used to instantiate a [ConfigManager] which uses a [LocalConfigFileProvider] to
+ * read config files from the provided [directory].
+ */
+private fun createProviderConfig(directory: File): Config {
+    val providerMap = mapOf(
+        ConfigManager.FILE_PROVIDER_NAME_PROPERTY to LocalConfigFileProviderFactory.NAME,
+        ConfigManager.SECRET_PROVIDER_NAME_PROPERTY to ConfigSecretProviderFactoryForTesting.NAME,
+        LocalConfigFileProvider.CONFIG_DIR to directory.absolutePath
+    )
 
-        val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to providerMap)
+    val configMap = mapOf(ConfigManager.CONFIG_MANAGER_SECTION to providerMap)
 
-        return ConfigFactory.parseMap(configMap)
-    }
+    return ConfigFactory.parseMap(configMap)
 }

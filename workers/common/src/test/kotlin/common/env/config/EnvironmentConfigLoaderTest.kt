@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.common.env.config
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.TestConfiguration
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.beEmpty
@@ -435,42 +436,42 @@ class EnvironmentConfigLoaderTest : StringSpec() {
             )
         }
     }
-
-    /**
-     * Copy the test configuration with the given [name] from the resources to a temporary directory, with the given
-     * [targetName].
-     */
-    private fun copyConfig(
-        name: String,
-        targetName: String = EnvironmentConfigLoader.DEFAULT_CONFIG_FILE_PATH
-    ): File {
-        val tempDir = tempdir()
-        val target = File(tempDir, targetName)
-
-        val success = javaClass.getResource("/$name")?.let {
-            File(it.toURI()).copyTo(target)
-        }
-
-        success shouldNot beNull()
-
-        return target
-    }
-
-    /**
-     * Parse the test configuration with the given [name] from the resources using the given [helper].
-     */
-    private fun parseConfig(name: String, helper: TestHelper): EnvironmentConfig {
-        val fileToParse = copyConfig(name)
-
-        return helper.loader().parseEnvironmentConfigFile(fileToParse)
-    }
-
-    /**
-     * Resolve the test configuration using the given [helper].
-     */
-    private fun EnvironmentConfig.resolve(helper: TestHelper): ResolvedEnvironmentConfig =
-        helper.loader().resolve(this, hierarchy)
 }
+
+/**
+ * Copy the test configuration with the given [name] from the resources to a temporary directory, with the given
+ * [targetName].
+ */
+private fun TestConfiguration.copyConfig(
+    name: String,
+    targetName: String = EnvironmentConfigLoader.DEFAULT_CONFIG_FILE_PATH
+): File {
+    val tempDir = tempdir()
+    val target = File(tempDir, targetName)
+
+    val success = javaClass.getResource("/$name")?.let {
+        File(it.toURI()).copyTo(target)
+    }
+
+    success shouldNot beNull()
+
+    return target
+}
+
+/**
+ * Parse the test configuration with the given [name] from the resources using the given [helper].
+ */
+private fun TestConfiguration.parseConfig(name: String, helper: TestHelper): EnvironmentConfig {
+    val fileToParse = copyConfig(name)
+
+    return helper.loader().parseEnvironmentConfigFile(fileToParse)
+}
+
+/**
+ * Resolve the test configuration using the given [helper].
+ */
+private fun EnvironmentConfig.resolve(helper: TestHelper): ResolvedEnvironmentConfig =
+    helper.loader().resolve(this, hierarchy)
 
 /**
  * A test helper class managing the dependencies required by the object under test.
