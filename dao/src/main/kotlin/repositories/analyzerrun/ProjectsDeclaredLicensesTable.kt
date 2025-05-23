@@ -32,13 +32,4 @@ object ProjectsDeclaredLicensesTable : Table("projects_declared_licenses") {
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(projectId, declaredLicenseId, name = "${tableName}_pkey")
-
-    /** Get the declared licenses for the provided [projectIds]. */
-    fun getDeclaredLicensesByProjectIds(projectIds: Set<Long>): Map<Long, Set<String>> =
-        innerJoin(DeclaredLicensesTable)
-            .select(projectId, DeclaredLicensesTable.name)
-            .where { projectId inList projectIds }
-            .groupBy({ it[projectId] }) { it[DeclaredLicensesTable.name] }
-            .mapKeys { it.key.value }
-            .mapValues { it.value.toSet() }
 }

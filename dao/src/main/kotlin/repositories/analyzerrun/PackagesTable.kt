@@ -31,12 +31,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggColumnEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggTwoColumnsEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
-import org.eclipse.apoapsis.ortserver.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Package
-import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
-import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
-import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
@@ -44,7 +39,6 @@ import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.andHaving
 import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.selectAll
 
 /**
  * A table to represent all metadata for a software package.
@@ -62,96 +56,6 @@ object PackagesTable : SortableTable("packages") {
     val homepageUrl = text("homepage_url")
     val isMetadataOnly = bool("is_metadata_only").default(false)
     val isModified = bool("is_modified").default(false)
-
-    /** Get the [Package]s for the provided [packageIds]. */
-    fun getByIds(packageIds: Set<Long>): Set<Package> {
-        val vcsProcessedTable = VcsInfoTable.alias("vcs_processed_info")
-        val binaryArtifacts = RemoteArtifactsTable.alias("binary_artifacts")
-        val sourceArtifacts = RemoteArtifactsTable.alias("source_artifacts")
-
-        val resultRows = innerJoin(IdentifiersTable)
-            .join(VcsInfoTable, JoinType.LEFT, vcsId, VcsInfoTable.id)
-            .join(vcsProcessedTable, JoinType.LEFT, vcsProcessedId, vcsProcessedTable[VcsInfoTable.id])
-            .join(
-                binaryArtifacts,
-                JoinType.LEFT,
-                binaryArtifactId,
-                binaryArtifacts[RemoteArtifactsTable.id]
-            )
-            .join(
-                sourceArtifacts,
-                JoinType.LEFT,
-                sourceArtifactId,
-                sourceArtifacts[RemoteArtifactsTable.id]
-            )
-            .selectAll()
-            .where { id inList packageIds }
-            .toList()
-
-        val authorsByPackageId = PackagesAuthorsTable.getAuthorsByPackageIds(packageIds)
-        val declaredLicensesByPackageId = PackagesDeclaredLicensesTable.getDeclaredLicensesByPackageIds(packageIds)
-        val processedDeclaredLicenseByPackageId = ProcessedDeclaredLicensesTable.getByPackageIds(packageIds)
-
-        return resultRows.mapTo(mutableSetOf()) { resultRow ->
-            val pkgId = resultRow[id].value
-
-            val identifier = Identifier(
-                type = resultRow[IdentifiersTable.type],
-                namespace = resultRow[IdentifiersTable.namespace],
-                name = resultRow[IdentifiersTable.name],
-                version = resultRow[IdentifiersTable.version]
-            )
-
-            val processedDeclaredLicense = processedDeclaredLicenseByPackageId[pkgId] ?: ProcessedDeclaredLicense(
-                spdxExpression = null,
-                mappedLicenses = emptyMap(),
-                unmappedLicenses = emptySet()
-            )
-
-            val binaryArtifact = RemoteArtifact(
-                url = resultRow[binaryArtifacts[RemoteArtifactsTable.url]],
-                hashValue = resultRow[binaryArtifacts[RemoteArtifactsTable.hashValue]],
-                hashAlgorithm = resultRow[binaryArtifacts[RemoteArtifactsTable.hashAlgorithm]]
-            )
-
-            val sourceArtifact = RemoteArtifact(
-                url = resultRow[sourceArtifacts[RemoteArtifactsTable.url]],
-                hashValue = resultRow[sourceArtifacts[RemoteArtifactsTable.hashValue]],
-                hashAlgorithm = resultRow[sourceArtifacts[RemoteArtifactsTable.hashAlgorithm]]
-            )
-
-            val vcs = VcsInfo(
-                type = RepositoryType.forName(resultRow[VcsInfoTable.type]),
-                url = resultRow[VcsInfoTable.url],
-                revision = resultRow[VcsInfoTable.revision],
-                path = resultRow[VcsInfoTable.path]
-            )
-
-            val vcsProcessed = VcsInfo(
-                type = RepositoryType.forName(resultRow[vcsProcessedTable[VcsInfoTable.type]]),
-                url = resultRow[vcsProcessedTable[VcsInfoTable.url]],
-                revision = resultRow[vcsProcessedTable[VcsInfoTable.revision]],
-                path = resultRow[vcsProcessedTable[VcsInfoTable.path]]
-            )
-
-            Package(
-                identifier = identifier,
-                purl = resultRow[purl],
-                cpe = resultRow[cpe],
-                authors = authorsByPackageId[pkgId].orEmpty(),
-                declaredLicenses = declaredLicensesByPackageId[pkgId].orEmpty(),
-                processedDeclaredLicense = processedDeclaredLicense,
-                description = resultRow[description],
-                homepageUrl = resultRow[homepageUrl],
-                binaryArtifact = binaryArtifact,
-                sourceArtifact = sourceArtifact,
-                vcs = vcs,
-                vcsProcessed = vcsProcessed,
-                isMetadataOnly = resultRow[isMetadataOnly],
-                isModified = resultRow[isModified]
-            )
-        }
-    }
 }
 
 class PackageDao(id: EntityID<Long>) : LongEntity(id) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,10 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
+package org.eclipse.apoapsis.ortserver.dao
 
-import org.jetbrains.exposed.sql.Table
-
-/**
- * An intermediate table to store references from [PackagesTable] and [AuthorsTable].
- */
-object PackagesAuthorsTable : Table("packages_authors") {
-    val authorId = reference("author_id", AuthorsTable)
-    val packageId = reference("package_id", PackagesTable)
-
-    override val primaryKey: PrimaryKey
-        get() = PrimaryKey(authorId, packageId, name = "${tableName}_pkey")
+/** A generic interface for database queries. */
+interface Query<T> {
+    /** Execute the query and return the result. This function must be called within a transaction. */
+    fun execute(): T
 }

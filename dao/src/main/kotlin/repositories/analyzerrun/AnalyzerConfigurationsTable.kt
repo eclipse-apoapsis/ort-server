@@ -25,7 +25,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.selectAll
 
 /**
  * A table to represent an analyzer configuration.
@@ -37,27 +36,6 @@ object AnalyzerConfigurationsTable : LongIdTable("analyzer_configurations") {
     val enabledPackageManagers = text("enabled_package_managers").nullable()
     val disabledPackageManagers = text("disabled_package_managers").nullable()
     val skipExcluded = bool("skip_excluded")
-
-    /**
-     * Get the [AnalyzerConfiguration] for the given [analyzerRunId]. Returns `null` if no configuration is found.
-     */
-    fun getByAnalyzerRunId(analyzerRunId: Long): AnalyzerConfiguration? {
-        val resultRow = selectAll().where { AnalyzerConfigurationsTable.analyzerRunId eq analyzerRunId }.singleOrNull()
-
-        if (resultRow == null) return null
-
-        val packageManagers = AnalyzerConfigurationsPackageManagerConfigurationsTable
-            .getPackageManagerConfigurationsByAnalyzerConfigurationId(resultRow[id].value)
-
-        return AnalyzerConfiguration(
-            allowDynamicVersions = resultRow[allowDynamicVersions],
-            enabledPackageManagers =
-                resultRow[enabledPackageManagers]?.takeIf { it.isNotEmpty() }?.split(",").orEmpty(),
-            disabledPackageManagers = resultRow[disabledPackageManagers]?.takeIf { it.isNotEmpty() }?.split(","),
-            packageManagers = packageManagers,
-            skipExcluded = resultRow[skipExcluded]
-        )
-    }
 }
 
 class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {

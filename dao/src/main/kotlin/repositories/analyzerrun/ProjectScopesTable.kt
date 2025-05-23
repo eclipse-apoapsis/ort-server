@@ -23,7 +23,6 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.selectAll
 
 /**
  * A table to represent project scopes.
@@ -31,13 +30,6 @@ import org.jetbrains.exposed.sql.selectAll
 object ProjectScopesTable : LongIdTable("project_scopes") {
     var projectId = reference("project_id", ProjectsTable)
     var name = text("name")
-
-    fun getScopesByProjectIds(projectIds: Set<Long>): Map<Long, Set<String>> =
-        selectAll()
-            .where { projectId inList projectIds }
-            .groupBy({ it[projectId] }) { it[name] }
-            .mapKeys { it.key.value }
-            .mapValues { it.value.toSet() }
 }
 
 class ProjectScopeDao(id: EntityID<Long>) : LongEntity(id) {

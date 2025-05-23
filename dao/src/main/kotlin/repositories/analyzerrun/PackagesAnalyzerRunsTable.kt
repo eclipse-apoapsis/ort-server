@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
-import org.eclipse.apoapsis.ortserver.model.runs.Package
-
 import org.jetbrains.exposed.sql.Table
 
 /**
@@ -32,13 +30,4 @@ object PackagesAnalyzerRunsTable : Table("packages_analyzer_runs") {
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(packageId, analyzerRunId, name = "${tableName}_pkey")
-
-    /** Get the [Package]s for the given [analyzerRunId]. */
-    fun getPackagesByAnalyzerRunId(analyzerRunId: Long): Set<Package> {
-        val packageIds = select(packageId)
-            .where { PackagesAnalyzerRunsTable.analyzerRunId eq analyzerRunId }
-            .mapTo(mutableSetOf()) { it[packageId].value }
-
-        return PackagesTable.getByIds(packageIds)
-    }
 }
