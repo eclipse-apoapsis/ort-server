@@ -97,10 +97,10 @@ data class PagingData(
     val sortProperties: List<SortProperty>
 )
 
-@Serializable
 /**
  * A data class defining a property by which a query result should be sorted.
  */
+@Serializable
 data class SortProperty(
     /** The name of the property to use for sorting. */
     val name: String,

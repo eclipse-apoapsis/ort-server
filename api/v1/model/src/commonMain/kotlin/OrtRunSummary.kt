@@ -22,10 +22,10 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
-@Serializable
 /**
  * The summary of an ORT run.
  */
+@Serializable
 data class OrtRunSummary(
     /**
      * The unique identifier.
@@ -119,10 +119,10 @@ data class OrtRunSummary(
     val userDisplayName: UserDisplayName? = null
 )
 
-@Serializable
 /**
  * The summaries of all jobs in an ORT run.
  */
+@Serializable
 data class JobSummaries(
     val analyzer: JobSummary? = null,
     val advisor: JobSummary? = null,
@@ -131,10 +131,10 @@ data class JobSummaries(
     val reporter: JobSummary? = null
 )
 
-@Serializable
 /**
  * The summary of a job.
  */
+@Serializable
 data class JobSummary(
     /**
      * The unique identifier of the job.
