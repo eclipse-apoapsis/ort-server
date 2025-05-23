@@ -42,7 +42,6 @@ data class User(
 /**
  * User group (privilege level) for repositories, products or organizations.
  */
-@Serializable
 enum class UserGroup(private val rank: Int) {
     /** READER privilege */
     READERS(1),

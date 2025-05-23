@@ -19,12 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-import kotlinx.serialization.Serializable
-
 /**
  * The status of a Job.
  */
-@Serializable
 enum class JobStatus(
     /** A flag that indicates whether the status is a final status. */
     val final: Boolean,

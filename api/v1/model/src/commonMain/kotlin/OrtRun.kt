@@ -182,7 +182,6 @@ data class CreateOrtRun(
     val repositoryIds: List<Long> = emptyList()
 )
 
-@Serializable
 enum class OrtRunStatus {
     CREATED,
     ACTIVE,

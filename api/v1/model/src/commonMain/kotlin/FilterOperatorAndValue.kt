@@ -30,7 +30,6 @@ data class FilterOperatorAndValue<T>(
     val value: T
 )
 
-@Serializable
 /**
  * An enumeration of filter operators.
  */

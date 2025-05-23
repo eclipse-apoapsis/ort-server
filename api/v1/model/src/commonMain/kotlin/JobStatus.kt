@@ -19,12 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.model
 
-import kotlinx.serialization.Serializable
-
 /**
  * The status of a job.
  */
-@Serializable
 enum class JobStatus {
     /** The job was created in the database but not yet scheduled for execution. */
     CREATED,
