@@ -52,7 +52,7 @@ import {
 } from '@/components/ui/card';
 import { Tooltip } from '@/components/ui/tooltip';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
-import { identifierToString } from '@/helpers/identifier-to-string';
+import { identifierToString } from '@/helpers/identifier-conversion';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';

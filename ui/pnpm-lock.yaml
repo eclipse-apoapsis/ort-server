@@ -101,6 +101,9 @@ importers:
       oidc-client-ts:
         specifier: ^3.0.1
         version: 3.2.1
+      packageurl-js:
+        specifier: ^2.0.1
+        version: 2.0.1
       react:
         specifier: ^19.0.0
         version: 19.1.0
@@ -2913,6 +2916,9 @@ packages:
 
   package-json-from-dist@1.0.1:
     resolution: {integrity: sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==}
+
+  packageurl-js@2.0.1:
+    resolution: {integrity: sha512-N5ixXjzTy4QDQH0Q9YFjqIWd6zH6936Djpl2m9QNFmDv5Fum8q8BjkpAcHNMzOFE0IwQrFhJWex3AN6kS0OSwg==}
 
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
@@ -6399,6 +6405,8 @@ snapshots:
       p-limit: 3.1.0
 
   package-json-from-dist@1.0.1: {}
+
+  packageurl-js@2.0.1: {}
 
   parent-module@1.0.1:
     dependencies:
