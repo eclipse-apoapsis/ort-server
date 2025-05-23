@@ -30,7 +30,7 @@ import io.mockk.runs
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
-import org.eclipse.apoapsis.ortserver.services.OrphanRemovalService
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrphanRemovalService
 
 class DeleteOrphanedEntitiesTaskTest : StringSpec({
     "DeleteOrphanedEntitiesTask should start orphaned entities deletion service" {

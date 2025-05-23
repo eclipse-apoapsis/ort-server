@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services
+package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import com.typesafe.config.ConfigFactory
 
@@ -28,6 +28,7 @@ import io.kotest.matchers.string.shouldStartWith
 import java.security.MessageDigest
 
 import kotlin.random.Random
+import kotlin.text.format
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -556,7 +557,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
     @Suppress("LongParameterList")
     private fun createOrtRunTableEntry(
-        index: Long = Random.nextLong(1, 10000),
+        index: Long = Random.Default.nextLong(1, 10000),
         repositoryId: Long = createRepositoryTableEntry().value,
         revision: String = "rev1",
         createdAt: Instant = Clock.System.now(),
@@ -576,10 +577,10 @@ class OrphanRemovalServiceTest : WordSpec() {
     } get OrtRunsTable.id
 
     private fun createVcsInfoTableEntry(
-        type: String = "type_" + Random.nextLong(1, 10000),
-        url: String = "url_" + Random.nextLong(1, 10000),
-        revision: String = "rev_" + Random.nextLong(1, 10000),
-        path: String = "path/" + Random.nextLong(1, 10000)
+        type: String = "type_" + Random.Default.nextLong(1, 10000),
+        url: String = "url_" + Random.Default.nextLong(1, 10000),
+        revision: String = "rev_" + Random.Default.nextLong(1, 10000),
+        path: String = "path/" + Random.Default.nextLong(1, 10000)
     ) = VcsInfoTable.insert {
         it[this.type] = type
         it[this.url] = url
@@ -589,7 +590,7 @@ class OrphanRemovalServiceTest : WordSpec() {
 
     private fun createRepositoryTableEntry(
         type: String = "GIT",
-        url: String = "http://some.%d.url".format(Random.nextInt(0, 10000)),
+        url: String = "http://some.%d.url".format(Random.Default.nextInt(0, 10000)),
         productId: Long = createProductTableEntry().value
     ) = RepositoriesTable.insert {
         it[this.type] = type
@@ -598,7 +599,7 @@ class OrphanRemovalServiceTest : WordSpec() {
     } get RepositoriesTable.id
 
     private fun createProductTableEntry(
-        name: String = "Prodct_" + Random.nextInt(0, 10000),
+        name: String = "Prodct_" + Random.Default.nextInt(0, 10000),
         organizationId: Long = createOrganizationsTableEntry().value
     ) = ProductsTable.insert {
         it[this.name] = name
@@ -606,7 +607,7 @@ class OrphanRemovalServiceTest : WordSpec() {
     } get ProductsTable.id
 
     private fun createOrganizationsTableEntry(
-        name: String = "Org_" + Random.nextInt(0, 10000)
+        name: String = "Org_" + Random.Default.nextInt(0, 10000)
     ) = OrganizationsTable.insert {
         it[this.name] = name
     } get OrganizationsTable.id
@@ -615,8 +616,8 @@ class OrphanRemovalServiceTest : WordSpec() {
         identifierId: Long = createIdentifierTableEntry().value,
         vcsId: Long = createVcsInfoTableEntry().value,
         vcsProcessedId: Long = createVcsInfoTableEntry().value,
-        homepageUrl: String = "http://homepage.%d.url".format(Random.nextInt(0, 10000)),
-        definitionFilePath: String = "path_" + Random.nextInt(0, 10000)
+        homepageUrl: String = "http://homepage.%d.url".format(Random.Default.nextInt(0, 10000)),
+        definitionFilePath: String = "path_" + Random.Default.nextInt(0, 10000)
     ) = ProjectsTable.insert {
         it[this.identifierId] = identifierId
         it[this.vcsId] = vcsId
@@ -626,7 +627,7 @@ class OrphanRemovalServiceTest : WordSpec() {
     } get ProjectsTable.id
 
     private fun createAuthorsTableEntry(
-        name: String = "author_" + Random.nextInt(0, 10000)
+        name: String = "author_" + Random.Default.nextInt(0, 10000)
     ) = AuthorsTable.insert {
         it[this.name] = name
     } get AuthorsTable.id
@@ -670,10 +671,10 @@ class OrphanRemovalServiceTest : WordSpec() {
     }
 
     private fun createIdentifierTableEntry(
-        type: String = "type_" + Random.nextInt(0, 10000),
-        namespace: String = "namespace_" + Random.nextInt(0, 10000),
-        name: String = "name_" + Random.nextInt(0, 10000),
-        version: String = "version_" + Random.nextInt(0, 10000)
+        type: String = "type_" + Random.Default.nextInt(0, 10000),
+        namespace: String = "namespace_" + Random.Default.nextInt(0, 10000),
+        name: String = "name_" + Random.Default.nextInt(0, 10000),
+        version: String = "version_" + Random.Default.nextInt(0, 10000)
     ) = IdentifiersTable.insert {
         it[this.type] = type
         it[this.namespace] = namespace
@@ -705,10 +706,10 @@ class OrphanRemovalServiceTest : WordSpec() {
 
     private fun createVcsInfoCurationDataTableEntry() =
         VcsInfoCurationDataTable.insert {
-            it[this.type] = "type_" + Random.nextInt(0, 10000)
-            it[this.url] = "http://homepage.%d.url".format(Random.nextInt(0, 10000))
-            it[this.revision] = "rev_" + Random.nextInt(0, 10000)
-            it[this.path] = "path/" + Random.nextInt(0, 10000)
+            it[this.type] = "type_" + Random.Default.nextInt(0, 10000)
+            it[this.url] = "http://homepage.%d.url".format(Random.Default.nextInt(0, 10000))
+            it[this.revision] = "rev_" + Random.Default.nextInt(0, 10000)
+            it[this.path] = "path/" + Random.Default.nextInt(0, 10000)
         } get VcsInfoCurationDataTable.id
 
     @Suppress("LongParameterList")
@@ -718,10 +719,10 @@ class OrphanRemovalServiceTest : WordSpec() {
         vcsProcessedId: Long = createVcsInfoTableEntry().value,
         binaryArtifactId: Long = createRemoteArtifactsTableEntry().value,
         sourceArtifactId: Long = createRemoteArtifactsTableEntry().value,
-        purl: String = "purl_" + Random.nextInt(0, 10000),
-        cpe: String = "cpe_" + Random.nextInt(0, 10000),
-        description: String = "description_" + Random.nextInt(0, 10000),
-        homepageUrl: String = "some.nome_%d.url".format(Random.nextInt(0, 10000)),
+        purl: String = "purl_" + Random.Default.nextInt(0, 10000),
+        cpe: String = "cpe_" + Random.Default.nextInt(0, 10000),
+        description: String = "description_" + Random.Default.nextInt(0, 10000),
+        homepageUrl: String = "some.nome_%d.url".format(Random.Default.nextInt(0, 10000)),
         isMetadataOnly: Boolean = false,
         isModified: Boolean = false
     ) = PackagesTable.insert {
@@ -741,7 +742,7 @@ class OrphanRemovalServiceTest : WordSpec() {
     private fun createProcessedDeclaredLicensesTableEntry(
         packageId: Long = createPackagesTableEntry().value,
         projectId: Long = createProjectsTableEntry().value,
-        spdxExpression: String = "spdx_expression_" + Random.nextInt(0, 10000)
+        spdxExpression: String = "spdx_expression_" + Random.Default.nextInt(0, 10000)
     ) = ProcessedDeclaredLicensesTable.insert {
         it[this.packageId] = packageId
         it[this.projectId] = projectId
@@ -775,16 +776,16 @@ class OrphanRemovalServiceTest : WordSpec() {
 
     private fun createEnvironmentTableEntry() =
         EnvironmentsTable.insert {
-            it[this.ortVersion] = "ver_" + Random.nextInt(0, 10000)
+            it[this.ortVersion] = "ver_" + Random.Default.nextInt(0, 10000)
             it[this.javaVersion] = "22"
             it[this.os] = "Linux"
             it[this.processors] = 1
-            it[this.maxMemory] = Random.nextLong(100, 10000)
+            it[this.maxMemory] = Random.Default.nextLong(100, 10000)
         } get EnvironmentsTable.id
 
     private fun createNestedRepositoriesTableEntry(
         ortRunId: Long = createOrtRunTableEntry().value,
-        path: String = "path/" + Random.nextInt(0, 10000),
+        path: String = "path/" + Random.Default.nextInt(0, 10000),
         vcsId: Long = createVcsInfoTableEntry().value
     ) = NestedRepositoriesTable.insert {
         it[this.ortRunId] = ortRunId
@@ -829,9 +830,9 @@ class OrphanRemovalServiceTest : WordSpec() {
 
     private fun createSnippetFindingTableEntry(
         scanSummaryId: Long,
-        path: String = "path/" + Random.nextInt(0, 10000),
-        startLine: Int = Random.nextInt(0, 10000),
-        endLine: Int = Random.nextInt(0, 10000),
+        path: String = "path/" + Random.Default.nextInt(0, 10000),
+        startLine: Int = Random.Default.nextInt(0, 10000),
+        endLine: Int = Random.Default.nextInt(0, 10000),
     ) = SnippetFindingsTable.insert {
         it[this.scanSummaryId] = scanSummaryId
         it[this.path] = path
@@ -849,14 +850,14 @@ class OrphanRemovalServiceTest : WordSpec() {
 
     @Suppress("LongParameterList")
     private fun createSnippetsTableEntry(
-        purl: String = "purl_" + Random.nextInt(0, 10000),
+        purl: String = "purl_" + Random.Default.nextInt(0, 10000),
         artifactId: Long = createRemoteArtifactsTableEntry().value,
         vcsId: Long = createVcsInfoTableEntry().value,
-        path: String = "path/" + Random.nextInt(0, 10000),
-        startLine: Int = Random.nextInt(0, 10000),
-        endLine: Int = Random.nextInt(0, 10000),
-        license: String = "Lic_" + Random.nextInt(0, 10000),
-        score: Float = Random.nextFloat()
+        path: String = "path/" + Random.Default.nextInt(0, 10000),
+        startLine: Int = Random.Default.nextInt(0, 10000),
+        endLine: Int = Random.Default.nextInt(0, 10000),
+        license: String = "Lic_" + Random.Default.nextInt(0, 10000),
+        score: Float = Random.Default.nextFloat()
     ) = SnippetsTable.insert {
         it[this.purl] = purl
         it[this.artifactId] = artifactId
@@ -879,7 +880,7 @@ class OrphanRemovalServiceTest : WordSpec() {
     } get RemoteArtifactsTable.id
 
     private fun createDeclaredLicensesTableEntry(
-        name: String = "name_" + Random.nextInt(0, 10000)
+        name: String = "name_" + Random.Default.nextInt(0, 10000)
     ) = DeclaredLicensesTable.insert {
         it[this.name] = name
     } get DeclaredLicensesTable.id
@@ -917,22 +918,22 @@ class OrphanRemovalServiceTest : WordSpec() {
     }
 
     private fun createMappedDeclaredLicenseTableEntry(
-        declaredLicense: String = "license_" + Random.nextInt(0, 10000),
-        mappedLicense: String = "license_" + Random.nextInt(0, 10000)
+        declaredLicense: String = "license_" + Random.Default.nextInt(0, 10000),
+        mappedLicense: String = "license_" + Random.Default.nextInt(0, 10000)
     ) = MappedDeclaredLicensesTable.insert {
         it[this.declaredLicense] = declaredLicense
         it[this.mappedLicense] = mappedLicense
     } get MappedDeclaredLicensesTable.id
 
     private fun createUnmappedDeclaredLicenseTableEntry(
-        unmappedLicense: String = "license_" + Random.nextInt(0, 10000)
+        unmappedLicense: String = "license_" + Random.Default.nextInt(0, 10000)
     ) = UnmappedDeclaredLicensesTable.insert {
         it[this.unmappedLicense] = unmappedLicense
     } get UnmappedDeclaredLicensesTable.id
 
     private fun createProjectScopesTableEntry(
         projectId: Long = createProjectsTableEntry().value,
-        name: String = "name_" + Random.nextInt(0, 10000)
+        name: String = "name_" + Random.Default.nextInt(0, 10000)
     ) =
         ProjectScopesTable.insert {
             it[this.projectId] = projectId
@@ -955,5 +956,5 @@ private fun createConfigManager(): ConfigManager {
         "snippetFindings.chunkSize" to "7"
     )
 
-    return ConfigManager.create(ConfigFactory.parseMap(configMap))
+    return ConfigManager.Companion.create(ConfigFactory.parseMap(configMap))
 }

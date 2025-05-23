@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.tasks.impl
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
-import org.eclipse.apoapsis.ortserver.services.OrphanRemovalService
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrphanRemovalService
 import org.eclipse.apoapsis.ortserver.tasks.Task
 
 import org.slf4j.LoggerFactory
