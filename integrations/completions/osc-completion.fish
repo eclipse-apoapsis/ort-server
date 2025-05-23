@@ -96,7 +96,7 @@ complete -c osc -f -n "__fish_seen_subcommand_from runs; and not __fish_seen_sub
 ## Options for start
 complete -c osc -n "__fish_seen_subcommand_from start" -l repository-id -r -d 'The ID of the repository.'
 complete -c osc -n "__fish_seen_subcommand_from start" -l wait -d 'Wait for the run to finish.'
-complete -c osc -n "__fish_seen_subcommand_from start" -l parameters-file -r -d 'The path to a JSON file containing the run configuration (see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run).'
+complete -c osc -n "__fish_seen_subcommand_from start" -l parameters-file -r -F -d 'The path to a JSON file containing the run configuration (see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run).'
 complete -c osc -n "__fish_seen_subcommand_from start" -l parameters -r -d 'The run configuration as a JSON string (see https://eclipse-apoapsis.github.io/ort-server/api/post-ort-run).'
 complete -c osc -n "__fish_seen_subcommand_from start" -s h -l help -d 'Show this message and exit'
 
