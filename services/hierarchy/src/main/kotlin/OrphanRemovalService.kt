@@ -33,11 +33,15 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.ProjectsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataAuthors
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenanceSubRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedProvenancesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsSnippetsTable
+import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
@@ -48,6 +52,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.AbstractQuery
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.LongColumnType
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
@@ -94,6 +99,11 @@ class OrphanRemovalService(
         logger.info("Deleted {} records from {}", deleteOrphanedProjects(), ProjectsTable.tableName)
         logger.info("Deleted {} records from {}", deleteOrphanedAuthors(), AuthorsTable.tableName)
         logger.info("Deleted {} records from {}", deleteOrphanedDeclaredLicenses(), DeclaredLicensesTable.tableName)
+        logger.info(
+            "Deleted {} records from {}",
+            deleteOrphanedSnippetAssociations(),
+            SnippetFindingsSnippetsTable.tableName
+        )
 
         OrphanEntityHandler.entries.forEach { handler ->
             handler.deleteOrphanedEntities(db, config)
@@ -157,6 +167,36 @@ class OrphanRemovalService(
                         .where { ProjectsDeclaredLicensesTable.declaredLicenseId eq id }
                 )
         }
+
+    private suspend fun deleteOrphanedSnippetAssociations() =
+        db.dbQuery {
+            SnippetFindingsSnippetsTable.deleteWhere {
+                SnippetFindingsSnippetsTable.snippetFindingId inSubQuery findUnassignedSnippetFindings()
+            }
+        }
+
+    /**
+     * Return a subquery that selects all snippet findings that are no longer assigned to a scanner run. Since snippet
+     * findings are not shared between multiple runs, these are orphans and can be deleted.
+     */
+    private fun findUnassignedSnippetFindings(): Query {
+        val snippetFindingsAlias = SnippetFindingsTable.alias("snippet_findings2")
+        val runsSnippetsJoin = ScannerRunsScanResultsTable
+            .innerJoin(ScanResultsTable)
+            .innerJoin(ScanSummariesTable)
+            .join(
+                snippetFindingsAlias,
+                JoinType.INNER,
+                ScanSummariesTable.id,
+                snippetFindingsAlias[SnippetFindingsTable.scanSummaryId]
+            )
+
+        val assignedSnippetFindings = runsSnippetsJoin.select(SnippetFindingsTable.id)
+            .where { SnippetFindingsTable.id eq snippetFindingsAlias[SnippetFindingsTable.id] }
+
+        return SnippetFindingsTable.select(SnippetFindingsTable.id)
+            .where { notExists(assignedSnippetFindings) }
+    }
 }
 
 /**

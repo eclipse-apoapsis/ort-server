@@ -58,8 +58,12 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTa
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataAuthors
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.VcsInfoCurationDataTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenancesTable
+import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsSnippetsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.SnippetFindingsTable
@@ -74,6 +78,7 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
 
 import org.jetbrains.exposed.sql.Database
@@ -434,6 +439,29 @@ class OrphanRemovalServiceTest : WordSpec() {
                     RemoteArtifactsTable.selectAll().count() shouldBe 6
                 }
             }
+
+            "delete snippet associations which are no longer assigned to an ORT run" {
+                val remainingSnippet = db.dbQuery {
+                    val run = createOrtRunTableEntry().value
+                    val scanSummary1 = createScanSummariesTableEntry().value
+                    val scanSummary2 = createScanSummariesTableEntry().value
+                    val snippet1 = createSnippetsTableEntry().value
+                    val snippet2 = createSnippetsTableEntry().value
+                    val snippetFinding1 = createSnippetFindingTableEntry(scanSummary1).value
+                    val snippetFinding2 = createSnippetFindingTableEntry(scanSummary2).value
+                    createSnippetFindingsSnippetsTableEntry(snippetFinding1, snippet1)
+                    createSnippetFindingsSnippetsTableEntry(snippetFinding2, snippet2)
+                    assignScanSummaryWithRun(run, scanSummary1)
+                    snippet1
+                }
+
+                service.deleteRunsOrphanedEntities(createConfigManager())
+
+                db.dbQuery {
+                    val snippetAssociation = SnippetFindingsSnippetsTable.selectAll().single()
+                    snippetAssociation[SnippetFindingsSnippetsTable.snippetId].value shouldBe remainingSnippet
+                }
+            }
         }
 
         "deleteOrphanedSnippets" should {
@@ -455,9 +483,10 @@ class OrphanRemovalServiceTest : WordSpec() {
             "does not delete snippets that have snipped findings" {
                 val numberOfSnippets = 100
                 db.dbQuery {
-                    val snippedFindingId = createSnippetFindingTableEntry(
-                        scanSummaryId = createScanSummariesTableEntry().value
-                    )
+                    val runId = createOrtRunTableEntry().value
+                    val scanSummaryId = createScanSummariesTableEntry().value
+                    assignScanSummaryWithRun(runId, scanSummaryId)
+                    val snippedFindingId = createSnippetFindingTableEntry(scanSummaryId = scanSummaryId)
 
                     repeat(numberOfSnippets) {
                         val snippedId = createSnippetsTableEntry()
@@ -723,6 +752,36 @@ class OrphanRemovalServiceTest : WordSpec() {
         it[this.startTime] = Clock.System.now()
         it[this.endTime] = Clock.System.now()
     } get ScanSummariesTable.id
+
+    /**
+     * Generate the required structures to assign the scan summary with the given [scanSummaryId] to the run with the
+     * given [runId].
+     */
+    private fun assignScanSummaryWithRun(runId: Long, scanSummaryId: Long) {
+        val jobId = ScannerJobsTable.insert {
+            it[this.ortRunId] = runId
+            it[this.createdAt] = Clock.System.now()
+            it[this.startedAt] = Clock.System.now()
+            it[this.finishedAt] = Clock.System.now()
+            it[this.status] = JobStatus.FINISHED
+            it[this.configuration] = ScannerJobConfiguration()
+        } get ScannerJobsTable.id
+
+        val scannerRunId = ScannerRunsTable.insert {
+            it[this.startTime] = Clock.System.now()
+            it[this.endTime] = Clock.System.now()
+            it[this.scannerJobId] = jobId
+        } get ScannerRunsTable.id
+
+        val scanResultId = ScanResultsTable.insert {
+            it[this.scanSummaryId] = scanSummaryId
+            it[this.scannerName] = "SomeSnippetScanner"
+            it[this.scannerVersion] = "1.0.0"
+            it[this.scannerConfiguration] = "--really-fast"
+        } get ScanResultsTable.id
+
+        ScannerRunsScanResultsTable.insertIfNotExists(scannerRunId.value, scanResultId.value)
+    }
 
     private fun createSnippetFindingTableEntry(
         scanSummaryId: Long,
