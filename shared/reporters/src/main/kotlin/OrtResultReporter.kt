@@ -41,7 +41,7 @@ data class OrtResultReporterConfig(
 
 @OrtPlugin(
     id = "OrtResult",
-    displayName = "ORT Result Reporter",
+    displayName = "ORT Result",
     description = "A reporter that creates an ORT result YAML file for the ORT run.",
     factory = ReporterFactory::class
 )

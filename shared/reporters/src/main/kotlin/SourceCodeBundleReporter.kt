@@ -82,7 +82,7 @@ data class SourceCodeBundleReporterConfig(
  */
 @OrtPlugin(
     id = "SourceCodeBundle",
-    displayName = "Source Code Bundle Reporter",
+    displayName = "Source Code Bundle",
     description = "A reporter that creates a source code bundle for the given ORT result.",
     factory = ReporterFactory::class
 )
