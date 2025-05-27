@@ -109,7 +109,6 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
         val packages = ortResult.getPackages()
 
         val result = packages.map { pkg ->
-            pkg.metadata.mapToModel()
             PackageRunData(
                 pkg = pkg.metadata.mapToModel(),
                 pkgId = 0L,
