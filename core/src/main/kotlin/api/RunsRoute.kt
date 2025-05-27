@@ -78,10 +78,10 @@ import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
-import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.PackageService
+import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
