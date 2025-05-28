@@ -64,7 +64,7 @@ importers:
         version: 1.2.7(@types/react-dom@19.1.5(@types/react@19.1.6))(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@t3-oss/env-core':
         specifier: ^0.13.0
-        version: 0.13.6(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.32)
+        version: 0.13.6(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.34)
       '@tanstack/react-query':
         specifier: ^5.29.2
         version: 5.77.2(react@19.1.0)
@@ -130,7 +130,7 @@ importers:
         version: 3.3.0
       zod:
         specifier: ^3.24.2
-        version: 3.25.32
+        version: 3.25.34
       zustand:
         specifier: ^5.0.3
         version: 5.0.5(@types/react@19.1.6)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0))
@@ -140,7 +140,7 @@ importers:
         version: 1.6.2(commander@12.1.0)(glob@10.4.5)(ts-morph@22.0.0)(typescript@5.8.3)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.2.1
-        version: 4.4.1(prettier@3.5.3)
+        version: 4.4.2(prettier@3.5.3)
       '@tailwindcss/postcss':
         specifier: ^4.0.0
         version: 4.1.8
@@ -191,7 +191,7 @@ importers:
         version: 3.5.3
       prettier-plugin-tailwindcss:
         specifier: ^0.6.11
-        version: 0.6.11(@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.5.3))(prettier@3.5.3)
+        version: 0.6.11(@ianvs/prettier-plugin-sort-imports@4.4.2(prettier@3.5.3))(prettier@3.5.3)
       tailwindcss:
         specifier: ^4.0.0
         version: 4.1.8
@@ -789,11 +789,11 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
-  '@ianvs/prettier-plugin-sort-imports@4.4.1':
-    resolution: {integrity: sha512-F0/Hrcfpy8WuxlQyAWJTEren/uxKhYonOGY4OyWmwRdeTvkh9mMSCxowZLjNkhwi/2ipqCgtXwwOk7tW0mWXkA==}
+  '@ianvs/prettier-plugin-sort-imports@4.4.2':
+    resolution: {integrity: sha512-KkVFy3TLh0OFzimbZglMmORi+vL/i2OFhEs5M07R9w0IwWAGpsNNyE4CY/2u0YoMF5bawKC2+8/fUH60nnNtjw==}
     peerDependencies:
       '@vue/compiler-sfc': 2.7.x || 3.x
-      prettier: 2 || 3
+      prettier: 2 || 3 || ^4.0.0-0
     peerDependenciesMeta:
       '@vue/compiler-sfc':
         optional: true
@@ -3614,8 +3614,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zod@3.25.32:
-    resolution: {integrity: sha512-OSm2xTIRfW8CV5/QKgngwmQW/8aPfGdaQFlrGoErlgg/Epm7cjb6K6VEyExfe65a3VybUOnu381edLb0dfJl0g==}
+  zod@3.25.34:
+    resolution: {integrity: sha512-lZHvSc2PpWdcfpHlyB33HA9nqP16GpC9IpiG4lYq9jZCJVLZNnWd6Y1cj79bcLSBKTkxepfpjckPv5Y5VOPlwA==}
 
   zustand@5.0.5:
     resolution: {integrity: sha512-mILtRfKW9xM47hqxGIxCv12gXusoY/xTSHBYApXozR0HmQv299whhBeeAcRy+KrPPybzosvJBCOmVjq6x12fCg==}
@@ -4155,7 +4155,7 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.5.3)':
+  '@ianvs/prettier-plugin-sort-imports@4.4.2(prettier@3.5.3)':
     dependencies:
       '@babel/generator': 7.26.5
       '@babel/parser': 7.26.5
@@ -4837,11 +4837,11 @@ snapshots:
 
   '@standard-schema/utils@0.3.0': {}
 
-  '@t3-oss/env-core@0.13.6(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.32)':
+  '@t3-oss/env-core@0.13.6(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.34)':
     optionalDependencies:
       arktype: 2.1.20
       typescript: 5.8.3
-      zod: 3.25.32
+      zod: 3.25.34
 
   '@tailwindcss/node@4.1.8':
     dependencies:
@@ -5005,7 +5005,7 @@ snapshots:
       '@tanstack/virtual-file-routes': 1.115.0
       prettier: 3.5.3
       tsx: 4.19.4
-      zod: 3.25.32
+      zod: 3.25.34
     optionalDependencies:
       '@tanstack/react-router': 1.120.11(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
 
@@ -5027,7 +5027,7 @@ snapshots:
       babel-dead-code-elimination: 1.0.10
       chokidar: 3.6.0
       unplugin: 2.3.4
-      zod: 3.25.32
+      zod: 3.25.34
     optionalDependencies:
       '@tanstack/react-router': 1.120.11(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       vite: 6.3.5(@types/node@22.15.24)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.19.4)(yaml@2.6.1)
@@ -6499,11 +6499,11 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-tailwindcss@0.6.11(@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.5.3))(prettier@3.5.3):
+  prettier-plugin-tailwindcss@0.6.11(@ianvs/prettier-plugin-sort-imports@4.4.2(prettier@3.5.3))(prettier@3.5.3):
     dependencies:
       prettier: 3.5.3
     optionalDependencies:
-      '@ianvs/prettier-plugin-sort-imports': 4.4.1(prettier@3.5.3)
+      '@ianvs/prettier-plugin-sort-imports': 4.4.2(prettier@3.5.3)
 
   prettier@3.5.3: {}
 
@@ -7096,7 +7096,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod@3.25.32: {}
+  zod@3.25.34: {}
 
   zustand@5.0.5(@types/react@19.1.6)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0)):
     optionalDependencies:
