@@ -136,9 +136,7 @@ const ManageUsers = () => {
       await leaveGroup({
         repositoryId: repositoryId,
         groupId: group,
-        requestBody: {
-          username: username,
-        },
+        username: username,
       });
     }
   }

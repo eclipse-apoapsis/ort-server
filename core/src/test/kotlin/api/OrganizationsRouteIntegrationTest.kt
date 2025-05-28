@@ -1321,9 +1321,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         HttpMethod.Put -> put("/api/v1/organizations/${createdOrg.id}/groups/readers") {
                             setBody(user)
                         }
-                        HttpMethod.Delete -> delete("/api/v1/organizations/${createdOrg.id}/groups/readers") {
-                            setBody(user)
-                        }
+                        HttpMethod.Delete -> delete(
+                            "/api/v1/organizations/${createdOrg.id}/groups/readers?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
                 }
@@ -1346,10 +1346,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/organizations/${createdOrg.id}/groups/readers"
-                        ) {
-                            setBody(user)
-                        }
+                            "/api/v1/organizations/${createdOrg.id}/groups/readers?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1376,10 +1374,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/organizations/999999/groups/readers"
-                        ) {
-                            setBody(user)
-                        }
+                            "/api/v1/organizations/999999/groups/readers?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1392,8 +1388,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         forAll(
-            row(HttpMethod.Put),
-            row(HttpMethod.Delete)
+            row(HttpMethod.Put)
         ) { method ->
             "respond with 'BadRequest' if the request body is invalid for method '${method.value}'" {
                 integrationTestApplication {
@@ -1402,11 +1397,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/organizations/${createdOrg.id}/groups/readers"
-                        ) {
-                            setBody(org)
-                        }
-                        HttpMethod.Delete -> superuserClient.delete(
                             "/api/v1/organizations/${createdOrg.id}/groups/readers"
                         ) {
                             setBody(org)
@@ -1435,10 +1425,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/organizations/${createdOrg.id}/groups/non-existing-group"
-                        ) {
-                            setBody(user)
-                        }
+                            "/api/v1/organizations/${createdOrg.id}/groups/non-existing-group?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1512,10 +1500,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     membersBefore.map { it.username } shouldContain TEST_USER.username
 
                     val response = superuserClient.delete(
-                        "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
-                    ) {
-                        setBody(user)
-                    }
+                        "/api/v1/organizations/${createdOrg.id}/groups/$groupId?username=${user.username}"
+                    )
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 

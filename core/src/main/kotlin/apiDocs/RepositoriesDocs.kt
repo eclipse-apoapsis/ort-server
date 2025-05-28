@@ -731,10 +731,8 @@ val deleteUserFromRepositoryGroup: RouteConfig.() -> Unit = {
             description = "One of 'readers', 'writers' or 'admins'."
         }
 
-        jsonBody<Username> {
-            example("Remove user identified by username 'abc123'.") {
-                value = Username(username = "abc123")
-            }
+        queryParameter<String>("username") {
+            description = "The username of the user to remove from the group on repository level."
         }
     }
 

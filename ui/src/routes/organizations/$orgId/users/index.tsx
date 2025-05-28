@@ -140,9 +140,7 @@ const ManageUsers = () => {
       await leaveGroup({
         organizationId: organizationId,
         groupId: group,
-        requestBody: {
-          username: username,
-        },
+        username: username,
       });
     }
   }

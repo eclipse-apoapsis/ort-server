@@ -267,11 +267,11 @@ fun Route.products() = route("products/{productId}") {
             delete(deleteUserFromProductGroup) {
                 requirePermission(ProductPermission.MANAGE_GROUPS)
 
-                val user = call.receive<Username>()
                 val productId = call.requireIdParameter("productId")
                 val groupId = call.requireParameter("groupId")
+                val username = call.requireParameter("username")
 
-                productService.removeUserFromGroup(user.username, productId, groupId)
+                productService.removeUserFromGroup(username, productId, groupId)
                 call.respond(HttpStatusCode.NoContent)
             }
         }

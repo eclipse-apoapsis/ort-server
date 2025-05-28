@@ -154,9 +154,7 @@ const columns = [
           await leaveGroup({
             productId: productId,
             groupId: group,
-            requestBody: {
-              username: row.original.user.username,
-            },
+            username: row.original.user.username,
           });
         }
       }
@@ -203,9 +201,7 @@ const columns = [
               leaveGroup({
                 productId: productId,
                 groupId: group,
-                requestBody: {
-                  username: row.original.user.username,
-                },
+                username: row.original.user.username,
               })
             )
           );
