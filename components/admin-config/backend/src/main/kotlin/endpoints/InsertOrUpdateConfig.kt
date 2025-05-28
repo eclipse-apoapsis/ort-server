@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 
-fun Route.insertOrUpdateConfig(db: Database) = post("admin/config/{key}", {
+internal fun Route.insertOrUpdateConfig(db: Database) = post("admin/config/{key}", {
     operationId = "InsertOrUpdateConfig"
     summary = "Insert or update a configuration key"
     description = "For an existing key, update the value and isEnabled of the key. " +

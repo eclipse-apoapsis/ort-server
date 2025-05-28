@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 
-fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
+internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
     operationId = "GetConfigByKey"
     summary = "Get the value of a configuration key"
     description = "Get the value and isEnabled properties of a configuration key. " +

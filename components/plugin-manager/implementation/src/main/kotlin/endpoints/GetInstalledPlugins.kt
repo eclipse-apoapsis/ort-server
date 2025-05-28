@@ -37,7 +37,7 @@ import org.ossreviewtoolkit.plugins.api.PluginDescriptor as OrtPluginDescriptor
 import org.ossreviewtoolkit.plugins.api.PluginOption as OrtPluginOption
 import org.ossreviewtoolkit.plugins.api.PluginOptionType as OrtPluginOptionType
 
-fun Route.getInstalledPlugins(pluginService: PluginService) = get("admin/plugins", {
+internal fun Route.getInstalledPlugins(pluginService: PluginService) = get("admin/plugins", {
     operationId = "GetInstalledPlugins"
     summary = "Get installed ORT plugins"
     description = "Get a list with detailed information about all installed ORT plugins."
