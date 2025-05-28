@@ -301,11 +301,11 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             delete(deleteUserFromRepositoryGroup) {
                 requirePermission(RepositoryPermission.MANAGE_GROUPS)
 
-                val user = call.receive<Username>()
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val groupId = call.requireParameter("groupId")
+                val username = call.requireParameter("username")
 
-                repositoryService.removeUserFromGroup(user.username, repositoryId, groupId)
+                repositoryService.removeUserFromGroup(username, repositoryId, groupId)
                 call.respond(HttpStatusCode.NoContent)
             }
         }

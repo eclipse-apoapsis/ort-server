@@ -1151,9 +1151,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                         HttpMethod.Put -> put("/api/v1/repositories/${createdRepo.id}/groups/readers") {
                             setBody(user)
                         }
-                        HttpMethod.Delete -> delete("/api/v1/repositories/${createdRepo.id}/groups/readers") {
-                            setBody(user)
-                        }
+                        HttpMethod.Delete -> delete(
+                            "/api/v1/repositories/${createdRepo.id}/groups/readers?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
                 }
@@ -1175,10 +1175,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/repositories/${createdRepo.id}/groups/readers"
-                        ) {
-                            setBody(user)
-                        }
+                            "/api/v1/repositories/${createdRepo.id}/groups/readers?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1205,10 +1203,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/repositories/999999/groups/readers"
-                        ) {
-                            setBody(user)
-                        }
+                            "/api/v1/repositories/999999/groups/readers?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1221,8 +1217,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         forAll(
-            row(HttpMethod.Put),
-            row(HttpMethod.Delete)
+            row(HttpMethod.Put)
         ) { method ->
             "respond with 'BadRequest' if the request body is invalid for method '${method.value}'" {
                 integrationTestApplication {
@@ -1231,11 +1226,6 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/repositories/${createdRepo.id}/groups/readers"
-                        ) {
-                            setBody(org)
-                        }
-                        HttpMethod.Delete -> superuserClient.delete(
                             "/api/v1/repositories/${createdRepo.id}/groups/readers"
                         ) {
                             setBody(org)
@@ -1264,10 +1254,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/repositories/${createdRepo.id}/groups/non-existing-group"
-                        ) {
-                            setBody(user)
-                        }
+                            "/api/v1/repositories/${createdRepo.id}/groups/non-existing-group?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1341,10 +1329,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     membersBefore.map { it.username } shouldContain TEST_USER.username
 
                     val response = superuserClient.delete(
-                        "/api/v1/repositories/${createdRepo.id}/groups/$groupId"
-                    ) {
-                        setBody(user)
-                    }
+                        "/api/v1/repositories/${createdRepo.id}/groups/$groupId?username=${user.username}"
+                    )
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 

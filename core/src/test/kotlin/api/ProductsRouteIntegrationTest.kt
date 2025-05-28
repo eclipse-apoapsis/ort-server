@@ -783,9 +783,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         HttpMethod.Put -> put("/api/v1/products/${createdProd.id}/groups/readers") {
                             setBody(user)
                         }
-                        HttpMethod.Delete -> delete("/api/v1/products/${createdProd.id}/groups/readers") {
-                            setBody(user)
-                        }
+                        HttpMethod.Delete -> delete(
+                            "/api/v1/products/${createdProd.id}/groups/readers?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
                 }
@@ -807,10 +807,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/products/${createdProd.id}/groups/readers"
-                        ) {
-                            setBody(user)
-                        }
+                            "/api/v1/products/${createdProd.id}/groups/readers?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
 
@@ -837,10 +835,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/products/999999/groups/readers"
-                        ) {
-                            setBody(user)
-                        }
+                            "/api/v1/products/999999/groups/readers?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
 
@@ -853,8 +849,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         forAll(
-            row(HttpMethod.Put),
-            row(HttpMethod.Delete)
+            row(HttpMethod.Put)
         ) { method ->
             "respond with 'BadRequest' if the request body is invalid for method '${method.value}'" {
                 integrationTestApplication {
@@ -863,11 +858,6 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/products/${createdProd.id}/groups/readers"
-                        ) {
-                            setBody(org)
-                        }
-                        HttpMethod.Delete -> superuserClient.delete(
                             "/api/v1/products/${createdProd.id}/groups/readers"
                         ) {
                             setBody(org)
@@ -896,10 +886,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/products/${createdProd.id}/groups/non-existing-group"
-                        ) {
-                            setBody(user)
-                        }
+                            "/api/v1/products/${createdProd.id}/groups/non-existing-group?username=${user.username}"
+                        )
                         else -> error("Unsupported method: $method")
                     }
 
@@ -973,10 +961,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     membersBefore.map { it.username } shouldContain TEST_USER.username
 
                     val response = superuserClient.delete(
-                        "/api/v1/products/${createdProd.id}/groups/$groupId"
-                    ) {
-                        setBody(user)
-                    }
+                        "/api/v1/products/${createdProd.id}/groups/$groupId?username=${user.username}"
+                    )
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 

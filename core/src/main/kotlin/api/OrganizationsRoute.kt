@@ -359,11 +359,11 @@ fun Route.organizations() = route("organizations") {
                 delete(deleteUserFromOrganizationGroup) {
                     requirePermission(OrganizationPermission.MANAGE_GROUPS)
 
-                    val user = call.receive<Username>()
                     val organizationId = call.requireIdParameter("organizationId")
                     val groupId = call.requireParameter("groupId")
+                    val username = call.requireParameter("username")
 
-                    organizationService.removeUserFromGroup(user.username, organizationId, groupId)
+                    organizationService.removeUserFromGroup(username, organizationId, groupId)
                     call.respond(HttpStatusCode.NoContent)
                 }
             }

@@ -160,9 +160,7 @@ const columns = [
           await leaveGroup({
             repositoryId: repoId,
             groupId: group,
-            requestBody: {
-              username: row.original.user.username,
-            },
+            username: row.original.user.username,
           });
         }
       }
@@ -209,9 +207,7 @@ const columns = [
               leaveGroup({
                 repositoryId: repoId,
                 groupId: group,
-                requestBody: {
-                  username: row.original.user.username,
-                },
+                username: row.original.user.username,
               })
             )
           );

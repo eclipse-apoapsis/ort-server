@@ -134,9 +134,7 @@ const ManageUsers = () => {
       await leaveGroup({
         productId: productId,
         groupId: group,
-        requestBody: {
-          username: username,
-        },
+        username: username,
       });
     }
   }
