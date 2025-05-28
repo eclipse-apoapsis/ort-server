@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.normalizePluginId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/disable", {
+internal fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/disable", {
     operationId = "DisablePlugin"
     summary = "Disable an ORT plugin globally"
     description = "Disable an ORT plugin globally to make it generally unavailable."

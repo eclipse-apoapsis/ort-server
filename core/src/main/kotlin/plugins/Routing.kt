@@ -24,12 +24,9 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
-import org.eclipse.apoapsis.ortserver.components.adminconfig.endpoints.getConfigByKey
-import org.eclipse.apoapsis.ortserver.components.adminconfig.endpoints.insertOrUpdateConfig
+import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
 import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.disablePlugin
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.enablePlugin
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.getInstalledPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
 import org.eclipse.apoapsis.ortserver.core.api.admin
 import org.eclipse.apoapsis.ortserver.core.api.authentication
 import org.eclipse.apoapsis.ortserver.core.api.downloads
@@ -50,12 +47,9 @@ fun Application.configureRouting() {
             downloads()
             authenticate(SecurityConfigurations.TOKEN) {
                 admin()
-                disablePlugin(get())
-                enablePlugin(get())
-                getConfigByKey(get())
-                getInstalledPlugins(get())
-                insertOrUpdateConfig(get())
+                adminConfigRoutes(get())
                 organizations()
+                pluginManagerRoutes(get(), get())
                 products()
                 repositories()
                 runs()

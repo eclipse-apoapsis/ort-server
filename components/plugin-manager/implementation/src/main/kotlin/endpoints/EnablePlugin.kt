@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.normalizePluginId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/enable", {
+internal fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/enable", {
     operationId = "EnablePlugin"
     summary = "Enable an ORT plugin globally"
     description = "Enable an ORT plugin globally to make it generally available to all organizations."
