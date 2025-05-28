@@ -18,7 +18,7 @@ xattr -d com.apple.quarantine /path/to/osc
 
 ## Usage in GitHub Actions
 
-When using `osc` in a GitHub action, the [`setup-osc`](https://github.com/eclipse-apoapsis/setup-osc) action can be used to install `osc` and authenticate with an ORT Server instance.
+When using `osc` in a GitHub action, the [`setup-osc`](https://github.com/eclipse-apoapsis/actions/setup-osc) action can be used to install `osc` and authenticate with an ORT Server instance.
 
 The following example demonstrates how to integrate `osc` in a GitHub Actions workflow to start an ORT run, retrieve the created reports, and store them as workflow artifacts:
 
@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup OSC
-        uses: eclipse-apoapsis/setup-osc@main
+        uses: eclipse-apoapsis/actions/setup-osc@main
         with:
           url: https://ort-server.example.com
           username: user
@@ -66,7 +66,7 @@ jobs:
           path: reports/
 ```
 
-All available settings for `setup-osc` can be found [in the Repository of the action](https://github.com/eclipse-apoapsis/setup-osc).
+All available settings for `setup-osc` can be found [in the Repository of the action](https://github.com/eclipse-apoapsis/actions).
 
 ## Usage
 
