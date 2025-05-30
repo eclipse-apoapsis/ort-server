@@ -24,6 +24,8 @@ import dasniko.testcontainers.keycloak.KeycloakContainer
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
 
@@ -72,6 +74,39 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
                 val groups = confidentialClient.getGroups()
 
                 groups shouldNot beEmpty()
+            }
+        }
+
+        "getGroups" should {
+            "return right number of groups with chunk size smaller than total number of groups" {
+                val config = keycloak.createKeycloakClientConfigurationForTestRealm(
+                    secret = TEST_CLIENT_SECRET,
+                    user = null,
+                    clientId = TEST_CONFIDENTIAL_CLIENT,
+                    dataGetChunkSize = 2
+                )
+                val confidentialClient = DefaultKeycloakClient.create(config, createJson())
+
+                val groups = confidentialClient.getGroups()
+
+                groups shouldHaveSize 3
+                groups.map { it.name.value } shouldContainAll
+                    listOf("Organization-A", "Organization-B", "Organization-C")
+            }
+
+            "return filtered groups list" {
+                val config = keycloak.createKeycloakClientConfigurationForTestRealm(
+                    secret = TEST_CLIENT_SECRET,
+                    user = null,
+                    clientId = TEST_CONFIDENTIAL_CLIENT
+                )
+                val confidentialClient = DefaultKeycloakClient.create(config, createJson())
+
+                val groups = confidentialClient.getGroups(groupNameFilter = "B")
+
+                groups shouldHaveSize 1
+                groups.map { it.name.value } shouldContainAll
+                    listOf("Organization-B")
             }
         }
     }

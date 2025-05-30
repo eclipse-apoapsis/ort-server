@@ -110,7 +110,8 @@ fun User.toUserRepresentation(
 fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
     secret: String = TEST_REALM_ADMIN_PASSWORD,
     user: String? = TEST_REALM_ADMIN_USERNAME,
-    clientId: String = TEST_CLIENT
+    clientId: String = TEST_CLIENT,
+    dataGetChunkSize: Int = 9999
 ) =
     KeycloakClientConfiguration(
         apiUrl = "$authServerUrl/admin/realms/$TEST_REALM",
@@ -118,7 +119,8 @@ fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
         accessTokenUrl = "$authServerUrl/realms/$TEST_REALM/protocol/openid-connect/token",
         apiUser = user,
         apiSecret = secret,
-        subjectClientId = TEST_SUBJECT_CLIENT
+        subjectClientId = TEST_SUBJECT_CLIENT,
+        dataGetChunkSize = dataGetChunkSize
     )
 
 /**
