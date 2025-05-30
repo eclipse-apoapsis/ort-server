@@ -120,9 +120,14 @@ export const Header = () => {
     const organization = organizationMatch?.context.breadcrumbs.organization;
     const product = productMatch?.context.breadcrumbs.product;
     const repository = repoMatch?.context.breadcrumbs.repo;
+    // Extract only the repository name from the full URL to show in the title.
+    const repoName = repository?.split('/').pop()?.split('.git')[0];
+    const run = runMatch?.context.breadcrumbs.run;
 
-    if (repository) {
-      document.title = `${repository} - ${TITLE}`;
+    if (run) {
+      document.title = `${repoName} (run ${run}) - ${TITLE}`;
+    } else if (repository) {
+      document.title = `${repoName} - ${TITLE}`;
     } else if (product) {
       document.title = `${product} - ${TITLE}`;
     } else if (organization) {
@@ -130,7 +135,7 @@ export const Header = () => {
     } else {
       document.title = `${TITLE}`;
     }
-  }, [organizationMatch, productMatch, repoMatch]);
+  }, [organizationMatch, productMatch, repoMatch, runMatch]);
 
   if (isPending) {
     return <LoadingIndicator />;
