@@ -21,6 +21,7 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 import {
   Blocks,
   Eye,
+  FilePen,
   House,
   KeyRound,
   ListVideo,
@@ -81,6 +82,11 @@ const Layout = () => {
     {
       label: 'Content Management',
       items: [
+        {
+          title: 'Product Name',
+          to: '/admin/content-management/product-name',
+          icon: () => <FilePen className='h-4 w-4' />,
+        },
         {
           title: 'Home Icon',
           to: '/admin/content-management/home-icon',
