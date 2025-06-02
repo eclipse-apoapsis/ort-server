@@ -22,11 +22,9 @@ import {
   Blocks,
   Eye,
   FilePen,
-  House,
   KeyRound,
   ListVideo,
   Palette,
-  PanelBottom,
   User,
 } from 'lucide-react';
 
@@ -83,24 +81,14 @@ const Layout = () => {
       label: 'Content Management',
       items: [
         {
-          title: 'Product Name',
-          to: '/admin/content-management/product-name',
+          title: 'Branding',
+          to: '/admin/content-management/branding',
           icon: () => <FilePen className='h-4 w-4' />,
-        },
-        {
-          title: 'Home Icon',
-          to: '/admin/content-management/home-icon',
-          icon: () => <House className='h-4 w-4' />,
         },
         {
           title: 'Colors',
           to: '/admin/colors',
           icon: () => <Palette className='h-4 w-4' />,
-        },
-        {
-          title: 'Footer',
-          to: '/admin/content-management/footer',
-          icon: () => <PanelBottom className='h-4 w-4' />,
         },
       ],
     },
