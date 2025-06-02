@@ -121,7 +121,7 @@ class ScannerWorker(
 /**
  * Extract all [Issue]s from this [OrtScannerResult] and convert it to the ORT Server model.
  */
-private fun OrtScannerResult.extractIssues(): List<Issue> {
+private fun OrtScannerResult.extractIssues(): Set<Issue> {
     val idsByProvenance = mutableMapOf<Provenance, Identifier>()
     scannerRun.getAllScanResults().forEach { (id, results) ->
         results.forEach { result ->
@@ -129,7 +129,7 @@ private fun OrtScannerResult.extractIssues(): List<Issue> {
         }
     }
 
-    return issues.flatMap { (provenance, issues) ->
+    return issues.flatMapTo(mutableSetOf()) { (provenance, issues) ->
         issues.map { issue ->
             issue.mapToModel(identifier = idsByProvenance[provenance], worker = "scanner")
         }

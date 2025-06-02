@@ -277,9 +277,9 @@ class ScannerWorkerTest : StringSpec({
             )
         }
         val issuesMap = mapOf<Provenance, Set<OrtIssue>>(
-            provenance1 to setOf(ortIssue1),
+            provenance1 to setOf(ortIssue1, ortIssue2),
             provenance2 to setOf(ortIssue2, ortIssue3),
-            provenance3 to setOf(ortIssue4)
+            provenance3 to setOf(ortIssue4, ortIssue2)
         )
 
         val runner = mockk<ScannerRunner> {
@@ -307,9 +307,10 @@ class ScannerWorkerTest : StringSpec({
                 ortIdentifier2.mapToModel() to setOf("scanner3")
             )
 
+            val identifier1 = ortIdentifier1.mapToModel()
             val identifier2 = ortIdentifier2.mapToModel()
-            val expectedIssues = listOf(ortIssue1, ortIssue2, ortIssue3, ortIssue4)
-                .zip(listOf(ortIdentifier1.mapToModel(), identifier2, identifier2, identifier2))
+            val expectedIssues = listOf(ortIssue1, ortIssue2, ortIssue2, ortIssue3, ortIssue4)
+                .zip(listOf(identifier1, identifier1, identifier2, identifier2, identifier2))
                 .map { (issue, identifier) ->
                     Issue(
                         timestamp = issue.timestamp.toKotlinInstant(),
