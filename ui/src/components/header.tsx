@@ -57,7 +57,7 @@ import {
 import { Input } from './ui/input';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 
-const TITLE = 'ORT Server';
+const PRODUCT_NAME = 'ORT Server';
 
 const formSchema = z.object({
   id: z.string().min(1),
@@ -74,6 +74,15 @@ export const Header = () => {
     error,
   } = useAdminServiceGetApiV1AdminConfigByKey({
     key: 'HOME_ICON_URL',
+  });
+
+  const {
+    data: dbProductName,
+    isPending: isProductNamePending,
+    isError: isProductNameError,
+    error: productNameError,
+  } = useAdminServiceGetApiV1AdminConfigByKey({
+    key: 'MAIN_PRODUCT_NAME',
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -123,27 +132,40 @@ export const Header = () => {
     // Extract only the repository name from the full URL to show in the title.
     const repoName = repository?.split('/').pop()?.split('.git')[0];
     const run = runMatch?.context.breadcrumbs.run;
+    // Use the product name from the database if available and enabled, otherwise use z
+    // the default product name which is 'ORT Server'.
+    const name =
+      dbProductName?.value && dbProductName.isEnabled
+        ? dbProductName.value
+        : PRODUCT_NAME;
 
     if (run) {
-      document.title = `${repoName} (run ${run}) - ${TITLE}`;
+      document.title = `${repoName} (run ${run}) - ${name}`;
     } else if (repository) {
-      document.title = `${repoName} - ${TITLE}`;
+      document.title = `${repoName} - ${name}`;
     } else if (product) {
-      document.title = `${product} - ${TITLE}`;
+      document.title = `${product} - ${name}`;
     } else if (organization) {
-      document.title = `${organization} - ${TITLE}`;
+      document.title = `${organization} - ${name}`;
     } else {
-      document.title = `${TITLE}`;
+      document.title = `${name}`;
     }
-  }, [organizationMatch, productMatch, repoMatch, runMatch]);
+  }, [
+    dbProductName?.isEnabled,
+    dbProductName?.value,
+    organizationMatch,
+    productMatch,
+    repoMatch,
+    runMatch,
+  ]);
 
-  if (isPending) {
+  if (isPending || isProductNamePending) {
     return <LoadingIndicator />;
   }
 
-  if (isError) {
+  if (isError || isProductNameError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
+      description: <ToastError error={error || productNameError} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -169,7 +191,11 @@ export const Header = () => {
                       ? dbHomeIcon.value
                       : homeIcon
                   }
-                  alt='ORT Server'
+                  alt={
+                    dbProductName.isEnabled && dbProductName.value
+                      ? dbProductName.value
+                      : PRODUCT_NAME
+                  }
                   className='size-6'
                 />
                 <span className='sr-only'>Home</span>
