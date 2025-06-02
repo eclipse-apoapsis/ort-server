@@ -28,6 +28,8 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
  *   interpreted as the secret of a confidential client.
  */
 data class KeycloakClientConfiguration(
+    val baseUrl: String,
+    val realm: String,
     val apiUrl: String,
     val clientId: String,
     val accessTokenUrl: String,

@@ -19,16 +19,27 @@
 
 package org.eclipse.apoapsis.ortserver.core.utils
 
+import io.ktor.server.config.tryGetString
+
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 
-fun ConfigManager.createKeycloakClientConfiguration() =
-    KeycloakClientConfiguration(
-        apiUrl = getString("keycloak.apiUrl"),
+fun ConfigManager.createKeycloakClientConfiguration(): KeycloakClientConfiguration {
+    val baseUrl = getString("keycloak.baseUrl")
+    val realm = getString("keycloak.realm")
+
+    val defaultApiUrl = "$baseUrl/admin/realms/$realm"
+    val defaultAccessTokenUrl = "$baseUrl/realms/$realm/protocol/openid-connect/token"
+
+    return KeycloakClientConfiguration(
+        baseUrl = baseUrl,
+        realm = realm,
+        apiUrl = tryGetString("keycloak.apiUrl") ?: defaultApiUrl,
         clientId = getString("keycloak.clientId"),
-        accessTokenUrl = getString("keycloak.accessTokenUrl"),
+        accessTokenUrl = tryGetString("keycloak.accessTokenUrl") ?: defaultAccessTokenUrl,
         apiUser = getString("keycloak.apiUser"),
         apiSecret = getSecret(Path("keycloak.apiSecret")),
         subjectClientId = getString("keycloak.subjectClientId")
     )
+}
