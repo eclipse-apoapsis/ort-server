@@ -114,6 +114,8 @@ fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
     dataGetChunkSize: Int = 9999
 ) =
     KeycloakClientConfiguration(
+        baseUrl = authServerUrl,
+        realm = TEST_REALM,
         apiUrl = "$authServerUrl/admin/realms/$TEST_REALM",
         clientId = clientId,
         accessTokenUrl = "$authServerUrl/realms/$TEST_REALM/protocol/openid-connect/token",
@@ -130,6 +132,8 @@ fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
 fun KeycloakContainer.createKeycloakConfigMapForTestRealm() =
     createKeycloakClientConfigurationForTestRealm().let { config ->
         mapOf(
+            "keycloak.baseUrl" to config.baseUrl,
+            "keycloak.realm" to config.realm,
             "keycloak.apiUrl" to config.apiUrl,
             "keycloak.clientId" to config.clientId,
             "keycloak.accessTokenUrl" to config.accessTokenUrl,
