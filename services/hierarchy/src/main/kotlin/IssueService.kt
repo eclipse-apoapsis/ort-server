@@ -21,12 +21,6 @@ package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsScanResultsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.ScanResultsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesIssuesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.ScanSummariesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
@@ -43,10 +37,8 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.innerJoin
 
 /**
@@ -58,12 +50,8 @@ class IssueService(private val db: Database) {
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<Issue> = db.dbQuery {
         val ortRunIssuesQuery = createOrtRunIssuesQuery(ortRunId)
-        val scanSummaryIssuesQuery = createScanSummaryIssuesQuery(ortRunId)
 
-        val totalCount = ortRunIssuesQuery.count() + scanSummaryIssuesQuery.count()
-        val totalIssues =
-            IssueDao.createFromQuery(ortRunIssuesQuery) +
-            IssueDao.createFromQuery(scanSummaryIssuesQuery)
+        val issues = IssueDao.createFromQuery(ortRunIssuesQuery)
 
         // There always has to be some sort order defined, else the rows would be returned in random order,
         // and tests that rely on a deterministic order would fail.
@@ -72,31 +60,24 @@ class IssueService(private val db: Database) {
         }
 
         ListQueryResult(
-            totalIssues.sort(sortFields).paginate(parameters),
+            issues.sort(sortFields).paginate(parameters),
             parameters,
-            totalCount
+            ortRunIssuesQuery.count()
         )
     }
 
     /** Count issues found in provided ORT runs. */
     suspend fun countForOrtRunIds(vararg ortRunIds: Long): Long = db.dbQuery {
-        val cntOrtRunsIssues = OrtRunsIssuesTable
+        OrtRunsIssuesTable
             .select(OrtRunsIssuesTable.id)
             .where { OrtRunsIssuesTable.ortRunId inList ortRunIds.asList() }
             .count()
-
-        val cntScanSummariesIssues = createScanSummaryIssuesJoin()
-            .select(ScanSummariesIssuesTable.id)
-            .where { ScannerJobsTable.ortRunId inList ortRunIds.asList() }
-            .count()
-
-        cntOrtRunsIssues + cntScanSummariesIssues
     }
 
     /**
-     * Count issues by severity for provided ORT runs, based on the [OrtRunsIssuesTable].
+     * Count overall issues by severity for provided ORT runs.
      */
-    private suspend fun countOrtRunsIssuesBySeverity(vararg ortRunIds: Long): CountByCategory<Severity> = db.dbQuery {
+    suspend fun countBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> = db.dbQuery {
         val countAlias = Count(OrtRunsIssuesTable.id, true)
 
         val severityToCountMap = Severity.entries.associateWithTo(mutableMapOf()) { 0L }
@@ -111,42 +92,6 @@ class IssueService(private val db: Database) {
             }
 
         CountByCategory(severityToCountMap)
-    }
-
-    /**
-     * Count issues by severity for provided ORT runs, based on the [ScanSummariesIssuesTable].
-     */
-    private suspend fun countScanSummariesIssuesBySeverity(vararg ortRunIds: Long): CountByCategory<Severity> =
-        db.dbQuery {
-            val countAlias = Count(ScanSummariesIssuesTable.id, true)
-
-            val severityToCountMap = Severity.entries.associateWithTo(mutableMapOf()) { 0L }
-
-            createScanSummaryIssuesJoin()
-                .select(IssuesTable.severity, countAlias)
-                .where { ScannerJobsTable.ortRunId inList ortRunIds.asList() }
-                .groupBy(IssuesTable.severity)
-                .map { row ->
-                    severityToCountMap.put(row[IssuesTable.severity], row[countAlias])
-                }
-
-            CountByCategory(severityToCountMap)
-        }
-
-    /**
-     * Count overall issues by severity for provided ORT runs.
-     */
-    suspend fun countBySeverityForOrtRunIds(vararg ortRunIds: Long): CountByCategory<Severity> {
-        val countByCategoryForOrtRunsIssues = countOrtRunsIssuesBySeverity(*ortRunIds)
-        val countByCategoryForScanSummariesIssues = countScanSummariesIssuesBySeverity(*ortRunIds)
-
-        val mergedSeverityCounts = countByCategoryForOrtRunsIssues.map.toMutableMap()
-
-        countByCategoryForScanSummariesIssues.map.forEach { (severity, count) ->
-            mergedSeverityCounts[severity] = mergedSeverityCounts.getOrDefault(severity, 0L) + count
-        }
-
-        return CountByCategory(mergedSeverityCounts)
     }
 
     private fun createOrtRunIssuesQuery(ortRunId: Long): Query {
@@ -166,38 +111,7 @@ class IssueService(private val db: Database) {
             OrtRunsIssuesTable.worker
         ).where { OrtRunsIssuesTable.ortRunId eq ortRunId }
     }
-
-    /**
-     * Create a [Join][org.jetbrains.exposed.sql.Join] relation to get the issues from the scan summaries.
-     */
-    private fun createScanSummaryIssuesJoin() =
-        ScannerJobsTable
-            .innerJoin(ScannerRunsTable, { ScannerJobsTable.id }, { scannerJobId })
-            .innerJoin(ScannerRunsScanResultsTable, { ScannerRunsTable.id }, { scannerRunId })
-            .innerJoin(ScanResultsTable, { ScannerRunsScanResultsTable.scanResultId }, { ScanResultsTable.id })
-            .innerJoin(ScanSummariesTable, { ScanResultsTable.scanSummaryId }, { ScanSummariesTable.id })
-            .innerJoin(ScanSummariesIssuesTable, { ScanSummariesTable.id }, { scanSummaryId })
-            .innerJoin(IssuesTable, { ScanSummariesIssuesTable.issueId }, { IssuesTable.id })
-
-    /**
-     * Create a [Query] to get the issues from the scan summaries. To be able to directly merge the results to the
-     * issues return of the query created by [createOrtRunIssuesQuery], the columns have to be the same, and for this
-     * reason some colum values are set to NULL.
-     */
-    private fun createScanSummaryIssuesQuery(ortRunId: Long) =
-        createScanSummaryIssuesJoin().select(
-            ScanSummariesIssuesTable.timestamp,
-            IssuesTable.issueSource,
-            IssuesTable.message,
-            IssuesTable.severity,
-            IssuesTable.affectedPath,
-            Op.nullOp<Unit>().alias("identifier_type"),
-            Op.nullOp<Unit>().alias("identifier_name"),
-            Op.nullOp<Unit>().alias("identifier_namespace"),
-            Op.nullOp<Unit>().alias("identifier_version"),
-            Op.nullOp<Unit>().alias("worker")
-        ).where { ScannerJobsTable.ortRunId eq ortRunId }
-    }
+}
 
 /**
  * Convert this [OrderDirection] constant to the corresponding [SortOrder].
