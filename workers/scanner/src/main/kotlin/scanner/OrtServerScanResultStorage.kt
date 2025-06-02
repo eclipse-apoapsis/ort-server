@@ -254,7 +254,10 @@ class OrtServerScanResultStorage(
      * [getAllIssues].
      */
     private fun storeIssues(provenance: Provenance, summary: ScanSummary) {
-        issuesMap.put(provenance, summary.issues.toSet())
+        // Use merge here, since this function may be called multiple times for the same provenance.
+        issuesMap.merge(provenance, summary.issues.toSet()) { existingIssues, newIssues ->
+            existingIssues + newIssues
+        }
     }
 
     private fun associateScanResultWithScannerRun(scanResultDao: ScanResultDao) {

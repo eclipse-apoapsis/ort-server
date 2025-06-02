@@ -334,16 +334,21 @@ class OrtServerScanResultStorageTest : WordSpec() {
                 val repositoryProvenance = createRepositoryProvenance()
                 val issue1 = createIssue("source1")
                 val issue2 = createIssue("source2")
+                val issue3 = createIssue("source3")
                 val scanResult1 = createScanResult("ScanCode", issue1, artifactProvenance)
                 val scanResult2 = createScanResult("FossID", issue2, repositoryProvenance)
+                val scanResult3 = createScanResult("ScanCode", issue3, repositoryProvenance)
 
                 scanResultStorage.write(scanResult1)
                 scanResultStorage.write(scanResult2)
+                scanResultStorage.write(scanResult3)
 
                 val issues = scanResultStorage.getAllIssues()
 
                 issues[artifactProvenance.mapToOrt()] shouldContainExactlyInAnyOrder listOf(issue1.mapToOrt())
-                issues[repositoryProvenance.mapToOrt()] shouldContainExactlyInAnyOrder listOf(issue2.mapToOrt())
+                issues[repositoryProvenance.mapToOrt()] shouldContainExactlyInAnyOrder listOf(
+                    issue2.mapToOrt(), issue3.mapToOrt()
+                )
 
                 issues.keys shouldHaveSize 2
             }
