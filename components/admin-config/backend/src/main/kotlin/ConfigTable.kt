@@ -45,6 +45,7 @@ data class Config(
  */
 enum class ConfigKey(val default: String) {
     HOME_ICON_URL("https://example.com/icon.png"),
+    MAIN_PRODUCT_NAME("ORT Server"),
 }
 
 object ConfigTable : Table("config_table") {
