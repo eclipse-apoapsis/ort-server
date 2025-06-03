@@ -64,7 +64,10 @@ import {
 } from '@/components/ui/table';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
-import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  identifierToPurl,
+  identifierToString,
+} from '@/helpers/identifier-conversion';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
@@ -76,6 +79,7 @@ import {
   vulnerabilityRatingSchema,
   vulnerabilityRatingSearchParameterSchema,
 } from '@/schemas';
+import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
@@ -140,6 +144,7 @@ const VulnerabilitiesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
   const columns = [
     columnHelper.display({
@@ -226,7 +231,15 @@ const VulnerabilitiesComponent = () => {
     }),
     columnHelper.accessor(
       (vuln) => {
-        return identifierToString(vuln.identifier);
+        // TODO: This is a temporary front-end only solution to support PURL
+        //       identifiers. The backend endpoints should be updated to return
+        //       PURL identifiers natively so this will need to be removed
+        //       in the future.
+        if (packageIdType === 'PURL') {
+          return identifierToPurl(vuln.identifier);
+        } else {
+          return identifierToString(vuln.identifier);
+        }
       },
       {
         id: 'packageIdentifier',
