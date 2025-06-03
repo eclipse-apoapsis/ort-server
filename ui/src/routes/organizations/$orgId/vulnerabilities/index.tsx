@@ -60,7 +60,10 @@ import {
   convertToBackendSorting,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
-import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  identifierToPurl,
+  identifierToString,
+} from '@/helpers/identifier-conversion';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
 import {
@@ -68,6 +71,7 @@ import {
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
+import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
@@ -133,6 +137,7 @@ const OrganizationVulnerabilitiesComponent = () => {
   const search = Route.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
   const {
     data: vulnerabilities,
@@ -225,7 +230,11 @@ const OrganizationVulnerabilitiesComponent = () => {
       }),
       columnHelper.accessor(
         (vuln) => {
-          return identifierToString(vuln.identifier);
+          if (packageIdType === 'PURL') {
+            return identifierToPurl(vuln.identifier);
+          } else {
+            return identifierToString(vuln.identifier);
+          }
         },
         {
           id: 'identifier',
@@ -262,7 +271,7 @@ const OrganizationVulnerabilitiesComponent = () => {
         enableColumnFilter: false,
       }),
     ],
-    [search]
+    [packageIdType, search]
   );
 
   const [expanded, setExpanded] = useState<ExpandedState>(

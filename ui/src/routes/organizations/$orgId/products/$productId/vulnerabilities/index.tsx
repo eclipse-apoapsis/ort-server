@@ -60,7 +60,10 @@ import {
 } from '@/components/ui/table';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
-import { identifierToString } from '@/helpers/identifier-conversion';
+import {
+  identifierToPurl,
+  identifierToString,
+} from '@/helpers/identifier-conversion';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
@@ -72,6 +75,7 @@ import {
   vulnerabilityRatingSchema,
   vulnerabilityRatingSearchParameterSchema,
 } from '@/schemas';
+import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
@@ -132,6 +136,7 @@ const ProductVulnerabilitiesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
   const {
     data: vulnerabilities,
@@ -240,7 +245,11 @@ const ProductVulnerabilitiesComponent = () => {
       }),
       columnHelper.accessor(
         (vuln) => {
-          return identifierToString(vuln.identifier);
+          if (packageIdType === 'PURL') {
+            return identifierToPurl(vuln.identifier);
+          } else {
+            return identifierToString(vuln.identifier);
+          }
         },
         {
           id: 'packageIdentifier',
@@ -284,7 +293,7 @@ const ProductVulnerabilitiesComponent = () => {
         enableColumnFilter: false,
       }),
     ],
-    [navigate, search]
+    [navigate, packageIdType, search]
   );
 
   const pageIndex = useMemo(
