@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,8 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class RuleViolation(
-    val rule: String,
-    val license: String?,
-    val licenseSource: String?,
-    val severity: Severity,
+data class RuleViolationResolution(
     val message: String,
-    val howToFix: String,
-    val packageId: Identifier? = null,
-    val resolutions: List<RuleViolationResolution> = emptyList()
+    val reason: String,
+    val comment: String
 )
