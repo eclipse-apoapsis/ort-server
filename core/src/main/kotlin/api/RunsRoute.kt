@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
@@ -221,9 +222,14 @@ fun Route.runs() = route("runs") {
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
                     val pagingOptions = call.pagingOptions(SortProperty("rule", SortDirection.ASCENDING))
+                    val filters = call.ruleViolationFilters()
 
-                    val ruleViolationsForOrtRun =
-                        ruleViolationService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+                    val ruleViolationsForOrtRun = ruleViolationService
+                        .listForOrtRunId(
+                            ortRun.id,
+                            pagingOptions.mapToModel(),
+                            filters.mapToModel()
+                        )
 
                     val pagedResponse = ruleViolationsForOrtRun.mapToApi(
                         OrtRuleViolation::mapToApi
@@ -470,6 +476,14 @@ private fun ApplicationCall.packageFilters(): PackageFilters =
         identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         processedDeclaredLicense = processedDeclaredLicense()
+    )
+
+/**
+ * Extract the rule violation filters from this [ApplicationCall].
+ */
+private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
+    RuleViolationFilters(
+        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull()
     )
 
 /**
