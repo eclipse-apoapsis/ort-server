@@ -57,7 +57,7 @@ internal object ScanResultFixtures {
         regScannerName = ".*",
         minVersion = Semver(SCANNER_VERSION),
         maxVersion = Semver(SCANNER_VERSION).nextMinor(),
-        configuration = null
+        configuration = "config"
     )
     fun createVcsInfo() = VcsInfo(
         RepositoryType.GIT,
