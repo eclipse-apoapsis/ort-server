@@ -5,3 +5,7 @@ Authorization: Bearer {{$auth.token("keycloak")}}
 ### Get all packages for an ORT run
 GET {{host}}/runs/1/packages
 Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Get rule violations for an ORT run
+GET {{host}}/runs/1/rule-violations
+Authorization: Bearer {{$auth.token("keycloak")}}

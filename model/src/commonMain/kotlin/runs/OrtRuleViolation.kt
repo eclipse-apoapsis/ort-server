@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.model.runs
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 
 /**
  * A data class describing a rule violation that occurred during an ORT run.
@@ -34,5 +35,18 @@ data class OrtRuleViolation(
     val licenseSource: String?,
     val severity: Severity,
     val message: String,
-    val howToFix: String
+    val howToFix: String,
+    val resolutions: List<RuleViolationResolution> = emptyList()
+)
+
+/**
+ * Filters to apply when querying for rule violations.
+ */
+@Serializable
+data class RuleViolationFilters(
+    /**
+     * Filter to only return resolved rule violations. Null if both, resolved an unresolved rule violations should be
+     * returned.
+     */
+    val resolved: Boolean? = null
 )

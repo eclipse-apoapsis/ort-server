@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
@@ -80,10 +81,10 @@ import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
-import org.eclipse.apoapsis.ortserver.services.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.PackageService
+import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
@@ -219,9 +220,14 @@ fun Route.runs() = route("runs") {
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
                     val pagingOptions = call.pagingOptions(SortProperty("rule", SortDirection.ASCENDING))
+                    val filters = call.ruleViolationFilters()
 
-                    val ruleViolationsForOrtRun =
-                        ruleViolationService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+                    val ruleViolationsForOrtRun = ruleViolationService
+                        .listForOrtRunId(
+                            ortRun.id,
+                            pagingOptions.mapToModel(),
+                            filters.mapToModel()
+                        )
 
                     val pagedResponse = ruleViolationsForOrtRun.mapToApi(
                         OrtRuleViolation::mapToApi
@@ -468,6 +474,14 @@ private fun ApplicationCall.packageFilters(): PackageFilters =
         identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
         processedDeclaredLicense = processedDeclaredLicense()
+    )
+
+/**
+ * Extract the rule violation filters from this [ApplicationCall].
+ */
+private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
+    RuleViolationFilters(
+        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull()
     )
 
 /**
