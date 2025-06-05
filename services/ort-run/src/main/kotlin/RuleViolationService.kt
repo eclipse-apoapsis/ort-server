@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolatio
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -34,13 +35,16 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.model.config.RuleViolationResolution
+
 /**
  * A service to interact with rule violations.
  */
 class RuleViolationService(private val db: Database, private val ortRunService: OrtRunService) {
     fun listForOrtRunId(
         ortRunId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        ruleViolationFilter: RuleViolationFilters = RuleViolationFilters()
     ): ListQueryResult<OrtRuleViolation> {
         val ortRun = ortRunService.getOrtRun(ortRunId)
 
@@ -79,8 +83,8 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
         val resolutions = ortResult.getResolutions().ruleViolations
 
         val sortedResult = ruleViolations.map { it.mapToModel() }.sortedWith(comparator)
-
-        val limitedResults = sortedResult
+        val filteredResult = sortedResult.applyResultFilter(ruleViolationFilter, resolutions)
+        val limitedResults = filteredResult
             .drop(parameters.offset?.toInt() ?: 0)
             .take(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT)
 
@@ -92,8 +96,27 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
         return ListQueryResult(
             data = ruleViolationsWithResolutions,
             params = parameters,
-            totalCount = sortedResult.size.toLong()
+            totalCount = filteredResult.size.toLong()
         )
+    }
+
+    private fun List<OrtRuleViolation>.applyResultFilter(
+        ruleViolationFilter: RuleViolationFilters,
+        resolutions: List<RuleViolationResolution>
+    ): List<OrtRuleViolation> = when (ruleViolationFilter.resolved) {
+        true -> {
+            filter { violation ->
+                resolutions.any { it.matches(violation.mapToOrt()) }
+            }
+        }
+
+        false -> {
+            filter { violation ->
+                !resolutions.any { it.matches(violation.mapToOrt()) }
+            }
+        }
+
+        null -> this
     }
 
     /** Count rule violations found in provided ORT runs. */

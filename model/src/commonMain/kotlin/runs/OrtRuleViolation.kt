@@ -38,3 +38,15 @@ data class OrtRuleViolation(
     val howToFix: String,
     val resolutions: List<RuleViolationResolution> = emptyList()
 )
+
+/**
+ * Filters to apply when querying for rule violations.
+ */
+@Serializable
+data class RuleViolationFilters(
+    /**
+     * Filter to only return resolved rule violations. Null if both, resolved an unresolved rule violations should be
+     * returned.
+     */
+    val resolved: Boolean? = null
+)
