@@ -59,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStat
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData as ApiPackageCurationData
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolution as ApiRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig as ApiPluginConfig
@@ -156,6 +157,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
@@ -605,7 +607,8 @@ fun OrtRuleViolation.mapToApi() = ApiRuleViolation(
     severity.mapToApi(),
     message,
     howToFix,
-    packageId?.mapToApi()
+    packageId?.mapToApi(),
+    resolutions.map { it.mapToApi() }
 )
 
 fun Identifier.mapToApi() = ApiIdentifier(type, namespace, name, version)
@@ -857,6 +860,8 @@ fun PackageCurationData.mapToApi() = ApiPackageCurationData(
     isModified = isModified,
     declaredLicenseMapping = declaredLicenseMapping
 )
+
+fun RuleViolationResolution.mapToApi() = ApiRuleViolationResolution(message, reason, comment)
 
 fun VcsInfoCurationData.mapToApi() = ApiVcsInfoCurationData(
     type = type?.mapToApi(),

@@ -47,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Project
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
@@ -307,6 +308,14 @@ val getRuleViolationsByRunId: RouteConfig.() -> Unit = {
             description = "The ID of the ORT run."
         }
 
+        queryParameter<Boolean>("resolved") {
+            description =
+                """
+                    If true, only resolved rule violations are returned. If false, only unresolved rule violations are
+                    returned. If missing, both resolved and unresolved rule violations are returned.
+                """.trimIndent()
+        }
+
         standardListQueryParameters()
     }
 
@@ -346,8 +355,15 @@ val getRuleViolationsByRunId: RouteConfig.() -> Unit = {
                                     "org.glassfish.jersey.media",
                                     "jersey-media-jaxb",
                                     "2.42"
+                                ),
+                                listOf(
+                                    RuleViolationResolution(
+                                        message =
+                                            "The declared license '.*' could not be mapped to a valid SPDX expression.",
+                                        reason = "CANT_FIX_EXCEPTION",
+                                        comment = "A comment why the rule violation can be resolved."
+                                    )
                                 )
-
                             )
                         ),
                         PagingData(
