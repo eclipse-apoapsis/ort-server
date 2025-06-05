@@ -76,6 +76,7 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
         )
 
         val ruleViolations = ortResult.getRuleViolations(omitResolved = false)
+        val resolutions = ortResult.getResolutions().ruleViolations
 
         val sortedResult = ruleViolations.map { it.mapToModel() }.sortedWith(comparator)
 
@@ -83,8 +84,13 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
             .drop(parameters.offset?.toInt() ?: 0)
             .take(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT)
 
+        val ruleViolationsWithResolutions = limitedResults.map { ruleViolation ->
+            val matchingResolutions = resolutions.filter { it.matches(ruleViolation.mapToOrt()) }
+            ruleViolation.copy(resolutions = matchingResolutions.map { it.mapToModel() })
+        }
+
         return ListQueryResult(
-            data = limitedResults,
+            data = ruleViolationsWithResolutions,
             params = parameters,
             totalCount = sortedResult.size.toLong()
         )

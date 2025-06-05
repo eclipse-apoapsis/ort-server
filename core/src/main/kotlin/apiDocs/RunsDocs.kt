@@ -50,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Project
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
@@ -344,8 +345,14 @@ val getRuleViolationsByRunId: RouteConfig.() -> Unit = {
                                     "org.glassfish.jersey.media",
                                     "jersey-media-jaxb",
                                     "2.42"
+                                ),
+                                listOf(
+                                    RuleViolationResolution(
+                                        message = "Add a curation to the ORT configuration file.",
+                                        reason = "CANT_FIX_EXCEPTION",
+                                        comment = "A comment why the rule violation can be resolved."
+                                    )
                                 )
-
                             )
                         ),
                         PagingData(
