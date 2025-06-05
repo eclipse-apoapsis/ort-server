@@ -44,7 +44,7 @@ services:
     # Setting the hostname is necessary for persistence.
     # See https://www.futurefundamentals.com/set-rabbitmq-with-data-persistent-with-docker-compose/.
     hostname: ort-server-rabbitmq
-    image: rabbitmq:4.1.0
+    image: rabbitmq:4.1.1
     restart: unless-stopped
     # See https://www.rabbitmq.com/monitoring.html#health-checks
     healthcheck:
