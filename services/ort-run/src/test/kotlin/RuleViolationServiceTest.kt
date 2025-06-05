@@ -24,6 +24,8 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 
+import io.mockk.mockk
+
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -44,16 +46,40 @@ class RuleViolationServiceTest : WordSpec() {
 
     private lateinit var db: Database
     private lateinit var fixtures: Fixtures
+    private lateinit var service: RuleViolationService
 
     init {
         beforeEach {
             db = dbExtension.db
             fixtures = dbExtension.fixtures
+
+            val ortRunService = OrtRunService(
+                db,
+                fixtures.advisorJobRepository,
+                fixtures.advisorRunRepository,
+                fixtures.analyzerJobRepository,
+                fixtures.analyzerRunRepository,
+                fixtures.evaluatorJobRepository,
+                fixtures.evaluatorRunRepository,
+                fixtures.ortRunRepository,
+                fixtures.reporterJobRepository,
+                fixtures.reporterRunRepository,
+                fixtures.notifierJobRepository,
+                fixtures.notifierRunRepository,
+                fixtures.repositoryConfigurationRepository,
+                fixtures.repositoryRepository,
+                fixtures.resolvedConfigurationRepository,
+                fixtures.scannerJobRepository,
+                fixtures.scannerRunRepository,
+                mockk(),
+                mockk()
+            )
+
+            service = RuleViolationService(db, ortRunService)
         }
 
         "listForOrtRunId" should {
             "return the rule violations for the given ORT run ID" {
-                val service = RuleViolationService(db)
                 val ortRun = createRuleViolationEntries()
                 val results = service.listForOrtRunId(ortRun.id).data
 
@@ -106,15 +132,12 @@ class RuleViolationServiceTest : WordSpec() {
 
         "countForOrtRunId" should {
             "return count for rule violations found in an ORT run" {
-                val service = RuleViolationService(db)
                 val ortRun = createRuleViolationEntries()
 
                 service.countForOrtRunIds(ortRun.id) shouldBe 3
             }
 
             "return count for rule violations found in ORT runs" {
-                val service = RuleViolationService(db)
-
                 val repositoryId = fixtures.createRepository().id
 
                 val ortRun1Id = createRuleViolationEntries(repositoryId).id
@@ -144,8 +167,6 @@ class RuleViolationServiceTest : WordSpec() {
 
         "countBySeverityForOrtRunIds" should {
             "return the counts per severity for rule violations found in ORT runs" {
-                val service = RuleViolationService(db)
-
                 val repositoryId = fixtures.createRepository().id
 
                 val ortRun1Id = createRuleViolationEntries(
@@ -197,8 +218,6 @@ class RuleViolationServiceTest : WordSpec() {
             }
 
             "return counts by severity that sum up to the count returned by countForOrtRunIds" {
-                val service = RuleViolationService(db)
-
                 val repositoryId = fixtures.createRepository().id
 
                 val ortRun1Id = createRuleViolationEntries(repositoryId).id
@@ -229,8 +248,6 @@ class RuleViolationServiceTest : WordSpec() {
             }
 
             "include counts of 0 for severities that are not found in rule violations" {
-                val service = RuleViolationService(db)
-
                 val repositoryId = fixtures.createRepository().id
                 val ortRunId = fixtures.createOrtRun(repositoryId).id
 

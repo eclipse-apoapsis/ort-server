@@ -23,42 +23,70 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsRuleViolationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRunsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
-import org.eclipse.apoapsis.ortserver.dao.utils.listCustomQuery
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
+import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ResultRow
 
 /**
  * A service to interact with rule violations.
  */
-class RuleViolationService(private val db: Database) {
-    suspend fun listForOrtRunId(
+class RuleViolationService(private val db: Database, private val ortRunService: OrtRunService) {
+    fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): ListQueryResult<OrtRuleViolation> = db.dbQuery {
-        val ruleViolationQueryResult =
-            RuleViolationDao.listCustomQuery(parameters, ResultRow::toRuleViolation) {
-                val join = RuleViolationsTable innerJoin
-                    EvaluatorRunsRuleViolationsTable innerJoin
-                    EvaluatorRunsTable innerJoin
-                    EvaluatorJobsTable leftJoin
-                    IdentifiersTable
+    ): ListQueryResult<OrtRuleViolation> {
+        val ortRun = ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
+            "ORT run with ID $ortRunId not found."
+        )
 
-                join.select(
-                    RuleViolationsTable.columns + IdentifiersTable.columns
-                ).where { EvaluatorJobsTable.ortRunId eq ortRunId }
+        var comparator = compareBy<OrtRuleViolation> { 0 }
+
+        parameters.sortFields.forEach { orderField ->
+            when (orderField.name) {
+                "rule" -> {
+                    comparator = when (orderField.direction) {
+                        OrderDirection.ASCENDING -> comparator.thenBy { it.rule }
+                        OrderDirection.DESCENDING -> comparator.thenByDescending { it.rule }
+                    }
+                }
+
+                "severity" -> {
+                    comparator = when (orderField.direction) {
+                        OrderDirection.ASCENDING -> comparator.thenBy { it.severity }
+                        OrderDirection.DESCENDING -> comparator.thenByDescending { it.severity }
+                    }
+                }
             }
+        }
 
-        ListQueryResult(ruleViolationQueryResult.data, parameters, ruleViolationQueryResult.totalCount)
+        val ortResult = ortRunService.generateOrtResult(
+            ortRun,
+            loadAdvisorRun = false,
+            loadScannerRun = false,
+            failIfRepoInfoMissing = false
+        )
+
+        val ruleViolations = ortResult.getRuleViolations(omitResolved = false).map { it.mapToModel() }
+
+        val sortedResult = ruleViolations.sortedWith(comparator)
+
+        val limitedResults = sortedResult
+            .drop(parameters.offset?.toInt() ?: 0)
+            .take(parameters.limit ?: ListQueryParameters.DEFAULT_LIMIT)
+
+        return ListQueryResult(
+            data = limitedResults,
+            params = parameters,
+            totalCount = sortedResult.size.toLong()
+        )
     }
 
     /** Count rule violations found in provided ORT runs. */
@@ -92,8 +120,4 @@ class RuleViolationService(private val db: Database) {
 
         CountByCategory(severityToCountMap)
     }
-}
-
-private fun ResultRow.toRuleViolation(): OrtRuleViolation {
-    return RuleViolationDao.wrapRow(this).mapToModel()
 }
