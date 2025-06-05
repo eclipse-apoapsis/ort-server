@@ -37,6 +37,9 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 
 import org.jetbrains.exposed.sql.Database
 
@@ -127,6 +130,42 @@ class RuleViolationServiceTest : WordSpec() {
                     howToFix shouldBe "How_to_fix-3"
                     packageId shouldBe null
                 }
+            }
+
+            "return filtered rule violations" {
+                val ortRun = createRuleViolationEntries()
+
+                fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    Resolutions(
+                        ruleViolations = listOf(
+                            RuleViolationResolution(
+                                message = "Message-1",
+                                reason = "CANT_FIX_EXCEPTION",
+                                comment = "This is resolved"
+                            )
+                        )
+                    )
+                )
+
+                val resultsResolved = service.listForOrtRunId(
+                    ortRunId = ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(resolved = true)
+                ).data
+
+                val resultsUnresolved = service.listForOrtRunId(
+                    ortRunId = ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(resolved = false)
+                ).data
+
+                resultsResolved shouldHaveSize 1
+                resultsResolved[0].rule shouldBe "Rule-1"
+                resultsResolved[0].resolutions shouldHaveSize 1
+                resultsResolved[0].resolutions[0].message shouldBe "Message-1"
+
+                resultsUnresolved shouldHaveSize 2
+                resultsUnresolved[0].rule shouldBe "Rule-2"
+                resultsUnresolved[1].rule shouldBe "Rule-3-no-id"
             }
         }
 
