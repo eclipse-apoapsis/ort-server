@@ -58,6 +58,8 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
+import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.getConfigByKey
+import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.setConfigByKey
 import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationException
 import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication

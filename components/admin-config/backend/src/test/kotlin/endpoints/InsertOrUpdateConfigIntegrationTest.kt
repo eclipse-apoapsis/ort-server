@@ -33,6 +33,8 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
+import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.getConfigByKey
+import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.setConfigByKey
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
