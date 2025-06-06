@@ -26,9 +26,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 
@@ -51,7 +49,6 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                 }
 
                 client.post("/admin/config/HOME_ICON_URL") {
-                    contentType(ContentType.Application.Json)
                     setBody(
                         Config(
                             value = "https://example.com/icon.png",
@@ -82,7 +79,6 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                 }
 
                 client.post("/admin/config/HOME_ICON_URL") {
-                    contentType(ContentType.Application.Json)
                     setBody(
                         Config(
                             value = "https://example.com/icon.png",
@@ -100,7 +96,6 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                 }
 
                 client.post("/admin/config/HOME_ICON_URL") {
-                    contentType(ContentType.Application.Json)
                     setBody(
                         Config(
                             value = "https://changed/example.com/explicit_icon.png",

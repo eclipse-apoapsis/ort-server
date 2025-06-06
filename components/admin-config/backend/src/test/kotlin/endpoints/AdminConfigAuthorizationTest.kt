@@ -28,7 +28,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.serialization
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
@@ -189,12 +188,10 @@ class AdminConfigAuthorizationTest : WordSpec({
                 val client = createJsonClient().configureAuthentication(clientConfig, json)
 
                 client.post("/admin/config/$configKey") {
-                    contentType(ContentType.Application.Json)
                     setBody(body)
                 } shouldHaveStatus HttpStatusCode.Forbidden
                 keycloak.keycloakAdminClient.addUserRole(TEST_USER.username.value, Superuser.ROLE_NAME)
                 client.post("/admin/config/$configKey") {
-                    contentType(ContentType.Application.Json)
                     setBody(body)
                 } shouldHaveStatus HttpStatusCode.OK
             }

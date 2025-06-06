@@ -26,9 +26,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 
@@ -52,7 +50,6 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
 
                 // Insert a test config key to database
                 client.post("/admin/config/HOME_ICON_URL") {
-                    contentType(ContentType.Application.Json)
                     setBody(
                         Config(
                             value = "https://example.com/existing_icon.png",
