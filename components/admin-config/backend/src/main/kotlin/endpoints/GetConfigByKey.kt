@@ -72,6 +72,7 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
     requireAuthenticated()
 
     val keyParameter = call.requireParameter("key")
+
     val key = runCatching {
         enumValueOf<ConfigKey>(keyParameter)
     }.getOrElse {
@@ -84,6 +85,8 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
         )
         return@get
     }
+
     val configValue = transaction(db) { ConfigTable.get(key) }
+
     call.respond(HttpStatusCode.OK, configValue)
 }
