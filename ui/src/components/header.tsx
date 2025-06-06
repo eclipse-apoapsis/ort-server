@@ -27,6 +27,7 @@ import { z } from 'zod';
 import { useAdminServiceGetApiV1AdminConfigByKey } from '@/api/queries';
 import homeIcon from '@/assets/home-icon.svg';
 import { ModeToggle } from '@/components/mode-toggle';
+import { Siblings } from '@/components/siblings';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
@@ -41,8 +42,6 @@ import { LoadingIndicator } from './loading-indicator';
 import { ToastError } from './toast-error';
 import {
   Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from './ui/breadcrumb';
@@ -232,27 +231,18 @@ export const Header = () => {
             {organizationMatch?.context &&
               organizationMatch.context.breadcrumbs.organization !==
                 undefined && (
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to={organizationMatch.pathname}>
-                      {organizationMatch.context.breadcrumbs.organization}
-                    </Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
+                <Siblings
+                  entity='organization'
+                  pathName={organizationMatch.pathname}
+                />
               )}
-            {productMatch?.context &&
-              productMatch.context.breadcrumbs.product !== undefined && (
-                <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                      <Link to={productMatch.pathname}>
-                        {productMatch.context.breadcrumbs.product}
-                      </Link>
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </>
-              )}
+            {productMatch?.context && (
+              <>
+                {organizationMatch?.context.breadcrumbs.organization !==
+                  undefined && <BreadcrumbSeparator />}
+                <Siblings entity='product' pathName={productMatch.pathname} />
+              </>
+            )}
             {repoMatch?.context && (
               <>
                 {(organizationMatch?.context.breadcrumbs.organization !==
@@ -260,32 +250,18 @@ export const Header = () => {
                   productMatch?.context.breadcrumbs.product !== undefined) && (
                   <BreadcrumbSeparator />
                 )}
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link
-                      to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
-                      params={{
-                        orgId: repoMatch.params.orgId,
-                        productId: repoMatch.params.productId,
-                        repoId: repoMatch.params.repoId,
-                      }}
-                    >
-                      {repoMatch.context.breadcrumbs.repo}
-                    </Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
+                <Siblings
+                  entity='repository'
+                  pathName={
+                    '/organizations/$orgId/products/$productId/repositories/$repoId/runs'
+                  }
+                />
               </>
             )}
             {runMatch?.context && (
               <>
                 <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to={runMatch.pathname}>
-                      {runMatch.context.breadcrumbs.run}
-                    </Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
+                <Siblings entity='run' pathName={runMatch.pathname} />
               </>
             )}
           </BreadcrumbList>
