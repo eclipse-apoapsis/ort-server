@@ -47,6 +47,7 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
             description = "The config key."
             required = true
         }
+
         body<Config> {
             description = "The config value and isEnabled properties."
             example("Config value") {
@@ -64,6 +65,7 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
         HttpStatusCode.OK to {
             description = "The config entry was successfully set."
         }
+
         HttpStatusCode.BadRequest to {
             description = "The config key is invalid."
         }
@@ -72,6 +74,7 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
     requireSuperuser()
 
     val keyParameter = call.requireParameter("key")
+
     val key = runCatching {
         enumValueOf<ConfigKey>(keyParameter)
     }.getOrElse {
@@ -84,7 +87,9 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
         )
         return@post
     }
+
     val config = call.receive<Config>()
+
     transaction(db) {
         ConfigTable.insertOrUpdate(
             key = key,
@@ -92,5 +97,6 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
             isEnabled = config.isEnabled
         )
     }
+
     call.respond(HttpStatusCode.OK)
 }
