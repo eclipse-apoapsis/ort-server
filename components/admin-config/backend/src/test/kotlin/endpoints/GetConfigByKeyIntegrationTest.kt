@@ -54,17 +54,18 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
                     setBody(
                         Config(
                             value = "https://example.com/existing_icon.png",
-                            isEnabled = true,
+                            isEnabled = true
                         )
                     )
                 }
 
                 val response = client.get("/admin/config/HOME_ICON_URL")
-
                 response shouldHaveStatus HttpStatusCode.OK
-                val config = response.body<Config>()
-                config.value shouldBe "https://example.com/existing_icon.png"
-                config.isEnabled shouldBe true
+
+                with(response.body<Config>()) {
+                    value shouldBe "https://example.com/existing_icon.png"
+                    isEnabled shouldBe true
+                }
             }
         }
 
@@ -79,11 +80,12 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
                 }
 
                 val response = client.get("/admin/config/HOME_ICON_URL")
-
                 response shouldHaveStatus HttpStatusCode.OK
-                val config = response.body<Config>()
-                config.value shouldBe "https://example.com/icon.png"
-                config.isEnabled shouldBe false
+
+                with(response.body<Config>()) {
+                    value shouldBe "https://example.com/icon.png"
+                    isEnabled shouldBe false
+                }
             }
         }
 
@@ -97,9 +99,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
                     }
                 }
 
-                val response = client.get("/admin/config/INVALID_KEY")
-
-                response shouldHaveStatus HttpStatusCode.BadRequest
+                client.get("/admin/config/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
     }
