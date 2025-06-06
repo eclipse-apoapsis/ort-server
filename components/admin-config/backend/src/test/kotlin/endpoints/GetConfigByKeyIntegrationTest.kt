@@ -42,7 +42,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            insertOrUpdateConfig(dbExtension.db)
+                            setConfigByKey(dbExtension.db)
                             getConfigByKey(dbExtension.db)
                         }
                     }

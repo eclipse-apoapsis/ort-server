@@ -42,7 +42,7 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            insertOrUpdateConfig(dbExtension.db)
+                            setConfigByKey(dbExtension.db)
                             getConfigByKey(dbExtension.db)
                         }
                     }
@@ -72,7 +72,7 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            insertOrUpdateConfig(dbExtension.db)
+                            setConfigByKey(dbExtension.db)
                             getConfigByKey(dbExtension.db)
                         }
                     }

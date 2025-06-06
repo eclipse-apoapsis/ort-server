@@ -36,11 +36,10 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 
-internal fun Route.insertOrUpdateConfig(db: Database) = post("admin/config/{key}", {
-    operationId = "InsertOrUpdateConfig"
-    summary = "Insert or update a config key"
-    description = "For an existing key, update the value and isEnabled of the key. " +
-        "If the key does not exist, insert it."
+internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
+    operationId = "SetConfigByKey"
+    summary = "Set the config entry for the provided key"
+    description = "Set the value and isEnabled properties for a config key."
     tags = listOf("Admin")
 
     request {
@@ -49,7 +48,7 @@ internal fun Route.insertOrUpdateConfig(db: Database) = post("admin/config/{key}
             required = true
         }
         body<Config> {
-            description = "The config value and enabled parameters."
+            description = "The config value and isEnabled properties."
             example("Config value") {
                 value = """
                     {
@@ -63,10 +62,10 @@ internal fun Route.insertOrUpdateConfig(db: Database) = post("admin/config/{key}
 
     response {
         HttpStatusCode.OK to {
-            description = "The config entry was successfully inserted or updated."
+            description = "The config entry was successfully set."
         }
         HttpStatusCode.BadRequest to {
-            description = "Invalid config key."
+            description = "The config key is invalid."
         }
     }
 }) {

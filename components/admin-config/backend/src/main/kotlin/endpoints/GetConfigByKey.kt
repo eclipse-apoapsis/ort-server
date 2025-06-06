@@ -37,9 +37,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
     operationId = "GetConfigByKey"
-    summary = "Get the value of a config key"
-    description = "Get the value and isEnabled properties of a config key. " +
-        "If the key does not exist in the database, a default value is returned."
+    summary = "Get the config for the provided key"
+    description = "Get the value and isEnabled properties for a config key. " +
+            "If no value was set before, the default value is returned."
     tags = listOf("Admin")
 
     request {
@@ -65,7 +65,7 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
         }
 
         HttpStatusCode.BadRequest to {
-            description = "Invalid config key."
+            description = "The config key is invalid."
         }
     }
 }) {

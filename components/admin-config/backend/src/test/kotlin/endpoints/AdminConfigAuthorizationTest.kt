@@ -172,7 +172,7 @@ class AdminConfigAuthorizationTest : WordSpec({
 
                     routing {
                         authenticate(SecurityConfigurations.TOKEN) {
-                            insertOrUpdateConfig(dbExtension.db)
+                            setConfigByKey(dbExtension.db)
                         }
                     }
                 }
