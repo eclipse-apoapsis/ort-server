@@ -53,17 +53,18 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                     setBody(
                         Config(
                             value = "https://example.com/icon.png",
-                            isEnabled = true,
+                            isEnabled = true
                         )
                     )
                 }
 
                 val response = client.get("/admin/config/HOME_ICON_URL")
-
                 response shouldHaveStatus HttpStatusCode.OK
-                val config = response.body<Config>()
-                config.value shouldBe "https://example.com/icon.png"
-                config.isEnabled shouldBe true
+
+                with(response.body<Config>()) {
+                    value shouldBe "https://example.com/icon.png"
+                    isEnabled shouldBe true
+                }
             }
         }
 
@@ -83,34 +84,36 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                     setBody(
                         Config(
                             value = "https://example.com/icon.png",
-                            isEnabled = true,
+                            isEnabled = true
                         )
                     )
                 }
 
                 val response = client.get("/admin/config/HOME_ICON_URL")
-
                 response shouldHaveStatus HttpStatusCode.OK
-                val config = response.body<Config>()
-                config.value shouldBe "https://example.com/icon.png"
-                config.isEnabled shouldBe true
+
+                with(response.body<Config>()) {
+                    value shouldBe "https://example.com/icon.png"
+                    isEnabled shouldBe true
+                }
 
                 client.post("/admin/config/HOME_ICON_URL") {
                     contentType(ContentType.Application.Json)
                     setBody(
                         Config(
                             value = "https://changed/example.com/explicit_icon.png",
-                            isEnabled = true,
+                            isEnabled = true
                         )
                     )
                 }
 
                 val response2 = client.get("/admin/config/HOME_ICON_URL")
-
                 response2 shouldHaveStatus HttpStatusCode.OK
-                val config2 = response2.body<Config>()
-                config2.value shouldBe "https://changed/example.com/explicit_icon.png"
-                config2.isEnabled shouldBe true
+
+                with(response2.body<Config>()) {
+                    value shouldBe "https://changed/example.com/explicit_icon.png"
+                    isEnabled shouldBe true
+                }
             }
         }
 
@@ -124,9 +127,7 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                     }
                 }
 
-                val response = client.get("/admin/config/INVALID_KEY")
-
-                response shouldHaveStatus HttpStatusCode.BadRequest
+                client.get("/admin/config/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
     }
