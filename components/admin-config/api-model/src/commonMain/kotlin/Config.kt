@@ -34,9 +34,8 @@ data class Config(
 )
 
 /**
- * The supported configuration keys. The keys are specified as enumerable values
- * to prevent addition of arbitrary keys to the table. New keys should be added
- * by adding a new entry to this enum class, possibly with a default value.
+ * The supported configuration keys. The keys are specified as enumerable values to prevent addition of arbitrary keys
+ * to the table. New keys should be added by adding a new entry to this enum class, possibly with a default value.
  */
 enum class ConfigKey(val default: String) {
     HOME_ICON_URL("https://example.com/icon.png"),
