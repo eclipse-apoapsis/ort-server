@@ -22,19 +22,19 @@ package org.eclipse.apoapsis.ortserver.components.adminconfig
 import kotlinx.serialization.Serializable
 
 /**
- * A configuration entry.
+ * A config entry.
  */
 @Serializable
 data class Config(
-    /** The value of the configuration entry. If null, the [default value][ConfigKey.default] is used. */
+    /** The value of the config entry. If null, the [default value][ConfigKey.default] is used. */
     val value: String?,
 
-    /** Whether the configuration entry is enabled. If `false`, the [default value][ConfigKey.default] is used. */
+    /** Whether the config entry is enabled. If `false`, the [default value][ConfigKey.default] is used. */
     val isEnabled: Boolean
 )
 
 /**
- * The supported configuration keys. The keys are specified as enumerable values to prevent addition of arbitrary keys
+ * The supported config keys. The keys are specified as enumerable values to prevent addition of arbitrary keys
  * to the table. New keys should be added by adding a new entry to this enum class, possibly with a default value.
  */
 enum class ConfigKey(val default: String) {

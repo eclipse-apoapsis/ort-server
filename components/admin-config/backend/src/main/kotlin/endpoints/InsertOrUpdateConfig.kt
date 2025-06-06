@@ -38,19 +38,19 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 internal fun Route.insertOrUpdateConfig(db: Database) = post("admin/config/{key}", {
     operationId = "InsertOrUpdateConfig"
-    summary = "Insert or update a configuration key"
+    summary = "Insert or update a config key"
     description = "For an existing key, update the value and isEnabled of the key. " +
         "If the key does not exist, insert it."
     tags = listOf("Admin")
 
     request {
         pathParameter<ConfigKey>("key") {
-            description = "The configuration key."
+            description = "The config key."
             required = true
         }
         body<Config> {
-            description = "The configuration value and enabled parameters."
-            example("Configuration value") {
+            description = "The config value and enabled parameters."
+            example("Config value") {
                 value = """
                     {
                         "isEnabled": true,
@@ -63,10 +63,10 @@ internal fun Route.insertOrUpdateConfig(db: Database) = post("admin/config/{key}
 
     response {
         HttpStatusCode.OK to {
-            description = "The configuration entry was successfully inserted or updated."
+            description = "The config entry was successfully inserted or updated."
         }
         HttpStatusCode.BadRequest to {
-            description = "Invalid configuration key."
+            description = "Invalid config key."
         }
     }
 }) {
@@ -79,7 +79,7 @@ internal fun Route.insertOrUpdateConfig(db: Database) = post("admin/config/{key}
         call.respond(
             HttpStatusCode.BadRequest,
             ErrorResponse(
-                message = "Invalid configuration key: $keyParameter",
+                message = "Invalid config key: $keyParameter",
                 cause = "Allowed keys: ${ConfigKey.entries.joinToString(", ")}"
             )
         )
