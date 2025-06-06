@@ -23,13 +23,13 @@ import kotlinx.serialization.Serializable
 
 /**
  * A configuration entry.
- *
- * @property value The value of the configuration entry. If null, the default value is used.
- * @property isEnabled Whether the configuration entry is enabled or not.
  */
 @Serializable
 data class Config(
+    /** The value of the configuration entry. If null, the [default value][ConfigKey.default] is used. */
     val value: String?,
+
+    /** Whether the configuration entry is enabled. If `false`, the [default value][ConfigKey.default] is used. */
     val isEnabled: Boolean
 )
 
