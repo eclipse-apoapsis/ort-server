@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
     "GetConfigByKey" should {
-        "return the value and enabled status of an existing configuration key" {
+        "return the value and enabled status of an existing config key" {
             integrationTestApplication { client ->
                 application {
                     routing {
@@ -48,7 +48,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
                     }
                 }
 
-                // Insert a test configuration key to database
+                // Insert a test config key to database
                 client.post("/admin/config/HOME_ICON_URL") {
                     contentType(ContentType.Application.Json)
                     setBody(
@@ -68,7 +68,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "return the default value if the configuration key does not exist in db" {
+        "return the default value if the config key does not exist in db" {
             integrationTestApplication { client ->
                 application {
                     routing {
@@ -87,7 +87,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "return BadRequest if the configuration key is invalid" {
+        "return BadRequest if the config key is invalid" {
             integrationTestApplication { client ->
                 application {
                     routing {

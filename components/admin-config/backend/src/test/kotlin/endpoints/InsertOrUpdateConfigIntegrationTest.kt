@@ -37,7 +37,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
     "InsertOrUpdateConfig" should {
-        "insert the new configuration key if it doesn't exist" {
+        "insert the new config key if it doesn't exist" {
             integrationTestApplication { client ->
                 application {
                     routing {
@@ -67,7 +67,7 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "update the value and isEnabled status of an existing configuration key" {
+        "update the value and isEnabled status of an existing config key" {
             integrationTestApplication { client ->
                 application {
                     routing {
@@ -114,7 +114,7 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "return BadRequest if the configuration key is invalid" {
+        "return BadRequest if the config key is invalid" {
             integrationTestApplication { client ->
                 application {
                     routing {
