@@ -41,6 +41,7 @@ repositories {
 
 dependencies {
     implementation(projects.components.authorization.implementation)
+    implementation(projects.components.adminConfig.apiModel)
     implementation(projects.shared.apiModel)
     implementation(projects.shared.ktorUtils)
 

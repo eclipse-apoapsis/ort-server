@@ -20,33 +20,10 @@
 package org.eclipse.apoapsis.ortserver.components.adminconfig
 
 import kotlinx.datetime.Clock
-import kotlinx.serialization.Serializable
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.upsert
-
-/**
- * A configuration entry.
- *
- * @property value The value of the configuration entry. If null, the default value is used.
- * @property isEnabled Whether the configuration entry is enabled or not.
- */
-@Serializable
-data class Config(
-    val value: String?,
-    val isEnabled: Boolean
-)
-
-/**
- * The supported configuration keys. The keys are specified as enumerable values
- * to prevent addition of arbitrary keys to the table. New keys should be added
- * by adding a new entry to this enum class, possibly with a default value.
- */
-enum class ConfigKey(val default: String) {
-    HOME_ICON_URL("https://example.com/icon.png"),
-    MAIN_PRODUCT_NAME("ORT Server"),
-}
 
 object ConfigTable : Table("config_table") {
     val key = enumerationByName<ConfigKey>("key", 255)
