@@ -24,7 +24,9 @@ import io.kotest.core.spec.style.WordSpec
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.serialization
 import io.ktor.server.application.install
@@ -35,6 +37,7 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import io.ktor.util.appendIfNameAbsent
 
 import io.mockk.every
 import io.mockk.mockk
@@ -94,6 +97,10 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
 fun ApplicationTestBuilder.createJsonClient() = createClient {
     install(ClientContentNegotiation) {
         json(Json)
+    }
+
+    defaultRequest {
+        headers.appendIfNameAbsent(HttpHeaders.ContentType, ContentType.Application.Json.toString())
     }
 }
 
