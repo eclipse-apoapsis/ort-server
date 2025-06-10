@@ -36,7 +36,9 @@ import org.eclipse.apoapsis.ortserver.model.UserGroup
 
 class UserServiceTest : WordSpec({
     val keycloakClient = mockk<KeycloakClient>()
-    val service = UserService(keycloakClient)
+
+    val keycloakGroupPrefix = "my_prefix_"
+    val service = UserService(keycloakClient, keycloakGroupPrefix)
 
     fun mockGroupsListForEntity(entityName: String, entityId: Long) {
         coEvery {
@@ -58,7 +60,7 @@ class UserServiceTest : WordSpec({
         } returns emptySet()
 
         coEvery {
-            keycloakClient.searchGroups(GroupName("${entityName}_${entityId}_"))
+            keycloakClient.searchGroups(GroupName("${keycloakGroupPrefix}${entityName}_${entityId}_"))
         } returns setOf(
             Group(GroupId("gr1-wri"), GroupName("${entityName}_${entityId}_WRITERS")),
             Group(GroupId("gr2-adm"), GroupName("${entityName}_${entityId}_ADMINS")),
@@ -72,7 +74,7 @@ class UserServiceTest : WordSpec({
             val orgId = 7L
 
             coEvery {
-                keycloakClient.searchGroups(GroupName("ORGANIZATION_${orgId}_"))
+                keycloakClient.searchGroups(GroupName("${keycloakGroupPrefix}ORGANIZATION_${orgId}_"))
             } returns emptySet()
 
             // When
@@ -105,7 +107,7 @@ class UserServiceTest : WordSpec({
             val prodId = 4L
 
             coEvery {
-                keycloakClient.searchGroups(GroupName("PRODUCT_${prodId}_"))
+                keycloakClient.searchGroups(GroupName("${keycloakGroupPrefix}PRODUCT_${prodId}_"))
             } returns emptySet()
 
             // When
@@ -115,7 +117,7 @@ class UserServiceTest : WordSpec({
             result shouldBe emptyMap()
         }
 
-        "return map of users with corresponding set of roles within organization" {
+        "return map of users with corresponding set of roles within product" {
             // Given
             val prodId = 4L
             mockGroupsListForEntity("PRODUCT", prodId)
@@ -138,7 +140,7 @@ class UserServiceTest : WordSpec({
             val repoId = 2L
 
             coEvery {
-                keycloakClient.searchGroups(GroupName("REPOSITORY_${repoId}_"))
+                keycloakClient.searchGroups(GroupName("${keycloakGroupPrefix}REPOSITORY_${repoId}_"))
             } returns emptySet()
 
             // When
