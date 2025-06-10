@@ -19,181 +19,35 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig.endpoints
 
-import io.kotest.assertions.ktor.client.shouldHaveStatus
-import io.kotest.core.extensions.install
-import io.kotest.core.spec.style.WordSpec
-
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.kotlinx.serialization
-import io.ktor.server.application.install
-import io.ktor.server.auth.authenticate
-import io.ktor.server.config.MapApplicationConfig
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
-import io.ktor.server.routing.routing
-import io.ktor.server.testing.testApplication
 
-import kotlinx.serialization.json.Json
-
-import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
-import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
-import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
-import org.eclipse.apoapsis.ortserver.clients.keycloak.User
-import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
-import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientForTestRealm
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
-import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.getConfigByKey
-import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.setConfigByKey
-import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationException
-import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
-import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
-import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.createJsonClient
-import org.eclipse.apoapsis.ortserver.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
-private val TEST_USER = User(
-    id = UserId("test-user-id"),
-    username = UserName("test-user"),
-    firstName = "Test",
-    lastName = "User",
-    email = "test-user@example.org"
-)
-
-private const val TEST_USER_PASSWORD = "password"
-
-class AdminConfigAuthorizationTest : WordSpec({
-    tags(Integration)
-
-    val dbExtension = extension(DatabaseTestExtension())
-
-    val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
-        setUpUser(TEST_USER, TEST_USER_PASSWORD)
-        setUpClientScope(TEST_SUBJECT_CLIENT)
-    }
-
-    val json = Json { ignoreUnknownKeys = true }
-
-    val keycloakClient = keycloak.createKeycloakClientForTestRealm()
-    val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
-    val jwtConfig = keycloak.createJwtConfigMapForTestRealm()
-
-    beforeEach {
-        val roleName = RoleName(Superuser.ROLE_NAME)
-        val groupName = GroupName(Superuser.GROUP_NAME)
-        keycloakClient.createRole(name = roleName)
-        keycloakClient.createGroup(groupName)
-        val group = keycloakClient.getGroup(groupName)
-        val role = keycloakClient.getRole(roleName)
-        keycloakClient.addGroupClientRole(group.id, role)
-    }
-
+class AdminConfigAuthorizationTest : AbstractAuthorizationTest({
     "GetConfigByKey for HOME_ICON_URL" should {
         "require authorization" {
-            testApplication {
-                val config = MapApplicationConfig()
-                (keycloakConfig + jwtConfig).forEach { config.put(it.key, it.value) }
-                config.put("jwt.audience", TEST_SUBJECT_CLIENT)
+            val configKey = ConfigKey.HOME_ICON_URL
 
-                environment {
-                    this.config = config
-                }
-
-                application {
-                    install(ContentNegotiation) {
-                        serialization(ContentType.Application.Json, json)
-                    }
-
-                    install(StatusPages) {
-                        exception<AuthorizationException> { call, _ ->
-                            call.respond(HttpStatusCode.Forbidden)
-                        }
-                    }
-
-                    configureAuthentication(config, keycloakClient)
-
-                    routing {
-                        authenticate(SecurityConfigurations.TOKEN) {
-                            getConfigByKey(dbExtension.db)
-                        }
-                    }
-                }
-
-                val configKey = ConfigKey.HOME_ICON_URL
-
-                val clientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
-                    user = TEST_USER.username.value,
-                    secret = TEST_USER_PASSWORD
-                )
-                val client = createJsonClient().configureAuthentication(clientConfig, json)
-
-                client.get("/admin/config/$configKey") shouldHaveStatus HttpStatusCode.OK
+            requestShouldRequireAuthentication(routes = { adminConfigRoutes(dbExtension.db) }) {
+                get("/admin/config/$configKey")
             }
         }
     }
 
     "InsertOrUpdateConfig" should {
         "require the superuser role" {
-            testApplication {
-                val config = MapApplicationConfig()
-                (keycloakConfig + jwtConfig).forEach { config.put(it.key, it.value) }
-                config.put("jwt.audience", TEST_SUBJECT_CLIENT)
+            val configKey = ConfigKey.HOME_ICON_URL
+            val body = Config(value = "https://example.com/icon.png", isEnabled = true)
 
-                environment {
-                    this.config = config
-                }
-
-                application {
-                    install(ContentNegotiation) {
-                        serialization(ContentType.Application.Json, json)
-                    }
-
-                    install(StatusPages) {
-                        exception<AuthorizationException> { call, _ ->
-                            call.respond(HttpStatusCode.Forbidden)
-                        }
-                    }
-
-                    configureAuthentication(config, keycloakClient)
-
-                    routing {
-                        authenticate(SecurityConfigurations.TOKEN) {
-                            setConfigByKey(dbExtension.db)
-                        }
-                    }
-                }
-
-                val configKey = ConfigKey.HOME_ICON_URL
-                val body = Config(value = "https://example.com/icon.png", isEnabled = true)
-
-                val clientConfig = keycloak.createKeycloakClientConfigurationForTestRealm(
-                    user = TEST_USER.username.value,
-                    secret = TEST_USER_PASSWORD
-                )
-                val client = createJsonClient().configureAuthentication(clientConfig, json)
-
-                client.post("/admin/config/$configKey") {
+            requestShouldRequireSuperuser(routes = { adminConfigRoutes(dbExtension.db) }) {
+                post("/admin/config/$configKey") {
                     setBody(body)
-                } shouldHaveStatus HttpStatusCode.Forbidden
-                keycloak.keycloakAdminClient.addUserRole(TEST_USER.username.value, Superuser.ROLE_NAME)
-                client.post("/admin/config/$configKey") {
-                    setBody(body)
-                } shouldHaveStatus HttpStatusCode.OK
+                }
             }
         }
     }
