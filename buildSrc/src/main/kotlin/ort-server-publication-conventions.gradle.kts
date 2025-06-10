@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     // Apply third-party plugins.
     id("com.vanniktech.maven.publish")
@@ -51,5 +53,5 @@ mavenPublishing {
         }
     }
 
-    publishToMavenCentral()
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 }
