@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.adminconfig.endpoints
+package org.eclipse.apoapsis.ortserver.components.adminconfig.routes
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.shouldBe
@@ -31,13 +31,11 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
-import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.getConfigByKey
-import org.eclipse.apoapsis.ortserver.components.adminconfig.routes.setConfigByKey
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
-class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
-    "InsertOrUpdateConfig" should {
-        "insert the new config key if it doesn't exist" {
+class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
+    "GetConfigByKey" should {
+        "return the value and enabled status of an existing config key" {
             integrationTestApplication { client ->
                 application {
                     routing {
@@ -48,10 +46,11 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                     }
                 }
 
+                // Insert a test config key to database
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
                         Config(
-                            value = "https://example.com/icon.png",
+                            value = "https://example.com/existing_icon.png",
                             isEnabled = true
                         )
                     )
@@ -61,30 +60,20 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.OK
 
                 with(response.body<Config>()) {
-                    value shouldBe "https://example.com/icon.png"
+                    value shouldBe "https://example.com/existing_icon.png"
                     isEnabled shouldBe true
                 }
             }
         }
 
-        "update the value and isEnabled status of an existing config key" {
+        "return the default value if the config key does not exist in db" {
             integrationTestApplication { client ->
                 application {
                     routing {
                         authenticate("test") {
-                            setConfigByKey(dbExtension.db)
                             getConfigByKey(dbExtension.db)
                         }
                     }
-                }
-
-                client.post("/admin/config/HOME_ICON_URL") {
-                    setBody(
-                        Config(
-                            value = "https://example.com/icon.png",
-                            isEnabled = true
-                        )
-                    )
                 }
 
                 val response = client.get("/admin/config/HOME_ICON_URL")
@@ -92,24 +81,7 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
 
                 with(response.body<Config>()) {
                     value shouldBe "https://example.com/icon.png"
-                    isEnabled shouldBe true
-                }
-
-                client.post("/admin/config/HOME_ICON_URL") {
-                    setBody(
-                        Config(
-                            value = "https://changed/example.com/explicit_icon.png",
-                            isEnabled = true
-                        )
-                    )
-                }
-
-                val response2 = client.get("/admin/config/HOME_ICON_URL")
-                response2 shouldHaveStatus HttpStatusCode.OK
-
-                with(response2.body<Config>()) {
-                    value shouldBe "https://changed/example.com/explicit_icon.png"
-                    isEnabled shouldBe true
+                    isEnabled shouldBe false
                 }
             }
         }
