@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.adminconfig.endpoints
+package org.eclipse.apoapsis.ortserver.components.adminconfig.routes
 
 import io.ktor.client.request.get
 import io.ktor.client.request.post
