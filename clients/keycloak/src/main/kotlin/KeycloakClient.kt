@@ -42,9 +42,9 @@ interface KeycloakClient {
     suspend fun getGroup(name: GroupName): Group
 
     /**
-     * Searches the [group][Group] that group name contains [name].
+     * Get all [groups][Group] that partially match the given [partialName][GroupName].
      */
-    suspend fun searchGroups(name: GroupName): Set<Group>
+    suspend fun searchGroups(partialName: GroupName): Set<Group>
 
     /**
      * Add a new [group][Group] to the Keycloak realm with the given [name].

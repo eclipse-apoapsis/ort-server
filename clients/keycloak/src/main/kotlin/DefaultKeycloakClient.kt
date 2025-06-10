@@ -209,11 +209,11 @@ class DefaultKeycloakClient(
         }.body<List<Group>>().find { it.name == name }
             ?: throw KeycloakClientException("Could not find group with name '${name.value}'.")
 
-    override suspend fun searchGroups(name: GroupName): Set<Group> =
+    override suspend fun searchGroups(partialName: GroupName): Set<Group> =
         runCatching {
             httpClient.get("$apiUrl/groups") {
                 url {
-                    parameters.append("search", name.value)
+                    parameters.append("search", partialName.value)
                     parameters.append("exact", "false")
                 }
             }
