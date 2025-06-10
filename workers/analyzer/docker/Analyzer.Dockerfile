@@ -41,7 +41,7 @@ ARG PYTHON_INSPECTOR_VERSION=0.14.0
 ARG PYTHON_PIPENV_VERSION=2023.12.1
 ARG PYTHON_POETRY_VERSION=1.8.3
 ARG PYTHON_VERSION=3.11.10
-ARG RUBY_VERSION=3.1.2
+ARG RUBY_VERSION=3.4.4
 ARG RUST_VERSION=1.72.0
 ARG SBT_VERSION=1.10.0
 ARG SWIFT_VERSION=5.10.1
@@ -79,6 +79,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libffi-dev \
     libgmp-dev \
     libmagic1 \
+    libyaml-dev \
     libz-dev \
     locales \
     lzma \
