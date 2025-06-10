@@ -29,8 +29,8 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 class AdminConfigAuthorizationTest : AbstractAuthorizationTest({
-    "GetConfigByKey for HOME_ICON_URL" should {
-        "require authorization" {
+    "GetConfigByKey" should {
+        "require authentication" {
             val configKey = ConfigKey.HOME_ICON_URL
 
             requestShouldRequireAuthentication(routes = { adminConfigRoutes(dbExtension.db) }) {
