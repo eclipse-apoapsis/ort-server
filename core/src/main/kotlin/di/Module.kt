@@ -190,12 +190,16 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     singleOf(::RepositoryService)
     singleOf(::RuleViolationService)
     singleOf(::SecretService)
-    singleOf(::UserService)
     singleOf(::VulnerabilityService)
 
     single<AuthorizationService> {
         val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
         DefaultAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
+    }
+
+    single<UserService> {
+        val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
+        UserService(get(), keycloakGroupPrefix)
     }
 
     single {

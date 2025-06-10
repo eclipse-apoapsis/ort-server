@@ -33,7 +33,13 @@ import org.eclipse.apoapsis.ortserver.model.UserGroup
  * A service providing functions for working with [users][User].
  */
 class UserService(
-    private val keycloakClient: KeycloakClient
+    private val keycloakClient: KeycloakClient,
+
+    /**
+     * A prefix for Keycloak group names, to be used when multiple instances of ORT Server share the same Keycloak
+     * realm.
+     */
+    private val keycloakGroupPrefix: String
 ) {
     /**
      * Create a user. If "password" is null, then "temporary" is ignored.
@@ -85,21 +91,33 @@ class UserService(
      * organization with this [organizationId].
      */
     suspend fun getUsersHavingRightsForOrganization(organizationId: Long): Map<User, Set<UserGroup>> =
-        getUsersForGroups(keycloakClient.searchGroups(GroupName(OrganizationRole.groupPrefix(organizationId))))
+        getUsersForGroups(
+            keycloakClient.searchGroups(
+                GroupName(keycloakGroupPrefix + OrganizationRole.groupPrefix(organizationId))
+            )
+        )
 
     /**
      * Get [User]s with all the [UserGroup]s assigned to them (ADMINS, WRITERS, READERS), that have access to the
      * product with this [productId].
      */
     suspend fun getUsersHavingRightForProduct(productId: Long): Map<User, Set<UserGroup>> =
-        getUsersForGroups(keycloakClient.searchGroups(GroupName(ProductRole.groupPrefix(productId))))
+        getUsersForGroups(
+            keycloakClient.searchGroups(
+                GroupName(keycloakGroupPrefix + ProductRole.groupPrefix(productId))
+            )
+        )
 
     /**
      * Get [User]s with all  the [UserGroup]s assigned to them (ADMINS, WRITERS, READERS), that have rights to the
      * repository with this [repositoryId].
      */
     suspend fun getUsersHavingRightsForRepository(repositoryId: Long): Map<User, Set<UserGroup>> =
-        getUsersForGroups(keycloakClient.searchGroups(GroupName(RepositoryRole.groupPrefix(repositoryId))))
+        getUsersForGroups(
+            keycloakClient.searchGroups(
+                GroupName(keycloakGroupPrefix + RepositoryRole.groupPrefix(repositoryId))
+            )
+        )
 
     private suspend fun getUsersForGroups(groups: Set<Group>): Map<User, Set<UserGroup>> {
         val users = mutableMapOf<User, Set<UserGroup>>()
