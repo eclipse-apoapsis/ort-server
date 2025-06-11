@@ -341,7 +341,7 @@ class RuleViolationServiceTest : WordSpec() {
 
     private fun createRuleViolationEntries(
         repositoryId: Long = fixtures.createRepository().id,
-        ruleViolations: List<OrtRuleViolation> = this.generateRuleViolations()
+        ruleViolations: List<OrtRuleViolation> = generateRuleViolations()
     ): OrtRun {
         val ortRun = fixtures.createOrtRun(
             repositoryId = repositoryId,
