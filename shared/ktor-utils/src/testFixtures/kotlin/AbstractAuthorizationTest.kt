@@ -62,7 +62,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
-import org.eclipse.apoapsis.ortserver.utils.test.Integration
+import org.eclipse.apoapsis.ortserver.utils.test.Authorization
 
 private val TEST_USER = User(
     id = UserId("test-user-id"),
@@ -100,7 +100,7 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
     val jwtConfig = keycloak.createJwtConfigMapForTestRealm()
 
     init {
-        tags(Integration)
+        tags(Authorization)
         body()
     }
 

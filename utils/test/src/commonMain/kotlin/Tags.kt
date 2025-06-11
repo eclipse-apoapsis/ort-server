@@ -23,5 +23,8 @@ package org.eclipse.apoapsis.ortserver.utils.test
 
 import io.kotest.core.Tag
 
+/** A [Tag] to mark authorization tests for API routes. */
+object Authorization : Tag()
+
 /** A [Tag] to mark integration tests. */
 object Integration : Tag()
