@@ -23,7 +23,5 @@ package org.eclipse.apoapsis.ortserver.utils.test
 
 import io.kotest.core.Tag
 
-/**
- * A [Tag] to mark integration tests.
- */
+/** A [Tag] to mark integration tests. */
 object Integration : Tag()
