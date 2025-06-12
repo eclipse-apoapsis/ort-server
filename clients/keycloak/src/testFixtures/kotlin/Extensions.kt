@@ -109,7 +109,7 @@ fun User.toUserRepresentation(
  */
 fun KeycloakContainer.createKeycloakClientConfigurationForTestRealm(
     secret: String = TEST_REALM_ADMIN_PASSWORD,
-    user: String? = TEST_REALM_ADMIN_USERNAME,
+    user: String = TEST_REALM_ADMIN_USERNAME,
     clientId: String = TEST_CLIENT,
     dataGetChunkSize: Int = 9999
 ) =
@@ -133,7 +133,7 @@ fun KeycloakContainer.createKeycloakConfigMapForTestRealm() =
             "keycloak.apiUrl" to config.apiUrl,
             "keycloak.clientId" to config.clientId,
             "keycloak.accessTokenUrl" to config.accessTokenUrl,
-            "keycloak.apiUser" to config.apiUser.orEmpty(),
+            "keycloak.apiUser" to config.apiUser,
             "keycloak.apiSecret" to config.apiSecret,
             "keycloak.subjectClientId" to config.subjectClientId
         )

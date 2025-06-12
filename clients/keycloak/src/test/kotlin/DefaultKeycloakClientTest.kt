@@ -65,7 +65,7 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
             "support the client credentials grant type" {
                 val config = keycloak.createKeycloakClientConfigurationForTestRealm(
                     secret = TEST_CLIENT_SECRET,
-                    user = null,
+                    user = "",
                     clientId = TEST_CONFIDENTIAL_CLIENT
                 )
                 val confidentialClient = DefaultKeycloakClient.create(config, createJson())
@@ -81,7 +81,7 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
             "return right number of groups with chunk size smaller than total number of groups" {
                 val config = keycloak.createKeycloakClientConfigurationForTestRealm(
                     secret = TEST_CLIENT_SECRET,
-                    user = null,
+                    user = "",
                     clientId = TEST_CONFIDENTIAL_CLIENT,
                     dataGetChunkSize = 2
                 )
@@ -97,7 +97,7 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
             "return filtered groups list" {
                 val config = keycloak.createKeycloakClientConfigurationForTestRealm(
                     secret = TEST_CLIENT_SECRET,
-                    user = null,
+                    user = "",
                     clientId = TEST_CONFIDENTIAL_CLIENT
                 )
                 val confidentialClient = DefaultKeycloakClient.create(config, createJson())
