@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateContentManagementSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
 val runPermissionsSync: RouteConfig.() -> Unit = {
     operationId = "runPermissionsSync"

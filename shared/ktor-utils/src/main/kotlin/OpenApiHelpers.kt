@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.apiDocs
+package org.eclipse.apoapsis.ortserver.shared.ktorutils
 
 import io.github.smiley4.ktoropenapi.config.RequestConfig
 import io.github.smiley4.ktoropenapi.config.ResponseConfig
