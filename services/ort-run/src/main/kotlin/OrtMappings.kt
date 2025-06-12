@@ -161,7 +161,7 @@ import org.ossreviewtoolkit.utils.spdx.SpdxLicenseChoice as OrtSpdxLicenseChoice
 
 fun OrtAdvisorConfiguration.mapToModel() =
     AdvisorConfiguration(
-        config = config?.mapValues { it.value.mapToModel() }.orEmpty()
+        config = advisors?.mapValues { it.value.mapToModel() }.orEmpty()
     )
 
 fun OrtAdvisorResult.mapToModel() =
@@ -489,7 +489,7 @@ fun OrtScannerConfiguration.mapToModel() =
         skipConcluded = skipConcluded,
         skipExcluded = skipExcluded,
         detectedLicenseMappings = detectedLicenseMapping,
-        config = config?.mapValues { it.value.mapToModel() }.orEmpty(),
+        config = scanners?.mapValues { it.value.mapToModel() }.orEmpty(),
         ignorePatterns = ignorePatterns
     )
 
