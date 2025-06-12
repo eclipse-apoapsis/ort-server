@@ -42,9 +42,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact
@@ -52,8 +49,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
@@ -62,6 +57,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 
 val getOrtRunById: RouteConfig.() -> Unit = {
     operationId = "getOrtRunById"

@@ -26,9 +26,6 @@ import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
@@ -37,6 +34,9 @@ import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.User as ModelUser
 import org.eclipse.apoapsis.ortserver.model.UserGroup as ModelUserGroup
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingOptions
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 
 class UserWithGroupsHelperTest : WordSpec({
     "sortAndPage" should {

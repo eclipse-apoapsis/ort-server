@@ -51,8 +51,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagingData
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
@@ -61,8 +59,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy.FULLY_RECURSIVE
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
@@ -73,6 +69,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 
 internal val fullJobConfigurations = JobConfigurations(
     analyzer = AnalyzerJobConfiguration(

@@ -20,13 +20,13 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
 import org.eclipse.apoapsis.ortserver.core.utils.paginate
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.UserGroup
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingOptions
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 
 /**
  * Sort and paginate the list of [UserWithGroups] by the given [PagingOptions].

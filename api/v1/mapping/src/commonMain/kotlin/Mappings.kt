@@ -61,8 +61,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData as ApiPackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse as ApiPagedResponse
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions as ApiPagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig as ApiPluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product as ApiProduct
@@ -81,8 +79,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as Ap
 import org.eclipse.apoapsis.ortserver.api.v1.model.Secret as ApiSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath as ApiShortestDependencyPath
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection as ApiSortDirection
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty as ApiSortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy as ApiSubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
@@ -163,11 +159,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
-import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
-import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
-import org.eclipse.apoapsis.ortserver.model.util.OrderField
 
 fun AdvisorJob.mapToApi() =
     ApiAdvisorJob(
@@ -784,42 +776,6 @@ fun ApiJiraRestClientConfiguration.mapToModel() =
         username = username,
         password = password
     )
-
-fun ApiPagingOptions.mapToModel() =
-    ListQueryParameters(
-        sortFields = sortProperties?.map { it.mapToModel() }.orEmpty(),
-        limit = limit,
-        offset = offset
-    )
-
-fun <T, E> ListQueryResult<T>.mapToApi(mapValues: (T) -> E) =
-    ApiPagedResponse(
-        data = data.map(mapValues),
-        pagination = params.mapToApi().toPagingData(totalCount)
-    )
-
-fun ListQueryParameters.mapToApi() =
-    ApiPagingOptions(
-        limit = limit,
-        offset = offset,
-        sortProperties = sortFields.map { it.mapToApi() }
-    )
-
-fun ApiSortProperty.mapToModel() = OrderField(name, direction.mapToModel())
-
-fun OrderField.mapToApi() = ApiSortProperty(name, direction.mapToApi())
-
-fun ApiSortDirection.mapToModel() =
-    when (this) {
-        ApiSortDirection.ASCENDING -> OrderDirection.ASCENDING
-        ApiSortDirection.DESCENDING -> OrderDirection.DESCENDING
-    }
-
-fun OrderDirection.mapToApi() =
-    when (this) {
-        OrderDirection.ASCENDING -> ApiSortDirection.ASCENDING
-        OrderDirection.DESCENDING -> ApiSortDirection.DESCENDING
-    }
 
 fun SourceCodeOrigin.mapToApi() =
     when (this) {
