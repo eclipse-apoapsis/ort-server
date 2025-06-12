@@ -61,7 +61,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData as ApiPackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse as ApiPagedResponse2
+import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse as ApiPagedResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions as ApiPagingOptions
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig as ApiPluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense as ApiProcessedDeclaredLicense
@@ -793,7 +793,7 @@ fun ApiPagingOptions.mapToModel() =
     )
 
 fun <T, E> ListQueryResult<T>.mapToApi(mapValues: (T) -> E) =
-    ApiPagedResponse2(
+    ApiPagedResponse(
         data = data.map(mapValues),
         pagination = params.mapToApi().toPagingData(totalCount)
     )
