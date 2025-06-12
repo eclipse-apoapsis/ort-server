@@ -26,11 +26,11 @@ import io.ktor.http.Parameters
 internal suspend fun HttpClient.generateAccessToken(
     tokenUrl: String,
     clientId: String,
-    username: String?,
+    username: String,
     password: String
 ) = submitForm(
     url = tokenUrl,
-    formParameters = if (username.isNullOrEmpty()) {
+    formParameters = if (username.isEmpty()) {
         createClientCredentialsParameters(clientId, password)
     } else {
         createPasswordParameters(clientId, username, password)
