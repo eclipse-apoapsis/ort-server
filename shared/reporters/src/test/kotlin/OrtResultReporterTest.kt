@@ -45,14 +45,16 @@ class OrtResultReporterTest : WordSpec({
             // as null. Changing the value in OrtTestData is not possible because the options in the server model are
             // not nullable and changing it would therefore make other tests fail.
             val advisorRun = OrtTestData.advisorRun.copy(
-                config = OrtTestData.advisorConfiguration.copy(config = null)
+                config = OrtTestData.advisorConfiguration.copy(advisors = null)
             )
             val ortResult = OrtTestData.result.copy(advisor = advisorRun)
 
             // Remove the secrets from the scanner configuration as they will not be serialized.
             val scannerRun = OrtTestData.scannerRun.copy(
                 config = OrtTestData.scannerConfiguration.copy(
-                    config = OrtTestData.scannerConfiguration.config?.mapValues { it.value.copy(secrets = emptyMap()) }
+                    scanners = OrtTestData.scannerConfiguration.scanners?.mapValues {
+                        it.value.copy(secrets = emptyMap())
+                    }
                 )
             )
             val expectedOrtResult = ortResult.copy(scanner = scannerRun)
@@ -74,14 +76,16 @@ class OrtResultReporterTest : WordSpec({
             val reporter = OrtResultReporter(config = OrtResultReporterConfig(compressed = true))
 
             val advisorRun = OrtTestData.advisorRun.copy(
-                config = OrtTestData.advisorConfiguration.copy(config = null)
+                config = OrtTestData.advisorConfiguration.copy(advisors = null)
             )
             val ortResult = OrtTestData.result.copy(advisor = advisorRun)
 
             // Remove the secrets from the scanner configuration as they will not be serialized.
             val scannerRun = OrtTestData.scannerRun.copy(
                 config = OrtTestData.scannerConfiguration.copy(
-                    config = OrtTestData.scannerConfiguration.config?.mapValues { it.value.copy(secrets = emptyMap()) }
+                    scanners = OrtTestData.scannerConfiguration.scanners?.mapValues {
+                        it.value.copy(secrets = emptyMap())
+                    }
                 )
             )
             val expectedOrtResult = ortResult.copy(scanner = scannerRun)

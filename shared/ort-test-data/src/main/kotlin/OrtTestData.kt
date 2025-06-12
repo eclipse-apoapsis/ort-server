@@ -419,7 +419,7 @@ object OrtTestData {
     )
 
     val advisorConfiguration = AdvisorConfiguration(
-        config = mapOf(
+        advisors = mapOf(
             "GitHubDefects" to PluginConfig(
                 options = mapOf(
                     "endpointUrl" to "https://github.com/defects",
@@ -488,7 +488,7 @@ object OrtTestData {
         skipExcluded = true,
         archive = null,
         detectedLicenseMapping = mapOf("license-1" to "spdx-license-1", "license-2" to "spdx-license-2"),
-        config = mapOf(
+        scanners = mapOf(
             "scanner-1" to PluginConfig(
                 options = mapOf("option-key-1" to "option-value-1"),
                 secrets = mapOf("secret-key-1" to "secret-value-1")

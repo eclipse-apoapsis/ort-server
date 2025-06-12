@@ -198,7 +198,7 @@ import org.ossreviewtoolkit.utils.spdx.toSpdx
 
 fun AdvisorConfiguration.mapToOrt() =
     OrtAdvisorConfiguration(
-        config = config.mapValues { it.value.mapToOrt() }
+        advisors = config.mapValues { it.value.mapToOrt() }
     )
 
 fun AdvisorResult.mapToOrt() =
@@ -603,7 +603,7 @@ fun ScannerConfiguration.mapToOrt() =
         skipConcluded = skipConcluded,
         skipExcluded = skipExcluded,
         detectedLicenseMapping = detectedLicenseMappings,
-        config = config.mapValues { it.value.mapToOrt() },
+        scanners = config.mapValues { it.value.mapToOrt() },
         ignorePatterns = ignorePatterns
     )
 

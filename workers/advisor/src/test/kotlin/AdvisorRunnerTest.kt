@@ -61,7 +61,7 @@ class AdvisorRunnerTest : WordSpec({
             )
 
             val run = result.advisor.shouldNotBeNull()
-            run.config shouldBe AdvisorConfiguration(config = emptyMap())
+            run.config shouldBe AdvisorConfiguration(advisors = emptyMap())
         }
 
         "create the configured advice providers with the correct options and secrets" {

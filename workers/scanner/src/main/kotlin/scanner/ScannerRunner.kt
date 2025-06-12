@@ -113,8 +113,8 @@ class ScannerRunner(
             detectedLicenseMapping = config.detectedLicenseMappings ?: defaultScannerConfig.detectedLicenseMapping,
             ignorePatterns = config.ignorePatterns.takeUnless { it.isNullOrEmpty() }
                 ?: defaultScannerConfig.ignorePatterns,
-            config = pluginConfigs.mapValues { it.value.mapToOrt() }.takeUnless { it.isEmpty() }
-                ?: defaultScannerConfig.config
+            scanners = pluginConfigs.mapValues { it.value.mapToOrt() }.takeUnless { it.isEmpty() }
+                ?: defaultScannerConfig.scanners
         )
 
         val downloaderConfig = DownloaderConfiguration(
@@ -134,9 +134,9 @@ class ScannerRunner(
             workingTreeCache
         )
 
-        val packageScannerWrappers = createScanners(config.scanners.orEmpty(), scannerConfig.config)
+        val packageScannerWrappers = createScanners(config.scanners.orEmpty(), scannerConfig.scanners)
         val projectScannerWrappers =
-            createScanners(config.projectScanners ?: config.scanners.orEmpty(), scannerConfig.config)
+            createScanners(config.projectScanners ?: config.scanners.orEmpty(), scannerConfig.scanners)
 
         try {
             val scanner = Scanner(
