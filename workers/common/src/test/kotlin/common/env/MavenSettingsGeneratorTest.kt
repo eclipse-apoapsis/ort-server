@@ -25,6 +25,7 @@ import io.kotest.extensions.system.withSystemProperties
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import io.kotest.matchers.string.shouldStartWith
 
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
@@ -105,8 +106,11 @@ class MavenSettingsGeneratorTest : WordSpec({
             MavenSettingsGenerator().generate(mockBuilder.builder, listOf(definition))
 
             val lines = mockBuilder.generatedLines()
-            lines[0] shouldBe "<settings xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.1.0 " +
-                    "http://maven.apache.org/xsd/settings-1.1.0.xsd\">"
+            lines[0] shouldStartWith "<settings "
+            lines[0] shouldContain "xmlns=\"http://maven.apache.org/SETTINGS/1.1.0\""
+            lines[0] shouldContain "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+            lines[0] shouldContain "xsi:schemaLocation=\"http://maven.apache.org/SETTINGS/1.1.0 " +
+                    "http://maven.apache.org/xsd/settings-1.1.0.xsd\""
             lines[1] shouldBe "    <servers>"
             lines[2] shouldBe "        <server>"
             lines[3] shouldBe "            <id>repo</id>"

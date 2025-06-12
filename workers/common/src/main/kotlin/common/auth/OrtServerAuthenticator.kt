@@ -146,6 +146,7 @@ private data class ServiceData(
      */
     fun getAuthenticatedService(host: String, url: URL?): InfrastructureService? {
         val services = servicesByHost[url?.host ?: host].orEmpty()
+        logger.info("Services for host '$host': ${services.joinToString { "${it.name} (${it.url})" }}")
 
         val matchingServices = url?.let { requestUrl ->
             val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
