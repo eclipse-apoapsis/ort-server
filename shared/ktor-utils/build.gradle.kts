@@ -29,7 +29,7 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.shared"
 
 dependencies {
-    implementation(libs.ktorServerCore)
+    api(libs.ktorServerCore)
 
     testFixturesApi(projects.components.authorization.implementation)
     testFixturesApi(projects.utils.test)
