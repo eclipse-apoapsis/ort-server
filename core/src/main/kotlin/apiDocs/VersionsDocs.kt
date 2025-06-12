@@ -23,6 +23,8 @@ import io.github.smiley4.ktoropenapi.config.RouteConfig
 
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
+
 val getVersions: RouteConfig.() -> Unit = {
     operationId = "getVersions"
     summary = "Get the versions of the ORT server and other components"

@@ -24,6 +24,7 @@ import io.github.smiley4.ktoropenapi.config.RouteConfig
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.core.api.Liveness
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
 val getLiveness: RouteConfig.() -> Unit = {
     operationId = "GetLiveness"
