@@ -85,9 +85,11 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
 
     override val name: String = NAME
 
-    override fun createProvider(configManager: ConfigManager): SecretsProvider {
+    override fun createProvider(configManager: ConfigManager): SecretsProvider =
+        createProvider(configManager.getStringOrDefault(ERROR_PATH_PROPERTY, "."))
+
+    fun createProvider(errorPath: String = "."): SecretsProvider {
         val storage = createStorage()
-        val errorPath = configManager.getStringOrDefault(ERROR_PATH_PROPERTY, ".")
 
         fun checkPath(path: Path): Path =
             path.takeUnless { it.path == errorPath } ?: throw IllegalArgumentException("Test exception")

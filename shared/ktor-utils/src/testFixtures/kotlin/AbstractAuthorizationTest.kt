@@ -64,6 +64,8 @@ import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.utils.test.Authorization
 
+import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
+
 private val TEST_USER = User(
     id = UserId("test-user-id"),
     username = UserName("test-user"),
@@ -138,8 +140,12 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
                 }
 
                 install(StatusPages) {
+                    // TODO: This should use the same config as in core.
                     exception<AuthorizationException> { call, _ ->
                         call.respond(HttpStatusCode.Forbidden)
+                    }
+                    exception<EntityNotFoundException> { call, _ ->
+                        call.respond(HttpStatusCode.NotFound)
                     }
                 }
 

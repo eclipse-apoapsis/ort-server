@@ -36,11 +36,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.hasPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
@@ -50,35 +48,27 @@ import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromOrganizationGroup
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationProducts
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatisticsByOrganizationId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByOrganizationIdAndName
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepositoriesByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganizationById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postInfrastructureServiceForOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
-import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToOrganizationGroup
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
-import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.services.ortrun.PackageService
@@ -98,7 +88,6 @@ import org.koin.ktor.ext.inject
 @Suppress("LongMethod")
 fun Route.organizations() = route("organizations") {
     val organizationService by inject<OrganizationService>()
-    val secretService by inject<SecretService>()
     val infrastructureServiceService by inject<InfrastructureServiceService>()
     val repositoryService by inject<RepositoryService>()
     val vulnerabilityService by inject<VulnerabilityService>()
@@ -198,80 +187,6 @@ fun Route.organizations() = route("organizations") {
                     organizationService.createProduct(createProduct.name, createProduct.description, orgId)
 
                 call.respond(HttpStatusCode.Created, createdProduct.mapToApi())
-            }
-        }
-
-        route("secrets") {
-            get(getSecretsByOrganizationId) {
-                requirePermission(OrganizationPermission.READ)
-
-                val orgId = call.requireIdParameter("organizationId")
-                val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
-
-                val secretsForOrganization = secretService.listForId(OrganizationId(orgId), pagingOptions.mapToModel())
-
-                val pagedResponse = secretsForOrganization.mapToApi(Secret::mapToApi)
-
-                call.respond(HttpStatusCode.OK, pagedResponse)
-            }
-
-            route("{secretName}") {
-                get(getSecretByOrganizationIdAndName) {
-                    requirePermission(OrganizationPermission.READ)
-
-                    val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
-                    val secretName = call.requireParameter("secretName")
-
-                    secretService.getSecretByIdAndName(organizationId, secretName)
-                        ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
-                        ?: call.respond(HttpStatusCode.NotFound)
-                }
-
-                patch(patchSecretByOrganizationIdAndName) {
-                    requirePermission(OrganizationPermission.WRITE_SECRETS)
-
-                    val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
-                    val secretName = call.requireParameter("secretName")
-                    val updateSecret = call.receive<UpdateSecret>()
-
-                    call.respond(
-                        HttpStatusCode.OK,
-                        secretService.updateSecretByIdAndName(
-                            organizationId,
-                            secretName,
-                            updateSecret.value.mapToModel(),
-                            updateSecret.description.mapToModel()
-                        ).mapToApi()
-                    )
-                }
-
-                delete(deleteSecretByOrganizationIdAndName) {
-                    requirePermission(OrganizationPermission.WRITE_SECRETS)
-
-                    val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
-                    val secretName = call.requireParameter("secretName")
-
-                    secretService.deleteSecretByIdAndName(organizationId, secretName)
-
-                    call.respond(HttpStatusCode.NoContent)
-                }
-            }
-
-            post(postSecretForOrganization) {
-                requirePermission(OrganizationPermission.WRITE_SECRETS)
-
-                val organizationId = call.requireIdParameter("organizationId")
-                val createSecret = call.receive<CreateSecret>()
-
-                call.respond(
-                    HttpStatusCode.Created,
-                    secretService.createSecret(
-                        createSecret.name,
-                        createSecret.value,
-                        createSecret.description,
-                        OrganizationId(organizationId)
-                    ).mapToApi()
-                )
             }
         }
 

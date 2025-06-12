@@ -17,14 +17,13 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.components.secrets
 
 import io.konform.validation.Validation
 import io.konform.validation.constraints.pattern
 
 import kotlinx.serialization.Serializable
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 
 /**
@@ -56,15 +55,14 @@ data class CreateSecret(
         val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
         const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
                 "spaces. Leading and trailing whitespaces are not allowed."
-
-        val validate: ValidatorFunc<CreateSecret> = { obj ->
-            Validation {
-                CreateSecret::name {
-                    pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
-                }
-            }.invoke(obj)
-        }
     }
+
+    fun validate() =
+        Validation {
+            CreateSecret::name {
+                pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
+            }
+        }.invoke(this)
 }
 
 /**

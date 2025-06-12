@@ -35,6 +35,8 @@ import io.ktor.server.auth.AuthenticationContext
 import io.ktor.server.auth.AuthenticationProvider
 import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.requestvalidation.RequestValidation
+import io.ktor.server.plugins.requestvalidation.RequestValidationConfig
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.routing
@@ -82,6 +84,7 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
 
     fun integrationTestApplication(
         routes: Route.() -> Unit = {},
+        validations: RequestValidationConfig.() -> Unit = {},
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
     ) {
         testApplication {
@@ -92,6 +95,10 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
 
                 install(Authentication) {
                     register(FakeAuthenticationProvider(DummyConfig(principal)))
+                }
+
+                install(RequestValidation) {
+                    validations()
                 }
 
                 routing {

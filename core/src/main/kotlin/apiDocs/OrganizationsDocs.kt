@@ -26,7 +26,6 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
@@ -34,11 +33,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrganizationVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
-import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
@@ -244,157 +241,6 @@ val postProduct: RouteConfig.() -> Unit = {
                     value = Product(id = 1, organizationId = 2, name = "My product", description = "Description")
                 }
             }
-        }
-    }
-}
-
-val getSecretsByOrganizationId: RouteConfig.() -> Unit = {
-    operationId = "GetSecretsByOrganizationId"
-    summary = "Get all secrets of an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The ID of an organization."
-        }
-        standardListQueryParameters()
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<PagedResponse<Secret>> {
-                example("Get all secrets of an organization") {
-                    value = PagedResponse(
-                        listOf(
-                            Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1"),
-                            Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
-                        ),
-                        PagingData(
-                            limit = 20,
-                            offset = 0,
-                            totalCount = 2,
-                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-val getSecretByOrganizationIdAndName: RouteConfig.() -> Unit = {
-    operationId = "GetSecretByOrganizationIdAndName"
-    summary = "Get details of a secret of an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
-        }
-        pathParameter<String>("secretName") {
-            description = "The secret's name."
-        }
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<Secret> {
-                example("Get Secret") {
-                    value = Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1")
-                }
-            }
-        }
-    }
-}
-
-val postSecretForOrganization: RouteConfig.() -> Unit = {
-    operationId = "PostSecretForOrganization"
-    summary = "Create a secret for an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
-        }
-        jsonBody<CreateSecret> {
-            example("Create Secret") {
-                value = CreateSecret(
-                    name = "token_maven_repo_1",
-                    value = "0rg-s3cr3t-08_15",
-                    description = "Access token for Maven Repo 1"
-                )
-            }
-        }
-    }
-
-    response {
-        HttpStatusCode.Created to {
-            description = "Success"
-            jsonBody<Secret> {
-                example("Create Secret") {
-                    value = Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
-                }
-            }
-        }
-    }
-}
-
-val patchSecretByOrganizationIdAndName: RouteConfig.() -> Unit = {
-    operationId = "PatchSecretByOrganizationIdAndName"
-    summary = "Update a secret of an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
-        }
-        pathParameter<String>("secretName") {
-            description = "The secret's name."
-        }
-        jsonBody<UpdateSecret> {
-            example("Update Secret") {
-                value = """
-                    {
-                        "value": "0rg-s3cr3t-08_15",
-                        "description": "New access token for Maven Repo 1"
-                    }
-                """.trimIndent()
-            }
-            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
-        }
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<Secret> {
-                example("Update Secret") {
-                    value = Secret(name = "token_maven_repo_1", description = "New access token for Maven Repo 1")
-                }
-            }
-        }
-    }
-}
-
-val deleteSecretByOrganizationIdAndName: RouteConfig.() -> Unit = {
-    operationId = "DeleteSecretByOrganizationIdAndName"
-    summary = "Delete a secret from an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
-        }
-        pathParameter<String>("secretName") {
-            description = "The secret's name."
-        }
-    }
-
-    response {
-        HttpStatusCode.NoContent to {
-            description = "Success"
         }
     }
 }
