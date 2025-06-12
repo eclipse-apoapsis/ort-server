@@ -17,31 +17,13 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    id("ort-server-kotlin-multiplatform-conventions")
-    id("ort-server-publication-conventions")
+package org.eclipse.apoapsis.ortserver.components.secrets
 
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinSerialization)
-}
+import io.ktor.server.routing.Route
 
-group = "org.eclipse.apoapsis.ortserver.components.secrets"
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.getSecretsByOrganizationId
+import org.eclipse.apoapsis.ortserver.services.SecretService
 
-kotlin {
-    linuxX64()
-    macosArm64()
-    macosX64()
-    mingwX64()
-
-    sourceSets {
-        commonMain {
-            dependencies {
-                api(projects.shared.apiModel)
-
-                api(libs.konform)
-
-                implementation(libs.kotlinxSerializationJson)
-            }
-        }
-    }
+fun Route.secretsRoutes(secretService: SecretService) {
+    getSecretsByOrganizationId(secretService)
 }

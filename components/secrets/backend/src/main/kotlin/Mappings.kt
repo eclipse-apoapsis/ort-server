@@ -17,31 +17,8 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    id("ort-server-kotlin-multiplatform-conventions")
-    id("ort-server-publication-conventions")
+package org.eclipse.apoapsis.ortserver.components.secrets
 
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinSerialization)
-}
+import org.eclipse.apoapsis.ortserver.model.Secret as ModelSecret
 
-group = "org.eclipse.apoapsis.ortserver.components.secrets"
-
-kotlin {
-    linuxX64()
-    macosArm64()
-    macosX64()
-    mingwX64()
-
-    sourceSets {
-        commonMain {
-            dependencies {
-                api(projects.shared.apiModel)
-
-                api(libs.konform)
-
-                implementation(libs.kotlinxSerializationJson)
-            }
-        }
-    }
-}
+internal fun ModelSecret.mapToApi() = Secret(name, description)

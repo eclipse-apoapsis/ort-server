@@ -77,7 +77,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters as ApiRu
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolution as ApiRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.Secret as ApiSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath as ApiShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
@@ -584,8 +583,6 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     keepAliveWorker,
     submoduleFetchStrategy.mapToModel()
 )
-
-fun Secret.mapToApi() = ApiSecret(name, description)
 
 fun VulnerabilityWithIdentifier.mapToApi() =
     ApiVulnerabilityWithIdentifier(vulnerability.mapToApi(), identifier.mapToApi(), rating.mapToApi())

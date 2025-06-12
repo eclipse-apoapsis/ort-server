@@ -27,6 +27,7 @@ import io.ktor.server.routing.routing
 import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
 import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
+import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.core.api.admin
 import org.eclipse.apoapsis.ortserver.core.api.authentication
 import org.eclipse.apoapsis.ortserver.core.api.downloads
@@ -53,6 +54,7 @@ fun Application.configureRouting() {
                 products()
                 repositories()
                 runs()
+                secretsRoutes(get())
                 versions()
             }
         }

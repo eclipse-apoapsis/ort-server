@@ -669,59 +669,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "GET /organizations/{organizationId}/secrets" should {
-        "return all secrets for this organization" {
-            integrationTestApplication {
-                val organizationId = createOrganization().id
-
-                val secret1 = createSecret(organizationId, "path1", "name1", "description1")
-                val secret2 = createSecret(organizationId, "path2", "name2", "description2")
-
-                val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets")
-
-                response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
-                    listOf(secret1.mapToApi(), secret2.mapToApi()),
-                    PagingData(
-                        limit = DEFAULT_LIMIT,
-                        offset = 0,
-                        totalCount = 2,
-                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
-                    )
-                )
-            }
-        }
-
-        "support query parameters" {
-            integrationTestApplication {
-                val organizationId = createOrganization().id
-
-                createSecret(organizationId, "path1", "name1", "description1")
-                val secret = createSecret(organizationId, "path2", "name2", "description2")
-
-                val response = superuserClient.get("/api/v1/organizations/$organizationId/secrets?sort=-name&limit=1")
-
-                response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
-                    listOf(secret.mapToApi()),
-                    PagingData(
-                        limit = 1,
-                        offset = 0,
-                        totalCount = 2,
-                        sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
-                    )
-                )
-            }
-        }
-
-        "require OrganizationPermission.READ" {
-            val createdOrg = createOrganization()
-            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
-                get("/api/v1/organizations/${createdOrg.id}/secrets")
-            }
-        }
-    }
-
     "GET /organizations/{organizationId}/secrets/{secretName}" should {
         "return a single secret" {
             integrationTestApplication {
