@@ -79,14 +79,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStat
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedResponse
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection.DESCENDING
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
@@ -131,6 +126,10 @@ import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
@@ -775,7 +774,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 // Applies a default sort order
                 pagedIssues.pagination.sortProperties.firstOrNull()?.name shouldBe "timestamp"
-                pagedIssues.pagination.sortProperties.firstOrNull()?.direction shouldBe DESCENDING
+                pagedIssues.pagination.sortProperties.firstOrNull()?.direction shouldBe SortDirection.DESCENDING
             }
         }
 
@@ -853,7 +852,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                     // Default sort order applied?
                     sortProperties.firstOrNull()?.name shouldBe "timestamp"
-                    sortProperties.firstOrNull()?.direction shouldBe DESCENDING
+                    sortProperties.firstOrNull()?.direction shouldBe SortDirection.DESCENDING
                 }
 
                 with(pagedIssues.data) {
@@ -952,7 +951,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                     // Default sort order applied?
                     sortProperties.firstOrNull()?.name shouldBe "timestamp"
-                    sortProperties.firstOrNull()?.direction shouldBe DESCENDING
+                    sortProperties.firstOrNull()?.direction shouldBe SortDirection.DESCENDING
                 }
 
                 with(pagedIssues.data) {
@@ -1451,7 +1450,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     last() shouldBe run1.mapToApiSummary(JobSummaries())
                 }
 
-                body.pagination.sortProperties shouldBe listOf(SortProperty("createdAt", DESCENDING))
+                body.pagination.sortProperties shouldBe listOf(SortProperty("createdAt", SortDirection.DESCENDING))
                 body.filters shouldBe OrtRunFilters()
             }
         }

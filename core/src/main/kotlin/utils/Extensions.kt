@@ -21,14 +21,14 @@ package org.eclipse.apoapsis.ortserver.core.utils
 
 import io.ktor.server.application.ApplicationCall
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.PagingOptions
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortDirection
-import org.eclipse.apoapsis.ortserver.api.v1.model.SortProperty
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingOptions
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
+import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 
 /**
  * Return the numeric value of the parameter with the given [name]. Throw a [QueryParametersException] if a value
