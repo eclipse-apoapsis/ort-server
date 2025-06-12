@@ -41,10 +41,12 @@ interface SecretRepository {
 
     /**
      * List all secrets for an [id] according to the given [parameters].
+     * Only if [includeDeleted] is true, also includes secrets that are marked as deleted.
      */
     fun listForId(
         id: HierarchyId,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        includeDeleted: Boolean = false
     ): ListQueryResult<Secret>
 
     /**
@@ -53,7 +55,7 @@ interface SecretRepository {
     fun updateForIdAndName(id: HierarchyId, name: String, description: OptionalValue<String?>): Secret
 
     /**
-     * Delete a secret by [id] and secret's [name].
+     * Mark a secret as deleted by [id] and secret's [name].
      */
-    fun deleteForIdAndName(id: HierarchyId, name: String)
+    fun markAsDeletedForIdAndName(id: HierarchyId, name: String): Secret?
 }

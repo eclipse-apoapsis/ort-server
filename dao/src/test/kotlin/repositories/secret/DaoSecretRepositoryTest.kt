@@ -141,13 +141,20 @@ class DaoSecretRepositoryTest : StringSpec() {
             )
         }
 
-        "delete should delete the database entry" {
+        "delete should mark the secret as deleted" {
             val name = "secret3"
             createSecret(name, repositoryId)
 
-            secretRepository.deleteForIdAndName(repositoryId, name)
+            secretRepository.markAsDeletedForIdAndName(repositoryId, name)
 
             secretRepository.listForId(repositoryId).data shouldBe emptyList()
+
+            val allSecrets = secretRepository.listForId(repositoryId, includeDeleted = true)
+            with(allSecrets.data) {
+                shouldNotBeNull()
+                size shouldBe 1
+                first().isDeleted shouldBe true
+            }
         }
 
         "Reading all secrets of specific type" should {

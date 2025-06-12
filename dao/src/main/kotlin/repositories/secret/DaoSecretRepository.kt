@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.secret
 
+import kotlinx.datetime.Clock
+
 import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
@@ -57,18 +59,23 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
         SecretDao.find(byNameCondition(id, name)).firstOrNull()?.mapToModel()
     }
 
-    override fun listForId(id: HierarchyId, parameters: ListQueryParameters) = db.blockingQueryCatching {
-        val query: ConditionBuilder = when (id) {
-            is OrganizationId -> { { SecretsTable.organizationId eq id.value } }
-            is ProductId -> { { SecretsTable.productId eq id.value } }
-            is RepositoryId -> { { SecretsTable.repositoryId eq id.value } }
-        }
+    override fun listForId(id: HierarchyId, parameters: ListQueryParameters, includeDeleted: Boolean) =
+        db.blockingQueryCatching {
+            val column = when (id) {
+                is OrganizationId -> SecretsTable.organizationId
+                is ProductId -> SecretsTable.productId
+                is RepositoryId -> SecretsTable.repositoryId
+            }
 
-        SecretDao.listQuery(parameters, SecretDao::mapToModel, query)
-    }.getOrElse {
-        logger.error("Cannot list secrets for $id.", it)
-        throw it
-    }
+            val query: ConditionBuilder = {
+                (column eq id.value) and (SecretsTable.isDeleted eq includeDeleted)
+            }
+
+            SecretDao.listQuery(parameters, SecretDao::mapToModel, query)
+        }.getOrElse {
+            logger.error("Cannot list secrets for $id.", it)
+            throw it
+        }
 
     override fun updateForIdAndName(id: HierarchyId, name: String, description: OptionalValue<String?>): Secret =
         db.blockingQuery {
@@ -77,8 +84,18 @@ class DaoSecretRepository(private val db: Database) : SecretRepository {
             secret.mapToModel()
         }
 
-    override fun deleteForIdAndName(id: HierarchyId, name: String) = db.blockingQuery {
-        SecretDao.findSingle(byNameCondition(id, name)).delete()
+    /**
+     * Mark the entry as deleted instead of physically removing it from the database table. This approach preserves
+     * referential integrity in the database.
+     */
+    override fun markAsDeletedForIdAndName(id: HierarchyId, name: String): Secret? = db.blockingQuery {
+        SecretDao.findSingle(byNameCondition(id, name))
+            .takeIf { !it.isDeleted }
+            ?.let {
+                it.isDeleted = true
+                it.deletedAt = Clock.System.now()
+                it.mapToModel()
+            }
     }
 }
 

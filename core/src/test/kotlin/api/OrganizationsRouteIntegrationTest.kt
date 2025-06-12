@@ -890,7 +890,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "DELETE /organizations/{organizationId}/secrets/{secretName}" should {
-        "delete a secret" {
+        "mark a secret as deleted" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
                 val secret = createSecret(organizationId)
@@ -900,12 +900,18 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 secretRepository.listForId(OrganizationId(organizationId)).data shouldBe emptyList()
 
+                val allSecrets = secretRepository.listForId(OrganizationId(organizationId), includeDeleted = true)
+                with(allSecrets.data) {
+                    shouldHaveSize(1)
+                    first().shouldBe(secret.copy(isDeleted = true))
+                }
+
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
             }
         }
 
-        "respond with 'Conflict' when secret is in use" {
+        "mark a secret as deleted even when secret is in use" {
             integrationTestApplication {
                 val organizationId = createOrganization().id
 
@@ -925,11 +931,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response =
                     superuserClient.delete("/api/v1/organizations/$organizationId/secrets/${userSecret.name}")
-                response shouldHaveStatus HttpStatusCode.Conflict
-
-                val body = response.body<ErrorResponse>()
-                body.message shouldBe "The entity you tried to delete is in use."
-                body.cause shouldContain service.name
+                response shouldHaveStatus HttpStatusCode.NoContent
             }
         }
 

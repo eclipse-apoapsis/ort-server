@@ -57,5 +57,10 @@ data class Secret(
     /**
      * The [Repository] to which the secret belongs.
      */
-    val repository: Repository?
+    val repository: Repository?,
+
+    /**
+     *  If true, the secret is considered deleted and should not no longer be used.
+     */
+    val isDeleted: Boolean? = false
 )

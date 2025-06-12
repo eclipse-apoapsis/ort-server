@@ -1095,7 +1095,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "DELETE /repositories/{repositoryId}/secrets/{secretName}" should {
-        "delete a secret" {
+        "mark a secret as deleted" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
                 val secret = createSecret(repositoryId)
@@ -1104,6 +1104,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     HttpStatusCode.NoContent
 
                 secretRepository.listForId(RepositoryId(repositoryId)).data shouldBe emptyList()
+
+                val allSecrets = secretRepository.listForId(RepositoryId(repositoryId), includeDeleted = true)
+                with(allSecrets.data) {
+                    shouldHaveSize(1)
+                    first().shouldBe(secret.copy(isDeleted = true))
+                }
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()

@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.services
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -39,7 +38,6 @@ import org.jetbrains.exposed.sql.Database
 class SecretService(
     private val db: Database,
     private val secretRepository: SecretRepository,
-    private val infrastructureServiceRepository: InfrastructureServiceRepository,
     private val secretStorage: SecretStorage
 ) {
     /**
@@ -62,19 +60,10 @@ class SecretService(
     }
 
     /**
-     * Delete a secret by [id] and [name].
+     * Delete a secret by [id] and [name] from database and [SecretStorage].
      */
     suspend fun deleteSecretByIdAndName(id: HierarchyId, name: String) = db.dbQuery {
-        val secret = secretRepository.getByIdAndName(id, name)?.also {
-            val services = infrastructureServiceRepository.listForSecret(it.id).map { service -> service.name }
-
-            if (services.isNotEmpty()) {
-                throw ReferencedEntityException("Could not delete secret '${it.name}' due to usage in $services.")
-            }
-        }
-
-        secretRepository.deleteForIdAndName(id, name)
-        secret?.deleteValue()
+        secretRepository.markAsDeletedForIdAndName(id, name)?.deleteValue()
     }
 
     /**
@@ -86,12 +75,14 @@ class SecretService(
 
     /**
      * List all secrets for a specific [id] and according to the given [parameters].
+     * If [includeDeleted] is true, also includes secrets that are marked as deleted.
      */
     suspend fun listForId(
         id: HierarchyId,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        includeDeleted: Boolean = false
     ): ListQueryResult<Secret> = db.dbQuery {
-        secretRepository.listForId(id, parameters)
+        secretRepository.listForId(id, parameters, includeDeleted)
     }
 
     /**

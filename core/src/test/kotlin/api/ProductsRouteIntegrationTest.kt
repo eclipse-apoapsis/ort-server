@@ -700,7 +700,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "DELETE /products/{productId}/secrets/{secretName}" should {
-        "delete a secret" {
+        "mark a secret as deleted" {
             integrationTestApplication {
                 val productId = createProduct().id
                 val secret = createSecret(productId)
@@ -710,19 +710,25 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 secretRepository.listForId(ProductId(productId)).data shouldBe emptyList()
 
+                val allSecrets = secretRepository.listForId(ProductId(productId), includeDeleted = true)
+                with(allSecrets.data) {
+                    shouldHaveSize(1)
+                    first().shouldBe(secret.copy(isDeleted = true))
+                }
+
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
             }
         }
 
-        "respond with Conflict when secret is in use" {
+        "mark secret as deleted even when secret is in use" {
             integrationTestApplication {
                 val productId = createProduct().id
 
                 val userSecret = createSecret(productId, path = "user", name = "user")
                 val passSecret = createSecret(productId, path = "pass", name = "pass")
 
-                val service = infrastructureServiceRepository.create(
+                infrastructureServiceRepository.create(
                     name = "testService",
                     url = "http://repo1.example.org/obsolete",
                     description = "good bye, cruel world",
@@ -734,11 +740,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val response = superuserClient.delete("/api/v1/products/$productId/secrets/${userSecret.name}")
-                response shouldHaveStatus HttpStatusCode.Conflict
-
-                val body = response.body<ErrorResponse>()
-                body.message shouldBe "The entity you tried to delete is in use."
-                body.cause shouldContain service.name
+                response shouldHaveStatus HttpStatusCode.NoContent
             }
         }
 
