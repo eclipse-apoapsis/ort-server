@@ -66,6 +66,7 @@ dependencies {
     implementation(projects.components.adminConfig.backend)
     implementation(projects.components.authorization.implementation)
     implementation(projects.components.pluginManager.implementation)
+    implementation(projects.components.secrets.backend)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.logaccess.logaccessSpi)

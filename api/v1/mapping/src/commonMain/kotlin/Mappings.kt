@@ -77,7 +77,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters as ApiRu
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationResolution as ApiRuleViolationResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob as ApiScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration as ApiScannerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.Secret as ApiSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.ShortestDependencyPath as ApiShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin as ApiSourceCodeOrigin
@@ -132,7 +131,6 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
@@ -584,8 +582,6 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     keepAliveWorker,
     submoduleFetchStrategy.mapToModel()
 )
-
-fun Secret.mapToApi() = ApiSecret(name, description)
 
 fun VulnerabilityWithIdentifier.mapToApi() =
     ApiVulnerabilityWithIdentifier(vulnerability.mapToApi(), identifier.mapToApi(), rating.mapToApi())

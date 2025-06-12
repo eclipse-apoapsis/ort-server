@@ -36,11 +36,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.getFullName
@@ -52,32 +50,24 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromProductGroup
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatisticsByProductId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoriesByProductId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByProductIdAndName
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByProductId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepositoriesByProductId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProductById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRunsForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
-import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getUnavailablePlugins
-import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
-import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.services.ortrun.PackageService
@@ -99,7 +89,6 @@ fun Route.products() = route("products/{productId}") {
     val productService by inject<ProductService>()
     val pluginService by inject<PluginService>()
     val repositoryService by inject<RepositoryService>()
-    val secretService by inject<SecretService>()
     val vulnerabilityService by inject<VulnerabilityService>()
     val issueService by inject<IssueService>()
     val ruleViolationService by inject<RuleViolationService>()
@@ -173,80 +162,6 @@ fun Route.products() = route("products/{productId}") {
             call.respond(
                 HttpStatusCode.Created,
                 repository
-            )
-        }
-    }
-
-    route("secrets") {
-        get(getSecretsByProductId) {
-            requirePermission(ProductPermission.READ)
-
-            val productId = ProductId(call.requireIdParameter("productId"))
-            val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
-
-            val secretsForProduct = secretService.listForId(productId, pagingOptions.mapToModel())
-
-            val pagedResponse = secretsForProduct.mapToApi(Secret::mapToApi)
-
-            call.respond(HttpStatusCode.OK, pagedResponse)
-        }
-
-        route("{secretName}") {
-            get(getSecretByProductIdAndName) {
-                requirePermission(ProductPermission.READ)
-
-                val productId = ProductId(call.requireIdParameter("productId"))
-                val secretName = call.requireParameter("secretName")
-
-                secretService.getSecretByIdAndName(productId, secretName)
-                    ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
-                    ?: call.respond(HttpStatusCode.NotFound)
-            }
-
-            patch(patchSecretByProductIdAndName) {
-                requirePermission(ProductPermission.WRITE_SECRETS)
-
-                val productId = ProductId(call.requireIdParameter("productId"))
-                val secretName = call.requireParameter("secretName")
-                val updateSecret = call.receive<UpdateSecret>()
-
-                call.respond(
-                    HttpStatusCode.OK,
-                    secretService.updateSecretByIdAndName(
-                        productId,
-                        secretName,
-                        updateSecret.value.mapToModel(),
-                        updateSecret.description.mapToModel()
-                    ).mapToApi()
-                )
-            }
-
-            delete(deleteSecretByProductIdAndName) {
-                requirePermission(ProductPermission.WRITE_SECRETS)
-
-                val productId = ProductId(call.requireIdParameter("productId"))
-                val secretName = call.requireParameter("secretName")
-
-                secretService.deleteSecretByIdAndName(productId, secretName)
-
-                call.respond(HttpStatusCode.NoContent)
-            }
-        }
-
-        post(postSecretForProduct) {
-            requirePermission(ProductPermission.WRITE_SECRETS)
-
-            val productId = call.requireIdParameter("productId")
-            val createSecret = call.receive<CreateSecret>()
-
-            call.respond(
-                HttpStatusCode.Created,
-                secretService.createSecret(
-                    createSecret.name,
-                    createSecret.value,
-                    createSecret.description,
-                    ProductId(productId)
-                ).mapToApi()
             )
         }
     }

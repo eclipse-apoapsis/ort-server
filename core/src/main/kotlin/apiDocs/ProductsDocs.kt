@@ -27,7 +27,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
@@ -38,10 +37,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.api.v1.model.Secret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
@@ -213,157 +210,6 @@ val postRepository: RouteConfig.() -> Unit = {
                     )
                 }
             }
-        }
-    }
-}
-
-val getSecretsByProductId: RouteConfig.() -> Unit = {
-    operationId = "GetSecretsByProductId"
-    summary = "Get all secrets of a specific product"
-    tags = listOf("Products")
-
-    request {
-        pathParameter<Long>("productId") {
-            description = "The ID of a product."
-        }
-        standardListQueryParameters()
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<PagedResponse<Secret>> {
-                example("List all secrets of a product") {
-                    value = PagedResponse(
-                        listOf(
-                            Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1"),
-                            Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
-                        ),
-                        PagingData(
-                            limit = 20,
-                            offset = 0,
-                            totalCount = 2,
-                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-val getSecretByProductIdAndName: RouteConfig.() -> Unit = {
-    operationId = "GetSecretByProductIdAndName"
-    summary = "Get details of a secret of a product"
-    tags = listOf("Products")
-
-    request {
-        pathParameter<Long>("productId") {
-            description = "The product's ID."
-        }
-        pathParameter<String>("secretName") {
-            description = "The secret's name."
-        }
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<Secret> {
-                example("Get Secret") {
-                    value = Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1")
-                }
-            }
-        }
-    }
-}
-
-val postSecretForProduct: RouteConfig.() -> Unit = {
-    operationId = "PostSecretForProduct"
-    summary = "Create a secret for a product"
-    tags = listOf("Products")
-
-    request {
-        pathParameter<Long>("productId") {
-            description = "The product's ID."
-        }
-        jsonBody<CreateSecret> {
-            example("Create Secret") {
-                value = CreateSecret(
-                    name = "token_maven_repo_1",
-                    value = "pr0d-s3cr3t-08_15",
-                    description = "Access token for Maven Repo 1"
-                )
-            }
-        }
-    }
-
-    response {
-        HttpStatusCode.Created to {
-            description = "Success"
-            jsonBody<Secret> {
-                example("Create Secret") {
-                    value = Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
-                }
-            }
-        }
-    }
-}
-
-val patchSecretByProductIdAndName: RouteConfig.() -> Unit = {
-    operationId = "PatchSecretByProductIdAndName"
-    summary = "Update a secret of a product"
-    tags = listOf("Products")
-
-    request {
-        pathParameter<Long>("productId") {
-            description = "The product's ID."
-        }
-        pathParameter<String>("secretName") {
-            description = "The secret's name."
-        }
-        jsonBody<UpdateSecret> {
-            example("Update Secret") {
-                value = """
-                    {
-                        "value": "pr0d-s3cr3t-08_15",
-                        "description": "New access token for Maven Repo 1"
-                    }
-                """.trimIndent()
-            }
-            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
-        }
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<Secret> {
-                example("Update Secret") {
-                    value = Secret(name = "token_maven_repo_1", description = "New access token for Maven Repo 1")
-                }
-            }
-        }
-    }
-}
-
-val deleteSecretByProductIdAndName: RouteConfig.() -> Unit = {
-    operationId = "DeleteSecretByProductIdAndName"
-    summary = "Delete a secret from a product"
-    tags = listOf("Products")
-
-    request {
-        pathParameter<Long>("productId") {
-            description = "The product's ID."
-        }
-        pathParameter<String>("secretName") {
-            description = "The secret's name."
-        }
-    }
-
-    response {
-        HttpStatusCode.NoContent to {
-            description = "Success"
         }
     }
 }

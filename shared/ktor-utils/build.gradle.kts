@@ -43,10 +43,10 @@ dependencies {
     testImplementation(libs.ktorServerTestHost)
 
     testFixturesApi(projects.components.authorization.implementation)
+    testFixturesApi(projects.services.authorizationService)
     testFixturesApi(projects.utils.test)
     testFixturesApi(testFixtures(projects.dao))
 
-    testFixturesImplementation(projects.services.authorizationService)
     testFixturesImplementation(testFixtures(projects.clients.keycloak))
 
     testFixturesImplementation(libs.kotestAssertionsKtor)

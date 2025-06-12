@@ -35,10 +35,8 @@ import io.ktor.server.routing.route
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.getFullName
@@ -51,26 +49,18 @@ import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromRepositoryGroup
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunsByRepositoryId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretByRepositoryIdAndName
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getSecretsByRepositoryId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepositoryById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
-import org.eclipse.apoapsis.ortserver.core.apiDocs.postSecretForRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToRepositoryGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getUnavailablePlugins
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
-import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
@@ -91,7 +81,6 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     val ortRunService by inject<OrtRunService>()
     val pluginService by inject<PluginService>()
     val repositoryService by inject<RepositoryService>()
-    val secretService by inject<SecretService>()
     val userService by inject<UserService>()
 
     get(getRepositoryById) {
@@ -208,80 +197,6 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     call.respond(HttpStatusCode.NoContent)
                 } ?: call.respond(HttpStatusCode.NotFound)
             }
-        }
-    }
-
-    route("secrets") {
-        get(getSecretsByRepositoryId) {
-            requirePermission(RepositoryPermission.READ)
-
-            val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
-            val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
-
-            val secretsForRepository = secretService.listForId(repositoryId, pagingOptions.mapToModel())
-
-            val pagedResponse = secretsForRepository.mapToApi(Secret::mapToApi)
-
-            call.respond(HttpStatusCode.OK, pagedResponse)
-        }
-
-        route("{secretName}") {
-            get(getSecretByRepositoryIdAndName) {
-                requirePermission(RepositoryPermission.READ)
-
-                val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
-                val secretName = call.requireParameter("secretName")
-
-                secretService.getSecretByIdAndName(repositoryId, secretName)
-                    ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
-                    ?: call.respond(HttpStatusCode.NotFound)
-            }
-
-            patch(patchSecretByRepositoryIdAndName) {
-                requirePermission(RepositoryPermission.WRITE_SECRETS)
-
-                val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
-                val secretName = call.requireParameter("secretName")
-                val updateSecret = call.receive<UpdateSecret>()
-
-                call.respond(
-                    HttpStatusCode.OK,
-                    secretService.updateSecretByIdAndName(
-                        repositoryId,
-                        secretName,
-                        updateSecret.value.mapToModel(),
-                        updateSecret.description.mapToModel()
-                    ).mapToApi()
-                )
-            }
-
-            delete(deleteSecretByRepositoryIdAndName) {
-                requirePermission(RepositoryPermission.WRITE_SECRETS)
-
-                val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
-                val secretName = call.requireParameter("secretName")
-
-                secretService.deleteSecretByIdAndName(repositoryId, secretName)
-
-                call.respond(HttpStatusCode.NoContent)
-            }
-        }
-
-        post(postSecretForRepository) {
-            requirePermission(RepositoryPermission.WRITE_SECRETS)
-
-            val repositoryId = call.requireIdParameter("repositoryId")
-            val createSecret = call.receive<CreateSecret>()
-
-            call.respond(
-                HttpStatusCode.Created,
-                secretService.createSecret(
-                    createSecret.name,
-                    createSecret.value,
-                    createSecret.description,
-                    RepositoryId(repositoryId)
-                ).mapToApi()
-            )
         }
     }
 
