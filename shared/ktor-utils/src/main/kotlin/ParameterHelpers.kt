@@ -24,6 +24,17 @@ import io.ktor.server.plugins.MissingRequestParameterException
 import io.ktor.server.plugins.ParameterConversionException
 
 /**
+ * Return the numeric value of the parameter with the given [name] or throw an exception if it cannot be converted to a
+ * number.
+ */
+fun ApplicationCall.numberParameter(name: String): Number? =
+    try {
+        parameters[name]?.toLong()
+    } catch (e: NumberFormatException) {
+        throw ParameterConversionException(name, "Number", e)
+    }
+
+/**
  * Get the parameter from this [ApplicationCall] or throw an exception if the parameter is null.
  */
 fun ApplicationCall.requireParameter(name: String) = parameters[name] ?: throw MissingRequestParameterException(name)

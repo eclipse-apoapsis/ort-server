@@ -24,25 +24,11 @@ import io.ktor.server.application.ApplicationCall
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
-import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingOptions
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
-
-/**
- * Return the numeric value of the parameter with the given [name]. Throw a [QueryParametersException] if a value
- * is provided which cannot be converted to a number.
- */
-fun ApplicationCall.numberParameter(name: String): Number? =
-    try {
-        parameters[name]?.toLong()
-    } catch (e: NumberFormatException) {
-        throw QueryParametersException(
-            "Invalid value for parameter '$name': Expected a number, was '${parameters[name]}'.",
-            e
-        )
-    }
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.numberParameter
 
 fun ConfigManager.createKeycloakClientConfiguration() =
     KeycloakClientConfiguration(
