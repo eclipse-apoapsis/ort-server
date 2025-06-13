@@ -258,6 +258,72 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 pwd.password shouldBe PASSWORD.toCharArray()
             }
 
+            "return the credential from the best-matching service if the prefix does not match" {
+                val url = "https://repos.example.com/artifactory/repo1/@scope/lib/-/name/lib-1.0.0.tgz"
+
+                val authenticator = OrtServerAuthenticator.install()
+                val services = listOf(
+                    createService("s1", "https://repos.example.com/artifactory2"),
+                    createService("s2", "https://repos2.example.com/artifactory/repo1"),
+                    createService(
+                        "s3",
+                        "https://repos.example.com/artifactory/api/npm/repo1",
+                        usernameSecret,
+                        passwordSecret
+                    ),
+                    createService("s4", "https://repos.example.com/artifactory/api/npm/repo2")
+                )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
+
+                val pwd = Authenticator.requestPasswordAuthentication(
+                    "repo.example.com",
+                    null,
+                    443,
+                    "tcp",
+                    "hello",
+                    "https",
+                    URI.create(url).toURL(),
+                    Authenticator.RequestorType.SERVER
+                )
+
+                pwd.userName shouldBe USERNAME
+                pwd.password shouldBe PASSWORD.toCharArray()
+            }
+
+            "not return credentials if no unique best-matching service is found" {
+                val url = "https://repos.example.com/artifactory/repo1/@scope/lib/-/name/lib-1.0.0.tgz"
+
+                val authenticator = OrtServerAuthenticator.install()
+                val services = listOf(
+                    createService(
+                        "s1",
+                        "https://repos.example.com/artifactory/api/npm/repo2",
+                        usernameSecret,
+                        passwordSecret
+                    ),
+                    createService(
+                        "s2",
+                        "https://repos.example.com/artifactory/api/npm/repo3",
+                        usernameSecret,
+                        passwordSecret
+                    )
+                )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
+
+                val pwd = Authenticator.requestPasswordAuthentication(
+                    "repo.example.com",
+                    null,
+                    443,
+                    "tcp",
+                    "hello",
+                    "https",
+                    URI.create(url).toURL(),
+                    Authenticator.RequestorType.SERVER
+                )
+
+                pwd should beNull()
+            }
+
             "use credentials specified in the URL" {
                 val url = "https://repo.example.com/org/repo"
 

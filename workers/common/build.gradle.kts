@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
+    implementation(libs.commonsText)
     implementation(libs.kaml)
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxSerializationJson)
