@@ -26,9 +26,17 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.eclipse.apoapsis.ortserver.model.DynamicInfrastructureService
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.repositories.DynamicInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
@@ -51,6 +59,12 @@ private val logger = LoggerFactory.getLogger(EnvironmentService::class.java)
 class EnvironmentService(
     /** The repository for accessing infrastructure services. */
     private val infrastructureServiceRepository: InfrastructureServiceRepository,
+
+    /** The repository for accessing dynamic infrastructure services. */
+    private val dynamicInfrastructureServiceRepository: DynamicInfrastructureServiceRepository,
+
+    /** The repository for secrets. This is used to resolve secret references. */
+    private val secretRepository: SecretRepository,
 
     /** A collection with the supported generators for configuration files. */
     private val generators: Collection<EnvironmentConfigGenerator<*>>,
@@ -164,11 +178,38 @@ class EnvironmentService(
     /**
      * Perform the required steps to set up authentication information for the current worker execution in the current
      * ORT run as defined by the given [context]. Load the infrastructure services associated with the current run from
-     * the database and process their credentials. This function can be used by workers running after the Analyzer,
-     * which has initialized the required information.
+     * the database. Given the secret names in [DynamicInfrastructureService.usernameSecretName] and
+     * [DynamicInfrastructureService.passwordSecretName], find these secrets and continue to process them.
+     * This function can be used by workers running after the Analyzer, which has initialized the required information.
      */
     suspend fun setupAuthenticationForCurrentRun(context: WorkerContext) {
-        setupAuthentication(context, infrastructureServiceRepository.listForRun(context.ortRun.id))
+        val dynamicInfrastructureServices = dynamicInfrastructureServiceRepository.listForRun(context.ortRun.id)
+
+        val infrastructureServices = dynamicInfrastructureServices.map { service ->
+            val usernameSecret = resolveSecretByName(
+                service.usernameSecretName,
+                context.ortRun,
+                service.name
+            ) ?: error("Username secret ${service.usernameSecretName} not found for service '${service.name}'.")
+
+            val passwordSecret = resolveSecretByName(
+                service.passwordSecretName,
+                context.ortRun,
+                service.name
+            ) ?: error("Password secret ${service.passwordSecretName} not found for service '${service.name}'.")
+
+            InfrastructureService(
+                name = service.name,
+                url = service.url,
+                usernameSecret = usernameSecret,
+                passwordSecret = passwordSecret,
+                organization = null,
+                product = null, // No product in DynamicInfrastructureService
+                credentialsTypes = service.credentialsTypes
+            )
+        }
+
+        setupAuthentication(context, infrastructureServices)
     }
 
     /**
@@ -177,8 +218,71 @@ class EnvironmentService(
      */
     private fun assignServicesToOrtRun(context: WorkerContext, services: Collection<InfrastructureService>) {
         services.forEach { service ->
-            infrastructureServiceRepository.getOrCreateForRun(service, context.ortRun.id)
+            dynamicInfrastructureServiceRepository.getOrCreateForRun(
+                service.mapToDynamicInfrastructureService(),
+                context.ortRun.id
+            )
         }
+    }
+
+    /**
+     * Resolve a secret by its [secretName] for the current [ortRun]. The secret is searched in the repository, product,
+     * and organization levels, in that order. If a secret is found at multiple levels, the one at the repository level
+     * is preferred, followed by the product level, and finally the organization level. In case a secret is found at
+     * multiple levels, a warning is logged about this ambiguity. If no secret is found at all, return null.
+     */
+    fun resolveSecretByName(secretName: String, ortRun: OrtRun, serviceName: String): Secret? {
+        // Try to get from all 3 levels: repository, product, and organization
+        val secretRepositoryLevel =
+            secretRepository.getByIdAndName(RepositoryId(ortRun.repositoryId), secretName)
+        val secretProductLevel =
+            secretRepository.getByIdAndName(ProductId(ortRun.productId), secretName)
+        val secretOrganizationLevel =
+            secretRepository.getByIdAndName(OrganizationId(ortRun.organizationId), secretName)
+
+        secretRepositoryLevel?.let {
+            secretProductLevel?.let {
+                secretOrganizationLevel?.let {
+                    logger.warn(
+                        "Found secret '$secretName' at repository, product and organization level " +
+                            "for service '$serviceName'. Using repository level."
+                    )
+                    return secretRepositoryLevel
+                }
+
+                logger.warn(
+                    "Found secret '$secretName' at repository and product level " +
+                        "for service '$serviceName'. Using repository level."
+                )
+                return secretRepositoryLevel
+            }
+            secretOrganizationLevel?.let {
+                logger.warn(
+                    "Found secret '$secretName' at repository and organization level " +
+                        "for service '$serviceName'. Using repository level."
+                )
+                return secretRepositoryLevel
+            }
+            return secretRepositoryLevel
+        }
+
+        secretProductLevel?.let {
+            secretOrganizationLevel?.let {
+                logger.warn(
+                    "Found secret '$secretName' at product and organization level " +
+                        "for service '$serviceName'. Using product level."
+                )
+                return secretProductLevel
+            }
+            return secretProductLevel
+        }
+
+        secretOrganizationLevel?.let {
+            return secretOrganizationLevel
+        }
+
+        logger.error("No secret found by name '$secretName' for service '$serviceName'.")
+        return null
     }
 }
 

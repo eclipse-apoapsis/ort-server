@@ -26,34 +26,29 @@ import io.konform.validation.constraints.pattern
 import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
 /**
- * A data class describing an infrastructure service that is referenced during an ORT run.
+ * A data class describing a dynamic infrastructure service that is referenced during an ORT run.
  *
- * A repository being analyzed by ORT can declare that it requires specific infrastructure services, such as source
- * code or artifact repositories to resolve its dependencies. ORT Server takes those declarations into account when
- * setting up the build environment for a repository. They are also needed to determine the credentials required to
- * access the corresponding service.
+ * In contract to [InfrastructureService], this class contains data that is collected at the start of the ORT run
+ * from the environment definition file .ort.env.yml. As this file is located inside the repository being analyzed,
+ * and may change in every revision, the data is highly dynamic compared to the more static [InfrastructureService]
+ * data. There is no direct reference to an [Organization], [Product] or [Repository] in this class, as these
+ * references can be found in the assoicated ORT run.
+ *
+ * As the data in this class is ephemeral, it holds no strong references to [Secret]s, but rather references the
+ * secrets by their names.
  */
-data class InfrastructureService(
+data class DynamicInfrastructureService(
     /** The name of this service. */
     val name: String,
 
     /** The URL of this service. */
     val url: String,
 
-    /** An optional description for this infrastructure service. */
-    val description: String? = null,
+    /** The name of the [Secret] that contains the username of the credentials for this infrastructure service. */
+    val usernameSecretName: String,
 
-    /** The [Secret] that contains the username of the credentials for this infrastructure service. */
-    val usernameSecret: Secret,
-
-    /** The [Secret] that contains the password of the credentials for this infrastructure service. */
-    val passwordSecret: Secret,
-
-    /** The [Organization] this infrastructure belongs to if any. */
-    val organization: Organization?,
-
-    /** The [Product] this infrastructure service belongs to if any. */
-    val product: Product?,
+    /** The name of the [Secret] that contains the password of the credentials for this infrastructure service. */
+    val passwordSecretName: String,
 
     /**
      * The set of [CredentialsType]s for this infrastructure service. This determines in which configuration files the
@@ -73,28 +68,15 @@ data class InfrastructureService(
 
     fun validate() {
         val validationResult = Validation {
-            InfrastructureService::name {
+            DynamicInfrastructureService::name {
                 pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
             }
         }.validate(this)
 
         if (validationResult is Invalid) {
-             throw ValidationException(
+            throw ValidationException(
                 validationResult.errors.joinToString("; ") { error -> "'$name': ${error.message}" }
             )
         }
     }
-
-    /**
-     * Map this [InfrastructureService] to a [DynamicInfrastructureService]. This can be useful when both types
-     * of Infrastructure Service information are processed by the same code.
-     */
-    fun mapToDynamicInfrastructureService() =
-        DynamicInfrastructureService(
-            name = name,
-            url = url,
-            usernameSecretName = usernameSecret.name,
-            passwordSecretName = passwordSecret.name,
-            credentialsTypes = credentialsTypes
-        )
 }
