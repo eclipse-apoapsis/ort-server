@@ -64,9 +64,6 @@ fun ApplicationTestBuilder.createJsonClient(
 /** Verify that this [HttpResponse] has the provided [body]. */
 inline infix fun <reified T> HttpResponse.shouldHaveBody(body: T) = this should haveBody(body)
 
-/** Verify that this [HttpResponse] does not have the provided [body]. */
-inline infix fun <reified T> HttpResponse.shouldNotHaveBody(body: T) = this shouldNot haveBody(body)
-
 /** Verify that a [HttpResponse] has the [expected body][expected]. */
 inline fun <reified T> haveBody(expected: T) = object : Matcher<HttpResponse> {
     override fun test(value: HttpResponse): MatcherResult {
