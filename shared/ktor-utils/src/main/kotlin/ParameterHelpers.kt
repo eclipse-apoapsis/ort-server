@@ -20,20 +20,19 @@
 package org.eclipse.apoapsis.ortserver.shared.ktorutils
 
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.plugins.MissingRequestParameterException
+import io.ktor.server.plugins.ParameterConversionException
 
 /**
- * Get the parameter from this [ApplicationCall].
+ * Get the parameter from this [ApplicationCall] or throw an exception if the parameter is null.
  */
-fun ApplicationCall.requireParameter(name: String) = requireNotNull(parameters[name]) {
-    "Parameter '$name' cannot be null."
-}
+fun ApplicationCall.requireParameter(name: String) = parameters[name] ?: throw MissingRequestParameterException(name)
 
 /**
- * Get the ID parameter from this [ApplicationCall]. Throw a [UrlPathFormatException] if the parameter is null or not a
- * valid ID.
+ * Get the ID parameter from this [ApplicationCall] or throw an exception if the parameter is null or not a valid ID.
  */
 fun ApplicationCall.requireIdParameter(name: String): Long {
     val id = requireParameter(name).toLongOrNull()
 
-    return if (id != null && id > 0) id else throw UrlPathFormatException("Invalid entity ID: '${parameters[name]}'.")
+    return if (id != null && id > 0) id else throw ParameterConversionException(name, "ID")
 }
