@@ -25,6 +25,7 @@ import io.konform.validation.constraints.pattern
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
+import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 
 /**
  * Response object for the Secrets Metadata endpoint.

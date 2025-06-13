@@ -80,8 +80,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
-import org.eclipse.apoapsis.ortserver.api.v1.model.asPresent
-import org.eclipse.apoapsis.ortserver.api.v1.model.valueOrThrow
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
@@ -121,6 +119,8 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
+import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
+import org.eclipse.apoapsis.ortserver.shared.apimodel.valueOrThrow
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 

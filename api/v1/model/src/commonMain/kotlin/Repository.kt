@@ -26,6 +26,8 @@ import io.ktor.http.parseUrl
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
+import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
+import org.eclipse.apoapsis.ortserver.shared.apimodel.valueOrThrow
 
 /**
  * Response object for the repository endpoint.
