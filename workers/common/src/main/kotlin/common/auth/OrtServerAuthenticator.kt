@@ -145,15 +145,12 @@ private data class ServiceData(
      * matching service is found.
      */
     fun getAuthenticatedService(host: String, url: URL?): InfrastructureService? {
-        val services = servicesByHost[url?.host ?: host].orEmpty()
-        logger.info("Services for host '$host': ${services.joinToString { "${it.name} (${it.url})" }}")
+        val hostName = url?.host ?: host
+        val services = servicesByHost[hostName].orEmpty()
 
-        val matchingServices = url?.let { requestUrl ->
-            val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
-            services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
-        } ?: services
-
-        return matchingServices.maxByOrNull { it.url.length }
+        return services.singleOrNull().also {
+            logger.debug("Using single service for host '{}'.", hostName)
+        } ?: findBestMatchingService(services, url)
     }
 }
 
@@ -194,3 +191,23 @@ private class ServicesAuthenticator(
  */
 private fun InfrastructureService.withTrailingSlash(): InfrastructureService =
     this.takeIf { url.endsWith('/') } ?: copy(url = "$url/")
+
+/**
+ * Try to find the best matching [InfrastructureService] in the given list of [services] for the given [url]. This
+ * function is used if multiple services are available for the same host. It returns the service with the longest
+ * common prefix with the URL, or `null` if no matching service is found.
+ */
+private fun findBestMatchingService(services: Collection<InfrastructureService>, url: URL?): InfrastructureService? {
+    logger.debug(
+        "Finding best matching service for '{}' from {}.",
+        url?.toString(),
+        services.joinToString { "${it.name} (${it.url})" }
+    )
+
+    val matchingServices = url?.let { requestUrl ->
+        val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
+        services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
+    } ?: services
+
+    return matchingServices.maxByOrNull { it.url.length }
+}
