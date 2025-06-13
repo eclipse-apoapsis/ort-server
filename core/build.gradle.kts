@@ -130,6 +130,7 @@ dependencies {
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.logaccess.logaccessSpi))
     testImplementation(testFixtures(projects.secrets.secretsSpi))
+    testImplementation(testFixtures(projects.shared.ktorUtils))
     testImplementation(testFixtures(projects.transport.transportSpi))
 
     testImplementation(libs.kotestAssertionsCore)

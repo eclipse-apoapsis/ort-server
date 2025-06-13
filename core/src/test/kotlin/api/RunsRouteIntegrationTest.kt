@@ -87,7 +87,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileCriteria
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactoryForTesting
@@ -130,6 +129,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
