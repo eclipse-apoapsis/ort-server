@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJo
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.DaoAnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.DaoEvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.DaoEvaluatorRunRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice.DaoInfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.DaoNotifierJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierrun.DaoNotifierRunRepository
@@ -83,6 +84,7 @@ class Fixtures(private val db: Database) {
     val analyzerJobRepository = DaoAnalyzerJobRepository(db)
     val analyzerRunRepository = DaoAnalyzerRunRepository(db)
     val evaluatorJobRepository = DaoEvaluatorJobRepository(db)
+    val infrastructureServiceDeclarationRepository = DaoInfrastructureServiceDeclarationRepository(db)
     val evaluatorRunRepository = DaoEvaluatorRunRepository(db)
     val infrastructureServiceRepository = DaoInfrastructureServiceRepository(db)
     val organizationRepository = DaoOrganizationRepository(db)

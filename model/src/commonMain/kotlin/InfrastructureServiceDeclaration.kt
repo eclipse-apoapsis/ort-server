@@ -19,7 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
+import io.konform.validation.Invalid
+import io.konform.validation.Validation
+import io.konform.validation.constraints.pattern
+
 import kotlinx.serialization.Serializable
+
+import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
 /**
  * A data class describing the declaration of an infrastructure service.
@@ -52,4 +58,24 @@ data class InfrastructureServiceDeclaration(
 
     /** The set of [CredentialsType]s for this infrastructure service. */
     val credentialsTypes: Set<CredentialsType> = emptySet()
-)
+) {
+    companion object {
+        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
+        const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
+                "spaces. Leading and trailing whitespaces are not allowed."
+    }
+
+    fun validate() {
+        val validationResult = Validation {
+            InfrastructureServiceDeclaration::name {
+                pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
+            }
+        }.validate(this)
+
+        if (validationResult is Invalid) {
+            throw ValidationException(
+                validationResult.errors.joinToString("; ") { error -> "'$name': ${error.message}" }
+            )
+        }
+    }
+}

@@ -24,12 +24,15 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.jetbrains.exposed.sql.Table
 
 /**
- * An intermediate table to store references from [InfrastructureServicesTable] to [OrtRunsTable].
+ * An intermediate table to store references from [InfrastructureServiceDeclarationsTable] to [OrtRunsTable].
  */
-object InfrastructureServicesRunsTable : Table("infrastructure_services_ort_runs") {
-    val infrastructureServiceId = reference("infrastructure_service_id", InfrastructureServicesTable)
+object InfrastructureServiceDeclarationsRunsTable : Table("infrastructure_service_declarations_ort_runs") {
+    val infrastructureServiceDeclarationId = reference(
+        "infrastructure_service_declaration_id",
+        InfrastructureServiceDeclarationsTable
+    )
     val ortRunId = reference("ort_run_id", OrtRunsTable)
 
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(infrastructureServiceId, ortRunId, name = "${tableName}_pkey")
+        get() = PrimaryKey(infrastructureServiceDeclarationId, ortRunId, name = "${tableName}_pkey")
 }

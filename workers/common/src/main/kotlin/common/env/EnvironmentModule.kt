@@ -19,8 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
+import org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice.DaoInfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
@@ -36,6 +38,7 @@ import org.koin.dsl.module
  */
 fun buildEnvironmentModule(): Module = module {
     single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
+    single<InfrastructureServiceDeclarationRepository> { DaoInfrastructureServiceDeclarationRepository(get()) }
     single<SecretRepository> { DaoSecretRepository(get()) }
 
     singleOf(::EnvironmentDefinitionFactory)
@@ -43,6 +46,8 @@ fun buildEnvironmentModule(): Module = module {
 
     single {
         EnvironmentService(
+            get(),
+            get(),
             get(),
             listOf(
                 ConanGenerator(),
