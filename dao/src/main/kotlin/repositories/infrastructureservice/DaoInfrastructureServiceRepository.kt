@@ -35,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 
 class DaoInfrastructureServiceRepository(private val db: Database) : InfrastructureServiceRepository {
@@ -85,19 +84,6 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             this.organizationId = organizationId
             this.productId = productId
         }.mapToModel()
-    }
-
-    override fun getOrCreateForRun(service: InfrastructureService, runId: Long): InfrastructureService {
-        service.validate()
-        return db.blockingQuery {
-            val serviceDao = InfrastructureServicesDao.getOrPut(service)
-            InfrastructureServicesRunsTable.insert {
-                it[infrastructureServiceId] = serviceDao.id
-                it[ortRunId] = runId
-            }
-
-            serviceDao.mapToModel()
-        }
     }
 
     override fun listForOrganization(
@@ -161,15 +147,6 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
     override fun deleteForProductAndName(productId: Long, name: String) {
         delete(selectByProductAndName(productId, name))
     }
-
-    override fun listForRun(runId: Long, parameters: ListQueryParameters): List<InfrastructureService> =
-        db.blockingQuery {
-            val subQuery = InfrastructureServicesRunsTable.select(
-                InfrastructureServicesRunsTable.infrastructureServiceId
-            ).where { InfrastructureServicesRunsTable.ortRunId eq runId }
-
-            list(parameters) { InfrastructureServicesTable.id inSubQuery subQuery }
-        }
 
     override fun listForHierarchy(
         organizationId: Long,

@@ -62,7 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -313,7 +313,7 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                         ListQueryResult(listOf(usernameSecret, passwordSecret), ListQueryParameters.DEFAULT, 2)
             }
 
-            declareMock<InfrastructureServiceRepository> {
+            declareMock<InfrastructureServiceDeclarationRepository> {
                 every { getOrCreateForRun(any(), any()) } answers { firstArg() }
             }
 
