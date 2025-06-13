@@ -94,20 +94,37 @@ class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
     private fun generateUsernameBlock(
         builder: ConfigFileBuilder,
         definition: NuGetDefinition
-    ) =
-        "<add key=\"Username\" value=\"${builder.secretRef(definition.service.usernameSecret)}\" />".prependIndent(
+    ) {
+        val usernameSecretNotNull = definition.service.usernameSecret ?: error(
+            "UsernameSecret no longer defined for service '${definition.service.name}'."
+        )
+
+        "<add key=\"Username\" value=\"${builder.secretRef(usernameSecretNotNull)}\" />".prependIndent(
             INDENT_6_SPACES
         )
+    }
 
     private fun generatePasswordBlock(
         builder: ConfigFileBuilder,
         definition: NuGetDefinition
-    ) = "<add key=\"ClearTextPassword\" value=\"${builder.secretRef(definition.service.passwordSecret)}\" />"
-        .prependIndent(INDENT_6_SPACES)
+    ) {
+        val passwordSecretNotNull = definition.service.passwordSecret ?: error(
+            "PasswordSecret no longer defined for service '${definition.service.name}'."
+        )
+
+        "<add key=\"ClearTextPassword\" value=\"${builder.secretRef(passwordSecretNotNull)}\" />"
+            .prependIndent(INDENT_6_SPACES)
+    }
 
     private fun generateApiKeyBlock(
         definition: NuGetDefinition,
         builder: ConfigFileBuilder
-    ) = "<add key=${definition.sourcePath} value=\"${builder.secretRef(definition.service.passwordSecret)}\" />"
-        .prependIndent(INDENT_4_SPACES)
+    ) {
+        val passwordSecretNotNull = definition.service.passwordSecret ?: error(
+            "PasswordSecret no longer defined for service '${definition.service.name}'."
+        )
+
+        "<add key=${definition.sourcePath} value=\"${builder.secretRef(passwordSecretNotNull)}\" />"
+            .prependIndent(INDENT_4_SPACES)
+    }
 }

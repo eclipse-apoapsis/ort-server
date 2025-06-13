@@ -118,24 +118,32 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
         builder: ConfigFileBuilder,
         definition: NpmDefinition,
         fragment: String
-    ): String =
-        with(definition) {
+    ): String {
+        val usernameSecretNotNull = definition.service.usernameSecret ?: error(
+            "UsernameSecret no longer defined for service '${definition.service.name}'."
+        )
+
+        val passwordSecretNotNull = definition.service.passwordSecret ?: error(
+            "PasswordSecret no longer defined for service '${definition.service.name}'."
+        )
+
+        return with(definition) {
             when (authMode) {
                 NpmAuthMode.PASSWORD -> {
                     GeneratorLogger.entryAdded("$fragment:username=[username],_password=[password]", TARGET, service)
 
                     """
-                    $fragment:username=${builder.secretRef(definition.service.usernameSecret)}
-                    $fragment:_password=${builder.secretRef(definition.service.passwordSecret)}
+                    $fragment:username=${builder.secretRef(usernameSecretNotNull)}
+                    $fragment:_password=${builder.secretRef(passwordSecretNotNull)}
                 """.trimIndent()
                 }
 
                 NpmAuthMode.PASSWORD_BASE64 -> {
-                    val password = builder.resolverFun(service.passwordSecret).base64()
+                    val password = builder.resolverFun(passwordSecretNotNull).base64()
                     GeneratorLogger.entryAdded("$fragment:username=[username],_password=[base64]", TARGET, service)
 
                     """
-                    $fragment:username=${builder.secretRef(service.usernameSecret)}
+                    $fragment:username=${builder.secretRef(usernameSecretNotNull)}
                     $fragment:_password=$password
                 """.trimIndent()
                 }
@@ -143,26 +151,27 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 NpmAuthMode.PASSWORD_AUTH -> {
                     GeneratorLogger.entryAdded("$fragment:_auth=[password]", TARGET, service)
 
-                    "$fragment:_auth=${builder.secretRef(service.passwordSecret)}"
+                    "$fragment:_auth=${builder.secretRef(passwordSecretNotNull)}"
                 }
 
                 NpmAuthMode.PASSWORD_AUTH_TOKEN -> {
                     GeneratorLogger.entryAdded("$fragment:_authToken=[token]", TARGET, service)
 
-                    "$fragment:_authToken=${builder.secretRef(service.passwordSecret)}"
+                    "$fragment:_authToken=${builder.secretRef(passwordSecretNotNull)}"
                 }
 
                 NpmAuthMode.USERNAME_PASSWORD_AUTH -> {
                     val secretValues = resolveCredentials(
                         builder.resolverFun,
-                        service.usernameSecret,
-                        service.passwordSecret
+                        usernameSecretNotNull,
+                        passwordSecretNotNull
                     )
-                    val auth = "${secretValues[service.usernameSecret]}:${secretValues[service.passwordSecret]}"
+                    val auth = "${secretValues[usernameSecretNotNull]}:${secretValues[passwordSecretNotNull]}"
                     GeneratorLogger.entryAdded("$fragment:_auth=[base64]", TARGET, service)
 
                     "$fragment:_auth=${auth.base64()}"
                 }
             }
         }
+    }
 }

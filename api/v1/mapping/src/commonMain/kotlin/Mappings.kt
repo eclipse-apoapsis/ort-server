@@ -644,15 +644,19 @@ fun VcsInfo.mapToApi() =
         path
     )
 
-fun InfrastructureService.mapToApi() =
+fun InfrastructureService.mapToApi() {
+    val usernameSecretNotNull = usernameSecret ?: error("UsernameSecret reference must not be null.")
+    val passwordSecretNotNull = passwordSecret ?: error("PasswordSecret reference must not be null.")
+
     ApiInfrastructureService(
         name,
         url,
         description,
-        usernameSecret.name,
-        passwordSecret.name,
+        usernameSecretNotNull.name,
+        passwordSecretNotNull.name,
         credentialsTypes.mapToApi()
     )
+}
 
 fun ApiInfrastructureService.mapToModel() =
     InfrastructureServiceDeclaration(

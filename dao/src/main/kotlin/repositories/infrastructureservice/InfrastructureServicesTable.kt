@@ -46,8 +46,9 @@ object InfrastructureServicesTable : SortableTable("infrastructure_services") {
     val description = text("description").nullable()
     val credentialsType = text("credentials_type").nullable()
 
-    val usernameSecretId = reference("username_secret_id", SecretsTable)
-    val passwordSecretId = reference("password_secret_id", SecretsTable)
+    // Explicitly allow to delete referenced secrets
+    val usernameSecretId = optReference("username_secret_id", SecretsTable)
+    val passwordSecretId = optReference("password_secret_id", SecretsTable)
 
     val organizationId = reference("organization_id", OrganizationsTable).nullable()
     val productId = reference("product_id", ProductsTable).nullable()
@@ -57,35 +58,46 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<InfrastructureServicesDao>(InfrastructureServicesTable) {
         /**
          * Try to find an entity with properties matching the ones of the given [service].
+         * Returns null if either no matching entity is found, or if [InfrastructureService.usernameSecret] or
+         * [InfrastructureService.passwordSecret] is null.
          */
-        fun findByInfrastructureService(service: InfrastructureService): InfrastructureServicesDao? =
-            find {
+        fun findByInfrastructureService(service: InfrastructureService): InfrastructureServicesDao? {
+            val usernameSecretNotNull = service.usernameSecret ?: return null
+            val passwordSecretNotNull = service.passwordSecret ?: return null
+
+            return find {
                 InfrastructureServicesTable.name eq service.name and
                         (InfrastructureServicesTable.url eq service.url) and
                         (InfrastructureServicesTable.description eq service.description) and
-                        (InfrastructureServicesTable.usernameSecretId eq service.usernameSecret.id) and
-                        (InfrastructureServicesTable.passwordSecretId eq service.passwordSecret.id) and
+                        (InfrastructureServicesTable.usernameSecretId eq usernameSecretNotNull.id) and
+                        (InfrastructureServicesTable.passwordSecretId eq passwordSecretNotNull.id) and
                         (
                                 InfrastructureServicesTable.credentialsType eq
-                                    toCredentialsTypeString(service.credentialsTypes)
+                                        toCredentialsTypeString(service.credentialsTypes)
                                 ) and
                         (InfrastructureServicesTable.organizationId eq service.organization?.id) and
                         (InfrastructureServicesTable.productId eq service.product?.id)
             }.firstOrNull()
+        }
 
         /**
          * Return an entity with properties matching the ones of the given [service]. If no such entity exists yet, a
-         * new one is created now.
+         * new one is created. If [InfrastructureService.usernameSecret] or [InfrastructureService.passwordSecret]
+         * is null, return null.
          */
-        fun getOrPut(service: InfrastructureService): InfrastructureServicesDao =
-            findByInfrastructureService(service) ?: new {
+        fun getOrPut(service: InfrastructureService): InfrastructureServicesDao? {
+            val usernameSecretNotNull = service.usernameSecret ?: return null
+            val passwordSecretNotNull = service.passwordSecret ?: return null
+
+            return findByInfrastructureService(service) ?: new {
                 name = service.name
                 url = service.url
                 description = service.description
                 credentialsTypes = service.credentialsTypes
-                usernameSecret = SecretDao[service.usernameSecret.id]
-                passwordSecret = SecretDao[service.passwordSecret.id]
+                usernameSecret = SecretDao[usernameSecretNotNull.id]
+                passwordSecret = SecretDao[passwordSecretNotNull.id]
             }
+        }
 
         /**
          * Convert a set of [CredentialsType]s to a string representation.
@@ -111,9 +123,9 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
     )
 
     var usernameSecretId by InfrastructureServicesTable.usernameSecretId.transformToEntityId()
-    var usernameSecret by SecretDao referencedOn InfrastructureServicesTable.usernameSecretId
+    var usernameSecret by SecretDao optionalReferencedOn InfrastructureServicesTable.usernameSecretId
     var passwordSecretId by InfrastructureServicesTable.passwordSecretId.transformToEntityId()
-    var passwordSecret by SecretDao referencedOn InfrastructureServicesTable.passwordSecretId
+    var passwordSecret by SecretDao optionalReferencedOn InfrastructureServicesTable.passwordSecretId
 
     var organizationId by InfrastructureServicesTable.organizationId.transformToEntityId()
     var organization by OrganizationDao optionalReferencedOn InfrastructureServicesTable.organizationId
@@ -124,8 +136,8 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
         name,
         url,
         description,
-        usernameSecret.mapToModel(),
-        passwordSecret.mapToModel(),
+        usernameSecret?.mapToModel(),
+        passwordSecret?.mapToModel(),
         organization?.mapToModel(),
         product?.mapToModel(),
         credentialsTypes

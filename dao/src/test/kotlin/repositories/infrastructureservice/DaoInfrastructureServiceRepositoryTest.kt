@@ -321,8 +321,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     SERVICE_NAME,
                     updatedService.url.asPresent(),
                     updatedService.description.asPresent(),
-                    updatedService.usernameSecret.asPresent(),
-                    updatedService.passwordSecret.asPresent(),
+                    updatedService.usernameSecret.asPresent() as OptionalValue<Secret>,
+                    updatedService.passwordSecret.asPresent() as OptionalValue<Secret>,
                     credentialsTypes = updatedService.credentialsTypes.asPresent()
                 )
 
@@ -371,8 +371,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     SERVICE_NAME,
                     updatedService.url.asPresent(),
                     updatedService.description.asPresent(),
-                    updatedService.usernameSecret.asPresent(),
-                    updatedService.passwordSecret.asPresent(),
+                    updatedService.usernameSecret.asPresent() as OptionalValue<Secret>,
+                    updatedService.passwordSecret.asPresent() as OptionalValue<Secret>,
                     updatedService.credentialsTypes.asPresent()
                 )
 
@@ -626,9 +626,19 @@ private fun DaoInfrastructureServiceRepository.create(service: InfrastructureSer
         service.name,
         service.url,
         service.description,
-        service.usernameSecret,
-        service.passwordSecret,
+        service.usernameSecret ?: createDummySecret(),
+        service.passwordSecret ?: createDummySecret(),
         service.credentialsTypes,
         service.organization?.id,
         service.product?.id
     )
+
+private fun createDummySecret() = Secret(
+    20230627040646L,
+    "p1",
+    "repositoryUsername",
+    null,
+    null,
+    null,
+    repository = null
+)

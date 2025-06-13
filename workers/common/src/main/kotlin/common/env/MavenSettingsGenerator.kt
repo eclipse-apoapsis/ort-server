@@ -73,10 +73,18 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
             println("<servers>".prependIndent(INDENT_4_SPACES))
 
             definitions.forEach { definition ->
+                val usernameSecretNotNull = definition.service.usernameSecret ?: error(
+                    "UsernameSecret no longer defined for service '${definition.service.name}'."
+                )
+
+                val passwordSecretNotNull = definition.service.passwordSecret ?: error(
+                    "PasswordSecret no longer defined for service '${definition.service.name}'."
+                )
+
                 println("<server>".prependIndent(INDENT_8_SPACES))
                 printTag("id", definition.id)
-                printTag("username", builder.secretRef(definition.service.usernameSecret))
-                printTag("password", builder.secretRef(definition.service.passwordSecret))
+                printTag("username", builder.secretRef(usernameSecretNotNull))
+                printTag("password", builder.secretRef(passwordSecretNotNull))
                 println("</server>".prependIndent(INDENT_8_SPACES))
 
                 GeneratorLogger.entryAdded(

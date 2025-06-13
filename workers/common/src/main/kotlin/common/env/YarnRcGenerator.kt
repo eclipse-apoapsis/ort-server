@@ -97,15 +97,28 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
     private fun generateUsernamePasswordAuthentication(
         builder: ConfigFileBuilder,
         definition: YarnDefinition
-    ) = (
-            "npmAuthIdent: \"" +
-                    "${builder.secretRef(definition.service.usernameSecret)}:" +
-                    "${builder.secretRef(definition.service.passwordSecret)}\""
-            )
-        .prependIndent(INDENT_4_SPACES)
+    ) {
+        val usernameSecretNotNull = definition.service.usernameSecret ?: error(
+            "UsernameSecret no longer defined for service '${definition.service.name}'."
+        )
+
+        val passwordSecretNotNull = definition.service.passwordSecret ?: error(
+            "PasswordSecret no longer defined for service '${definition.service.name}'."
+        )
+
+        "npmAuthIdent: \"" +
+                "${builder.secretRef(usernameSecretNotNull)}:" +
+                "${builder.secretRef(passwordSecretNotNull)}\""
+                    .prependIndent(INDENT_4_SPACES)
+    }
 
     private fun generateTokenAuthentication(
         builder: ConfigFileBuilder,
         definition: YarnDefinition
-    ) = "npmAuthToken: \"${builder.secretRef(definition.service.passwordSecret)}\"".prependIndent(INDENT_4_SPACES)
+    ) {
+        val passwordSecretNotNull = definition.service.passwordSecret ?: error(
+            "PasswordSecret no longer defined for service '${definition.service.name}'."
+        )
+        "npmAuthToken: \"${builder.secretRef(passwordSecretNotNull)}\"".prependIndent(INDENT_4_SPACES)
+    }
 }

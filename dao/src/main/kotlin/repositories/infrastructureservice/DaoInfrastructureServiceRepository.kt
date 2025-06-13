@@ -87,16 +87,19 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         }.mapToModel()
     }
 
-    override fun getOrCreateForRun(service: InfrastructureService, runId: Long): InfrastructureService {
+    override fun getOrCreateForRun(service: InfrastructureService, runId: Long): InfrastructureService? {
         service.validate()
         return db.blockingQuery {
-            val serviceDao = InfrastructureServicesDao.getOrPut(service)
-            InfrastructureServicesRunsTable.insert {
-                it[infrastructureServiceId] = serviceDao.id
-                it[ortRunId] = runId
+            val serviceDao = InfrastructureServicesDao.getOrPut(service)?.let { serviceDao ->
+                InfrastructureServicesRunsTable.insert {
+                    it[infrastructureServiceId] = serviceDao.id
+                    it[ortRunId] = runId
+                }
+
+                serviceDao.mapToModel()
             }
 
-            serviceDao.mapToModel()
+            serviceDao
         }
     }
 
