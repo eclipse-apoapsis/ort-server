@@ -27,11 +27,13 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTa
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
 import org.eclipse.apoapsis.ortserver.model.Secret
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 object SecretsTable : SortableTable("secrets") {
     val organizationId = reference("organization_id", OrganizationsTable).nullable()
@@ -41,6 +43,9 @@ object SecretsTable : SortableTable("secrets") {
     val path = text("path")
     val name = text("name").sortable()
     val description = text("description").nullable()
+
+    val isDeleted = bool("is_deleted").default(false)
+    val deletedAt = timestamp("deleted_at").nullable()
 }
 
 class SecretDao(id: EntityID<Long>) : LongEntity(id) {
@@ -57,6 +62,9 @@ class SecretDao(id: EntityID<Long>) : LongEntity(id) {
     var name by SecretsTable.name
     var description by SecretsTable.description
 
+    var isDeleted by SecretsTable.isDeleted
+    var deletedAt by SecretsTable.deletedAt.transformToDatabasePrecision()
+
     fun mapToModel() = Secret(
         id = id.value,
         path = path,
@@ -64,6 +72,7 @@ class SecretDao(id: EntityID<Long>) : LongEntity(id) {
         description = description,
         organization = organization?.mapToModel(),
         product = product?.mapToModel(),
-        repository = repository?.mapToModel()
+        repository = repository?.mapToModel(),
+        isDeleted = isDeleted
     )
 }
