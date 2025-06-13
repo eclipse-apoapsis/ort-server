@@ -23,7 +23,10 @@ import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.URI
 import java.net.URL
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
+
+import org.apache.commons.text.similarity.FuzzyScore
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -145,15 +148,12 @@ private data class ServiceData(
      * matching service is found.
      */
     fun getAuthenticatedService(host: String, url: URL?): InfrastructureService? {
-        val services = servicesByHost[url?.host ?: host].orEmpty()
-        logger.info("Services for host '$host': ${services.joinToString { "${it.name} (${it.url})" }}")
+        val hostName = url?.host ?: host
+        val services = servicesByHost[hostName].orEmpty()
 
-        val matchingServices = url?.let { requestUrl ->
-            val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
-            services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
-        } ?: services
-
-        return matchingServices.maxByOrNull { it.url.length }
+        return services.singleOrNull().also {
+            logger.debug("Using single service for host '{}'.", hostName)
+        } ?: findBestMatchingService(services, url)
     }
 }
 
@@ -194,3 +194,51 @@ private class ServicesAuthenticator(
  */
 private fun InfrastructureService.withTrailingSlash(): InfrastructureService =
     this.takeIf { url.endsWith('/') } ?: copy(url = "$url/")
+
+/**
+ * Try to find the best matching [InfrastructureService] in the given list of [services] for the given [url]. This
+ * function is used if multiple services are available for the same host. It applies some heuristics to find the
+ * service whose URL is most closely matching the given [url]. If no services are available for the host, result is
+ * *null*.
+ */
+private fun findBestMatchingService(services: Collection<InfrastructureService>, url: URL?): InfrastructureService? {
+    logger.debug(
+        "Finding best matching service for '{}' from {}.",
+        url?.toString(),
+        services.joinToString { "${it.name} (${it.url})" }
+    )
+
+    val matchingServices = url?.let { requestUrl ->
+        val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
+        services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
+    } ?: services
+
+    return matchingServices.maxByOrNull { it.url.length } ?: findMostSimilarService(services, url)
+}
+
+/**
+ * An object for doing fuzzy matching of URLs to authenticate against service URLs. This is used as a heuristic if
+ * there are multiple services defined for a host, but no prefix match is found.
+ */
+private val fuzzyScore = FuzzyScore(Locale.US)
+
+/**
+ * Try to find an [InfrastructureService] that most closely matches the given [url]. This function is called if no
+ * service for the URL can be found based on prefix matching. If there are services at all, it tries to find the best
+ * match using a fuzzy search.
+ */
+private fun findMostSimilarService(services: Collection<InfrastructureService>, url: URL?): InfrastructureService? =
+    if (services.isEmpty() || url == null) {
+        null
+    } else {
+        val strUrl = url.toString().removeSuffix("/")
+        logger.warn(
+            "No unique infrastructure service found to match '{}'. Trying to find the best match. " +
+                    "If this yields an incorrect service, please declare one with a URL that is a prefix of this URL.",
+            strUrl
+        )
+
+        services.maxByOrNull { service ->
+            fuzzyScore.fuzzyScore(service.url.removeSuffix("/"), strUrl)
+        }
+    }
