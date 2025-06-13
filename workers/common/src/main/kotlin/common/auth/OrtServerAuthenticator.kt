@@ -23,7 +23,10 @@ import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.URI
 import java.net.URL
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
+
+import org.apache.commons.text.similarity.FuzzyScore
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -194,8 +197,9 @@ private fun InfrastructureService.withTrailingSlash(): InfrastructureService =
 
 /**
  * Try to find the best matching [InfrastructureService] in the given list of [services] for the given [url]. This
- * function is used if multiple services are available for the same host. It returns the service with the longest
- * common prefix with the URL, or `null` if no matching service is found.
+ * function is used if multiple services are available for the same host. It applies some heuristics to find the
+ * service whose URL is most closely matching the given [url]. If no services are available for the host, result is
+ * *null*.
  */
 private fun findBestMatchingService(services: Collection<InfrastructureService>, url: URL?): InfrastructureService? {
     logger.debug(
@@ -209,5 +213,44 @@ private fun findBestMatchingService(services: Collection<InfrastructureService>,
         services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
     } ?: services
 
-    return matchingServices.maxByOrNull { it.url.length }
+    return matchingServices.maxByOrNull { it.url.length } ?: findMostSimilarService(services, url)
 }
+
+/**
+ * An object for doing fuzzy matching of URLs to authenticate against service URLs. This is used as a heuristic if
+ * there are multiple services defined for a host, but no prefix match is found.
+ */
+private val fuzzyScore = FuzzyScore(Locale.US)
+
+/**
+ * Try to find an [InfrastructureService] that most closely matches the given [url]. This function is called if no
+ * service for the URL can be found based on prefix matching. If there are services at all, it tries to find the best
+ * match using a fuzzy search.
+ */
+private fun findMostSimilarService(services: Collection<InfrastructureService>, url: URL?): InfrastructureService? =
+    if (services.isEmpty() || url == null) {
+        null
+    } else {
+        val strUrl = url.toString().removeSuffix("/")
+        logger.warn(
+            "No unique infrastructure service found to match '{}'. Trying to find the best match. " +
+                    "If this yields an incorrect service, please declare one with a URL that is a prefix of this URL.",
+            strUrl
+        )
+
+        val sortedServicesWithScores = services.map { service ->
+            service to fuzzyScore.fuzzyScore(service.url.removeSuffix("/"), strUrl)
+        }.sortedByDescending { it.second }
+
+        sortedServicesWithScores.first().takeUnless { sortedServicesWithScores[1].second == it.second }?.first
+            .also { service ->
+                if (service == null) {
+                    logger.warn(
+                        "Found multiple services with the same matching score for '{}': {}.",
+                        strUrl,
+                        sortedServicesWithScores.takeWhile { it.second == sortedServicesWithScores.first().second }
+                            .joinToString { "${it.first.name} (${it.first.url})" }
+                    )
+                }
+            }
+    }
