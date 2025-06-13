@@ -41,6 +41,7 @@ repositories {
 
 dependencies {
     api(projects.components.pluginManager.api)
+    api(projects.model)
 
     implementation(projects.components.authorization.implementation)
     implementation(projects.dao)
@@ -49,6 +50,7 @@ dependencies {
     implementation(libs.exposedCore)
     implementation(libs.exposedJson)
     implementation(libs.exposedKotlinDatetime)
+    implementation(libs.kotlinResult)
     implementation(libs.ktorOpenApi)
     implementation(libs.ktorServerAuth)
     implementation(libs.ktorServerCore)
