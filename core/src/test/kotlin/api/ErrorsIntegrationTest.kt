@@ -103,9 +103,7 @@ class ErrorsIntegrationTest : StringSpec() {
                 val response = client.get("/api/v1/organizations?limit=$limitValue")
 
                 response shouldHaveStatus HttpStatusCode.BadRequest
-                val cause = response.body<ErrorResponse>().cause
-                cause shouldContain "'$limitValue'"
-                cause shouldContain "'limit'"
+                response.body<ErrorResponse>().cause shouldContain "limit"
             }
         }
 
@@ -118,9 +116,7 @@ class ErrorsIntegrationTest : StringSpec() {
                 val response = client.get("/api/v1/organizations?limit=25&offset=$offsetValue")
 
                 response shouldHaveStatus HttpStatusCode.BadRequest
-                val cause = response.body<ErrorResponse>().cause
-                cause shouldContain "'$offsetValue'"
-                cause shouldContain "'offset'"
+                response.body<ErrorResponse>().cause shouldContain "offset"
             }
         }
 
@@ -133,7 +129,7 @@ class ErrorsIntegrationTest : StringSpec() {
                 val response = client.get("/api/v1/organizations/$invalidOrgId")
 
                 response shouldHaveStatus HttpStatusCode.BadRequest
-                response.body<ErrorResponse>().cause shouldContain "'$invalidOrgId'"
+                response.body<ErrorResponse>().cause shouldContain "organizationId"
             }
         }
     }

@@ -23,6 +23,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.plugins.MissingRequestParameterException
+import io.ktor.server.plugins.ParameterConversionException
 import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
@@ -37,7 +39,6 @@ import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.UrlPathFormatException
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
@@ -70,6 +71,12 @@ fun Application.configureStatusPages() {
                 ErrorResponse(message = "Secret reference could not be resolved.", e.message)
             )
         }
+        exception<MissingRequestParameterException> { call, e ->
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse("Missing request parameter.", e.message)
+            )
+        }
         exception<OrganizationNotEmptyException> { call, e ->
             call.respond(
                 HttpStatusCode.Conflict,
@@ -77,6 +84,12 @@ fun Application.configureStatusPages() {
                     "Organization is not empty. Delete all products before deleting the organization.",
                     e.message
                 )
+            )
+        }
+        exception<ParameterConversionException> { call, e ->
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ErrorResponse("Parameter conversion failed.", e.message)
             )
         }
         exception<ReferencedEntityException> { call, e ->
@@ -99,9 +112,6 @@ fun Application.configureStatusPages() {
                 HttpStatusCode.Conflict,
                 ErrorResponse("The entity you tried to create already exists.", e.message)
             )
-        }
-        exception<UrlPathFormatException> { call, e ->
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid URL path.", e.message))
         }
         exception<QueryParametersException> { call, e ->
             call.respond(
