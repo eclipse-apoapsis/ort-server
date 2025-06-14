@@ -55,11 +55,19 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
                 this
             )
 
+            val usernameSecretNotNull = usernameSecret ?: error(
+                "UsernameSecret no longer defined for service '$name'."
+            )
+
+            val passwordSecretNotNull = passwordSecret ?: error(
+                "PasswordSecret no longer defined for service '$name'."
+            )
+
             buildString {
                 append(serviceUrl.protocol)
                 append("://")
-                append(builder.secretRef(usernameSecret, ConfigFileBuilder.urlEncoding)).append(':')
-                append(builder.secretRef(passwordSecret, ConfigFileBuilder.urlEncoding)).append('@')
+                append(builder.secretRef(usernameSecretNotNull, ConfigFileBuilder.urlEncoding)).append(':')
+                append(builder.secretRef(passwordSecretNotNull, ConfigFileBuilder.urlEncoding)).append('@')
                 append(serviceUrl.authority)
                 append(serviceUrl.path)
             }

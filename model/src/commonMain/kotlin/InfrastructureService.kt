@@ -44,10 +44,10 @@ data class InfrastructureService(
     val description: String? = null,
 
     /** The [Secret] that contains the username of the credentials for this infrastructure service. */
-    val usernameSecret: Secret,
+    val usernameSecret: Secret? = null,
 
     /** The [Secret] that contains the password of the credentials for this infrastructure service. */
-    val passwordSecret: Secret,
+    val passwordSecret: Secret? = null,
 
     /** The [Organization] this infrastructure belongs to if any. */
     val organization: Organization?,

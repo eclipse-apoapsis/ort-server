@@ -49,10 +49,12 @@ interface InfrastructureServiceRepository {
     /**
      * Return an [InfrastructureService] with properties matching the ones of the given [service] that is associated
      * with the given [ORT Run][runId]. Based on the provided [service], an already existing entity is searched.
-     * If there is no match, a new one is created. Note that existing services associated with an organization or a
-     * product will not be matched. This is because such services can be changed by users at any time.
+     * If there is no match, a new one is created. If either [InfrastructureService.usernameSecret] is null or
+     * [InfrastructureService.product] is null, returns null.
+     * Note that existing services associated with an organization or a product will not be matched. This is because
+     * such services can be changed by users at any time.
      */
-    fun getOrCreateForRun(service: InfrastructureService, runId: Long): InfrastructureService
+    fun getOrCreateForRun(service: InfrastructureService, runId: Long): InfrastructureService?
 
     /**
      * Return a list with the [InfrastructureService]s that belong to the given [organization][organizationId]

@@ -180,8 +180,16 @@ private class ServicesAuthenticator(
                     listener.onAuthentication(AuthenticationEvent(service))
                 }
 
-                val username = authenticationInfo.resolveSecret(service.usernameSecret)
-                val password = authenticationInfo.resolveSecret(service.passwordSecret)
+                val usernameSecretNotNull = service.usernameSecret ?: error(
+                    "UsernameSecret for service '${service.name}' no longer exists."
+                )
+
+                val passwordSecretNotNull = service.passwordSecret ?: error(
+                    "PasswordSecret for service '${service.name}' no longer exists."
+                )
+
+                val username = authenticationInfo.resolveSecret(usernameSecretNotNull)
+                val password = authenticationInfo.resolveSecret(passwordSecretNotNull)
                 PasswordAuthentication(username, password.toCharArray())
             }
         }

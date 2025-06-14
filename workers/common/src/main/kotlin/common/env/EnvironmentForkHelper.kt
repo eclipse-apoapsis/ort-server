@@ -112,8 +112,8 @@ object EnvironmentForkHelper {
             name = name,
             url = url,
             description = description,
-            usernameSecret = usernameSecret.path,
-            passwordSecret = passwordSecret.path,
+            usernameSecret = usernameSecret?.path.orEmpty(),
+            passwordSecret = passwordSecret?.path.orEmpty(),
             credentialsTypes = credentialsTypes
         )
 

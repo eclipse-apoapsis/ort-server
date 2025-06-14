@@ -177,7 +177,11 @@ class EnvironmentService(
      */
     private fun assignServicesToOrtRun(context: WorkerContext, services: Collection<InfrastructureService>) {
         services.forEach { service ->
-            infrastructureServiceRepository.getOrCreateForRun(service, context.ortRun.id)
+            infrastructureServiceRepository.getOrCreateForRun(service, context.ortRun.id) ?:
+                logger.warn(
+                    "Failed to assign infrastructure service '${service.name}' to ORT run ${context.ortRun.id} " +
+                            "because usernameSecret or passwordSecret no longer exists."
+                )
         }
     }
 }

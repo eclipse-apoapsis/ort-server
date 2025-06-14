@@ -192,8 +192,14 @@ internal class WorkerContextImpl(
         services: Collection<InfrastructureService>,
         listener: AuthenticationListener?
     ) {
+        services.forEach { service ->
+            if (service.usernameSecret == null || service.passwordSecret == null) {
+                error("UsernameSecret or PasswordSecret no longer defined for Service '${service.name}'.")
+            }
+        }
+
         val serviceSecrets = services.flatMapTo(mutableSetOf()) { service ->
-            listOf(service.usernameSecret, service.passwordSecret)
+            listOfNotNull(service.usernameSecret, service.passwordSecret)
         }
 
         val resolvedSecrets = resolveSecrets(*serviceSecrets.toTypedArray()).mapKeys { it.key.path }

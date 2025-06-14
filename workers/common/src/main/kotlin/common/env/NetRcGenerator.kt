@@ -70,9 +70,17 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
 
         builder.buildInUserHome(TARGET_NAME) {
             deDuplicatedServices.forEach { service ->
+                val usernameSecretNotNull = service.usernameSecret ?: error(
+                    "UsernameSecret no longer defined for service '${service.name}'."
+                )
+
+                val passwordSecretNotNull = service.passwordSecret ?: error(
+                    "PasswordSecret no longer defined for service '${service.name}'."
+                )
+
                 val host = URI.create(service.url).host
-                val username = builder.secretRef(service.usernameSecret)
-                val password = builder.secretRef(service.passwordSecret)
+                val username = builder.secretRef(usernameSecretNotNull)
+                val password = builder.secretRef(passwordSecretNotNull)
 
                 println("machine $host login $username password $password")
 
