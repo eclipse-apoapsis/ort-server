@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,16 @@
  * License-Filename: LICENSE
  */
 
-@file:Suppress("MatchingDeclarationName", "Filename")
-
 package org.eclipse.apoapsis.ortserver.shared.ktorutils
 
-/**
- * An exception to indicate that a URL path is malformed.
- */
-class UrlPathFormatException(message: String) : RuntimeException(message)
+import io.konform.validation.Invalid
+import io.konform.validation.ValidationResult as KonformValidationResult
+
+import io.ktor.server.plugins.requestvalidation.ValidationResult as KtorValidationResult
+
+fun mapValidationResult(result: KonformValidationResult<*>): KtorValidationResult {
+    return when (result) {
+        is Invalid -> KtorValidationResult.Invalid(result.errors.map { error -> error.message })
+        else -> KtorValidationResult.Valid
+    }
+}

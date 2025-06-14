@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable

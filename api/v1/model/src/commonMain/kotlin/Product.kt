@@ -26,6 +26,7 @@ import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
 import org.eclipse.apoapsis.ortserver.api.v1.model.validation.optionalPattern
+import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 
 /**
  * Response object for the products endpoints. Used to group multiple repositories into products.

@@ -25,9 +25,9 @@ import io.kotest.core.spec.style.WordSpec
 import io.ktor.client.request.get
 
 import org.eclipse.apoapsis.ortserver.core.createJsonClient
-import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class HealthIntegrationTest : WordSpec({
