@@ -62,7 +62,6 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getProjectsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuleViolationsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
-import org.eclipse.apoapsis.ortserver.core.utils.pagingOptions
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -87,6 +86,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 

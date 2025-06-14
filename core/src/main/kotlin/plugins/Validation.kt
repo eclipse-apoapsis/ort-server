@@ -19,13 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.core.plugins
 
-import io.konform.validation.Invalid
-import io.konform.validation.ValidationResult as KonformValidationResult
-
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
-import io.ktor.server.plugins.requestvalidation.ValidationResult as KtorValidationResult
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
@@ -35,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateSecret
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.mapValidationResult
 
 fun Application.configureValidation() {
     install(RequestValidation) {
@@ -69,12 +66,5 @@ fun Application.configureValidation() {
         validate<UpdateRepository> { update ->
             mapValidationResult(UpdateRepository.validate(update))
         }
-    }
-}
-
-private fun mapValidationResult(result: KonformValidationResult<*>): KtorValidationResult {
-    return when (result) {
-        is Invalid -> KtorValidationResult.Invalid(result.errors.map { error -> error.message })
-        else -> KtorValidationResult.Valid
     }
 }

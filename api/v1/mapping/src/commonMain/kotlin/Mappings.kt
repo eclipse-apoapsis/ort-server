@@ -51,7 +51,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.MailServerConfiguration as Ap
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJob as ApiNotifierJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration as ApiNotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OidcConfig as ApiOidcConfig
-import org.eclipse.apoapsis.ortserver.api.v1.model.OptionalValue as ApiOptionalValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization as ApiOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun as ApiOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters as ApiOrtRunFilters
@@ -163,7 +162,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolut
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
-import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 fun AdvisorJob.mapToApi() =
     ApiAdvisorJob(
@@ -463,14 +461,6 @@ fun Repository.mapToApi() = ApiRepository(id, organizationId, productId, type.ma
 fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 
 fun ApiRepositoryType.mapToModel() = RepositoryType.forName(name)
-
-fun <T> ApiOptionalValue<T>.mapToModel() = mapToModel { it }
-
-fun <IN, OUT> ApiOptionalValue<IN>.mapToModel(valueMapping: (IN) -> OUT): OptionalValue<OUT> =
-    when (this) {
-        is ApiOptionalValue.Present -> OptionalValue.Present(valueMapping(value))
-        is ApiOptionalValue.Absent -> OptionalValue.Absent
-    }
 
 fun ReporterJob.mapToApi() =
     ApiReporterJob(

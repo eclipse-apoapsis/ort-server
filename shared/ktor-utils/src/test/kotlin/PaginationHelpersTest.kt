@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.utils
+package org.eclipse.apoapsis.ortserver.shared.ktorutils
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.spec.style.WordSpec
@@ -28,20 +28,18 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
+import io.ktor.server.testing.testApplication
 
-import org.eclipse.apoapsis.ortserver.core.createJsonClient
-import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
-import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingOptions
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
-class ExtensionsTest : WordSpec({
+class PaginationHelpersTest : WordSpec({
     tags(Integration)
 
-    "ApplicationCall.listQueryParameters" should {
+    "ApplicationCall.pagingOptions" should {
         "handle a request without parameters" {
             testPagingOptionsExtraction(null) {
                 limit shouldBe DEFAULT_LIMIT
@@ -111,7 +109,7 @@ class ExtensionsTest : WordSpec({
  * Execute a test for extracting the [PagingOptions] from the given [query] by applying the specified [check] function.
  */
 private fun testPagingOptionsExtraction(query: String?, check: PagingOptions.() -> Unit) {
-    ortServerTestApplication(config = TestConfig.Test) {
+    testApplication {
         routing {
             get("/test") {
                 val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))

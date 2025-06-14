@@ -23,7 +23,7 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 
 import io.ktor.client.request.get
 
-import org.eclipse.apoapsis.ortserver.core.shouldHaveBody
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 

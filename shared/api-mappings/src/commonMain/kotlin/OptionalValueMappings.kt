@@ -17,18 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.core.utils
+package org.eclipse.apoapsis.ortserver.shared.apimappings
 
-import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
+import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue as ApiOptionalValue
 
-fun ConfigManager.createKeycloakClientConfiguration() =
-    KeycloakClientConfiguration(
-        apiUrl = getString("keycloak.apiUrl"),
-        clientId = getString("keycloak.clientId"),
-        accessTokenUrl = getString("keycloak.accessTokenUrl"),
-        apiUser = getString("keycloak.apiUser"),
-        apiSecret = getSecret(Path("keycloak.apiSecret")),
-        subjectClientId = getString("keycloak.subjectClientId")
-    )
+fun <T> ApiOptionalValue<T>.mapToModel() = mapToModel { it }
+
+fun <IN, OUT> ApiOptionalValue<IN>.mapToModel(valueMapping: (IN) -> OUT): OptionalValue<OUT> =
+    when (this) {
+        is ApiOptionalValue.Present -> OptionalValue.Present(valueMapping(value))
+        is ApiOptionalValue.Absent -> OptionalValue.Absent
+    }
