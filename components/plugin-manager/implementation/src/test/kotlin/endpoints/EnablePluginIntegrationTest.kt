@@ -27,16 +27,20 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
 class EnablePluginIntegrationTest : AbstractIntegrationTest({
     lateinit var eventStore: PluginEventStore
+    lateinit var pluginService: PluginService
 
     beforeEach {
         eventStore = PluginEventStore(dbExtension.db)
+        pluginService = PluginService(dbExtension.db)
     }
 
     "EnablePlugin" should {
@@ -45,8 +49,7 @@ class EnablePluginIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            disablePlugin(eventStore)
-                            enablePlugin(eventStore)
+                            pluginManagerRoutes(eventStore, pluginService)
                         }
                     }
                 }
@@ -69,7 +72,7 @@ class EnablePluginIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            enablePlugin(eventStore)
+                            pluginManagerRoutes(eventStore, pluginService)
                         }
                     }
                 }
@@ -85,8 +88,7 @@ class EnablePluginIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            disablePlugin(eventStore)
-                            enablePlugin(eventStore)
+                            pluginManagerRoutes(eventStore, pluginService)
                         }
                     }
                 }

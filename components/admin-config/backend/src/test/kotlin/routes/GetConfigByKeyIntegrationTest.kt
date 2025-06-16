@@ -31,6 +31,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
+import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
@@ -40,8 +41,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            setConfigByKey(dbExtension.db)
-                            getConfigByKey(dbExtension.db)
+                            adminConfigRoutes(dbExtension.db)
                         }
                     }
                 }
@@ -71,7 +71,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            getConfigByKey(dbExtension.db)
+                            adminConfigRoutes(dbExtension.db)
                         }
                     }
                 }
@@ -91,7 +91,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            getConfigByKey(dbExtension.db)
+                            adminConfigRoutes(dbExtension.db)
                         }
                     }
                 }
