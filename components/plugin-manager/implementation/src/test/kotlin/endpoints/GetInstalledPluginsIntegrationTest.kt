@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
@@ -55,7 +56,7 @@ class GetInstalledPluginsIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            getInstalledPlugins(pluginService)
+                            pluginManagerRoutes(eventStore, pluginService)
                         }
                     }
                 }
@@ -75,8 +76,7 @@ class GetInstalledPluginsIntegrationTest : AbstractIntegrationTest({
                 application {
                     routing {
                         authenticate("test") {
-                            disablePlugin(eventStore)
-                            getInstalledPlugins(pluginService)
+                            pluginManagerRoutes(eventStore, pluginService)
                         }
                     }
                 }
