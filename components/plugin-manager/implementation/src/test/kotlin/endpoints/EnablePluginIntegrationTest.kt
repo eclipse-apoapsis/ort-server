@@ -33,10 +33,14 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
 class EnablePluginIntegrationTest : AbstractIntegrationTest({
+    lateinit var eventStore: PluginEventStore
+
+    beforeEach {
+        eventStore = PluginEventStore(dbExtension.db)
+    }
+
     "EnablePlugin" should {
         "return Accepted if the plugin was enabled" {
-            val eventStore = PluginEventStore(dbExtension.db)
-
             integrationTestApplication { client ->
                 application {
                     routing {
@@ -61,8 +65,6 @@ class EnablePluginIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotFound if the plugin is not installed" {
-            val eventStore = PluginEventStore(dbExtension.db)
-
             integrationTestApplication { client ->
                 application {
                     routing {
@@ -79,8 +81,6 @@ class EnablePluginIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotModified if the plugin was already enabled" {
-            val eventStore = PluginEventStore(dbExtension.db)
-
             integrationTestApplication { client ->
                 application {
                     routing {
