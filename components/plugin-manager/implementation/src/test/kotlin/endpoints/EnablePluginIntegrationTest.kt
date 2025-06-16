@@ -23,8 +23,6 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
-import io.ktor.server.routing.routing
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -45,15 +43,7 @@ class EnablePluginIntegrationTest : AbstractIntegrationTest({
 
     "EnablePlugin" should {
         "return Accepted if the plugin was enabled" {
-            integrationTestApplication { client ->
-                application {
-                    routing {
-                        authenticate("test") {
-                            pluginManagerRoutes(eventStore, pluginService)
-                        }
-                    }
-                }
-
+            integrationTestApplication(routes = { pluginManagerRoutes(eventStore, pluginService) }) { client ->
                 val pluginType = PluginType.ADVISOR
                 val pluginId = VulnerableCodeFactory.descriptor.id
 
@@ -68,15 +58,7 @@ class EnablePluginIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotFound if the plugin is not installed" {
-            integrationTestApplication { client ->
-                application {
-                    routing {
-                        authenticate("test") {
-                            pluginManagerRoutes(eventStore, pluginService)
-                        }
-                    }
-                }
-
+            integrationTestApplication(routes = { pluginManagerRoutes(eventStore, pluginService) }) { client ->
                 val pluginType = PluginType.ADVISOR
 
                 client.post("/admin/plugins/$pluginType/unknown/enable") shouldHaveStatus HttpStatusCode.NotFound
@@ -84,15 +66,7 @@ class EnablePluginIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotModified if the plugin was already enabled" {
-            integrationTestApplication { client ->
-                application {
-                    routing {
-                        authenticate("test") {
-                            pluginManagerRoutes(eventStore, pluginService)
-                        }
-                    }
-                }
-
+            integrationTestApplication(routes = { pluginManagerRoutes(eventStore, pluginService) }) { client ->
                 val pluginType = PluginType.ADVISOR
                 val pluginId = VulnerableCodeFactory.descriptor.id
 

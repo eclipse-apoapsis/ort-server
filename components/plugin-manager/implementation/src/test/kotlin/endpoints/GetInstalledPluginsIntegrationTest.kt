@@ -28,8 +28,6 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
-import io.ktor.server.routing.routing
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
@@ -52,15 +50,7 @@ class GetInstalledPluginsIntegrationTest : AbstractIntegrationTest({
 
     "GetInstalledPlugins" should {
         "return all installed ORT plugins" {
-            integrationTestApplication { client ->
-                application {
-                    routing {
-                        authenticate("test") {
-                            pluginManagerRoutes(eventStore, pluginService)
-                        }
-                    }
-                }
-
+            integrationTestApplication(routes = { pluginManagerRoutes(eventStore, pluginService) }) { client ->
                 val response = client.get("/admin/plugins")
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -72,15 +62,7 @@ class GetInstalledPluginsIntegrationTest : AbstractIntegrationTest({
         }
 
         "return if plugins are enabled or disabled" {
-            integrationTestApplication { client ->
-                application {
-                    routing {
-                        authenticate("test") {
-                            pluginManagerRoutes(eventStore, pluginService)
-                        }
-                    }
-                }
-
+            integrationTestApplication(routes = { pluginManagerRoutes(eventStore, pluginService) }) { client ->
                 val npmType = PluginType.PACKAGE_MANAGER
                 val npmId = NpmFactory.descriptor.id
                 val vulnerableCodeType = PluginType.ADVISOR
