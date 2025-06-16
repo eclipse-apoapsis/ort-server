@@ -41,13 +41,21 @@ import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactor
 import org.ossreviewtoolkit.plugins.packagemanagers.node.npm.NpmFactory
 
 class GetInstalledPluginsIntegrationTest : AbstractIntegrationTest({
+    lateinit var eventStore: PluginEventStore
+    lateinit var pluginService: PluginService
+
+    beforeEach {
+        eventStore = PluginEventStore(dbExtension.db)
+        pluginService = PluginService(dbExtension.db)
+    }
+
     "GetInstalledPlugins" should {
         "return all installed ORT plugins" {
             integrationTestApplication { client ->
                 application {
                     routing {
                         authenticate("test") {
-                            getInstalledPlugins(PluginService(dbExtension.db))
+                            getInstalledPlugins(pluginService)
                         }
                     }
                 }
@@ -63,14 +71,12 @@ class GetInstalledPluginsIntegrationTest : AbstractIntegrationTest({
         }
 
         "return if plugins are enabled or disabled" {
-            val eventStore = PluginEventStore(dbExtension.db)
-
             integrationTestApplication { client ->
                 application {
                     routing {
                         authenticate("test") {
                             disablePlugin(eventStore)
-                            getInstalledPlugins(PluginService(dbExtension.db))
+                            getInstalledPlugins(pluginService)
                         }
                     }
                 }
