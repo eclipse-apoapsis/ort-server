@@ -33,8 +33,11 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.AuthenticationContext
 import io.ktor.server.auth.AuthenticationProvider
+import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
+import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.util.appendIfNameAbsent
@@ -77,7 +80,10 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
         unmockkAll()
     }
 
-    fun integrationTestApplication(block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit) {
+    fun integrationTestApplication(
+        routes: Route.() -> Unit = {},
+        block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
+    ) {
         testApplication {
             application {
                 install(ContentNegotiation) {
@@ -86,6 +92,12 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
 
                 install(Authentication) {
                     register(FakeAuthenticationProvider(DummyConfig(principal)))
+                }
+
+                routing {
+                    authenticate("test") {
+                        routes()
+                    }
                 }
             }
 

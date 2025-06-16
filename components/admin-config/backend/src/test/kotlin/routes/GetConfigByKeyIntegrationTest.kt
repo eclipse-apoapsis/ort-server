@@ -27,8 +27,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
-import io.ktor.server.routing.routing
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
 import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
@@ -37,15 +35,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
     "GetConfigByKey" should {
         "return the value and enabled status of an existing config key" {
-            integrationTestApplication { client ->
-                application {
-                    routing {
-                        authenticate("test") {
-                            adminConfigRoutes(dbExtension.db)
-                        }
-                    }
-                }
-
+            integrationTestApplication(routes = { adminConfigRoutes(dbExtension.db) }) { client ->
                 // Insert a test config key to database
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
@@ -67,15 +57,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
         }
 
         "return the default value if the config key does not exist in db" {
-            integrationTestApplication { client ->
-                application {
-                    routing {
-                        authenticate("test") {
-                            adminConfigRoutes(dbExtension.db)
-                        }
-                    }
-                }
-
+            integrationTestApplication(routes = { adminConfigRoutes(dbExtension.db) }) { client ->
                 val response = client.get("/admin/config/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
@@ -87,15 +69,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
         }
 
         "return BadRequest if the config key is invalid" {
-            integrationTestApplication { client ->
-                application {
-                    routing {
-                        authenticate("test") {
-                            adminConfigRoutes(dbExtension.db)
-                        }
-                    }
-                }
-
+            integrationTestApplication(routes = { adminConfigRoutes(dbExtension.db) }) { client ->
                 client.get("/admin/config/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
