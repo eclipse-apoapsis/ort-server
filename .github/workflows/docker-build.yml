@@ -164,6 +164,12 @@ jobs:
           type=sha
           type=raw,value=latest,enable={{ is_default_branch }}
 
+    - name: Prepare Jib Cache Directories
+      if: ${{ matrix.docker.task != '' }}
+      run: |
+        sudo mkdir -p /mnt/jib-app-cache /mnt/jib-base-cache /mnt/tmp
+        sudo chown $USER /mnt/jib-app-cache /mnt/jib-base-cache /mnt/tmp
+
     - name: Build ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
       run: |
@@ -173,6 +179,9 @@ jobs:
           -PdockerImagePrefix=${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
           -PdockerImageTag=${{ env.ORT_SERVER_VERSION }} \
           ${{ matrix.docker.task }} \
+          -Djib.applicationCache=/mnt/jib-app-cache \
+          -Djib.baseImageCache=/mnt/jib-base-cache \
+          -Djava.io.tmpdir=/mnt/tmp \
           -Djib.console=plain \
           -Djib.container.labels="$(echo "${{ steps.meta.outputs.labels }}" | tr '\n' ',' | sed 's/,$//')" \
           -Djib.to.tags="$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ',' | sed 's/,$//')"
