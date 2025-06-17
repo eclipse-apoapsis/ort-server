@@ -44,7 +44,14 @@ data class JobConfigurations(
      * A map with custom parameters for the whole ORT run. The parameters can be evaluated by the validation script
      * executed by the Config worker. The script can convert these parameters to specific job configurations.
      */
-    val parameters: Options = emptyMap()
+    val parameters: Options = emptyMap(),
+
+    /**
+     * The name of the rule set to be used during the run. The rule set defines a number of files that are required by
+     * different worker jobs. Therefore, this is a top-level property. If this property is unspecified, the default
+     * rule set configured for this ORT Server instance is used.
+     */
+    val ruleSet: String? = null
 )
 
 /**
