@@ -314,7 +314,8 @@ fun JobConfigurations.mapToApi() =
         evaluator?.mapToApi(),
         reporter?.mapToApi(),
         notifier?.mapToApi(),
-        parameters
+        parameters,
+        ruleSet
     )
 
 fun ApiJobConfigurations.mapToModel() =
@@ -325,7 +326,8 @@ fun ApiJobConfigurations.mapToModel() =
         evaluator?.mapToModel(),
         reporter?.mapToModel(),
         notifier?.mapToModel(),
-        parameters.orEmpty()
+        parameters.orEmpty(),
+        ruleSet
     )
 
 fun Jobs.mapToApi() =

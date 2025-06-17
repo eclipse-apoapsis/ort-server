@@ -650,10 +650,16 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     customLicenseTextDir = "LICENSE_TEXTS"
                 )
                 val parameters = mapOf("p1" to "v1", "p2" to "v2")
+                val ruleSet = "test"
                 val createRun = CreateOrtRun(
                     "main",
                     null,
-                    ApiJobConfigurations(analyzerJob, reporter = reporterJob, parameters = parameters),
+                    ApiJobConfigurations(
+                        analyzerJob,
+                        reporter = reporterJob,
+                        parameters = parameters,
+                        ruleSet = ruleSet
+                    ),
                     labelsMap
                 )
 
@@ -699,6 +705,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 run.jobConfigs.parameters shouldBe parameters
+                run.jobConfigs.ruleSet shouldBe ruleSet
             }
         }
 
