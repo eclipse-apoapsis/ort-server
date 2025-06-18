@@ -146,6 +146,7 @@ export const createRunFormSchema = z.object({
       }),
     }),
     parameters: z.array(keyValueSchema).optional(),
+    ruleSet: z.string().optional(),
   }),
   labels: z.array(keyValueSchema).optional(),
   jobConfigContext: z.string().optional(),
@@ -426,18 +427,6 @@ export function defaultValues(
             enabled:
               ortRun.jobConfigs.evaluator !== undefined &&
               ortRun.jobConfigs.evaluator !== null,
-            ruleSet:
-              ortRun.jobConfigs.evaluator?.ruleSet ||
-              baseDefaults.jobConfigs.evaluator.ruleSet,
-            licenseClassificationsFile:
-              ortRun.jobConfigs.evaluator?.licenseClassificationsFile ||
-              baseDefaults.jobConfigs.evaluator.licenseClassificationsFile,
-            copyrightGarbageFile:
-              ortRun.jobConfigs.evaluator?.copyrightGarbageFile ||
-              baseDefaults.jobConfigs.evaluator.copyrightGarbageFile,
-            resolutionsFile:
-              ortRun.jobConfigs.evaluator?.resolutionsFile ||
-              baseDefaults.jobConfigs.evaluator.resolutionsFile,
           },
           reporter: {
             enabled:
@@ -663,20 +652,7 @@ export function formValuesToPayload(
   // Evaluator configuration
   //
 
-  const evaluatorConfig = values.jobConfigs.evaluator.enabled
-    ? {
-        // Only include the config parameter structures if the corresponding form fields are not empty.
-        // In case they are empty, the default path from the config file provider will be used to
-        // resolve the corresponding files.
-        ruleSet: values.jobConfigs.evaluator.ruleSet || undefined,
-        licenseClassificationsFile:
-          values.jobConfigs.evaluator.licenseClassificationsFile || undefined,
-        copyrightGarbageFile:
-          values.jobConfigs.evaluator.copyrightGarbageFile || undefined,
-        resolutionsFile:
-          values.jobConfigs.evaluator.resolutionsFile || undefined,
-      }
-    : undefined;
+  const evaluatorConfig = values.jobConfigs.evaluator.enabled ? {} : undefined;
 
   //
   // Reporter configuration

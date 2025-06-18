@@ -210,32 +210,9 @@ data class ScannerJobConfiguration(
 @Serializable
 data class EvaluatorJobConfiguration(
     /**
-     * The path to the copyright garbage file which is resolved from the configured configuration source. If this is
-     * `null`, the default path from ORT will be used.
-     */
-    val copyrightGarbageFile: String? = null,
-
-    /**
-     * The path to the license classifications file which is resolved from the configured configuration source. If this
-     * is `null`, the default path from ORT will be used.
-     */
-    val licenseClassificationsFile: String? = null,
-
-    /**
      * The list of package configuration providers to use.
      */
     val packageConfigurationProviders: List<ProviderPluginConfiguration>? = null,
-
-    /**
-     * The path to the resolutions file which is resolved from the configured configuration source. If this is `null`,
-     * the default path from ORT will be used.
-     */
-    val resolutionsFile: String? = null,
-
-    /**
-     * The id of the rule set to use for the evaluation.
-     */
-    val ruleSet: String? = null,
 
     /**
      * Keep the worker alive after it has finished. This is useful for manual problem analysis directly

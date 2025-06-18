@@ -252,6 +252,25 @@ const CreateRunPage = () => {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name='jobConfigs.ruleSet'
+              render={({ field }) => (
+                <FormItem className='pt-4'>
+                  <FormLabel>Rule set</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='(optional)' />
+                  </FormControl>
+                  <FormDescription>
+                    The rule set to use for the run. This selects a set of
+                    configuration files used by the Evaluator and the Reporter,
+                    such as rules for the Evaluator or license classifications.
+                    If left empty, the default rule set is used.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <h3 className='mt-4'>Configuration parameters</h3>
             <div className='text-sm text-gray-500'>
@@ -411,11 +430,7 @@ const CreateRunPage = () => {
                 value='scanner'
                 onToggle={() => toggleAccordionOpen('scanner')}
               />
-              <EvaluatorFields
-                form={form}
-                value='evaluator'
-                onToggle={() => toggleAccordionOpen('evaluator')}
-              />
+              <EvaluatorFields form={form} />
               <ReporterFields
                 form={form}
                 value='reporter'
