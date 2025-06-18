@@ -28,7 +28,9 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.utils.scripting.ScriptRunner
 
@@ -40,20 +42,33 @@ import org.slf4j.LoggerFactory
  * An instance can be created for a specific [WorkerContext]. It can then be used to run a specific validation and
  * transformation script and obtain the results produced by this script.
  */
-class ConfigValidator private constructor(private val context: WorkerContext) : ScriptRunner() {
+class ConfigValidator private constructor(
+    /** The current [WorkerContext]. */
+    private val context: WorkerContext,
+
+    /** The service to access the admin configuration. */
+    private val adminConfigService: AdminConfigService
+) : ScriptRunner() {
     companion object {
         /**
          * Constant for the source of an issue that is generated if the validation script fails to compile.
          */
         const val INVALID_SCRIPT_SOURCE = "VALIDATION_SCRIPT_ERROR"
 
+        /**
+         * Constant for the source of an issue that is generated if parameters to trigger a run do not comply with
+         * settings in the admin configuration.
+         */
+        const val ADMIN_CONFIG_VALIDATION_SOURCE = "PARAMETER_VALIDATION"
+
         private val logger = LoggerFactory.getLogger(ConfigValidator::class.java)
 
         /**
          * Return a new instance of [ConfigValidator] to validate the parameters of the ORT run stored in the given
-         * [context].
+         * [context] using the given [configService] to access the admin configuration.
          */
-        fun create(context: WorkerContext): ConfigValidator = ConfigValidator(context)
+        fun create(context: WorkerContext, configService: AdminConfigService): ConfigValidator =
+            ConfigValidator(context, configService)
 
         /**
          * Create a [ConfigValidationResult] for the case that there was an error during the execution of the given
@@ -92,9 +107,39 @@ class ConfigValidator private constructor(private val context: WorkerContext) : 
         return runCatching {
             val executedScript = runScript(script).scriptInstance as ValidationScriptTemplate
 
-            executedScript.validationResult
+            when (val result = executedScript.validationResult) {
+                is ConfigValidationResultFailure -> result
+                is ConfigValidationResultSuccess -> result.validateAdminConfig()
+            }
         }.getOrElse { exception ->
             createScriptErrorResult(script, exception)
         }
+    }
+
+    /**
+     * Perform additional validation of this [ConfigValidationResultSuccess] using the current admin configuration.
+     * After the validation script has been run successfully, some checks can now be performed against the resolved
+     * job configurations.
+     */
+    private fun ConfigValidationResultSuccess.validateAdminConfig(): ConfigValidationResult {
+        val adminConfig = adminConfigService.loadAdminConfig(
+            context.resolvedConfigurationContext,
+            context.ortRun.organizationId
+        )
+
+        val validationIssues = mutableListOf<Issue>()
+        val ruleSet = resolvedConfigurations.ruleSet
+
+        if (ruleSet != null && ruleSet !in adminConfig.ruleSetNames) {
+            validationIssues += Issue(
+                Clock.System.now(),
+                ADMIN_CONFIG_VALIDATION_SOURCE,
+                "Invalid rule set '$ruleSet'. " +
+                        "Available rule sets are: ${adminConfig.ruleSetNames.joinToString(", ")}.",
+                Severity.ERROR
+            )
+        }
+
+        return takeIf { validationIssues.isEmpty() } ?: ConfigValidationResultFailure(issues + validationIssues)
     }
 }

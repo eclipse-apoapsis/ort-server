@@ -35,6 +35,7 @@ import kotlin.math.abs
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -42,19 +43,18 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 class ConfigValidatorTest : StringSpec({
     "A successful validation should be handled" {
-        val fixtures = Fixtures(mockk())
         val script = loadScript("validation-success.params.kts")
 
-        val run = mockk<OrtRun> {
-            every { jobConfigs } returns fixtures.jobConfigurations
-        }
+        val run = mockRun()
         val context = mockContext(run)
 
-        val validator = ConfigValidator.create(context)
+        val validator = ConfigValidator.create(context, createAdminConfigService())
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultSuccess>()
 
         validationResult.resolvedConfigurations shouldBe run.jobConfigs
@@ -76,7 +76,7 @@ class ConfigValidatorTest : StringSpec({
         val script = loadScript("validation-failure.params.kts")
         val context = mockContext(mockk())
 
-        val validator = ConfigValidator.create(context)
+        val validator = ConfigValidator.create(context, createAdminConfigService())
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         val expectedIssue = Issue(
@@ -93,7 +93,7 @@ class ConfigValidatorTest : StringSpec({
         val script = "This is not a valid Kotlin script!"
         val context = mockContext(mockk())
 
-        val validator = ConfigValidator.create(context)
+        val validator = ConfigValidator.create(context, createAdminConfigService())
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         validationResult.issues shouldHaveSize 1
@@ -103,11 +103,37 @@ class ConfigValidatorTest : StringSpec({
             severity shouldBe Severity.ERROR
         }
     }
+
+    "A non-existing rule set should be handled" {
+        val ruleSetName = "nonExistingRuleSet"
+        val script = loadScript("validation-success.params.kts")
+
+        val run = mockRun(ruleSetName)
+        val context = mockContext(run)
+
+        val validator = ConfigValidator.create(context, createAdminConfigService())
+        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+
+        validationResult.issues shouldHaveSize 2
+        val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
+        errorIssue.source shouldBe ConfigValidator.ADMIN_CONFIG_VALIDATION_SOURCE
+        errorIssue.message shouldContain "rule set"
+        errorIssue.message shouldContain ruleSetName
+    }
 })
+
+/** The name of the rule set used by the test cases. */
+private const val RULE_SET = "testRuleSet"
+
+/** The resolved configuration context used by the test cases. */
+private const val RESOLVED_CONTEXT = "testResolvedContext"
+
+/** Test organization ID. */
+private const val ORGANIZATION_ID = 1L
 
 /** A hierarchy used by the test cases. */
 val testHierarchy = Hierarchy(
-    repository = Repository(20230801094107L, 1, 2, RepositoryType.GIT, "https://repo.example.org"),
+    repository = Repository(20230801094107L, ORGANIZATION_ID, 2, RepositoryType.GIT, "https://repo.example.org"),
     organization = mockk(),
     product = mockk()
 )
@@ -136,3 +162,32 @@ private fun mockContext(run: OrtRun) =
         every { ortRun } returns run
         every { hierarchy } returns testHierarchy
     }
+
+/**
+ * Return a mock [OrtRun] that is prepared to give some default answers. It provides a job configuration with the
+ * given [ruleSetName].
+ */
+private fun mockRun(ruleSetName: String = RULE_SET): OrtRun {
+    val fixtures = Fixtures(mockk())
+    val configs = fixtures.jobConfigurations.copy(ruleSet = ruleSetName)
+
+    return mockk {
+        every { resolvedJobConfigContext } returns RESOLVED_CONTEXT
+        every { jobConfigs } returns configs
+        every { resolvedJobConfigs } returns jobConfigs
+        every { organizationId } returns ORGANIZATION_ID
+    }
+}
+
+/**
+ * Return a mock for an [AdminConfigService] that returns a predefined [AdminConfig].
+ */
+private fun createAdminConfigService(): AdminConfigService {
+    val adminConfig = mockk<AdminConfig> {
+        every { ruleSetNames } returns setOf(RULE_SET)
+    }
+
+    return mockk {
+        every { loadAdminConfig(Context(RESOLVED_CONTEXT), ORGANIZATION_ID) } returns adminConfig
+    }
+}
