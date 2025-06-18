@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.evaluator
 
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
@@ -44,7 +45,6 @@ import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePack
 import org.ossreviewtoolkit.utils.config.ConfigurationResolver
 import org.ossreviewtoolkit.utils.config.setPackageConfigurations
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
-import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
@@ -56,7 +56,10 @@ class EvaluatorRunner(
     /**
      * The file archiver is used to resolve license files which is optional input for the rules.
      */
-    private val fileArchiver: FileArchiver
+    private val fileArchiver: FileArchiver,
+
+    /** The service for obtaining the admin configuration. */
+    private val adminConfigService: AdminConfigService
 ) {
     /**
      * Invoke the [Evaluator] for the current ORT run.
@@ -69,24 +72,33 @@ class EvaluatorRunner(
         config: EvaluatorJobConfiguration,
         workerContext: WorkerContext
     ): EvaluatorRunnerResult {
-        val ruleSetPath = config.ruleSet ?: ORT_EVALUATOR_RULES_FILENAME.also {
-            logger.info("No rule set path provided, using default path '$it'.")
+        val ruleSetName = workerContext.ortRun.resolvedJobConfigs?.ruleSet
+        if (ruleSetName == null) {
+            logger.info("Using default rule set for evaluation.")
+        } else {
+            logger.info("Using rule set '{}' for evaluation.", ruleSetName)
         }
+
+        logger.info("")
+        val ruleSet = adminConfigService.loadAdminConfig(
+            workerContext.resolvedConfigurationContext,
+            workerContext.ortRun.organizationId
+        ).getRuleSet(ruleSetName)
 
         val script = workerContext.configManager.getFileAsString(
             workerContext.resolvedConfigurationContext,
-            Path(ruleSetPath)
+            Path(ruleSet.evaluatorRules)
         )
 
         val copyrightGarbage = workerContext.configManager.readConfigFileValueWithDefault(
-            path = config.copyrightGarbageFile,
+            path = ruleSet.copyrightGarbageFile,
             defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
             fallbackValue = CopyrightGarbage(),
             workerContext.resolvedConfigurationContext
         )
 
         val licenseClassifications = workerContext.configManager.readConfigFileValueWithDefault(
-            path = config.licenseClassificationsFile,
+            path = ruleSet.licenseClassificationsFile,
             defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
             fallbackValue = LicenseClassifications(),
             workerContext.resolvedConfigurationContext
@@ -108,7 +120,7 @@ class EvaluatorRunner(
         val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
 
         val resolutionsFromFile = workerContext.configManager.readConfigFileValueWithDefault(
-            path = config.resolutionsFile,
+            path = ruleSet.resolutionsFile,
             defaultPath = ORT_RESOLUTIONS_FILENAME,
             fallbackValue = Resolutions(),
             workerContext.resolvedConfigurationContext
