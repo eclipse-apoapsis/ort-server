@@ -35,8 +35,10 @@ import io.mockk.spyk
 import io.mockk.unmockkAll
 
 import java.io.File
+import java.time.Instant as JavaInstant
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -49,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
+import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
@@ -58,8 +61,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 
+import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.OrtResult
-import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
@@ -120,14 +123,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { storeResolvedResolutions(any(), any()) } just runs
         }
 
-        val configManager = mockk<ConfigManager> {
-            every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
-                    File("src/test/resources/example.rules.kts").readText()
-            every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
-            every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
-                    File("src/test/resources/license-classifications.yml").inputStream()
-            every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
-        }
+        val configManager = mockk<ConfigManager>()
 
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns ortRun
@@ -136,18 +132,25 @@ class EvaluatorWorkerTest : StringSpec({
         }
         val contextFactory = mockContextFactory(context)
 
-        val runner = spyk(EvaluatorRunner(mockk()))
-        // The severity of the rule violation has to be lowered to HINT to avoid a FinishedWithIssues result.
-        coEvery { runner.run(any(), any(), any()) } coAnswers {
-            val evaluatorRunnerResult = callOriginal()
-            evaluatorRunnerResult.copy(
-                evaluatorRun = evaluatorRunnerResult.evaluatorRun.copy(
-                    violations = evaluatorRunnerResult.evaluatorRun.violations.map { violation ->
-                        violation.copy(severity = Severity.HINT)
-                    }
-                )
-            )
-        }
+        val evaluatorRun = EvaluatorRun(
+            id = -1,
+            evaluatorJobId = EVALUATOR_JOB_ID,
+            startTime = Instant.parse("2025-06-18T07:41:30Z"),
+            endTime = Instant.parse("2025-06-18T07:42:17Z"),
+            violations = emptyList()
+        )
+        val ortEvaluatorRun = OrtEvaluatorRun(
+            startTime = JavaInstant.parse("2025-06-18T07:41:30Z"),
+            endTime = JavaInstant.parse("2025-06-18T07:42:17Z"),
+            violations = emptyList()
+        )
+        val evaluatorResult = EvaluatorRunnerResult(
+            evaluatorRun = ortEvaluatorRun,
+            packageConfigurations = listOf(mockk()),
+            resolutions = mockk()
+        )
+        val runner = mockk<EvaluatorRunner>()
+        coEvery { runner.run(any(), any(), any()) } returns evaluatorResult
 
         val worker = EvaluatorWorker(mockk(), runner, ortRunService, contextFactory)
 
@@ -157,7 +160,7 @@ class EvaluatorWorkerTest : StringSpec({
             result shouldBe RunResult.Success
 
             coVerify(exactly = 1) {
-                ortRunService.storeEvaluatorRun(any())
+                ortRunService.storeEvaluatorRun(evaluatorRun)
             }
         }
     }
@@ -168,7 +171,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } throws testException
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), ortRunService, mockk())
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService, mockk())
 
         mockkTransaction {
             when (val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)) {
@@ -227,7 +230,7 @@ class EvaluatorWorkerTest : StringSpec({
         }
         val contextFactory = mockContextFactory(context)
 
-        val runner = spyk(EvaluatorRunner(mockk()))
+        val runner = spyk(EvaluatorRunner(mockk(), mockk()))
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
             OrtTestData.evaluatorRun, emptyList(), Resolutions()
         )
@@ -250,7 +253,7 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } returns invalidJob
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk()), ortRunService, mockk())
+        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService, mockk())
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
