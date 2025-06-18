@@ -266,21 +266,13 @@ fun EvaluatorJob.mapToApiSummary() =
 
 fun EvaluatorJobConfiguration.mapToApi() =
     ApiEvaluatorJobConfiguration(
-        copyrightGarbageFile,
-        licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToApi() },
-        resolutionsFile,
-        ruleSet,
         keepAliveWorker
     )
 
 fun ApiEvaluatorJobConfiguration.mapToModel() =
     EvaluatorJobConfiguration(
-        copyrightGarbageFile,
-        licenseClassificationsFile,
         packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
-        resolutionsFile,
-        ruleSet,
         keepAliveWorker
     )
 

@@ -81,7 +81,7 @@ private val evaluatorJob = EvaluatorJob(
     createdAt = Clock.System.now(),
     startedAt = Clock.System.now(),
     finishedAt = null,
-    configuration = EvaluatorJobConfiguration(ruleSet = SCRIPT_FILE),
+    configuration = EvaluatorJobConfiguration(),
     status = JobStatus.CREATED
 )
 
