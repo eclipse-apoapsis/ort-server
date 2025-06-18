@@ -17,17 +17,14 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
 
 import {
   usePluginsServiceGetApiV1AdminPluginsKey,
   usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdDisable,
   usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdEnable,
 } from '@/api/queries';
-import { prefetchUsePluginsServiceGetApiV1AdminPlugins } from '@/api/queries/prefetch.ts';
-import { usePluginsServiceGetApiV1AdminPluginsSuspense } from '@/api/queries/suspense.ts';
 import { ApiError, PluginDescriptor } from '@/api/requests';
-import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
 import {
   Card,
@@ -39,6 +36,7 @@ import {
 import { Switch } from '@/components/ui/switch.tsx';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast } from '@/lib/toast.ts';
+import { Route as LayoutRoute } from './route.tsx';
 
 type PluginListCardProps = {
   title: string;
@@ -130,6 +128,17 @@ const PluginListCard = ({
                 onCheckedChange={() => handleToggle(plugin)}
               />
             </CardHeader>
+            <CardContent>
+              <Link
+                to={'/admin/plugins/$pluginType/$pluginId'}
+                params={{
+                  pluginType: plugin.type,
+                  pluginId: plugin.id,
+                }}
+              >
+                Manage Templates
+              </Link>
+            </CardContent>
           </Card>
         ))}
       </CardContent>
@@ -138,7 +147,7 @@ const PluginListCard = ({
 };
 
 const PluginsComponent = () => {
-  const { data: plugins } = usePluginsServiceGetApiV1AdminPluginsSuspense();
+  const { plugins } = useLoaderData({ from: LayoutRoute.id });
 
   const advisors = plugins?.filter((plugin) => plugin.type === 'ADVISOR') || [];
   const packageConfigurationProviders =
@@ -191,9 +200,5 @@ const PluginsComponent = () => {
 };
 
 export const Route = createFileRoute('/admin/plugins/')({
-  loader: async ({ context }) => {
-    prefetchUsePluginsServiceGetApiV1AdminPlugins(context.queryClient);
-  },
   component: PluginsComponent,
-  pendingComponent: LoadingIndicator,
 });
