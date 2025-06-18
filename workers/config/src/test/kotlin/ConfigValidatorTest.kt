@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.config
 
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.maps.shouldHaveSize
@@ -35,6 +36,9 @@ import kotlin.math.abs
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Context
+import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -42,19 +46,19 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 class ConfigValidatorTest : StringSpec({
     "A successful validation should be handled" {
-        val fixtures = Fixtures(mockk())
         val script = loadScript("validation-success.params.kts")
 
-        val run = mockk<OrtRun> {
-            every { jobConfigs } returns fixtures.jobConfigurations
-        }
+        val run = mockRun()
         val context = mockContext(run)
 
-        val validator = ConfigValidator.create(context)
+        val validator = ConfigValidator.create(context, createAdminConfigService())
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultSuccess>()
 
         validationResult.resolvedConfigurations shouldBe run.jobConfigs
@@ -76,7 +80,7 @@ class ConfigValidatorTest : StringSpec({
         val script = loadScript("validation-failure.params.kts")
         val context = mockContext(mockk())
 
-        val validator = ConfigValidator.create(context)
+        val validator = ConfigValidator.create(context, createAdminConfigService())
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         val expectedIssue = Issue(
@@ -93,7 +97,7 @@ class ConfigValidatorTest : StringSpec({
         val script = "This is not a valid Kotlin script!"
         val context = mockContext(mockk())
 
-        val validator = ConfigValidator.create(context)
+        val validator = ConfigValidator.create(context, createAdminConfigService())
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         validationResult.issues shouldHaveSize 1
@@ -103,13 +107,80 @@ class ConfigValidatorTest : StringSpec({
             severity shouldBe Severity.ERROR
         }
     }
+
+    "A non-existing rule set should be handled" {
+        val ruleSetName = "nonExistingRuleSet"
+        val script = loadScript("validation-success.params.kts")
+
+        val run = mockRun(ruleSetName)
+        val context = mockContext(run)
+
+        val validator = ConfigValidator.create(context, createAdminConfigService())
+        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+
+        validationResult.issues shouldHaveSize 2
+        val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
+        errorIssue.source shouldBe ConfigValidator.ADMIN_CONFIG_VALIDATION_SOURCE
+        errorIssue.message shouldContain "rule set"
+        errorIssue.message shouldContain ruleSetName
+    }
+
+    "Missing files in the rule set should be handled" {
+        val script = loadScript("validation-success.params.kts")
+
+        val configManager = mockConfigManager()
+        every {
+            configManager.containsFile(Context(RESOLVED_CONTEXT), Path(testRuleSet.copyrightGarbageFile))
+        } returns false
+        every {
+            configManager.containsFile(Context(RESOLVED_CONTEXT), Path(testRuleSet.licenseClassificationsFile))
+        } returns false
+        every {
+            configManager.containsFile(Context(RESOLVED_CONTEXT), Path(testRuleSet.resolutionsFile))
+        } returns false
+        every {
+            configManager.containsFile(Context(RESOLVED_CONTEXT), Path(testRuleSet.evaluatorRules))
+        } returns false
+
+        val run = mockRun()
+        val context = mockContext(run, configManager)
+
+        val validator = ConfigValidator.create(context, createAdminConfigService())
+        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+
+        val errorIssues = validationResult.issues.filter { it.severity == Severity.ERROR }
+        errorIssues shouldHaveSize 4
+        errorIssues.map(Issue::message) shouldContainExactlyInAnyOrder listOf(
+            "Unresolvable configuration file '${testRuleSet.copyrightGarbageFile}'.",
+            "Unresolvable configuration file '${testRuleSet.licenseClassificationsFile}'.",
+            "Unresolvable configuration file '${testRuleSet.resolutionsFile}'.",
+            "Unresolvable configuration file '${testRuleSet.evaluatorRules}'."
+        )
+    }
 })
+
+/** The name of the rule set used by the test cases. */
+private const val RULE_SET = "testRuleSet"
+
+/** The resolved configuration context used by the test cases. */
+private const val RESOLVED_CONTEXT = "testResolvedContext"
+
+/** Test organization ID. */
+private const val ORGANIZATION_ID = 1L
 
 /** A hierarchy used by the test cases. */
 val testHierarchy = Hierarchy(
-    repository = Repository(20230801094107L, 1, 2, RepositoryType.GIT, "https://repo.example.org"),
+    repository = Repository(20230801094107L, ORGANIZATION_ID, 2, RepositoryType.GIT, "https://repo.example.org"),
     organization = mockk(),
     product = mockk()
+)
+
+/** A rule set used by test cases. */
+private val testRuleSet: RuleSet = RuleSet(
+    copyrightGarbageFile = "garbage.yml",
+    licenseClassificationsFile = "license.yml",
+    resolutionsFile = "resolutions.yml",
+    evaluatorRules = "rules.yml"
 )
 
 /**
@@ -129,10 +200,50 @@ private fun checkIssue(expected: Issue, actual: Issue) {
 }
 
 /**
- * Return a mock for a [WorkerContext] that is prepared to return the given [run] and the [testHierarchy].
+ * Return a mock for a [WorkerContext] that is prepared to return the given [run], [configMan], and the
+ * [testHierarchy].
  */
-private fun mockContext(run: OrtRun) =
+private fun mockContext(run: OrtRun, configMan: ConfigManager = mockConfigManager()) =
     mockk<WorkerContext> {
         every { ortRun } returns run
         every { hierarchy } returns testHierarchy
+        every { configManager } returns configMan
     }
+
+/**
+ * Return a mock for a [ConfigManager] that is prepared to answer queries about the existence of config files.
+ */
+private fun mockConfigManager(): ConfigManager =
+    mockk {
+        every { containsFile(any(), any()) } returns true
+    }
+
+/**
+ * Return a mock [OrtRun] that is prepared to give some default answers. It provides a job configuration with the
+ * given [ruleSetName].
+ */
+private fun mockRun(ruleSetName: String = RULE_SET): OrtRun {
+    val fixtures = Fixtures(mockk())
+    val configs = fixtures.jobConfigurations.copy(ruleSet = ruleSetName)
+
+    return mockk {
+        every { resolvedJobConfigContext } returns RESOLVED_CONTEXT
+        every { jobConfigs } returns configs
+        every { resolvedJobConfigs } returns jobConfigs
+        every { organizationId } returns ORGANIZATION_ID
+    }
+}
+
+/**
+ * Return a mock for an [AdminConfigService] that returns a predefined [AdminConfig].
+ */
+private fun createAdminConfigService(): AdminConfigService {
+    val adminConfig = mockk<AdminConfig> {
+        every { ruleSetNames } returns setOf(RULE_SET)
+        every { getRuleSet(RULE_SET) } returns testRuleSet
+    }
+
+    return mockk {
+        every { loadAdminConfig(Context(RESOLVED_CONTEXT), ORGANIZATION_ID) } returns adminConfig
+    }
+}
