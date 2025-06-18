@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -49,7 +50,10 @@ class ConfigWorker(
     private val contextFactory: WorkerContextFactory,
 
     /** The object for accessing configuration data. */
-    private val configManager: ConfigManager
+    private val configManager: ConfigManager,
+
+    /** The service to access the admin configuration. */
+    private val adminConfigService: AdminConfigService
 ) {
     companion object {
         /** Constant for the path to the script that validates and transforms parameters. */
@@ -88,7 +92,10 @@ class ConfigWorker(
                 logger.info("Running validation script.")
 
                 val validationScript = configManager.getFileAsString(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
-                val validator = ConfigValidator.create(createValidationWorkerContext(context, resolvedJobConfigContext))
+                val validator = ConfigValidator.create(
+                    createValidationWorkerContext(context, resolvedJobConfigContext),
+                    adminConfigService
+                )
                 val validationResult = validator.validate(validationScript)
 
                 logger.debug("Issues returned by validation script: {}.", validationResult.issues)

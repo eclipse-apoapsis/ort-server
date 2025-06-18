@@ -76,7 +76,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager)
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
             worker.testRun() shouldBe RunResult.Success
 
             verify {
@@ -107,7 +107,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager)
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
             worker.testRun() shouldBe RunResult.Success
 
             verify {
@@ -137,7 +137,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager)
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
             when (val result = worker.testRun()) {
                 is RunResult.Failed -> result.error should beInstanceOf<IllegalArgumentException>()
                 else -> fail("Unexpected result: $result")
@@ -160,7 +160,7 @@ class ConfigWorkerTest : StringSpec({
         val configManager = mockConfigManager()
         every { configManager.getFileAsString(any(), any()) } throws configException
 
-        val worker = ConfigWorker(mockk(), mockk(), contextFactory, configManager)
+        val worker = ConfigWorker(mockk(), mockk(), contextFactory, configManager, mockk())
         when (val result = worker.testRun()) {
             is RunResult.Failed -> result.error shouldBe configException
             else -> fail("Unexpected result: $result")
@@ -181,12 +181,12 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager)
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
             worker.testRun() shouldBe RunResult.Success
 
             val slotContext = mutableListOf<WorkerContext>()
             verify {
-                ConfigValidator.create(capture(slotContext))
+                ConfigValidator.create(capture(slotContext), any())
             }
             val capturedContext = slotContext.last()
 
@@ -214,7 +214,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager)
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
             worker.testRun() shouldBe RunResult.Success
 
             val expectedJobConfigs = context.ortRun.jobConfigs
@@ -304,7 +304,7 @@ private fun mockValidator(result: ConfigValidationResult): ConfigValidator {
         every { validate(PARAMETERS_SCRIPT) } returns result
     }
 
-    every { ConfigValidator.create(any()) } returns validator
+    every { ConfigValidator.create(any(), any()) } returns validator
 
     return validator
 }
