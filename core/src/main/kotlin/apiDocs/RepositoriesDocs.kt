@@ -131,11 +131,7 @@ internal val fullJobConfigurations = JobConfigurations(
         sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
     ),
     evaluator = EvaluatorJobConfiguration(
-        copyrightGarbageFile = "copyright-garbage.yml",
-        licenseClassificationsFile = "license-classifications.yml",
         packageConfigurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
-        resolutionsFile = "resolutions.yml",
-        ruleSet = "rules.evaluator.kts"
     ),
     reporter = ReporterJobConfiguration(formats = listOf("WebApp")),
     notifier = NotifierJobConfiguration(
@@ -159,7 +155,8 @@ internal val fullJobConfigurations = JobConfigurations(
                 password = "password"
             )
         )
-    )
+    ),
+    ruleSet = "default"
 )
 
 private val minimalJobConfigurations = JobConfigurations(

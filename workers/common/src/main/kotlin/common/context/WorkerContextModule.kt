@@ -23,18 +23,21 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepositor
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 /**
- * Return a [Module] with bean definitions required to obtain a [WorkerContextFactory]. Workers requiring a
- * [WorkerContext] can integrate this module and then obtain a factory via injection.
+ * Return a [Module] with bean definitions required to obtain a [WorkerContextFactory] and other functionality that is
+ * typically needed by workers. Workers requiring a [WorkerContext] can integrate this module and then obtain a
+ * factory via injection.
  */
 fun workerContextModule(): Module = module {
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
 
     singleOf(::WorkerContextFactory)
+    singleOf(::AdminConfigService)
 }

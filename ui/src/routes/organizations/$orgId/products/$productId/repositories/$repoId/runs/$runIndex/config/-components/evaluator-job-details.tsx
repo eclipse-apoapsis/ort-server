@@ -40,30 +40,10 @@ export const EvaluatorJobDetails = ({ run }: EvaluatorJobDetailsProps) => {
       <CardContent>
         {jobConfigs && (
           <div className='space-y-2 text-sm'>
-            {jobConfigs?.ruleSet && (
+            {run.resolvedJobConfigs?.ruleSet && (
               <div>
                 <Label className='font-semibold'>Ruleset:</Label>{' '}
-                {jobConfigs.ruleSet}
-              </div>
-            )}
-            {jobConfigs?.licenseClassificationsFile && (
-              <div>
-                <Label className='font-semibold'>
-                  License classifications:
-                </Label>{' '}
-                {jobConfigs.licenseClassificationsFile}
-              </div>
-            )}
-            {jobConfigs?.copyrightGarbageFile && (
-              <div>
-                <Label className='font-semibold'>Copyright garbage:</Label>{' '}
-                {jobConfigs.copyrightGarbageFile}
-              </div>
-            )}
-            {jobConfigs?.resolutionsFile && (
-              <div>
-                <Label className='font-semibold'>Resolutions:</Label>{' '}
-                {jobConfigs.resolutionsFile}
+                {run.resolvedJobConfigs?.ruleSet}
               </div>
             )}
             {jobConfigs?.packageConfigurationProviders && (

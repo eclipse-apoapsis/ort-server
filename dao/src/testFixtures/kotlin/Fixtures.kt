@@ -120,9 +120,7 @@ class Fixtures(private val db: Database) {
             advisors = listOf("OSV")
         ),
         scanner = ScannerJobConfiguration(),
-        evaluator = EvaluatorJobConfiguration(
-            ruleSet = "default"
-        ),
+        evaluator = EvaluatorJobConfiguration(),
         reporter = ReporterJobConfiguration(
             formats = listOf("WebApp")
         ),

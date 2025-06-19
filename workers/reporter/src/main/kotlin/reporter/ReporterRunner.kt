@@ -96,8 +96,7 @@ class ReporterRunner(
         evaluatorConfig: EvaluatorJobConfiguration?,
         context: WorkerContext
     ): ReporterRunnerResult {
-        val copyrightGarbageFile =
-            if (evaluatorConfig != null) evaluatorConfig.copyrightGarbageFile else config.copyrightGarbageFile
+        val copyrightGarbageFile = config.copyrightGarbageFile
         val copyrightGarbage = configManager.readConfigFileValueWithDefault(
             path = copyrightGarbageFile,
             defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
@@ -105,11 +104,7 @@ class ReporterRunner(
             context = context.resolvedConfigurationContext
         )
 
-        val licenseClassificationsFile = if (evaluatorConfig != null) {
-            evaluatorConfig.licenseClassificationsFile
-        } else {
-            config.licenseClassificationsFile
-        }
+        val licenseClassificationsFile = config.licenseClassificationsFile
         val licenseClassifications = configManager.readConfigFileValueWithDefault(
             path = licenseClassificationsFile,
             defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,

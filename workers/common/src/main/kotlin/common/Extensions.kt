@@ -46,9 +46,10 @@ fun Map<String, PluginConfig>.mapOptions(
     mapValues { (_, pluginConfig) -> pluginConfig.copy(options = pluginConfig.options.mapValues(transform)) }
 
 /**
- * If [path] is not `null`, read the YAML configuration file using the provided [context] and deserialize its value. If
- * a [ConfigException] occurs while reading the file it is rethrown. If [path] is `null`, the file at [defaultPath] is
- * read instead. If the file cannot be read, the [fallbackValue] is returned.
+ * If [path] is not `null` and does not equal the [defaultPath], read the YAML configuration file using the provided
+ * [context] and deserialize its value. If a [ConfigException] occurs while reading the file it is rethrown. If [path]
+ * is `null` or equals the [defaultPath], the file at [defaultPath] is read instead. If the file cannot be read, the
+ * [fallbackValue] is returned.
  *
  * This function realizes the contract that if a specific config file is requested, not being able to read it leads to
  * an exception, but the default file is allowed to not exist. Not being able to deserialize the file to the return type
@@ -62,9 +63,9 @@ inline fun <reified T> ConfigManager.readConfigFileValueWithDefault(
 ): T = getConfigFileWithDefault<T>(path, defaultPath, fallbackValue, context, ::readConfigFileValue)
 
 /**
- * If [path] is not `null`, read the file using the provided [context]. If a [ConfigException] occurs while reading the
- * file it is rethrown. If [path] is `null`, the file at [defaultPath] is read instead. If the file cannot be read, the
- * [fallbackValue] is returned.
+ * If [path] is not `null` and does not equal the [defaultPath], read the file using the provided [context]. If a
+ * [ConfigException] occurs while reading the file it is rethrown. If [path] is `null` or equals the [defaultPath], the
+ * file at [defaultPath] is read instead. If the file cannot be read, the [fallbackValue] is returned.
  *
  * This function realizes the contract that if a specific config file is requested, not being able to read it leads to
  * an exception, but the default file is allowed to not exist.
@@ -77,9 +78,10 @@ fun ConfigManager.readConfigFileWithDefault(
 ): String = getConfigFileWithDefault(path, defaultPath, fallbackValue, context, ::readConfigFile)
 
 /**
- * If [path] is not `null`, get the file using the provided [context] and [getConfigFile] function. If a
- * [ConfigException] occurs while reading the file it is rethrown. If [path] is `null`, the file at [defaultPath] is
- * read instead. If the file cannot be read, the [fallbackValue] is returned.
+ * If [path] is not `null` and does not equal the [defaultPath], get the file using the provided [context] and
+ * [getConfigFile] function. If a [ConfigException] occurs while reading the file it is rethrown. If [path] is `null`
+ * or equals the [defaultPath], the file at [defaultPath] is read instead. If the file cannot be read, the
+ * [fallbackValue] is returned.
  *
  * This function realizes the contract that if a specific config file is requested, not being able to read it leads to
  * an exception, but the default file is allowed to not exist.
@@ -91,7 +93,7 @@ internal inline fun <reified T> getConfigFileWithDefault(
     fallbackValue: T,
     context: Context?,
     getConfigFile: (path: String, context: Context?, exceptionHandler: (ConfigException) -> T) -> T
-): T = if (path != null) {
+): T = if (path != null && path != defaultPath) {
     getConfigFile(path, context) {
         logger.error("Could not get config file from path '$path'.")
         throw it

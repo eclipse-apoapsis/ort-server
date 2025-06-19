@@ -44,6 +44,9 @@ import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -67,22 +70,31 @@ private const val PACKAGE_CONFIGURATION_RULES = "package-configurations.rules.kt
 private const val LICENSE_CLASSIFICATIONS_FILE = "/license-classifications.yml"
 private const val RESOLUTIONS_FILE = "/resolutions.yml"
 private const val UNKNOWN_RULES_KTS = "unknown.rules.kts"
+private const val RULE_SET = "testRuleSet"
+private const val ORGANIZATION_ID = 20250617170411L
 
 private val resolvedConfigContext = Context("resolvedContext")
+
+private val testRuleSet = RuleSet(
+    copyrightGarbageFile = ORT_COPYRIGHT_GARBAGE_FILENAME,
+    licenseClassificationsFile = LICENSE_CLASSIFICATIONS_FILE,
+    resolutionsFile = RESOLUTIONS_FILE,
+    evaluatorRules = SCRIPT_FILE
+)
 
 class EvaluatorRunnerTest : WordSpec({
     afterEach { unmockkAll() }
 
-    val runner = EvaluatorRunner(mockk())
+    val adminConfigService = mockk<AdminConfigService>()
+    val runner = EvaluatorRunner(mockk(), adminConfigService)
 
     "run" should {
         "return an EvaluatorRun with one rule violation" {
+            adminConfigService.initRuleSet(testRuleSet)
+
             val result = runner.run(
                 OrtResult.EMPTY,
-                EvaluatorJobConfiguration(
-                    ruleSet = SCRIPT_FILE,
-                    licenseClassificationsFile = LICENSE_CLASSIFICATIONS_FILE
-                ),
+                EvaluatorJobConfiguration(),
                 createWorkerContext()
             )
             val expectedRuleViolation = RuleViolation(
@@ -99,25 +111,33 @@ class EvaluatorRunnerTest : WordSpec({
         }
 
         "try to read the default rule file when no rule set is provided" {
+            every { adminConfigService.loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
+
             shouldThrow<ConfigException> {
-                runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(), createWorkerContext())
+                runner.run(OrtResult.EMPTY, EvaluatorJobConfiguration(), createWorkerContext(ruleSetName = null))
             }.message shouldContain ORT_EVALUATOR_RULES_FILENAME
         }
 
         "throw an exception if script file could not be found" {
+            val errorRuleSet = testRuleSet.copy(evaluatorRules = UNKNOWN_RULES_KTS)
+            adminConfigService.initRuleSet(errorRuleSet)
+
             shouldThrow<ConfigException> {
                 runner.run(
                     OrtResult.EMPTY,
-                    EvaluatorJobConfiguration(ruleSet = UNKNOWN_RULES_KTS),
+                    EvaluatorJobConfiguration(),
                     createWorkerContext()
                 )
             }
         }
 
         "use the package configurations from the repository configuration" {
+            val ruleSet = testRuleSet.copy(evaluatorRules = PACKAGE_CONFIGURATION_RULES)
+            adminConfigService.initRuleSet(ruleSet)
+
             val result = runner.run(
                 OrtTestData.result,
-                EvaluatorJobConfiguration(ruleSet = PACKAGE_CONFIGURATION_RULES),
+                EvaluatorJobConfiguration(),
                 createWorkerContext()
             )
 
@@ -140,6 +160,9 @@ class EvaluatorRunnerTest : WordSpec({
         }
 
         "use the package configurations from the configured providers" {
+            val ruleSet = testRuleSet.copy(evaluatorRules = PACKAGE_CONFIGURATION_RULES)
+            adminConfigService.initRuleSet(ruleSet)
+
             // Remove the package configurations from the ORT result as there can only be one package configuration for
             // each package.
             val ortResult = OrtTestData.result.copy(
@@ -161,7 +184,6 @@ class EvaluatorRunnerTest : WordSpec({
             val result = runner.run(
                 ortResult,
                 EvaluatorJobConfiguration(
-                    ruleSet = PACKAGE_CONFIGURATION_RULES,
                     packageConfigurationProviders = packageConfigurationProviderConfigs
                 ),
                 createWorkerContext(packageConfigurationProviderConfigs)
@@ -225,10 +247,11 @@ class EvaluatorRunnerTest : WordSpec({
                 )
             )
 
+            adminConfigService.initRuleSet(testRuleSet)
+
             runner.run(
                 OrtTestData.result,
                 EvaluatorJobConfiguration(
-                    ruleSet = SCRIPT_FILE,
                     packageConfigurationProviders = packageConfigurationProviderConfigs
                 ),
                 createWorkerContext(packageConfigurationProviderConfigs, resolvedPackageConfigurationProviderConfigs)
@@ -242,9 +265,11 @@ class EvaluatorRunnerTest : WordSpec({
         }
 
         "use the resolutions from the repository configuration and resolutions file" {
+            adminConfigService.initRuleSet(testRuleSet)
+
             val result = runner.run(
                 OrtTestData.result,
-                EvaluatorJobConfiguration(resolutionsFile = RESOLUTIONS_FILE, ruleSet = SCRIPT_FILE),
+                EvaluatorJobConfiguration(),
                 createWorkerContext()
             )
 
@@ -291,13 +316,27 @@ private fun createConfigManager(): ConfigManager {
 
 private fun createWorkerContext(
     providerPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
-    resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = providerPluginConfigs
+    resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = providerPluginConfigs,
+    ruleSetName: String? = RULE_SET
 ): WorkerContext {
     val configManagerMock = createConfigManager()
 
     return mockk {
         every { configManager } returns configManagerMock
         every { ortRun.resolvedJobConfigContext } returns resolvedConfigContext.name
+        every { ortRun.organizationId } returns ORGANIZATION_ID
+        every { ortRun.resolvedJobConfigs?.ruleSet } returns ruleSetName
         coEvery { resolveProviderPluginConfigSecrets(providerPluginConfigs) } returns resolvedProviderPluginConfigs
     }
+}
+
+/**
+ * Prepare this mock [AdminConfigService] to return a dummy configuration containing the given [ruleSet].
+ */
+private fun AdminConfigService.initRuleSet(ruleSet: RuleSet) {
+    val adminConfig = mockk<AdminConfig> {
+        every { getRuleSet(RULE_SET) } returns ruleSet
+    }
+
+    every { loadAdminConfig(resolvedConfigContext, ORGANIZATION_ID) } returns adminConfig
 }
