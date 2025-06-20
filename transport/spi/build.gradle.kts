@@ -35,7 +35,7 @@ dependencies {
     implementation(projects.model)
     implementation(projects.utils.system)
 
-    implementation(libs.ktorKotlinxSerialization)
+    implementation(ktorLibs.serialization.kotlinx.json)
 
     api(projects.config.configSpi)
 

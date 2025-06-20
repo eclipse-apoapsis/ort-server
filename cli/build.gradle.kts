@@ -62,13 +62,13 @@ kotlin {
                 implementation(projects.api.v1.apiV1Model)
                 implementation(projects.utils.system)
 
+                implementation(ktorLibs.client.auth)
+                implementation(ktorLibs.client.core)
+                implementation(ktorLibs.utils)
                 implementation(libs.clikt)
                 implementation(libs.kaml)
                 implementation(libs.kotlinxCoroutines)
                 implementation(libs.kotlinxSerializationJson)
-                implementation(libs.ktorClientAuth)
-                implementation(libs.ktorClientCore)
-                implementation(libs.ktorUtils)
                 implementation(libs.mordantCoroutines)
                 implementation(libs.okio)
             }

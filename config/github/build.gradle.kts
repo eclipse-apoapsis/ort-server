@@ -32,10 +32,10 @@ dependencies {
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
+    implementation(ktorLibs.client.okhttp)
+    implementation(ktorLibs.io)
+    implementation(ktorLibs.serialization.kotlinx.json)
     implementation(libs.kotlinxDatetime)
-    implementation(libs.ktorClientOkHttp)
-    implementation(libs.ktorIo)
-    implementation(libs.ktorKotlinxSerialization)
 
     testImplementation(testFixtures(projects.config.configSpi))
 

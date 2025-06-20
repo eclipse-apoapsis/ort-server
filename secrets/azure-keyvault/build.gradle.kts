@@ -33,9 +33,9 @@ dependencies {
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
+    implementation(ktorLibs.serialization.kotlinx.json)
     implementation(libs.azureIdentity)
     implementation(libs.azureSecurityKeyvaultSecrets)
-    implementation(libs.ktorKotlinxSerialization)
 
     testImplementation(testFixtures(projects.config.configSpi))
 

@@ -32,7 +32,7 @@ dependencies {
     implementation(projects.secrets.secretsSpi)
     implementation(projects.utils.config)
 
-    implementation(libs.ktorKotlinxSerialization)
+    implementation(ktorLibs.serialization.kotlinx.json)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)

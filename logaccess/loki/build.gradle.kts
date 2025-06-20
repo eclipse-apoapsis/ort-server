@@ -35,11 +35,11 @@ dependencies {
     implementation(projects.model)
     implementation(projects.utils.config)
 
-    implementation(libs.ktorClientAuth)
-    implementation(libs.ktorClientCore)
-    implementation(libs.ktorClientContentNegotiation)
-    implementation(libs.ktorClientOkHttp)
-    implementation(libs.ktorKotlinxSerialization)
+    implementation(ktorLibs.client.auth)
+    implementation(ktorLibs.client.contentNegotiation)
+    implementation(ktorLibs.client.core)
+    implementation(ktorLibs.client.okhttp)
+    implementation(ktorLibs.serialization.kotlinx.json)
 
     testImplementation(testFixtures(projects.logaccess.logaccessSpi))
 

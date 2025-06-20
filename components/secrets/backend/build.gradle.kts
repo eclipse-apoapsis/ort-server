@@ -27,8 +27,8 @@ group = "org.eclipse.apoapsis.ortserver.components.secrets"
 dependencies {
     api(projects.components.secrets.apiModel)
 
-    api(libs.ktorServerCore)
-    api(libs.ktorValidation)
+    api(ktorLibs.server.core)
+    api(ktorLibs.server.requestValidation)
 
     implementation(projects.components.authorization.implementation)
     implementation(projects.model)
@@ -42,8 +42,8 @@ dependencies {
     testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.shared.ktorUtils))
 
+    testImplementation(ktorLibs.server.statusPages)
+    testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.ktorServerStatusPages)
-    testImplementation(libs.ktorServerTestHost)
 }

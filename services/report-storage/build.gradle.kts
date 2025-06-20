@@ -30,7 +30,7 @@ dependencies {
 
     implementation(projects.model)
 
-    implementation(libs.ktorHttp)
+    implementation(ktorLibs.http)
 
     runtimeOnly(libs.logback)
 

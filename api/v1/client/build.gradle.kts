@@ -39,40 +39,40 @@ kotlin {
             dependencies {
                 implementation(projects.api.v1.apiV1Model)
 
-                implementation(libs.ktorClientAuth)
-                implementation(libs.ktorClientContentNegotiation)
-                implementation(libs.ktorKotlinxSerializationMP)
+                implementation(ktorLibs.client.auth)
+                implementation(ktorLibs.client.contentNegotiation)
+                implementation(ktorLibs.serialization.kotlinx.json)
             }
         }
 
         commonTest {
             dependencies {
                 implementation(libs.kotestAssertionsCore)
-                implementation(libs.ktorClientMock)
+                implementation(ktorLibs.client.mock)
             }
         }
 
         jvmMain {
             dependencies {
-                implementation(libs.ktorClientOkHttp)
+                implementation(ktorLibs.client.okhttp)
             }
         }
 
         linuxMain {
             dependencies {
-                implementation(libs.ktorClientCurl)
+                implementation(ktorLibs.client.curl)
             }
         }
 
         macosMain {
             dependencies {
-                implementation(libs.ktorClientDarwin)
+                implementation(ktorLibs.client.darwin)
             }
         }
 
         mingwMain {
             dependencies {
-                implementation(libs.ktorClientWinhttp)
+                implementation(ktorLibs.client.winhttp)
             }
         }
 

@@ -31,16 +31,16 @@ group = "org.eclipse.apoapsis.ortserver.shared"
 dependencies {
     api(projects.shared.apiModel)
 
+    api(ktorLibs.server.core)
+    api(ktorLibs.server.requestValidation)
     api(libs.konform)
     api(libs.ktorOpenApi)
-    api(libs.ktorServerCore)
-    api(libs.ktorValidation)
 
     implementation(projects.model)
 
+    testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.ktorServerTestHost)
 
     testFixturesApi(projects.components.authorization.implementation)
     testFixturesApi(projects.services.authorizationService)
@@ -49,16 +49,16 @@ dependencies {
 
     testFixturesImplementation(testFixtures(projects.clients.keycloak))
 
+    testFixturesImplementation(ktorLibs.client.contentNegotiation)
+    testFixturesImplementation(ktorLibs.serialization.kotlinx.json)
+    testFixturesImplementation(ktorLibs.server.auth)
+    testFixturesImplementation(ktorLibs.server.auth.jwt)
+    testFixturesImplementation(ktorLibs.server.contentNegotiation)
+    testFixturesImplementation(ktorLibs.server.core)
+    testFixturesImplementation(ktorLibs.server.statusPages)
+    testFixturesImplementation(ktorLibs.server.testHost)
     testFixturesImplementation(libs.kotestAssertionsKtor)
     testFixturesImplementation(libs.kotestFrameworkApi)
     testFixturesImplementation(libs.kotlinxSerializationJson)
-    testFixturesImplementation(libs.ktorServerCore)
-    testFixturesImplementation(libs.ktorClientContentNegotiation)
-    testFixturesImplementation(libs.ktorKotlinxSerialization)
-    testFixturesImplementation(libs.ktorServerAuth)
-    testFixturesImplementation(libs.ktorServerAuthJwt)
-    testFixturesImplementation(libs.ktorServerContentNegotiation)
-    testFixturesImplementation(libs.ktorServerStatusPages)
-    testFixturesImplementation(libs.ktorServerTestHost)
     testFixturesImplementation(libs.mockk)
 }
