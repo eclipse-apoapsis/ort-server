@@ -27,9 +27,9 @@ group = "org.eclipse.apoapsis.ortserver.components.authorization"
 dependencies {
     api(projects.clients.keycloak)
 
-    api(libs.ktorServerAuth)
-    api(libs.ktorServerAuthJwt)
-    api(libs.ktorServerCore)
+    api(ktorLibs.server.auth)
+    api(ktorLibs.server.auth.jwt)
+    api(ktorLibs.server.core)
 
     implementation(projects.model)
     implementation(projects.shared.ktorUtils)
@@ -38,9 +38,9 @@ dependencies {
 
     testImplementation(testFixtures(projects.clients.keycloak))
 
+    testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.ktorServerTestHost)
     testImplementation(libs.mockk)
 }

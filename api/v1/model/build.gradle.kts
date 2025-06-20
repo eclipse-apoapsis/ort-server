@@ -42,8 +42,8 @@ kotlin {
                 api(libs.kotlinxDatetime)
                 api(libs.konform)
 
+                implementation(ktorLibs.http)
                 implementation(libs.kotlinxSerializationJson)
-                implementation(libs.ktorHttp)
             }
         }
 

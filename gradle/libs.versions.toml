@@ -59,7 +59,6 @@ kotestAssertionsKotlinxDatetime = "1.1.0"
 kotestAssertionsKtor = "2.0.0"
 kotestExtensionTestContainers = "2.0.2"
 kotlinResult = "2.0.1"
-ktor = "3.2.0"
 ktorOpenApi = "5.1.0"
 kubernetesClient = "23.0.0"
 log4j = "2.25.0"
@@ -128,33 +127,8 @@ kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", 
 kotlinxCoroutinesSlf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlinxCoroutines" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-ktorClientAuth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
-ktorClientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktorClientCore = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktorClientCurl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
-ktorClientDarwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
-ktorClientMock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
-ktorClientOkHttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-ktorClientWinhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
-ktorHttp = { module = "io.ktor:ktor-http", version.ref = "ktor" }
-ktorIo = { module = "io.ktor:ktor-io", version.ref = "ktor" }
-ktorKotlinxSerialization = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
-ktorKotlinxSerializationMP = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktorOpenApi = { module = "io.github.smiley4:ktor-openapi", version.ref = "ktorOpenApi" }
-ktorServerAuth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
-ktorServerAuthJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
-ktorServerCallLogging = { module = "io.ktor:ktor-server-call-logging-jvm", version.ref = "ktor" }
-ktorServerContentNegotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
-ktorServerCore = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
-ktorServerCors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
-ktorServerDefaultHeaders = { module = "io.ktor:ktor-server-default-headers-jvm", version.ref = "ktor" }
-ktorServerMetricsMicrometer = { module = "io.ktor:ktor-server-metrics-micrometer", version.ref = "ktor" }
-ktorServerNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
-ktorServerStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", version.ref = "ktor" }
-ktorServerTestHost = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 ktorSwaggerUi = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktorOpenApi" }
-ktorUtils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
-ktorValidation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
 kubernetesClient = { module = "io.kubernetes:client-java", version.ref = "kubernetesClient" }
 kubernetesClientExtended = { module = "io.kubernetes:client-java-extended", version.ref = "kubernetesClient" }
 log4jToSlf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j" }
