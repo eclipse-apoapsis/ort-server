@@ -47,14 +47,6 @@ interface InfrastructureServiceRepository {
     ): InfrastructureService
 
     /**
-     * Return an [InfrastructureService] with properties matching the ones of the given [service] that is associated
-     * with the given [ORT Run][runId]. Based on the provided [service], an already existing entity is searched.
-     * If there is no match, a new one is created. Note that existing services associated with an organization or a
-     * product will not be matched. This is because such services can be changed by users at any time.
-     */
-    fun getOrCreateForRun(service: InfrastructureService, runId: Long): InfrastructureService
-
-    /**
      * Return a list with the [InfrastructureService]s that belong to the given [organization][organizationId]
      * according to the given [parameters].
      */
@@ -123,15 +115,6 @@ interface InfrastructureServiceRepository {
      * Throw an exception if the service cannot be found.
      */
     fun deleteForProductAndName(productId: Long, name: String)
-
-    /**
-     * Return a list with the [InfrastructureService]s that are associated with the given [ORT Run][runId]
-     * according to the given [parameters].
-     */
-    fun listForRun(
-        runId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<InfrastructureService>
 
     /**
      * Return a list with [InfrastructureService]s that are associated with the given [organizationId], or

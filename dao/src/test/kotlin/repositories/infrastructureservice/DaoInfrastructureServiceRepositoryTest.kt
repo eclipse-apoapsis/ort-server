@@ -26,12 +26,8 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.nulls.beNull
-import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldInclude
 
 import java.util.EnumSet
 
@@ -50,7 +46,6 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
-import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
@@ -154,101 +149,6 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 val parameters =
                     ListQueryParameters(sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)), limit = 4)
                 val services = infrastructureServicesRepository.listForProduct(fixtures.product.id, parameters)
-
-                services shouldContainExactly expectedServices.take(4)
-            }
-        }
-
-        "getOrCreateForRun" should {
-            "create a new entity in the database" {
-                val expectedService = createInfrastructureService()
-
-                val service = infrastructureServicesRepository.getOrCreateForRun(expectedService, fixtures.ortRun.id)
-
-                service shouldBe expectedService
-
-                val runServices = infrastructureServicesRepository.listForRun(fixtures.ortRun.id)
-                runServices shouldContainOnly listOf(service)
-            }
-
-            "reuse an already existing entity" {
-                val otherRun = fixtures.createOrtRun()
-                val expectedService = createInfrastructureService()
-                val serviceForOtherRun =
-                    infrastructureServicesRepository.getOrCreateForRun(expectedService, otherRun.id)
-
-                val serviceForRun =
-                    infrastructureServicesRepository.getOrCreateForRun(expectedService, fixtures.ortRun.id)
-
-                serviceForRun shouldBe expectedService
-                serviceForRun shouldBe serviceForOtherRun
-
-                val runServices = infrastructureServicesRepository.listForRun(fixtures.ortRun.id)
-                runServices shouldContainOnly listOf(serviceForRun)
-            }
-
-            "not reuse a service assigned to an organization" {
-                val orgService = createInfrastructureService(organization = fixtures.organization)
-                infrastructureServicesRepository.create(orgService)
-
-                val runService = createInfrastructureService()
-                val dbRunService = infrastructureServicesRepository.getOrCreateForRun(runService, fixtures.ortRun.id)
-
-                dbRunService shouldNotBe orgService
-            }
-
-            "not reuse a service assigned to a product" {
-                val prodService = createInfrastructureService(product = fixtures.product)
-                infrastructureServicesRepository.create(prodService)
-
-                val runService = createInfrastructureService()
-                val dbRunService = infrastructureServicesRepository.getOrCreateForRun(runService, fixtures.ortRun.id)
-
-                dbRunService shouldNotBe prodService
-            }
-
-            "throw exception if the entity name is invalid" {
-                val serviceName = " #servicename! "
-                val newService = createInfrastructureService(name = serviceName)
-
-                val exception = shouldThrow<ValidationException> {
-                    infrastructureServicesRepository.getOrCreateForRun(newService, fixtures.ortRun.id)
-                }
-
-                exception.message shouldInclude serviceName
-
-                infrastructureServicesRepository.listForRun(fixtures.ortRun.id) shouldBe emptyList()
-            }
-        }
-
-        "listForRun" should {
-            "return all services assigned to a run" {
-                val runService1 = createInfrastructureService(name = "run1")
-                val runService2 = createInfrastructureService(name = "run2")
-                val orgService = createInfrastructureService(name = "org", organization = fixtures.organization)
-                val prodService = createInfrastructureService(name = "prod", product = fixtures.product)
-
-                infrastructureServicesRepository.create(orgService)
-                infrastructureServicesRepository.create(prodService)
-                infrastructureServicesRepository.getOrCreateForRun(runService1, fixtures.ortRun.id)
-                infrastructureServicesRepository.getOrCreateForRun(runService2, fixtures.ortRun.id)
-
-                val runServices = infrastructureServicesRepository.listForRun(fixtures.ortRun.id)
-
-                runServices shouldContainExactlyInAnyOrder listOf(runService1, runService2)
-            }
-
-            "apply list parameters" {
-                val expectedServices = (1..8).map { idx ->
-                    createInfrastructureService(name = "$SERVICE_NAME$idx")
-                }
-
-                expectedServices.shuffled()
-                    .forEach { infrastructureServicesRepository.getOrCreateForRun(it, fixtures.ortRun.id) }
-
-                val parameters =
-                    ListQueryParameters(sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)), limit = 4)
-                val services = infrastructureServicesRepository.listForRun(fixtures.ortRun.id, parameters)
 
                 services shouldContainExactly expectedServices.take(4)
             }
@@ -423,29 +323,6 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     )
                 }
             }
-
-            "delete a service even when linked to an ORT run" {
-                val service1 = createInfrastructureService(organization = fixtures.organization)
-                val ortRun1 = fixtures.createOrtRun()
-                val ortRun2 = fixtures.createOrtRun()
-
-                infrastructureServicesRepository.create(service1)
-                infrastructureServicesRepository.getOrCreateForRun(service1, ortRun1.id)
-                infrastructureServicesRepository.getOrCreateForRun(service1, ortRun2.id)
-
-                infrastructureServicesRepository.listForRun(ortRun1.id).size shouldBe 1
-                infrastructureServicesRepository.listForRun(ortRun2.id).size shouldBe 1
-
-                infrastructureServicesRepository.deleteForOrganizationAndName(fixtures.organization.id, SERVICE_NAME)
-
-                infrastructureServicesRepository.listForRun(ortRun1.id).size shouldBe 0
-                infrastructureServicesRepository.listForRun(ortRun2.id).size shouldBe 0
-                infrastructureServicesRepository.getByOrganizationAndName(fixtures.organization.id, SERVICE_NAME)
-                    .shouldBeNull()
-
-                ortRunRepository.get(ortRun1.id).shouldNotBeNull()
-                ortRunRepository.get(ortRun2.id).shouldNotBeNull()
-            }
         }
 
         "deleteForProductAndName" should {
@@ -468,28 +345,6 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 shouldThrow<EntityNotFoundException> {
                     infrastructureServicesRepository.deleteForProductAndName(fixtures.product.id, "nonExisting")
                 }
-            }
-
-            "delete a service even when linked to an ORT run" {
-                val service1 = createInfrastructureService(product = fixtures.product)
-                val ortRun1 = fixtures.createOrtRun()
-                val ortRun2 = fixtures.createOrtRun()
-
-                infrastructureServicesRepository.create(service1)
-                infrastructureServicesRepository.getOrCreateForRun(service1, ortRun1.id)
-                infrastructureServicesRepository.getOrCreateForRun(service1, ortRun2.id)
-
-                infrastructureServicesRepository.listForRun(ortRun1.id).size shouldBe 1
-                infrastructureServicesRepository.listForRun(ortRun2.id).size shouldBe 1
-
-                infrastructureServicesRepository.deleteForProductAndName(fixtures.product.id, SERVICE_NAME)
-
-                infrastructureServicesRepository.listForRun(ortRun1.id).size shouldBe 0
-                infrastructureServicesRepository.listForRun(ortRun2.id).size shouldBe 0
-                infrastructureServicesRepository.getByProductAndName(fixtures.product.id, SERVICE_NAME).shouldBeNull()
-
-                ortRunRepository.get(ortRun1.id).shouldNotBeNull()
-                ortRunRepository.get(ortRun2.id).shouldNotBeNull()
             }
         }
 
