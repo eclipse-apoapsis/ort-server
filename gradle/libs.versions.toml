@@ -144,7 +144,6 @@ ktorOpenApi = { module = "io.github.smiley4:ktor-openapi", version.ref = "ktorOp
 ktorServerAuth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktorServerAuthJwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktorServerCallLogging = { module = "io.ktor:ktor-server-call-logging-jvm", version.ref = "ktor" }
-ktorServerCommon = { module = "io.ktor:ktor-server-host-common-jvm", version.ref = "ktor" }
 ktorServerContentNegotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
 ktorServerCore = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktorServerCors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
