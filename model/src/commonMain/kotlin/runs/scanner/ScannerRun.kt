@@ -23,6 +23,7 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 data class ScannerRun(
     val id: Long,
@@ -33,5 +34,6 @@ data class ScannerRun(
     val config: ScannerConfiguration?,
     val provenances: Set<ProvenanceResolutionResult>,
     val scanResults: Set<ScanResult>,
+    val issues: Map<Identifier, Set<Issue>> = emptyMap(),
     val scanners: Map<Identifier, Set<String>>
 )

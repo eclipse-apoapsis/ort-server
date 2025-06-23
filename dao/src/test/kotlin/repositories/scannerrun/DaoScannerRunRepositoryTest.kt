@@ -104,7 +104,8 @@ class DaoScannerRunRepositoryTest : StringSpec({
             scannerRun.endTime!!,
             scannerRun.environment!!,
             scannerRun.config!!,
-            scanners
+            scanners,
+            scannerRun.issues
         )
 
         val dbEntry = scannerRunRepository.get(createdScannerRun.id)
@@ -241,7 +242,8 @@ private fun DaoScannerRunRepository.create(scannerJobId: Long, scannerRun: Scann
         endTime = scannerRun.endTime!!,
         environment = scannerRun.environment!!,
         config = scannerRun.config!!,
-        scanners = scannerRun.scanners
+        scanners = scannerRun.scanners,
+        issues = scannerRun.issues
     )
 }
 

@@ -23,6 +23,7 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
@@ -38,8 +39,8 @@ interface ScannerRunRepository {
 
     /**
      * Update the scanner run identified by [id] with the provided [startTime], [endTime], [environment], [config],
-     * and [scanners]. This function can be called only once to finalize a scanner run and throws an exception if it
-     * is called multiple times for the same scanner run.
+     * [scanners], and [issues]. This function can be called only once to finalize a scanner run and throws an exception
+     * if it is called multiple times for the same scanner run.
      */
     fun update(
         id: Long,
@@ -47,7 +48,8 @@ interface ScannerRunRepository {
         endTime: Instant,
         environment: Environment,
         config: ScannerConfiguration,
-        scanners: Map<Identifier, Set<String>>
+        scanners: Map<Identifier, Set<String>>,
+        issues: Map<Identifier, Set<Issue>>
     ): ScannerRun
 
     /**
