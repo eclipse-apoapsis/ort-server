@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.repositories.ScannerRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
@@ -58,7 +59,8 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
         endTime: Instant,
         environment: Environment,
         config: ScannerConfiguration,
-        scanners: Map<Identifier, Set<String>>
+        scanners: Map<Identifier, Set<String>>,
+        issues: Map<Identifier, Set<Issue>>
     ) = db.blockingQuery {
         val scannerRunDao = ScannerRunDao[id]
 
@@ -72,6 +74,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
 
         createScannerConfiguration(scannerRunDao, config)
         createScanners(scannerRunDao, scanners)
+        createIssues(scannerRunDao, issues)
 
         scannerRunDao.mapToModel()
     }
@@ -195,6 +198,18 @@ private fun createScanners(run: ScannerRunDao, scanners: Map<Identifier, Set<Str
     scanners.entries.forEach { (id, scannerNames) ->
         scannerNames.forEach { scanner ->
             ScannerRunsScannersDao.addScanner(run, id, scanner)
+        }
+    }
+}
+
+private fun createIssues(run: ScannerRunDao, issuesById: Map<Identifier, Set<Issue>>) {
+    val ortRunId = run.scannerJob.ortRun.id.value
+    issuesById.entries.forEach { (identifier, issues) ->
+        issues.forEach { issue ->
+            OrtRunIssueDao.createByIssue(
+                ortRunId,
+                issue.copy(identifier = identifier, worker = ScannerRunDao.ISSUE_WORKER_TYPE)
+            )
         }
     }
 }

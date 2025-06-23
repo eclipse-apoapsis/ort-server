@@ -617,6 +617,7 @@ fun ScannerRun.mapToOrt() =
         config = config?.mapToOrt() ?: OrtScannerConfiguration(),
         provenances = provenances.mapTo(mutableSetOf(), ProvenanceResolutionResult::mapToOrt),
         scanResults = scanResults.mapTo(mutableSetOf(), ScanResult::mapToOrt),
+        issues = issues.mapKeys { it.key.mapToOrt() }.mapValues { it.value.mapTo(mutableSetOf(), Issue::mapToOrt) },
         files = emptySet(),
         scanners = scanners.mapKeys { it.key.mapToOrt() }
     )

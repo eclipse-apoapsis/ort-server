@@ -829,7 +829,8 @@ class OrtRunServiceTest : WordSpec({
                     config = emptyMap(),
                     ignorePatterns = emptyList()
                 ),
-                scanners = emptyMap()
+                scanners = emptyMap(),
+                issues = emptyMap()
             )
 
             service.getScannerRunForOrtRun(fixtures.ortRun.id) shouldBe createdScannerRun

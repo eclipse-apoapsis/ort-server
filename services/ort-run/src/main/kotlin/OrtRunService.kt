@@ -198,7 +198,8 @@ class OrtRunService(
             endTime = endTime,
             environment = environment,
             config = config,
-            scanners = scannerRun.scanners
+            scanners = scannerRun.scanners,
+            issues = scannerRun.issues
         )
 
         getScannerJob(scannerRun.scannerJobId)?.also { job ->

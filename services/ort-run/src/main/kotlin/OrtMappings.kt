@@ -24,6 +24,7 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 import kotlinx.datetime.toKotlinInstant
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -510,8 +511,16 @@ fun OrtScannerRun.mapToModel(scannerJobId: Long) =
         config = config.mapToModel(),
         provenances = provenances.mapTo(mutableSetOf(), OrtProvenanceResolutionResult::mapToModel),
         scanResults = scanResults.mapTo(mutableSetOf(), OrtScanResult::mapToModel),
+        issues = issues.mapToModel(),
         scanners = scanners.mapKeys { it.key.mapToModel() }
     )
+
+private fun Map<OrtIdentifier, Set<OrtIssue>>.mapToModel() =
+    entries.associate { (identifier, issues) ->
+        identifier.mapToModel() to issues.mapTo(mutableSetOf()) { issue ->
+            issue.mapToModel(identifier = identifier.mapToModel(), worker = ScannerRunDao.ISSUE_WORKER_TYPE)
+        }
+    }
 
 fun OrtScanResult.mapToModel() =
     ScanResult(
@@ -529,7 +538,7 @@ fun OrtScanSummary.mapToModel() =
         licenseFindings = licenseFindings.mapTo(mutableSetOf(), OrtLicenseFinding::mapToModel),
         copyrightFindings = copyrightFindings.mapTo(mutableSetOf(), OrtCopyrightFinding::mapToModel),
         snippetFindings = snippetFindings.mapTo(mutableSetOf(), OrtSnippetFinding::mapToModel),
-        issues = issues.map(OrtIssue::mapToModel)
+        issues = issues.map { it.mapToModel(worker = ScannerRunDao.ISSUE_WORKER_TYPE) }
     )
 
 fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment)

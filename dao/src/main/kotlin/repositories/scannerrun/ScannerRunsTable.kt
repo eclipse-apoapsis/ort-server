@@ -47,7 +47,12 @@ object ScannerRunsTable : LongIdTable("scanner_runs") {
 }
 
 class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<ScannerRunDao>(ScannerRunsTable)
+    companion object : LongEntityClass<ScannerRunDao>(ScannerRunsTable) {
+        /**
+         * Constant for the _worker_ property value set for issues to mark them as created by the Scanner.
+         */
+        const val ISSUE_WORKER_TYPE = "scanner"
+    }
 
     var scannerJobId by ScannerRunsTable.scannerJobId.transformToEntityId()
     var scannerJob by ScannerJobDao referencedOn ScannerRunsTable.scannerJobId
@@ -72,6 +77,7 @@ class ScannerRunDao(id: EntityID<Long>) : LongEntity(id) {
         //       ScanResult and PackageProvenance.
         provenances = emptySet(),
         scanResults = emptySet(),
+        issues = emptyMap(),
         scanners = emptyMap()
     )
 }
