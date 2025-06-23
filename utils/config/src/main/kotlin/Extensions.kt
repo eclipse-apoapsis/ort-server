@@ -24,6 +24,7 @@ package org.eclipse.apoapsis.ortserver.utils.config
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValue
 
 /**
  * Return the boolean value with the given [path] or [default] if it cannot be found.
@@ -95,6 +96,33 @@ fun Config.getStringOrNull(path: String): String? = withPath(path)?.getString(pa
  * Return this [Config] if it contains the given [path] or null if not.
  */
 fun Config.withPath(path: String): Config? = takeIf { hasPath(path) }
+
+/**
+ * Return a [Map] representing the object at the given [path] or the result of the given [defaultFun] if the path
+ * cannot be resolved.
+ */
+fun Config.getObjectOrDefault(path: String, defaultFun: () -> Map<String, ConfigValue>): Map<String, ConfigValue> =
+    withPath(path)?.getObject(path) ?: defaultFun()
+
+/**
+ * Return a [Map] representing the object at the given [path] or an empty [Map] if the path cannot be resolved.
+ */
+fun Config.getObjectOrEmpty(path: String): Map<String, ConfigValue> =
+    getObjectOrDefault(path) { emptyMap() }
+
+/**
+ * Return a [List] with the string values of the property at the given [path] or the result of the given [defaultFun]
+ * if the path cannot be resolved.
+ */
+fun Config.getStringListOrDefault(path: String, defaultFun: () -> List<String>): List<String> =
+    withPath(path)?.getStringList(path) ?: defaultFun()
+
+/**
+ * Return a [List] with the string values of the property at the given [path] or an empty list if the path cannot be
+ * resolved.
+ */
+fun Config.getStringListOrEmpty(path: String): List<String> =
+    getStringListOrDefault(path) { emptyList() }
 
 /** The prefix to indicate a variable. */
 private const val VARIABLE_PREFIX = "\${"
