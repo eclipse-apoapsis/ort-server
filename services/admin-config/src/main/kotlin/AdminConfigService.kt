@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.utils.config.getConfigOrEmpty
+import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrEmpty
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 
 import org.slf4j.LoggerFactory
@@ -77,15 +78,12 @@ class AdminConfigService(
          * rule sets that are only partially defined, set the values of missing properties from the given
          * [defaultRuleSet].
          */
-        private fun parseRuleSets(config: Config, defaultRuleSet: RuleSet): Map<String, RuleSet> {
-            if (!config.hasPath("ruleSets")) return emptyMap()
-
-            return config.getObject("ruleSets").mapNotNull { entry ->
+        private fun parseRuleSets(config: Config, defaultRuleSet: RuleSet): Map<String, RuleSet> =
+            config.getObjectOrEmpty("ruleSets").mapNotNull { entry ->
                 (entry.value as? ConfigObject)?.let { obj ->
                     entry.key to parseRuleSet(obj.toConfig(), defaultRuleSet)
                 }
             }.toMap()
-        }
 
         /**
          * Create a [RuleSet] based on the properties in the given [config]. Use the values from the given [default]

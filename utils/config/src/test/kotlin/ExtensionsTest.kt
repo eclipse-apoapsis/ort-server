@@ -20,8 +20,13 @@
 package org.eclipse.apoapsis.ortserver.utils.config
 
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.beEmpty as beEmptyMap
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -87,6 +92,99 @@ class ExtensionsTest : WordSpec({
             val value = config.getInterpolatedStringOrDefault("property", "defaultValue", variables)
 
             value shouldBe "fooValue-barValue"
+        }
+    }
+
+    "getObjectOrDefault" should {
+        "return the properties of a defined object" {
+            val config = ConfigFactory.parseMap(
+                mapOf(
+                    "object" to mapOf("name" to "Ted", "age" to 42)
+                )
+            )
+
+            val result = config.getObjectOrDefault("object") { throw IllegalStateException("Unexpected call.") }
+
+            result.keys shouldHaveSize 2
+            result["name"]?.unwrapped() shouldBe "Ted"
+            result["age"]?.unwrapped() shouldBe 42
+        }
+
+        "return the result of the default function for an undefined object" {
+            val config = ConfigFactory.empty()
+            val defaultMap = mapOf(
+                "name" to ConfigValueFactory.fromAnyRef("Ted"),
+                "age" to ConfigValueFactory.fromAnyRef(42)
+            )
+
+            val result = config.getObjectOrDefault("undefinedObject") { defaultMap }
+
+            result shouldBe defaultMap
+        }
+    }
+
+    "getObjectOrEmpty" should {
+        "return the properties of a defined object" {
+            val config = ConfigFactory.parseMap(
+                mapOf(
+                    "object" to mapOf("name" to "Ted", "age" to 42)
+                )
+            )
+
+            val result = config.getObjectOrEmpty("object")
+
+            result.keys shouldHaveSize 2
+            result["name"]?.unwrapped() shouldBe "Ted"
+            result["age"]?.unwrapped() shouldBe 42
+        }
+
+        "return an empty map for an undefined object" {
+            val config = ConfigFactory.empty()
+
+            val result = config.getObjectOrEmpty("undefinedObject")
+
+            result should beEmptyMap()
+        }
+    }
+
+    "getStringListOrDefault" should {
+        "return a list of strings for a defined property" {
+            val config = ConfigFactory.parseMap(
+                mapOf("list" to listOf("one", "two", "three"))
+            )
+
+            val result = config.getStringListOrDefault("list") { throw IllegalStateException("Unexpected call.") }
+
+            result should containExactly("one", "two", "three")
+        }
+
+        "return the result of the default function for an undefined property" {
+            val defaultList = listOf("defaultOne", "defaultTwo")
+            val config = ConfigFactory.empty()
+
+            val result = config.getStringListOrDefault("undefinedList") { defaultList }
+
+            result shouldBe defaultList
+        }
+    }
+
+    "getStringListOrEmpty" should {
+        "return a list of strings for a defined property" {
+            val config = ConfigFactory.parseMap(
+                mapOf("list" to listOf("one", "two", "three"))
+            )
+
+            val result = config.getStringListOrEmpty("list")
+
+            result should containExactly("one", "two", "three")
+        }
+
+        "return an empty list for an undefined property" {
+            val config = ConfigFactory.empty()
+
+            val result = config.getStringListOrEmpty("undefinedList")
+
+            result should beEmpty()
         }
     }
 })
