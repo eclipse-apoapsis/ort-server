@@ -19,6 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.services.config
 
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
+
+import org.ossreviewtoolkit.model.config.DownloaderConfiguration
+import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
@@ -29,6 +33,9 @@ import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
  * file loaded from the config file provider.
  */
 class AdminConfig(
+    /** The configuration for the Scanner worker. */
+    val scannerConfig: ScannerConfig = DEFAULT_SCANNER_CONFIG,
+
     /** The default rule set. */
     private val defaultRuleSet: RuleSet = DEFAULT_RULE_SET,
 
@@ -37,6 +44,18 @@ class AdminConfig(
 ) {
     companion object {
         /**
+         * A default scanner configuration instance from ORT. This is used to obtain default values for undefined
+         * properties.
+         */
+        private val ortDefaultScannerConfig = ScannerConfiguration()
+
+        /**
+         * A default downloader configuration instance from ORT. This is used to obtain default values for undefined
+         * properties related to the downloader.
+         */
+        private val ortDefaultDownloaderConfig = DownloaderConfiguration()
+
+        /**
          * A default [RuleSet] instance that uses the standard names from ORT for the referenced files.
          */
         val DEFAULT_RULE_SET = RuleSet(
@@ -44,6 +63,16 @@ class AdminConfig(
             licenseClassificationsFile = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
             resolutionsFile = ORT_RESOLUTIONS_FILENAME,
             evaluatorRules = ORT_EVALUATOR_RULES_FILENAME
+        )
+
+        /**
+         * A default [ScannerConfig] instance that is used if the admin configuration does not contain any
+         * scanner-specific settings. All properties are set to empty values or defaults.
+         */
+        val DEFAULT_SCANNER_CONFIG = ScannerConfig(
+            detectedLicenseMappings = ortDefaultScannerConfig.detectedLicenseMapping,
+            ignorePatterns = ortDefaultScannerConfig.ignorePatterns,
+            sourceCodeOrigins = ortDefaultDownloaderConfig.sourceCodeOrigins.map { SourceCodeOrigin.valueOf(it.name) }
         )
 
         /**

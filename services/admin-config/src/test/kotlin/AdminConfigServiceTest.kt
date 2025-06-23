@@ -24,10 +24,13 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 
 import io.mockk.every
 import io.mockk.spyk
@@ -35,7 +38,9 @@ import io.mockk.spyk
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 
+import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
@@ -214,6 +219,67 @@ class AdminConfigServiceTest : WordSpec({
             val adminConfig = service.loadAdminConfig(context, ORGANIZATION_ID)
 
             adminConfig.ruleSetNames shouldContainExactlyInAnyOrder listOf("customRuleSet1", "customRuleSet2")
+        }
+    }
+
+    "scannerConfig" should {
+        "return a default configuration if nothing is configured" {
+            val ortScannerConfig = ScannerConfiguration()
+            val service = createServiceWithConfig("")
+
+            val scannerConfig = service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig
+
+            scannerConfig shouldBeSameInstanceAs AdminConfig.DEFAULT_SCANNER_CONFIG
+            scannerConfig.detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
+            scannerConfig.ignorePatterns shouldBe ortScannerConfig.ignorePatterns
+            scannerConfig.sourceCodeOrigins shouldContainExactly listOf(
+                SourceCodeOrigin.VCS,
+                SourceCodeOrigin.ARTIFACT
+            )
+        }
+
+        "return a configuration with default settings for an empty scanner section" {
+            val config = """
+                    scanner {
+                    }
+                """.trimIndent()
+            val ortScannerConfig = ScannerConfiguration()
+            val service = createServiceWithConfig(config)
+
+            val scannerConfig = service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig
+
+            scannerConfig.detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
+            scannerConfig.ignorePatterns shouldBe ortScannerConfig.ignorePatterns
+            scannerConfig.sourceCodeOrigins shouldContainExactly listOf(
+                SourceCodeOrigin.VCS,
+                SourceCodeOrigin.ARTIFACT
+            )
+        }
+
+        "parse the scanner section from the config file" {
+            val config = """
+                    scanner {
+                      detectedLicenseMappings = {
+                        "detectedLicense1" = "spdxLicense1"
+                        "detectedLicense2" = "spdxLicense2"
+                      }
+                      ignorePatterns = ["ignorePattern1", "ignorePattern2"]
+                      sourceCodeOrigins = ["vcs", "artifact"]
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val scannerConfig = service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig
+
+            scannerConfig.detectedLicenseMappings shouldContainExactly mapOf(
+                "detectedLicense1" to "spdxLicense1",
+                "detectedLicense2" to "spdxLicense2"
+            )
+            scannerConfig.ignorePatterns shouldContainExactly listOf("ignorePattern1", "ignorePattern2")
+            scannerConfig.sourceCodeOrigins shouldContainExactly listOf(
+                SourceCodeOrigin.VCS,
+                SourceCodeOrigin.ARTIFACT
+            )
         }
     }
 })

@@ -27,11 +27,13 @@ group = "org.eclipse.apoapsis.ortserver.services"
 
 dependencies {
     api(projects.config.configSpi)
+    api(projects.model)
 
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
     implementation(libs.slf4j)
+    implementation(libs.ortModel)
     implementation(libs.ortUtils)
 
     testImplementation(libs.kotestRunnerJunit5)
