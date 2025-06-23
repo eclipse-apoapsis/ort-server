@@ -17,9 +17,7 @@
  * License-Filename: LICENSE
  */
 
-// TODO: Remove "CONTEXT_RECEIVERS_DEPRECATED" once context parameters become available, see:
-// https://kotlinlang.org/docs/whatsnew2020.html#phased-replacement-of-context-receivers-with-context-parameters
-@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED", "TooManyFunctions")
+@file:Suppress("TooManyFunctions")
 
 package org.eclipse.apoapsis.ortserver.dao.utils
 
@@ -61,17 +59,18 @@ import org.jetbrains.exposed.sql.TextColumnType
  * Transform the given column to an [EntityID] when creating a DAO object. This can be used for foreign key columns to
  * avoid the need to manually create an [EntityID] object.
  */
-context(EntityClass<*, *>)
+context(entity: EntityClass<*, *>)
 @Suppress("UNCHECKED_CAST")
 fun <T : EntityID<Long>?> Column<T>.transformToEntityId() =
-    transform({ it?.let { EntityID(it, table as IdTable<Long>) } as T }, { it?.value })
+    with(entity) { transform({ it?.let { EntityID(it, table as IdTable<Long>) } as T }, { it?.value }) }
 
 /**
  * Transform the given column [to database precision][toDatabasePrecision] when creating a DAO object.
  */
-context(EntityClass<*, *>)
+context(entity: EntityClass<*, *>)
 @Suppress("UNCHECKED_CAST")
-fun <T : Instant?> Column<T>.transformToDatabasePrecision() = transform({ it?.toDatabasePrecision() as T }, { it })
+fun <T : Instant?> Column<T>.transformToDatabasePrecision() =
+    with(entity) { transform({ it?.toDatabasePrecision() as T }, { it }) }
 
 /**
  * Convert an instance to microsecond precision which is stored in the database. This function should always be used
