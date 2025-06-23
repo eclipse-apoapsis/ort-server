@@ -50,9 +50,9 @@ export const ErrorComponent = ({
         <CardDescription>{`Error: ${error.message}`}</CardDescription>
         {showStackTrace && (
           <CardDescription className='text-xs'>
-            {error.stack
-              ?.split('\n')
-              .map((line, index) => <div key={index}>{line}</div>)}
+            {error.stack?.split('\n').map((line, index) => (
+              <div key={index}>{line}</div>
+            ))}
           </CardDescription>
         )}
       </CardHeader>
