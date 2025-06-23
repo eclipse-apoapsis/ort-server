@@ -62,7 +62,7 @@ import org.jetbrains.exposed.sql.TextColumnType
  * avoid the need to manually create an [EntityID] object.
  */
 context(EntityClass<*, *>)
-@Suppress("DEPRECATION", "UNCHECKED_CAST") // See https://youtrack.jetbrains.com/issue/EXPOSED-483.
+@Suppress("UNCHECKED_CAST")
 fun <T : EntityID<Long>?> Column<T>.transformToEntityId() =
     transform({ it?.let { EntityID(it, table as IdTable<Long>) } as T }, { it?.value })
 
