@@ -22,15 +22,20 @@ package org.eclipse.apoapsis.ortserver.services.config
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigObject
+import com.typesafe.config.ConfigValueFactory
 
 import java.io.InputStreamReader
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.utils.config.getConfigOrEmpty
+import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrEmpty
+import org.eclipse.apoapsis.ortserver.utils.config.getStringListOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.withPath
 
 import org.slf4j.LoggerFactory
 
@@ -57,6 +62,9 @@ class AdminConfigService(
         /** The default path to the Admin configuration file. */
         const val DEFAULT_PATH = "ort-server.conf"
 
+        /** The name of the section containing the scanner-related configuration. */
+        private const val SCANNER_SECTION = "scanner"
+
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
 
         /**
@@ -68,6 +76,7 @@ class AdminConfigService(
             val ruleSets = parseRuleSets(config, defaultRuleSet)
 
             return AdminConfig(
+                scannerConfig = parseScannerConfig(config),
                 defaultRuleSet = defaultRuleSet,
                 ruleSets = ruleSets
             )
@@ -99,6 +108,26 @@ class AdminConfigService(
                 resolutionsFile = config.getStringOrDefault("resolutionsFile", default.resolutionsFile),
                 evaluatorRules = config.getStringOrDefault("evaluatorRules", default.evaluatorRules)
             )
+
+        /**
+         * Parse the properties related to the scanner configuration from the given [config] and return a corresponding
+         * [ScannerConfig] instance.
+         */
+        private fun parseScannerConfig(config: Config): ScannerConfig =
+            config.withPath(SCANNER_SECTION)?.let { c ->
+                val scannerConfig = c.getConfig(SCANNER_SECTION)
+                ScannerConfig(
+                    detectedLicenseMappings = scannerConfig.getObjectOrDefault("detectedLicenseMappings") {
+                        ConfigValueFactory.fromMap(AdminConfig.DEFAULT_SCANNER_CONFIG.detectedLicenseMappings)
+                    }.mapValues { it.value.unwrapped().toString() },
+                    ignorePatterns = scannerConfig.getStringListOrDefault("ignorePatterns") {
+                        AdminConfig.DEFAULT_SCANNER_CONFIG.ignorePatterns
+                    },
+                    sourceCodeOrigins = scannerConfig.getStringListOrDefault("sourceCodeOrigins") {
+                        AdminConfig.DEFAULT_SCANNER_CONFIG.sourceCodeOrigins.map { it.name }
+                    }.map { SourceCodeOrigin.valueOf(it.uppercase()) }
+                )
+            } ?: AdminConfig.DEFAULT_SCANNER_CONFIG
     }
 
     /**
