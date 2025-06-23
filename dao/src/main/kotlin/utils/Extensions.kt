@@ -17,7 +17,8 @@
  * License-Filename: LICENSE
  */
 
-@file:Suppress("TooManyFunctions")
+// TODO: Remove unneeded suppressions once https://github.com/detekt/detekt/issues/8140 is fixed.
+@file:Suppress("SpacingAroundColon", "TooManyFunctions", "UnusedImports", "Wrapping")
 
 package org.eclipse.apoapsis.ortserver.dao.utils
 
