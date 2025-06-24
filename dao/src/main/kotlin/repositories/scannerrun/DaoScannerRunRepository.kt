@@ -25,6 +25,7 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.queries.ortrun.GetIssuesForOrtRunQuery
 import org.eclipse.apoapsis.ortserver.dao.tables.PackageProvenanceDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
@@ -93,8 +94,21 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
             scanners.getOrPut(dao.identifier.mapToModel()) { mutableSetOf() }.add(dao.scannerName)
         }
 
-        scannerRunDao.mapToModel()
-            .copy(provenances = provenanceResolutionResults, scanResults = scanResults, scanners = scanners)
+        val ortRunId = scannerRunDao.scannerJob.ortRun.id.value
+        val scannerIssues = GetIssuesForOrtRunQuery(ortRunId, ScannerRunDao.ISSUE_WORKER_TYPE).execute()
+        val issuesById = mutableMapOf<Identifier, MutableSet<Issue>>()
+        scannerIssues.forEach { issue ->
+            issue.identifier?.also { identifier ->
+                issuesById.getOrPut(identifier) { mutableSetOf() } += issue
+            }
+        }
+
+        scannerRunDao.mapToModel().copy(
+            provenances = provenanceResolutionResults,
+            scanResults = scanResults,
+            issues = issuesById,
+            scanners = scanners
+        )
     }
 
     override fun getByJobId(scannerJobId: Long): ScannerRun? = db.blockingQuery {

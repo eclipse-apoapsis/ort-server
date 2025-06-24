@@ -24,7 +24,6 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldBeIn
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.nulls.beNull
@@ -52,6 +51,7 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -419,6 +419,7 @@ class OrtRunServiceTest : WordSpec({
         "update the run correctly" {
             val identifier1 = Identifier("type-1", "namespace-1", "name-1", "version-1")
             val identifier2 = Identifier("type-2", "namespace-2", "name-2", "version-2")
+            val identifier3 = Identifier("type-3", "namespace-3", "name-3", "version-3")
             val scannerRun = ScannerRun(
                 id = 1L,
                 scannerJobId = fixtures.scannerJob.id,
@@ -445,6 +446,18 @@ class OrtRunServiceTest : WordSpec({
                 scanners = mapOf(
                     identifier1 to setOf("scanner-1"),
                     identifier2 to setOf("scanner-2")
+                ),
+                issues = mapOf(
+                    identifier3 to setOf(
+                        Issue(
+                            timestamp = Clock.System.now().minus(1.minutes).toDatabasePrecision(),
+                            source = "TestScanner",
+                            message = "some error message",
+                            severity = Severity.WARNING,
+                            identifier = identifier3,
+                            worker = ScannerRunDao.ISSUE_WORKER_TYPE
+                        )
+                    )
                 )
             )
 
@@ -455,23 +468,24 @@ class OrtRunServiceTest : WordSpec({
                     message = "some error message",
                     severity = Severity.WARNING,
                     identifier = identifier1,
-                    worker = "scanner"
+                    worker = ScannerRunDao.ISSUE_WORKER_TYPE
                 ),
                 Issue(
                     timestamp = Clock.System.now().minus(50.seconds).toDatabasePrecision(),
                     source = "TestScanner2",
                     message = "another error message",
                     severity = Severity.ERROR,
-                    identifier = identifier2
+                    identifier = identifier2,
+                    worker = ScannerRunDao.ISSUE_WORKER_TYPE
                 )
             )
 
             service.createScannerRun(scannerRun.scannerJobId)
             service.finalizeScannerRun(scannerRun, issues)
 
-            fixtures.scannerRunRepository.getByJobId(fixtures.scannerJob.id) shouldBe scannerRun
-
-            fixtures.ortRunRepository.get(fixtures.scannerJob.ortRunId)?.issues shouldContainExactlyInAnyOrder issues
+            fixtures.scannerRunRepository.getByJobId(fixtures.scannerJob.id) shouldBe scannerRun.copy(
+                issues = scannerRun.issues + issues.associate { it.identifier!! to setOf(it) }
+            )
         }
     }
 
