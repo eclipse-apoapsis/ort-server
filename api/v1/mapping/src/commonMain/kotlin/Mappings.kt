@@ -552,26 +552,20 @@ fun ScannerJob.mapToApiSummary() =
     )
 
 fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
-    detectedLicenseMappings,
-    ignorePatterns,
     projectScanners,
     scanners,
     skipConcluded,
     skipExcluded,
-    sourceCodeOrigins?.map { it.mapToApi() },
     config?.mapValues { it.value.mapToApi() },
     keepAliveWorker,
     submoduleFetchStrategy.mapToApi()
 )
 
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
-    detectedLicenseMappings,
-    ignorePatterns,
     projectScanners,
     scanners,
     skipConcluded,
     skipExcluded,
-    sourceCodeOrigins?.map { it.mapToModel() },
     config?.mapValues { it.value.mapToModel() },
     keepAliveWorker,
     submoduleFetchStrategy.mapToModel()

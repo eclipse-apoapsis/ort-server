@@ -57,7 +57,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy.FULLY_RECURSIVE
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
@@ -122,13 +121,10 @@ internal val fullJobConfigurations = JobConfigurations(
         skipExcluded = true
     ),
     scanner = ScannerJobConfiguration(
-        detectedLicenseMappings = mapOf("LicenseRef-scancode-generic-cla" to "NOASSERTION"),
-        ignorePatterns = listOf("**/META-INF/DEPENDENCIES"),
         projectScanners = listOf("SCANOSS"),
         scanners = listOf("ScanCode"),
         skipConcluded = true,
-        skipExcluded = true,
-        sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
+        skipExcluded = true
     ),
     evaluator = EvaluatorJobConfiguration(
         packageConfigurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
