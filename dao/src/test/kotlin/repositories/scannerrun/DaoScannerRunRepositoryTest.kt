@@ -43,10 +43,12 @@ import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerRun
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
@@ -123,7 +125,8 @@ class DaoScannerRunRepositoryTest : StringSpec({
             scannerRun.endTime!!,
             scannerRun.environment!!,
             scannerRun.config!!,
-            scannerRun.scanners
+            scannerRun.scanners,
+            scannerRun.issues
         )
 
         shouldThrow<IllegalArgumentException> {
@@ -133,7 +136,8 @@ class DaoScannerRunRepositoryTest : StringSpec({
                 scannerRun.endTime!!,
                 scannerRun.environment!!,
                 scannerRun.config!!,
-                scannerRun.scanners
+                scannerRun.scanners,
+                scannerRun.issues
             )
         }
     }
@@ -228,6 +232,47 @@ class DaoScannerRunRepositoryTest : StringSpec({
                 scanResultPkg3.mapToModel()
                     .copy(provenance = RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision))
             )
+        }
+    }
+
+    "update should store and retrieve issues correctly" {
+        val testIssue = Issue(
+            timestamp = Clock.System.now().toDatabasePrecision(),
+            source = "test-scanner",
+            message = "Test issue message",
+            severity = Severity.WARNING,
+            affectedPath = "/path/to/file.kt",
+            identifier = pkg.identifier,
+            worker = "scanner"
+        )
+
+        val issues = mapOf(
+            pkg.identifier to setOf(testIssue)
+        )
+
+        val createdScannerRun = scannerRunRepository.create(scannerJobId)
+
+        scannerRunRepository.update(
+            createdScannerRun.id,
+            scannerRun.startTime!!,
+            scannerRun.endTime!!,
+            scannerRun.environment!!,
+            scannerRun.config!!,
+            scannerRun.scanners,
+            issues
+        )
+
+        val dbEntry = scannerRunRepository.get(createdScannerRun.id)
+
+        dbEntry.shouldNotBeNull()
+        dbEntry.issues shouldBe issues
+        dbEntry.issues[pkg.identifier]?.firstOrNull()?.let { retrievedIssue ->
+            retrievedIssue.source shouldBe testIssue.source
+            retrievedIssue.message shouldBe testIssue.message
+            retrievedIssue.severity shouldBe testIssue.severity
+            retrievedIssue.affectedPath shouldBe testIssue.affectedPath
+            retrievedIssue.identifier shouldBe testIssue.identifier
+            retrievedIssue.worker shouldBe testIssue.worker
         }
     }
 })
@@ -377,7 +422,8 @@ private val scannerRun = ScannerRun(
     config = scannerConfiguration,
     provenances = emptySet(),
     scanResults = emptySet(),
-    scanners = emptyMap()
+    scanners = emptyMap(),
+    issues = emptyMap()
 )
 
 private val project = Project(
