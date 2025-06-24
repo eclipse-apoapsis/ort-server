@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.ScannerConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
@@ -61,7 +62,19 @@ class ConfigValidator private constructor(
          * Constant for the source of an issue that is generated if parameters to trigger a run do not comply with
          * settings in the admin configuration.
          */
-        const val ADMIN_CONFIG_VALIDATION_SOURCE = "PARAMETER_VALIDATION"
+        const val PARAMETER_VALIDATION_SOURCE = "PARAMETER_VALIDATION"
+
+        /**
+         * Constant for the source of an issue that is generated if an error in the admin configuration is detected.
+         * This is a fatal error that can only be fixed by an administrator of the server.
+         */
+        const val ADMIN_CONFIG_VALIDATION_SOURCE = "ADMIN_CONFIG_VALIDATION"
+
+        /**
+         * A hint that is added to error issues generated if fatal errors in the admin configuration are detected.
+         */
+        const val ADMIN_CONFIG_ERROR_HINT = "This is a problem with the configuration of ORT Server. " +
+                "Please contact the administrator."
 
         private val logger = LoggerFactory.getLogger(ConfigValidator::class.java)
 
@@ -79,18 +92,27 @@ class ConfigValidator private constructor(
         private fun createScriptErrorResult(script: String, exception: Throwable): ConfigValidationResult =
             ConfigValidationResultFailure(
                 issues = listOf(
-                    Issue(
-                        Clock.System.now(),
-                        INVALID_SCRIPT_SOURCE,
+                    createIssue(
                         "Error when executing validation script. This is a problem with the configuration " +
                                 "of ORT Server.",
-                        Severity.ERROR
+                        INVALID_SCRIPT_SOURCE
                     )
                 )
             ).also {
                 logger.error("Error when executing validation script.", exception)
                 logger.debug("Content of the script:\n{}", script)
             }
+
+        /**
+         * Create a new [Issue] with the given [message] and [source] and other properties set to default values.
+         */
+        private fun createIssue(message: String, source: String = ADMIN_CONFIG_VALIDATION_SOURCE): Issue =
+            Issue(
+                timestamp = Clock.System.now(),
+                source = source,
+                message = message,
+                severity = Severity.ERROR
+            ).also { logger.error("Error during config validation:\n$it") }
     }
 
     override val compConfig = createJvmCompilationConfigurationFromTemplate<ValidationScriptTemplate>()
@@ -123,7 +145,7 @@ class ConfigValidator private constructor(
      * After the validation script has been run successfully, some checks can now be performed against the resolved
      * job configurations.
      */
-    private fun ConfigValidationResultSuccess.validateAdminConfig(): ConfigValidationResult {
+    private fun ConfigValidationResultSuccess.validateAdminConfig(): ConfigValidationResult = runCatching {
         val adminConfig = adminConfigService.loadAdminConfig(
             context.resolvedConfigurationContext,
             context.ortRun.organizationId
@@ -132,8 +154,16 @@ class ConfigValidator private constructor(
         val validationIssues = mutableListOf<Issue>()
 
         validateRuleSet(adminConfig, resolvedConfigurations.ruleSet, validationIssues)
+        validateScannerConfig(adminConfig.scannerConfig, validationIssues)
 
-        return takeIf { validationIssues.isEmpty() } ?: ConfigValidationResultFailure(issues + validationIssues)
+        takeIf { validationIssues.isEmpty() } ?: ConfigValidationResultFailure(issues + validationIssues)
+    }.getOrElse { exception ->
+        logger.error("Error during admin configuration validation.", exception)
+
+        val issue = createIssue(
+            "Could not load admin configuration: '${exception.message}' $ADMIN_CONFIG_ERROR_HINT"
+        )
+        ConfigValidationResultFailure(issues + issue)
     }
 
     /**
@@ -143,22 +173,17 @@ class ConfigValidator private constructor(
     private fun validateRuleSet(adminConfig: AdminConfig, ruleSetName: String?, validationIssues: MutableList<Issue>) {
         fun validateRuleSetFile(file: String) {
             if (!context.configManager.containsFile(context.resolvedConfigurationContext, Path(file))) {
-                validationIssues += Issue(
-                    Clock.System.now(),
-                    ADMIN_CONFIG_VALIDATION_SOURCE,
-                    "Unresolvable configuration file '$file'.",
-                    Severity.ERROR
+                validationIssues += createIssue(
+                    "Unresolvable configuration file '$file'. $ADMIN_CONFIG_ERROR_HINT"
                 )
             }
         }
 
         if (ruleSetName != null && ruleSetName !in adminConfig.ruleSetNames) {
-            validationIssues += Issue(
-                Clock.System.now(),
-                ADMIN_CONFIG_VALIDATION_SOURCE,
+            validationIssues += createIssue(
                 "Invalid rule set '$ruleSetName'. " +
                         "Available rule sets are: ${adminConfig.ruleSetNames.joinToString(", ")}.",
-                Severity.ERROR
+                PARAMETER_VALIDATION_SOURCE
             )
         } else {
             val ruleSet = adminConfig.getRuleSet(ruleSetName)
@@ -166,6 +191,24 @@ class ConfigValidator private constructor(
             validateRuleSetFile(ruleSet.licenseClassificationsFile)
             validateRuleSetFile(ruleSet.resolutionsFile)
             validateRuleSetFile(ruleSet.evaluatorRules)
+        }
+    }
+
+    /**
+     * Perform validation of the given [scannerConfig]. Add issues that are found to the given [validationIssues].
+     */
+    private fun validateScannerConfig(scannerConfig: ScannerConfig, validationIssues: MutableList<Issue>) {
+        if (scannerConfig.sourceCodeOrigins.isEmpty()) {
+            validationIssues += createIssue(
+                "'sourceCodeOrigins' from scanner configuration must not be empty. $ADMIN_CONFIG_ERROR_HINT"
+            )
+        }
+
+        if (scannerConfig.sourceCodeOrigins.toSet().size != scannerConfig.sourceCodeOrigins.size) {
+            validationIssues += createIssue(
+                "'sourceCodeOrigins' from scanner configuration must not contain duplicates. " +
+                        "Current value is ${scannerConfig.sourceCodeOrigins}. $ADMIN_CONFIG_ERROR_HINT"
+            )
         }
     }
 }
