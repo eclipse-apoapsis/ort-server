@@ -26,7 +26,10 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -40,27 +43,20 @@ import org.jetbrains.exposed.sql.or
 class DaoInfrastructureServiceRepository(private val db: Database) : InfrastructureServiceRepository {
     companion object {
         /**
-         * Return an expression to select an [InfrastructureService] for a specific [organization][organizationId]
+         * Return an expression to select an [InfrastructureService] for a specific hierarchy entity [id]
          * with a given [name].
          */
-        private fun selectByOrganizationAndName(
-            organizationId: Long,
+        private fun selectByIdAndName(
+            id: HierarchyId,
             name: String
         ): ConditionBuilder = {
-            InfrastructureServicesTable.organizationId eq organizationId and
-                    (InfrastructureServicesTable.name eq name)
-        }
-
-        /**
-         * Return an expression to select an [InfrastructureService] for a specific [product][productId] with a given
-         * [name].
-         */
-        private fun selectByProductAndName(
-            productId: Long,
-            name: String
-        ): ConditionBuilder = {
-            InfrastructureServicesTable.productId eq productId and
-                    (InfrastructureServicesTable.name eq name)
+            when (id) {
+                is OrganizationId -> InfrastructureServicesTable.organizationId eq id.value
+                is ProductId -> InfrastructureServicesTable.productId eq id.value
+                else -> error("Unsupported HierarchyId type: $id")
+            }.and {
+                InfrastructureServicesTable.name eq name
+            }
         }
     }
 
@@ -71,8 +67,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         usernameSecret: Secret,
         passwordSecret: Secret,
         credentialsTypes: Set<CredentialsType>,
-        organizationId: Long?,
-        productId: Long?
+        id: HierarchyId
     ): InfrastructureService = db.blockingQuery {
         InfrastructureServicesDao.new {
             this.name = name
@@ -81,25 +76,26 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             this.usernameSecretId = usernameSecret.id
             this.passwordSecretId = passwordSecret.id
             this.credentialsTypes = credentialsTypes
-            this.organizationId = organizationId
-            this.productId = productId
+            this.organizationId = (id as? OrganizationId)?.value
+            this.productId = (id as? ProductId)?.value
         }.mapToModel()
     }
 
-    override fun listForOrganization(
-        organizationId: Long,
+    override fun listForId(
+        id: HierarchyId,
         parameters: ListQueryParameters
     ): ListQueryResult<InfrastructureService> = db.blockingQuery {
         InfrastructureServicesDao.listQuery(parameters, InfrastructureServicesDao::mapToModel) {
-            InfrastructureServicesTable.organizationId eq organizationId
+            (InfrastructureServicesTable.organizationId eq (id as? OrganizationId)?.value) and
+                    (InfrastructureServicesTable.productId eq (id as? ProductId)?.value)
         }
     }
 
-    override fun getByOrganizationAndName(organizationId: Long, name: String): InfrastructureService? =
-        listBlocking(ListQueryParameters.DEFAULT, selectByOrganizationAndName(organizationId, name)).singleOrNull()
+    override fun getByIdAndName(id: HierarchyId, name: String): InfrastructureService? =
+        listBlocking(ListQueryParameters.DEFAULT, selectByIdAndName(id, name)).singleOrNull()
 
-    override fun updateForOrganizationAndName(
-        organizationId: Long,
+    override fun updateForIdAndName(
+        id: HierarchyId,
         name: String,
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
@@ -108,7 +104,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         credentialsTypes: OptionalValue<Set<CredentialsType>>
     ): InfrastructureService =
         update(
-            selectByOrganizationAndName(organizationId, name),
+            selectByIdAndName(id, name),
             url,
             description,
             usernameSecret,
@@ -116,36 +112,8 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             credentialsTypes
         )
 
-    override fun deleteForOrganizationAndName(organizationId: Long, name: String) {
-        delete(selectByOrganizationAndName(organizationId, name))
-    }
-
-    override fun listForProduct(productId: Long, parameters: ListQueryParameters): List<InfrastructureService> =
-        listBlocking(parameters) { InfrastructureServicesTable.productId eq productId }
-
-    override fun getByProductAndName(productId: Long, name: String): InfrastructureService? =
-        listBlocking(ListQueryParameters.DEFAULT, selectByProductAndName(productId, name)).singleOrNull()
-
-    override fun updateForProductAndName(
-        productId: Long,
-        name: String,
-        url: OptionalValue<String>,
-        description: OptionalValue<String?>,
-        usernameSecret: OptionalValue<Secret>,
-        passwordSecret: OptionalValue<Secret>,
-        credentialsTypes: OptionalValue<Set<CredentialsType>>
-    ): InfrastructureService =
-        update(
-            selectByProductAndName(productId, name),
-            url,
-            description,
-            usernameSecret,
-            passwordSecret,
-            credentialsTypes
-        )
-
-    override fun deleteForProductAndName(productId: Long, name: String) {
-        delete(selectByProductAndName(productId, name))
+    override fun deleteForIdAndName(id: HierarchyId, name: String) {
+        delete(selectByIdAndName(id, name))
     }
 
     override fun listForHierarchy(

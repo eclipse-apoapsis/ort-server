@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
@@ -210,6 +211,7 @@ private fun DaoInfrastructureServiceRepository.create(service: InfrastructureSer
         service.usernameSecret,
         service.passwordSecret,
         service.credentialsTypes,
-        service.organization?.id,
-        service.product?.id
+        service.organization?.let { OrganizationId(it.id) }
+            ?: service.product?.let { ProductId(it.id) }
+            ?: error("At least one of organization or product must be set.")
     )

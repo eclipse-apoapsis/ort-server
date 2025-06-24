@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -79,7 +80,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 service shouldBe expectedService
 
                 val organizationServices =
-                    infrastructureServicesRepository.listForOrganization(fixtures.organization.id)
+                    infrastructureServicesRepository.listForId(OrganizationId(fixtures.organization.id))
                 organizationServices.data shouldContainOnly listOf(service)
             }
 
@@ -91,8 +92,10 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 service shouldBe expectedService
 
-                val productServices = infrastructureServicesRepository.listForProduct(fixtures.product.id)
-                productServices shouldContainOnly listOf(service)
+                val productServices = infrastructureServicesRepository.listForId(
+                    ProductId(fixtures.product.id)
+                )
+                productServices.data shouldContainOnly listOf(service)
             }
         }
 
@@ -104,7 +107,9 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 listOf(orgService1, prodService, orgService2).forEach { infrastructureServicesRepository.create(it) }
 
-                val services = infrastructureServicesRepository.listForOrganization(fixtures.organization.id)
+                val services = infrastructureServicesRepository.listForId(
+                    OrganizationId(fixtures.organization.id)
+                )
 
                 services.data shouldContainExactlyInAnyOrder listOf(orgService1, orgService2)
             }
@@ -118,8 +123,10 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 val parameters =
                     ListQueryParameters(sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)), limit = 4)
-                val services =
-                    infrastructureServicesRepository.listForOrganization(fixtures.organization.id, parameters)
+                val services = infrastructureServicesRepository.listForId(
+                    OrganizationId(fixtures.organization.id),
+                    parameters
+                )
 
                 services.data shouldContainExactly expectedServices.take(4)
             }
@@ -134,9 +141,11 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 listOf(prodService1, orgService, prodService2).forEach { infrastructureServicesRepository.create(it) }
 
-                val services = infrastructureServicesRepository.listForProduct(fixtures.product.id)
+                val services = infrastructureServicesRepository.listForId(
+                    ProductId(fixtures.product.id)
+                )
 
-                services shouldContainExactlyInAnyOrder listOf(prodService1, prodService2)
+                services.data shouldContainExactlyInAnyOrder listOf(prodService1, prodService2)
             }
 
             "apply list query parameters" {
@@ -146,11 +155,17 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 expectedServices.shuffled().forEach { infrastructureServicesRepository.create(it) }
 
-                val parameters =
-                    ListQueryParameters(sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)), limit = 4)
-                val services = infrastructureServicesRepository.listForProduct(fixtures.product.id, parameters)
+                val parameters = ListQueryParameters(
+                    sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)),
+                    limit = 4
+                )
 
-                services shouldContainExactly expectedServices.take(4)
+                val services = infrastructureServicesRepository.listForId(
+                    ProductId(fixtures.product.id),
+                    parameters
+                )
+
+                services.data shouldContainExactly expectedServices.take(4)
             }
         }
 
@@ -159,8 +174,10 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 val expectedService = createInfrastructureService(organization = fixtures.organization)
                 infrastructureServicesRepository.create(expectedService)
 
-                val service =
-                    infrastructureServicesRepository.getByOrganizationAndName(fixtures.organization.id, SERVICE_NAME)
+                val service = infrastructureServicesRepository.getByIdAndName(
+                    OrganizationId(fixtures.organization.id),
+                    SERVICE_NAME
+                )
 
                 service shouldBe expectedService
             }
@@ -170,8 +187,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     createInfrastructureService(organization = fixtures.organization)
                 )
 
-                val service = infrastructureServicesRepository.getByOrganizationAndName(
-                    fixtures.organization.id,
+                val service = infrastructureServicesRepository.getByIdAndName(
+                    OrganizationId(fixtures.organization.id),
                     "onExisting"
                 )
 
@@ -184,7 +201,10 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 val expectedService = createInfrastructureService(product = fixtures.product)
                 infrastructureServicesRepository.create(expectedService)
 
-                val service = infrastructureServicesRepository.getByProductAndName(fixtures.product.id, SERVICE_NAME)
+                val service = infrastructureServicesRepository.getByIdAndName(
+                    ProductId(fixtures.product.id),
+                    SERVICE_NAME
+                )
 
                 service shouldBe expectedService
             }
@@ -192,7 +212,10 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
             "return null for a non-existing service" {
                 infrastructureServicesRepository.create(createInfrastructureService(product = fixtures.product))
 
-                val service = infrastructureServicesRepository.getByProductAndName(fixtures.product.id, "onExisting")
+                val service = infrastructureServicesRepository.getByIdAndName(
+                    ProductId(fixtures.product.id),
+                    "onExisting"
+                )
 
                 service should beNull()
             }
@@ -200,9 +223,17 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
         "updateForOrganizationAndName" should {
             "update the properties of a service" {
-                val newUser = secretRepository.create("p3", "newUser", null, OrganizationId(fixtures.organization.id))
+                val newUser = secretRepository.create(
+                    "p3",
+                    "newUser",
+                    null,
+                    OrganizationId(fixtures.organization.id)
+                )
                 val newPassword = secretRepository.create(
-                    "p4", "newPass", null, OrganizationId(fixtures.organization.id)
+                    "p4",
+                    "newPass",
+                    null,
+                    OrganizationId(fixtures.organization.id)
                 )
                 val service = createInfrastructureService(organization = fixtures.organization)
                 val updatedService = createInfrastructureService(
@@ -216,8 +247,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 infrastructureServicesRepository.create(service)
 
-                val result = infrastructureServicesRepository.updateForOrganizationAndName(
-                    fixtures.organization.id,
+                val result = infrastructureServicesRepository.updateForIdAndName(
+                    OrganizationId(fixtures.organization.id),
                     SERVICE_NAME,
                     updatedService.url.asPresent(),
                     updatedService.description.asPresent(),
@@ -228,15 +259,17 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 result shouldBe updatedService
 
-                val dbService =
-                    infrastructureServicesRepository.getByOrganizationAndName(fixtures.organization.id, SERVICE_NAME)
+                val dbService = infrastructureServicesRepository.getByIdAndName(
+                    OrganizationId(fixtures.organization.id),
+                    SERVICE_NAME
+                )
                 dbService shouldBe updatedService
             }
 
             "fail for a non-existing service" {
                 shouldThrow<EntityNotFoundException> {
-                    infrastructureServicesRepository.updateForOrganizationAndName(
-                        42L,
+                    infrastructureServicesRepository.updateForIdAndName(
+                        OrganizationId(42L),
                         SERVICE_NAME,
                         OptionalValue.Absent,
                         OptionalValue.Absent,
@@ -266,8 +299,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 infrastructureServicesRepository.create(service)
 
-                val result = infrastructureServicesRepository.updateForProductAndName(
-                    fixtures.product.id,
+                val result = infrastructureServicesRepository.updateForIdAndName(
+                    ProductId(fixtures.product.id),
                     SERVICE_NAME,
                     updatedService.url.asPresent(),
                     updatedService.description.asPresent(),
@@ -278,14 +311,17 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 result shouldBe updatedService
 
-                val dbService = infrastructureServicesRepository.getByProductAndName(fixtures.product.id, SERVICE_NAME)
+                val dbService = infrastructureServicesRepository.getByIdAndName(
+                    ProductId(fixtures.product.id),
+                    SERVICE_NAME
+                )
                 dbService shouldBe updatedService
             }
 
             "fail for a non-existing service" {
                 shouldThrow<EntityNotFoundException> {
-                    infrastructureServicesRepository.updateForProductAndName(
-                        42L,
+                    infrastructureServicesRepository.updateForIdAndName(
+                        ProductId(42L),
                         SERVICE_NAME,
                         OptionalValue.Absent,
                         OptionalValue.Absent,
@@ -305,9 +341,14 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 infrastructureServicesRepository.create(service1)
                 infrastructureServicesRepository.create(service2)
 
-                infrastructureServicesRepository.deleteForOrganizationAndName(fixtures.organization.id, SERVICE_NAME)
+                infrastructureServicesRepository.deleteForIdAndName(
+                    OrganizationId(fixtures.organization.id),
+                    SERVICE_NAME
+                )
 
-                val orgServices = infrastructureServicesRepository.listForOrganization(fixtures.organization.id)
+                val orgServices = infrastructureServicesRepository.listForId(
+                    OrganizationId(fixtures.organization.id)
+                )
                 orgServices.data shouldContainOnly listOf(service2)
             }
 
@@ -317,8 +358,8 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 )
 
                 shouldThrow<EntityNotFoundException> {
-                    infrastructureServicesRepository.deleteForOrganizationAndName(
-                        fixtures.organization.id,
+                    infrastructureServicesRepository.deleteForIdAndName(
+                        OrganizationId(fixtures.organization.id),
                         "nonExisting"
                     )
                 }
@@ -333,17 +374,24 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 infrastructureServicesRepository.create(service1)
                 infrastructureServicesRepository.create(service2)
 
-                infrastructureServicesRepository.deleteForProductAndName(fixtures.product.id, SERVICE_NAME)
+                infrastructureServicesRepository.deleteForIdAndName(
+                    ProductId(fixtures.product.id), SERVICE_NAME
+                )
 
-                val prodServices = infrastructureServicesRepository.listForProduct(fixtures.product.id)
-                prodServices shouldContainOnly listOf(service2)
+                val prodServices = infrastructureServicesRepository.listForId(
+                    ProductId(fixtures.product.id)
+                )
+                prodServices.data shouldContainOnly listOf(service2)
             }
 
             "fail for a non-existing service" {
                 infrastructureServicesRepository.create(createInfrastructureService(product = fixtures.product))
 
                 shouldThrow<EntityNotFoundException> {
-                    infrastructureServicesRepository.deleteForProductAndName(fixtures.product.id, "nonExisting")
+                    infrastructureServicesRepository.deleteForIdAndName(
+                        ProductId(fixtures.product.id),
+                        "nonExisting"
+                    )
                 }
             }
         }
@@ -415,8 +463,11 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
         "listForSecret" should {
             "return all services using the secret" {
-                val service1 = createInfrastructureService()
-                val service2 = createInfrastructureService(name = "OtherRepositoryService")
+                val service1 = createInfrastructureService(organization = fixtures.organization)
+                val service2 = createInfrastructureService(
+                    organization = fixtures.organization,
+                    name = "OtherRepositoryService"
+                )
 
                 val otherSecret = secretRepository.create(
                     path = "p3",
@@ -427,6 +478,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
                 val service3 = createInfrastructureService(
                     name = "NotIncludedService",
+                    organization = fixtures.organization,
                     usernameSecret = otherSecret,
                     passwordSecret = otherSecret
                 )
@@ -484,6 +536,7 @@ private fun DaoInfrastructureServiceRepository.create(service: InfrastructureSer
         service.usernameSecret,
         service.passwordSecret,
         service.credentialsTypes,
-        service.organization?.id,
-        service.product?.id
+        service.organization?.let { OrganizationId(it.id) }
+            ?: service.product?.let { ProductId(it.id) }
+            ?: error("At least one of organization or product must be set.")
     )
