@@ -21,9 +21,11 @@ package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerFileListStorage
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
+import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.jetbrains.exposed.sql.Database
 
@@ -33,7 +35,6 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.PackageType
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.ScannerRun
-import org.ossreviewtoolkit.model.SourceCodeOrigin
 import org.ossreviewtoolkit.model.VcsType
 import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
@@ -50,7 +51,8 @@ import org.ossreviewtoolkit.scanner.provenance.DefaultProvenanceDownloader
 class ScannerRunner(
     private val db: Database,
     private val fileArchiver: FileArchiver,
-    private val fileListStorage: OrtServerFileListStorage
+    private val fileListStorage: OrtServerFileListStorage,
+    private val adminConfigService: AdminConfigService
 ) {
     companion object {
         /**
@@ -107,19 +109,21 @@ class ScannerRunner(
             nestedProvenanceStorage = nestedProvenanceStorage
         )
 
+        val scannerAdminConfig = adminConfigService.loadAdminConfig(
+            context.resolvedConfigurationContext,
+            context.ortRun.organizationId
+        ).scannerConfig
         val defaultScannerConfig = ScannerConfiguration()
         val scannerConfig = ScannerConfiguration(
             skipConcluded = config.skipConcluded ?: defaultScannerConfig.skipConcluded,
-            detectedLicenseMapping = config.detectedLicenseMappings ?: defaultScannerConfig.detectedLicenseMapping,
-            ignorePatterns = config.ignorePatterns.takeUnless { it.isNullOrEmpty() }
-                ?: defaultScannerConfig.ignorePatterns,
+            detectedLicenseMapping = scannerAdminConfig.detectedLicenseMappings,
+            ignorePatterns = scannerAdminConfig.ignorePatterns,
             scanners = pluginConfigs.mapValues { it.value.mapToOrt() }.takeUnless { it.isEmpty() }
                 ?: defaultScannerConfig.scanners
         )
 
         val downloaderConfig = DownloaderConfiguration(
-            sourceCodeOrigins = config.sourceCodeOrigins?.distinct()?.map { it.mapToOrt() }
-                ?: listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
+            sourceCodeOrigins = scannerAdminConfig.sourceCodeOrigins.map { it.mapToOrt() }
         )
 
         val workingTreeCache = DefaultWorkingTreeCache().addVcsPluginConfigs(vcsPluginConfigs)
