@@ -31,6 +31,7 @@ import io.kotest.matchers.types.shouldBeTypeOf
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 
 import kotlin.math.abs
 
@@ -45,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
@@ -120,7 +122,7 @@ class ConfigValidatorTest : StringSpec({
 
         validationResult.issues shouldHaveSize 2
         val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
-        errorIssue.source shouldBe ConfigValidator.ADMIN_CONFIG_VALIDATION_SOURCE
+        errorIssue.source shouldBe ConfigValidator.PARAMETER_VALIDATION_SOURCE
         errorIssue.message shouldContain "rule set"
         errorIssue.message shouldContain ruleSetName
     }
@@ -149,13 +151,70 @@ class ConfigValidatorTest : StringSpec({
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
         val errorIssues = validationResult.issues.filter { it.severity == Severity.ERROR }
-        errorIssues shouldHaveSize 4
-        errorIssues.map(Issue::message) shouldContainExactlyInAnyOrder listOf(
-            "Unresolvable configuration file '${testRuleSet.copyrightGarbageFile}'.",
-            "Unresolvable configuration file '${testRuleSet.licenseClassificationsFile}'.",
-            "Unresolvable configuration file '${testRuleSet.resolutionsFile}'.",
-            "Unresolvable configuration file '${testRuleSet.evaluatorRules}'."
-        )
+        val expectedErrors = listOf(
+            testRuleSet.copyrightGarbageFile,
+            testRuleSet.licenseClassificationsFile,
+            testRuleSet.resolutionsFile,
+            testRuleSet.evaluatorRules
+        ).map { "Unresolvable configuration file '$it'. ${ConfigValidator.ADMIN_CONFIG_ERROR_HINT}" }
+
+        errorIssues.map(Issue::message) shouldContainExactlyInAnyOrder expectedErrors
+    }
+
+    "Undefined source code origins should be handled" {
+        val invalidScannerConfig = testAdminConfig.scannerConfig.copy(sourceCodeOrigins = emptyList())
+        val invalidAdminConfig = spyk(testAdminConfig) {
+            every { scannerConfig } returns invalidScannerConfig
+        }
+        val adminConfigService = createAdminConfigService(invalidAdminConfig)
+
+        val script = loadScript("validation-success.params.kts")
+        val context = mockContext(mockRun())
+
+        val validator = ConfigValidator.create(context, adminConfigService)
+        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+
+        val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
+        errorIssue.source shouldBe ConfigValidator.ADMIN_CONFIG_VALIDATION_SOURCE
+        errorIssue.message shouldContain "sourceCodeOrigins"
+    }
+
+    "Duplicate entries in source code origins should be handled" {
+        val invalidSourceCodeOrigins = listOf(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
+        val invalidScannerConfig = testAdminConfig.scannerConfig.copy(sourceCodeOrigins = invalidSourceCodeOrigins)
+        val invalidAdminConfig = spyk(testAdminConfig) {
+            every { scannerConfig } returns invalidScannerConfig
+        }
+        val adminConfigService = createAdminConfigService(invalidAdminConfig)
+
+        val script = loadScript("validation-success.params.kts")
+        val context = mockContext(mockRun())
+
+        val validator = ConfigValidator.create(context, adminConfigService)
+        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+
+        val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
+        errorIssue.source shouldBe ConfigValidator.ADMIN_CONFIG_VALIDATION_SOURCE
+        errorIssue.message shouldContain "sourceCodeOrigins"
+    }
+
+    "Exceptions when loading the admin configuration should be handled" {
+        val script = loadScript("validation-success.params.kts")
+        val context = mockContext(mockRun())
+
+        val configException = RuntimeException("Test exception: Could not load admin configuration.")
+        val adminConfigService = mockk<AdminConfigService> {
+            every {
+                loadAdminConfig(any(), any())
+            } throws configException
+        }
+
+        val validator = ConfigValidator.create(context, adminConfigService)
+        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+
+        val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
+        errorIssue.source shouldBe ConfigValidator.ADMIN_CONFIG_VALIDATION_SOURCE
+        errorIssue.message shouldContain configException.message.orEmpty()
     }
 })
 
@@ -181,6 +240,11 @@ private val testRuleSet: RuleSet = RuleSet(
     licenseClassificationsFile = "license.yml",
     resolutionsFile = "resolutions.yml",
     evaluatorRules = "rules.yml"
+)
+
+/** The admin configuration used by default in the test cases. */
+private val testAdminConfig = AdminConfig(
+    ruleSets = mapOf(RULE_SET to testRuleSet)
 )
 
 /**
@@ -235,15 +299,9 @@ private fun mockRun(ruleSetName: String = RULE_SET): OrtRun {
 }
 
 /**
- * Return a mock for an [AdminConfigService] that returns a predefined [AdminConfig].
+ * Return a mock for an [AdminConfigService] that returns the given [adminConfig].
  */
-private fun createAdminConfigService(): AdminConfigService {
-    val adminConfig = mockk<AdminConfig> {
-        every { ruleSetNames } returns setOf(RULE_SET)
-        every { getRuleSet(RULE_SET) } returns testRuleSet
-    }
-
-    return mockk {
+private fun createAdminConfigService(adminConfig: AdminConfig = testAdminConfig): AdminConfigService =
+    mockk {
         every { loadAdminConfig(Context(RESOLVED_CONTEXT), ORGANIZATION_ID) } returns adminConfig
     }
-}
