@@ -147,17 +147,6 @@ data class AdvisorJobConfiguration(
 @Serializable
 data class ScannerJobConfiguration(
     /**
-     * Mappings from licenses returned by the scanner to valid SPDX licenses. Note that these mappings are only applied
-     * in new scans, stored scan results are not affected.
-     */
-    val detectedLicenseMappings: Options? = null,
-
-    /**
-     * A list of glob expressions that match file paths which are to be excluded from scan results.
-     */
-    val ignorePatterns: List<String>? = null,
-
-    /**
      * The list of the names of the scanners to use to scan projects. If this is `null`, projects are scanned with the
      * configured [scanners].
      */
@@ -178,12 +167,6 @@ data class ScannerJobConfiguration(
      * Do not scan excluded projects or packages.
      */
     val skipExcluded: Boolean = false,
-
-    /**
-     * The source code origins to use, ordered by priority. The list must not be empty or contain any duplicates. If
-     * `null`, the default order of [SourceCodeOrigin.ARTIFACT] and [SourceCodeOrigin.VCS] is used.
-     */
-    val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
 
     /**
      * A map of plugin configurations that are specific to a concrete scanner.
