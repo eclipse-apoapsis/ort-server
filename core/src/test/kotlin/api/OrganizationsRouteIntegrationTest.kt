@@ -684,8 +684,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         } else {
                             emptySet()
                         },
-                        orgId,
-                        null
+                        OrganizationId(orgId)
                     )
                 }
 
@@ -727,8 +726,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         userSecret,
                         passSecret,
                         EnumSet.of(CredentialsType.NETRC_FILE),
-                        orgId,
-                        null
+                        OrganizationId(orgId)
                     )
                 }
 
@@ -800,8 +798,10 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody expectedService
 
-                val dbService =
-                    infrastructureServiceRepository.getByOrganizationAndName(orgId, createInfrastructureService.name)
+                val dbService = infrastructureServiceRepository.getByIdAndName(
+                        OrganizationId(orgId),
+                        createInfrastructureService.name
+                    )
                 dbService.shouldNotBeNull()
                 dbService.mapToApi() shouldBe expectedService
             }
@@ -874,8 +874,10 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for CreateInfrastructureService"
 
-                infrastructureServiceRepository.getByOrganizationAndName(orgId, createInfrastructureService.name)
-                    .shouldBeNull()
+                infrastructureServiceRepository.getByIdAndName(
+                    OrganizationId(orgId),
+                    createInfrastructureService.name
+                ).shouldBeNull()
             }
         }
     }
@@ -895,8 +897,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     userSecret,
                     passSecret,
                     emptySet(),
-                    orgId,
-                    null
+                    OrganizationId(orgId)
                 )
 
                 val newUrl = "https://repo2.example.org/test2"
@@ -926,7 +927,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 response shouldHaveBody updatedService
 
                 val dbService =
-                    infrastructureServiceRepository.getByOrganizationAndName(orgId, service.name)
+                    infrastructureServiceRepository.getByIdAndName(OrganizationId(orgId), service.name)
                 dbService.shouldNotBeNull()
                 dbService.mapToApi() shouldBe updatedService
             }
@@ -944,8 +945,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 userSecret,
                 passSecret,
                 emptySet(),
-                organizationId = createdOrg.id,
-                productId = null
+                OrganizationId(createdOrg.id)
             )
 
             requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id)) {
@@ -976,15 +976,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     userSecret,
                     passSecret,
                     emptySet(),
-                    orgId,
-                    null
+                    OrganizationId(orgId)
                 )
 
                 val response =
                     superuserClient.delete("/api/v1/organizations/$orgId/infrastructure-services/${service.name}")
 
                 response shouldHaveStatus HttpStatusCode.NoContent
-                infrastructureServiceRepository.listForOrganization(orgId).data should beEmpty()
+                infrastructureServiceRepository.listForId(OrganizationId(orgId)).data should beEmpty()
             }
         }
 
@@ -1000,8 +999,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 userSecret,
                 passSecret,
                 emptySet(),
-                organizationId = createdOrg.id,
-                productId = null
+                OrganizationId(createdOrg.id)
             )
 
             requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id), HttpStatusCode.NoContent) {
@@ -1027,9 +1025,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         HttpMethod.Put -> put("/api/v1/organizations/${createdOrg.id}/groups/readers") {
                             setBody(user)
                         }
+
                         HttpMethod.Delete -> delete(
                             "/api/v1/organizations/${createdOrg.id}/groups/readers?username=${user.username}"
                         )
+
                         else -> error("Unsupported method: $method")
                     }
                 }
@@ -1051,9 +1051,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         ) {
                             setBody(user)
                         }
+
                         HttpMethod.Delete -> superuserClient.delete(
                             "/api/v1/organizations/${createdOrg.id}/groups/readers?username=${user.username}"
                         )
+
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1079,9 +1081,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         ) {
                             setBody(user)
                         }
+
                         HttpMethod.Delete -> superuserClient.delete(
                             "/api/v1/organizations/999999/groups/readers?username=${user.username}"
                         )
+
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1107,6 +1111,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         ) {
                             setBody(org)
                         }
+
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1130,9 +1135,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         ) {
                             setBody(user)
                         }
+
                         HttpMethod.Delete -> superuserClient.delete(
                             "/api/v1/organizations/${createdOrg.id}/groups/non-existing-group?username=${user.username}"
                         )
+
                         else -> error("Unsupported method: $method")
                     }
 

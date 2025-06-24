@@ -101,8 +101,7 @@ class DeleteSecretByOrganizationIdAndNameIntegrationTest : AbstractIntegrationTe
                     usernameSecret = userSecret,
                     passwordSecret = passSecret,
                     credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE),
-                    organizationId = orgId,
-                    productId = null
+                    OrganizationId(orgId)
                 )
 
                 val response = client.delete("/organizations/$orgId/secrets/${userSecret.name}")

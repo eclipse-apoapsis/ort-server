@@ -81,12 +81,11 @@ class InfrastructureServiceServiceTest : WordSpec({
                         userSecret,
                         passSecret,
                         EnumSet.of(CredentialsType.NETRC_FILE),
-                        ORGANIZATION_ID,
-                        null
+                        ORGANIZATION_ID
                     )
                 } returns infrastructureService
 
-                val createResult = service.createForOrganization(
+                val createResult = service.createForId(
                     ORGANIZATION_ID,
                     SERVICE_NAME,
                     SERVICE_URL,
@@ -104,11 +103,11 @@ class InfrastructureServiceServiceTest : WordSpec({
             testWithHelper(verifyTx = false) {
                 mockOrganizationSecret(USERNAME_SECRET)
                 coEvery {
-                    secretService.getSecretByIdAndName(OrganizationId(ORGANIZATION_ID), PASSWORD_SECRET)
+                    secretService.getSecretByIdAndName(ORGANIZATION_ID, PASSWORD_SECRET)
                 } returns null
 
                 val exception = shouldThrow<InvalidSecretReferenceException> {
-                    service.createForOrganization(
+                    service.createForId(
                         ORGANIZATION_ID,
                         SERVICE_NAME,
                         SERVICE_URL,
@@ -132,7 +131,7 @@ class InfrastructureServiceServiceTest : WordSpec({
 
                 val infrastructureService = mockk<InfrastructureService>()
                 every {
-                    repository.updateForOrganizationAndName(
+                    repository.updateForIdAndName(
                         ORGANIZATION_ID,
                         SERVICE_NAME,
                         any(),
@@ -143,7 +142,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                     )
                 } returns infrastructureService
 
-                val updateResult = service.updateForOrganization(
+                val updateResult = service.updateForId(
                     ORGANIZATION_ID,
                     SERVICE_NAME,
                     SERVICE_URL.asPresent(),
@@ -161,7 +160,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                 val slotPasswordSecret = slot<OptionalValue<Secret>>()
                 val slotCredentialsType = slot<OptionalValue<Set<CredentialsType>>>()
                 verify {
-                    repository.updateForOrganizationAndName(
+                    repository.updateForIdAndName(
                         ORGANIZATION_ID,
                         SERVICE_NAME,
                         capture(slotUrl),
@@ -188,7 +187,7 @@ class InfrastructureServiceServiceTest : WordSpec({
                 coEvery { secretService.getSecretByIdAndName(any(), any()) } returns null
 
                 shouldThrow<InvalidSecretReferenceException> {
-                    service.updateForOrganization(
+                    service.updateForId(
                         ORGANIZATION_ID,
                         SERVICE_NAME,
                         OptionalValue.Absent,
@@ -205,12 +204,12 @@ class InfrastructureServiceServiceTest : WordSpec({
     "deleteForOrganization" should {
         "delete an infrastructure service" {
             testWithHelper {
-                every { repository.deleteForOrganizationAndName(ORGANIZATION_ID, SERVICE_NAME) } just runs
+                every { repository.deleteForIdAndName(ORGANIZATION_ID, SERVICE_NAME) } just runs
 
-                service.deleteForOrganization(ORGANIZATION_ID, SERVICE_NAME)
+                service.deleteForId(ORGANIZATION_ID, SERVICE_NAME)
 
                 verify {
-                    repository.deleteForOrganizationAndName(ORGANIZATION_ID, SERVICE_NAME)
+                    repository.deleteForIdAndName(ORGANIZATION_ID, SERVICE_NAME)
                 }
             }
         }
@@ -223,9 +222,9 @@ class InfrastructureServiceServiceTest : WordSpec({
             val expectedResult = ListQueryResult(services, parameters, services.size.toLong())
 
             testWithHelper {
-                every { repository.listForOrganization(ORGANIZATION_ID, parameters) } returns expectedResult
+                every { repository.listForId(ORGANIZATION_ID, parameters) } returns expectedResult
 
-                val result = service.listForOrganization(ORGANIZATION_ID, parameters)
+                val result = service.listForId(ORGANIZATION_ID, parameters)
 
                 result shouldBe expectedResult
             }
@@ -268,7 +267,7 @@ private class TestHelper(
     fun mockOrganizationSecret(name: String): Secret {
         val secret = mockk<Secret>()
         coEvery {
-            secretService.getSecretByIdAndName(OrganizationId(ORGANIZATION_ID), name)
+            secretService.getSecretByIdAndName(ORGANIZATION_ID, name)
         } returns secret
 
         return secret
@@ -308,7 +307,7 @@ private fun <T> equalsOptionalValues(v1: OptionalValue<T>, v2: OptionalValue<T>)
         else -> false
     }
 
-private const val ORGANIZATION_ID = 1000L
+private val ORGANIZATION_ID = OrganizationId(1000L)
 private const val SERVICE_NAME = "TestInfrastructureService"
 private const val SERVICE_URL = "https://repo.example.org/infra/test"
 private const val SERVICE_DESC = "This is a test infrastructure service"

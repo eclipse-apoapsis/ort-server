@@ -21,8 +21,8 @@ package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -49,11 +49,10 @@ class InfrastructureServiceService(
     private val secretService: SecretService
 ) {
     /**
-     * Create an [InfrastructureService] with the given properties and assign it to the organization with the given
-     * [organizationId].
+     * Create an [InfrastructureService] with the given properties for the hierarchy entity [id].
      */
-    suspend fun createForOrganization(
-        organizationId: Long,
+    suspend fun createForId(
+        id: HierarchyId,
         name: String,
         url: String,
         description: String?,
@@ -61,8 +60,8 @@ class InfrastructureServiceService(
         passwordSecretRef: String,
         credentialsTypes: Set<CredentialsType>
     ): InfrastructureService {
-        val usernameSecret = resolveOrganizationSecret(organizationId, usernameSecretRef)
-        val passwordSecret = resolveOrganizationSecret(organizationId, passwordSecretRef)
+        val usernameSecret = resolveSecret(id, usernameSecretRef)
+        val passwordSecret = resolveSecret(id, passwordSecretRef)
 
         return db.dbQuery {
             infrastructureServiceRepository.create(
@@ -72,18 +71,16 @@ class InfrastructureServiceService(
                 usernameSecret,
                 passwordSecret,
                 credentialsTypes,
-                organizationId,
-                null
+                id
             )
         }
     }
 
     /**
-     * Update the [InfrastructureService] with the given [name] assigned to the organization with the given
-     * [organizationId] based on the provided properties.
+     * Update the [InfrastructureService] with the given [name] and hierarchy entity [id].
      */
-    suspend fun updateForOrganization(
-        organizationId: Long,
+    suspend fun updateForId(
+        id: HierarchyId,
         name: String,
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
@@ -91,12 +88,12 @@ class InfrastructureServiceService(
         passwordSecretRef: OptionalValue<String>,
         credentialsTypes: OptionalValue<Set<CredentialsType>>
     ): InfrastructureService {
-        val usernameSecret = resolveOrganizationSecretOptional(organizationId, usernameSecretRef)
-        val passwordSecret = resolveOrganizationSecretOptional(organizationId, passwordSecretRef)
+        val usernameSecret = resolveSecretOptional(id, usernameSecretRef)
+        val passwordSecret = resolveSecretOptional(id, passwordSecretRef)
 
         return db.dbQuery {
-            infrastructureServiceRepository.updateForOrganizationAndName(
-                organizationId,
+            infrastructureServiceRepository.updateForIdAndName(
+                id,
                 name,
                 url,
                 description,
@@ -108,44 +105,43 @@ class InfrastructureServiceService(
     }
 
     /**
-     * Delete the [InfrastructureService] with the given [name] that is assigned to the organization with the given
-     * [organizationId].
+     * Delete the [InfrastructureService] with the given [name] and hierarchy entity [id].
      */
-    suspend fun deleteForOrganization(organizationId: Long, name: String) {
+    suspend fun deleteForId(id: HierarchyId, name: String) {
         db.dbQuery {
-            infrastructureServiceRepository.deleteForOrganizationAndName(organizationId, name)
+            infrastructureServiceRepository.deleteForIdAndName(id, name)
         }
     }
 
     /**
-     * Return a list with the [InfrastructureService]s assigned to the organization with the given [organizationId]
-     * according to the provided [parameters].
+     * Return a list with [InfrastructureService]s assigned to the hierarchy entity [id], applying the provided
+     * [parameters].
      */
-    suspend fun listForOrganization(
-        organizationId: Long,
+    suspend fun listForId(
+        id: HierarchyId,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<InfrastructureService> = db.dbQuery {
-        infrastructureServiceRepository.listForOrganization(organizationId, parameters)
+        infrastructureServiceRepository.listForId(id, parameters)
     }
 
     /**
-     * Resolve a secret reference for the given [organizationId] and [secretName]. Throw an exception if the
+     * Resolve a secret reference for the given hierarchy entity [id] and [secretName]. Throw an exception if the
      * reference cannot be resolved.
      */
-    private suspend fun resolveOrganizationSecret(organizationId: Long, secretName: String): Secret =
-        secretService.getSecretByIdAndName(OrganizationId(organizationId), secretName)
+    private suspend fun resolveSecret(id: HierarchyId, secretName: String): Secret =
+        secretService.getSecretByIdAndName(id, secretName)
             ?: throw InvalidSecretReferenceException(secretName)
 
     /**
-     * Resolve a secret reference in an [OptionalValue] for the given [organizationId]. Note that this cannot be
+     * Resolve a secret reference in an [OptionalValue] for the given hierarchy entity [id]. Note that this cannot be
      * done through the [OptionalValue.map] function, because the transformation function is not a suspend function.
      */
-    private suspend fun resolveOrganizationSecretOptional(
-        organizationId: Long,
+    private suspend fun resolveSecretOptional(
+        id: HierarchyId,
         secretName: OptionalValue<String>
     ): OptionalValue<Secret> =
         when (secretName) {
-            is OptionalValue.Present -> resolveOrganizationSecret(organizationId, secretName.value).asPresent()
+            is OptionalValue.Present -> resolveSecret(id, secretName.value).asPresent()
             else -> OptionalValue.Absent
         }
 }

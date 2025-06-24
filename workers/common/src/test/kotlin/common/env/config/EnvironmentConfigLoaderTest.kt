@@ -566,8 +566,9 @@ private class TestHelper(
      * services based on the data that has been defined.
      */
     private fun initServiceRepository() {
-        every { serviceRepository.listForProduct(hierarchy.product.id) } returns productServices
-        every { serviceRepository.listForOrganization(hierarchy.organization.id) } returns
+        every { serviceRepository.listForId(ProductId(hierarchy.product.id)) } returns
+                ListQueryResult(productServices, ListQueryParameters.DEFAULT, productServices.size.toLong())
+        every { serviceRepository.listForId(OrganizationId(hierarchy.organization.id)) } returns
                 ListQueryResult(organizationServices, ListQueryParameters.DEFAULT, organizationServices.size.toLong())
     }
 }

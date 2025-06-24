@@ -101,8 +101,7 @@ class DeleteSecretByProductIdAndNameIntegrationTest : AbstractIntegrationTest({
                     usernameSecret = userSecret,
                     passwordSecret = passSecret,
                     credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE),
-                    organizationId = null,
-                    productId = prodId
+                    ProductId(prodId)
                 )
 
                 val response = client.delete("/products/$prodId/secrets/${userSecret.name}")

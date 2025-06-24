@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -32,8 +33,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 @Suppress("TooManyFunctions")
 interface InfrastructureServiceRepository {
     /**
-     * Create a new [InfrastructureService] from the given properties that belongs to either an organization with the
-     * given [organizationId] or a product with the given [productId].
+     * Create a new [InfrastructureService] from the given properties for the hierarchy entity [id].
      */
     fun create(
         name: String,
@@ -42,31 +42,30 @@ interface InfrastructureServiceRepository {
         usernameSecret: Secret,
         passwordSecret: Secret,
         credentialsTypes: Set<CredentialsType>,
-        organizationId: Long?,
-        productId: Long?
+        id: HierarchyId
     ): InfrastructureService
 
     /**
-     * Return a list with the [InfrastructureService]s that belong to the given [organization][organizationId]
-     * according to the given [parameters].
+     * Return a list with the [InfrastructureService]s that belong to the given hierarchy entity [id],
+     * and apply the given [parameters].
      */
-    fun listForOrganization(
-        organizationId: Long,
+    fun listForId(
+        id: HierarchyId,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<InfrastructureService>
 
     /**
      * Return the [InfrastructureService] with the given [name] that is assigned to the given
-     * [organization][organizationId] or *null* if no such service exists.
+     * hierarchy entity [id] or *null* if no such service exists.
      */
-    fun getByOrganizationAndName(organizationId: Long, name: String): InfrastructureService?
+    fun getByIdAndName(id: HierarchyId, name: String): InfrastructureService?
 
     /**
      * Update selected properties of the [InfrastructureService] with the given [name] that is assigned to the given
-     * [organization][organizationId].
+     * hierarchy entity [id].
      */
-    fun updateForOrganizationAndName(
-        organizationId: Long,
+    fun updateForIdAndName(
+        id: HierarchyId,
         name: String,
         url: OptionalValue<String>,
         description: OptionalValue<String?>,
@@ -77,44 +76,9 @@ interface InfrastructureServiceRepository {
 
     /**
      * Delete the [InfrastructureService] with the given [name] that is assigned to the given
-     * [organization][organizationId]. Throw an exception if the service cannot be found.
+     * hierarchy entity [id]. Throw an exception if the service cannot be found.
      */
-    fun deleteForOrganizationAndName(organizationId: Long, name: String)
-
-    /**
-     * Return a list with the [InfrastructureService]s that belong to the given [product][productId]
-     * according to the given [parameters].
-     */
-    fun listForProduct(
-        productId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<InfrastructureService>
-
-    /**
-     * Return the [InfrastructureService] with the given [name] that is assigned to the given
-     * [organization][productId] or *null* if no such service exists.
-     */
-    fun getByProductAndName(productId: Long, name: String): InfrastructureService?
-
-    /**
-     * Update selected properties of the [InfrastructureService] with the given [name] that is assigned to the given
-     * [product][productId].
-     */
-    fun updateForProductAndName(
-        productId: Long,
-        name: String,
-        url: OptionalValue<String>,
-        description: OptionalValue<String?>,
-        usernameSecret: OptionalValue<Secret>,
-        passwordSecret: OptionalValue<Secret>,
-        credentialsTypes: OptionalValue<Set<CredentialsType>> = OptionalValue.Absent,
-    ): InfrastructureService
-
-    /**
-     * Delete the [InfrastructureService] with the given [name] that is assigned to the given [product][productId].
-     * Throw an exception if the service cannot be found.
-     */
-    fun deleteForProductAndName(productId: Long, name: String)
+    fun deleteForIdAndName(id: HierarchyId, name: String)
 
     /**
      * Return a list with [InfrastructureService]s that are associated with the given [organizationId], or

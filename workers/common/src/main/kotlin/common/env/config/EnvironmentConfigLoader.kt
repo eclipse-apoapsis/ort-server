@@ -382,11 +382,13 @@ private class ServiceResolver(
     private val repositoryServices by lazy { configServices.associateByName() }
 
     /** A map with the services defined for the current product. */
-    private val productServices by lazy { serviceRepository.listForProduct(hierarchy.product.id).associateByName() }
+    private val productServices by lazy {
+        serviceRepository.listForId(ProductId(hierarchy.product.id)).data.associateByName()
+    }
 
     /** A map with the services defined for the current organization. */
     private val organizationServices by lazy {
-        serviceRepository.listForOrganization(hierarchy.organization.id).data.associateByName()
+        serviceRepository.listForId(OrganizationId(hierarchy.organization.id)).data.associateByName()
     }
 
     /**

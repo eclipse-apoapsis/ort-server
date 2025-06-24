@@ -63,6 +63,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToOrganizationGroup
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
@@ -198,7 +199,7 @@ fun Route.organizations() = route("organizations") {
                 val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
                 val infrastructureServicesForOrganization =
-                    infrastructureServiceService.listForOrganization(orgId, pagingOptions.mapToModel())
+                    infrastructureServiceService.listForId(OrganizationId(orgId), pagingOptions.mapToModel())
 
                 val pagedResponse = infrastructureServicesForOrganization.mapToApi(InfrastructureService::mapToApi)
 
@@ -211,8 +212,8 @@ fun Route.organizations() = route("organizations") {
                 val organizationId = call.requireIdParameter("organizationId")
                 val createService = call.receive<CreateInfrastructureService>()
 
-                val newService = infrastructureServiceService.createForOrganization(
-                    organizationId,
+                val newService = infrastructureServiceService.createForId(
+                    OrganizationId(organizationId),
                     createService.name,
                     createService.url,
                     createService.description,
@@ -232,8 +233,8 @@ fun Route.organizations() = route("organizations") {
                     val serviceName = call.requireParameter("serviceName")
                     val updateService = call.receive<UpdateInfrastructureService>()
 
-                    val updatedService = infrastructureServiceService.updateForOrganization(
-                        organizationId,
+                    val updatedService = infrastructureServiceService.updateForId(
+                        OrganizationId(organizationId),
                         serviceName,
                         updateService.url.mapToModel(),
                         updateService.description.mapToModel(),
@@ -248,10 +249,10 @@ fun Route.organizations() = route("organizations") {
                 delete(deleteInfrastructureServiceForOrganizationIdAndName) {
                     requirePermission(OrganizationPermission.WRITE)
 
-                    val organizationId = call.requireIdParameter("organizationId")
+                    val orgId = call.requireIdParameter("organizationId")
                     val serviceName = call.requireParameter("serviceName")
 
-                    infrastructureServiceService.deleteForOrganization(organizationId, serviceName)
+                    infrastructureServiceService.deleteForId(OrganizationId(orgId), serviceName)
 
                     call.respond(HttpStatusCode.NoContent)
                 }
