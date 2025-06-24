@@ -33,8 +33,14 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.ScannerConfig
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
@@ -53,7 +59,7 @@ import org.ossreviewtoolkit.utils.spdx.SpdxConstants
 class ScannerRunnerTest : WordSpec({
     afterEach { unmockkAll() }
 
-    val runner = ScannerRunner(mockk(), mockk(), mockk())
+    val runner = ScannerRunner(mockk(), mockk(), mockk(), mockAdminConfigService())
 
     "run" should {
         "return an OrtResult with a valid ScannerRun" {
@@ -72,22 +78,9 @@ class ScannerRunnerTest : WordSpec({
             val factory = mockScannerWrapperFactory("ScanCode")
             mockScannerWrapperAll(listOf(factory))
 
-            val detectedLicenseMapping: Map<String, String> = mapOf(
-                "LicenseRef-scancode-agpl-generic-additional-terms" to SpdxConstants.NOASSERTION,
-                "LicenseRef-scancode-generic-cla" to SpdxConstants.NOASSERTION,
-                "LicenseRef-scancode-generic-exception" to SpdxConstants.NOASSERTION
-            )
-
-            val ignorePatterns: List<String> = listOf(
-                "**/*.spdx.yml",
-                "**/*.spdx.yaml",
-                "**/*.spdx.json"
-            )
-
             val scannerConfig = ScannerJobConfiguration(
                 skipConcluded = true,
-                detectedLicenseMappings = detectedLicenseMapping,
-                ignorePatterns = ignorePatterns
+                submoduleFetchStrategy = SubmoduleFetchStrategy.TOP_LEVEL_ONLY
             )
 
             val result = runner.run(mockContext(), OrtResult.EMPTY, scannerConfig, 0L)
@@ -96,8 +89,8 @@ class ScannerRunnerTest : WordSpec({
 
             result.scannerRun.config shouldBe ScannerConfiguration(
                 skipConcluded = true,
-                detectedLicenseMapping = detectedLicenseMapping,
-                ignorePatterns = ignorePatterns
+                detectedLicenseMapping = testScannerConfig.detectedLicenseMappings,
+                ignorePatterns = testScannerConfig.ignorePatterns
             )
         }
 
@@ -111,7 +104,10 @@ class ScannerRunnerTest : WordSpec({
 
             result.scannerRun shouldNotBe null
 
-            result.scannerRun.config shouldBe ScannerConfiguration()
+            result.scannerRun.config shouldBe ScannerConfiguration(
+                detectedLicenseMapping = testScannerConfig.detectedLicenseMappings,
+                ignorePatterns = testScannerConfig.ignorePatterns
+            )
         }
 
         "create the configured scanners with the correct options and secrets" {
@@ -224,6 +220,27 @@ class ScannerRunnerTest : WordSpec({
     }
 })
 
+/** The scanner configuration returned by the mock admin config service. */
+private val testScannerConfig = ScannerConfig(
+    detectedLicenseMappings = mapOf(
+        "LicenseRef-scancode-agpl-generic-additional-terms" to SpdxConstants.NOASSERTION,
+        "LicenseRef-scancode-generic-cla" to SpdxConstants.NOASSERTION,
+        "LicenseRef-scancode-generic-exception" to SpdxConstants.NOASSERTION
+    ),
+    ignorePatterns = listOf(
+        "**/*.spdx.yml",
+        "**/*.spdx.yaml",
+        "**/*.spdx.json"
+    ),
+    sourceCodeOrigins = listOf(SourceCodeOrigin.VCS)
+)
+
+/** The resolved context reported by the ORT run. */
+private val testResolvedContext = Context("testResolvedContext")
+
+/** The organization ID reported by the ORT run. */
+private const val ORGANIZATION_ID = 17L
+
 private fun mockScannerWrapperFactory(scannerName: String) =
     mockk<ScannerWrapperFactory> {
         every { descriptor.id } returns scannerName
@@ -259,4 +276,16 @@ private fun mockContext(
 ): WorkerContext =
     mockk {
         coEvery { resolvePluginConfigSecrets(jobConfig.config) } returns resolvedPluginConfig
+        every { ortRun.resolvedJobConfigContext } returns testResolvedContext.name
+        every { ortRun.organizationId } returns ORGANIZATION_ID
     }
+
+/**
+ * Create a mock for the [AdminConfigService] that is prepared to return a test admin configuration for the scanner.
+ */
+private fun mockAdminConfigService(): AdminConfigService {
+    val adminConfig = AdminConfig(scannerConfig = testScannerConfig)
+    return mockk {
+        every { loadAdminConfig(testResolvedContext, ORGANIZATION_ID) } returns adminConfig
+    }
+}
