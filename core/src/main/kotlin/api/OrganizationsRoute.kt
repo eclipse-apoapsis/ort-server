@@ -212,6 +212,16 @@ fun Route.organizations() = route("organizations") {
                 val organizationId = call.requireIdParameter("organizationId")
                 val createService = call.receive<CreateInfrastructureService>()
 
+                infrastructureServiceService.getByOrganizationAndName(organizationId, createService.name.trim())
+                    ?.let {
+                        call.respond(
+                            HttpStatusCode.Conflict,
+                            "An infrastructure service with the name '${createService.name}' already exists in " +
+                                "organization $organizationId."
+                        )
+                        return@post
+                    }
+
                 val newService = infrastructureServiceService.createForId(
                     OrganizationId(organizationId),
                     createService.name,
