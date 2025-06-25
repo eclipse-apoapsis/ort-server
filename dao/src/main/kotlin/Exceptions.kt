@@ -33,7 +33,7 @@ enum class PostgresErrorCodes(val value: String) {
     UNIQUE_CONSTRAINT_VIOLATION("23505")
 }
 
-class UniqueConstraintException(msg: String, cause: Throwable) :
+class UniqueConstraintException(msg: String, cause: Throwable? = null) :
     SQLException(msg, cause), CopyableThrowable<UniqueConstraintException> {
     override fun createCopy() = UniqueConstraintException(checkNotNull(message), this)
 }

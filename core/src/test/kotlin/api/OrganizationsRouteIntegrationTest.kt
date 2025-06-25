@@ -880,6 +880,40 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 ).shouldBeNull()
             }
         }
+
+        "respond with 'Conflict' if service with same name and orgId already exists" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val userSecret = createSecret(orgId, path = "user", name = "user")
+                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+
+                val createdInfrastructureService = infrastructureServiceRepository.create(
+                    "testRepository",
+                    "http://repo.example.org/test",
+                    "test repo description",
+                    userSecret,
+                    passSecret,
+                    emptySet(),
+                    OrganizationId(orgId)
+                )
+
+                val createInfrastructureService = CreateInfrastructureService(
+                    createdInfrastructureService.name,
+                    createdInfrastructureService.url,
+                    "test repo description",
+                    userSecret.name,
+                    passSecret.name,
+                    credentialsTypes = emptySet()
+                )
+
+                val response = superuserClient.post("/api/v1/organizations/$orgId/infrastructure-services") {
+                    setBody(createInfrastructureService)
+                }
+
+                response shouldHaveStatus HttpStatusCode.Conflict
+            }
+        }
     }
 
     "PATCH /organizations/{orgId}/infrastructure-services/{name}" should {

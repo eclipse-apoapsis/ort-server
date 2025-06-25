@@ -31,6 +31,7 @@ import io.kotest.matchers.shouldBe
 
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -440,7 +441,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 services shouldContainExactlyInAnyOrder listOf(match1, match2, match3)
             }
 
-            "handle infrastructure services with duplicate URL correctly" {
+            "throw exception for duplicated name for same organization" {
                 val productService = createInfrastructureService(product = fixtures.product)
                 val orgService = createInfrastructureService(organization = fixtures.organization)
                 val orgService2 = createInfrastructureService(
@@ -448,16 +449,11 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                     organization = fixtures.organization
                 )
 
-                listOf(productService, orgService, orgService2).forEach {
-                    infrastructureServicesRepository.create(it)
+                shouldThrow<UniqueConstraintException> {
+                    listOf(productService, orgService, orgService2).forEach {
+                        infrastructureServicesRepository.create(it)
+                    }
                 }
-
-                val services = infrastructureServicesRepository.listForHierarchy(
-                    fixtures.organization.id,
-                    fixtures.product.id
-                )
-
-                services shouldContainExactlyInAnyOrder listOf(productService, orgService2)
             }
         }
 
