@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice
 
 import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
+import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
@@ -69,6 +70,14 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
         credentialsTypes: Set<CredentialsType>,
         id: HierarchyId
     ): InfrastructureService = db.blockingQuery {
+        InfrastructureServicesDao.find(selectByIdAndName(id, name)).let {
+            if (it.count() > 0) {
+                throw UniqueConstraintException(
+                    "An infrastructure service with name '$name' already exists for the given hierarchy entity."
+                )
+            }
+        }
+
         InfrastructureServicesDao.new {
             this.name = name
             this.url = url
