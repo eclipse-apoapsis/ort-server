@@ -282,6 +282,56 @@ class AdminConfigServiceTest : WordSpec({
             )
         }
     }
+
+    "mavenCentralMirror" should {
+        "return null if no mirror is configured" {
+            val service = createServiceWithConfig("")
+
+            service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror shouldBe null
+        }
+
+        "return the configured Maven Central mirror" {
+            val config = """
+                mavenCentralMirror {
+                    id = "testId"
+                    name = "testName"
+                    url = "https://test.url"
+                    mirrorOf = "testMirrorOf"
+                    username = "testUsername"
+                    password = "testPassword"
+                }
+            """.trimIndent()
+
+            val service = createServiceWithConfig(config)
+            val mirror = service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror
+            mirror?.id shouldBe "testId"
+            mirror?.name shouldBe "testName"
+            mirror?.url shouldBe "https://test.url"
+            mirror?.mirrorOf shouldBe "testMirrorOf"
+            mirror?.usernameSecret shouldBe "testUsername"
+            mirror?.passwordSecret shouldBe "testPassword"
+        }
+
+        "return the configured Maven Central mirror without credentials" {
+            val config = """
+                mavenCentralMirror {
+                    id = "testId"
+                    name = "testName"
+                    url = "https://test.url"
+                    mirrorOf = "testMirrorOf"
+                }
+            """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val mirror = service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror
+            mirror?.id shouldBe "testId"
+            mirror?.name shouldBe "testName"
+            mirror?.url shouldBe "https://test.url"
+            mirror?.mirrorOf shouldBe "testMirrorOf"
+            mirror?.usernameSecret shouldBe null
+            mirror?.passwordSecret shouldBe null
+        }
+    }
 })
 
 /** The context used by tests when querying the admin configuration. */

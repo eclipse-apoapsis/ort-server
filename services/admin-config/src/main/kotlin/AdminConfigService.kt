@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrEmpty
 import org.eclipse.apoapsis.ortserver.utils.config.getStringListOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 import org.eclipse.apoapsis.ortserver.utils.config.withPath
 
 import org.slf4j.LoggerFactory
@@ -74,11 +75,13 @@ class AdminConfigService(
             val defaultRuleSetConfig = config.getConfigOrEmpty("defaultRuleSet")
             val defaultRuleSet = parseRuleSet(defaultRuleSetConfig, AdminConfig.DEFAULT_RULE_SET)
             val ruleSets = parseRuleSets(config, defaultRuleSet)
+            val mavenCentralMirror = parseMavenCentralMirror(config)
 
             return AdminConfig(
                 scannerConfig = parseScannerConfig(config),
                 defaultRuleSet = defaultRuleSet,
-                ruleSets = ruleSets
+                ruleSets = ruleSets,
+                mavenCentralMirror = mavenCentralMirror
             )
         }
 
@@ -128,6 +131,21 @@ class AdminConfigService(
                     }.map { SourceCodeOrigin.valueOf(it.uppercase()) }
                 )
             } ?: AdminConfig.DEFAULT_SCANNER_CONFIG
+
+        private fun parseMavenCentralMirror(config: Config): MavenCentralMirror? {
+            if (!config.hasPath("mavenCentralMirror")) return null
+
+            val mirrorConfig = config.getConfig("mavenCentralMirror")
+
+            return MavenCentralMirror(
+                id = mirrorConfig.getString("id"),
+                name = mirrorConfig.getString("name"),
+                url = mirrorConfig.getString("url"),
+                mirrorOf = mirrorConfig.getString("mirrorOf"),
+                usernameSecret = mirrorConfig.getStringOrNull("username"),
+                passwordSecret = mirrorConfig.getStringOrNull("password")
+            )
+        }
     }
 
     /**

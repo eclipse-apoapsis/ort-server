@@ -40,7 +40,11 @@ class AdminConfig(
     private val defaultRuleSet: RuleSet = DEFAULT_RULE_SET,
 
     /** A map containing named rule sets. */
-    private val ruleSets: Map<String, RuleSet> = emptyMap()
+    private val ruleSets: Map<String, RuleSet> = emptyMap(),
+
+    /** The global mirror for Maven Central. */
+    val mavenCentralMirror: MavenCentralMirror? = null,
+
 ) {
     companion object {
         /**
