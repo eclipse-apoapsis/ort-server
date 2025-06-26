@@ -26,6 +26,7 @@ import { z } from 'zod';
 
 import { useRepositoriesServicePostApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { ApiError, RepositoriesService } from '@/api/requests';
+import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { ToastError } from '@/components/toast-error';
 import { InlineCode } from '@/components/typography.tsx';
 import { Accordion } from '@/components/ui/accordion';
@@ -49,6 +50,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/lib/toast';
 import { AdvisorFields } from '../../-components/advisor-fields';
 import { AnalyzerFields } from '../../-components/analyzer-fields';
@@ -473,17 +475,32 @@ const CreateRunPage = () => {
             {isTest && (
               <>
                 <h3 className='mt-4'>Form payload</h3>
-                <Label className='text-muted-foreground'>
+                <Label htmlFor='payload' className='text-muted-foreground'>
                   You can copy this payload to use it when triggering runs via
                   the API or CLI.
                 </Label>
-                <pre className='w-full rounded-lg p-4 text-xs'>
-                  {JSON.stringify(
-                    formValuesToPayload(form.getValues()),
-                    null,
-                    2
-                  )}
-                </pre>
+                <div className='relative w-full'>
+                  <Textarea
+                    id='payload'
+                    className='h-96 pr-12 font-mono'
+                    readOnly
+                  >
+                    {JSON.stringify(
+                      formValuesToPayload(form.getValues()),
+                      null,
+                      2
+                    )}
+                  </Textarea>
+                  <div className='absolute top-2 right-2 z-10'>
+                    <CopyToClipboard
+                      copyText={JSON.stringify(
+                        formValuesToPayload(form.getValues()),
+                        null,
+                        2
+                      )}
+                    />
+                  </div>
+                </div>
               </>
             )}
           </CardFooter>
