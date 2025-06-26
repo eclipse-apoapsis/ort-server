@@ -16,7 +16,7 @@
 # License-Filename: LICENSE
 
 # Commitlint configuration.
-# See: https://github.com/conventional-changelog/commitlint/blob/master/docs/reference-rules.md
+# See: https://github.com/conventional-changelog/commitlint/blob/master/docs/reference/rules.md
 ---
 parserPreset:
   parserOpts:
