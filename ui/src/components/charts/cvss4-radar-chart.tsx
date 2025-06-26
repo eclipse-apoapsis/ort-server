@@ -118,7 +118,9 @@ export const Cvss4RadarChart = ({ cvssScore }: Cvss4RadarChartProps) => {
           >
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator='line' />}
+              content={(props) => (
+                <ChartTooltipContent {...props} indicator='line' />
+              )}
             />
             <PolarAngleAxis
               dataKey='component'

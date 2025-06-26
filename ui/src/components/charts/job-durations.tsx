@@ -255,6 +255,10 @@ export const JobDurations = ({
                 <ChartTooltipContent
                   hideLabel
                   className='w-[180px]'
+                  payload={[]}
+                  coordinate={{ x: 0, y: 0 }}
+                  active={false}
+                  accessibilityLayer={false}
                   formatter={(value, name, item, index) => {
                     return (
                       <>
@@ -276,27 +280,27 @@ export const JobDurations = ({
                           </div>
                         </div>
                         {index === item.payload.finishedJobs - 1 && (
-                          <div className='flex w-full items-center justify-between'>
-                            <div className='flex items-center gap-1'>
-                              <Sigma className='text-muted-foreground -ml-0.5 size-4 shrink-0' />
-                              <div>Total</div>
+                          <div className='flex w-full flex-col items-center justify-between'>
+                            <div className='flex w-full items-center justify-between'>
+                              <div className='flex items-center gap-1'>
+                                <Sigma className='text-muted-foreground -ml-0.5 size-4 shrink-0' />
+                                <div>Total</div>
+                              </div>
+                              <div className='text-muted-foreground mt-0.5 flex flex-col font-mono text-xs'>
+                                <RunDuration
+                                  createdAt={item.payload.createdAt}
+                                  finishedAt={item.payload.finishedAt}
+                                />
+                              </div>
                             </div>
-                            <div className='text-muted-foreground mt-0.5 font-mono text-xs'>
-                              <RunDuration
-                                createdAt={item.payload.createdAt}
-                                finishedAt={item.payload.finishedAt}
-                              />
+                            <div className='text-muted-foreground mt-0.5 text-xs'>
+                              Click bar to go to run
                             </div>
                           </div>
                         )}
                       </>
                     );
                   }}
-                  footer={
-                    <div className='text-muted-foreground text-xs'>
-                      Click bar to go to run
-                    </div>
-                  }
                 />
               }
             />
