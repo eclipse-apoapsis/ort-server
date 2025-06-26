@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob
@@ -58,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy.FULLY_RECURSIVE
+import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
@@ -524,6 +526,157 @@ val deleteOrtRunByIndex: RouteConfig.() -> Unit = {
 
         HttpStatusCode.NotFound to {
             description = "The ORT run does not exist."
+        }
+    }
+}
+
+val getInfrastructureServicesByRepositoryId: RouteConfig.() -> Unit = {
+    operationId = "GetInfrastructureServicesByRepositoryId"
+    summary = "List all infrastructure services of a repository"
+    tags = listOf("Repositories")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The ID of an repository."
+        }
+        standardListQueryParameters()
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<PagedResponse<InfrastructureService>> {
+                example("List all infrastructure services for a repository") {
+                    value = PagedResponse(
+                        listOf(
+                            InfrastructureService(
+                                name = "Artifactory",
+                                url = "https://artifactory.example.org/releases",
+                                description = "Artifactory repository",
+                                usernameSecretRef = "artifactoryUsername",
+                                passwordSecretRef = "artifactoryPassword"
+                            ),
+                            InfrastructureService(
+                                name = "GitHub",
+                                url = "https://github.com",
+                                description = "GitHub server",
+                                usernameSecretRef = "gitHubUsername",
+                                passwordSecretRef = "gitHubPassword"
+                            )
+                        ),
+                        PagingData(
+                            limit = 20,
+                            offset = 0,
+                            totalCount = 2,
+                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+val postInfrastructureServiceForRepository: RouteConfig.() -> Unit = {
+    operationId = "PostInfrastructureServiceForRepository"
+    summary = "Create an infrastructure service for a repository"
+    tags = listOf("Repositories")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+        jsonBody<CreateInfrastructureService> {
+            example("Create infrastructure service") {
+                value = CreateInfrastructureService(
+                    name = "Artifactory",
+                    url = "https://artifactory.example.org/releases",
+                    description = "Artifactory repository",
+                    usernameSecretRef = "artifactoryUsername",
+                    passwordSecretRef = "artifactoryPassword"
+                )
+            }
+        }
+    }
+
+    response {
+        HttpStatusCode.Created to {
+            description = "Success"
+            jsonBody<InfrastructureService> {
+                example("Create infrastructure service") {
+                    value = InfrastructureService(
+                        name = "Artifactory",
+                        url = "https://artifactory.example.org/releases",
+                        description = "Artifactory repository",
+                        usernameSecretRef = "artifactoryUsername",
+                        passwordSecretRef = "artifactoryPassword"
+                    )
+                }
+            }
+        }
+    }
+}
+
+val patchInfrastructureServiceForRepositoryIdAndName: RouteConfig.() -> Unit = {
+    operationId = "PatchInfrastructureServiceForRepositoryIdAndName"
+    summary = "Update an infrastructure service for a repository"
+    tags = listOf("Repositories")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+        pathParameter<String>("serviceName") {
+            description = "The name of the infrastructure service."
+        }
+        jsonBody<UpdateInfrastructureService> {
+            example("Update infrastructure service") {
+                value = UpdateInfrastructureService(
+                    url = "https://github.com".asPresent(),
+                    description = "Updated description".asPresent(),
+                    usernameSecretRef = "newGitHubUser".asPresent(),
+                    passwordSecretRef = "newGitHubPassword".asPresent()
+                )
+            }
+            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<InfrastructureService> {
+                example("Update infrastructure service") {
+                    value = InfrastructureService(
+                        name = "GitHub",
+                        url = "https://github.com",
+                        description = "Updated description",
+                        usernameSecretRef = "newGitHubUser",
+                        passwordSecretRef = "newGitHubPassword"
+                    )
+                }
+            }
+        }
+    }
+}
+
+val deleteInfrastructureServiceForRepositoryIdAndName: RouteConfig.() -> Unit = {
+    operationId = "DeleteInfrastructureServiceForRepositoryIdAndName"
+    summary = "Delete an infrastructure service from a repository"
+    tags = listOf("Repositories")
+
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
+        }
+        pathParameter<String>("serviceName") {
+            description = "The name of the infrastructure service."
+        }
+    }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Success"
         }
     }
 }

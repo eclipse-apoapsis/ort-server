@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -53,7 +54,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             when (id) {
                 is OrganizationId -> InfrastructureServicesTable.organizationId eq id.value
                 is ProductId -> InfrastructureServicesTable.productId eq id.value
-                else -> error("Unsupported HierarchyId type: $id")
+                is RepositoryId -> InfrastructureServicesTable.repositoryId eq id.value
             }.and {
                 InfrastructureServicesTable.name eq name
             }
@@ -78,6 +79,7 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
             this.credentialsTypes = credentialsTypes
             this.organizationId = (id as? OrganizationId)?.value
             this.productId = (id as? ProductId)?.value
+            this.repositoryId = (id as? RepositoryId)?.value
         }.mapToModel()
     }
 
@@ -87,7 +89,8 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
     ): ListQueryResult<InfrastructureService> = db.blockingQuery {
         InfrastructureServicesDao.listQuery(parameters, InfrastructureServicesDao::mapToModel) {
             (InfrastructureServicesTable.organizationId eq (id as? OrganizationId)?.value) and
-                    (InfrastructureServicesTable.productId eq (id as? ProductId)?.value)
+                    (InfrastructureServicesTable.productId eq (id as? ProductId)?.value) and
+                    (InfrastructureServicesTable.repositoryId eq (id as? RepositoryId)?.value)
         }
     }
 
@@ -117,16 +120,22 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
     }
 
     override fun listForHierarchy(
-        organizationId: Long,
-        productId: Long
+        organizationId: OrganizationId,
+        productId: ProductId,
+        repositoryId: RepositoryId
     ): List<InfrastructureService> = db.blockingQuery {
         list(ListQueryParameters.DEFAULT) {
-            InfrastructureServicesTable.productId eq productId or
-                    (InfrastructureServicesTable.organizationId eq organizationId)
+            (InfrastructureServicesTable.productId eq productId.value) or
+                    (InfrastructureServicesTable.organizationId eq organizationId.value) or
+                    (InfrastructureServicesTable.repositoryId eq repositoryId.value)
         }.groupBy(InfrastructureService::url)
             .flatMap { (_, services) ->
                 // For duplicates, prefer services defined for products over those for organizations
-                services.takeIf { it.size < 2 } ?: services.filter { it.product != null }
+                listOfNotNull(
+                    services.find { it.repository?.id == repositoryId.value }
+                        ?: services.find { it.product?.id == productId.value }
+                        ?: services.find { it.organization?.id == organizationId.value }
+                )
             }
     }
 

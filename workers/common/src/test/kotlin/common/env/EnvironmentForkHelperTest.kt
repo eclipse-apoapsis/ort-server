@@ -211,7 +211,8 @@ private fun createService(
         passwordSecret = passwordSecret,
         credentialsTypes = credentialsTypes,
         organization = null,
-        product = null
+        product = null,
+        repository = null
     )
 
 /**

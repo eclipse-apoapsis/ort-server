@@ -25,6 +25,8 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.organization.Organization
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
@@ -51,6 +53,7 @@ object InfrastructureServicesTable : SortableTable("infrastructure_services") {
 
     val organizationId = reference("organization_id", OrganizationsTable).nullable()
     val productId = reference("product_id", ProductsTable).nullable()
+    val repositoryId = reference("repository_id", RepositoriesTable).nullable()
 }
 
 class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
@@ -119,6 +122,8 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
     var organization by OrganizationDao optionalReferencedOn InfrastructureServicesTable.organizationId
     var productId by InfrastructureServicesTable.productId.transformToEntityId()
     var product by ProductDao optionalReferencedOn InfrastructureServicesTable.productId
+    var repositoryId by InfrastructureServicesTable.repositoryId.transformToEntityId()
+    var repository by RepositoryDao optionalReferencedOn InfrastructureServicesTable.repositoryId
 
     fun mapToModel() = InfrastructureService(
         name,
@@ -128,6 +133,7 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
         passwordSecret.mapToModel(),
         organization?.mapToModel(),
         product?.mapToModel(),
+        repository?.mapToModel(),
         credentialsTypes
     )
 }

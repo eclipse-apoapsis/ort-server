@@ -495,7 +495,8 @@ class WorkerContextFactoryTest : WordSpec({
                 usernameSecret = secUser1,
                 passwordSecret = secPass1,
                 organization = null,
-                product = null
+                product = null,
+                repository = null
             )
             val service2 = InfrastructureService(
                 name = "service2",
@@ -503,7 +504,8 @@ class WorkerContextFactoryTest : WordSpec({
                 usernameSecret = secUser2,
                 passwordSecret = secPass2,
                 organization = null,
-                product = null
+                product = null,
+                repository = null
             )
             val listener = mockk<AuthenticationListener>()
 
@@ -561,7 +563,8 @@ class WorkerContextFactoryTest : WordSpec({
                 usernameSecret = secUser,
                 passwordSecret = secPass,
                 organization = null,
-                product = null
+                product = null,
+                repository = null
             )
             context.setupAuthentication(listOf(service), mockk())
 
@@ -594,7 +597,8 @@ class WorkerContextFactoryTest : WordSpec({
                 usernameSecret = secUser,
                 passwordSecret = secPass,
                 organization = null,
-                product = null
+                product = null,
+                repository = null
             )
             context.setupAuthentication(listOf(service), mockk())
 
