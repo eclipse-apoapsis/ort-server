@@ -37,10 +37,12 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.slf4j.LoggerFactory
 
@@ -70,7 +72,10 @@ class EnvironmentService(
     private val generators: Collection<EnvironmentConfigGenerator<*>>,
 
     /** The helper object for loading the environment configuration file. */
-    private val configLoader: EnvironmentConfigLoader
+    private val configLoader: EnvironmentConfigLoader,
+
+    /** The admin configuration service to access global settings. */
+    private val adminConfigService: AdminConfigService
 ) {
 
     /**
@@ -152,13 +157,21 @@ class EnvironmentService(
         context: WorkerContext,
         definitions: Collection<EnvironmentServiceDefinition>
     ) {
+        val adminConfig = adminConfigService.loadAdminConfig(
+            context.resolvedConfigurationContext,
+            context.ortRun.organizationId
+        )
         val services = definitions.map(EnvironmentServiceDefinition::service)
         val netRcManager = NetRcManager.create(context.credentialResolverFun)
         context.setupAuthentication(services, netRcManager)
 
         withContext(Dispatchers.IO) {
             generators.map { generator ->
-                val builder = ConfigFileBuilder(context.credentialResolverFun)
+                val builder = ConfigFileBuilder(
+                    adminConfig,
+                    context.credentialResolverFun,
+                    context.configManager::getSecret
+                )
                 async { generator.generateApplicable(builder, definitions) }
             }.awaitAll()
         }

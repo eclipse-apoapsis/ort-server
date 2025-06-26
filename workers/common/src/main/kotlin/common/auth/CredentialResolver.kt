@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.auth
 
+import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Secret
 
 /**
@@ -30,10 +31,25 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 internal typealias CredentialResolverFun = (Secret) -> String
 
 /**
+ * Definition of a function that can resolve the value of an infrastructure-level secret from a given [Path].
+ * The function takes a [Path] as input and returns its value or throws an [IllegalArgumentException] if the secret
+ * cannot be resolved.
+ */
+internal typealias InfraSecretResolverFun = (Path) -> String
+
+/**
  * A constant for a [CredentialResolverFun] that always fails with an [IllegalArgumentException]. This can be used
  * if no authentication information is available yet.
  */
 internal val undefinedCredentialResolver: CredentialResolverFun = {
+    throw IllegalArgumentException("Secret '${it.path}' cannot be resolved.")
+}
+
+/**
+ * A constant for an [InfraSecretResolverFun] that always fails with an [IllegalArgumentException]. This can be used
+ * if no authentication information is available yet.
+ */
+internal val undefinedInfraSecretResolver: InfraSecretResolverFun = {
     throw IllegalArgumentException("Secret '${it.path}' cannot be resolved.")
 }
 

@@ -39,6 +39,7 @@ import io.mockk.unmockkAll
 import java.io.File
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
@@ -57,6 +58,8 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -70,6 +73,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SimpleVariab
 
 import org.ossreviewtoolkit.utils.ort.createOrtTempDir
 
+@Suppress("LargeClass")
 class EnvironmentServiceTest : WordSpec({
     afterEach {
         unmockkAll()
@@ -89,6 +93,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val environmentService = EnvironmentService(
                 repository,
+                mockk(),
                 mockk(),
                 mockk(),
                 mockk(),
@@ -120,7 +125,8 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 mockk(),
                 mockk(),
-                configLoader
+                configLoader,
+                mockk()
             )
             val result = environmentService.findInfrastructureServicesForRepository(mockContext(), config)
 
@@ -151,7 +157,8 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 mockk(),
                 mockk(),
-                configLoader
+                configLoader,
+                mockk()
             )
             val result = environmentService.findInfrastructureServicesForRepository(mockContext(), config)
 
@@ -181,7 +188,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 listOf(generator1, generator2),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
 
             val configResult = environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
@@ -215,7 +223,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 emptyList(),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
             val configResult = environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
@@ -242,7 +251,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 emptyList(),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
             environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
@@ -254,7 +264,9 @@ class EnvironmentServiceTest : WordSpec({
 
             val ortRunWithEnvironment = mockk<OrtRun> {
                 every { id } returns RUN_ID
+                every { organizationId } returns ORGANIZATION_ID
                 every { environmentConfigPath } returns envConfigFileName
+                every { resolvedJobConfigContext } returns RESOLVED_JOB_CONFIG_CONTEXT
             }
             val context = mockk<WorkerContext> {
                 every { hierarchy } returns repositoryHierarchy
@@ -279,7 +291,8 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 mockk(),
                 emptyList(),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
             val config = environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
@@ -306,7 +319,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 emptyList(),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
             environmentService.setUpEnvironment(context, repositoryFolder, null, listOf(repositoryService))
 
@@ -337,7 +351,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 emptyList(),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
             environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
@@ -374,7 +389,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 emptyList(),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
             environmentService.setUpEnvironment(context, repositoryFolder, null, emptyList())
 
@@ -409,7 +425,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 emptyList(),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
             environmentService.setUpEnvironment(context, repositoryFolder, null, listOf(repositoryService))
 
@@ -440,7 +457,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 listOf(generator1, generator2),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
 
             val configResult = environmentService.setUpEnvironment(context, repositoryFolder, envConfig, emptyList())
@@ -470,7 +488,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 listOf(generator),
-                configLoader
+                configLoader,
+                createMockAdminConfigService()
             )
             environmentService.setUpEnvironment(context, repositoryFolder, envConfig, emptyList())
 
@@ -485,6 +504,7 @@ class EnvironmentServiceTest : WordSpec({
             val resolverFun = mockk<CredentialResolverFun>()
             val context = mockk<WorkerContext> {
                 every { credentialResolverFun } returns resolverFun
+                every { ortRun } returns currentOrtRun
                 coEvery { setupAuthentication(any(), any()) } just runs
             }
 
@@ -505,7 +525,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 mockk(),
                 emptyList(),
-                mockk()
+                mockk(),
+                createMockAdminConfigService()
             )
             environmentService.setupAuthentication(context, services)
 
@@ -557,7 +578,8 @@ class EnvironmentServiceTest : WordSpec({
                 dynamicServiceRepository,
                 secretRepository,
                 emptyList(),
-                mockk()
+                mockk(),
+                createMockAdminConfigService()
             )
             environmentService.setupAuthenticationForCurrentRun(context)
 
@@ -660,6 +682,7 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 secretRepository,
                 emptyList(),
+                mockk(),
                 mockk()
             )
 
@@ -686,6 +709,7 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 secretRepository,
                 emptyList(),
+                mockk(),
                 mockk()
             )
 
@@ -713,6 +737,7 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 secretRepository,
                 emptyList(),
+                mockk(),
                 mockk()
             )
 
@@ -740,6 +765,7 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 secretRepository,
                 emptyList(),
+                mockk(),
                 mockk()
             )
 
@@ -787,6 +813,7 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 secretRepository,
                 emptyList(),
+                mockk(),
                 mockk()
             )
 
@@ -802,6 +829,7 @@ private const val ORGANIZATION_ID = 20230607115501L
 private const val PRODUCT_ID = 20230607115528L
 private const val REPOSITORY_ID = 20230613071811L
 private const val RUN_ID = 20230622095805L
+private const val RESOLVED_JOB_CONFIG_CONTEXT = "12345678"
 
 /** A [Hierarchy] object for the test repository. */
 private val repositoryHierarchy = Hierarchy(
@@ -817,10 +845,14 @@ private val currentOrtRun = mockk<OrtRun> {
     every { organizationId } returns ORGANIZATION_ID
     every { productId } returns PRODUCT_ID
     every { repositoryId } returns REPOSITORY_ID
+    every { resolvedJobConfigContext } returns RESOLVED_JOB_CONFIG_CONTEXT
 }
 
 /** A file representing the checkout folder of the current repository. */
 private val repositoryFolder = File("repositoryCheckoutLocation")
+
+/** A default [AdminConfig] object used in tests. */
+val adminConfig = AdminConfig()
 
 /**
  * Create an InfrastructureServiceDeclaration with the given [name] and [credentialsTypes].
@@ -846,6 +878,7 @@ private fun mockContext(): WorkerContext =
         every { hierarchy } returns repositoryHierarchy
         every { ortRun } returns currentOrtRun
         every { credentialResolverFun } returns mockk()
+        every { configManager } returns mockk()
         coEvery { setupAuthentication(any(), any()) } just runs
     }
 
@@ -901,6 +934,13 @@ private fun mockConfigLoader(
 }
 
 /**
+ * Create a mock [AdminConfigService] that is prepared to return the [adminConfig] when loading the admin config.
+ */
+private fun createMockAdminConfigService(): AdminConfigService = mockk<AdminConfigService> {
+    every { loadAdminConfig(Context(RESOLVED_JOB_CONFIG_CONTEXT), ORGANIZATION_ID) } returns adminConfig
+}
+
+/**
  * Verify that this [EnvironmentConfigGenerator] has been invoked correctly with the given [context]. Optionally,
  * check the definitions passed to the generator. Return the arguments passed to the
  * [EnvironmentConfigGenerator.generateApplicable] function as a [Pair] for further checks.
@@ -917,6 +957,7 @@ private fun <T : EnvironmentServiceDefinition> EnvironmentConfigGenerator<T>.ver
     }
 
     slotBuilder.captured.resolverFun shouldBe context.credentialResolverFun
+    slotBuilder.captured.adminConfig shouldBe adminConfig
 
     if (expectedDefinitions != null) {
         slotDefinitions.captured shouldBe expectedDefinitions
