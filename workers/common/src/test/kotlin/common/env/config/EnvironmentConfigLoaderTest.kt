@@ -598,6 +598,7 @@ private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret
         passwordSecret = passSecret,
         organization = null,
         product = null,
+        repository = null,
         credentialsTypes = setOf(CredentialsType.entries[index % 2])
     )
 

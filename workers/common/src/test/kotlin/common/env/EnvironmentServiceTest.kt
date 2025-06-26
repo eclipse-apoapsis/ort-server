@@ -88,7 +88,13 @@ class EnvironmentServiceTest : WordSpec({
             )
 
             val repository = mockk<InfrastructureServiceRepository> {
-                every { listForHierarchy(ORGANIZATION_ID, PRODUCT_ID) } returns services
+                every {
+                    listForHierarchy(
+                        OrganizationId(ORGANIZATION_ID),
+                        ProductId(PRODUCT_ID),
+                        RepositoryId(REPOSITORY_ID)
+                    )
+                } returns services
             }
 
             val environmentService = EnvironmentService(
@@ -117,7 +123,13 @@ class EnvironmentServiceTest : WordSpec({
             }
 
             val repository = mockk<InfrastructureServiceRepository> {
-                every { listForHierarchy(ORGANIZATION_ID, PRODUCT_ID) } returns emptyList()
+                every {
+                    listForHierarchy(
+                        OrganizationId(ORGANIZATION_ID),
+                        ProductId(PRODUCT_ID),
+                        RepositoryId(REPOSITORY_ID)
+                    )
+                } returns emptyList()
             }
 
             val environmentService = EnvironmentService(
@@ -141,7 +153,11 @@ class EnvironmentServiceTest : WordSpec({
 
             val repository = mockk<InfrastructureServiceRepository> {
                 every {
-                    listForHierarchy(ORGANIZATION_ID, PRODUCT_ID)
+                    listForHierarchy(
+                        OrganizationId(ORGANIZATION_ID),
+                        ProductId(PRODUCT_ID),
+                        RepositoryId(REPOSITORY_ID)
+                    )
                 } returns listOf(hierarchyService, overriddenService)
             }
 
@@ -370,7 +386,8 @@ class EnvironmentServiceTest : WordSpec({
                     every { name } returns "some-password-secret-name"
                 },
                 organization = null,
-                product = null
+                product = null,
+                repository = null
             )
             val definition = EnvironmentServiceDefinition(
                 service,

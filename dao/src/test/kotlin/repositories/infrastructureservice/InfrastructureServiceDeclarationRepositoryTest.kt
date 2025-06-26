@@ -38,6 +38,8 @@ import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.validation.ValidationException
 
@@ -165,6 +167,7 @@ class InfrastructureServiceDeclarationRepositoryTest : WordSpec() {
         passwordSecret: Secret = this.passwordSecret,
         organization: Organization? = null,
         product: Product? = null,
+        repository: Repository? = null,
         credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE),
     ): InfrastructureService =
         InfrastructureService(
@@ -175,6 +178,7 @@ class InfrastructureServiceDeclarationRepositoryTest : WordSpec() {
             passwordSecret,
             organization,
             product,
+            repository,
             credentialsTypes
         )
 
@@ -213,5 +217,6 @@ private fun DaoInfrastructureServiceRepository.create(service: InfrastructureSer
         service.credentialsTypes,
         service.organization?.let { OrganizationId(it.id) }
             ?: service.product?.let { ProductId(it.id) }
-            ?: error("At least one of organization or product must be set.")
+            ?: service.repository?.let { RepositoryId(it.id) }
+            ?: error("At least one of organization, product or repository must be set.")
     )
