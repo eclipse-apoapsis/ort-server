@@ -27,6 +27,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -280,6 +281,91 @@ class AdminConfigServiceTest : WordSpec({
                 SourceCodeOrigin.VCS,
                 SourceCodeOrigin.ARTIFACT
             )
+        }
+    }
+
+    "notifierConfig" should {
+        "return a default configuration if nothing is configured" {
+            val service = createServiceWithConfig("")
+
+            val notifierConfig = service.loadAdminConfig(context, ORGANIZATION_ID).notifierConfig
+
+            notifierConfig shouldBeSameInstanceAs AdminConfig.DEFAULT_NOTIFIER_CONFIG
+        }
+
+        "return a configuration with default settings for an empty notifier section" {
+            val config = """
+                    notifier {
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val notifierConfig = service.loadAdminConfig(context, ORGANIZATION_ID).notifierConfig
+
+            notifierConfig shouldBe AdminConfig.DEFAULT_NOTIFIER_CONFIG
+        }
+
+        "parse the notifier section from the config file" {
+            val config = """
+                    notifier {
+                      notifierRules = "testNotifierRules"
+                      mail {
+                        host = "smtp.example.com"
+                        port = 785
+                        username = "mailUser"
+                        password = "mailPassword"
+                        fromAddress = "notifier@ort-server.example.com"
+                        ssl = false
+                      }
+                      jira {
+                        url = "https://jira.example.com"
+                        username = "jiraUser"
+                        password = "jiraPassword"
+                      }
+                      disableMailNotifications = true
+                      disableJiraNotifications = true
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val notifierConfig = service.loadAdminConfig(context, ORGANIZATION_ID).notifierConfig
+
+            notifierConfig.mail.shouldNotBeNull {
+                hostName shouldBe "smtp.example.com"
+                port shouldBe 785
+                username shouldBe "mailUser"
+                password shouldBe "mailPassword"
+                useSsl shouldBe false
+                fromAddress shouldBe "notifier@ort-server.example.com"
+            }
+
+            notifierConfig.jira.shouldNotBeNull {
+                serverUrl shouldBe "https://jira.example.com"
+                username shouldBe "jiraUser"
+                password shouldBe "jiraPassword"
+            }
+        }
+
+        "use default values for unspecified mail server properties" {
+            val config = """
+                    notifier {
+                      mail {
+                        fromAddress = "notifier@ort-server.example.com"
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val notifierConfig = service.loadAdminConfig(context, ORGANIZATION_ID).notifierConfig
+
+            notifierConfig.mail.shouldNotBeNull {
+                hostName shouldBe "localhost"
+                port shouldBe 587
+                username shouldBe ""
+                password shouldBe ""
+                useSsl shouldBe true
+                fromAddress shouldBe "notifier@ort-server.example.com"
+            }
         }
     }
 

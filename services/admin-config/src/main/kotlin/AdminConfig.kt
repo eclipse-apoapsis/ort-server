@@ -36,6 +36,9 @@ class AdminConfig(
     /** The configuration for the Scanner worker. */
     val scannerConfig: ScannerConfig = DEFAULT_SCANNER_CONFIG,
 
+    /** The configuration for the Notifier worker. */
+    val notifierConfig: NotifierConfig = DEFAULT_NOTIFIER_CONFIG,
+
     /** The default rule set. */
     private val defaultRuleSet: RuleSet = DEFAULT_RULE_SET,
 
@@ -77,6 +80,18 @@ class AdminConfig(
             detectedLicenseMappings = ortDefaultScannerConfig.detectedLicenseMapping,
             ignorePatterns = ortDefaultScannerConfig.ignorePatterns,
             sourceCodeOrigins = ortDefaultDownloaderConfig.sourceCodeOrigins.map { SourceCodeOrigin.valueOf(it.name) }
+        )
+
+        /**
+         * A default [NotifierConfig] instance that is used if the admin configuration does not contain any
+         * notifier-specific settings. When this instance is applied, no notifications are sent.
+         */
+        val DEFAULT_NOTIFIER_CONFIG = NotifierConfig(
+            notifierRules = "run.notifications.kts",
+            mail = null,
+            jira = null,
+            disableMailNotifications = false,
+            disableJiraNotifications = false
         )
 
         /**
