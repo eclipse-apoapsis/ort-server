@@ -524,6 +524,7 @@ private fun createService(
         passwordSecret = password ?: createSecret("unknown-password"),
         organization = null,
         product = null,
+        repository = null,
         credentialsTypes = credentialsTypes
     )
 

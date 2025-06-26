@@ -77,6 +77,7 @@ class MockConfigFileBuilder {
                 passwordSecret = passwordSecret,
                 organization = null,
                 product = null,
+                repository = null,
                 credentialsTypes = credentialsTypes
             )
 

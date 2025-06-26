@@ -55,6 +55,9 @@ data class InfrastructureService(
     /** The [Product] this infrastructure service belongs to if any. */
     val product: Product?,
 
+    /** The [Repository] this infrastructure service belongs to if any. */
+    val repository: Repository?,
+
     /**
      * The set of [CredentialsType]s for this infrastructure service. This determines in which configuration files the
      * credentials of the service are listed when generating the runtime environment for a worker. All services
