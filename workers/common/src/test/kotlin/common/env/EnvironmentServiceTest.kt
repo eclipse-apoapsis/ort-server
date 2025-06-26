@@ -88,13 +88,11 @@ class EnvironmentServiceTest : WordSpec({
             )
 
             val repository = mockk<InfrastructureServiceRepository> {
-                every {
-                    listForHierarchy(
-                        OrganizationId(ORGANIZATION_ID),
-                        ProductId(PRODUCT_ID),
-                        RepositoryId(REPOSITORY_ID)
-                    )
-                } returns services
+                every { listForHierarchy(any<Hierarchy>()) } returns services
+            }
+
+            val workerConext = mockk<WorkerContext> {
+                every { hierarchy } returns repositoryHierarchy
             }
 
             val environmentService = EnvironmentService(
@@ -105,7 +103,7 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 mockk()
             )
-            val result = environmentService.findInfrastructureServicesForRepository(mockContext(), null)
+            val result = environmentService.findInfrastructureServicesForRepository(workerConext, null)
 
             result shouldContainExactlyInAnyOrder services
         }
@@ -123,13 +121,7 @@ class EnvironmentServiceTest : WordSpec({
             }
 
             val repository = mockk<InfrastructureServiceRepository> {
-                every {
-                    listForHierarchy(
-                        OrganizationId(ORGANIZATION_ID),
-                        ProductId(PRODUCT_ID),
-                        RepositoryId(REPOSITORY_ID)
-                    )
-                } returns emptyList()
+                every { listForHierarchy(repositoryHierarchy) } returns emptyList()
             }
 
             val environmentService = EnvironmentService(
@@ -152,13 +144,7 @@ class EnvironmentServiceTest : WordSpec({
             val overrideService = createInfrastructureService()
 
             val repository = mockk<InfrastructureServiceRepository> {
-                every {
-                    listForHierarchy(
-                        OrganizationId(ORGANIZATION_ID),
-                        ProductId(PRODUCT_ID),
-                        RepositoryId(REPOSITORY_ID)
-                    )
-                } returns listOf(hierarchyService, overriddenService)
+                every { listForHierarchy(repositoryHierarchy) } returns listOf(hierarchyService, overriddenService)
             }
 
             val config = mockk<EnvironmentConfig>()
