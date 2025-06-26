@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -129,21 +130,19 @@ class DaoInfrastructureServiceRepository(private val db: Database) : Infrastruct
     }
 
     override fun listForHierarchy(
-        organizationId: OrganizationId,
-        productId: ProductId,
-        repositoryId: RepositoryId
+        hierarchy: Hierarchy
     ): List<InfrastructureService> = db.blockingQuery {
         list(ListQueryParameters.DEFAULT) {
-            (InfrastructureServicesTable.productId eq productId.value) or
-                    (InfrastructureServicesTable.organizationId eq organizationId.value) or
-                    (InfrastructureServicesTable.repositoryId eq repositoryId.value)
+            (InfrastructureServicesTable.repositoryId eq hierarchy.repository.id) or
+                    (InfrastructureServicesTable.productId eq hierarchy.product.id) or
+                    (InfrastructureServicesTable.organizationId eq hierarchy.organization.id)
         }.groupBy(InfrastructureService::url)
             .flatMap { (_, services) ->
                 // For duplicates, prefer services defined for products over those for organizations
                 listOfNotNull(
-                    services.find { it.repository?.id == repositoryId.value }
-                        ?: services.find { it.product?.id == productId.value }
-                        ?: services.find { it.organization?.id == organizationId.value }
+                    services.find { it.repository?.id == hierarchy.repository.id }
+                        ?: services.find { it.product?.id == hierarchy.product.id }
+                        ?: services.find { it.organization?.id == hierarchy.organization.id }
                 )
             }
     }
