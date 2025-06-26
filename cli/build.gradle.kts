@@ -76,7 +76,7 @@ kotlin {
 
         jvmMain {
             dependencies {
-                implementation(libs.ortCommonUtils)
+                implementation(ortLibs.utils.common)
             }
         }
 

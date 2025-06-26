@@ -34,8 +34,8 @@ dependencies {
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
-    implementation(libs.ortUtils)
     implementation(libs.s3)
+    implementation(ortLibs.utils.ort)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)

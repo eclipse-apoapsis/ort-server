@@ -100,15 +100,15 @@ dependencies {
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.requestValidation)
     implementation(ktorLibs.server.statusPages)
+    implementation(libs.bundles.schemaKenerator)
     implementation(libs.jsonSchemaSerialization)
     implementation(libs.koinKtor)
     implementation(libs.konform)
     implementation(libs.ktorOpenApi)
     implementation(libs.ktorSwaggerUi)
     implementation(libs.micrometerRegistryGraphite)
-    implementation(libs.ortCommonUtils)
-    implementation(libs.ortUtils)
-    implementation(libs.bundles.schemaKenerator)
+    implementation(ortLibs.utils.common)
+    implementation(ortLibs.utils.ort)
 
     runtimeOnly(projects.config.secretFile)
     runtimeOnly(platform(projects.logaccess))
@@ -117,12 +117,12 @@ dependencies {
     runtimeOnly(platform(projects.transport))
 
     // Dependencies on ORT plugins are required to provide information about them via the API.
-    runtimeOnly(platform(libs.ortAdvisors))
-    runtimeOnly(platform(libs.ortPackageConfigurationProviders))
-    runtimeOnly(platform(libs.ortPackageCurationProviders))
-    runtimeOnly(platform(libs.ortPackageManagers))
-    runtimeOnly(platform(libs.ortReporters))
-    runtimeOnly(platform(libs.ortScanners))
+    runtimeOnly(platform(ortLibs.ortPlugins.advisors))
+    runtimeOnly(platform(ortLibs.ortPlugins.packageConfigurationProviders))
+    runtimeOnly(platform(ortLibs.ortPlugins.packageCurationProviders))
+    runtimeOnly(platform(ortLibs.ortPlugins.packageManagers))
+    runtimeOnly(platform(ortLibs.ortPlugins.reporters))
+    runtimeOnly(platform(ortLibs.ortPlugins.scanners))
 
     runtimeOnly(libs.logback)
 
@@ -142,7 +142,7 @@ dependencies {
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
-    testImplementation(libs.ortCommonUtils)
+    testImplementation(ortLibs.utils.common)
 }
 
 jib {

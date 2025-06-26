@@ -53,8 +53,8 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common")
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host")
-    implementation(libs.ortScriptingUtils)
     implementation(libs.typesafeConfig)
+    implementation(ortLibs.utils.scripting)
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))

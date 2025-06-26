@@ -28,10 +28,10 @@ group = "org.eclipse.apoapsis.ortserver.config"
 dependencies {
     api(libs.typesafeConfig)
 
-    implementation(libs.ortCommonUtils)
-    implementation(libs.ortDownloader)
-    implementation(libs.ortVersionControlSystemGit)
     implementation(libs.slf4j)
+    implementation(ortLibs.downloader)
+    implementation(ortLibs.ortPlugins.versionControlSystems.git)
+    implementation(ortLibs.utils.common)
     implementation(projects.config.configSpi)
     implementation(projects.utils.config)
 

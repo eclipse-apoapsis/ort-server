@@ -26,8 +26,8 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.shared"
 
 dependencies {
-    api(libs.ortModel)
-    api(libs.ortPluginApi)
+    api(ortLibs.model)
+    api(ortLibs.ortPlugins.api)
 
     implementation(libs.kotlinxDatetime)
 }

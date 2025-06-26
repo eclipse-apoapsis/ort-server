@@ -125,5 +125,9 @@ dependencyResolutionManagement {
         create("ktorLibs") {
             from("io.ktor:ktor-version-catalog:3.2.0")
         }
+
+        create("ortLibs") {
+            from("org.ossreviewtoolkit:version-catalog:61.3.0")
+        }
     }
 }

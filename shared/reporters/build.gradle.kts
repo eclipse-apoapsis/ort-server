@@ -29,13 +29,13 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.shared"
 
 dependencies {
-    api(libs.ortDownloader)
-    api(libs.ortReporter)
+    api(ortLibs.downloader)
+    api(ortLibs.reporter)
 
     implementation(libs.slf4j)
 
-    ksp(libs.ortPluginCompiler)
-    ksp(libs.ortReporter)
+    ksp(ortLibs.ortPlugins.compiler)
+    ksp(ortLibs.reporter)
 
     testImplementation(projects.shared.ortTestData)
 

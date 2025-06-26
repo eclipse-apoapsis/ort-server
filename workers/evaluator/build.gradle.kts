@@ -51,10 +51,10 @@ dependencies {
     implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
-    implementation(libs.ortConfigUtils)
-    implementation(libs.ortEvaluator)
-    implementation(platform(libs.ortPackageConfigurationProviders))
     implementation(libs.typesafeConfig)
+    implementation(ortLibs.utils.config)
+    implementation(ortLibs.evaluator)
+    implementation(platform(ortLibs.ortPlugins.packageConfigurationProviders))
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.storage))
