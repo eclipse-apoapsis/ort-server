@@ -53,11 +53,11 @@ dependencies {
     implementation(projects.workers.common)
 
     implementation(libs.kotlinxSerializationJson)
-    implementation(libs.ortScanner)
     implementation(libs.typesafeConfig)
+    implementation(ortLibs.scanner)
 
-    implementation(platform(libs.ortScanners))
-    implementation(platform(libs.ortVersionControlSystems))
+    implementation(platform(ortLibs.ortPlugins.scanners))
+    implementation(platform(ortLibs.ortPlugins.versionControlSystems))
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))

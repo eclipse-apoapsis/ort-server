@@ -49,9 +49,9 @@ dependencies {
     implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
-    implementation(libs.ortAdvisor)
     implementation(libs.typesafeConfig)
-    implementation(platform(libs.ortAdvisors))
+    implementation(ortLibs.advisor)
+    implementation(platform(ortLibs.ortPlugins.advisors))
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.storage))

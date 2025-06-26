@@ -38,8 +38,8 @@ dependencies {
     implementation(projects.utils.config)
 
     implementation(libs.kotlinxCoroutines)
-    implementation(libs.ortCommonUtils)
     implementation(libs.slf4j)
+    implementation(ortLibs.utils.common)
 
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestContainer)

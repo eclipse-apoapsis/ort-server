@@ -54,10 +54,10 @@ dependencies {
 
     api(libs.jacksonModuleKotlin)
     api(libs.koinCore)
-    api(libs.ortDownloader)
-    api(libs.ortModel)
-    api(libs.ortPluginApi)
-    api(libs.ortScanner)
+    api(ortLibs.downloader)
+    api(ortLibs.model)
+    api(ortLibs.ortPlugins.api)
+    api(ortLibs.scanner)
     api(libs.typesafeConfig)
 
     testImplementation(projects.shared.ortTestData)

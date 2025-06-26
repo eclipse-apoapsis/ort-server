@@ -33,8 +33,8 @@ dependencies {
     implementation(projects.utils.logging)
 
     implementation(libs.slf4j)
-    implementation(libs.ortModel)
-    implementation(libs.ortUtils)
+    implementation(ortLibs.model)
+    implementation(ortLibs.utils.ort)
 
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)

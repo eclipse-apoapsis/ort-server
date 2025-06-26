@@ -52,12 +52,12 @@ dependencies {
     implementation(projects.utils.logging)
     implementation(projects.workers.common)
 
-    implementation(platform(libs.ortPackageConfigurationProviders))
-    implementation(platform(libs.ortVersionControlSystems))
-    implementation(libs.ortConfigUtils)
-    implementation(libs.ortDownloader)
-    implementation(libs.ortReporter)
     implementation(libs.typesafeConfig)
+    implementation(ortLibs.downloader)
+    implementation(ortLibs.reporter)
+    implementation(ortLibs.utils.config)
+    implementation(platform(ortLibs.ortPlugins.packageConfigurationProviders))
+    implementation(platform(ortLibs.ortPlugins.versionControlSystems))
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))
@@ -66,7 +66,7 @@ dependencies {
 
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
-    runtimeOnly(platform(libs.ortReporters))
+    runtimeOnly(platform(ortLibs.ortPlugins.reporters))
 
     testImplementation(projects.shared.ortTestData)
 

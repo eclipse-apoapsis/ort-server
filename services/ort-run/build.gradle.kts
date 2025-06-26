@@ -31,8 +31,8 @@ dependencies {
     api(projects.services.hierarchyService)
     api(projects.services.reportStorageService)
 
-    api(libs.ortModel)
-    api(libs.ortScanner)
+    api(ortLibs.model)
+    api(ortLibs.scanner)
 
     implementation(projects.utils.logging)
 
