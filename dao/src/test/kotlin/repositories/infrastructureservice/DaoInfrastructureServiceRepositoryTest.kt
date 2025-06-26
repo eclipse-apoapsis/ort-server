@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepositor
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -607,9 +608,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 }
 
                 val services = infrastructureServicesRepository.listForHierarchy(
-                    OrganizationId(fixtures.organization.id),
-                    ProductId(fixtures.product.id),
-                    RepositoryId(fixtures.repository.id)
+                    Hierarchy(fixtures.repository, fixtures.product, fixtures.organization)
                 )
 
                 services shouldContainExactlyInAnyOrder listOf(match1, match2, match3, match4)
@@ -628,9 +627,11 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 }
 
                 val services = infrastructureServicesRepository.listForHierarchy(
-                    OrganizationId(fixtures.organization.id),
-                    ProductId(fixtures.product.id),
-                    RepositoryId(fixtures.repository.id)
+                    Hierarchy(
+                        fixtures.repository,
+                        fixtures.product,
+                        fixtures.organization
+                    )
                 )
 
                 services shouldContainExactlyInAnyOrder listOf(productService, orgService2)
@@ -649,9 +650,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 }
 
                 val services = infrastructureServicesRepository.listForHierarchy(
-                    OrganizationId(fixtures.organization.id),
-                    ProductId(fixtures.product.id),
-                    RepositoryId(fixtures.repository.id)
+                    Hierarchy(fixtures.repository, fixtures.product, fixtures.organization)
                 )
 
                 services shouldContainExactlyInAnyOrder listOf(repositoryService, orgService2)
@@ -670,9 +669,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
                 }
 
                 val services = infrastructureServicesRepository.listForHierarchy(
-                    OrganizationId(fixtures.organization.id),
-                    ProductId(fixtures.product.id),
-                    RepositoryId(fixtures.repository.id)
+                    Hierarchy(fixtures.repository, fixtures.product, fixtures.organization)
                 )
 
                 services shouldContainExactlyInAnyOrder listOf(repositoryService, productService2)
