@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import java.io.PrintWriter
 
+import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettingsFromSystemProperties
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 
@@ -86,7 +87,35 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
                 )
             }
 
+            builder.adminConfig.mavenCentralMirror?.let { mirror ->
+                mirror.usernameSecret?.let { username ->
+                    mirror.passwordSecret?.let { password ->
+                        println("<server>".prependIndent(INDENT_8_SPACES))
+                        printTag("id", mirror.id)
+                        printTag("username", builder.infraSecretResolverFun(Path(username)))
+                        printTag("password", builder.infraSecretResolverFun(Path(password)))
+                        println("</server>".prependIndent(INDENT_8_SPACES))
+
+                        GeneratorLogger.entryAdded(
+                            "server '${mirror.id}': username/password",
+                            TARGET_NAME
+                        )
+                    }
+                }
+            }
+
             println("</servers>".prependIndent(INDENT_4_SPACES))
+
+            builder.adminConfig.mavenCentralMirror?.let { mirror ->
+                println("<mirrors>".prependIndent(INDENT_4_SPACES))
+                println("<mirror>".prependIndent(INDENT_8_SPACES))
+                printTag("id", mirror.id)
+                printTag("name", mirror.name)
+                printTag("url", mirror.url)
+                printTag("mirrorOf", mirror.mirrorOf)
+                println("</mirror>".prependIndent(INDENT_8_SPACES))
+                println("</mirrors>".prependIndent(INDENT_4_SPACES))
+            }
 
             // Having the choice to get the proxy settings either from environment variables like HTTP_PROXY or
             // from Java system like http.proxyHost, prefer the latter, because everything is already
