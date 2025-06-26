@@ -58,6 +58,7 @@ fun buildEnvironmentModule(): Module = module {
                 NuGetGenerator(),
                 YarnRcGenerator()
             ),
+            get(),
             get()
         )
     }

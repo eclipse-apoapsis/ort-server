@@ -45,6 +45,7 @@ import java.util.Properties
 
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.dao.test.verifyDatabaseModuleIncluded
@@ -66,6 +67,8 @@ import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDe
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
@@ -317,12 +320,17 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                 every { getOrCreateForRun(any(), any()) } answers { firstArg() }
             }
 
+            declareMock<AdminConfigService> {
+                every { loadAdminConfig(any(), any()) } returns AdminConfig.DEFAULT
+            }
+
             val secretsMap = mapOf(
                 usernameSecret to USERNAME,
                 passwordSecret to PASSWORD
             )
             val context = mockk<WorkerContext> {
                 coEvery { resolveSecrets(*anyVararg()) } returns secretsMap
+                every { configManager } returns mockk<ConfigManager>()
                 every { credentialResolverFun } returns(secretsMap::getValue)
                 every { hierarchy } returns testHierarchy
                 every { ortRun } returns OrtRun(

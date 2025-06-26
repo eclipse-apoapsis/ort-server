@@ -88,6 +88,7 @@ dependencies {
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
 
+    testImplementation(projects.services.adminConfigService)
     testImplementation(projects.shared.ortTestData)
 
     testImplementation(testFixtures(projects.config.configSpi))

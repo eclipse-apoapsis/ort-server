@@ -34,7 +34,9 @@ import java.util.EnumSet
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
+import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 
 /**
  * A helper class for testing concrete environment generator classes and the configuration files they produce.
@@ -101,6 +103,15 @@ class MockConfigFileBuilder {
 
     /** The mock for the [CredentialResolverFun] used by the mock [ConfigFileBuilder]. */
     val resolverFun = mockk<CredentialResolverFun>()
+
+    /** The mock for the [InfraSecretResolverFun] used by the mock [ConfigFileBuilder]. */
+    val infraSecretResolverFun = mockk<InfraSecretResolverFun>()
+
+    /** The mock for the [AdminConfig] used by the mock [ConfigFileBuilder]. */
+    val adminConfig = mockk<AdminConfig> {
+        every { getRuleSet(null) } returns AdminConfig.DEFAULT_RULE_SET
+        every { mavenCentralMirror } returns null
+    }
 
     /** A list of the files that have been generated via this mock builder's [ConfigFileBuilder.build] function. */
     val targetFiles: List<File>
@@ -183,6 +194,8 @@ class MockConfigFileBuilder {
             }
 
             every { resolverFun } returns this@MockConfigFileBuilder.resolverFun
+            every { infraSecretResolverFun } returns this@MockConfigFileBuilder.infraSecretResolverFun
+            every { adminConfig } returns this@MockConfigFileBuilder.adminConfig
         }
 
     /**

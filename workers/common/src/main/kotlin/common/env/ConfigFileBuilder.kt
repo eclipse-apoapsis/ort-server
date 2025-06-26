@@ -28,7 +28,9 @@ import java.nio.charset.StandardCharsets
 import kotlin.random.Random
 
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
+import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.resolveCredentials
 
 import org.slf4j.LoggerFactory
@@ -54,8 +56,17 @@ typealias SecretEncodingFun = (String) -> String
  *   kept in memory before it is written to disk.
  */
 class ConfigFileBuilder(
+    /**
+     * The global settings configured by the system administrator, that need to be accessible during the generation
+     * of configuration files.
+     */
+    val adminConfig: AdminConfig,
+
     /** The function to resolve secrets for the credentials of environment services. */
-    val resolverFun: CredentialResolverFun
+    val resolverFun: CredentialResolverFun,
+
+    /** The function to resolve infrastructure-related secrets referenced in [adminConfig]. */
+    val infraSecretResolverFun: InfraSecretResolverFun
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(ConfigFileBuilder::class.java)
