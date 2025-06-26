@@ -9,6 +9,14 @@
 
 import * as React from 'react';
 import * as RechartsPrimitive from 'recharts';
+import type { LegendPayload } from 'recharts/types/component/DefaultLegendContent';
+import {
+  NameType,
+  Payload,
+  ValueType,
+} from 'recharts/types/component/DefaultTooltipContent';
+import type { Props as LegendProps } from 'recharts/types/component/Legend';
+import { TooltipContentProps } from 'recharts/types/component/Tooltip';
 
 import { cn } from '@/lib/utils';
 
@@ -111,30 +119,43 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+type CustomTooltipProps = TooltipContentProps<ValueType, NameType> & {
+  className?: string;
+  hideLabel?: boolean;
+  hideIndicator?: boolean;
+  indicator?: 'line' | 'dot' | 'dashed';
+  nameKey?: string;
+  labelKey?: string;
+  labelFormatter?: (
+    label: TooltipContentProps<number, string>['label'],
+    payload: TooltipContentProps<number, string>['payload']
+  ) => React.ReactNode;
+  formatter?: (
+    value: number | string,
+    name: string,
+    item: Payload<number | string, string>,
+    index: number,
+    payload: ReadonlyArray<Payload<number | string, string>>
+  ) => React.ReactNode;
+  labelClassName?: string;
+  color?: string;
+};
+
 function ChartTooltipContent({
   active,
   payload,
+  label,
   className,
   indicator = 'dot',
   hideLabel = false,
   hideIndicator = false,
-  label,
   labelFormatter,
-  labelClassName,
   formatter,
+  labelClassName,
   color,
   nameKey,
   labelKey,
-  footer,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-  React.ComponentProps<'div'> & {
-    hideLabel?: boolean;
-    hideIndicator?: boolean;
-    indicator?: 'line' | 'dot' | 'dashed';
-    nameKey?: string;
-    labelKey?: string;
-    footer?: React.ReactNode;
-  }) {
+}: CustomTooltipProps) {
   const { config } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
@@ -252,7 +273,6 @@ function ChartTooltipContent({
             </div>
           );
         })}
-        {footer && <div className={cn('flex w-full')}>{footer}</div>}
       </div>
     </div>
   );
@@ -260,17 +280,21 @@ function ChartTooltipContent({
 
 const ChartLegend = RechartsPrimitive.Legend;
 
+type ChartLegendContentProps = {
+  className?: string;
+  hideIcon?: boolean;
+  verticalAlign?: LegendProps['verticalAlign'];
+  payload?: LegendPayload[];
+  nameKey?: string;
+};
+
 function ChartLegendContent({
   className,
   hideIcon = false,
   payload,
   verticalAlign = 'bottom',
   nameKey,
-}: React.ComponentProps<'div'> &
-  Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
-    hideIcon?: boolean;
-    nameKey?: string;
-  }) {
+}: ChartLegendContentProps) {
   const { config } = useChart();
 
   if (!payload?.length) {
