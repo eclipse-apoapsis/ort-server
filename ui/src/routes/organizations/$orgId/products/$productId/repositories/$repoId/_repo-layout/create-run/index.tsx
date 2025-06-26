@@ -49,12 +49,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 import { AdvisorFields } from '../../-components/advisor-fields';
 import { AnalyzerFields } from '../../-components/analyzer-fields';
@@ -74,7 +68,6 @@ const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const ortRun = Route.useLoaderData();
-  const user = useUser();
   const [isTest, setIsTest] = useState(false);
 
   type AccordionSection =
@@ -466,38 +459,24 @@ const CreateRunPage = () => {
                   'Create'
                 )}
               </Button>
-              {user.hasRole(['superuser']) && (
-                <div className='flex items-center space-x-2'>
-                  <Switch
-                    id='test-form'
-                    checked={isTest}
-                    onCheckedChange={setIsTest}
-                  />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Label
-                        className='text-muted-foreground'
-                        htmlFor='test-form'
-                      >
-                        Test the form
-                      </Label>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div>Only for superusers: when enabled, pressing</div>
-                      <div>
-                        "Create" will not create a run but it instead shows
-                      </div>
-                      <div>
-                        the form payload that would be sent to the server.
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              )}
+              <div className='flex items-center space-x-2'>
+                <Switch
+                  id='test-form'
+                  checked={isTest}
+                  onCheckedChange={setIsTest}
+                />
+                <Label className='text-muted-foreground' htmlFor='test-form'>
+                  Show payload
+                </Label>
+              </div>
             </div>
-            {user.hasRole(['superuser']) && isTest && (
+            {isTest && (
               <>
-                <Label className='mt-4'>Form payload:</Label>
+                <h3 className='mt-4'>Form payload</h3>
+                <Label className='text-muted-foreground'>
+                  You can copy this payload to use it when triggering runs via
+                  the API or CLI.
+                </Label>
                 <pre className='w-full rounded-lg p-4 text-xs'>
                   {JSON.stringify(
                     formValuesToPayload(form.getValues()),
