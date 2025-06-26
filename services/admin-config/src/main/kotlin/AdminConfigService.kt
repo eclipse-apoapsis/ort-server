@@ -29,8 +29,12 @@ import java.io.InputStreamReader
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
+import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getConfigOrEmpty
+import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrEmpty
 import org.eclipse.apoapsis.ortserver.utils.config.getStringListOrDefault
@@ -66,6 +70,15 @@ class AdminConfigService(
         /** The name of the section containing the scanner-related configuration. */
         private const val SCANNER_SECTION = "scanner"
 
+        /** The name of the section containing the notifier-related configuration. */
+        private const val NOTIFIER_SECTION = "notifier"
+
+        /** The name of the subsection containing the mail server configuration for the notifier. */
+        private const val NOTIFIER_MAIL_SECTION = "mail"
+
+        /** The name of the subsection containing the Jira server configuration for the notifier. */
+        private const val NOTIFIER_JIRA_SECTION = "jira"
+
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
 
         /**
@@ -79,6 +92,7 @@ class AdminConfigService(
 
             return AdminConfig(
                 scannerConfig = parseScannerConfig(config),
+                notifierConfig = parseNotifierConfig(config),
                 defaultRuleSet = defaultRuleSet,
                 ruleSets = ruleSets,
                 mavenCentralMirror = mavenCentralMirror
@@ -131,6 +145,63 @@ class AdminConfigService(
                     }.map { SourceCodeOrigin.valueOf(it.uppercase()) }
                 )
             } ?: AdminConfig.DEFAULT_SCANNER_CONFIG
+
+        /**
+         * Parse the properties related to the notifier configuration from the given [config] and return a
+         * corresponding [NotifierConfig] instance.
+         */
+        private fun parseNotifierConfig(config: Config): NotifierConfig =
+            config.withPath(NOTIFIER_SECTION)?.let { c ->
+                val notifierConfig = c.getConfig(NOTIFIER_SECTION)
+                NotifierConfig(
+                    notifierRules = notifierConfig.getStringOrDefault(
+                        "notifierRules",
+                        AdminConfig.DEFAULT_NOTIFIER_CONFIG.notifierRules
+                    ),
+                    disableMailNotifications = notifierConfig.getBooleanOrDefault(
+                        "disableMailNotifications",
+                        AdminConfig.DEFAULT_NOTIFIER_CONFIG.disableMailNotifications
+                    ),
+                    disableJiraNotifications = notifierConfig.getBooleanOrDefault(
+                        "disableJiraNotifications",
+                        AdminConfig.DEFAULT_NOTIFIER_CONFIG.disableJiraNotifications
+                    ),
+                    mail = parseNotifierMailConfig(notifierConfig),
+                    jira = parseNotifierJiraConfig(notifierConfig)
+                )
+            } ?: AdminConfig.DEFAULT_NOTIFIER_CONFIG
+
+        /**
+         * Parse the mail server configuration for the notifier from the given [config] if it is defined.
+         */
+        private fun parseNotifierMailConfig(config: Config): MailServerConfiguration? =
+            config.withPath(NOTIFIER_MAIL_SECTION)?.let { mailConfig ->
+                val defaults = MailServerConfiguration(fromAddress = "")
+                with(mailConfig.getConfig(NOTIFIER_MAIL_SECTION)) {
+                    MailServerConfiguration(
+                        hostName = getStringOrDefault("host", defaults.hostName),
+                        port = getIntOrDefault("port", defaults.port),
+                        username = getStringOrDefault("username", defaults.username),
+                        password = getStringOrDefault("password", defaults.password),
+                        useSsl = getBooleanOrDefault("ssl", defaults.useSsl),
+                        fromAddress = getString("fromAddress")
+                    )
+                }
+            }
+
+        /**
+         * Parse the Jira server configuration for the notifier from the given [config] if it is defined.
+         */
+        private fun parseNotifierJiraConfig(config: Config): JiraRestClientConfiguration? =
+            config.withPath(NOTIFIER_JIRA_SECTION)?.let { jiraConfig ->
+                with(jiraConfig.getConfig(NOTIFIER_JIRA_SECTION)) {
+                    JiraRestClientConfiguration(
+                        serverUrl = getString("url"),
+                        username = getString("username"),
+                        password = getString("password"),
+                    )
+                }
+            }
 
         private fun parseMavenCentralMirror(config: Config): MavenCentralMirror? {
             if (!config.hasPath("mavenCentralMirror")) return null
