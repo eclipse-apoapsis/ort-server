@@ -27,7 +27,11 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.string.shouldStartWith
 
+import io.mockk.every
+
+import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 
 class MavenSettingsGeneratorTest : WordSpec({
@@ -238,20 +242,116 @@ class MavenSettingsGeneratorTest : WordSpec({
                 )
             }
         }
+
+        "not generate mirrors section if MavenCentralMirror is null" {
+            val mockBuilder = MockConfigFileBuilder()
+
+            MavenSettingsGenerator().generate(mockBuilder.builder, emptyList())
+
+            val content = mockBuilder.generatedText()
+            content shouldNotContain "<mirrors>"
+            content shouldNotContain "</mirrors>"
+        }
+
+        "generate a mirror block without a server block if the MavenCentralMirror has no credentials" {
+            val mavenCentralMirror = MavenCentralMirror(
+                id = "central",
+                name = "Maven Central",
+                url = "https://repo.maven.apache.org/maven2",
+                mirrorOf = "central"
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+
+            MavenSettingsGenerator().generate(mockBuilder.builder, emptyList())
+
+            val content = mockBuilder.generatedText()
+            content.shouldContain(
+                mirrorBlock(
+                    mavenCentralMirror.id,
+                    mavenCentralMirror.name,
+                    mavenCentralMirror.url,
+                    mavenCentralMirror.mirrorOf
+                ).withIndent(8)
+            )
+        }
+
+        "generate both server and mirror block if MavenCentralMirror has credentials" {
+            val username = "test-username"
+            val infraUsernameSecret = MockConfigFileBuilder.createSecret("infra-secret-username")
+            val password = "test-password"
+            val infraPasswordSecret = MockConfigFileBuilder.createSecret("infra-secret-password")
+            val mavenCentralMirror = MavenCentralMirror(
+                id = "central",
+                name = "Maven Central",
+                url = "https://repo.maven.apache.org/maven2",
+                mirrorOf = "central",
+                usernameSecret = infraUsernameSecret.name,
+                passwordSecret = infraPasswordSecret.name
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraUsernameSecret.path)) } returns username
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraPasswordSecret.path)) } returns password
+            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+
+            MavenSettingsGenerator().generate(mockBuilder.builder, emptyList())
+
+            val content = mockBuilder.generatedText()
+
+            content.shouldContain(
+                mirrorBlock(
+                    mavenCentralMirror.id,
+                    mavenCentralMirror.name,
+                    mavenCentralMirror.url,
+                    mavenCentralMirror.mirrorOf
+                ).withIndent(8)
+            )
+
+            content.shouldContain(
+                serverBlock(
+                    "central",
+                    infraUsernameSecret,
+                    infraPasswordSecret,
+                    { secret -> mockBuilder.infraSecretResolverFun.invoke(Path(secret.path)) }
+                ).withIndent(8)
+            )
+        }
     }
 })
 
 /**
  * Generate a block that defines a server in a _settings.xml_ file based on the given [id], [username], and
- * [password].
+ * [password]. For resolving the secrets, the [secretResolver] function can be provided, which defaults to
+ * [MockConfigFileBuilder.testSecretRef].
  */
-private fun serverBlock(id: String, username: Secret, password: Secret): String =
+private fun serverBlock(
+    id: String,
+    username: Secret,
+    password: Secret,
+    secretResolver: (Secret) -> String = MockConfigFileBuilder::testSecretRef
+): String =
     """
         |<server>
         |    <id>$id</id>
-        |    <username>${MockConfigFileBuilder.testSecretRef(username)}</username>
-        |    <password>${MockConfigFileBuilder.testSecretRef(password)}</password>
+        |    <username>${secretResolver(username)}</username>
+        |    <password>${secretResolver(password)}</password>
         |</server>
+    """.trimMargin()
+
+/**
+ * Generates a block that defines a mirror in a _settings.xml_ file based on the given [id], [name], [url], and
+ * [mirrorOf].
+ */
+private fun mirrorBlock(id: String, name: String, url: String, mirrorOf: String): String =
+    """
+        |<mirror>
+        |    <id>$id</id>
+        |    <name>$name</name>
+        |    <url>$url</url>
+        |    <mirrorOf>$mirrorOf</mirrorOf>
+        |</mirror>
     """.trimMargin()
 
 /**
