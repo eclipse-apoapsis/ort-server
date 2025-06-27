@@ -124,6 +124,13 @@ class InfrastructureServiceService(
         infrastructureServiceRepository.listForId(id, parameters)
     }
 
+    suspend fun getByOrganizationAndName(
+        organizationId: Long,
+        name: String
+    ): InfrastructureService? = db.dbQuery {
+        infrastructureServiceRepository.getByOrganizationAndName(organizationId, name)
+    }
+
     /**
      * Resolve a secret reference for the given hierarchy entity [id] and [secretName]. Throw an exception if the
      * reference cannot be resolved.
