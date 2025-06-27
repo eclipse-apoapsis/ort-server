@@ -36,6 +36,7 @@ import io.mockk.verify
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
@@ -65,6 +66,8 @@ private val notifierJob = NotifierJob(
     status = JobStatus.CREATED
 )
 
+private val jobConfigurations = JobConfigurations(ruleSet = "testRuleSet")
+
 class NotifierWorkerTest : StringSpec({
     beforeSpec {
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
@@ -79,6 +82,7 @@ class NotifierWorkerTest : StringSpec({
             every { id } returns ORT_RUN_ID
             every { repositoryId } returns REPOSITORY_ID
             every { revision } returns "main"
+            every { resolvedJobConfigs } returns jobConfigurations
         }
 
         val ortResult = mockk<OrtResult> {
@@ -112,7 +116,7 @@ class NotifierWorkerTest : StringSpec({
 
         val runner = mockk<NotifierRunner> {
             every {
-                run(ortResult, notifierJob.configuration, context)
+                run(ortResult, jobConfigurations, context)
             } just runs
         }
 
@@ -138,7 +142,7 @@ class NotifierWorkerTest : StringSpec({
         slotNotifierRun.captured.notifierJobId shouldBe NOTIFIER_JOB_ID
 
         verify {
-            runner.run(ortResult, notifierJob.configuration, context)
+            runner.run(ortResult, jobConfigurations, context)
         }
     }
 
@@ -212,7 +216,7 @@ class NotifierWorkerTest : StringSpec({
         val exception = IllegalStateException("Test exception: Notifier runner execution.")
         val runner = mockk<NotifierRunner> {
             every {
-                run(ortResult, notifierJob.configuration, context)
+                run(ortResult, jobConfigurations, context)
             } throws exception
         }
 
