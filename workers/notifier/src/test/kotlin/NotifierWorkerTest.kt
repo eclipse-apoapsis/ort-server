@@ -31,9 +31,9 @@ import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.unmockkAll
+import io.mockk.verify
 
 import kotlinx.datetime.Clock
-import kotlinx.datetime.toJavaInstant
 
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -46,7 +46,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 
-import org.ossreviewtoolkit.model.NotifierRun as OrtNotifierRun
 import org.ossreviewtoolkit.model.OrtResult
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
@@ -111,17 +110,10 @@ class NotifierWorkerTest : StringSpec({
             }
         }
 
-        val runnerResult = NotifierRunnerResult(
-            OrtNotifierRun(
-                startTime = Clock.System.now().toJavaInstant(),
-                endTime = Clock.System.now().toJavaInstant()
-            )
-        )
-
         val runner = mockk<NotifierRunner> {
             every {
                 run(ortResult, notifierJob.configuration, context)
-            } returns runnerResult
+            } just runs
         }
 
         val worker = NotifierWorker(
@@ -144,6 +136,10 @@ class NotifierWorkerTest : StringSpec({
         }
 
         slotNotifierRun.captured.notifierJobId shouldBe NOTIFIER_JOB_ID
+
+        verify {
+            runner.run(ortResult, notifierJob.configuration, context)
+        }
     }
 
     "A failure result should be returned in case of an error" {
@@ -152,7 +148,7 @@ class NotifierWorkerTest : StringSpec({
             every { getNotifierJob(NOTIFIER_JOB_ID) } throws testException
         }
 
-        val worker = NotifierWorker(mockk(), NotifierRunner(), ortRunService, mockk(), mockk())
+        val worker = NotifierWorker(mockk(), mockk(), ortRunService, mockk(), mockk())
 
         mockkTransaction {
             when (val result = worker.run(NOTIFIER_JOB_ID, TRACE_ID)) {
@@ -168,12 +164,70 @@ class NotifierWorkerTest : StringSpec({
             every { getNotifierJob(NOTIFIER_JOB_ID) } returns invalidJob
         }
 
-        val worker = NotifierWorker(mockk(), NotifierRunner(), ortRunService, mockk(), mockk())
+        val worker = NotifierWorker(mockk(), mockk(), ortRunService, mockk(), mockk())
 
         mockkTransaction {
             val result = worker.run(NOTIFIER_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.Ignored
+        }
+    }
+
+    "An exception from the runner should be ignored" {
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { revision } returns "main"
+        }
+
+        val ortResult = mockk<OrtResult> {
+            every { labels } returns emptyMap()
+            // Ignore the changed value as the validation is done by checking the parameter.
+            every { copy(labels = any()) } returns this
+        }
+
+        val resultGenerator = mockk<NotifierOrtResultGenerator> {
+            every { generateOrtResult(ortRun, notifierJob) } returns ortResult
+        }
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getOrtRun(ORT_RUN_ID) } returns ortRun
+            every { getNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
+            every { startNotifierJob(NOTIFIER_JOB_ID) } returns notifierJob
+            every { storeNotifierRun(any()) } returns mockk()
+            every { storeIssues(any(), any()) } just runs
+        }
+
+        val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns ortRun
+        }
+
+        val slot = slot<suspend (WorkerContext) -> RunResult>()
+        val contextFactory = mockk<WorkerContextFactory> {
+            coEvery { withContext(ORT_RUN_ID, capture(slot)) } coAnswers {
+                slot.captured(context)
+            }
+        }
+
+        val exception = IllegalStateException("Test exception: Notifier runner execution.")
+        val runner = mockk<NotifierRunner> {
+            every {
+                run(ortResult, notifierJob.configuration, context)
+            } throws exception
+        }
+
+        val worker = NotifierWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            resultGenerator
+        )
+
+        mockkTransaction {
+            val result = worker.run(NOTIFIER_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Success
         }
     }
 })

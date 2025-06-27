@@ -60,7 +60,11 @@ internal class NotifierWorker(
 
             val startTime = Clock.System.now()
 
-            runner.run(ortResult, job.configuration, workerContext)
+            runCatching {
+                runner.run(ortResult, job.configuration, workerContext)
+            }.onFailure {
+                logger.warn("Running ORT notifier failed for job with id '$jobId'.", it)
+            }
 
             val endTime = Clock.System.now()
 
