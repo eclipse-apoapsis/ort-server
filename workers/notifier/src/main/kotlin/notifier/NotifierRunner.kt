@@ -20,7 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.notifier
 
 import org.eclipse.apoapsis.ortserver.config.Path
-import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
@@ -33,31 +34,34 @@ import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.notifier.Notifier
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
-class NotifierRunner {
+class NotifierRunner(
+    /** The service for accessing the admin configuration. */
+    private val configAdminService: AdminConfigService
+) {
     /**
-     * Invoke the [Notifier] for the current ORT run.
-     * The notification script is downloaded from the configuration using the path specified in [config].
+     * Invoke the [Notifier] for the current ORT run using the given [ortResult], [jobConfigurations], and
+     * [workerContext].
+     * The notification script to be executed is specified in the admin configuration.
      */
     fun run(
         ortResult: OrtResult,
-        config: NotifierJobConfiguration,
+        jobConfigurations: JobConfigurations?,
         workerContext: WorkerContext
     ) {
-        val script = config.notifierRules?.let {
-            workerContext.configManager.getFileAsString(
-                workerContext.resolvedConfigurationContext,
-                Path(it)
-            )
-        } ?: throw IllegalArgumentException("The notification script path is not specified in the config.", null)
+        val adminConfig = configAdminService.loadAdminConfig(
+            workerContext.resolvedConfigurationContext,
+            workerContext.ortRun.organizationId
+        )
+        val notifierConfig = adminConfig.notifierConfig
 
-        val sendMailConfiguration = config.mail?.mailServerConfiguration?.let {
+        val sendMailConfiguration = notifierConfig.mail?.takeUnless { notifierConfig.disableMailNotifications }?.let {
             it.copy(
                 username = workerContext.configManager.getSecret(Path(it.username)),
                 password = workerContext.configManager.getSecret(Path(it.password)),
             )
         }?.mapToOrt()
 
-        val jiraConfiguration = config.jira?.jiraRestClientConfiguration?.let {
+        val jiraConfiguration = notifierConfig.jira?.takeUnless { notifierConfig.disableJiraNotifications }?.let {
             it.copy(
                 username = workerContext.configManager.getSecret(Path(it.username)),
                 password = workerContext.configManager.getSecret(Path(it.password)),
@@ -71,8 +75,9 @@ class NotifierRunner {
 
         val resolutionsFromOrtResult = ortResult.repository.config.resolutions
 
+        val resolutionFilePath = adminConfig.getRuleSet(jobConfigurations?.ruleSet).resolutionsFile
         val resolutionsFromFile = workerContext.configManager.readConfigFileValueWithDefault(
-            path = config.resolutionsFile,
+            path = resolutionFilePath,
             defaultPath = ORT_RESOLUTIONS_FILENAME,
             fallbackValue = Resolutions(),
             workerContext.resolvedConfigurationContext
@@ -86,6 +91,10 @@ class NotifierRunner {
             resolutionProvider = resolutionProvider
         )
 
+        val script = workerContext.configManager.getFileAsString(
+            workerContext.resolvedConfigurationContext,
+            Path(notifierConfig.notifierRules)
+        )
         notifier.run(script)
     }
 }
