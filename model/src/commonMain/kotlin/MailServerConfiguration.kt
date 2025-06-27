@@ -17,36 +17,42 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.model
 
 import kotlinx.serialization.Serializable
 
 /**
- * Configuration for Jira notifications.
- * Notifications are typically sent after an [OrtRun] using a built-in Jira REST client.
+ * Configuration for a mail server to send mails after an [OrtRun].
  */
 @Serializable
-data class JiraNotificationConfiguration(
-    val jiraRestClientConfiguration: JiraRestClientConfiguration? = null
-)
-
-/**
- *  Configuration for a Jira REST client interacting with a Jira server after an [OrtRun].
- */
-@Serializable
-data class JiraRestClientConfiguration(
+data class MailServerConfiguration(
     /**
-     * The URL of the Jira server, e.g. "https://jira.example.com".
+     * The address of the outgoing SMTP server that will be used to send the message.
      */
-    val serverUrl: String,
+    val hostName: String = "localhost",
 
     /**
-     * The username to authenticate with the Jira server.
+     * The port used for the SMTP server.
      */
-    val username: String,
+    val port: Int = 587,
 
     /**
-     * The password to authenticate with the Jira server.
+     * The username to authenticate with the SMTP server.
      */
-    val password: String
+    val username: String = "",
+
+    /**
+     * The password to authenticate with the SMTP server.
+     */
+    val password: String = "",
+
+    /**
+     * Configuration if SSL/TLS encryption should be enabled with the SMTP server.
+     */
+    val useSsl: Boolean = true,
+
+    /**
+     * The 'from' field of the outgoing email.
+     */
+    val fromAddress: String
 )

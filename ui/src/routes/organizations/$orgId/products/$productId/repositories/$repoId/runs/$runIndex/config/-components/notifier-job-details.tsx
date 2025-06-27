@@ -42,104 +42,12 @@ export const NotifierJobDetails = ({ run }: NotifierJobDetailsProps) => {
           {jobConfigs && (
             <div className='space-y-2'>
               <div className='ml-2 space-y-2'>
-                {jobConfigs?.notifierRules && (
+                {jobConfigs?.recipientAddresses && (
                   <div>
-                    <Label className='font-semibold'>Rules:</Label>{' '}
-                    {jobConfigs.notifierRules}
-                  </div>
-                )}
-                {jobConfigs?.resolutionsFile && (
-                  <div>
-                    <Label className='font-semibold'>Resolutions:</Label>{' '}
-                    {jobConfigs.resolutionsFile}
-                  </div>
-                )}
-                {jobConfigs?.mail && (
-                  <div className='space-y-2'>
-                    <Label className='font-semibold'>Mail:</Label>{' '}
-                    {jobConfigs.mail.recipientAddresses && (
-                      <div className='ml-2'>
-                        <Label className='font-semibold'>
-                          Recipient addresses:
-                        </Label>{' '}
-                        {jobConfigs.mail.recipientAddresses.join(', ')}
-                      </div>
-                    )}
-                    {jobConfigs.mail.mailServerConfiguration && (
-                      <div className='ml-2'>
-                        <Label className='font-semibold'>
-                          Mail server configuration:
-                        </Label>{' '}
-                        <div className='ml-2'>
-                          <div>
-                            <Label className='font-semibold'>Host name: </Label>
-                            {jobConfigs.mail.mailServerConfiguration.hostName}
-                          </div>
-                          <div>
-                            <Label className='font-semibold'>Port: </Label>
-                            {jobConfigs.mail.mailServerConfiguration.port}
-                          </div>
-                          <div>
-                            <Label className='font-semibold'>Username: </Label>
-                            {jobConfigs.mail.mailServerConfiguration.username}
-                          </div>
-                          <div>
-                            <Label className='font-semibold'>Password: </Label>
-                            {jobConfigs.mail.mailServerConfiguration.password}
-                          </div>
-                          <div>
-                            <Label className='font-semibold'>Use SSL: </Label>
-                            {jobConfigs.mail.mailServerConfiguration.useSsl.toString()}
-                          </div>
-                          <div>
-                            <Label className='font-semibold'>
-                              From address:{' '}
-                            </Label>
-                            {
-                              jobConfigs.mail.mailServerConfiguration
-                                .fromAddress
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {jobConfigs?.jira && (
-                  <div className='space-y-2'>
-                    <Label className='font-semibold'>Jira:</Label>{' '}
-                    {jobConfigs.jira.jiraRestClientConfiguration && (
-                      <div className='ml-2'>
-                        <Label className='font-semibold'>
-                          Jira REST client configuration:
-                        </Label>{' '}
-                        <div className='ml-2'>
-                          <div>
-                            <Label className='font-semibold'>
-                              Server URL:{' '}
-                            </Label>
-                            {
-                              jobConfigs.jira.jiraRestClientConfiguration
-                                .serverUrl
-                            }
-                          </div>
-                          <div>
-                            <Label className='font-semibold'>Username: </Label>
-                            {
-                              jobConfigs.jira.jiraRestClientConfiguration
-                                .username
-                            }
-                          </div>
-                          <div>
-                            <Label className='font-semibold'>Password: </Label>
-                            {
-                              jobConfigs.jira.jiraRestClientConfiguration
-                                .password
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <Label className='font-semibold'>
+                      Recipient addresses:
+                    </Label>{' '}
+                    {jobConfigs.recipientAddresses.join(', ')}
                   </div>
                 )}
               </div>

@@ -76,9 +76,7 @@ class DaoNotifierJobRepository(private val db: Database) : NotifierJobRepository
     override fun deleteMailRecipients(id: Long): NotifierJob = db.blockingQuery {
         val notifierJob = NotifierJobDao[id]
         notifierJob.configuration = notifierJob.configuration.copy(
-            mail = notifierJob.configuration.mail?.copy(
-                recipientAddresses = emptyList()
-            )
+            recipientAddresses = emptyList()
         )
 
         notifierJob.mapToModel()

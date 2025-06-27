@@ -106,7 +106,7 @@ internal class NotifierOrtResultGenerator(
      *       information as a label in the ORT result.
      */
     private fun getMailRecipientsLabels(notifierJob: NotifierJob): Map<String, String> {
-        return notifierJob.configuration.mail?.recipientAddresses?.let { recipients ->
+        return notifierJob.configuration.recipientAddresses.takeUnless { it.isEmpty() }?.let { recipients ->
             mapOf(EMAIL_RECIPIENTS_LABEL to recipients.joinToString(RECIPIENTS_SEPARATOR))
         }.orEmpty()
     }

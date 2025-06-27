@@ -460,9 +460,7 @@ class Orchestrator(
     }
 
     private fun cleanupJobConfigs(jobConfigs: JobConfigurations) = jobConfigs.copy(
-        notifier = jobConfigs.notifier?.copy(
-            mail = jobConfigs.notifier?.mail?.copy(recipientAddresses = emptyList())
-        ),
+        notifier = jobConfigs.notifier?.copy(recipientAddresses = emptyList()),
         parameters = jobConfigs.parameters - "recipientAddresses"
     )
 }
