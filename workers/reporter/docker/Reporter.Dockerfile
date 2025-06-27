@@ -20,7 +20,7 @@
 # License-Filename: LICENSE
 
 # Build-Stage for Python executing scancode-license-data to get the license texts in a directory
-FROM python:3.11-slim AS scancode-license-data-build
+FROM python:3.13-slim AS scancode-license-data-build
 
 # Keep in sync with Scanner.Dockerfile
 ARG SCANCODE_VERSION=32.4.0
@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y curl libgomp1 && rm -rf /var/lib/apt/li
 
 # Use pip to install ScanCode
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
-    pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
+    pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION setuptools && \
     rm requirements.txt
 
 # Extract ScanCode license data to directory.
