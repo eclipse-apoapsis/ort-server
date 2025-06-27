@@ -115,7 +115,7 @@ export const DeleteDialog = ({
             <AlertDialogTitle>{title || 'Confirm deletion'}</AlertDialogTitle>
           </div>
         </AlertDialogHeader>
-        <div className='flex flex-col gap-2'>
+        <div className='flex flex-col gap-2 overflow-auto break-words'>
           <AlertDialogDescription>
             Note that deletion is irreversible and might have unwanted side
             effects.
