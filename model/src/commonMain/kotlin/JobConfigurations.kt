@@ -372,25 +372,9 @@ data class ReporterJobConfiguration(
 @Serializable
 data class NotifierJobConfiguration(
     /**
-     * The notifier script to use. If this is `null`, the configured default notification will be used.
+     * The list of email addresses to which notifications should be sent.
      */
-    val notifierRules: String? = null,
-
-    /**
-     * The path to the resolutions file which is resolved from the configured configuration source. If this is `null`,
-     * the default path from ORT will be used.
-     */
-    val resolutionsFile: String? = null,
-
-    /**
-     * The configuration for Email notifications. Is this is `null`, no email notifications will be sent.
-     */
-    val mail: MailNotificationConfiguration? = null,
-
-    /**
-     * The configuration for Jira notifications. Is this is `null`, no Jira notifications will be sent.
-     */
-    val jira: JiraNotificationConfiguration? = null,
+    val recipientAddresses: List<String> = emptyList(),
 
     /**
      * Keep the worker alive after it has finished. This is useful for manual problem analysis directly

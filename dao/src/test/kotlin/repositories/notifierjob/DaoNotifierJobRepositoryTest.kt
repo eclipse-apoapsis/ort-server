@@ -124,11 +124,11 @@ class DaoNotifierJobRepositoryTest : WorkerJobRepositoryTest<NotifierJob>() {
 
         "deleteMailRecipients should only delete the mail recipients from the configuration" {
             val notifierJob = notifierJobRepository.create(ortRunId, notifierJobConfiguration)
-            notifierJob.configuration.mail!!.recipientAddresses!! shouldNot beEmpty()
+            notifierJob.configuration.recipientAddresses shouldNot beEmpty()
 
             val updatedNotifierJob = notifierJobRepository.deleteMailRecipients(notifierJob.id)
 
-            updatedNotifierJob.configuration.mail!!.recipientAddresses shouldBe emptyList()
+            updatedNotifierJob.configuration.recipientAddresses shouldBe emptyList()
         }
     }
 }

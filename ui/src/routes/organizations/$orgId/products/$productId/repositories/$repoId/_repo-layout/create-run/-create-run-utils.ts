@@ -124,26 +124,7 @@ export const createRunFormSchema = z.object({
     }),
     notifier: z.object({
       enabled: z.boolean(),
-      notifierRules: z.string().optional(),
-      resolutionsFile: z.string().optional(),
-      mail: z.object({
-        recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
-        mailServerConfiguration: z.object({
-          hostName: z.string(),
-          port: z.coerce.number().int(),
-          username: z.string(),
-          password: z.string(),
-          useSsl: z.boolean(),
-          fromAddress: z.string(),
-        }),
-      }),
-      jira: z.object({
-        jiraRestClientConfiguration: z.object({
-          serverUrl: z.string(),
-          username: z.string(),
-          password: z.string(),
-        }),
-      }),
+      recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
     }),
     parameters: z.array(keyValueSchema).optional(),
     ruleSet: z.string().optional(),
@@ -349,26 +330,7 @@ export function defaultValues(
       },
       notifier: {
         enabled: false,
-        notifierRules: '',
-        resolutionsFile: '',
-        mail: {
-          recipientAddresses: [],
-          mailServerConfiguration: {
-            hostName: 'localhost',
-            port: 587,
-            username: '',
-            password: '',
-            useSsl: true,
-            fromAddress: '',
-          },
-        },
-        jira: {
-          jiraRestClientConfiguration: {
-            serverUrl: '',
-            username: '',
-            password: '',
-          },
-        },
+        recipientAddresses: [],
       },
     },
     jobConfigContext: '',
@@ -446,71 +408,12 @@ export function defaultValues(
             enabled:
               ortRun.jobConfigs.notifier !== undefined &&
               ortRun.jobConfigs.notifier !== null,
-            notifierRules:
-              ortRun.jobConfigs.notifier?.notifierRules ||
-              baseDefaults.jobConfigs.notifier.notifierRules,
-            resolutionsFile:
-              ortRun.jobConfigs.notifier?.resolutionsFile ||
-              baseDefaults.jobConfigs.notifier.resolutionsFile,
-            mail: {
-              // Convert the recipient addresses string array coming from the back-end to an array of objects.
-              // This needs to be done because the useFieldArray hook requires an array of objects.
-              recipientAddresses:
-                ortRun.jobConfigs.notifier?.mail?.recipientAddresses?.map(
-                  (email) => ({ email })
-                ) || baseDefaults.jobConfigs.notifier.mail.recipientAddresses,
-              mailServerConfiguration: {
-                hostName:
-                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
-                    ?.hostName ||
-                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
-                    .hostName,
-                port:
-                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
-                    ?.port ||
-                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
-                    .port,
-                username:
-                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
-                    ?.username ||
-                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
-                    .username,
-                password:
-                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
-                    ?.password ||
-                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
-                    .password,
-                useSsl:
-                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
-                    ?.useSsl ||
-                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
-                    .useSsl,
-                fromAddress:
-                  ortRun.jobConfigs.notifier?.mail?.mailServerConfiguration
-                    ?.fromAddress ||
-                  baseDefaults.jobConfigs.notifier.mail.mailServerConfiguration
-                    .fromAddress,
-              },
-            },
-            jira: {
-              jiraRestClientConfiguration: {
-                serverUrl:
-                  ortRun.jobConfigs.notifier?.jira?.jiraRestClientConfiguration
-                    ?.serverUrl ||
-                  baseDefaults.jobConfigs.notifier.jira
-                    .jiraRestClientConfiguration.serverUrl,
-                username:
-                  ortRun.jobConfigs.notifier?.jira?.jiraRestClientConfiguration
-                    ?.username ||
-                  baseDefaults.jobConfigs.notifier.jira
-                    .jiraRestClientConfiguration.username,
-                password:
-                  ortRun.jobConfigs.notifier?.jira?.jiraRestClientConfiguration
-                    ?.password ||
-                  baseDefaults.jobConfigs.notifier.jira
-                    .jiraRestClientConfiguration.password,
-              },
-            },
+            // Convert the recipient addresses string array coming from the back-end to an array of objects.
+            // This needs to be done because the useFieldArray hook requires an array of objects.
+            recipientAddresses:
+              ortRun.jobConfigs.notifier?.recipientAddresses?.map((email) => ({
+                email,
+              })) || baseDefaults.jobConfigs.notifier.recipientAddresses,
           },
           // Convert the parameters object map coming from the back-end to an array of key-value pairs.
           // This needs to be done because the useFieldArray hook requires an array of objects.
@@ -721,46 +624,14 @@ export function formValuesToPayload(
   //
 
   // Convert the recipient addresses back to an array of strings, as expected by the back-end.
-  const addresses = values.jobConfigs.notifier.mail.recipientAddresses
-    ? values.jobConfigs.notifier.mail.recipientAddresses.map(
+  const addresses = values.jobConfigs.notifier.recipientAddresses
+    ? values.jobConfigs.notifier.recipientAddresses.map(
         (recipient) => recipient.email
       )
     : undefined;
   const notifierConfig = values.jobConfigs.notifier.enabled
     ? {
-        notifierRules: values.jobConfigs.notifier.notifierRules || undefined,
-        resolutionsFile:
-          values.jobConfigs.notifier.resolutionsFile || undefined,
-        mail: {
-          recipientAddresses: addresses || undefined,
-          mailServerConfiguration: {
-            hostName:
-              values.jobConfigs.notifier.mail.mailServerConfiguration.hostName,
-            port: values.jobConfigs.notifier.mail.mailServerConfiguration.port,
-            username:
-              values.jobConfigs.notifier.mail.mailServerConfiguration.username,
-            password:
-              values.jobConfigs.notifier.mail.mailServerConfiguration.password,
-            useSsl:
-              values.jobConfigs.notifier.mail.mailServerConfiguration.useSsl,
-            fromAddress:
-              values.jobConfigs.notifier.mail.mailServerConfiguration
-                .fromAddress,
-          },
-        },
-        jira: {
-          jiraRestClientConfiguration: {
-            serverUrl:
-              values.jobConfigs.notifier.jira.jiraRestClientConfiguration
-                .serverUrl,
-            username:
-              values.jobConfigs.notifier.jira.jiraRestClientConfiguration
-                .username,
-            password:
-              values.jobConfigs.notifier.jira.jiraRestClientConfiguration
-                .password,
-          },
-        },
+        recipientAddresses: addresses || undefined,
       }
     : undefined;
 

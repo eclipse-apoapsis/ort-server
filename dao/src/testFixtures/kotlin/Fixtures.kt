@@ -47,10 +47,8 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.JiraNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.Jobs
-import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
@@ -127,10 +125,7 @@ class Fixtures(private val db: Database) {
             formats = listOf("WebApp")
         ),
         notifier = NotifierJobConfiguration(
-            mail = MailNotificationConfiguration(
-                recipientAddresses = listOf("test@example.com")
-            ),
-            jira = JiraNotificationConfiguration()
+            recipientAddresses = listOf("test@example.com")
         )
     )
 

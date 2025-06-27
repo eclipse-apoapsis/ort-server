@@ -36,15 +36,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
-import org.eclipse.apoapsis.ortserver.api.v1.model.JiraNotificationConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
-import org.eclipse.apoapsis.ortserver.api.v1.model.MailNotificationConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
@@ -133,26 +129,7 @@ internal val fullJobConfigurations = JobConfigurations(
     ),
     reporter = ReporterJobConfiguration(formats = listOf("WebApp")),
     notifier = NotifierJobConfiguration(
-        notifierRules = "reporter.notifications.kts",
-        resolutionsFile = "resolutions.yml",
-        mail = MailNotificationConfiguration(
-            recipientAddresses = listOf("mail@example.com", "info@example.com"),
-            mailServerConfiguration = MailServerConfiguration(
-                hostName = "smtp.example.com",
-                port = 587,
-                username = "user",
-                password = "password",
-                useSsl = true,
-                fromAddress = "no-reply@example.com"
-            )
-        ),
-        jira = JiraNotificationConfiguration(
-            jiraRestClientConfiguration = JiraRestClientConfiguration(
-                serverUrl = "https://jira.example.com",
-                username = "user",
-                password = "password"
-            )
-        )
+        recipientAddresses = listOf("mail@example.com", "info@example.com"),
     ),
     ruleSet = "default"
 )

@@ -1630,12 +1630,10 @@ class OrchestratorTest : WordSpec() {
                             it.verifyOptionalValue(
                                 ortRun.jobConfigs.copy(
                                     notifier = ortRun.jobConfigs.notifier?.copy(
-                                        mail = ortRun.jobConfigs.notifier?.mail?.copy(
                                             recipientAddresses = emptyList()
                                         )
                                     )
                                 )
-                            )
                         }
                     )
 

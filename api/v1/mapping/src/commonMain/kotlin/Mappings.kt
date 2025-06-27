@@ -37,8 +37,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue as Api
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
-import org.eclipse.apoapsis.ortserver.api.v1.model.JiraNotificationConfiguration as ApiJiraNotificationConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.JiraRestClientConfiguration as ApiJiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummaries
@@ -46,8 +44,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummary as ApiJobSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs as ApiJobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel as ApiLogLevel
 import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource as ApiLogSource
-import org.eclipse.apoapsis.ortserver.api.v1.model.MailNotificationConfiguration as ApiMailNotificationConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.MailServerConfiguration as ApiMailServerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJob as ApiNotifierJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration as ApiNotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OidcConfig as ApiOidcConfig
@@ -103,8 +99,6 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
-import org.eclipse.apoapsis.ortserver.model.JiraNotificationConfiguration
-import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.JobSummaries
@@ -112,8 +106,6 @@ import org.eclipse.apoapsis.ortserver.model.JobSummary
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
-import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
-import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Organization
@@ -501,19 +493,13 @@ fun NotifierJob.mapToApi() =
 
 fun NotifierJobConfiguration.mapToApi() =
     ApiNotifierJobConfiguration(
-        notifierRules = notifierRules,
-        resolutionsFile = resolutionsFile,
-        mail = mail?.mapToApi(),
-        jira = jira?.mapToApi(),
+        recipientAddresses = recipientAddresses,
         keepAliveWorker = keepAliveWorker
     )
 
 fun ApiNotifierJobConfiguration.mapToModel() =
     NotifierJobConfiguration(
-        notifierRules = notifierRules,
-        resolutionsFile = resolutionsFile,
-        mail = mail?.mapToModel(),
-        jira = jira?.mapToModel(),
+        recipientAddresses = recipientAddresses,
         keepAliveWorker = keepAliveWorker
     )
 
@@ -699,62 +685,6 @@ fun ReporterAsset.mapToApi() =
 
 fun ApiReporterAsset.mapToModel() =
     ReporterAsset(sourcePath, targetFolder, targetName)
-
-fun MailNotificationConfiguration.mapToApi() =
-    ApiMailNotificationConfiguration(
-        recipientAddresses = recipientAddresses,
-        mailServerConfiguration = mailServerConfiguration?.mapToApi()
-    )
-
-fun ApiMailNotificationConfiguration.mapToModel() =
-    MailNotificationConfiguration(
-        recipientAddresses = recipientAddresses,
-        mailServerConfiguration = mailServerConfiguration?.mapToModel()
-    )
-
-fun JiraNotificationConfiguration.mapToApi() =
-    ApiJiraNotificationConfiguration(
-        jiraRestClientConfiguration = jiraRestClientConfiguration?.mapToApi()
-    )
-
-fun ApiJiraNotificationConfiguration.mapToModel() =
-    JiraNotificationConfiguration(
-        jiraRestClientConfiguration = jiraRestClientConfiguration?.mapToModel()
-    )
-
-fun MailServerConfiguration.mapToApi() =
-    ApiMailServerConfiguration(
-        hostName = hostName,
-        port = port,
-        username = username,
-        password = password,
-        useSsl = useSsl,
-        fromAddress = fromAddress
-    )
-
-fun ApiMailServerConfiguration.mapToModel() =
-    MailServerConfiguration(
-        hostName = hostName,
-        port = port,
-        username = username,
-        password = password,
-        useSsl = useSsl,
-        fromAddress = fromAddress
-    )
-
-fun JiraRestClientConfiguration.mapToApi() =
-    ApiJiraRestClientConfiguration(
-        serverUrl = serverUrl,
-        username = username,
-        password = password
-    )
-
-fun ApiJiraRestClientConfiguration.mapToModel() =
-    JiraRestClientConfiguration(
-        serverUrl = serverUrl,
-        username = username,
-        password = password
-    )
 
 fun SourceCodeOrigin.mapToApi() =
     when (this) {

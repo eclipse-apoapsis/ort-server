@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.shouldBe
 
@@ -36,7 +37,6 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.JobStatus
-import org.eclipse.apoapsis.ortserver.model.MailNotificationConfiguration
 import org.eclipse.apoapsis.ortserver.model.NotifierJob
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -96,15 +96,23 @@ class NotifierOrtResultGeneratorTest : StringSpec({
     "A label for email recipients should be added" {
         val recipient1 = "i-am-interested@example.com"
         val recipient2 = "mee2@example.com"
-        val emailConfig = NotifierJobConfiguration(
-            mail = MailNotificationConfiguration(recipientAddresses = listOf(recipient1, recipient2))
-        )
+        val emailConfig = NotifierJobConfiguration(recipientAddresses = listOf(recipient1, recipient2))
 
         val helper = ResultGeneratorTestHelper()
 
         val result = helper.runResultGeneratorTest(job = notifierJob.copy(configuration = emailConfig))
 
         result.labels["emailRecipients"] shouldBe "$recipient1;$recipient2"
+    }
+
+    "No label for email recipients should be added if no recipients are configured" {
+        val emailConfig = NotifierJobConfiguration(recipientAddresses = emptyList())
+
+        val helper = ResultGeneratorTestHelper()
+
+        val result = helper.runResultGeneratorTest(job = notifierJob.copy(configuration = emailConfig))
+
+        result.labels.keys shouldNotContain "emailRecipients"
     }
 
     "Labels for the status of jobs should be added" {
