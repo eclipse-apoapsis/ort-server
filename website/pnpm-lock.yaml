@@ -96,8 +96,8 @@ importers:
         specifier: 4.5.1
         version: 4.5.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
       docusaurus-theme-openapi-docs:
-        specifier: 4.4.0
-        version: 4.4.0(@docusaurus/theme-common@3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(docusaurus-plugin-openapi-docs@4.5.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0))(docusaurus-plugin-sass@0.2.6(@docusaurus/core@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.89.1)(webpack@5.99.9))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(webpack@5.99.9)
+        specifier: 4.5.1
+        version: 4.5.1(@docusaurus/theme-common@3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(docusaurus-plugin-openapi-docs@4.5.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0))(docusaurus-plugin-sass@0.2.6(@docusaurus/core@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.89.1)(webpack@5.99.9))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(webpack@5.99.9)
       prism-react-renderer:
         specifier: ^2.3.0
         version: 2.4.1(react@19.1.0)
@@ -2980,8 +2980,8 @@ packages:
       '@docusaurus/core': ^2.0.0-beta || ^3.0.0-alpha
       sass: ^1.30.0
 
-  docusaurus-theme-openapi-docs@4.4.0:
-    resolution: {integrity: sha512-wmc2b946rqBcdjgEHi6Up7e8orasYk5RnIUerTfmZ/Hi006I8FIjMnJEmHAF6t5PbFiiYnlkB6vYK0CC5xBnCQ==}
+  docusaurus-theme-openapi-docs@4.5.1:
+    resolution: {integrity: sha512-C7mYh9JC3l9jjRtqJVu0EIyOgxHB08jE0Tp5NSkNkrrBak4A13SrXCisNjvt1eaNjS+tsz7qD0bT3aI5hsRvWA==}
     engines: {node: '>=14'}
     peerDependencies:
       '@docusaurus/theme-common': ^3.5.0
@@ -9178,7 +9178,7 @@ snapshots:
   '@types/react-router@5.1.20':
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 19.1.6
+      '@types/react': 19.1.8
 
   '@types/react@19.1.6':
     dependencies:
@@ -10348,7 +10348,7 @@ snapshots:
       - sass-embedded
       - webpack
 
-  docusaurus-theme-openapi-docs@4.4.0(@docusaurus/theme-common@3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(docusaurus-plugin-openapi-docs@4.5.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0))(docusaurus-plugin-sass@0.2.6(@docusaurus/core@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.89.1)(webpack@5.99.9))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(webpack@5.99.9):
+  docusaurus-theme-openapi-docs@4.5.1(@docusaurus/theme-common@3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(docusaurus-plugin-openapi-docs@4.5.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(@docusaurus/utils-validation@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@docusaurus/utils@3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0))(docusaurus-plugin-sass@0.2.6(@docusaurus/core@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(sass@1.89.1)(webpack@5.99.9))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(webpack@5.99.9):
     dependencies:
       '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.0(@types/react@19.1.8)(react@19.1.0))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3))(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@hookform/error-message': 2.0.1(react-dom@19.1.0(react@19.1.0))(react-hook-form@7.56.4(react@19.1.0))(react@19.1.0)
