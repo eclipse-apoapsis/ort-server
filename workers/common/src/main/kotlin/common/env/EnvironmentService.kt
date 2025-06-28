@@ -89,10 +89,8 @@ class EnvironmentService(
         context: WorkerContext,
         config: EnvironmentConfig?
     ): List<InfrastructureService> {
-        val hierarchyServices = infrastructureServiceRepository.listForHierarchy(
-            context.hierarchy.organization.id,
-            context.hierarchy.product.id
-        ).associateBy(InfrastructureService::url)
+        val hierarchyServices = infrastructureServiceRepository.listForHierarchy(context.hierarchy)
+            .associateBy(InfrastructureService::url)
 
         val configServices = config?.let {
             configLoader.resolve(it, context.hierarchy).infrastructureServices
@@ -221,6 +219,7 @@ class EnvironmentService(
                         passwordSecret = passwordSecret,
                         organization = null,
                         product = null,
+                        repository = null,
                         credentialsTypes = service.credentialsTypes
                     )
                 }

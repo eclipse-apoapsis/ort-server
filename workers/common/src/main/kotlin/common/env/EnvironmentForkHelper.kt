@@ -130,7 +130,8 @@ object EnvironmentForkHelper {
             passwordSecret = createDummySecret(passwordSecret),
             credentialsTypes = credentialsTypes,
             organization = null,
-            product = null
+            product = null,
+            repository = null
         )
 
     /**

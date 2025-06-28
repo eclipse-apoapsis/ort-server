@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
@@ -81,11 +82,11 @@ interface InfrastructureServiceRepository {
     fun deleteForIdAndName(id: HierarchyId, name: String)
 
     /**
-     * Return a list with [InfrastructureService]s that are associated with the given [organizationId], or
-     * [productId]. If there are multiple services with the same URL, instances on a lower level of
-     * the hierarchy are preferred, and others are dropped.
+     * Return a list with [InfrastructureService]s that are associated with the given [Hierarchy].
+     * If there are multiple services with the same URL, instances on a lower level of the hierarchy are preferred,
+     * and others are dropped.
      */
-    fun listForHierarchy(organizationId: Long, productId: Long): List<InfrastructureService>
+    fun listForHierarchy(hierarchy: Hierarchy): List<InfrastructureService>
 
     /**
      * Return a list with the [InfrastructureService]s that are associated with the given [Secret][secretId].

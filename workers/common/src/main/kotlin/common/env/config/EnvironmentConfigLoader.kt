@@ -204,6 +204,7 @@ class EnvironmentConfigLoader(
                         passwordSecret,
                         null,
                         null,
+                        null,
                         service.credentialsTypes
                     )
                 }

@@ -25,6 +25,8 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.organization.Organization
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
@@ -35,7 +37,6 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.and
 
 /**
  * A table to store infrastructure services, such as source code or artifact repositories.
@@ -51,42 +52,11 @@ object InfrastructureServicesTable : SortableTable("infrastructure_services") {
 
     val organizationId = reference("organization_id", OrganizationsTable).nullable()
     val productId = reference("product_id", ProductsTable).nullable()
+    val repositoryId = reference("repository_id", RepositoriesTable).nullable()
 }
 
 class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<InfrastructureServicesDao>(InfrastructureServicesTable) {
-        /**
-         * Try to find an entity with properties matching the ones of the given [service].
-         */
-        fun findByInfrastructureService(service: InfrastructureService): InfrastructureServicesDao? =
-            find {
-                InfrastructureServicesTable.name eq service.name and
-                        (InfrastructureServicesTable.url eq service.url) and
-                        (InfrastructureServicesTable.description eq service.description) and
-                        (InfrastructureServicesTable.usernameSecretId eq service.usernameSecret.id) and
-                        (InfrastructureServicesTable.passwordSecretId eq service.passwordSecret.id) and
-                        (
-                                InfrastructureServicesTable.credentialsType eq
-                                    toCredentialsTypeString(service.credentialsTypes)
-                                ) and
-                        (InfrastructureServicesTable.organizationId eq service.organization?.id) and
-                        (InfrastructureServicesTable.productId eq service.product?.id)
-            }.firstOrNull()
-
-        /**
-         * Return an entity with properties matching the ones of the given [service]. If no such entity exists yet, a
-         * new one is created now.
-         */
-        fun getOrPut(service: InfrastructureService): InfrastructureServicesDao =
-            findByInfrastructureService(service) ?: new {
-                name = service.name
-                url = service.url
-                description = service.description
-                credentialsTypes = service.credentialsTypes
-                usernameSecret = SecretDao[service.usernameSecret.id]
-                passwordSecret = SecretDao[service.passwordSecret.id]
-            }
-
         /**
          * Convert a set of [CredentialsType]s to a string representation.
          */
@@ -119,6 +89,8 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
     var organization by OrganizationDao optionalReferencedOn InfrastructureServicesTable.organizationId
     var productId by InfrastructureServicesTable.productId.transformToEntityId()
     var product by ProductDao optionalReferencedOn InfrastructureServicesTable.productId
+    var repositoryId by InfrastructureServicesTable.repositoryId.transformToEntityId()
+    var repository by RepositoryDao optionalReferencedOn InfrastructureServicesTable.repositoryId
 
     fun mapToModel() = InfrastructureService(
         name,
@@ -128,6 +100,7 @@ class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
         passwordSecret.mapToModel(),
         organization?.mapToModel(),
         product?.mapToModel(),
+        repository?.mapToModel(),
         credentialsTypes
     )
 }
