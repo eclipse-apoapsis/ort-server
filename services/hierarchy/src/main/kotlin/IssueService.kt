@@ -38,7 +38,6 @@ import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Query
-import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.innerJoin
 
 /**
@@ -112,15 +111,6 @@ class IssueService(private val db: Database) {
         ).where { OrtRunsIssuesTable.ortRunId eq ortRunId }
     }
 }
-
-/**
- * Convert this [OrderDirection] constant to the corresponding [SortOrder].
- */
-fun OrderDirection.toSortOrder(): SortOrder =
-    when (this) {
-        OrderDirection.ASCENDING -> SortOrder.ASC
-        OrderDirection.DESCENDING -> SortOrder.DESC
-    }
 
 internal fun Identifier.toConcatenatedString() = "$type $namespace $name $version"
 

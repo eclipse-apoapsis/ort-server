@@ -39,7 +39,6 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SortOrder
 
 class IssueServiceTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
@@ -51,16 +50,6 @@ class IssueServiceTest : WordSpec() {
         beforeEach {
             db = dbExtension.db
             fixtures = dbExtension.fixtures
-        }
-
-        "OrderDirection.toSortOrder" should {
-            "return SortOrder.ASC when OrderDirection is ASCENDING" {
-                OrderDirection.ASCENDING.toSortOrder() shouldBe SortOrder.ASC
-            }
-
-            "return SortOrder.DESC when OrderDirection is DESCENDING" {
-                OrderDirection.DESCENDING.toSortOrder() shouldBe SortOrder.DESC
-            }
         }
 
         "countForOrtRunIds" should {
