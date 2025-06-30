@@ -62,7 +62,7 @@ class DisableGlobalTemplateIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.enableGlobal("template1", pluginType, pluginId, "test-user")
 
                 client.post(
@@ -92,7 +92,7 @@ class DisableGlobalTemplateIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/template1/disableGlobal"
@@ -104,7 +104,7 @@ class DisableGlobalTemplateIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.enableGlobal("template1", pluginType, pluginId, "test-user")
 
                 client.post(

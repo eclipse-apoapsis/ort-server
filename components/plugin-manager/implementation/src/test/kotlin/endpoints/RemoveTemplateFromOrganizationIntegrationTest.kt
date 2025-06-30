@@ -69,7 +69,7 @@ class RemoveTemplateFromOrganizationIntegrationTest : AbstractIntegrationTest({
             ) { client ->
                 val organizationId2 = dbExtension.fixtures.createOrganization(name = "org2").id
 
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.addOrganization("template1", pluginType, pluginId, organizationId, "test-user")
                 pluginTemplateService.addOrganization("template1", pluginType, pluginId, organizationId2, "test-user")
 
@@ -101,7 +101,7 @@ class RemoveTemplateFromOrganizationIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/template1/removeFromOrganization?organizationId=1"
@@ -113,7 +113,7 @@ class RemoveTemplateFromOrganizationIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.addOrganization("template1", pluginType, pluginId, organizationId, "test-user")
 
                 client.post(

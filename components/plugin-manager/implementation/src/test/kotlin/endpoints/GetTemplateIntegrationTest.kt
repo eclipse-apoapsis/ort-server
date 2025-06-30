@@ -62,7 +62,7 @@ class GetTemplateIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 val response = client.get("/admin/plugins/$pluginType/$pluginId/templates/template1")
                 response shouldHaveStatus HttpStatusCode.OK
@@ -90,7 +90,7 @@ class GetTemplateIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 val response = client.get(
                     "/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1"
