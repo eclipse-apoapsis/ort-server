@@ -22,14 +22,17 @@ package org.eclipse.apoapsis.ortserver.workers.notifier
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
-import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
+import org.eclipse.apoapsis.ortserver.services.config.JiraRestClientConfiguration
+import org.eclipse.apoapsis.ortserver.services.config.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
 import org.ossreviewtoolkit.model.OrtResult
+import org.ossreviewtoolkit.model.config.JiraConfiguration
 import org.ossreviewtoolkit.model.config.NotifierConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions
+import org.ossreviewtoolkit.model.config.SendMailConfiguration
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.notifier.Notifier
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
@@ -98,3 +101,20 @@ class NotifierRunner(
         notifier.run(script)
     }
 }
+
+private fun JiraRestClientConfiguration.mapToOrt() =
+    JiraConfiguration(
+        host = serverUrl,
+        username = username,
+        password = password
+    )
+
+private fun MailServerConfiguration.mapToOrt() =
+    SendMailConfiguration(
+        hostName = hostName,
+        port = port,
+        username = username,
+        password = password,
+        useSsl = useSsl,
+        fromAddress = fromAddress
+    )

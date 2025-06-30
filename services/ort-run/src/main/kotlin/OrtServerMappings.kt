@@ -26,8 +26,6 @@ import java.time.Instant
 
 import kotlinx.datetime.toJavaInstant
 
-import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
-import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
@@ -155,7 +153,6 @@ import org.ossreviewtoolkit.model.config.Curations as OrtCurations
 import org.ossreviewtoolkit.model.config.Excludes as OrtExcludes
 import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
 import org.ossreviewtoolkit.model.config.IssueResolutionReason as OrtIssueResolutionReason
-import org.ossreviewtoolkit.model.config.JiraConfiguration as OrtJiraConfiguration
 import org.ossreviewtoolkit.model.config.LicenseChoices as OrtLicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration as OrtLicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason as OrtLicenseFindingCurationReason
@@ -173,7 +170,6 @@ import org.ossreviewtoolkit.model.config.RuleViolationResolutionReason as OrtRul
 import org.ossreviewtoolkit.model.config.ScannerConfiguration as OrtScannerConfiguration
 import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.ScopeExcludeReason as OrtScopeExcludeReason
-import org.ossreviewtoolkit.model.config.SendMailConfiguration as OrtSendMailConfiguration
 import org.ossreviewtoolkit.model.config.SnippetChoices as OrtSnippetChoices
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
@@ -324,13 +320,6 @@ fun Issue.mapToOrt() = OrtIssue(timestamp.toJavaInstant(), source, message, seve
 
 fun IssueResolution.mapToOrt() = OrtIssueResolution(message, OrtIssueResolutionReason.valueOf(reason), comment)
 
-fun JiraRestClientConfiguration.mapToOrt() =
-    OrtJiraConfiguration(
-        host = serverUrl,
-        username = username,
-        password = password
-    )
-
 fun KnownProvenance.mapToOrt() =
     when (this) {
         is ArtifactProvenance -> this.mapToOrt()
@@ -358,16 +347,6 @@ fun LicenseFindingCuration.mapToOrt() = OrtLicenseFindingCuration(
     reason = OrtLicenseFindingCurationReason.valueOf(reason),
     comment = comment
 )
-
-fun MailServerConfiguration.mapToOrt() =
-    OrtSendMailConfiguration(
-        hostName = hostName,
-        port = port,
-        username = username,
-        password = password,
-        useSsl = useSsl,
-        fromAddress = fromAddress
-    )
 
 fun NestedProvenance.mapToOrt() =
     OrtNestedProvenance(

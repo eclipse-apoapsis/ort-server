@@ -19,8 +19,60 @@
 
 package org.eclipse.apoapsis.ortserver.services.config
 
-import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
-import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
+/**
+ *  Configuration for a Jira REST client interacting with a Jira server after an ORT run.
+ */
+data class JiraRestClientConfiguration(
+    /**
+     * The URL of the Jira server, e.g. "https://jira.example.com".
+     */
+    val serverUrl: String,
+
+    /**
+     * The username to authenticate with the Jira server.
+     */
+    val username: String,
+
+    /**
+     * The password to authenticate with the Jira server.
+     */
+    val password: String
+)
+
+/**
+ * Configuration for a mail server to send mails after an ORT run.
+ */
+data class MailServerConfiguration(
+    /**
+     * The address of the outgoing SMTP server that will be used to send the message.
+     */
+    val hostName: String = "localhost",
+
+    /**
+     * The port used for the SMTP server.
+     */
+    val port: Int = 587,
+
+    /**
+     * The username to authenticate with the SMTP server.
+     */
+    val username: String = "",
+
+    /**
+     * The password to authenticate with the SMTP server.
+     */
+    val password: String = "",
+
+    /**
+     * Configuration if SSL/TLS encryption should be enabled with the SMTP server.
+     */
+    val useSsl: Boolean = true,
+
+    /**
+     * The 'from' field of the outgoing email.
+     */
+    val fromAddress: String
+)
 
 /**
  * A data class that represents the configuration of the Notifier worker.
