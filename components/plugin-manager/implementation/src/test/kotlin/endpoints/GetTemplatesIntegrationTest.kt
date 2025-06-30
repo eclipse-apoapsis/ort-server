@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
 
@@ -58,20 +59,20 @@ class GetTemplatesIntegrationTest : AbstractIntegrationTest({
     }
 
     "GetTemplates" should {
-        "return the templates for a plugin" {
+        "return the templates for a plugin in alphabetic order" {
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
                 pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
-                pluginTemplateService.updateOptions("template2", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.updateOptions("template3", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.updateOptions("template2", pluginType, pluginId, "test-user", emptyList())
 
                 val response = client.get("/admin/plugins/$pluginType/$pluginId/templates")
                 response shouldHaveStatus HttpStatusCode.OK
 
                 val templates = response.body<List<PluginTemplate>>()
 
-                templates should containExactlyInAnyOrder(
+                templates should containExactly(
                     PluginTemplate(
                         name = "template1",
                         pluginType = pluginType,
