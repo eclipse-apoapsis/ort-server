@@ -23,8 +23,8 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplatesReadModel
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.dao.Query
-import org.jetbrains.exposed.sql.SortOrder
 
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
 

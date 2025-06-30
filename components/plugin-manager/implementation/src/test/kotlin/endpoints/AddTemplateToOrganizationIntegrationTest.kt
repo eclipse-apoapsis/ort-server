@@ -66,7 +66,7 @@ class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 val organizationId2 = dbExtension.fixtures.createOrganization(name = "org2").id
 
@@ -102,7 +102,7 @@ class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/template1" +
@@ -115,7 +115,7 @@ class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.addOrganization("template1", pluginType, pluginId, 1, "test-user")
 
                 client.post(
@@ -129,7 +129,7 @@ class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(
                     "/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1" +

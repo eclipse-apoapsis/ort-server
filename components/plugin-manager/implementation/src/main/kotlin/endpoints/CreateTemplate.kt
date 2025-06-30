@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 
-import io.github.smiley4.ktoropenapi.put
+import io.github.smiley4.ktoropenapi.post
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -41,12 +41,12 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.updateTemplateOptions(
+internal fun Route.createTemplate(
     pluginTemplateService: PluginTemplateService
-) = put("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
-    operationId = "UpdatePluginTemplateOptions"
-    summary = "Update the options of a plugin template"
-    description = "Update the options of a plugin template."
+) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
+    operationId = "CreatePluginTemplate"
+    summary = "Create a new plugin template"
+    description = "Create a new plugin template."
     tags = listOf("Plugins")
 
     request {
@@ -61,7 +61,7 @@ internal fun Route.updateTemplateOptions(
         }
 
         pathParameter<String>("templateName") {
-            description = "The name of the template to update."
+            description = "The name of the template to create."
             required = true
         }
 
@@ -81,11 +81,11 @@ internal fun Route.updateTemplateOptions(
 
     response {
         HttpStatusCode.OK to {
-            description = "The options were successfully updated."
+            description = "The template was successfully created."
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The specified plugin is not installed or the template could not be updated."
+            description = "The specified plugin is not installed or the template could not be created."
         }
     }
 }) {
@@ -98,8 +98,8 @@ internal fun Route.updateTemplateOptions(
 
     val options = call.receive<List<PluginOptionTemplate>>()
 
-    pluginTemplateService.updateOptions(templateName, pluginType, pluginId, userId, options).onSuccess {
-        call.respond(HttpStatusCode.OK, "Template options updated successfully.")
+    pluginTemplateService.create(templateName, pluginType, pluginId, userId, options).onSuccess {
+        call.respond(HttpStatusCode.OK, "Template created successfully.")
     }.onFailure {
         when (it) {
             is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)

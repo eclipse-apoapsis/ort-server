@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.addTemplateToOrganization
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.createTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.deleteTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.disableGlobalTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.disablePlugin
@@ -40,6 +41,7 @@ fun Route.pluginManagerRoutes(
     pluginTemplateService: PluginTemplateService
 ) {
     addTemplateToOrganization(pluginTemplateService)
+    createTemplate(pluginTemplateService)
     deleteTemplate(pluginTemplateService)
     disableGlobalTemplate(pluginTemplateService)
     disablePlugin(eventStore)

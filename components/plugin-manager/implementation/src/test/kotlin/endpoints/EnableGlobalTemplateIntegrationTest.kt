@@ -62,7 +62,7 @@ class EnableGlobalTemplateIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/template1/enableGlobal"
@@ -91,7 +91,7 @@ class EnableGlobalTemplateIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.enableGlobal("template1", pluginType, pluginId, "test-user")
 
                 client.post(
@@ -104,8 +104,8 @@ class EnableGlobalTemplateIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
-                pluginTemplateService.updateOptions("template2", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template2", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.enableGlobal("template2", pluginType, pluginId, "test-user")
 
                 client.post(
@@ -118,7 +118,7 @@ class EnableGlobalTemplateIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication(
                 routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
             ) { client ->
-                pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(
                     "/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1/enableGlobal"

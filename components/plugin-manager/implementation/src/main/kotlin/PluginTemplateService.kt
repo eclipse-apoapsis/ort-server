@@ -80,6 +80,35 @@ class PluginTemplateService(
                 }
         }
 
+    /**
+     * Create a new plugin template with the given [templateName], [pluginType], and [pluginId] with the provided
+     * [options].
+     */
+    internal fun create(
+        templateName: String,
+        pluginType: PluginType,
+        pluginId: String,
+        userId: String,
+        options: List<PluginOptionTemplate>
+    ): Result<Unit, TemplateError> = db.transaction {
+        validatePlugin(pluginType, pluginId)
+            .andThen { normalizedPluginId -> validatePluginOptions(pluginType, normalizedPluginId, options) }
+            .andThen { normalizedPluginId -> validateNotExisting(templateName, pluginType, normalizedPluginId) }
+            .andThen { normalizedPluginId -> getTemplateStateOrEmpty(templateName, pluginType, normalizedPluginId) }
+            .map { template ->
+                eventStore.appendEvent(
+                    PluginTemplateEvent(
+                        name = template.name,
+                        pluginType = template.pluginType,
+                        pluginId = template.pluginId,
+                        version = template.version + 1,
+                        payload = OptionsUpdated(options),
+                        createdBy = userId
+                    )
+                )
+            }
+    }
+
     /** Delete the plugin template with the given [templateName], [pluginType], and [pluginId]. */
     internal fun delete(
         templateName: String,
@@ -229,7 +258,7 @@ class PluginTemplateService(
 
     /**
      * Update the plugin template with the given [templateName], [pluginType], and [pluginId] with the provided
-     * [options]. If the template does not exist, it will be created.
+     * [options].
      */
     internal fun updateOptions(
         templateName: String,
@@ -240,7 +269,8 @@ class PluginTemplateService(
     ): Result<Unit, TemplateError> = db.transaction {
         validatePlugin(pluginType, pluginId)
             .andThen { normalizedPluginId -> validatePluginOptions(pluginType, normalizedPluginId, options) }
-            .andThen { normalizedPluginId -> getTemplateStateOrEmpty(templateName, pluginType, normalizedPluginId) }
+            .andThen { normalizedPluginId -> getTemplateState(templateName, pluginType, normalizedPluginId) }
+            .andThen(::validateNotDeleted)
             .map { template ->
                 eventStore.appendEvent(
                     PluginTemplateEvent(
@@ -296,6 +326,27 @@ class PluginTemplateService(
         } else {
             Ok(template)
         }
+
+    /**
+     * Validate that no plugin template with the given [templateName], [pluginType], and [pluginId] already exists and
+     * return the [pluginId] on success.
+     */
+    private fun validateNotExisting(
+        templateName: String,
+        pluginType: PluginType,
+        pluginId: String
+    ): Result<String, TemplateError> {
+        val template = eventStore.getPluginTemplate(templateName, pluginType, pluginId)
+
+        return if (template != null && !template.isDeleted) {
+            return TemplateError.InvalidState(
+                "A plugin template with name '$templateName' for plugin type '$pluginType' and ID '$pluginId' " +
+                        "already exists."
+            ).toErr()
+        } else {
+            Ok(pluginId)
+        }
+    }
 
     /** Validate that the organization with the given [organizationId] exists. */
     private fun validateOrganizationExists(organizationId: Long): Result<Unit, TemplateError> =
