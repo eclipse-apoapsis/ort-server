@@ -74,11 +74,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.PackageRunData
 import org.eclipse.apoapsis.ortserver.model.runs.Project
-import org.eclipse.apoapsis.ortserver.services.IssueService
 import org.eclipse.apoapsis.ortserver.services.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
+import org.eclipse.apoapsis.ortserver.services.ortrun.IssueService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.PackageService
 import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
