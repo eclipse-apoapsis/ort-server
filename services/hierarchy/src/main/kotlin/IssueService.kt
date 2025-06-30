@@ -127,20 +127,19 @@ internal fun List<Issue>.sort(sortFields: List<OrderField>): List<Issue> {
     // Explicitly only support a single sort field
     val sortField = sortFields.first()
 
-    when (sortField.name) {
-        "timestamp" -> compareBy<Issue> { it.timestamp }
-        "source" -> compareBy<Issue> { it.source }
-        "message" -> compareBy<Issue> { it.message }
-        "severity" -> compareBy<Issue> { it.severity }
-        "affectedPath" -> compareBy<Issue> { it.affectedPath }
-        "identifier" -> compareBy<Issue> { it.identifier?.toConcatenatedString() }
-        "worker" -> compareBy<Issue> { it.worker }
+    val comparator: Comparator<Issue> = when (sortField.name) {
+        "timestamp" -> compareBy { it.timestamp }
+        "source" -> compareBy { it.source }
+        "message" -> compareBy { it.message }
+        "severity" -> compareBy { it.severity }
+        "affectedPath" -> compareBy { it.affectedPath }
+        "identifier" -> compareBy { it.identifier?.toConcatenatedString() }
+        "worker" -> compareBy { it.worker }
         else -> throw QueryParametersException("Unknown sort field '${sortField.name}'.")
-    }.let {
-        sortedWith(it.thenBy { issue -> issue.hashCode() })
-    }.let {
-        return if (sortField.direction == OrderDirection.DESCENDING) it.reversed() else it
     }
+
+    return sortedWith(comparator.thenBy { issue -> issue.hashCode() })
+        .let { if (sortField.direction == OrderDirection.DESCENDING) it.reversed() else it }
 }
 
 /**
