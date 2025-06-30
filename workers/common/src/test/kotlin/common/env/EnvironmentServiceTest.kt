@@ -836,7 +836,7 @@ private const val RESOLVED_JOB_CONFIG_CONTEXT = "12345678"
 
 /** A [Hierarchy] object for the test repository. */
 private val repositoryHierarchy = Hierarchy(
-    Repository(20230613071811L, ORGANIZATION_ID, PRODUCT_ID, RepositoryType.GIT, REPOSITORY_URL),
+    Repository(REPOSITORY_ID, ORGANIZATION_ID, PRODUCT_ID, RepositoryType.GIT, REPOSITORY_URL),
     Product(PRODUCT_ID, ORGANIZATION_ID, "testProduct"),
     Organization(ORGANIZATION_ID, "test organization")
 )
