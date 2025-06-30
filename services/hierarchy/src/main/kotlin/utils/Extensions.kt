@@ -24,7 +24,6 @@ import kotlin.enums.EnumEntries
 /**
  * Return a readable string representation of the given [EnumEntries].
  */
-
 internal fun EnumEntries<out Enum<*>>.toJoinedString(): String =
     this.dropLast(1).joinToString(", ", transform = { "'${it.name.lowercase()}s'" })
         .let { "$it or '${this.last().name.lowercase()}s'" }
