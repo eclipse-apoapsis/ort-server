@@ -26,6 +26,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
@@ -77,7 +78,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val response =
-                    client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                    client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
                         setBody(options)
                     }
 
@@ -113,7 +114,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
                 pluginTemplateService.delete("template1", pluginType, pluginId, "test-user")
 
                 val response =
-                    client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                    client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
                         setBody(options)
                     }
 
@@ -148,7 +149,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
                 pluginTemplateService.updateOptions("template1", pluginType, pluginId, "test-user", emptyList())
 
                 val response =
-                    client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                    client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
                         setBody(options)
                     }
 
@@ -181,7 +182,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val response =
-                    client.post("/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1") {
+                    client.put("/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1") {
                         setBody(options)
                     }
 
@@ -211,7 +212,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
                     isFinal = true
                 )
 
-                client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
                     setBody(listOf(nonExistingOption))
                 } shouldHaveStatus HttpStatusCode.BadRequest
 
@@ -222,7 +223,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
                     isFinal = true
                 )
 
-                client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
                     setBody(listOf(wrongOptionType))
                 } shouldHaveStatus HttpStatusCode.BadRequest
 
@@ -233,7 +234,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
                     isFinal = true
                 )
 
-                client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
                     setBody(listOf(invalidOptionValue))
                 } shouldHaveStatus HttpStatusCode.BadRequest
             }

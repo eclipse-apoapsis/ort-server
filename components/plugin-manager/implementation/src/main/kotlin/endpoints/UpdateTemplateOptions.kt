@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 
-import io.github.smiley4.ktoropenapi.post
+import io.github.smiley4.ktoropenapi.put
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -43,7 +43,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.updateTemplateOptions(
     pluginTemplateService: PluginTemplateService
-) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
+) = put("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
     operationId = "UpdatePluginTemplateOptions"
     summary = "Update the options of a plugin template"
     description = "Update the options of a plugin template. If the template does not exist, it will be created."
