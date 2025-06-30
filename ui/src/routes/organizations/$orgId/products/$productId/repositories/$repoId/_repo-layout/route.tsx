@@ -18,7 +18,7 @@
  */
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { BookLock, Eye, Settings, User } from 'lucide-react';
+import { BookLock, Eye, ServerCog, Settings, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
@@ -48,6 +48,15 @@ const RepoLayout = () => {
           visible: user.hasRole([
             'superuser',
             `permission_repository_${repoId}_write_secrets`,
+          ]),
+        },
+        {
+          title: 'Infrastructure Services',
+          to: '/organizations/$orgId/products/$productId/repositories/$repoId/infrastructure-services',
+          icon: () => <ServerCog className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `permission_repository_${repoId}_admin`,
           ]),
         },
         {
