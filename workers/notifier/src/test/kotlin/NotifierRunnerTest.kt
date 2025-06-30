@@ -34,11 +34,11 @@ import java.io.File
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
-import org.eclipse.apoapsis.ortserver.model.JiraRestClientConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
-import org.eclipse.apoapsis.ortserver.model.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.JiraRestClientConfiguration
+import org.eclipse.apoapsis.ortserver.services.config.MailServerConfiguration
 import org.eclipse.apoapsis.ortserver.services.config.NotifierConfig
 import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
