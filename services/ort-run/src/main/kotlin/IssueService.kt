@@ -21,6 +21,9 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun.AdvisorRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
@@ -34,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
@@ -41,28 +45,34 @@ import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.innerJoin
 
+import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
+import org.ossreviewtoolkit.model.Issue as OrtIssue
+import org.ossreviewtoolkit.model.OrtResult
+
 /**
  * A service to manage and get information about issues.
  */
-class IssueService(private val db: Database) {
+class IssueService(private val db: Database, private val ortRunService: OrtRunService) {
     suspend fun listForOrtRunId(
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): ListQueryResult<Issue> = db.dbQuery {
-        val ortRunIssuesQuery = createOrtRunIssuesQuery(ortRunId)
+    ): ListQueryResult<Issue> {
+        val ortRun = ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
+            "ORT run with ID $ortRunId not found."
+        )
 
-        val issues = IssueDao.createFromQuery(ortRunIssuesQuery)
+        val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false)
 
-        // There always has to be some sort order defined, else the rows would be returned in random order,
-        // and tests that rely on a deterministic order would fail.
+        val issues = collectIssues(ortRunId, ortResult)
+
         val sortFields = parameters.sortFields.ifEmpty {
             listOf(OrderField("timestamp", OrderDirection.DESCENDING))
         }
 
-        ListQueryResult(
+        return ListQueryResult(
             issues.sort(sortFields).paginate(parameters),
             parameters,
-            ortRunIssuesQuery.count()
+            issues.size.toLong()
         )
     }
 
@@ -94,6 +104,37 @@ class IssueService(private val db: Database) {
         CountByCategory(severityToCountMap)
     }
 
+    /**
+     * Collect issues from the ORT result and the database for the given [ortRunId].
+     */
+    private suspend fun collectIssues(ortRunId: Long, ortResult: OrtResult): Set<Issue> {
+        val ortWorkerIssues = listOf(
+            ortResult.getAnalyzerIssues() to AnalyzerRunDao.ISSUE_WORKER_TYPE,
+            ortResult.getAdvisorIssues() to AdvisorRunDao.ISSUE_WORKER_TYPE,
+            ortResult.getScannerIssues() to ScannerRunDao.ISSUE_WORKER_TYPE
+        ).flatMap { (issuesByIdentifier, workerType) ->
+            // While the database contains almost all issues, some issues like dependency graph issues are only
+            // available in the ORT result. To ensure that no issues are lost, also collect them from the ORT result.
+            collectIssuesFromWorker(issuesByIdentifier, workerType)
+        }.map { issue ->
+            // Normalize timestamp to database precision to help with duplicate detection
+            issue.copy(timestamp = issue.timestamp.toDatabasePrecision())
+        }
+
+        val dbIssues = db.dbQuery { IssueDao.createFromQuery(createOrtRunIssuesQuery(ortRunId)) }
+
+        return (ortWorkerIssues + dbIssues).toSet()
+    }
+
+    private fun collectIssuesFromWorker(
+        issueMap: Map<OrtIdentifier, Set<OrtIssue>>,
+        workerType: String
+    ) = issueMap.flatMap { (identifier, ortIssues) ->
+        ortIssues.map { ortIssue ->
+            ortIssue.mapToModel(identifier = identifier.mapToModel(), worker = workerType)
+        }
+    }
+
     private fun createOrtRunIssuesQuery(ortRunId: Long): Query {
         val issuesIdentifiersJoin = OrtRunsIssuesTable
             .innerJoin(IssuesTable, { issueId }, { id })
@@ -120,7 +161,7 @@ internal fun Identifier.toConcatenatedString() = "$type $namespace $name $versio
  * to get a stable sort order. Although the API supports having more than one sort order field, this implementation
  * only supports a single sort field.
  */
-internal fun List<Issue>.sort(sortFields: List<OrderField>): List<Issue> {
+internal fun Collection<Issue>.sort(sortFields: List<OrderField>): List<Issue> {
     require(sortFields.isNotEmpty()) {
         "At least one sort field must be defined."
     }

@@ -913,7 +913,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         Identifier("Maven", "namespace", "name", "1.0.0") to listOf(
                             AdvisorResult(
                                 advisorName = "Advisor",
-                                capabilities = listOf("vulnerabilities"),
+                                capabilities = listOf("VULNERABILITIES"),
                                 startTime = now.toDatabasePrecision(),
                                 endTime = now.toDatabasePrecision(),
                                 issues = listOf(
