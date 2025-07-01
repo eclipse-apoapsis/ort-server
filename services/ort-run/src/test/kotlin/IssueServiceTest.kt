@@ -22,6 +22,9 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
+
+import io.mockk.mockk
 
 import kotlin.time.Duration.Companion.seconds
 
@@ -29,10 +32,17 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
+import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -45,23 +55,100 @@ class IssueServiceTest : WordSpec() {
 
     private lateinit var db: Database
     private lateinit var fixtures: Fixtures
+    private lateinit var service: IssueService
 
     init {
         beforeEach {
             db = dbExtension.db
             fixtures = dbExtension.fixtures
+
+            val ortRunService = OrtRunService(
+                db,
+                fixtures.advisorJobRepository,
+                fixtures.advisorRunRepository,
+                fixtures.analyzerJobRepository,
+                fixtures.analyzerRunRepository,
+                fixtures.evaluatorJobRepository,
+                fixtures.evaluatorRunRepository,
+                fixtures.ortRunRepository,
+                fixtures.reporterJobRepository,
+                fixtures.reporterRunRepository,
+                fixtures.notifierJobRepository,
+                fixtures.notifierRunRepository,
+                fixtures.repositoryConfigurationRepository,
+                fixtures.repositoryRepository,
+                fixtures.resolvedConfigurationRepository,
+                fixtures.scannerJobRepository,
+                fixtures.scannerRunRepository,
+                mockk(),
+                mockk()
+            )
+
+            service = IssueService(db, ortRunService)
+        }
+
+        "listForOrtRunId" should {
+            "return issues for the given ORT run ID" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "dependency not found: example-lib",
+                        severity = Severity.ERROR,
+                        affectedPath = "build.gradle.kts",
+                        identifier = Identifier("Maven", "com.example", "example-lib", "1.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "NPM",
+                        message = "timeout while scanning package",
+                        severity = Severity.WARNING,
+                        affectedPath = "src/main/kotlin",
+                        identifier = Identifier("Maven", "com.example", "scanner-test", "2.0.0")
+                    )
+                )
+
+                val resolutions = Resolutions(
+                    issues = listOf(
+                        IssueResolution(
+                            message = "dependency not found.*",
+                            reason = "CANT_FIX_ISSUE",
+                            comment = "This is a known issue with the external dependency repository"
+                        ),
+                        IssueResolution(
+                            message = "timeout while scanning.*",
+                            reason = "CANT_FIX_ISSUE",
+                            comment = "Timeout issues are acceptable for this type of scanning"
+                        )
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssueResolutions(repositoryId, issues, resolutions)
+
+                val result = service.listForOrtRunId(ortRun.id)
+
+                result.data.size shouldBe 2
+                result.totalCount shouldBe 2
+
+                val dependencyIssue = result.data.single { it.message.contains("dependency not found") }
+                dependencyIssue.resolutions.size shouldBe 1
+                dependencyIssue.resolutions[0].message shouldStartWith "dependency not found"
+
+                val timeoutIssue = result.data.single { it.message.contains("timeout while scanning") }
+                timeoutIssue.resolutions.size shouldBe 1
+                timeoutIssue.resolutions[0].message shouldStartWith "timeout while scanning"
+            }
         }
 
         "countForOrtRunIds" should {
             "return issue count for ORT run" {
-                val service = IssueService(db)
                 val ortRun = createOrtRunWithIssues()
 
                 service.countForOrtRunIds(ortRun.id) shouldBe 4
             }
 
             "return count of issues found in ORT runs" {
-                val service = IssueService(db)
                 val repositoryId = fixtures.createRepository().id
 
                 val ortRun1Id = createOrtRunWithIssues(repositoryId).id
@@ -86,7 +173,6 @@ class IssueServiceTest : WordSpec() {
 
         "countIssuesBySeverityForOrtRunIds" should {
             "return the counts per severity for issues found in ORT runs" {
-                val service = IssueService(db)
                 val repositoryId = fixtures.createRepository().id
 
                 val ortRun1Id = createOrtRunWithIssues(
@@ -126,7 +212,6 @@ class IssueServiceTest : WordSpec() {
             }
 
             "return counts by severity that sum up to the count returned by countForOrtRunIds" {
-                val service = IssueService(db)
                 val repositoryId = fixtures.createRepository().id
 
                 val ortRun1Id = createOrtRunWithIssues(repositoryId).id
@@ -151,8 +236,6 @@ class IssueServiceTest : WordSpec() {
             }
 
             "include counts of 0 for severities that are not found in issues" {
-                val service = IssueService(db)
-
                 val repositoryId = fixtures.createRepository().id
                 val ortRunId = fixtures.createOrtRun(repositoryId).id
 
@@ -306,6 +389,49 @@ class IssueServiceTest : WordSpec() {
                 affectedPath = "package/dist/somefile"
             )
         )
+
+    private fun createOrtRunWithIssueResolutions(
+        repositoryId: Long,
+        issues: List<Issue>,
+        resolutions: Resolutions
+    ): OrtRun {
+        val ortRun = fixtures.createOrtRun(repositoryId, "revision", JobConfigurations())
+
+        val analyzerJob = fixtures.createAnalyzerJob(
+            ortRunId = ortRun.id,
+            configuration = AnalyzerJobConfiguration()
+        )
+
+        fixtures.analyzerRunRepository.create(
+            analyzerJobId = analyzerJob.id,
+            startTime = Clock.System.now().toDatabasePrecision(),
+            endTime = Clock.System.now().toDatabasePrecision(),
+            environment = Environment(
+                ortVersion = "1.0",
+                javaVersion = "11.0.16",
+                os = "Linux",
+                processors = 8,
+                maxMemory = 8321499136,
+                variables = emptyMap(),
+                toolVersions = emptyMap()
+            ),
+            config = AnalyzerConfiguration(
+                allowDynamicVersions = false,
+                enabledPackageManagers = emptyList(),
+                disabledPackageManagers = null,
+                packageManagers = emptyMap(),
+                skipExcluded = false
+            ),
+            projects = emptySet(),
+            packages = emptySet(),
+            issues = issues,
+            dependencyGraphs = emptyMap()
+        )
+
+        fixtures.resolvedConfigurationRepository.addResolutions(ortRun.id, resolutions)
+
+        return ortRun
+    }
 
     private fun createOrtRunWithIssues(
         repositoryId: Long = fixtures.createRepository().id,

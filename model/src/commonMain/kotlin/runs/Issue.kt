@@ -23,6 +23,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 
 /**
  * A data class describing an issue that occurred during an ORT run.
@@ -48,5 +49,8 @@ data class Issue(
     val identifier: Identifier? = null,
 
     /** The worker which caused this issue if available. */
-    val worker: String? = null
+    val worker: String? = null,
+
+    /** The [IssueResolution]s that have been applied to this issue. */
+    val resolutions: List<IssueResolution> = emptyList()
 )
