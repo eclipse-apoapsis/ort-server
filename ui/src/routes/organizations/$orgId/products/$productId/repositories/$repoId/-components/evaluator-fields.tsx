@@ -20,6 +20,7 @@
 import { UseFormReturn } from 'react-hook-form';
 
 import { FormControl, FormField } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
 
@@ -35,11 +36,15 @@ export const EvaluatorFields = ({ form }: EvaluatorFieldsProps) => {
         name='jobConfigs.evaluator.enabled'
         render={({ field }) => (
           <FormControl>
-            <Switch
-              className='my-4 mr-4 data-[state=checked]:bg-green-500'
-              checked={field.value}
-              onCheckedChange={field.onChange}
-            />
+            <div className='flex items-center space-x-2'>
+              <Switch
+                className='my-4 mr-4 data-[state=checked]:bg-green-500'
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                id='evaluator-enabled-switch'
+              />
+              <Label htmlFor='evaluator-enabled-switch'>Evaluator</Label>
+            </div>
           </FormControl>
         )}
       />
