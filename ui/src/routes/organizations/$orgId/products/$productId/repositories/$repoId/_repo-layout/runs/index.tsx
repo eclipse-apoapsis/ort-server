@@ -78,23 +78,32 @@ const RepositoryRunsComponent = () => {
 
   return (
     <div className='flex flex-col gap-4'>
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <span className='font-normal'>
-              {getRepositoryTypeLabel(repo.type)} repository
-            </span>{' '}
-            <Link
-              className='font-semibold break-all hover:text-blue-400 hover:underline'
-              to={repo.url}
-              target='_blank'
-            >
-              {repo.url}
-            </Link>
-          </CardTitle>
-          <CardDescription>{repo.description}</CardDescription>
-        </CardHeader>
-      </Card>
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+        <Card className='col-span-1 md:col-span-3'>
+          <CardHeader>
+            <CardTitle>
+              <span className='font-normal'>
+                {getRepositoryTypeLabel(repo.type)} repository
+              </span>{' '}
+              <Link
+                className='font-semibold break-all hover:text-blue-400 hover:underline'
+                to={repo.url}
+                target='_blank'
+              >
+                {repo.url}
+              </Link>
+            </CardTitle>
+            <CardDescription>{repo.description}</CardDescription>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>
+              Repository ID: <span className='font-bold'>{repo.id}</span>
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
       <JobDurations
         repoId={params.repoId}
         pageIndex={pageIndex}
