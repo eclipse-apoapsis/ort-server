@@ -9,3 +9,7 @@ Authorization: Bearer {{$auth.token("keycloak")}}
 ### Get rule violations for an ORT run
 GET {{host}}/runs/1/rule-violations?resolved=false
 Authorization: Bearer {{$auth.token("keycloak")}}
+
+### Get issues for an ORT run
+GET {{host}}/runs/1/issues?resolved=false
+Authorization: Bearer {{$auth.token("keycloak")}}

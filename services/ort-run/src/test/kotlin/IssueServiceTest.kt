@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldStartWith
 
 import io.mockk.mockk
@@ -41,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -106,6 +108,14 @@ class IssueServiceTest : WordSpec() {
                         severity = Severity.WARNING,
                         affectedPath = "src/main/kotlin",
                         identifier = Identifier("Maven", "com.example", "scanner-test", "2.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(2.seconds),
+                        source = "Scanner",
+                        message = "unresolved npm issue",
+                        severity = Severity.WARNING,
+                        affectedPath = "src/test/kotlin",
+                        identifier = Identifier("Maven", "com.example", "unresolved-lib", "3.0.0")
                     )
                 )
 
@@ -128,8 +138,8 @@ class IssueServiceTest : WordSpec() {
 
                 val result = service.listForOrtRunId(ortRun.id)
 
-                result.data.size shouldBe 2
-                result.totalCount shouldBe 2
+                result.data.size shouldBe 3
+                result.totalCount shouldBe 3
 
                 val dependencyIssue = result.data.single { it.message.contains("dependency not found") }
                 dependencyIssue.resolutions.size shouldBe 1
@@ -138,6 +148,135 @@ class IssueServiceTest : WordSpec() {
                 val timeoutIssue = result.data.single { it.message.contains("timeout while scanning") }
                 timeoutIssue.resolutions.size shouldBe 1
                 timeoutIssue.resolutions[0].message shouldStartWith "timeout while scanning"
+
+                val unresolvedIssue = result.data.single { it.message.contains("unresolved npm issue") }
+                unresolvedIssue.resolutions.size shouldBe 0
+            }
+
+            "filter resolved issues when issuesFilter.resolved is true" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "dependency not found: example-lib",
+                        severity = Severity.ERROR,
+                        affectedPath = "build.gradle.kts",
+                        identifier = Identifier("Maven", "com.example", "example-lib", "1.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "NPM",
+                        message = "unresolved npm issue",
+                        severity = Severity.WARNING,
+                        affectedPath = "src",
+                        identifier = Identifier("Maven", "com.example", "unresolved-lib", "3.0.0")
+                    )
+                )
+
+                val resolutions = Resolutions(
+                    issues = listOf(
+                        IssueResolution(
+                            message = "dependency not found.*",
+                            reason = "CANT_FIX_ISSUE",
+                            comment = "This is a known issue with the external dependency repository"
+                        )
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssueResolutions(repositoryId, issues, resolutions)
+
+                val result = service.listForOrtRunId(ortRun.id, issuesFilter = IssueFilter(resolved = true))
+
+                result.data.size shouldBe 1
+                result.totalCount shouldBe 1
+                result.data[0].message shouldContain "dependency not found"
+                result.data[0].resolutions.size shouldBe 1
+            }
+
+            "filter unresolved issues when issuesFilter.resolved is false" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "dependency not found: example-lib",
+                        severity = Severity.ERROR,
+                        affectedPath = "build.gradle.kts",
+                        identifier = Identifier("Maven", "com.example", "example-lib", "1.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "NPM",
+                        message = "unresolved npm issue",
+                        severity = Severity.WARNING,
+                        identifier = Identifier("Maven", "com.example", "unresolved-lib", "3.0.0")
+                    )
+                )
+
+                val resolutions = Resolutions(
+                    issues = listOf(
+                        IssueResolution(
+                            message = "dependency not found.*",
+                            reason = "CANT_FIX_ISSUE",
+                            comment = "This is a known issue with the external dependency repository"
+                        )
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssueResolutions(repositoryId, issues, resolutions)
+
+                val result = service.listForOrtRunId(ortRun.id, issuesFilter = IssueFilter(resolved = false))
+
+                result.data.size shouldBe 1
+                result.totalCount shouldBe 1
+                result.data[0].message shouldContain "unresolved npm issue"
+                result.data[0].resolutions.size shouldBe 0
+            }
+
+            "return all issues when issuesFilter.resolved is null" {
+                val repositoryId = fixtures.createRepository().id
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Maven",
+                        message = "dependency not found: example-lib",
+                        severity = Severity.ERROR,
+                        affectedPath = "build.gradle.kts",
+                        identifier = Identifier("Maven", "com.example", "example-lib", "1.0.0")
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "NPM",
+                        message = "unresolved npm issue",
+                        severity = Severity.WARNING,
+                        affectedPath = "src/test/kotlin",
+                        identifier = Identifier("Maven", "com.example", "unresolved-lib", "3.0.0")
+                    )
+                )
+
+                val resolutions = Resolutions(
+                    issues = listOf(
+                        IssueResolution(
+                            message = "dependency not found.*",
+                            reason = "CANT_FIX_ISSUE",
+                            comment = "This is a known issue with the external dependency repository"
+                        )
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssueResolutions(repositoryId, issues, resolutions)
+
+                val result = service.listForOrtRunId(ortRun.id, issuesFilter = IssueFilter(resolved = null))
+
+                result.data.size shouldBe 2
+                result.totalCount shouldBe 2
+
+                val resolvedIssue = result.data.single { it.message.contains("dependency not found") }
+                resolvedIssue.resolutions.size shouldBe 1
+
+                val unresolvedIssue = result.data.single { it.message.contains("unresolved npm issue") }
+                unresolvedIssue.resolutions.size shouldBe 0
             }
         }
 

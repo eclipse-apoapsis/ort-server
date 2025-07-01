@@ -208,6 +208,14 @@ val getIssuesByRunId: RouteConfig.() -> Unit = {
             description = "The ID of the ORT run."
         }
 
+        queryParameter<Boolean>("resolved") {
+            description =
+                """
+                    If true, only resolved issues are returned. If false, only unresolved issues are returned.
+                    If missing, both resolved and unresolved issues are returned.
+                """.trimIndent()
+        }
+
         standardListQueryParameters()
     }
 
@@ -222,7 +230,7 @@ val getIssuesByRunId: RouteConfig.() -> Unit = {
                                 message = "An issue",
                                 severity = Severity.ERROR,
                                 source = "source",
-                                timestamp = CREATED_AT
+                                timestamp = CREATED_AT,
                             )
                         ),
                         PagingData(

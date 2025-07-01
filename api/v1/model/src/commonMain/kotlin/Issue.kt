@@ -46,5 +46,8 @@ data class Issue(
     val identifier: Identifier? = null,
 
     /** The worker which caused this issue if available. */
-    val worker: String? = null
+    val worker: String? = null,
+
+    /** The [IssueResolution]s that have been applied to this issue. */
+    val resolutions: List<IssueResolution> = emptyList()
 )
