@@ -35,7 +35,9 @@ import io.kotest.matchers.types.shouldBeSameInstanceAs
 
 import io.mockk.every
 import io.mockk.spyk
+import io.mockk.verify
 
+import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -66,6 +68,131 @@ class AdminConfigServiceTest : WordSpec({
             shouldThrow<IllegalArgumentException> {
                 service.loadAdminConfig(context, ORGANIZATION_ID)
             } shouldBe exception
+        }
+
+        "check that all files referenced by rule sets actually exist" {
+            val config = """
+                    defaultRuleSet {
+                      copyrightGarbageFile = "defaultCopyrightGarbageFile"
+                      licenseClassificationsFile = "defaultLicenseClassificationsFile"
+                      resolutionsFile = "defaultResolutionsFile"
+                      evaluatorRules = "defaultEvaluatorRules"
+                    }
+                    ruleSets {
+                      customRuleSet1 {
+                        copyrightGarbageFile = "testCopyrightGarbageFile1"
+                      }  
+                      customRuleSet2 {
+                        licenseClassificationsFile = "testLicenseClassificationsFile2"
+                        resolutionsFile = "testResolutionsFile2"
+                        evaluatorRules = "testEvaluatorRules2"
+                      }  
+                    }
+                """.trimIndent()
+
+            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
+            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+
+            verify(exactly = 1) {
+                configManager.containsFile(context, Path("defaultCopyrightGarbageFile"))
+                configManager.containsFile(context, Path("defaultLicenseClassificationsFile"))
+                configManager.containsFile(context, Path("defaultResolutionsFile"))
+                configManager.containsFile(context, Path("defaultEvaluatorRules"))
+                configManager.containsFile(context, Path("testCopyrightGarbageFile1"))
+                configManager.containsFile(context, Path("testLicenseClassificationsFile2"))
+                configManager.containsFile(context, Path("testResolutionsFile2"))
+                configManager.containsFile(context, Path("testEvaluatorRules2"))
+            }
+        }
+
+        "throw an exception if a configuration file cannot be resolved" {
+            val config = """
+                    defaultRuleSet {
+                      copyrightGarbageFile = "defaultCopyrightGarbageFile"
+                      licenseClassificationsFile = "defaultLicenseClassificationsFile"
+                      resolutionsFile = "defaultResolutionsFile"
+                      evaluatorRules = "defaultEvaluatorRules"
+                    }
+                    ruleSets {
+                      customRuleSet1 {
+                        copyrightGarbageFile = "testCopyrightGarbageFile1"
+                      }  
+                    }
+                """.trimIndent()
+
+            val (service, configManager) = createServiceAndConfigManager {
+                initAdminConfig(config)
+
+                every { containsFile(context, Path("defaultCopyrightGarbageFile")) } returns false
+                every { containsFile(context, Path("testCopyrightGarbageFile1")) } returns false
+            }
+
+            val exception = shouldThrow<ConfigException> {
+                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            }
+
+            exception.message shouldContain "'defaultCopyrightGarbageFile'"
+            exception.message shouldContain "'testCopyrightGarbageFile1'"
+
+            verify(exactly = 1) {
+                configManager.containsFile(context, Path("defaultResolutionsFile"))
+            }
+        }
+
+        "throw an exception if an empty list of source code origins for the scanner is configured" {
+            val config = """
+                    scanner {
+                        sourceCodeOrigins = []
+                    }
+                """.trimIndent()
+
+            val service = createServiceWithConfig(config)
+
+            val exception = shouldThrow<ConfigException> {
+                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            }
+
+            exception.message shouldContain "'sourceCodeOrigins'"
+        }
+
+        "throw an exception if a duplicate source code origin is configured" {
+            val config = """
+                    scanner {
+                        sourceCodeOrigins = ["vcs", "artifact", "vcs"]
+                    }
+                """.trimIndent()
+
+            val service = createServiceWithConfig(config)
+
+            val exception = shouldThrow<ConfigException> {
+                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            }
+
+            exception.message shouldContain "'sourceCodeOrigins'"
+        }
+
+        "only validate the configuration if requested" {
+            val config = """
+                    defaultRuleSet {
+                      copyrightGarbageFile = "defaultCopyrightGarbageFile"
+                      licenseClassificationsFile = "defaultLicenseClassificationsFile"
+                      resolutionsFile = "defaultResolutionsFile"
+                      evaluatorRules = "defaultEvaluatorRules"
+                    }
+                    ruleSets {
+                      customRuleSet1 {
+                        copyrightGarbageFile = "testCopyrightGarbageFile1"
+                      }  
+                    }
+                """.trimIndent()
+
+            val service = createService {
+                initAdminConfig(config)
+
+                every { containsFile(any(), any()) } returns false
+            }
+
+            service.loadAdminConfig(context, ORGANIZATION_ID)
         }
     }
 
@@ -430,21 +557,32 @@ private const val ADMIN_CONFIG_PATH = "test-ort-server.conf"
 private const val ORGANIZATION_ID = 20250617160321L
 
 /**
+ * Create an [AdminConfigService] instance for testing that uses a spy [ConfigManager] returning the given
+ * [adminConfigPath]. The given [block] can be used to further configure the [ConfigManager] spy. Return a [Pair]
+ * with the service and the [ConfigManager] spy.
+ */
+private fun createServiceAndConfigManager(
+    adminConfigPath: String? = ADMIN_CONFIG_PATH,
+    block: ConfigManager.() -> Unit = {}
+): Pair<AdminConfigService, ConfigManager> {
+    val config = adminConfigPath?.let { ConfigFactory.parseMap(mapOf("adminConfigPath" to it)) }
+        ?: ConfigFactory.empty()
+    val configManager = spyk(ConfigManager.create(config)) {
+        every { containsFile(any(), any()) } returns true
+        block()
+    }
+
+    return AdminConfigService(configManager) to configManager
+}
+
+/**
  * Return an [AdminConfigService] instance for testing that uses a [ConfigManager] spy with the given
  * [adminConfigPath]. The given [block] can be used to further configure the [ConfigManager] spy.
  */
 private fun createService(
     adminConfigPath: String? = ADMIN_CONFIG_PATH,
     block: ConfigManager.() -> Unit = {}
-): AdminConfigService {
-    val config = adminConfigPath?.let { ConfigFactory.parseMap(mapOf("adminConfigPath" to it)) }
-        ?: ConfigFactory.empty()
-    val configManager = spyk(ConfigManager.create(config)) {
-        block()
-    }
-
-    return AdminConfigService(configManager)
-}
+): AdminConfigService = createServiceAndConfigManager(adminConfigPath, block).first
 
 /**
  * Return an [AdminConfigService] instance for testing that yields an [AdminConfig] that is parsed from the given

@@ -26,6 +26,7 @@ import com.typesafe.config.ConfigValueFactory
 
 import java.io.InputStreamReader
 
+import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
@@ -145,6 +146,20 @@ class AdminConfigService(
             } ?: AdminConfig.DEFAULT_SCANNER_CONFIG
 
         /**
+         * Validate the given [scannerConfig]. Add found issues to the given [issues] list.
+         */
+        private fun validateScannerConfig(issues: MutableList<String>, scannerConfig: ScannerConfig) {
+            if (scannerConfig.sourceCodeOrigins.isEmpty()) {
+                issues += "'sourceCodeOrigins' from scanner configuration must not be empty."
+            }
+
+            if (scannerConfig.sourceCodeOrigins.toSet().size != scannerConfig.sourceCodeOrigins.size) {
+                issues += "'sourceCodeOrigins' from scanner configuration must not contain duplicates. " +
+                        "Current value is ${scannerConfig.sourceCodeOrigins}."
+            }
+        }
+
+        /**
          * Parse the properties related to the notifier configuration from the given [config] and return a
          * corresponding [NotifierConfig] instance.
          */
@@ -215,14 +230,47 @@ class AdminConfigService(
                 passwordSecret = mirrorConfig.getStringOrNull("password")
             )
         }
+
+        /**
+         * Return a [Set] with the paths to all configuration files referenced by this [AdminConfig]. This is used
+         * to perform a validation after loading the configuration whether these files can actually be resolved.
+         * The set does not contain any default paths because for those it is allowed to not exist.
+         */
+        private fun getConfigurationFiles(config: AdminConfig): Set<String> = buildSet {
+            config.getRuleSet(null).getConfigurationFiles(this)
+
+            config.ruleSetNames.forEach { ruleSet ->
+                config.getRuleSet(ruleSet).getConfigurationFiles(this)
+            }
+        }
+
+        /**
+         * Add all configuration files referenced by this [RuleSet] to the given [target] set for validation.
+         */
+        private fun RuleSet.getConfigurationFiles(target: MutableSet<String>) {
+            target.addNonDefault(copyrightGarbageFile, AdminConfig.DEFAULT_RULE_SET.copyrightGarbageFile)
+            target.addNonDefault(licenseClassificationsFile, AdminConfig.DEFAULT_RULE_SET.licenseClassificationsFile)
+            target.addNonDefault(resolutionsFile, AdminConfig.DEFAULT_RULE_SET.resolutionsFile)
+            target.addNonDefault(evaluatorRules, AdminConfig.DEFAULT_RULE_SET.evaluatorRules)
+        }
+
+        /**
+         * Add the given [path] to this [Set] only if it is not *null* and not equal to the given [default].
+         */
+        private fun MutableSet<String>.addNonDefault(path: String?, default: String) {
+            if (path != null && path != default) {
+                add(path)
+            }
+        }
     }
 
     /**
      * Load the [AdminConfig] from the configured path in the given [context] for the given [organizationId].
+     * [Optionally][validate], perform a validation after loading.
      * TODO: The organization ID is currently not evaluated. In the future, it should be supported to have different
      *       configurations for different organizations.
      */
-    fun loadAdminConfig(context: Context?, organizationId: Long): AdminConfig {
+    fun loadAdminConfig(context: Context?, organizationId: Long, validate: Boolean = false): AdminConfig {
         val configPath = Path(configManager.getStringOrDefault(PATH_PROPERTY, DEFAULT_PATH))
         if (configPath.path == DEFAULT_PATH && !configManager.containsFile(context, configPath)) {
             logger.warn(
@@ -238,6 +286,38 @@ class AdminConfigService(
             ConfigFactory.parseReader(reader)
         }
 
-        return createAdminConfig(config)
+        return createAdminConfig(config).also {
+            if (validate) {
+                validate(context, it)
+            }
+        }
+    }
+
+    /**
+     * Perform a validation of the given [config]. Throw an exception if problems are encountered. This function is
+     * called after loading the configuration to fail early if invalid properties are found.
+     */
+    private fun validate(context: Context?, config: AdminConfig): AdminConfig {
+        val unresolvableFiles = getConfigurationFiles(config).filterNot { file ->
+            configManager.containsFile(context, Path(file))
+        }
+
+        val issues = mutableListOf<String>()
+
+        if (unresolvableFiles.isNotEmpty()) {
+            issues += "Found unresolvable configuration files referenced from the admin configuration: " +
+                    "${unresolvableFiles.joinToString(separator = ", ") { "'$it'" }}."
+        }
+
+        validateScannerConfig(issues, config.scannerConfig)
+
+        if (issues.isNotEmpty()) {
+            throw ConfigException(
+                "Invalid admin configuration:\n ${issues.joinToString(separator = "\n")}",
+                null
+            )
+        }
+
+        return config
     }
 }
