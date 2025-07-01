@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue as Api
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
+import org.eclipse.apoapsis.ortserver.api.v1.model.IssueResolution as ApiIssueResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobStatus as ApiJobStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries as ApiJobSummaries
@@ -147,6 +148,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
@@ -267,10 +269,33 @@ fun ApiEvaluatorJobConfiguration.mapToModel() =
     )
 
 fun Issue.mapToApi() =
-    ApiIssue(timestamp, source, message, severity.mapToApi(), affectedPath, identifier?.mapToApi(), worker)
+    ApiIssue(
+        timestamp,
+        source,
+        message,
+        severity.mapToApi(),
+        affectedPath,
+        identifier?.mapToApi(),
+        worker,
+        resolutions.map { it.mapToApi() }
+    )
 
 fun ApiIssue.mapToModel() =
-    Issue(timestamp, source, message, severity.mapToModel(), affectedPath, identifier?.mapToModel(), worker)
+    Issue(
+        timestamp,
+        source,
+        message,
+        severity.mapToModel(),
+        affectedPath,
+        identifier?.mapToModel(),
+        worker,
+        resolutions.map { it.mapToModel() }
+    )
+
+fun IssueResolution.mapToApi() = ApiIssueResolution(message, reason, comment)
+
+fun ApiIssueResolution.mapToModel() =
+    IssueResolution(message, reason, comment)
 
 fun Severity.mapToApi() = when (this) {
     Severity.ERROR -> ApiSeverity.ERROR

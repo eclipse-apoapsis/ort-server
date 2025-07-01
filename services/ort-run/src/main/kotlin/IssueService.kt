@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -55,7 +56,8 @@ import org.ossreviewtoolkit.model.OrtResult
 class IssueService(private val db: Database, private val ortRunService: OrtRunService) {
     suspend fun listForOrtRunId(
         ortRunId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        issuesFilter: IssueFilter = IssueFilter()
     ): ListQueryResult<Issue> {
         val ortRun = ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
             "ORT run with ID $ortRunId not found."
@@ -74,15 +76,23 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
             issue.copy(resolutions = matchingResolutions.map { it.mapToModel() })
         }
 
+        val filteredResult = issuesWithResolutions.applyResultFilter(issuesFilter)
+
         val sortFields = parameters.sortFields.ifEmpty {
             listOf(OrderField("timestamp", OrderDirection.DESCENDING))
         }
 
         return ListQueryResult(
-            issuesWithResolutions.sort(sortFields).paginate(parameters),
+            filteredResult.sort(sortFields).paginate(parameters),
             parameters,
-            issuesWithResolutions.size.toLong()
+            filteredResult.size.toLong()
         )
+    }
+
+    private fun List<Issue>.applyResultFilter(issuesFilter: IssueFilter) = when (issuesFilter.resolved) {
+        true -> filter { it.resolutions.isNotEmpty() }
+        false -> filter { it.resolutions.isEmpty() }
+        null -> this
     }
 
     /** Count issues found in provided ORT runs. */

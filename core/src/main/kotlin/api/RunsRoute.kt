@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+@file:Suppress("TooManyFunctions")
+
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.github.smiley4.ktoropenapi.delete
@@ -71,6 +73,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.PackageRunData
 import org.eclipse.apoapsis.ortserver.model.runs.Project
@@ -189,8 +192,9 @@ fun Route.runs() = route("runs") {
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
                     val pagingOptions = call.pagingOptions(SortProperty("timestamp", SortDirection.DESCENDING))
+                    val filters = call.issueFilters()
 
-                    val issueForOrtRun = issueService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+                    val issueForOrtRun = issueService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel(), filters)
 
                     val pagedResponse = issueForOrtRun.mapToApi(Issue::mapToApi)
 
@@ -484,6 +488,14 @@ private fun ApplicationCall.packageFilters(): PackageFilters =
 private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
     RuleViolationFilters(
         resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull()
+    )
+
+/**
+ * Extract the issue filters from this [ApplicationCall].
+ */
+private fun ApplicationCall.issueFilters() =
+    IssueFilter(
+        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
     )
 
 /**

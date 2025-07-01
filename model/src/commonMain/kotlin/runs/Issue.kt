@@ -54,3 +54,14 @@ data class Issue(
     /** The [IssueResolution]s that have been applied to this issue. */
     val resolutions: List<IssueResolution> = emptyList()
 )
+
+/**
+ * Filters to apply when querying for issues.
+ */
+@Serializable
+data class IssueFilter(
+    /**
+     * Filter to only return resolved issues. Null if both, resolved an unresolved rule violations should be returned.
+     */
+    val resolved: Boolean? = null
+)
