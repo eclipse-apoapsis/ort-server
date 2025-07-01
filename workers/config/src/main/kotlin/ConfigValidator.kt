@@ -26,12 +26,10 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 
 import kotlinx.datetime.Clock
 
-import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
-import org.eclipse.apoapsis.ortserver.services.config.ScannerConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
@@ -148,20 +146,20 @@ class ConfigValidator private constructor(
     private fun ConfigValidationResultSuccess.validateAdminConfig(): ConfigValidationResult = runCatching {
         val adminConfig = adminConfigService.loadAdminConfig(
             context.resolvedConfigurationContext,
-            context.ortRun.organizationId
+            context.ortRun.organizationId,
+            validate = true
         )
 
         val validationIssues = mutableListOf<Issue>()
 
         validateRuleSet(adminConfig, resolvedConfigurations.ruleSet, validationIssues)
-        validateScannerConfig(adminConfig.scannerConfig, validationIssues)
 
         takeIf { validationIssues.isEmpty() } ?: ConfigValidationResultFailure(issues + validationIssues)
     }.getOrElse { exception ->
         logger.error("Error during admin configuration validation.", exception)
 
         val issue = createIssue(
-            "Could not load admin configuration: '${exception.message}' $ADMIN_CONFIG_ERROR_HINT"
+            "Could not load admin configuration: '${exception.message}'. $ADMIN_CONFIG_ERROR_HINT"
         )
         ConfigValidationResultFailure(issues + issue)
     }
@@ -171,43 +169,11 @@ class ConfigValidator private constructor(
      * are found to the given [validationIssues].
      */
     private fun validateRuleSet(adminConfig: AdminConfig, ruleSetName: String?, validationIssues: MutableList<Issue>) {
-        fun validateRuleSetFile(file: String) {
-            if (!context.configManager.containsFile(context.resolvedConfigurationContext, Path(file))) {
-                validationIssues += createIssue(
-                    "Unresolvable configuration file '$file'. $ADMIN_CONFIG_ERROR_HINT"
-                )
-            }
-        }
-
         if (ruleSetName != null && ruleSetName !in adminConfig.ruleSetNames) {
             validationIssues += createIssue(
                 "Invalid rule set '$ruleSetName'. " +
                         "Available rule sets are: ${adminConfig.ruleSetNames.joinToString(", ")}.",
                 PARAMETER_VALIDATION_SOURCE
-            )
-        } else {
-            val ruleSet = adminConfig.getRuleSet(ruleSetName)
-            validateRuleSetFile(ruleSet.copyrightGarbageFile)
-            validateRuleSetFile(ruleSet.licenseClassificationsFile)
-            validateRuleSetFile(ruleSet.resolutionsFile)
-            validateRuleSetFile(ruleSet.evaluatorRules)
-        }
-    }
-
-    /**
-     * Perform validation of the given [scannerConfig]. Add issues that are found to the given [validationIssues].
-     */
-    private fun validateScannerConfig(scannerConfig: ScannerConfig, validationIssues: MutableList<Issue>) {
-        if (scannerConfig.sourceCodeOrigins.isEmpty()) {
-            validationIssues += createIssue(
-                "'sourceCodeOrigins' from scanner configuration must not be empty. $ADMIN_CONFIG_ERROR_HINT"
-            )
-        }
-
-        if (scannerConfig.sourceCodeOrigins.toSet().size != scannerConfig.sourceCodeOrigins.size) {
-            validationIssues += createIssue(
-                "'sourceCodeOrigins' from scanner configuration must not contain duplicates. " +
-                        "Current value is ${scannerConfig.sourceCodeOrigins}. $ADMIN_CONFIG_ERROR_HINT"
             )
         }
     }
