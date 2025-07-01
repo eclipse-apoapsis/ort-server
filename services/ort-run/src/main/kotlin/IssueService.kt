@@ -65,14 +65,23 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
 
         val issues = collectIssues(ortRunId, ortResult)
 
+        val issuesWithResolutions = issues.map { issue ->
+            val matchingResolutions = ortResult.getResolutions().issues.filter { resolution ->
+                val resolutionPattern = resolution.message.toRegex()
+                resolutionPattern.containsMatchIn(issue.message)
+            }
+
+            issue.copy(resolutions = matchingResolutions.map { it.mapToModel() })
+        }
+
         val sortFields = parameters.sortFields.ifEmpty {
             listOf(OrderField("timestamp", OrderDirection.DESCENDING))
         }
 
         return ListQueryResult(
-            issues.sort(sortFields).paginate(parameters),
+            issuesWithResolutions.sort(sortFields).paginate(parameters),
             parameters,
-            issues.size.toLong()
+            issuesWithResolutions.size.toLong()
         )
     }
 
