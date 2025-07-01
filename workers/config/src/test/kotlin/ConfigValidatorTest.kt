@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.workers.config
 
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.maps.shouldHaveSize
@@ -31,7 +30,6 @@ import io.kotest.matchers.types.shouldBeTypeOf
 
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
 
 import kotlin.math.abs
 
@@ -39,14 +37,12 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
-import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
@@ -127,77 +123,6 @@ class ConfigValidatorTest : StringSpec({
         errorIssue.message shouldContain ruleSetName
     }
 
-    "Missing files in the rule set should be handled" {
-        val script = loadScript("validation-success.params.kts")
-
-        val configManager = mockConfigManager()
-        every {
-            configManager.containsFile(Context(RESOLVED_CONTEXT), Path(testRuleSet.copyrightGarbageFile))
-        } returns false
-        every {
-            configManager.containsFile(Context(RESOLVED_CONTEXT), Path(testRuleSet.licenseClassificationsFile))
-        } returns false
-        every {
-            configManager.containsFile(Context(RESOLVED_CONTEXT), Path(testRuleSet.resolutionsFile))
-        } returns false
-        every {
-            configManager.containsFile(Context(RESOLVED_CONTEXT), Path(testRuleSet.evaluatorRules))
-        } returns false
-
-        val run = mockRun()
-        val context = mockContext(run, configManager)
-
-        val validator = ConfigValidator.create(context, createAdminConfigService())
-        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
-
-        val errorIssues = validationResult.issues.filter { it.severity == Severity.ERROR }
-        val expectedErrors = listOf(
-            testRuleSet.copyrightGarbageFile,
-            testRuleSet.licenseClassificationsFile,
-            testRuleSet.resolutionsFile,
-            testRuleSet.evaluatorRules
-        ).map { "Unresolvable configuration file '$it'. ${ConfigValidator.ADMIN_CONFIG_ERROR_HINT}" }
-
-        errorIssues.map(Issue::message) shouldContainExactlyInAnyOrder expectedErrors
-    }
-
-    "Undefined source code origins should be handled" {
-        val invalidScannerConfig = testAdminConfig.scannerConfig.copy(sourceCodeOrigins = emptyList())
-        val invalidAdminConfig = spyk(testAdminConfig) {
-            every { scannerConfig } returns invalidScannerConfig
-        }
-        val adminConfigService = createAdminConfigService(invalidAdminConfig)
-
-        val script = loadScript("validation-success.params.kts")
-        val context = mockContext(mockRun())
-
-        val validator = ConfigValidator.create(context, adminConfigService)
-        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
-
-        val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
-        errorIssue.source shouldBe ConfigValidator.ADMIN_CONFIG_VALIDATION_SOURCE
-        errorIssue.message shouldContain "sourceCodeOrigins"
-    }
-
-    "Duplicate entries in source code origins should be handled" {
-        val invalidSourceCodeOrigins = listOf(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
-        val invalidScannerConfig = testAdminConfig.scannerConfig.copy(sourceCodeOrigins = invalidSourceCodeOrigins)
-        val invalidAdminConfig = spyk(testAdminConfig) {
-            every { scannerConfig } returns invalidScannerConfig
-        }
-        val adminConfigService = createAdminConfigService(invalidAdminConfig)
-
-        val script = loadScript("validation-success.params.kts")
-        val context = mockContext(mockRun())
-
-        val validator = ConfigValidator.create(context, adminConfigService)
-        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
-
-        val errorIssue = validationResult.issues.single { it.severity == Severity.ERROR }
-        errorIssue.source shouldBe ConfigValidator.ADMIN_CONFIG_VALIDATION_SOURCE
-        errorIssue.message shouldContain "sourceCodeOrigins"
-    }
-
     "Exceptions when loading the admin configuration should be handled" {
         val script = loadScript("validation-success.params.kts")
         val context = mockContext(mockRun())
@@ -205,7 +130,7 @@ class ConfigValidatorTest : StringSpec({
         val configException = RuntimeException("Test exception: Could not load admin configuration.")
         val adminConfigService = mockk<AdminConfigService> {
             every {
-                loadAdminConfig(any(), any())
+                loadAdminConfig(any(), any(), validate = true)
             } throws configException
         }
 
@@ -303,5 +228,7 @@ private fun mockRun(ruleSetName: String = RULE_SET): OrtRun {
  */
 private fun createAdminConfigService(adminConfig: AdminConfig = testAdminConfig): AdminConfigService =
     mockk {
-        every { loadAdminConfig(Context(RESOLVED_CONTEXT), ORGANIZATION_ID) } returns adminConfig
+        every {
+            loadAdminConfig(Context(RESOLVED_CONTEXT), ORGANIZATION_ID, validate = true)
+        } returns adminConfig
     }
