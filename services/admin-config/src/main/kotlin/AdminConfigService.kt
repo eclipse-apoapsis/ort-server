@@ -30,6 +30,8 @@ import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
+import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getConfigOrEmpty
@@ -40,6 +42,8 @@ import org.eclipse.apoapsis.ortserver.utils.config.getStringListOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 import org.eclipse.apoapsis.ortserver.utils.config.withPath
+
+import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 
 import org.slf4j.LoggerFactory
 
@@ -53,6 +57,7 @@ import org.slf4j.LoggerFactory
  * unspecified, and the [DEFAULT_PATH] must not exist. In all other cases, a missing configuration file causes an
  * exception to be thrown.
  */
+@Suppress("TooManyFunctions")
 class AdminConfigService(
     private val configManager: ConfigManager
 ) {
@@ -69,6 +74,9 @@ class AdminConfigService(
         /** The name of the section containing the scanner-related configuration. */
         private const val SCANNER_SECTION = "scanner"
 
+        /** The name of the section containing the reporter-related configuration. */
+        private const val REPORTER_SECTION = "reporter"
+
         /** The name of the section containing the notifier-related configuration. */
         private const val NOTIFIER_SECTION = "notifier"
 
@@ -77,6 +85,9 @@ class AdminConfigService(
 
         /** The name of the subsection containing the Jira server configuration for the notifier. */
         private const val NOTIFIER_JIRA_SECTION = "jira"
+
+        /** An object to obtain default values for the mail server configuration. */
+        private val defaultMailServerConfig = MailServerConfiguration(fromAddress = "")
 
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
 
@@ -91,6 +102,7 @@ class AdminConfigService(
 
             return AdminConfig(
                 scannerConfig = parseScannerConfig(config),
+                reporterConfig = parseReporterConfig(config),
                 notifierConfig = parseNotifierConfig(config),
                 defaultRuleSet = defaultRuleSet,
                 ruleSets = ruleSets,
@@ -130,20 +142,19 @@ class AdminConfigService(
          * [ScannerConfig] instance.
          */
         private fun parseScannerConfig(config: Config): ScannerConfig =
-            config.withPath(SCANNER_SECTION)?.let { c ->
-                val scannerConfig = c.getConfig(SCANNER_SECTION)
+            config.parseObjectOrDefault(SCANNER_SECTION, AdminConfig.DEFAULT_SCANNER_CONFIG) {
                 ScannerConfig(
-                    detectedLicenseMappings = scannerConfig.getObjectOrDefault("detectedLicenseMappings") {
+                    detectedLicenseMappings = getObjectOrDefault("detectedLicenseMappings") {
                         ConfigValueFactory.fromMap(AdminConfig.DEFAULT_SCANNER_CONFIG.detectedLicenseMappings)
                     }.mapValues { it.value.unwrapped().toString() },
-                    ignorePatterns = scannerConfig.getStringListOrDefault("ignorePatterns") {
+                    ignorePatterns = getStringListOrDefault("ignorePatterns") {
                         AdminConfig.DEFAULT_SCANNER_CONFIG.ignorePatterns
                     },
-                    sourceCodeOrigins = scannerConfig.getStringListOrDefault("sourceCodeOrigins") {
+                    sourceCodeOrigins = getStringListOrDefault("sourceCodeOrigins") {
                         AdminConfig.DEFAULT_SCANNER_CONFIG.sourceCodeOrigins.map { it.name }
                     }.map { SourceCodeOrigin.valueOf(it.uppercase()) }
                 )
-            } ?: AdminConfig.DEFAULT_SCANNER_CONFIG
+            }
 
         /**
          * Validate the given [scannerConfig]. Add found issues to the given [issues] list.
@@ -164,72 +175,93 @@ class AdminConfigService(
          * corresponding [NotifierConfig] instance.
          */
         private fun parseNotifierConfig(config: Config): NotifierConfig =
-            config.withPath(NOTIFIER_SECTION)?.let { c ->
-                val notifierConfig = c.getConfig(NOTIFIER_SECTION)
+            config.parseObjectOrDefault(NOTIFIER_SECTION, AdminConfig.DEFAULT_NOTIFIER_CONFIG) {
                 NotifierConfig(
-                    notifierRules = notifierConfig.getStringOrDefault(
+                    notifierRules = getStringOrDefault(
                         "notifierRules",
                         AdminConfig.DEFAULT_NOTIFIER_CONFIG.notifierRules
                     ),
-                    disableMailNotifications = notifierConfig.getBooleanOrDefault(
+                    disableMailNotifications = getBooleanOrDefault(
                         "disableMailNotifications",
                         AdminConfig.DEFAULT_NOTIFIER_CONFIG.disableMailNotifications
                     ),
-                    disableJiraNotifications = notifierConfig.getBooleanOrDefault(
+                    disableJiraNotifications = getBooleanOrDefault(
                         "disableJiraNotifications",
                         AdminConfig.DEFAULT_NOTIFIER_CONFIG.disableJiraNotifications
                     ),
-                    mail = parseNotifierMailConfig(notifierConfig),
-                    jira = parseNotifierJiraConfig(notifierConfig)
+                    mail = parseNotifierMailConfig(this),
+                    jira = parseNotifierJiraConfig(this)
                 )
-            } ?: AdminConfig.DEFAULT_NOTIFIER_CONFIG
+            }
 
         /**
          * Parse the mail server configuration for the notifier from the given [config] if it is defined.
          */
         private fun parseNotifierMailConfig(config: Config): MailServerConfiguration? =
-            config.withPath(NOTIFIER_MAIL_SECTION)?.let { mailConfig ->
-                val defaults = MailServerConfiguration(fromAddress = "")
-                with(mailConfig.getConfig(NOTIFIER_MAIL_SECTION)) {
-                    MailServerConfiguration(
-                        hostName = getStringOrDefault("host", defaults.hostName),
-                        port = getIntOrDefault("port", defaults.port),
-                        username = getStringOrDefault("username", defaults.username),
-                        password = getStringOrDefault("password", defaults.password),
-                        useSsl = getBooleanOrDefault("ssl", defaults.useSsl),
-                        fromAddress = getString("fromAddress")
-                    )
-                }
+            config.parseObjectOrDefault(NOTIFIER_MAIL_SECTION, null) {
+                MailServerConfiguration(
+                    hostName = getStringOrDefault("host", defaultMailServerConfig.hostName),
+                    port = getIntOrDefault("port", defaultMailServerConfig.port),
+                    username = getStringOrDefault("username", defaultMailServerConfig.username),
+                    password = getStringOrDefault("password", defaultMailServerConfig.password),
+                    useSsl = getBooleanOrDefault("ssl", defaultMailServerConfig.useSsl),
+                    fromAddress = getString("fromAddress")
+                )
             }
 
         /**
          * Parse the Jira server configuration for the notifier from the given [config] if it is defined.
          */
         private fun parseNotifierJiraConfig(config: Config): JiraRestClientConfiguration? =
-            config.withPath(NOTIFIER_JIRA_SECTION)?.let { jiraConfig ->
-                with(jiraConfig.getConfig(NOTIFIER_JIRA_SECTION)) {
-                    JiraRestClientConfiguration(
-                        serverUrl = getString("url"),
-                        username = getString("username"),
-                        password = getString("password"),
-                    )
-                }
+            config.parseObjectOrDefault(NOTIFIER_JIRA_SECTION, null) {
+                JiraRestClientConfiguration(
+                    serverUrl = getString("url"),
+                    username = getString("username"),
+                    password = getString("password"),
+                )
             }
 
-        private fun parseMavenCentralMirror(config: Config): MavenCentralMirror? {
-            if (!config.hasPath("mavenCentralMirror")) return null
+        /**
+         * Parse the properties related to the reporter configuration from the given [config] and return a
+         * corresponding [ReporterConfig] instance.
+         */
+        private fun parseReporterConfig(config: Config): ReporterConfig =
+            config.parseObjectOrDefault(REPORTER_SECTION, AdminConfig.DEFAULT_REPORTER_CONFIG) {
+                ReporterConfig(
+                    howToFixTextProviderFile = getStringOrDefault(
+                        "howToFixTextProviderFile",
+                        ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
+                    ),
+                    customLicenseTextDir = getStringOrNull("customLicenseTextDir"),
+                    reportDefinitions = parseReportDefinitions(this)
+                )
+            }
 
-            val mirrorConfig = config.getConfig("mavenCentralMirror")
+        /**
+         * Parse the report definitions defined in the given [config].
+         */
+        private fun parseReportDefinitions(config: Config): Map<String, ReportDefinition> =
+            config.getObjectOrEmpty("reports").filterValues { it is ConfigObject }
+                .mapValues { entry ->
+                    parseReportDefinition((entry.value as ConfigObject).toConfig())
+                }
 
-            return MavenCentralMirror(
-                id = mirrorConfig.getString("id"),
-                name = mirrorConfig.getString("name"),
-                url = mirrorConfig.getString("url"),
-                mirrorOf = mirrorConfig.getString("mirrorOf"),
-                usernameSecret = mirrorConfig.getStringOrNull("username"),
-                passwordSecret = mirrorConfig.getStringOrNull("password")
+        /**
+         * Parse a [ReportDefinition] at the root of the given [config].
+         */
+        private fun parseReportDefinition(config: Config): ReportDefinition =
+            ReportDefinition(
+                pluginId = config.getString("pluginId"),
+                assetFiles = parseReporterAssets(config, "assetFiles", isDirectory = false),
+                assetDirectories = parseReporterAssets(config, "assetDirectories", isDirectory = true),
+                nameMapping = config.parseObjectOrDefault("nameMapping", null) {
+                    ReportNameMapping(
+                        namePrefix = getString("namePrefix"),
+                        startIndex = getIntOrDefault("startIndex", 1),
+                        alwaysAppendIndex = getBooleanOrDefault("alwaysAppendIndex", false)
+                    )
+                }
             )
-        }
 
         /**
          * Return a [Set] with the paths to all configuration files referenced by this [AdminConfig]. This is used
@@ -262,6 +294,51 @@ class AdminConfigService(
                 add(path)
             }
         }
+
+        /**
+         * Parse a list of [ReporterAsset]s from the given [config] at the specified [path]. If [isDirectory] is
+         * *true*, make sure that all source paths end with a trailing slash.
+         */
+        private fun parseReporterAssets(config: Config, path: String, isDirectory: Boolean): List<ReporterAsset> =
+            if (config.hasPath(path)) {
+                config.getConfigList(path).map { c ->
+                    ReporterAsset(
+                        sourcePath = directoryPath(c.getString("sourcePath"), isDirectory),
+                        targetFolder = c.getStringOrNull("targetFolder"),
+                        targetName = c.getStringOrNull("targetName")
+                    )
+                }
+            } else {
+                emptyList()
+            }
+
+        private fun parseMavenCentralMirror(config: Config): MavenCentralMirror? =
+            config.parseObjectOrDefault("mavenCentralMirror", null) {
+                MavenCentralMirror(
+                    id = getString("id"),
+                    name = getString("name"),
+                    url = getString("url"),
+                    mirrorOf = getString("mirrorOf"),
+                    usernameSecret = getStringOrNull("username"),
+                    passwordSecret = getStringOrNull("password")
+                )
+            }
+
+        /**
+         * Parse an object defined at the given [path] in this [Config] using the provided [parser] function.
+         * Return the given [default] object if the path does not exist.
+         */
+        private fun <T> Config.parseObjectOrDefault(path: String, default: T, parser: Config.() -> T): T =
+            withPath(path)?.let { c ->
+                parser(c.getConfig(path))
+            } ?: default
+
+        /**
+         * Make sure the given [path] points to a directory if [isDirectory] is *true* by appending a trailing slash if
+         * necessary.
+         */
+        private fun directoryPath(path: String, isDirectory: Boolean): String =
+            if (isDirectory && !path.endsWith("/")) "$path/" else path
     }
 
     /**

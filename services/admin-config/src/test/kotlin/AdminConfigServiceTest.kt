@@ -24,9 +24,11 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -41,11 +43,13 @@ import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
@@ -485,6 +489,191 @@ class AdminConfigServiceTest : WordSpec({
                 password shouldBe ""
                 useSsl shouldBe true
                 fromAddress shouldBe "notifier@ort-server.example.com"
+            }
+        }
+    }
+
+    "reporterConfig" should {
+        "return a default configuration if nothing is configured" {
+            val service = createServiceWithConfig("")
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.reportDefinitionNames should beEmpty()
+            reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
+            reporterConfig.customLicenseTextDir should beNull()
+            reporterConfig shouldBe AdminConfig.DEFAULT_REPORTER_CONFIG
+        }
+
+        "use default values for unspecified properties" {
+            val config = """
+                    reporter {
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.reportDefinitionNames should beEmpty()
+            reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
+            reporterConfig.customLicenseTextDir should beNull()
+        }
+
+        "parse simple properties from the reporter section of the config file" {
+            val config = """
+                    reporter {
+                      howToFixTextProviderFile = "testHowToFixTextProviderFile"
+                      customLicenseTextDir = "testCustomLicenseTextDir"
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.howToFixTextProviderFile shouldBe "testHowToFixTextProviderFile"
+            reporterConfig.customLicenseTextDir shouldBe "testCustomLicenseTextDir"
+        }
+
+        "parse report definitions from the reporter section of the config file" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFiles = [
+                            {
+                              sourcePath = "reporter/template/logo.png"
+                              targetFolder = "images"
+                              targetName = "report-logo.png"
+                            },
+                            {
+                              sourcePath = "reporter/template/title.ttf"
+                              targetFolder = "fonts"
+                              targetName = "main-font.ftt"
+                            }
+                          ]
+                          assetDirectories = [
+                            {
+                              sourcePath = "reporter/template/assets-files"
+                              targetFolder = "assets"
+                              targetName = "files"
+                            },
+                            {
+                              sourcePath = "reporter/template/other-assets-files/"
+                              targetFolder = "other-assets"
+                              targetName = "more-files"
+                            }
+                          ]
+                          nameMapping {
+                            namePrefix = "disclosure-"
+                            startIndex = 0
+                            alwaysAppendIndex = true
+                          }
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
+                pluginId shouldBe "PdfTemplate"
+                assetFiles shouldContainExactly listOf(
+                    ReporterAsset("reporter/template/logo.png", "images", "report-logo.png"),
+                    ReporterAsset("reporter/template/title.ttf", "fonts", "main-font.ftt")
+                )
+                assetDirectories shouldContainExactly listOf(
+                    ReporterAsset("reporter/template/assets-files/", "assets", "files"),
+                    ReporterAsset("reporter/template/other-assets-files/", "other-assets", "more-files")
+                )
+                nameMapping shouldNotBeNull {
+                    namePrefix shouldBe "disclosure-"
+                    startIndex shouldBe 0
+                    alwaysAppendIndex shouldBe true
+                }
+            }
+
+            reporterConfig.reportDefinitionNames shouldContain "disclosurePdf"
+        }
+
+        "Handle optional properties in report definitions" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.getReportDefinition("DISCLOSUREPDF") shouldNotBeNull {
+                pluginId shouldBe "PdfTemplate"
+                assetFiles should beEmpty()
+                assetDirectories should beEmpty()
+                nameMapping should beNull()
+            }
+        }
+
+        "Handle optional properties in a reporter asset" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFiles = [
+                            {
+                              sourcePath = "reporter/template/logo.png"
+                              targetName = "report-logo.png"
+                            },
+                            {
+                              sourcePath = "reporter/template/title.ttf"
+                              targetFolder = "fonts"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.getReportDefinition("disclosurepdf") shouldNotBeNull {
+                assetFiles shouldContainExactly listOf(
+                    ReporterAsset("reporter/template/logo.png", null, "report-logo.png"),
+                    ReporterAsset("reporter/template/title.ttf", "fonts", null)
+                )
+            }
+        }
+
+        "Handle optional properties in a name mapping" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          nameMapping {
+                            namePrefix = "disclosure-"
+                          }
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
+                nameMapping shouldNotBeNull {
+                    namePrefix shouldBe "disclosure-"
+                    startIndex shouldBe 1
+                    alwaysAppendIndex shouldBe false
+                }
             }
         }
     }
