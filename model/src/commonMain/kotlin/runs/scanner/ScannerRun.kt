@@ -34,6 +34,6 @@ data class ScannerRun(
     val config: ScannerConfiguration?,
     val provenances: Set<ProvenanceResolutionResult>,
     val scanResults: Set<ScanResult>,
-    val issues: Map<Identifier, Set<Issue>> = emptyMap(),
+    val issues: Map<Identifier, Set<Issue>>,
     val scanners: Map<Identifier, Set<String>>
 )

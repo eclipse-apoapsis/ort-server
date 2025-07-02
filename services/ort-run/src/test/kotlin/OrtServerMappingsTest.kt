@@ -471,6 +471,7 @@ class OrtServerMappingsTest : WordSpec({
                 config = scannerConfiguration,
                 provenances = setOf(provenanceResolutionResult),
                 scanResults = setOf(scanResult),
+                issues = emptyMap(),
                 scanners = mapOf(pkgIdentifier to setOf(scanResult.scanner.name, "TestScanner"))
             )
 
