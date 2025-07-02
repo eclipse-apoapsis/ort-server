@@ -122,7 +122,7 @@ dependencyResolutionManagement {
             name = "localOrt"
 
             content {
-                includeGroupByRegex("org\\.ossreviewtoolkit(\\..*)?")
+                includeGroupAndSubgroups("org.ossreviewtoolkit")
             }
         }
 
