@@ -107,7 +107,12 @@ class EnvironmentDefinitionFactory {
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
         properties.withRequiredProperties("id") {
-            MavenDefinition(service, credentialsTypes(), getProperty("id"))
+            MavenDefinition(
+                service = service,
+                credentialsTypes = credentialsTypes(),
+                id = getProperty("id"),
+                mirrorOf = getOptionalProperty("mirrorOf")
+            )
         }
 
     /**

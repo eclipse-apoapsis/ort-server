@@ -38,5 +38,15 @@ class MavenDefinition(
      * In the generated _settings.xml_ file, the ID appears as the _id_ property for the corresponding server in the
      * _servers_ section. See https://maven.apache.org/settings.html#servers.
      */
-    val id: String
+    val id: String,
+
+    /**
+     * If set, this [MavenDefinition] is treated as a mirror definition and will additionally appear in the _mirrors_
+     * section of the generated _settings.xml_ file.
+     *
+     * The value specifies the repository ID that this mirror should apply to, as used in the _mirrorOf_ element of
+     * Maven’s mirror configuration. For example, to mirror Maven Central, use `"central"`, or use `"*"` to apply this
+     * mirror to all repositories.
+     */
+    val mirrorOf: String? = null
 ) : EnvironmentServiceDefinition(service, credentialsTypes)
