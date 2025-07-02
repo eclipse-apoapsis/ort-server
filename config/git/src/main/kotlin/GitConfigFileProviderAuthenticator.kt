@@ -22,11 +22,13 @@ package org.eclipse.apoapsis.ortserver.config.git
 import java.net.Authenticator
 import java.net.PasswordAuthentication
 
+import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(GitConfigFileProviderAuthenticator::class.java)
 
-internal class GitConfigFileProviderAuthenticator(val username: String, val password: String) : Authenticator() {
+internal class GitConfigFileProviderAuthenticator(val username: String, val password: String) : OrtAuthenticator() {
     companion object {
         var original: Authenticator? = null
 
