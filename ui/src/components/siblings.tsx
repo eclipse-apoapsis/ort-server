@@ -80,6 +80,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
   } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdProducts(
     {
       organizationId: Number(params.orgId) ?? '',
+      limit: ALL_ITEMS,
     },
     undefined,
     {
@@ -96,6 +97,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
   } = useProductsServiceGetApiV1ProductsByProductIdRepositories(
     {
       productId: Number(params.productId) ?? '',
+      limit: ALL_ITEMS,
     },
     undefined,
     {
@@ -112,6 +114,8 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
   } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
     {
       repositoryId: Number(params.repoId) ?? '',
+      limit: ALL_ITEMS,
+      sort: '-index',
     },
     undefined,
     {
