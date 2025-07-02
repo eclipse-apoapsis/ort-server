@@ -68,12 +68,24 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
         "A MavenDefinition" should {
             "be created successfully" {
                 val repositoryId = "my-repository"
-                val properties = mapOf("id" to repositoryId)
+                val mirrorOf = "central"
+                val properties = mapOf("id" to repositoryId, "mirrorOf" to mirrorOf)
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
 
                 definition.shouldBeInstanceOf<MavenDefinition>()
                 definition.id shouldBe repositoryId
+                definition.mirrorOf shouldBe mirrorOf
+            }
+
+            "be created with default values" {
+                val repositoryId = "my-repository"
+                val properties = mapOf("id" to repositoryId)
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
+
+                definition.shouldBeInstanceOf<MavenDefinition>()
+                definition.mirrorOf should beNull()
             }
 
             "fail if the ID is missing" {
