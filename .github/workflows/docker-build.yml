@@ -138,7 +138,7 @@ jobs:
         # Load the image to the Docker daemon if it is required as a base image for the Jib build.
         echo "LOAD_IMAGE=$([[ '${{ matrix.docker.task }}' != '' ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
         # Push the image to the registry if it is not a PR and no Jib build is configured.
-        echo "PUSH_IMAGE=$([[ ${{ env.IS_PR }} == 'false' && '${{ matrix.docker.task }}' == '' ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
+        echo "PUSH_IMAGE=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
 
     - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
