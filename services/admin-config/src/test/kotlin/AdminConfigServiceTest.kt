@@ -200,12 +200,12 @@ class AdminConfigServiceTest : WordSpec({
         "return the a default rule set with the standard names from ORT" {
             val service = createServiceWithConfig("")
 
-            val ruleSet = service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet(null)
-
-            ruleSet.copyrightGarbageFile shouldBe ORT_COPYRIGHT_GARBAGE_FILENAME
-            ruleSet.licenseClassificationsFile shouldBe ORT_LICENSE_CLASSIFICATIONS_FILENAME
-            ruleSet.resolutionsFile shouldBe ORT_RESOLUTIONS_FILENAME
-            ruleSet.evaluatorRules shouldBe ORT_EVALUATOR_RULES_FILENAME
+            with(service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet(null)) {
+                copyrightGarbageFile shouldBe ORT_COPYRIGHT_GARBAGE_FILENAME
+                licenseClassificationsFile shouldBe ORT_LICENSE_CLASSIFICATIONS_FILENAME
+                resolutionsFile shouldBe ORT_RESOLUTIONS_FILENAME
+                evaluatorRules shouldBe ORT_EVALUATOR_RULES_FILENAME
+            }
         }
 
         "parse the default rule set from the config file" {
@@ -219,12 +219,12 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val ruleSet = service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet(null)
-
-            ruleSet.copyrightGarbageFile shouldBe "testCopyrightGarbageFile"
-            ruleSet.licenseClassificationsFile shouldBe "testLicenseClassificationsFile"
-            ruleSet.resolutionsFile shouldBe "testResolutionsFile"
-            ruleSet.evaluatorRules shouldBe "testEvaluatorRules"
+            with(service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet(null)) {
+                copyrightGarbageFile shouldBe "testCopyrightGarbageFile"
+                licenseClassificationsFile shouldBe "testLicenseClassificationsFile"
+                resolutionsFile shouldBe "testResolutionsFile"
+                evaluatorRules shouldBe "testEvaluatorRules"
+            }
         }
 
         "return a named rule set" {
@@ -246,12 +246,12 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val ruleSet = service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet("customRuleSet1")
-
-            ruleSet.copyrightGarbageFile shouldBe "testCopyrightGarbageFile1"
-            ruleSet.licenseClassificationsFile shouldBe "testLicenseClassificationsFile1"
-            ruleSet.resolutionsFile shouldBe "testResolutionsFile1"
-            ruleSet.evaluatorRules shouldBe "testEvaluatorRules1"
+            with(service.loadAdminConfig(context, ORGANIZATION_ID).getRuleSet("customRuleSet1")) {
+                copyrightGarbageFile shouldBe "testCopyrightGarbageFile1"
+                licenseClassificationsFile shouldBe "testLicenseClassificationsFile1"
+                resolutionsFile shouldBe "testResolutionsFile1"
+                evaluatorRules shouldBe "testEvaluatorRules1"
+            }
         }
 
         "throw an exception for an unknown rule set name" {
@@ -298,17 +298,19 @@ class AdminConfigServiceTest : WordSpec({
             val service = createServiceWithConfig(config)
             val adminConfig = service.loadAdminConfig(context, ORGANIZATION_ID)
 
-            val ruleSet1 = adminConfig.getRuleSet("customRuleSet1")
-            ruleSet1.copyrightGarbageFile shouldBe "testCopyrightGarbageFile1"
-            ruleSet1.licenseClassificationsFile shouldBe "defaultLicenseClassificationsFile"
-            ruleSet1.resolutionsFile shouldBe "defaultResolutionsFile"
-            ruleSet1.evaluatorRules shouldBe "defaultEvaluatorRules"
+            with(adminConfig.getRuleSet("customRuleSet1")) {
+                copyrightGarbageFile shouldBe "testCopyrightGarbageFile1"
+                licenseClassificationsFile shouldBe "defaultLicenseClassificationsFile"
+                resolutionsFile shouldBe "defaultResolutionsFile"
+                evaluatorRules shouldBe "defaultEvaluatorRules"
+            }
 
-            val ruleSet2 = adminConfig.getRuleSet("customRuleSet2")
-            ruleSet2.copyrightGarbageFile shouldBe "defaultCopyrightGarbageFile"
-            ruleSet2.licenseClassificationsFile shouldBe "testLicenseClassificationsFile2"
-            ruleSet2.resolutionsFile shouldBe "testResolutionsFile2"
-            ruleSet2.evaluatorRules shouldBe "testEvaluatorRules2"
+            with(adminConfig.getRuleSet("customRuleSet2")) {
+                copyrightGarbageFile shouldBe "defaultCopyrightGarbageFile"
+                licenseClassificationsFile shouldBe "testLicenseClassificationsFile2"
+                resolutionsFile shouldBe "testResolutionsFile2"
+                evaluatorRules shouldBe "testEvaluatorRules2"
+            }
         }
     }
 
@@ -355,15 +357,12 @@ class AdminConfigServiceTest : WordSpec({
             val ortScannerConfig = ScannerConfiguration()
             val service = createServiceWithConfig("")
 
-            val scannerConfig = service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig
-
-            scannerConfig shouldBeSameInstanceAs AdminConfig.DEFAULT_SCANNER_CONFIG
-            scannerConfig.detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
-            scannerConfig.ignorePatterns shouldBe ortScannerConfig.ignorePatterns
-            scannerConfig.sourceCodeOrigins shouldContainExactly listOf(
-                SourceCodeOrigin.VCS,
-                SourceCodeOrigin.ARTIFACT
-            )
+            with(service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig) {
+                this shouldBeSameInstanceAs AdminConfig.DEFAULT_SCANNER_CONFIG
+                detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
+                ignorePatterns shouldBe ortScannerConfig.ignorePatterns
+                sourceCodeOrigins shouldContainExactly listOf(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
+            }
         }
 
         "return a configuration with default settings for an empty scanner section" {
@@ -374,14 +373,11 @@ class AdminConfigServiceTest : WordSpec({
             val ortScannerConfig = ScannerConfiguration()
             val service = createServiceWithConfig(config)
 
-            val scannerConfig = service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig
-
-            scannerConfig.detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
-            scannerConfig.ignorePatterns shouldBe ortScannerConfig.ignorePatterns
-            scannerConfig.sourceCodeOrigins shouldContainExactly listOf(
-                SourceCodeOrigin.VCS,
-                SourceCodeOrigin.ARTIFACT
-            )
+            with(service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig) {
+                detectedLicenseMappings shouldBe ortScannerConfig.detectedLicenseMapping
+                ignorePatterns shouldBe ortScannerConfig.ignorePatterns
+                sourceCodeOrigins shouldContainExactly listOf(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
+            }
         }
 
         "parse the scanner section from the config file" {
@@ -397,17 +393,14 @@ class AdminConfigServiceTest : WordSpec({
                 """.trimIndent()
             val service = createServiceWithConfig(config)
 
-            val scannerConfig = service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig
-
-            scannerConfig.detectedLicenseMappings shouldContainExactly mapOf(
-                "detectedLicense1" to "spdxLicense1",
-                "detectedLicense2" to "spdxLicense2"
-            )
-            scannerConfig.ignorePatterns shouldContainExactly listOf("ignorePattern1", "ignorePattern2")
-            scannerConfig.sourceCodeOrigins shouldContainExactly listOf(
-                SourceCodeOrigin.VCS,
-                SourceCodeOrigin.ARTIFACT
-            )
+            with(service.loadAdminConfig(context, ORGANIZATION_ID).scannerConfig) {
+                detectedLicenseMappings shouldContainExactly mapOf(
+                    "detectedLicense1" to "spdxLicense1",
+                    "detectedLicense2" to "spdxLicense2"
+                )
+                ignorePatterns shouldContainExactly listOf("ignorePattern1", "ignorePattern2")
+                sourceCodeOrigins shouldContainExactly listOf(SourceCodeOrigin.VCS, SourceCodeOrigin.ARTIFACT)
+            }
         }
     }
 
@@ -517,12 +510,15 @@ class AdminConfigServiceTest : WordSpec({
 
             val service = createServiceWithConfig(config)
             val mirror = service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror
-            mirror?.id shouldBe "testId"
-            mirror?.name shouldBe "testName"
-            mirror?.url shouldBe "https://test.url"
-            mirror?.mirrorOf shouldBe "testMirrorOf"
-            mirror?.usernameSecret shouldBe "testUsername"
-            mirror?.passwordSecret shouldBe "testPassword"
+
+            mirror.shouldNotBeNull {
+                id shouldBe "testId"
+                name shouldBe "testName"
+                url shouldBe "https://test.url"
+                mirrorOf shouldBe "testMirrorOf"
+                usernameSecret shouldBe "testUsername"
+                passwordSecret shouldBe "testPassword"
+            }
         }
 
         "return the configured Maven Central mirror without credentials" {
@@ -537,12 +533,15 @@ class AdminConfigServiceTest : WordSpec({
             val service = createServiceWithConfig(config)
 
             val mirror = service.loadAdminConfig(context, ORGANIZATION_ID).mavenCentralMirror
-            mirror?.id shouldBe "testId"
-            mirror?.name shouldBe "testName"
-            mirror?.url shouldBe "https://test.url"
-            mirror?.mirrorOf shouldBe "testMirrorOf"
-            mirror?.usernameSecret shouldBe null
-            mirror?.passwordSecret shouldBe null
+
+            mirror.shouldNotBeNull {
+                id shouldBe "testId"
+                name shouldBe "testName"
+                url shouldBe "https://test.url"
+                mirrorOf shouldBe "testMirrorOf"
+                usernameSecret shouldBe null
+                passwordSecret shouldBe null
+            }
         }
     }
 })
