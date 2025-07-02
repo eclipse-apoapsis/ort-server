@@ -20,7 +20,7 @@
 repositories {
     mavenCentral()
 
-    mavenLocal() {
+    mavenLocal {
         name = "localOrt"
 
         content {
