@@ -37,6 +37,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldContainIgnoringCase
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -71,6 +72,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiI
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
+import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
@@ -84,6 +86,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -882,6 +885,139 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 errorMessage shouldContain scannerPluginId
             }
         }
+
+        val keepAliveTestCases = listOf(
+            ForbiddenKeepAliveWorkerTestcase("Advisor", "advisorKeepAlive", keepAliveAdvisor = true),
+            ForbiddenKeepAliveWorkerTestcase("Analyzer", "analyzerKeepAlive", keepAliveAnalyzer = true),
+            ForbiddenKeepAliveWorkerTestcase("Evaluator", "evaluatorKeepAlive", keepAliveEvaluator = true),
+            ForbiddenKeepAliveWorkerTestcase("Notifier", "notifierKeepAlive", keepAliveNotifier = true),
+            ForbiddenKeepAliveWorkerTestcase("Reporter", "reporterKeepAlive", keepAliveReporter = true),
+            ForbiddenKeepAliveWorkerTestcase("Scanner", "scannerKeepAlive", keepAliveScanner = true)
+        )
+
+        keepAliveTestCases.forEach { testCase ->
+            "respond with 'Forbidden' if 'keepAliveWorker' set in the ${testCase.workerName} config (non super-user)" {
+                integrationTestApplication {
+                    val repositoryId = createRepository().id
+
+                    keycloak.keycloakAdminClient.addUserRole(
+                        TEST_USER.username.value,
+                        RepositoryPermission.TRIGGER_ORT_RUN.roleName(repositoryId)
+                    )
+                    val createRun = CreateOrtRun(
+                        "main",
+                        null,
+                        ApiJobConfigurations(
+                            analyzer = AnalyzerJobConfiguration(keepAliveWorker = testCase.keepAliveAnalyzer),
+                            advisor = AdvisorJobConfiguration(keepAliveWorker = testCase.keepAliveAdvisor),
+                            evaluator = EvaluatorJobConfiguration(keepAliveWorker = testCase.keepAliveEvaluator),
+                            notifier = NotifierJobConfiguration(keepAliveWorker = testCase.keepAliveNotifier),
+                            reporter = ReporterJobConfiguration(keepAliveWorker = testCase.keepAliveReporter),
+                            scanner = ScannerJobConfiguration(keepAliveWorker = testCase.keepAliveScanner)
+                        )
+                    )
+
+                    val response = testUserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                        setBody(createRun)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.Forbidden
+                    response.body<ErrorResponse>().message shouldContainIgnoringCase "keepAlive"
+                    response.body<ErrorResponse>().message shouldContainIgnoringCase testCase.workerName
+                }
+            }
+
+            "respond with 'Forbidden' if '${testCase.parameterName}' set configuration parameters (non super-user)" {
+                integrationTestApplication {
+                    val repositoryId = createRepository().id
+
+                    keycloak.keycloakAdminClient.addUserRole(
+                        TEST_USER.username.value,
+                        RepositoryPermission.TRIGGER_ORT_RUN.roleName(repositoryId)
+                    )
+                    val createRun = CreateOrtRun(
+                        "main",
+                        null,
+                        ApiJobConfigurations(
+                            parameters = mapOf(
+                                "advisorKeepAlive" to testCase.keepAliveAdvisor.toString(),
+                                "analyzerKeepAlive" to testCase.keepAliveAnalyzer.toString(),
+                                "evaluatorKeepAlive" to testCase.keepAliveEvaluator.toString(),
+                                "notifierKeepAlive" to testCase.keepAliveNotifier.toString(),
+                                "reporterKeepAlive" to testCase.keepAliveReporter.toString(),
+                                "scannerKeepAlive" to testCase.keepAliveScanner.toString()
+                            )
+                        )
+                    )
+
+                    val response = testUserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                        setBody(createRun)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.Forbidden
+                    response.body<ErrorResponse>().message shouldContainIgnoringCase "keepAlive"
+                    response.body<ErrorResponse>().message shouldContainIgnoringCase testCase.workerName
+                }
+            }
+
+            "continue if 'keepAliveWorker' is true in the ${testCase.workerName} config (super-user calling)" {
+                integrationTestApplication {
+                    val repositoryId = createRepository().id
+
+                    val analyzerJob = AnalyzerJobConfiguration(
+                        keepAliveWorker = true,
+                    )
+                    val createRun = CreateOrtRun(
+                        "main",
+                        null,
+                        ApiJobConfigurations(
+                            analyzer = AnalyzerJobConfiguration(keepAliveWorker = testCase.keepAliveAnalyzer),
+                            advisor = AdvisorJobConfiguration(keepAliveWorker = testCase.keepAliveAdvisor),
+                            evaluator = EvaluatorJobConfiguration(keepAliveWorker = testCase.keepAliveEvaluator),
+                            notifier = NotifierJobConfiguration(keepAliveWorker = testCase.keepAliveNotifier),
+                            reporter = ReporterJobConfiguration(keepAliveWorker = testCase.keepAliveReporter),
+                            scanner = ScannerJobConfiguration(keepAliveWorker = testCase.keepAliveScanner)
+                        )
+                    )
+
+                    val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                        setBody(createRun)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.Created
+                }
+            }
+
+            "continue if '${testCase.parameterName}' is defined in configuration parameters (super-user calling)" {
+                integrationTestApplication {
+                    val repositoryId = createRepository().id
+
+                    val analyzerJob = AnalyzerJobConfiguration(
+                        keepAliveWorker = true,
+                    )
+                    val createRun = CreateOrtRun(
+                        "main",
+                        null,
+                        ApiJobConfigurations(
+                            parameters = mapOf(
+                                "advisorKeepAlive" to testCase.keepAliveAdvisor.toString(),
+                                "analyzerKeepAlive" to testCase.keepAliveAnalyzer.toString(),
+                                "evaluatorKeepAlive" to testCase.keepAliveEvaluator.toString(),
+                                "notifierKeepAlive" to testCase.keepAliveNotifier.toString(),
+                                "reporterKeepAlive" to testCase.keepAliveReporter.toString(),
+                                "scannerKeepAlive" to testCase.keepAliveScanner.toString()
+                            )
+                        )
+                    )
+
+                    val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                        setBody(createRun)
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.Created
+                }
+            }
+        }
     }
 
     "GET /repositories/{repositoryId}/infrastructure-services" should {
@@ -1351,9 +1487,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                         ) {
                             setBody(user)
                         }
+
                         HttpMethod.Delete -> superuserClient.delete(
                             "/api/v1/repositories/${createdRepo.id}/groups/non-existing-group?username=${user.username}"
                         )
+
                         else -> error("Unsupported method: $method")
                     }
 
@@ -1531,3 +1669,14 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 })
+
+private data class ForbiddenKeepAliveWorkerTestcase(
+    val workerName: String,
+    val parameterName: String,
+    val keepAliveAdvisor: Boolean = false,
+    val keepAliveAnalyzer: Boolean = false,
+    val keepAliveEvaluator: Boolean = false,
+    val keepAliveNotifier: Boolean = false,
+    val keepAliveReporter: Boolean = false,
+    val keepAliveScanner: Boolean = false
+)
