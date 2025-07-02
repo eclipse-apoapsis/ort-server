@@ -318,6 +318,159 @@ class MavenSettingsGeneratorTest : WordSpec({
                 ).withIndent(8)
             )
         }
+
+        "generate mirror section when defined in MavenDefinition" {
+            val secUser = MockConfigFileBuilder.createSecret("userSecret")
+            val secPass = MockConfigFileBuilder.createSecret("passSecret")
+            val definition = MavenDefinition(
+                MockConfigFileBuilder.createInfrastructureService(
+                    "https://repo.example.org/test.git",
+                    secUser,
+                    secPass
+                ),
+                emptySet(),
+                "repo",
+                "central"
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            MavenSettingsGenerator().generate(mockBuilder.builder, listOf(definition))
+
+            val content = mockBuilder.generatedText()
+            content.shouldContain(serverBlock("repo", secUser, secPass).withIndent(8))
+            content.shouldContain(
+                mirrorBlock(
+                    definition.id,
+                    definition.service.name,
+                    definition.service.url,
+                    definition.mirrorOf!!
+                ).withIndent(8)
+            )
+        }
+
+        "ignore global MavenCentralMirror if MavenDefinition uses same mirrorOf" {
+            val secUser = MockConfigFileBuilder.createSecret("userSecret")
+            val secPass = MockConfigFileBuilder.createSecret("passSecret")
+            val definition = MavenDefinition(
+                MockConfigFileBuilder.createInfrastructureService(
+                    "https://repo.example.org/test.git",
+                    secUser,
+                    secPass
+                ),
+                emptySet(),
+                "repo",
+                "central"
+            )
+
+            val username = "test-username"
+            val infraUsernameSecret = MockConfigFileBuilder.createSecret("infra-secret-username")
+            val password = "test-password"
+            val infraPasswordSecret = MockConfigFileBuilder.createSecret("infra-secret-password")
+            val mavenCentralMirror = MavenCentralMirror(
+                id = "central",
+                name = "Maven Central",
+                url = "https://repo.maven.apache.org/maven2",
+                mirrorOf = "central",
+                usernameSecret = infraUsernameSecret.name,
+                passwordSecret = infraPasswordSecret.name
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraUsernameSecret.path)) } returns username
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraPasswordSecret.path)) } returns password
+            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+
+            MavenSettingsGenerator().generate(mockBuilder.builder, listOf(definition))
+
+            val content = mockBuilder.generatedText()
+            content.shouldContain(serverBlock("repo", secUser, secPass).withIndent(8))
+            content.shouldNotContain(
+                serverBlock(
+                    "central",
+                    infraUsernameSecret,
+                    infraPasswordSecret,
+                    { secret -> mockBuilder.infraSecretResolverFun.invoke(Path(secret.path)) }
+                ).withIndent(8)
+            )
+            content.shouldContain(
+                mirrorBlock(
+                    definition.id,
+                    definition.service.name,
+                    definition.service.url,
+                    definition.mirrorOf!!
+                ).withIndent(8)
+            )
+            content.shouldNotContain(
+                mirrorBlock(
+                    mavenCentralMirror.id,
+                    mavenCentralMirror.name,
+                    mavenCentralMirror.url,
+                    mavenCentralMirror.mirrorOf
+                ).withIndent(8)
+            )
+        }
+
+        "generate mirror sections for both MavenDefinition and MavenCentralMirror if mirrorOf values differ" {
+            val secUser = MockConfigFileBuilder.createSecret("userSecret")
+            val secPass = MockConfigFileBuilder.createSecret("passSecret")
+            val definition = MavenDefinition(
+                MockConfigFileBuilder.createInfrastructureService(
+                    "https://repo.example.org/test.git",
+                    secUser,
+                    secPass
+                ),
+                emptySet(),
+                "repo",
+                "project-repository-id"
+            )
+
+            val username = "test-username"
+            val infraUsernameSecret = MockConfigFileBuilder.createSecret("infra-secret-username")
+            val password = "test-password"
+            val infraPasswordSecret = MockConfigFileBuilder.createSecret("infra-secret-password")
+            val mavenCentralMirror = MavenCentralMirror(
+                id = "central",
+                name = "Maven Central",
+                url = "https://repo.maven.apache.org/maven2",
+                mirrorOf = "central",
+                usernameSecret = infraUsernameSecret.name,
+                passwordSecret = infraPasswordSecret.name
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraUsernameSecret.path)) } returns username
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraPasswordSecret.path)) } returns password
+            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+
+            MavenSettingsGenerator().generate(mockBuilder.builder, listOf(definition))
+            val content = mockBuilder.generatedText()
+            content.shouldContain(serverBlock("repo", secUser, secPass).withIndent(8))
+            content.shouldContain(
+                serverBlock(
+                    "central",
+                    infraUsernameSecret,
+                    infraPasswordSecret,
+                    { secret -> mockBuilder.infraSecretResolverFun.invoke(Path(secret.path)) }
+                ).withIndent(8)
+            )
+            content.shouldContain(
+                mirrorBlock(
+                    definition.id,
+                    definition.service.name,
+                    definition.service.url,
+                    definition.mirrorOf!!
+                ).withIndent(8)
+            )
+            content.shouldContain(
+                mirrorBlock(
+                    mavenCentralMirror.id,
+                    mavenCentralMirror.name,
+                    mavenCentralMirror.url,
+                    mavenCentralMirror.mirrorOf
+                ).withIndent(8)
+            )
+        }
     }
 })
 
