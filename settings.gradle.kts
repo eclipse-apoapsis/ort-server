@@ -118,6 +118,14 @@ plugins {
 
 dependencyResolutionManagement {
     repositories {
+        mavenLocal {
+            name = "localOrt"
+
+            content {
+                includeGroupByRegex("org\\.ossreviewtoolkit(\\..*)?")
+            }
+        }
+
         mavenCentral()
     }
 
