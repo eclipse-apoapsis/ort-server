@@ -129,14 +129,14 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
           ? breadcrumbs.repo
           : breadcrumbs.run;
 
-  const orgSiblings = organizations?.data;
-  const prodSiblings = products?.data;
-  const repoSiblings = repositories?.data;
-  const runSiblings = runs?.data.sort((a, b) => b.index - a.index);
+  const orgs = organizations?.data;
+  const prods = products?.data;
+  const repos = repositories?.data;
+  const runIndexes = runs?.data;
 
   return (
     <BreadcrumbItem>
-      {entity === 'organization' && orgSiblings && orgSiblings.length > 0 && (
+      {entity === 'organization' && orgs && orgs.length > 1 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <ChevronDown className='ml-1 size-4 cursor-pointer' />
@@ -150,7 +150,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                   {`Failed to load organizations: ${(orgError as ApiError).message}`}
                 </DropdownMenuItem>
               )}
-              {orgSiblings.map((org) => (
+              {orgs.map((org) => (
                 <DropdownMenuItem key={org.id} className='ml-2' asChild>
                   <Link
                     to='/organizations/$orgId'
@@ -169,7 +169,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-      {entity === 'product' && prodSiblings && prodSiblings.length > 0 && (
+      {entity === 'product' && prods && prods.length > 1 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <ChevronDown className='ml-1 size-4 cursor-pointer' />
@@ -185,7 +185,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                   {`Failed to load products: ${(productsError as ApiError).message}`}
                 </DropdownMenuItem>
               )}
-              {prodSiblings.map((prod) => (
+              {prods.map((prod) => (
                 <DropdownMenuItem key={prod.id} className='ml-2' asChild>
                   <Link
                     to='/organizations/$orgId/products/$productId'
@@ -207,7 +207,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-      {entity === 'repository' && repoSiblings && repoSiblings.length > 0 && (
+      {entity === 'repository' && repos && repos.length > 1 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <ChevronDown className='ml-1 size-4 cursor-pointer' />
@@ -223,7 +223,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                   {`Failed to load repositories: ${(repositoriesError as ApiError).message}`}
                 </DropdownMenuItem>
               )}
-              {repoSiblings?.map((repo) => (
+              {repos.map((repo) => (
                 <DropdownMenuItem key={repo.id} className='ml-2' asChild>
                   <Link
                     to='/organizations/$orgId/products/$productId/repositories/$repoId'
@@ -246,7 +246,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-      {entity === 'run' && runSiblings && runSiblings.length > 0 && (
+      {entity === 'run' && runIndexes && runIndexes.length > 1 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <ChevronDown className='ml-1 size-4 cursor-pointer' />
@@ -260,7 +260,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                   {`Failed to load runs: ${(runsError as ApiError).message}`}
                 </DropdownMenuItem>
               )}
-              {runSiblings?.map((run) => (
+              {runIndexes.map((run) => (
                 <DropdownMenuItem key={run.index} className='ml-2' asChild>
                   <Link
                     to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
