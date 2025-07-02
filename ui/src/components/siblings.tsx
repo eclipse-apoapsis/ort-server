@@ -18,7 +18,7 @@
  */
 
 import { Link, useParams, useRouter } from '@tanstack/react-router';
-import { ChevronDown } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 
 import {
   useOrganizationsServiceGetApiV1Organizations,
@@ -129,19 +129,10 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
           ? breadcrumbs.repo
           : breadcrumbs.run;
 
-  const orgSiblings = organizations?.data.filter(
-    (org) => org.id !== Number(params.orgId)
-  );
-
-  const prodSiblings = products?.data.filter(
-    (prod) => prod.id !== Number(params.productId)
-  );
-  const repoSiblings = repositories?.data.filter(
-    (repo) => repo.id !== Number(params.repoId)
-  );
-  const runSiblings = runs?.data
-    .sort((a, b) => b.index - a.index)
-    .filter((run) => run.index !== Number(params.runIndex));
+  const orgSiblings = organizations?.data;
+  const prodSiblings = products?.data;
+  const repoSiblings = repositories?.data;
+  const runSiblings = runs?.data.sort((a, b) => b.index - a.index);
 
   return (
     <BreadcrumbItem>
@@ -160,12 +151,17 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 </DropdownMenuItem>
               )}
               {orgSiblings.map((org) => (
-                <DropdownMenuItem key={org.id} className='ml-2'>
+                <DropdownMenuItem key={org.id} className='ml-2' asChild>
                   <Link
                     to='/organizations/$orgId'
                     params={{ orgId: org.id.toString() ?? '' }}
                   >
-                    {org.name}
+                    <div className='grid w-full grid-cols-6 items-center gap-2'>
+                      <div className='col-span-5'>{org.name}</div>
+                      {org.id === Number(params.orgId) && (
+                        <Check className='ml-auto h-4 w-4' />
+                      )}
+                    </div>
                   </Link>
                 </DropdownMenuItem>
               ))}
@@ -190,7 +186,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 </DropdownMenuItem>
               )}
               {prodSiblings.map((prod) => (
-                <DropdownMenuItem key={prod.id} className='ml-2'>
+                <DropdownMenuItem key={prod.id} className='ml-2' asChild>
                   <Link
                     to='/organizations/$orgId/products/$productId'
                     params={{
@@ -198,7 +194,12 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                       productId: prod.id.toString() ?? '',
                     }}
                   >
-                    {prod.name}
+                    <div className='grid w-full grid-cols-6 items-center gap-2'>
+                      <div className='col-span-5'>{prod.name}</div>
+                      {prod.id === Number(params.productId) && (
+                        <Check className='ml-auto h-4 w-4' />
+                      )}
+                    </div>
                   </Link>
                 </DropdownMenuItem>
               ))}
@@ -223,7 +224,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 </DropdownMenuItem>
               )}
               {repoSiblings?.map((repo) => (
-                <DropdownMenuItem key={repo.id} className='ml-2'>
+                <DropdownMenuItem key={repo.id} className='ml-2' asChild>
                   <Link
                     to='/organizations/$orgId/products/$productId/repositories/$repoId'
                     params={{
@@ -232,7 +233,12 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                       repoId: repo.id.toString() ?? '',
                     }}
                   >
-                    {repo.url}
+                    <div className='grid w-full grid-cols-6 items-center gap-2'>
+                      <div className='col-span-5'>{repo.url}</div>
+                      {repo.id === Number(params.repoId) && (
+                        <Check className='ml-auto h-4 w-4' />
+                      )}
+                    </div>
                   </Link>
                 </DropdownMenuItem>
               ))}
@@ -255,7 +261,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                 </DropdownMenuItem>
               )}
               {runSiblings?.map((run) => (
-                <DropdownMenuItem key={run.index} className='ml-2'>
+                <DropdownMenuItem key={run.index} className='ml-2' asChild>
                   <Link
                     to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
                     params={{
@@ -265,7 +271,12 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
                       runIndex: run.index.toString() ?? '',
                     }}
                   >
-                    {run.index}
+                    <div className='grid w-full grid-cols-6 items-center gap-2'>
+                      <div className='col-span-5'>{run.index}</div>
+                      {run.index === Number(params.runIndex) && (
+                        <Check className='ml-auto h-4 w-4' />
+                      )}
+                    </div>
                   </Link>
                 </DropdownMenuItem>
               ))}
