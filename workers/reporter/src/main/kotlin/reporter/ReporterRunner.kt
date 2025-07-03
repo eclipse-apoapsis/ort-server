@@ -41,6 +41,8 @@ import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.mapOptions
@@ -88,7 +90,12 @@ class ReporterRunner(
     private val configManager: ConfigManager,
 
     /** The file archiver used for resolving license files. */
-    private val fileArchiver: FileArchiver
+    private val fileArchiver: FileArchiver,
+
+    /**
+     * The service to access the admin configuration. Some parts of the report configuration are obtained from there.
+     */
+    private val adminConfigService: AdminConfigService
 ) {
     suspend fun run(
         ortResult: OrtResult,
@@ -96,17 +103,20 @@ class ReporterRunner(
         evaluatorConfig: EvaluatorJobConfiguration?,
         context: WorkerContext
     ): ReporterRunnerResult {
-        val copyrightGarbageFile = config.copyrightGarbageFile
+        val adminConfig = adminConfigService.loadAdminConfig(
+            context.resolvedConfigurationContext,
+            context.ortRun.organizationId
+        )
+        val ruleSet = adminConfig.getRuleSet(context.ortRun.resolvedJobConfigs?.ruleSet)
         val copyrightGarbage = configManager.readConfigFileValueWithDefault(
-            path = copyrightGarbageFile,
+            path = ruleSet.copyrightGarbageFile,
             defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
             fallbackValue = CopyrightGarbage(),
             context = context.resolvedConfigurationContext
         )
 
-        val licenseClassificationsFile = config.licenseClassificationsFile
         val licenseClassifications = configManager.readConfigFileValueWithDefault(
-            path = licenseClassificationsFile,
+            path = ruleSet.licenseClassificationsFile,
             defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
             fallbackValue = LicenseClassifications(),
             context = context.resolvedConfigurationContext
@@ -136,7 +146,7 @@ class ReporterRunner(
             val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
 
             val resolutionsFromFile = configManager.readConfigFileValueWithDefault(
-                path = config.resolutionsFile,
+                path = ruleSet.resolutionsFile,
                 defaultPath = ORT_RESOLUTIONS_FILENAME,
                 fallbackValue = Resolutions(),
                 context = context.resolvedConfigurationContext
@@ -148,7 +158,7 @@ class ReporterRunner(
         }
 
         val howToFixTextProviderScript = configManager.readConfigFileWithDefault(
-            path = config.howToFixTextProviderFile,
+            path = adminConfig.reporterConfig.howToFixTextProviderFile,
             defaultPath = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
             fallbackValue = "",
             context = context.resolvedConfigurationContext
@@ -163,6 +173,7 @@ class ReporterRunner(
         val (successes, issues) = generateReports(
             context,
             config,
+            adminConfig.reporterConfig,
             resolvedOrtResult,
             copyrightGarbage,
             licenseClassifications,
@@ -184,14 +195,15 @@ class ReporterRunner(
     }
 
     /**
-     * Generate all reports for the current [context] as defined by the given [config] using as input the given
-     * [resolvedOrtResult], [copyrightGarbage], [licenseClassifications], and [howToFixTextProvider]. Return
+     * Generate all reports for the current [context] as defined by the given [config] and [adminConfig] using as input
+     * the given [resolvedOrtResult], [copyrightGarbage], [licenseClassifications], and [howToFixTextProvider]. Return
      * a pair with a list of reports that were created successfully (consisting of the format name and the
      * generated files) and a list of issues that occurred during the report generation.
      */
     private suspend fun generateReports(
         context: WorkerContext,
         config: ReporterJobConfiguration,
+        adminConfig: ReporterConfig,
         resolvedOrtResult: OrtResult,
         copyrightGarbage: CopyrightGarbage,
         licenseClassifications: LicenseClassifications,
@@ -201,7 +213,7 @@ class ReporterRunner(
             val outputDir = context.createTempDir()
             val issues = mutableListOf<Issue>()
 
-            val deferredTransformedOptions = async { processReporterOptions(context, config) }
+            val deferredTransformedOptions = async { processReporterOptions(context, config, adminConfig) }
 
             val deferredReporterInput = async {
                 // TODO: Some parameters of ReporterInput are still set to default values. Make sure that for all
@@ -217,7 +229,7 @@ class ReporterRunner(
                     ),
                     copyrightGarbage = copyrightGarbage,
                     licenseClassifications = licenseClassifications,
-                    licenseTextProvider = createLicenseTextProvider(context, config),
+                    licenseTextProvider = createLicenseTextProvider(context, adminConfig),
                     howToFixTextProvider = howToFixTextProvider
                 )
             }
@@ -235,9 +247,7 @@ class ReporterRunner(
 
                     val result = runCatching {
                         measureTimedValue {
-                            val reporterFactory = requireNotNull(ReporterFactory.ALL[format]) {
-                                "No reporter found for the configured format '$format'."
-                            }
+                            val reporterFactory = fetchReporterFactory(format, adminConfig)
 
                             val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.mapToOrt().orEmpty()
 
@@ -260,8 +270,10 @@ class ReporterRunner(
                         issues += createAndLogReporterIssue(format, it)
                     }
 
-                    result.getOrNull()?.let { (reporter, reportFiles) ->
-                        val nameMapper = ReportNameMapper.create(config, reporter.descriptor.id)
+                    result.getOrNull()?.let { (_, reportFiles) ->
+                        val nameMapper = ReportNameMapper.create(
+                            requireNotNull(adminConfig.getReportDefinition(format))
+                        )
                         format to nameMapper.mapReportNames(reportFiles)
                             .also { reportStorage.storeReportFiles(context.ortRun.id, it) }
                     }.also {
@@ -287,18 +299,20 @@ class ReporterRunner(
 
     /**
      * Prepare the generation of reports by processing the options passed to the single reporters in the given
-     * [config]. This includes downloading of all files that are referenced by reporters, such as template files and
-     * other assets like fonts or images. Also, the secrets required by reporters need to be resolved. Use the given
-     * [context] for the processing.
+     * [config], also taking the given [adminConfig] into account. This includes downloading of all files that are
+     * referenced by reporters, such as template files and other assets like fonts or images. Also, the secrets
+     * required by reporters need to be resolved. Use the given [context] for the processing.
      */
     private suspend fun processReporterOptions(
         context: WorkerContext,
-        config: ReporterJobConfiguration
+        config: ReporterJobConfiguration,
+        adminConfig: ReporterConfig
     ): Map<String, PluginConfig> = withContext(Dispatchers.IO) {
         val templateDir = context.createTempDir()
+        val (assetFiles, assetDirectories) = fetchReporterAssets(config, adminConfig)
 
-        launch { context.downloadAssetFiles(config.assetFiles, templateDir) }
-        launch { context.downloadAssetDirectories(config.assetDirectories, templateDir) }
+        launch { context.downloadAssetFiles(assetFiles, templateDir) }
+        launch { context.downloadAssetDirectories(assetDirectories, templateDir) }
 
         // Replace the placeholder for the working directory in the options with the actual path.
         val workDirOptions = config.config?.mapOptions { (_, value) ->
@@ -412,7 +426,7 @@ private fun String.toTemplatePath(): Path = Path(removePrefix(ReporterComponent.
  */
 internal fun createLicenseTextProvider(
     context: WorkerContext,
-    config: ReporterJobConfiguration
+    config: ReporterConfig
 ): LicenseTextProvider =
     config.customLicenseTextDir?.let { dir ->
         CustomLicenseTextProvider(context.configManager, context.resolvedConfigurationContext, Path(dir))
@@ -432,4 +446,38 @@ private fun createAndLogReporterIssue(format: String, e: Throwable): Issue {
         message = "Could not create report for '$format': '${e.message}'",
         severity = Severity.ERROR,
     )
+}
+
+/**
+ * Obtain all [ReporterAsset]s that must be downloaded based on the given [config] and [adminConfig]. Return a pair
+ * with the asset files and asset directories referenced by the configuration.
+ */
+private fun fetchReporterAssets(
+    config: ReporterJobConfiguration,
+    adminConfig: ReporterConfig
+): Pair<Collection<ReporterAsset>, Collection<ReporterAsset>> {
+    val assetFiles = mutableSetOf<ReporterAsset>()
+    val assetDirectories = mutableSetOf<ReporterAsset>()
+
+    config.formats.forEach { format ->
+        adminConfig.getReportDefinition(format)?.also { definition ->
+            assetFiles += definition.assetFiles
+            assetDirectories += definition.assetDirectories
+        }
+    }
+
+    return assetFiles to assetDirectories
+}
+
+/**
+ * Obtain the [ReporterFactory] for the given [format] using the definitions from the given [adminConfig].
+ */
+private fun fetchReporterFactory(format: String, adminConfig: ReporterConfig): ReporterFactory {
+    val pluginId = requireNotNull(adminConfig.getReportDefinition(format)?.pluginId) {
+        "No reporter found for the configured format '$format'."
+    }
+
+    return requireNotNull(ReporterFactory.ALL[pluginId]) {
+        "No reporter plugin found with the ID '$pluginId'."
+    }
 }
