@@ -46,8 +46,10 @@ import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.InputStream
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -67,6 +69,13 @@ import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.ReportDefinition
+import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
+import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -76,7 +85,11 @@ import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity as OrtSeverity
+import org.ossreviewtoolkit.model.config.CopyrightGarbage
+import org.ossreviewtoolkit.model.licenses.LicenseCategory
+import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
+import org.ossreviewtoolkit.model.yamlMapper
 import org.ossreviewtoolkit.plugins.api.PluginConfig as OrtPluginConfig
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.reporter.DefaultLicenseTextProvider
@@ -84,9 +97,40 @@ import org.ossreviewtoolkit.reporter.HowToFixTextProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
+import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 
 private const val RUN_ID = 20230522093727L
+private const val ORGANIZATION_ID = 20250707045021L
+private const val RULE_SET_NAME = "selectedRuleSet"
 private val configurationContext = Context("theConfigContext")
+
+private val ruleSet = RuleSet(
+    copyrightGarbageFile = "testCopyrightGarbageFile",
+    licenseClassificationsFile = "testLicenseClassificationsFile",
+    resolutionsFile = "testResolutionsFile",
+    evaluatorRules = "testEvaluatorRulesFile"
+)
+
+private val copyrightGarbage = CopyrightGarbage(setOf("copyrightFoo", "copyrightBar"))
+
+private val licenseClassifications = LicenseClassifications(
+    categories = listOf(LicenseCategory("testLicense"))
+)
+
+private val resolutions = Resolutions(
+    issues = listOf(IssueResolution("message", "CANT_FIX_ISSUE", "comment"))
+)
+
+/** Name of a test reporter format. */
+private const val TEST_REPORT_FORMAT = "testFormat"
+
+/**
+ * A test reporter configuration that contains only a dummy definition for the test format. This can be used to test
+ * functionality not related to the actual report generation.
+ */
+private val testReportConfig = createReporterConfig(
+    reportDefinitions = arrayOf(createReportDefinition(TEST_REPORT_FORMAT))
+)
 
 @Suppress("LargeClass")
 class ReporterRunnerTest : WordSpec({
@@ -95,7 +139,9 @@ class ReporterRunnerTest : WordSpec({
     }
 
     val configManager = mockk<ConfigManager> {
-        every { getFile(any(), any()) } throws ConfigException("", null)
+        every { getFile(configurationContext, any()) } answers {
+            simulateGetConfigFile(secondArg())
+        }
         every { getFileAsString(any(), any()) } returns ""
     }
 
@@ -112,7 +158,9 @@ class ReporterRunnerTest : WordSpec({
     ): WorkerContext =
         mockk {
             every { ortRun.id } returns RUN_ID
+            every { ortRun.organizationId } returns ORGANIZATION_ID
             every { ortRun.resolvedJobConfigContext } returns configurationContext.name
+            every { ortRun.resolvedJobConfigs } returns JobConfigurations(ruleSet = RULE_SET_NAME)
             every { createTempDir() } returnsMany listOf(outputDirectory, configDirectory)
             every { close() } just runs
             coEvery { resolvePluginConfigSecrets(any()) } answers {
@@ -127,17 +175,29 @@ class ReporterRunnerTest : WordSpec({
             coEvery { resolveProviderPluginConfigSecrets(providerPluginConfigs) } returns resolvedProviderPluginConfigs
         }
 
+    /**
+     * Create a [ReporterRunner] for testing that is initialized with the given [storage] and uses the given [config].
+     */
+    fun createRunner(
+        storage: ReportStorage = mockk(relaxed = true),
+        config: ReporterConfig = createReporterConfig()
+    ): ReporterRunner =
+        ReporterRunner(storage, configManager, mockk(), createAdminConfigService(config))
+
     "run" should {
         "return a result with report format and report names" {
             val storage = mockk<ReportStorage>()
             coEvery { storage.storeReportFiles(any(), any()) } just runs
-            val runner = ReporterRunner(storage, configManager, mockk())
 
             val reportType = "WebApp"
             val mapping = ReportNameMapping("testReport")
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(createReportDefinition(reportType, nameMapping = mapping))
+            )
+            val runner = createRunner(storage, reporterConfig)
+
             val config = ReporterJobConfiguration(
                 formats = listOf(reportType),
-                nameMappings = mapOf(reportType to mapping)
             )
             val result = runner.run(OrtResult.EMPTY, config, null, mockContext())
 
@@ -160,22 +220,24 @@ class ReporterRunnerTest : WordSpec({
             val resolvedTemplatePrefix = "/var/tmp/"
 
             val plainFormat = "plain"
-            val plainReporter = reporterFactoryMock(plainFormat)
+            val plainPluginId = "plainPlugin"
+            val plainReporter = reporterFactoryMock(plainPluginId)
 
             val templateFormat = "template"
-            val templateReporter = reporterFactoryMock(templateFormat)
+            val templatePluginId = "templatePlugin"
+            val templateReporter = reporterFactoryMock(templatePluginId)
 
             mockReporterFactoryAll(
-                plainFormat to plainReporter,
-                templateFormat to templateReporter
+                plainPluginId to plainReporter,
+                templatePluginId to templateReporter
             )
 
             val plainOptions = mapOf("pretty" to "true")
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(plainFormat, templateFormat),
                 config = mapOf(
-                    plainFormat to PluginConfig(plainOptions, emptyMap()),
-                    templateFormat to PluginConfig(
+                    plainPluginId to PluginConfig(plainOptions, emptyMap()),
+                    templatePluginId to PluginConfig(
                         mapOf(
                             "ugly" to "false",
                             "templateFile" to "${ReporterComponent.TEMPLATE_REFERENCE}$templateFileReference1",
@@ -193,10 +255,13 @@ class ReporterRunnerTest : WordSpec({
                 paths.associateWith { path -> File(resolvedTemplatePrefix, path.path) }
             }
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val runner = createRunner(
+                config = createReporterConfig(
+                    reportDefinitions = arrayOf(
+                        createReportDefinition(plainPluginId, plainFormat),
+                        createReportDefinition(templatePluginId, templateFormat)
+                    )
+                )
             )
             runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
@@ -248,11 +313,10 @@ class ReporterRunnerTest : WordSpec({
                 paths.associateWith { path -> File(resolvedTemplatePrefix, path.path) }
             }
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(createReportDefinition(templateFormat))
             )
+            val runner = createRunner(config = reporterConfig)
             runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             val slotPluginConfiguration = slot<OrtPluginConfig>()
@@ -282,11 +346,10 @@ class ReporterRunnerTest : WordSpec({
                 )
             )
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(createReportDefinition(templateFormat))
             )
+            val runner = createRunner(config = reporterConfig)
             runner.run(OrtResult.EMPTY, jobConfig, null, mockContext())
 
             val slotPluginConfiguration = slot<OrtPluginConfig>()
@@ -315,11 +378,10 @@ class ReporterRunnerTest : WordSpec({
                 config = mapOf(templateFormat to PluginConfig(options, secrets))
             )
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(createReportDefinition(templateFormat))
             )
+            val runner = createRunner(config = reporterConfig)
             runner.run(OrtResult.EMPTY, jobConfig, null, mockContext())
 
             val slotPluginConfiguration = slot<OrtPluginConfig>()
@@ -347,11 +409,13 @@ class ReporterRunnerTest : WordSpec({
 
             mockReporterFactoryAll(failureReportFormat to failureReporter, successReportFormat to successReporter)
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(
+                    createReportDefinition(failureReportFormat),
+                    createReportDefinition(successReportFormat)
+                )
             )
+            val runner = createRunner(config = reporterConfig)
 
             val result = runner.run(
                 OrtResult.EMPTY,
@@ -379,11 +443,10 @@ class ReporterRunnerTest : WordSpec({
 
             mockReporterFactoryAll(supportedReportFormat to supportedReporter)
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(createReportDefinition(supportedReportFormat))
             )
+            val runner = createRunner(config = reporterConfig)
 
             val result = runner.run(
                 OrtResult.EMPTY,
@@ -401,24 +464,53 @@ class ReporterRunnerTest : WordSpec({
             }
         }
 
-        "use the package configurations resolved by the evaluator" {
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+        "handle an unknown reporter plugin" {
+            val unsupportedReportFormat = "UnknownFormat"
+            val supportedReportFormat = "supportedFormat"
+            val unsupportedPlugin = "unsupportedPlugin"
+            val generatedReport = tempfile()
+            val supportedReporter = reporterFactoryMock(supportedReportFormat) {
+                every { generateReport(any(), any()) } returns listOf(Result.success(generatedReport))
+            }
+
+            mockReporterFactoryAll(supportedReportFormat to supportedReporter)
+
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(
+                    createReportDefinition(supportedReportFormat),
+                    createReportDefinition(unsupportedPlugin, unsupportedReportFormat)
+                )
+            )
+            val runner = createRunner(config = reporterConfig)
+
+            val result = runner.run(
+                OrtResult.EMPTY,
+                ReporterJobConfiguration(formats = listOf(unsupportedReportFormat, supportedReportFormat)),
+                null,
+                mockContext()
             )
 
-            val format = "format"
+            result.reports shouldBe mapOf(supportedReportFormat to listOf(generatedReport.name))
+            with(result.issues.single()) {
+                message shouldContain "No reporter plugin found"
+                message shouldContain unsupportedPlugin
+                source shouldBe "Reporter"
+                severity shouldBe Severity.ERROR
+            }
+        }
+
+        "use the package configurations resolved by the evaluator" {
             val reporterInputSlot = slot<ReporterInput>()
-            val reporter = reporterFactoryMock(format) {
+            val reporter = reporterFactoryMock(TEST_REPORT_FORMAT) {
                 every { generateReport(capture(reporterInputSlot), any()) } returns emptyList()
             }
 
-            mockReporterFactoryAll(format to reporter)
+            mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
+            val runner = createRunner(config = testReportConfig)
             val result = runner.run(
                 ortResult = OrtTestData.result,
-                config = ReporterJobConfiguration(formats = listOf(format)),
+                config = ReporterJobConfiguration(formats = listOf(TEST_REPORT_FORMAT)),
                 evaluatorConfig = EvaluatorJobConfiguration(),
                 mockContext()
             )
@@ -445,20 +537,14 @@ class ReporterRunnerTest : WordSpec({
         }
 
         "resolve package configurations if no evaluator job is configured" {
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
-            )
+            val runner = createRunner(config = testReportConfig)
 
-            val format = "format"
-            val reporter = reporterFactoryMock(format)
-
-            mockReporterFactoryAll(format to reporter)
+            val reporter = reporterFactoryMock(TEST_REPORT_FORMAT)
+            mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
             val result = runner.run(
                 ortResult = OrtTestData.result,
-                config = ReporterJobConfiguration(formats = listOf(format)),
+                config = ReporterJobConfiguration(formats = listOf(TEST_REPORT_FORMAT)),
                 evaluatorConfig = null,
                 mockContext()
             )
@@ -502,21 +588,15 @@ class ReporterRunnerTest : WordSpec({
                 resolvedPackageConfigurationProviderConfigs
             )
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
-            )
+            val runner = createRunner(config = testReportConfig)
 
-            val format = "format"
-            val reporter = reporterFactoryMock(format)
-
-            mockReporterFactoryAll(format to reporter)
+            val reporter = reporterFactoryMock(TEST_REPORT_FORMAT)
+            mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
             runner.run(
                 ortResult = OrtTestData.result,
                 config = ReporterJobConfiguration(
-                    formats = listOf(format),
+                    formats = listOf(TEST_REPORT_FORMAT),
                     packageConfigurationProviders = packageConfigurationProviderConfigs
                 ),
                 evaluatorConfig = null,
@@ -531,19 +611,14 @@ class ReporterRunnerTest : WordSpec({
         }
 
         "use the resolutions resolved by the evaluator" {
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
-            )
+            val runner = createRunner(config = testReportConfig)
 
-            val format = "format"
             val reporterInputSlot = slot<ReporterInput>()
-            val reporter = reporterFactoryMock(format) {
+            val reporter = reporterFactoryMock(TEST_REPORT_FORMAT) {
                 every { generateReport(capture(reporterInputSlot), any()) } returns emptyList()
             }
 
-            mockReporterFactoryAll(format to reporter)
+            mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
             val ruleViolation = RuleViolation("RULE", null, null, null, OrtSeverity.ERROR, "message", "howToFix")
 
@@ -555,7 +630,7 @@ class ReporterRunnerTest : WordSpec({
                         violations = listOf(ruleViolation)
                     )
                 ),
-                config = ReporterJobConfiguration(formats = listOf(format)),
+                config = ReporterJobConfiguration(formats = listOf(TEST_REPORT_FORMAT)),
                 evaluatorConfig = EvaluatorJobConfiguration(),
                 mockContext()
             )
@@ -571,16 +646,10 @@ class ReporterRunnerTest : WordSpec({
         }
 
         "resolve resolutions if no evaluator job is configured" {
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
-            )
+            val runner = createRunner(config = testReportConfig)
 
-            val format = "format"
-            val reporter = reporterFactoryMock(format)
-
-            mockReporterFactoryAll(format to reporter)
+            val reporter = reporterFactoryMock(TEST_REPORT_FORMAT)
+            mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
             val result = runner.run(
                 ortResult = OrtTestData.result.copy(
@@ -592,7 +661,7 @@ class ReporterRunnerTest : WordSpec({
                         )
                     )
                 ),
-                config = ReporterJobConfiguration(formats = listOf(format)),
+                config = ReporterJobConfiguration(formats = listOf(TEST_REPORT_FORMAT)),
                 evaluatorConfig = null,
                 mockContext()
             )
@@ -612,8 +681,7 @@ class ReporterRunnerTest : WordSpec({
                 ReporterAsset("evenNicer.ft", "fonts", "nice2.ft")
             )
             val jobConfig = ReporterJobConfiguration(
-                formats = listOf(format),
-                assetFiles = assetFiles
+                formats = listOf(format)
             )
 
             val downloadedAssets = mutableListOf<ReporterAsset>()
@@ -632,11 +700,12 @@ class ReporterRunnerTest : WordSpec({
                 File(path)
             }
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(
+                    createReportDefinition(format, assetFiles = assetFiles)
+                )
             )
+            val runner = createRunner(config = reporterConfig)
             runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             downloadedAssets shouldContainExactlyInAnyOrder assetFiles
@@ -653,16 +722,11 @@ class ReporterRunnerTest : WordSpec({
                 ReporterAsset("images", "imgs", "ignored")
             )
             val jobConfig = ReporterJobConfiguration(
-                formats = listOf(format),
-                assetDirectories = assetDirectories
+                formats = listOf(format)
             )
-
-            val resolvedContext = Context("theResolvedContext")
 
             val downloadedAssets = mutableMapOf<Path, File>()
             val context = mockContext()
-            every { context.ortRun.resolvedJobConfigContext } returns resolvedContext.name
-            every { context.configManager } returns configManager
             coEvery { context.downloadConfigurationDirectory(any(), any()) } answers {
                 val path = Path(firstArg<String>())
                 val dir = secondArg<File>()
@@ -671,11 +735,12 @@ class ReporterRunnerTest : WordSpec({
                 mapOf(path to File(path.path))
             }
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(
+                    createReportDefinition(format, assetDirectories = assetDirectories)
+                )
             )
+            val runner = createRunner(config = reporterConfig)
             runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             downloadedAssets.keys shouldHaveSize 2
@@ -698,18 +763,17 @@ class ReporterRunnerTest : WordSpec({
 
             val customLicenseTextsPath = "custom-license-texts"
             val jobConfig = ReporterJobConfiguration(
-                formats = listOf(format),
-                customLicenseTextDir = customLicenseTextsPath
+                formats = listOf(format)
             )
 
             val context = mockContext()
             every { context.configManager } returns configManager
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val reporterConfig = createReporterConfig(
+                customLicenseTextDir = customLicenseTextsPath,
+                reportDefinitions = arrayOf(createReportDefinition(format))
             )
+            val runner = createRunner(config = reporterConfig)
             runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             // Verify that a valid provider was passed to the reporter input.
@@ -724,8 +788,7 @@ class ReporterRunnerTest : WordSpec({
             val howToFixTextProviderFile = "testHowToFixTextProvider.kts"
             val howToFixTextProviderScript = "How-To-Fix Kotlin Script"
             val jobConfig = ReporterJobConfiguration(
-                formats = listOf(format),
-                howToFixTextProviderFile = howToFixTextProviderFile
+                formats = listOf(format)
             )
 
             val reporterInputSlot = slot<ReporterInput>()
@@ -746,17 +809,13 @@ class ReporterRunnerTest : WordSpec({
                 configManager.getFile(any(), Path(howToFixTextProviderFile))
             } returns howToFixTextProviderScript.byteInputStream()
 
-            val resolvedContext = Context("theResolvedContext")
-
             val context = mockContext()
-            every { context.ortRun.resolvedJobConfigContext } returns resolvedContext.name
-            every { context.configManager } returns configManager
 
-            val runner = ReporterRunner(
-                mockk(relaxed = true),
-                configManager,
-                mockk()
+            val reporterConfig = createReporterConfig(
+                howToFixTextProviderFile = howToFixTextProviderFile,
+                reportDefinitions = arrayOf(createReportDefinition(format))
             )
+            val runner = createRunner(config = reporterConfig)
             runner.run(OrtResult.EMPTY, jobConfig, null, context)
 
             reporterInputSlot.isCaptured shouldBe true
@@ -765,13 +824,61 @@ class ReporterRunnerTest : WordSpec({
                 issue = Issue(message = "Test issue message.", source = "Test")
             ) shouldBe "A test How-To-Fix text."
         }
+
+        "use the configured copyright garbage" {
+            val format = "testCopyrightGarbage"
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(format)
+            )
+
+            val reporterInputSlot = slot<ReporterInput>()
+            val reporter = reporterFactoryMock(format) {
+                every { generateReport(capture(reporterInputSlot), any()) } returns emptyList()
+            }
+
+            mockReporterFactoryAll(format to reporter)
+
+            val context = mockContext()
+
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(createReportDefinition(format))
+            )
+            val runner = createRunner(config = reporterConfig)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
+
+            reporterInputSlot.captured.copyrightGarbage shouldBe copyrightGarbage
+        }
+
+        "use the configured license classifications" {
+            val format = "testLicenseClassifications"
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(format)
+            )
+
+            val reporterInputSlot = slot<ReporterInput>()
+            val reporter = reporterFactoryMock(format) {
+                every { generateReport(capture(reporterInputSlot), any()) } returns emptyList()
+            }
+
+            mockReporterFactoryAll(format to reporter)
+
+            val context = mockContext()
+
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(createReportDefinition(format))
+            )
+            val runner = createRunner(config = reporterConfig)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
+
+            reporterInputSlot.captured.licenseClassifications shouldBe licenseClassifications
+        }
     }
 
     "createLicenseTextProvider" should {
         "create a CustomLicenseTextProvider if a custom license text directory is configured" {
             val testConfigContext = "configurationContext"
             val customLicenseTextDir = "path/to/custom/licenses"
-            val reporterConfig = ReporterJobConfiguration(customLicenseTextDir = customLicenseTextDir)
+            val reporterConfig = createReporterConfig(customLicenseTextDir = customLicenseTextDir)
             val run = OrtRun(
                 id = 1,
                 index = 2,
@@ -811,7 +918,7 @@ class ReporterRunnerTest : WordSpec({
         }
 
         "create a DefaultLicenseTextProvider if no custom license text directory is configured" {
-            val reporterConfig = ReporterJobConfiguration()
+            val reporterConfig = createReporterConfig()
             val context = mockk<WorkerContext>()
 
             val provider = createLicenseTextProvider(context, reporterConfig)
@@ -847,4 +954,69 @@ private fun reporterFactoryMock(
 private fun mockReporterFactoryAll(vararg reporterFactories: Pair<String, ReporterFactory>) {
     mockkObject(ReporterFactory)
     every { ReporterFactory.ALL } returns sortedMapOf(*reporterFactories)
+}
+
+/**
+ * Create a [ReportDefinition] for the given [pluginId] with the given parameters. Return a [Pair] with the
+ * [reportName] and the definition which can be added to the map of definitions in a [ReporterConfig].
+ */
+private fun createReportDefinition(
+    pluginId: String,
+    reportName: String = pluginId,
+    assetFiles: List<ReporterAsset> = emptyList(),
+    assetDirectories: List<ReporterAsset> = emptyList(),
+    nameMapping: ReportNameMapping? = null
+): Pair<String, ReportDefinition> =
+    reportName to ReportDefinition(
+        pluginId = pluginId,
+        assetFiles = assetFiles,
+        assetDirectories = assetDirectories,
+        nameMapping = nameMapping
+    )
+
+/**
+ * Create a [ReporterConfig] based on the given parameters.
+ */
+private fun createReporterConfig(
+    howToFixTextProviderFile: String = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
+    customLicenseTextDir: String? = null,
+    vararg reportDefinitions: Pair<String, ReportDefinition>
+): ReporterConfig =
+    ReporterConfig(
+        reportDefinitions = reportDefinitions.toMap(),
+        howToFixTextProviderFile = howToFixTextProviderFile,
+        customLicenseTextDir = customLicenseTextDir
+    )
+
+/**
+ * Create a mock for the [AdminConfigService] that is prepared to load the [AdminConfig] for the current context
+ * and returns an object with the given [reporterConfig].
+ */
+private fun createAdminConfigService(reporterConfig: ReporterConfig): AdminConfigService =
+    mockk {
+        every {
+            loadAdminConfig(configurationContext, ORGANIZATION_ID)
+        } returns AdminConfig(
+            reporterConfig = reporterConfig,
+            ruleSets = mapOf(RULE_SET_NAME to ruleSet)
+        )
+    }
+
+/**
+ * Simulate downloading of the configuration file with the given [name].
+ */
+private fun simulateGetConfigFile(name: String): InputStream =
+    when (name) {
+        ruleSet.copyrightGarbageFile -> copyrightGarbage.toStream()
+        ruleSet.licenseClassificationsFile -> licenseClassifications.toStream()
+        ruleSet.resolutionsFile -> resolutions.toStream()
+        else -> throw ConfigException("Unsupported config file: $name", null)
+    }
+
+/**
+ * Return an [InputStream] with the serialized content of this object.
+ */
+private fun <T> T.toStream(): InputStream {
+    val serialized = yamlMapper.writeValueAsBytes(this)
+    return ByteArrayInputStream(serialized)
 }

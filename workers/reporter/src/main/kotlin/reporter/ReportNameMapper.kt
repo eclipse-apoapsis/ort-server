@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import java.io.File
 
 import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
-import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.services.config.ReportDefinition
 
 /**
  * An interface for renaming report files. An implementation of this interface is used by the reporter runner to
@@ -40,11 +40,11 @@ interface ReportNameMapper {
         }
 
         /**
-         * Return a [ReportNameMapper] instance to map the file names for the reporter of the given [reporterType]
-         * based on the given [config].
+         * Return a [ReportNameMapper] instance to map the file names for the reporter described by the given
+         * [reportDefinition].
          */
-        fun create(config: ReporterJobConfiguration, reporterType: String): ReportNameMapper =
-            config.nameMappings.orEmpty()[reporterType]?.let(::createWithMapping) ?: DEFAULT_MAPPER
+        fun create(reportDefinition: ReportDefinition): ReportNameMapper =
+            reportDefinition.nameMapping?.let(::createWithMapping) ?: DEFAULT_MAPPER
 
         /**
          * Return a [ReportNameMapper] implementation that applies the given [nameMapping].
