@@ -218,7 +218,7 @@ class ReporterWorkerTest : StringSpec({
             mockContextFactory(),
             mockk(),
             mockk(),
-            ReporterRunner(mockk(relaxed = true), mockk(), mockk()),
+            mockk(),
             ortRunService,
             mockk()
         )
@@ -334,7 +334,7 @@ class ReporterWorkerTest : StringSpec({
             mockContextFactory(),
             mockk(),
             mockk(),
-            ReporterRunner(mockk(relaxed = true), mockk(), mockk()),
+            mockk(),
             ortRunService,
             mockk()
         )
