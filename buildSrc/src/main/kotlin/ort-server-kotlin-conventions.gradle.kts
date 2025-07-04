@@ -33,6 +33,13 @@ plugins {
     id("io.gitlab.arturbosch.detekt")
 }
 
+configurations.all {
+    resolutionStrategy {
+        // Required until the AWS SDK for Kotlin is updated to use the stable release of OkHttp.
+        force("com.squareup.okhttp3:okhttp:5.0.0-alpha.14")
+    }
+}
+
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.libs.versions.detektPlugin.get()}")
     detektPlugins("org.ossreviewtoolkit:detekt-rules:${rootProject.libs.versions.ort.get()}")
