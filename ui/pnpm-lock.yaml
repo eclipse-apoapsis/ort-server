@@ -64,7 +64,7 @@ importers:
         version: 1.2.7(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@t3-oss/env-core':
         specifier: ^0.13.0
-        version: 0.13.8(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.71)
+        version: 0.13.8(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.72)
       '@tanstack/react-query':
         specifier: ^5.29.2
         version: 5.81.5(react@19.1.0)
@@ -130,7 +130,7 @@ importers:
         version: 3.3.1
       zod:
         specifier: ^3.24.2
-        version: 3.25.71
+        version: 3.25.72
       zustand:
         specifier: ^5.0.3
         version: 5.0.6(@types/react@19.1.8)(immer@10.1.1)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0))
@@ -3495,8 +3495,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zod@3.25.71:
-    resolution: {integrity: sha512-BsBc/NPk7h8WsUWYWYL+BajcJPY8YhjelaWu2NMLuzgraKAz4Lb4/6K11g9jpuDetjMiqhZ6YaexFLOC0Ogi3Q==}
+  zod@3.25.72:
+    resolution: {integrity: sha512-Cl+fe4dNL4XumOBNBsr0lHfA80PQiZXHI4xEMTEr8gt6aGz92t3lBA32e71j9+JeF/VAYvdfBnuwJs+BMx/BrA==}
 
   zustand@5.0.6:
     resolution: {integrity: sha512-ihAqNeUVhe0MAD+X8M5UzqyZ9k3FFZLBTtqo6JLPwV53cbRB/mJwBI0PxcIgqhBBHlEs8G45OTDTMq3gNcLq3A==}
@@ -4687,11 +4687,11 @@ snapshots:
 
   '@standard-schema/utils@0.3.0': {}
 
-  '@t3-oss/env-core@0.13.8(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.71)':
+  '@t3-oss/env-core@0.13.8(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.72)':
     optionalDependencies:
       arktype: 2.1.20
       typescript: 5.8.3
-      zod: 3.25.71
+      zod: 3.25.72
 
   '@tailwindcss/node@4.1.11':
     dependencies:
@@ -4863,7 +4863,7 @@ snapshots:
       recast: 0.23.11
       source-map: 0.7.4
       tsx: 4.20.3
-      zod: 3.25.71
+      zod: 3.25.72
     transitivePeerDependencies:
       - supports-color
 
@@ -4882,7 +4882,7 @@ snapshots:
       babel-dead-code-elimination: 1.0.10
       chokidar: 3.6.0
       unplugin: 2.3.5
-      zod: 3.25.71
+      zod: 3.25.72
     optionalDependencies:
       '@tanstack/react-router': 1.123.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       vite: 7.0.1(@types/node@22.16.0)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.6.1)
@@ -6945,7 +6945,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod@3.25.71: {}
+  zod@3.25.72: {}
 
   zustand@5.0.6(@types/react@19.1.8)(immer@10.1.1)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0)):
     optionalDependencies:
