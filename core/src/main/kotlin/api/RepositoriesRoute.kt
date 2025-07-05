@@ -44,8 +44,10 @@ import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.getFullName
 import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.getUsername
+import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
@@ -164,6 +166,22 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                         )
                     )
                     return@post
+                }
+
+                // Restrict some job configuration options to superusers only.
+                if (!hasRole(Superuser.ROLE_NAME)) {
+                    // Keep alive worker configuration might be directly set in the worker's job configuration
+                    forbidIfTrue("advisor.keepAliveWorker", createOrtRun.jobConfigs.advisor?.keepAliveWorker)
+                    forbidIfTrue("analyzer.keepAliveWorker", createOrtRun.jobConfigs.analyzer.keepAliveWorker)
+                    forbidIfTrue("evaluator.keepAliveWorker", createOrtRun.jobConfigs.evaluator?.keepAliveWorker)
+                    forbidIfTrue("notifier.keepAliveWorker", createOrtRun.jobConfigs.notifier?.keepAliveWorker)
+                    forbidIfTrue("reporter.keepAliveWorker", createOrtRun.jobConfigs.reporter?.keepAliveWorker)
+                    forbidIfTrue("scanner.keepAliveWorker", createOrtRun.jobConfigs.scanner?.keepAliveWorker)
+
+                    // Keep alive worker configuration might also be set in the general configuration parameters
+                    createOrtRun.jobConfigs.parameters?.entries
+                        ?.find { entry -> entry.key.endsWith("keepalive", ignoreCase = true) && entry.value == "true" }
+                        ?.let { entry -> throw ForbiddenConfigurationPropertyException(entry.key) }
                 }
 
                 call.respond(
@@ -320,4 +338,8 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             )
         }
     }
+}
+
+private fun forbidIfTrue(name: String, value: Boolean?) {
+    if (value == true) throw ForbiddenConfigurationPropertyException(name)
 }

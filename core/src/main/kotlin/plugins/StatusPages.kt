@@ -31,6 +31,7 @@ import io.ktor.server.response.respond
 
 import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationException
 import org.eclipse.apoapsis.ortserver.core.api.AuthenticationException
+import org.eclipse.apoapsis.ortserver.core.api.ForbiddenConfigurationPropertyException
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
@@ -65,10 +66,16 @@ fun Application.configureStatusPages() {
         exception<EntityNotFoundException> { call, _ ->
             call.respond(HttpStatusCode.NotFound)
         }
+        exception<ForbiddenConfigurationPropertyException> { call, e ->
+            call.respond(
+                HttpStatusCode.Forbidden,
+                ErrorResponse("Forbidden configuration property ${e.message} used by non-superuser.", e.message)
+            )
+        }
         exception<InvalidSecretReferenceException> { call, e ->
             call.respond(
                 HttpStatusCode.BadRequest,
-                ErrorResponse(message = "Secret reference could not be resolved.", e.message)
+                ErrorResponse("Secret reference could not be resolved.", e.message)
             )
         }
         exception<MissingRequestParameterException> { call, e ->
