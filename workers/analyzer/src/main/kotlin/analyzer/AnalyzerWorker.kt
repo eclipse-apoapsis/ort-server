@@ -135,7 +135,7 @@ internal class AnalyzerWorker(
                 ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
             }
 
-            if (analyzerRun.result.issues.values.flatten().any { it.severity >= Severity.WARNING }) {
+            if (analyzerRun.result.getAllIssues().values.flatten().any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
             } else {
                 RunResult.Success
