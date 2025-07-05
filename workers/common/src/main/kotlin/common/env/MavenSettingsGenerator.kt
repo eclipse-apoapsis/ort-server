@@ -70,6 +70,10 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<MavenDefinition>) {
         builder.buildInUserHome(TARGET_NAME) {
+            val isGlobalMirrorOverridden = builder.adminConfig.mavenCentralMirror?.mirrorOf?.let { globalMirrorOf ->
+                definitions.filter { it.mirrorOf != null }.any { it.mirrorOf == globalMirrorOf }
+            } == true
+
             println("<settings $ROOT_ATTRIBUTES>")
             println("<servers>".prependIndent(INDENT_4_SPACES))
 
@@ -87,33 +91,67 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
                 )
             }
 
-            builder.adminConfig.mavenCentralMirror?.let { mirror ->
-                mirror.usernameSecret?.let { username ->
-                    mirror.passwordSecret?.let { password ->
-                        println("<server>".prependIndent(INDENT_8_SPACES))
-                        printTag("id", mirror.id)
-                        printTag("username", builder.infraSecretResolverFun(Path(username)))
-                        printTag("password", builder.infraSecretResolverFun(Path(password)))
-                        println("</server>".prependIndent(INDENT_8_SPACES))
+            if (!isGlobalMirrorOverridden) {
+                builder.adminConfig.mavenCentralMirror?.let { mirror ->
+                    mirror.usernameSecret?.let { username ->
+                        mirror.passwordSecret?.let { password ->
+                            println("<server>".prependIndent(INDENT_8_SPACES))
+                            printTag("id", mirror.id)
+                            printTag("username", builder.infraSecretResolverFun(Path(username)))
+                            printTag("password", builder.infraSecretResolverFun(Path(password)))
+                            println("</server>".prependIndent(INDENT_8_SPACES))
 
-                        GeneratorLogger.entryAdded(
-                            "server '${mirror.id}': username/password",
-                            TARGET_NAME
-                        )
+                            GeneratorLogger.entryAdded(
+                                "server '${mirror.id}': username/password",
+                                TARGET_NAME
+                            )
+                        }
                     }
                 }
             }
 
             println("</servers>".prependIndent(INDENT_4_SPACES))
 
-            builder.adminConfig.mavenCentralMirror?.let { mirror ->
+            val allMirrors = buildList {
+                addAll(
+                    definitions.mapNotNull { definition ->
+                        definition.mirrorOf?.let { mirrorOf ->
+                            MavenMirror(
+                                id = definition.id,
+                                name = definition.service.name,
+                                url = definition.service.url,
+                                mirrorOf = definition.mirrorOf
+                            )
+                        }
+                    }
+                )
+
+                if (!isGlobalMirrorOverridden) {
+                    builder.adminConfig.mavenCentralMirror?.let { mirror ->
+                        add(
+                            MavenMirror(
+                                id = mirror.id,
+                                name = mirror.name,
+                                url = mirror.url,
+                                mirrorOf = mirror.mirrorOf
+                            )
+                        )
+                    }
+                }
+            }
+
+            if (allMirrors.isNotEmpty()) {
                 println("<mirrors>".prependIndent(INDENT_4_SPACES))
-                println("<mirror>".prependIndent(INDENT_8_SPACES))
-                printTag("id", mirror.id)
-                printTag("name", mirror.name)
-                printTag("url", mirror.url)
-                printTag("mirrorOf", mirror.mirrorOf)
-                println("</mirror>".prependIndent(INDENT_8_SPACES))
+
+                allMirrors.forEach { mirror ->
+                    println("<mirror>".prependIndent(INDENT_8_SPACES))
+                    printTag("id", mirror.id)
+                    printTag("name", mirror.name)
+                    printTag("url", mirror.url)
+                    printTag("mirrorOf", mirror.mirrorOf)
+                    println("</mirror>".prependIndent(INDENT_8_SPACES))
+                }
+
                 println("</mirrors>".prependIndent(INDENT_4_SPACES))
             }
 
@@ -144,3 +182,13 @@ class MavenSettingsGenerator : EnvironmentConfigGenerator<MavenDefinition> {
         }
     }
 }
+
+/**
+ * A data class representing a Maven mirror configuration.
+ */
+private data class MavenMirror(
+    val id: String,
+    val name: String,
+    val url: String,
+    val mirrorOf: String
+)

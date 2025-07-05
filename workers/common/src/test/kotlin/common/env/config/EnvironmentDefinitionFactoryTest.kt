@@ -76,6 +76,16 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 definition.id shouldBe repositoryId
             }
 
+            "be created with default values" {
+                val repositoryId = "my-repository"
+                val properties = mapOf("id" to repositoryId)
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
+
+                definition.shouldBeInstanceOf<MavenDefinition>()
+                definition.mirrorOf should beNull()
+            }
+
             "fail if the ID is missing" {
                 val exception = createFailed(EnvironmentDefinitionFactory.MAVEN_TYPE, emptyMap())
 
