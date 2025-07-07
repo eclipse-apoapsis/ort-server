@@ -139,19 +139,6 @@ const CreateRepositoryPage = () => {
             />
             <FormField
               control={form.control}
-              name='description'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <OptionalInput {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name='type'
               render={({ field }) => (
                 <FormItem>
@@ -173,6 +160,19 @@ const CreateRepositoryPage = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='description'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <OptionalInput {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
