@@ -895,15 +895,16 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             ForbiddenKeepAliveWorkerTestcase("Scanner", "scannerKeepAlive", keepAliveScanner = true)
         )
 
-        keepAliveTestCases.forEach { testCase ->
-            "respond with 'Forbidden' if 'keepAliveWorker' set in the ${testCase.workerName} config (non super-user)" {
-                integrationTestApplication {
-                    val repositoryId = createRepository().id
+        "respond with 'Forbidden' if 'keepAliveWorker' is set by a non super-user" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
 
-                    keycloak.keycloakAdminClient.addUserRole(
-                        TEST_USER.username.value,
-                        RepositoryPermission.TRIGGER_ORT_RUN.roleName(repositoryId)
-                    )
+                keycloak.keycloakAdminClient.addUserRole(
+                    TEST_USER.username.value,
+                    RepositoryPermission.TRIGGER_ORT_RUN.roleName(repositoryId)
+                )
+
+                keepAliveTestCases.forAll { testCase ->
                     val createRun = CreateOrtRun(
                         "main",
                         null,
@@ -926,15 +927,18 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     response.body<ErrorResponse>().message shouldContainIgnoringCase testCase.workerName
                 }
             }
+        }
 
-            "respond with 'Forbidden' if '${testCase.parameterName}' set configuration parameters (non super-user)" {
-                integrationTestApplication {
-                    val repositoryId = createRepository().id
+        "respond with 'Forbidden' if the 'keepAlive' parameter is set by a non super-user" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
 
-                    keycloak.keycloakAdminClient.addUserRole(
-                        TEST_USER.username.value,
-                        RepositoryPermission.TRIGGER_ORT_RUN.roleName(repositoryId)
-                    )
+                keycloak.keycloakAdminClient.addUserRole(
+                    TEST_USER.username.value,
+                    RepositoryPermission.TRIGGER_ORT_RUN.roleName(repositoryId)
+                )
+
+                keepAliveTestCases.forAll { testCase ->
                     val createRun = CreateOrtRun(
                         "main",
                         null,
@@ -959,14 +963,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     response.body<ErrorResponse>().message shouldContainIgnoringCase testCase.workerName
                 }
             }
+        }
 
-            "continue if 'keepAliveWorker' is true in the ${testCase.workerName} config (super-user calling)" {
-                integrationTestApplication {
-                    val repositoryId = createRepository().id
+        "continue if 'keepAliveWorker' is set by a super-user" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
 
-                    val analyzerJob = AnalyzerJobConfiguration(
-                        keepAliveWorker = true,
-                    )
+                keepAliveTestCases.forAll { testCase ->
                     val createRun = CreateOrtRun(
                         "main",
                         null,
@@ -987,14 +990,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.Created
                 }
             }
+        }
 
-            "continue if '${testCase.parameterName}' is defined in configuration parameters (super-user calling)" {
-                integrationTestApplication {
-                    val repositoryId = createRepository().id
+        "continue if the 'keepAlive' parameter is set by a super-user" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
 
-                    val analyzerJob = AnalyzerJobConfiguration(
-                        keepAliveWorker = true,
-                    )
+                keepAliveTestCases.forAll { testCase ->
                     val createRun = CreateOrtRun(
                         "main",
                         null,
