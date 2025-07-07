@@ -36,7 +36,7 @@ plugins {
 configurations.all {
     resolutionStrategy {
         // Required until the AWS SDK for Kotlin is updated to use the stable release of OkHttp.
-        force("com.squareup.okhttp3:okhttp:5.0.0-alpha.14")
+        force("com.squareup.okhttp3:okhttp:5.1.0")
     }
 }
 
