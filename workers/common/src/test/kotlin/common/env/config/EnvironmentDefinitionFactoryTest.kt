@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_NAME
 import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_URL
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinition
@@ -447,6 +448,36 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
                 )
 
                 val definition = createSuccessful(EnvironmentDefinitionFactory.YARN_TYPE, properties)
+
+                definition.credentialsTypes() shouldBe EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
+            }
+        }
+
+        "A GradleDefinition" should {
+            "be created successfully" {
+                val definition = createSuccessful(EnvironmentDefinitionFactory.GRADLE_TYPE, emptyMap())
+
+                definition.shouldBeInstanceOf<GradleDefinition>()
+            }
+
+            "fail if there are unsupported properties" {
+                val unsupportedProperty1 = "anotherProperty"
+                val unsupportedProperty2 = "oneMoreUnsupportedProperty"
+                val properties =
+                    mapOf(unsupportedProperty1 to "bar", unsupportedProperty2 to "baz")
+
+                val exception = createFailed(EnvironmentDefinitionFactory.GRADLE_TYPE, properties)
+
+                exception.message shouldContain "'$unsupportedProperty1'"
+                exception.message shouldContain "'$unsupportedProperty2'"
+            }
+
+            "allow overriding the credentials types" {
+                val properties = mapOf(
+                    EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY to "GIT_CREDENTIALS_FILE"
+                )
+
+                val definition = createSuccessful(EnvironmentDefinitionFactory.GRADLE_TYPE, properties)
 
                 definition.credentialsTypes() shouldBe EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
             }
