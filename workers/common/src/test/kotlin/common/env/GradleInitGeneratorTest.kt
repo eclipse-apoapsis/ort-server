@@ -20,8 +20,14 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldBeEmpty
 
+import io.mockk.every
+
+import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.services.config.MavenCentralMirror
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
 
 class GradleInitGeneratorTest : WordSpec({
@@ -40,6 +46,145 @@ class GradleInitGeneratorTest : WordSpec({
             GradleInitGenerator().generate(mockBuilder.builder, emptyList())
 
             mockBuilder.homeFileName shouldBe ".gradle/init.gradle.kts"
+        }
+
+        "generate an empty file if MavenCentralMirror is null" {
+            val mockBuilder = MockConfigFileBuilder()
+
+            GradleInitGenerator().generate(mockBuilder.builder, emptyList())
+
+            mockBuilder.generatedText().shouldBeEmpty()
+        }
+
+        "generate repositories blocks without credentials if MavenCentralMirror has no credentials" {
+            val mavenCentralMirror = MavenCentralMirror(
+                id = "central",
+                name = "Maven Central",
+                url = "https://repo.maven.apache.org/maven2",
+                mirrorOf = "central"
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+
+            GradleInitGenerator().generate(mockBuilder.builder, emptyList())
+
+            val expectedLines = listOf(
+                "allprojects {",
+                "    repositories {",
+                "        maven {",
+                "            url = uri(\"${mavenCentralMirror.url}\")",
+                "        }",
+                "    }",
+                "",
+                "    buildscript {",
+                "        repositories {",
+                "            maven {",
+                "                url = uri(\"${mavenCentralMirror.url}\")",
+                "            }",
+                "        }",
+                "    }",
+                "}",
+                "",
+                "settingsEvaluated {",
+                "    settings.pluginManagement {",
+                "        repositories {",
+                "            maven {",
+                "                url = uri(\"${mavenCentralMirror.url}\")",
+                "            }",
+                "            gradlePluginPortal()",
+                "        }",
+                "    }",
+                "",
+                "    settings.dependencyResolutionManagement {",
+                "        repositories {",
+                "            maven {",
+                "                url = uri(\"${mavenCentralMirror.url}\")",
+                "            }",
+                "        }",
+                "    }",
+                "}"
+            )
+
+            val lines = mockBuilder.generatedLines()
+            lines shouldContainExactly expectedLines
+        }
+
+        "generate repositories blocks with credentials if MavenCentralMirror has credentials" {
+            val username = "test-username"
+            val infraUsernameSecret = MockConfigFileBuilder.createSecret("infra-secret-username")
+            val password = "test-password"
+            val infraPasswordSecret = MockConfigFileBuilder.createSecret("infra-secret-password")
+            val mavenCentralMirror = MavenCentralMirror(
+                id = "central",
+                name = "Maven Central",
+                url = "https://repo.maven.apache.org/maven2",
+                mirrorOf = "central",
+                usernameSecret = infraUsernameSecret.name,
+                passwordSecret = infraPasswordSecret.name
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraUsernameSecret.path)) } returns username
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraPasswordSecret.path)) } returns password
+            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+
+            GradleInitGenerator().generate(mockBuilder.builder, emptyList())
+
+            val expectedLines = listOf(
+                "allprojects {",
+                "    repositories {",
+                "        maven {",
+                "            url = uri(\"${mavenCentralMirror.url}\")",
+                "            credentials {",
+                "                username = \"$username\"",
+                "                password = \"$password\"",
+                "            }",
+                "        }",
+                "    }",
+                "",
+                "    buildscript {",
+                "        repositories {",
+                "            maven {",
+                "                url = uri(\"${mavenCentralMirror.url}\")",
+                "                credentials {",
+                "                    username = \"$username\"",
+                "                    password = \"$password\"",
+                "                }",
+                "            }",
+                "        }",
+                "    }",
+                "}",
+                "",
+                "settingsEvaluated {",
+                "    settings.pluginManagement {",
+                "        repositories {",
+                "            maven {",
+                "                url = uri(\"${mavenCentralMirror.url}\")",
+                "                credentials {",
+                "                    username = \"$username\"",
+                "                    password = \"$password\"",
+                "                }",
+                "            }",
+                "            gradlePluginPortal()",
+                "        }",
+                "    }",
+                "",
+                "    settings.dependencyResolutionManagement {",
+                "        repositories {",
+                "            maven {",
+                "                url = uri(\"${mavenCentralMirror.url}\")",
+                "                credentials {",
+                "                    username = \"$username\"",
+                "                    password = \"$password\"",
+                "                }",
+                "            }",
+                "        }",
+                "    }",
+                "}"
+            )
+            val lines = mockBuilder.generatedLines()
+            lines shouldContainExactly expectedLines
         }
     }
 })
