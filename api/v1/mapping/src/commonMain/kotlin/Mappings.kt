@@ -64,7 +64,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability as ApiPr
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration as ApiProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.RemoteArtifact as ApiRemoteArtifact
-import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterAsset as ApiReporterAsset
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob as ApiReporterJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration as ApiReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository as ApiRepository
@@ -117,7 +116,6 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
-import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
@@ -493,15 +491,8 @@ fun ReporterJob.mapToApiSummary() =
 
 fun ReporterJobConfiguration.mapToApi() =
     ApiReporterJobConfiguration(
-        copyrightGarbageFile,
         formats,
-        howToFixTextProviderFile,
-        licenseClassificationsFile,
         packageConfigurationProviders.map { it.mapToApi() },
-        resolutionsFile,
-        customLicenseTextDir,
-        assetFiles.map { it.mapToApi() },
-        assetDirectories.map { it.mapToApi() },
         config?.mapValues { it.value.mapToApi() },
         keepAliveWorker = keepAliveWorker
     )
@@ -530,15 +521,8 @@ fun ApiNotifierJobConfiguration.mapToModel() =
 
 fun ApiReporterJobConfiguration.mapToModel() =
     ReporterJobConfiguration(
-        copyrightGarbageFile,
         formats,
-        howToFixTextProviderFile,
-        licenseClassificationsFile,
         packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
-        resolutionsFile,
-        customLicenseTextDir,
-        assetFiles?.map { it.mapToModel() }.orEmpty(),
-        assetDirectories?.map { it.mapToModel() }.orEmpty(),
         config?.mapValues { it.value.mapToModel() },
         keepAliveWorker = keepAliveWorker
     )
@@ -704,12 +688,6 @@ fun ApiProviderPluginConfiguration.mapToModel() =
         options = options,
         secrets = secrets
     )
-
-fun ReporterAsset.mapToApi() =
-    ApiReporterAsset(sourcePath, targetFolder, targetName)
-
-fun ApiReporterAsset.mapToModel() =
-    ReporterAsset(sourcePath, targetFolder, targetName)
 
 fun SourceCodeOrigin.mapToApi() =
     when (this) {
