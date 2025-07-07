@@ -638,10 +638,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     allowDynamicVersions = true,
                     environmentConfig = envConfig
                 )
-                val reporterJob = ReporterJobConfiguration(
-                    copyrightGarbageFile = "COPYRIGHT_GARBAGE",
-                    customLicenseTextDir = "LICENSE_TEXTS"
-                )
+                val reporterJob = ReporterJobConfiguration()
                 val parameters = mapOf("p1" to "v1", "p2" to "v2")
                 val ruleSet = "test"
                 val createRun = CreateOrtRun(
@@ -692,11 +689,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     )
                 }
 
-                run.jobConfigs.reporter shouldNotBeNull {
-                    copyrightGarbageFile shouldBe "COPYRIGHT_GARBAGE"
-                    customLicenseTextDir shouldBe "LICENSE_TEXTS"
-                }
-
+                run.jobConfigs.reporter shouldNot beNull()
                 run.jobConfigs.parameters shouldBe parameters
                 run.jobConfigs.ruleSet shouldBe ruleSet
             }

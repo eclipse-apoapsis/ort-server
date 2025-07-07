@@ -205,93 +205,14 @@ data class EvaluatorJobConfiguration(
 )
 
 /**
- * A class defining an asset (such as a font or an image) which is required to generate a report.
- *
- * The Reporter can be configured to download specific assets from the configuration before starting the report
- * generation. That way it is ensured that files referenced from reporter templates are actually available locally at
- * the expected relative paths.
- *
- * A [ReporterAsset] can be a single file or a directory. In the latter case, all files contained in the directory are
- * downloaded.
- */
-@Serializable
-data class ReporterAsset(
-    /**
-     * The source path of this asset in the configuration. This path is passed to the configuration manager to download
-     * this asset.
-     */
-    val sourcePath: String,
-
-    /**
-     * A path (relative to the location of reporter template files) where this asset should be placed. Typically,
-     * assets are referenced via relative paths from reporter templates, e.g. _./images/logo.png_. Using this
-     * property, such a relative path can be specified. If it is `null`, the root folder of the reporter worker
-     * (which also contains the downloaded templates) is used.
-     */
-    val targetFolder: String? = null,
-
-    /**
-     * An optional name for the downloaded asset. This property can be used to rename the asset file or folder locally.
-     * If it is undefined, the original name (determined from the last path component of [sourcePath]) is used.
-     */
-    val targetName: String? = null
-)
-
-/**
- * A class that can be used to configure the names under which reports are stored.
- *
- * Per default, the names of reports are determined by the reporters that produce these reports. This may not always
- * be desired, especially if names are constructed dynamically based on some conventions. This class can be used to
- * override the default names used by reporters. The reporter configuration contains a map that assigns each report
- * type an optional instance of this class. The configuration contained in this instance is then used to generate the
- * names for reports.
- */
-@Serializable
-data class ReportNameMapping(
-    /**
-     * A name prefix for constructing report names. If a reporter returns a single result file, the file is given this
-     * name plus the original file extension. In case multiple result files are returned, the names are made unique by
-     * appending an index, such as _report-1.html_, _report-2.html_, etc.
-     */
-    val namePrefix: String
-)
-
-/**
  * The configuration for a reporter job.
  */
 @Serializable
 data class ReporterJobConfiguration(
     /**
-     * The path to the copyright garbage file which is resolved from the configured configuration source. If this is
-     * `null`, the default path from ORT will be used.
-     *
-     * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
-     * [value from the evaluator job configuration][EvaluatorJobConfiguration.copyrightGarbageFile] is used to ensure
-     * consistency.**
-     */
-    val copyrightGarbageFile: String? = null,
-
-    /**
      * The report formats to generate.
      */
     val formats: List<String> = emptyList(),
-
-    /**
-     * The path to the how-to-fix Kotlin script which is resolved from the configuration source. This Kotlin script
-     * will be used to instantiate an instance of HowToFixTextProvider, which injects how-to-fix texts for ORT issues.
-     * If this is `null`, the default path from ORT will be used.
-     */
-    val howToFixTextProviderFile: String? = null,
-
-    /**
-     * The path to the license classifications file which is resolved from the configured configuration source. If this
-     * is `null`, the default path from ORT will be used.
-     *
-     * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
-     * [value from the evaluator job configuration][EvaluatorJobConfiguration.licenseClassificationsFile] is used to
-     * ensure consistency.**
-     */
-    val licenseClassificationsFile: String? = null,
 
     /**
      * The list of package configuration providers to use.
@@ -303,44 +224,9 @@ data class ReporterJobConfiguration(
     val packageConfigurationProviders: List<ProviderPluginConfiguration>? = null,
 
     /**
-     * The path to the resolutions file which is resolved from the configured configuration source. If this is `null`,
-     * the default path from ORT will be used.
-     *
-     * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
-     * [value from the evaluator job configuration][EvaluatorJobConfiguration.resolutionsFile] is used to ensure
-     * consistency.**
-     */
-    val resolutionsFile: String? = null,
-
-    /**
-     * An optional path to a configuration directory containing custom license texts. If defined, all files from this
-     * directory are downloaded and made available via a `DefaultLicenseTextProvider` instance.
-     */
-    val customLicenseTextDir: String? = null,
-
-    /**
-     * A list with [ReporterAsset]s pointing to files that must be downloaded before the generation of reports is
-     * started.
-     */
-    val assetFiles: List<ReporterAsset>? = null,
-
-    /**
-     * A list with [ReporterAsset]s pointing to directories that must be downloaded before the generation of reports
-     * is started. This is analogous to [assetFiles], but all the files contained in the specified directory are
-     * downloaded.
-     */
-    val assetDirectories: List<ReporterAsset>? = null,
-
-    /**
      * A map of configuration options that are specific to a concrete reporter.
      */
     val config: Map<String, PluginConfig>? = null,
-
-    /**
-     * A map allowing to assign [ReportNameMapping] instances to single reporters. This can be used to override the
-     * default names generated by reporters.
-     */
-    val nameMappings: Map<String, ReportNameMapping>? = null,
 
     /**
      * Keep the worker alive after it has finished. This is useful for manual problem analysis directly
