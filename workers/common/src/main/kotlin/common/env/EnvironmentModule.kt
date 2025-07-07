@@ -53,6 +53,7 @@ fun buildEnvironmentModule(): Module = module {
                 ConanGenerator(),
                 GitConfigGenerator.create(get()),
                 GitCredentialsGenerator(),
+                GradleInitGenerator(),
                 MavenSettingsGenerator(),
                 NpmRcGenerator(),
                 NuGetGenerator(),
