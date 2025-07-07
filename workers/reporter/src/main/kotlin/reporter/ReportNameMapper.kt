@@ -21,8 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 
 import java.io.File
 
-import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.services.config.ReportDefinition
+import org.eclipse.apoapsis.ortserver.services.config.ReportNameMapping
 
 /**
  * An interface for renaming report files. An implementation of this interface is used by the reporter runner to
