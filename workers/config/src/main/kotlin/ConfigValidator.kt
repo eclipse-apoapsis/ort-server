@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
@@ -153,6 +154,11 @@ class ConfigValidator private constructor(
         val validationIssues = mutableListOf<Issue>()
 
         validateRuleSet(adminConfig, resolvedConfigurations.ruleSet, validationIssues)
+        validateReporterConfig(
+            adminConfig.reporterConfig,
+            resolvedConfigurations.reporter?.formats.orEmpty(),
+            validationIssues
+        )
 
         takeIf { validationIssues.isEmpty() } ?: ConfigValidationResultFailure(issues + validationIssues)
     }.getOrElse { exception ->
@@ -173,6 +179,24 @@ class ConfigValidator private constructor(
             validationIssues += createIssue(
                 "Invalid rule set '$ruleSetName'. " +
                         "Available rule sets are: ${adminConfig.ruleSetNames.joinToString(", ")}.",
+                PARAMETER_VALIDATION_SOURCE
+            )
+        }
+    }
+
+    /**
+     * Perform validation of the given reporter [formats] based on the given [reporterConfig]. For invalid formats,
+     * create corresponding issues and add them to the given [validationIssues].
+     */
+    private fun validateReporterConfig(
+        reporterConfig: ReporterConfig,
+        formats: Collection<String>,
+        validationIssues: MutableList<Issue>
+    ) {
+        formats.filter { reporterConfig.getReportDefinition(it) == null }.forEach { format ->
+            validationIssues += createIssue(
+                "Invalid reporter format '$format'. " +
+                        "Available formats are: ${reporterConfig.reportDefinitionNames.joinToString(", ")}.",
                 PARAMETER_VALIDATION_SOURCE
             )
         }

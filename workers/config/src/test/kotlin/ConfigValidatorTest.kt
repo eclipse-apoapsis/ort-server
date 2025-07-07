@@ -21,9 +21,12 @@ package org.eclipse.apoapsis.ortserver.workers.config
 
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -40,12 +43,15 @@ import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.OrtRun
+import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.ReportDefinition
+import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
 import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
@@ -123,6 +129,34 @@ class ConfigValidatorTest : StringSpec({
         errorIssue.message shouldContain ruleSetName
     }
 
+    "Non-existing reporter formats should be handled" {
+        val invalidFormats = listOf("nonExistingReport", "anotherInvalidReport")
+        val reporterJobConfig = ReporterJobConfiguration(formats = invalidFormats + "webapp")
+        val configs = Fixtures(mockk()).jobConfigurations.copy(reporter = reporterJobConfig)
+        val script = loadScript("validation-success.params.kts")
+
+        val run = mockRun().apply {
+            every { jobConfigs } returns configs
+        }
+        val context = mockContext(run)
+
+        val validator = ConfigValidator.create(context, createAdminConfigService())
+        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+
+        validationResult.issues shouldHaveSize invalidFormats.size + 1
+        val errorIssues = validationResult.issues.filter { it.severity == Severity.ERROR }
+        errorIssues.forAll { issue ->
+            issue.source shouldBe ConfigValidator.PARAMETER_VALIDATION_SOURCE
+            issue.message shouldContain "reporter format"
+        }
+
+        val regExErrorMessage = Regex(".*'(.+)'.*")
+        val failedReports = errorIssues.map { issue ->
+            regExErrorMessage.matchEntire(issue.message).shouldNotBeNull().groupValues[1]
+        }
+        failedReports shouldContainExactlyInAnyOrder invalidFormats
+    }
+
     "Exceptions when loading the admin configuration should be handled" {
         val script = loadScript("validation-success.params.kts")
         val context = mockContext(mockRun())
@@ -169,7 +203,13 @@ private val testRuleSet: RuleSet = RuleSet(
 
 /** The admin configuration used by default in the test cases. */
 private val testAdminConfig = AdminConfig(
-    ruleSets = mapOf(RULE_SET to testRuleSet)
+    ruleSets = mapOf(RULE_SET to testRuleSet),
+    reporterConfig = ReporterConfig(
+        reportDefinitionsMap = mapOf(
+            "WebApp" to ReportDefinition("webapp-reporter")
+        ),
+        howToFixTextProviderFile = "how-to-fix.kts",
+    )
 )
 
 /**
