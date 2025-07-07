@@ -65,8 +65,6 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
-import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
-import org.eclipse.apoapsis.ortserver.model.ReporterAsset
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
@@ -74,6 +72,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.config.ReportDefinition
+import org.eclipse.apoapsis.ortserver.services.config.ReportNameMapping
+import org.eclipse.apoapsis.ortserver.services.config.ReporterAsset
 import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
 import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt

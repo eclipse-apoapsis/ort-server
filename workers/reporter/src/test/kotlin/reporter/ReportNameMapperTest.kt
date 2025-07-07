@@ -24,8 +24,8 @@ import io.kotest.matchers.shouldBe
 
 import java.io.File
 
-import org.eclipse.apoapsis.ortserver.model.ReportNameMapping
 import org.eclipse.apoapsis.ortserver.services.config.ReportDefinition
+import org.eclipse.apoapsis.ortserver.services.config.ReportNameMapping
 
 class ReportNameMapperTest : StringSpec({
     "Default file names should be used if no configuration is defined" {
