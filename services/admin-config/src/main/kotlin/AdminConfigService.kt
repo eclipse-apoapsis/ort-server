@@ -231,7 +231,7 @@ class AdminConfigService(
                         ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
                     ),
                     customLicenseTextDir = getStringOrNull("customLicenseTextDir"),
-                    reportDefinitions = parseReportDefinitions(this)
+                    reportDefinitionsMap = parseReportDefinitions(this)
                 )
             }
 
@@ -272,6 +272,8 @@ class AdminConfigService(
             config.ruleSetNames.forEach { ruleSet ->
                 config.getRuleSet(ruleSet).getConfigurationFiles(this)
             }
+
+            config.reporterConfig.getConfigurationFiles(this)
         }
 
         /**
@@ -282,6 +284,19 @@ class AdminConfigService(
             target.addNonDefault(licenseClassificationsFile, AdminConfig.DEFAULT_RULE_SET.licenseClassificationsFile)
             target.addNonDefault(resolutionsFile, AdminConfig.DEFAULT_RULE_SET.resolutionsFile)
             target.addNonDefault(evaluatorRules, AdminConfig.DEFAULT_RULE_SET.evaluatorRules)
+        }
+
+        /**
+         * Add all configuration files referenced by this [ReporterConfig] to the given [target] set for validation.
+         */
+        private fun ReporterConfig.getConfigurationFiles(target: MutableSet<String>) {
+            target.addNonDefault(howToFixTextProviderFile, ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME)
+            customLicenseTextDir?.also(target::add)
+
+            reportDefinitions.forEach { definition ->
+                (definition.assetFiles + definition.assetDirectories).map(ReporterAsset::sourcePath)
+                    .forEach(target::add)
+            }
         }
 
         /**

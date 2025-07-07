@@ -52,6 +52,7 @@ import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
+@Suppress("LargeClass")
 class AdminConfigServiceTest : WordSpec({
     "loadAdminConfig()" should {
         "return the default configuration if there is no config file" {
@@ -105,6 +106,68 @@ class AdminConfigServiceTest : WordSpec({
                 configManager.containsFile(context, Path("testLicenseClassificationsFile2"))
                 configManager.containsFile(context, Path("testResolutionsFile2"))
                 configManager.containsFile(context, Path("testEvaluatorRules2"))
+            }
+        }
+
+        "check that configuration files referenced by the reporter section exist" {
+            val config = """
+                    reporter {
+                      howToFixTextProviderFile = "testHowToFixTextProviderFile"
+                      customLicenseTextDir = "testCustomLicenseTextDir"
+                    }
+                """.trimIndent()
+
+            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
+            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+
+            verify(exactly = 1) {
+                configManager.containsFile(context, Path("testHowToFixTextProviderFile"))
+                configManager.containsFile(context, Path("testCustomLicenseTextDir"))
+            }
+        }
+
+        "check that reporter assets referenced by the reporter section exist" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFiles = [
+                            {
+                              sourcePath = "reporter/template/logo.png"
+                              targetFolder = "images"
+                              targetName = "report-logo.png"
+                            },
+                            {
+                              sourcePath = "reporter/template/title.ttf"
+                              targetFolder = "fonts"
+                              targetName = "main-font.ftt"
+                            }
+                          ]
+                          assetDirectories = [
+                            {
+                              sourcePath = "reporter/template/assets-files"
+                              targetFolder = "assets"
+                              targetName = "files"
+                            }
+                          ]
+                          nameMapping {
+                            namePrefix = "disclosure-"
+                            startIndex = 0
+                            alwaysAppendIndex = true
+                          }
+                        }
+                      }
+                    }
+                """.trimIndent()
+
+            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
+            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+
+            verify(exactly = 1) {
+                configManager.containsFile(context, Path("reporter/template/logo.png"))
+                configManager.containsFile(context, Path("reporter/template/title.ttf"))
+                configManager.containsFile(context, Path("reporter/template/assets-files/"))
             }
         }
 
