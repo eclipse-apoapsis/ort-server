@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
+import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinition
@@ -41,6 +42,9 @@ class EnvironmentDefinitionFactory {
     companion object {
         /** The name for the [ConanDefinition] type. */
         const val CONAN_TYPE = "conan"
+
+        /** The name for the [GradleDefinition] type. */
+        const val GRADLE_TYPE = "gradle"
 
         /** The name for the [MavenDefinition] type. */
         const val MAVEN_TYPE = "maven"
@@ -75,6 +79,7 @@ class EnvironmentDefinitionFactory {
     ): Result<EnvironmentServiceDefinition> =
         when (type) {
             CONAN_TYPE -> createConanDefinition(service, DefinitionProperties(properties))
+            GRADLE_TYPE -> createGradleDefinition(service, DefinitionProperties(properties))
             MAVEN_TYPE -> createMavenDefinition(service, DefinitionProperties(properties))
             NPM_TYPE -> createNpmDefinition(service, DefinitionProperties(properties))
             NUGET_TYPE -> createNuGetDefinition(service, DefinitionProperties(properties))
@@ -97,6 +102,18 @@ class EnvironmentDefinitionFactory {
                 url = getProperty("url"),
                 verifySsl = getBooleanProperty("verifySsl", true)
             )
+        }
+
+    /**
+     * Create a definition for the _init.gradle.kts_ configuration file of Gradle with the given [service] and
+     * [properties].
+     */
+    private fun createGradleDefinition(
+        service: InfrastructureService,
+        properties: DefinitionProperties
+    ): Result<EnvironmentServiceDefinition> =
+        properties.withRequiredProperties {
+            GradleDefinition(service, credentialsTypes())
         }
 
     /**
