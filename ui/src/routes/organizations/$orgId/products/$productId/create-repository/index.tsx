@@ -23,10 +23,15 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useProductsServicePostApiV1ProductsByProductIdRepositories } from '@/api/queries';
+import {
+  useProductsServicePostApiV1ProductsByProductIdRepositories,
+  useRepositoriesServicePostApiV1RepositoriesByRepositoryIdInfrastructureServices,
+  useRepositoriesServicePostApiV1RepositoriesByRepositoryIdSecrets,
+} from '@/api/queries';
 import { $RepositoryType, ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field.ts';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
+import { PasswordInput } from '@/components/form/password-input.tsx';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,6 +44,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -56,35 +62,54 @@ import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 
-const formSchema = z.object({
-  url: z.string().url(),
-  description: asOptionalField(z.string().min(1)),
-  type: z.enum($RepositoryType.enum),
-});
+const formSchema = z
+  .object({
+    url: z.string().url(),
+    description: asOptionalField(z.string().min(1)),
+    type: z.enum($RepositoryType.enum),
+    username: asOptionalField(z.string().min(1)),
+    password: asOptionalField(z.string().min(1)),
+  })
+  .refine(
+    (data) =>
+      (!data.username && !data.password) || (data.username && data.password),
+    {
+      message: 'Username and password must both be set or both be empty.',
+      path: ['username'],
+    }
+  );
 
 const CreateRepositoryPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
   const { refreshUser } = useUser();
 
-  const { mutateAsync, isPending } =
-    useProductsServicePostApiV1ProductsByProductIdRepositories({
-      onSuccess(data) {
-        // Refresh the user token and data to get the new roles after creating a new repository.
-        refreshUser();
+  const {
+    mutateAsync: createRepository,
+    isPending: isPendingCreateRepository,
+  } = useProductsServicePostApiV1ProductsByProductIdRepositories({
+    onSuccess(data) {
+      // Refresh the user token and data to get the new roles after creating a new repository.
+      refreshUser();
 
-        toast.info('Add Repository', {
-          description: `Repository ${data.url} added successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-          params: {
-            orgId: params.orgId,
-            productId: params.productId,
-            repoId: data.id.toString(),
-          },
-        });
-      },
+      toast.info('Add Repository', {
+        description: `Repository ${data.url} added successfully.`,
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
+
+  const { mutateAsync: createSecret, isPending: isPendingCreateSecret } =
+    useRepositoriesServicePostApiV1RepositoriesByRepositoryIdSecrets({
       onError(error: ApiError) {
         toast.error(error.message, {
           description: <ToastError error={error} />,
@@ -97,6 +122,25 @@ const CreateRepositoryPage = () => {
       },
     });
 
+  const {
+    mutateAsync: createInfrastructureService,
+    isPending: isPendingCreateInfrastructureService,
+  } =
+    useRepositoriesServicePostApiV1RepositoriesByRepositoryIdInfrastructureServices(
+      {
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
+            },
+          });
+        },
+      }
+    );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -106,7 +150,7 @@ const CreateRepositoryPage = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await mutateAsync({
+    const createRepositoryResponse = await createRepository({
       productId: Number.parseInt(params.productId),
       requestBody: {
         url: values.url,
@@ -114,6 +158,62 @@ const CreateRepositoryPage = () => {
         type: values.type,
       },
     });
+
+    if (values.username && values.password && createRepositoryResponse?.id) {
+      const createUsernameResponse = await createSecret({
+        repositoryId: createRepositoryResponse?.id,
+        requestBody: {
+          name: `username-repo-${createRepositoryResponse?.id}`,
+          value: values.username,
+          description: `Username for accessing repository ${createRepositoryResponse?.id}`,
+        },
+      });
+
+      const createPasswordResponse = await createSecret({
+        repositoryId: createRepositoryResponse?.id,
+        requestBody: {
+          name: `password-repo-${createRepositoryResponse?.id}`,
+          value: values.password,
+          description: `Password for accessing repository ${createRepositoryResponse?.id}`,
+        },
+      });
+
+      if (createUsernameResponse.name && createPasswordResponse.name) {
+        const createInfrastructureServiceResponse =
+          await createInfrastructureService({
+            repositoryId: createRepositoryResponse.id,
+            requestBody: {
+              name: `infrastructure-service-repo-${createRepositoryResponse.id}`,
+              url: createRepositoryResponse.url,
+              description: `Infrastructure service for accessing repository ${createRepositoryResponse.id}`,
+              credentialsTypes: ['NETRC_FILE', 'GIT_CREDENTIALS_FILE'],
+              usernameSecretRef: createUsernameResponse.name,
+              passwordSecretRef: createPasswordResponse.name,
+            },
+          });
+
+        if (createInfrastructureServiceResponse.name) {
+          await navigate({
+            to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+            params: {
+              orgId: params.orgId,
+              productId: params.productId,
+              repoId: createRepositoryResponse.id.toString(),
+            },
+          });
+        }
+      }
+    } else if (createRepositoryResponse?.id) {
+      // If no credentials are provided, just navigate to the repository details page.
+      await navigate({
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: createRepositoryResponse.id.toString(),
+        },
+      });
+    }
   }
 
   return (
@@ -177,10 +277,55 @@ const CreateRepositoryPage = () => {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name='username'
+              render={({ field }) => (
+                <FormItem>
+                  <FormDescription>
+                    <b>Note:</b> If you have multiple repositories that use the
+                    same credentials, it is recommended <b>not</b> to specify
+                    the credentials here. Instead, reuse an existing{' '}
+                    <b>Infrastructure Service</b> or create a new one that
+                    provides access to this repository. Using{' '}
+                    <b>shared credentials</b> in this way simplifies
+                    maintenance, especially when updating expired passwords or
+                    personal access tokens.
+                  </FormDescription>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <OptionalInput {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='password'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password or Personal Access Token (PAT)</FormLabel>
+                  <FormControl>
+                    <PasswordInput {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
           <CardFooter>
-            <Button type='submit' disabled={isPending}>
-              {isPending ? (
+            <Button
+              type='submit'
+              disabled={
+                isPendingCreateRepository ||
+                isPendingCreateSecret ||
+                isPendingCreateInfrastructureService
+              }
+            >
+              {isPendingCreateRepository ||
+              isPendingCreateSecret ||
+              isPendingCreateInfrastructureService ? (
                 <>
                   <span className='sr-only'>Creating repository...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
