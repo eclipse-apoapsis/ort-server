@@ -131,7 +131,7 @@ data class ReporterConfig(
      * A [Map] containing the definitions of all reports supported by this ORT Server instance. The keys are the logic
      * names under which the reports can be accessed.
      */
-    private val reportDefinitions: Map<String, ReportDefinition>,
+    private val reportDefinitionsMap: Map<String, ReportDefinition>,
 
     /**
      * The path to the how-to-fix Kotlin script which is resolved from the configuration source. This Kotlin script
@@ -149,11 +149,15 @@ data class ReporterConfig(
      * A [Map] with the existing report definitions using lowercase names as keys. This is used to simplify
      * case-insensitive lookups of report definitions by name.
      */
-    private val lowercaseReportDefinitions = reportDefinitions.mapKeys { it.key.lowercase() }
+    private val lowercaseReportDefinitions = reportDefinitionsMap.mapKeys { it.key.lowercase() }
 
     /** A set with the names of all existing report definitions. */
     val reportDefinitionNames: Set<String>
-        get() = reportDefinitions.keys
+        get() = reportDefinitionsMap.keys
+
+    /** A collection of all existing report definitions. */
+    val reportDefinitions: Collection<ReportDefinition>
+        get() = reportDefinitionsMap.values
 
     /**
      * Return the [ReportDefinition] for the report with the given [name] or *null* if no such report is defined. The

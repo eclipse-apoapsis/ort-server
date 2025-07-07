@@ -983,7 +983,7 @@ private fun createReporterConfig(
     vararg reportDefinitions: Pair<String, ReportDefinition>
 ): ReporterConfig =
     ReporterConfig(
-        reportDefinitions = reportDefinitions.toMap(),
+        reportDefinitionsMap = reportDefinitions.toMap(),
         howToFixTextProviderFile = howToFixTextProviderFile,
         customLicenseTextDir = customLicenseTextDir
     )
