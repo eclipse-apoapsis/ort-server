@@ -30,7 +30,7 @@ dependencies {
     api(ktorLibs.server.core)
     api(ktorLibs.server.requestValidation)
 
-    implementation(projects.components.authorization.implementation)
+    implementation(projects.components.authorization.backend)
     implementation(projects.model)
     implementation(projects.services.secretService)
     implementation(projects.shared.apiMappings)
