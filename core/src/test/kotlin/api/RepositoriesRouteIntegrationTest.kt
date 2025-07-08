@@ -650,7 +650,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     allowDynamicVersions = true,
                     environmentConfig = envConfig
                 )
-                val reporterJob = ReporterJobConfiguration()
+                val reporterJob = ReporterJobConfiguration(
+                    assetFilesGroups = listOf("niceLogos"),
+                    assetDirectoriesGroups = listOf("niceThemes")
+                )
                 val parameters = mapOf("p1" to "v1", "p2" to "v2")
                 val ruleSet = "test"
                 val createRun = CreateOrtRun(
@@ -701,7 +704,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     )
                 }
 
-                run.jobConfigs.reporter shouldNot beNull()
+                run.jobConfigs.reporter shouldNotBeNull {
+                    assetFilesGroups shouldBe reporterJob.assetFilesGroups
+                    assetDirectoriesGroups shouldBe reporterJob.assetDirectoriesGroups
+                }
+
                 run.jobConfigs.parameters shouldBe parameters
                 run.jobConfigs.ruleSet shouldBe ruleSet
             }
