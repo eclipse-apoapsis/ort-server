@@ -454,8 +454,8 @@ private fun fetchReporterAssets(
     config: ReporterJobConfiguration,
     adminConfig: ReporterConfig
 ): Pair<Collection<ReporterAsset>, Collection<ReporterAsset>> {
-    val assetFiles = mutableSetOf<ReporterAsset>()
-    val assetDirectories = mutableSetOf<ReporterAsset>()
+    val assetFiles = adminConfig.fetchGlobalAssets(config.assetFilesGroups)
+    val assetDirectories = adminConfig.fetchGlobalAssets(config.assetDirectoriesGroups)
 
     config.formats.forEach { format ->
         adminConfig.reportDefinitions[format]?.also { definition ->
@@ -466,6 +466,16 @@ private fun fetchReporterAssets(
 
     return assetFiles to assetDirectories
 }
+
+/**
+ * Return a [MutableSet] that contains all the [ReporterAsset]s contained in one of the global asset groups
+ * referenced by the given [groupNames]. Unresolvable groups names are ignored; a validation should have taken
+ * place already in an earlier step.
+ */
+private fun ReporterConfig.fetchGlobalAssets(groupNames: Collection<String>): MutableSet<ReporterAsset> =
+    groupNames.flatMapTo(mutableSetOf()) { groupName ->
+        globalAssets[groupName].orEmpty()
+    }
 
 /**
  * Obtain the [ReporterFactory] for the given [format] using the definitions from the given [adminConfig].
