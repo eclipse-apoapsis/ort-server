@@ -752,6 +752,109 @@ class ReporterRunnerTest : WordSpec({
             }
         }
 
+        "download named asset files groups" {
+            val format = "testAssetFilesGroups"
+            val reporter = reporterFactoryMock(format)
+
+            mockReporterFactoryAll(format to reporter)
+
+            val groupName1 = "niceAssets"
+            val assetFiles1 = listOf(
+                ReporterAsset("logo.png"),
+                ReporterAsset("nice.ft", "fonts")
+            )
+            val groupName2 = "evenNicerAssets"
+            val assetFiles2 = listOf(
+                ReporterAsset("evenNicer.ft", "fonts", "nice2.ft")
+            )
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(format),
+                assetFilesGroups = listOf(groupName1, groupName2)
+            )
+
+            val downloadedAssets = mutableListOf<ReporterAsset>()
+            val context = mockContext()
+            coEvery { context.downloadConfigurationFile(any(), any(), any()) } answers {
+                val path = firstArg<String>()
+                val dir = secondArg<File>()
+                val relativeDir = if (dir == configDirectory) {
+                    null
+                } else {
+                    dir.parentFile shouldBe configDirectory
+                    dir shouldBe aDirectory()
+                    dir.name
+                }
+                downloadedAssets += ReporterAsset(path, relativeDir, thirdArg())
+                File(path)
+            }
+
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(
+                    createReportDefinition(format)
+                )
+            ).copy(
+                globalAssets = mapOf(
+                    groupName1 to assetFiles1,
+                    groupName2 to assetFiles2
+                )
+            )
+            val runner = createRunner(config = reporterConfig)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
+
+            downloadedAssets shouldContainExactlyInAnyOrder assetFiles1 + assetFiles2
+        }
+
+        "download named asset directories groups" {
+            val format = "testAssetDirectories"
+            val reporter = reporterFactoryMock(format)
+
+            mockReporterFactoryAll(format to reporter)
+
+            val groupName1 = "themeAssets"
+            val themeDirectories = listOf(
+                ReporterAsset("data"),
+            )
+            val groupName2 = "imageAssets"
+            val imageDirectories = listOf(
+                ReporterAsset("images", "imgs", "ignored")
+            )
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(format),
+                assetDirectoriesGroups = listOf(groupName1, groupName2)
+            )
+
+            val downloadedAssets = mutableMapOf<Path, File>()
+            val context = mockContext()
+            coEvery { context.downloadConfigurationDirectory(any(), any()) } answers {
+                val path = Path(firstArg<String>())
+                val dir = secondArg<File>()
+                dir shouldBe aDirectory()
+                downloadedAssets[path] = dir
+                mapOf(path to File(path.path))
+            }
+
+            val reporterConfig = createReporterConfig(
+                reportDefinitions = arrayOf(
+                    createReportDefinition(format)
+                )
+            ).copy(
+                globalAssets = mapOf(
+                    groupName1 to themeDirectories,
+                    groupName2 to imageDirectories
+                )
+            )
+            val runner = createRunner(config = reporterConfig)
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
+
+            downloadedAssets.keys shouldHaveSize 2
+            downloadedAssets[Path("data")] shouldBe configDirectory
+
+            downloadedAssets[Path("images")] shouldNotBeNull {
+                parentFile shouldBe configDirectory
+                name shouldBe "imgs"
+            }
+        }
+
         "configure a correct custom license text provider" {
             val format = "testCustomLicenseTexts"
             val reporterInputSlot = slot<ReporterInput>()

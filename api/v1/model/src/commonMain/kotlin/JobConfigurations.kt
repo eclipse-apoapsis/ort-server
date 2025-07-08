@@ -215,6 +215,19 @@ data class ReporterJobConfiguration(
     val formats: List<String> = emptyList(),
 
     /**
+     * A list with the names of pre-configured groups of asset files that need to be downloaded before the report
+     * generation starts. This can be used for instance to select templates or theming files dynamically.
+     */
+    val assetFilesGroups: List<String> = emptyList(),
+
+    /**
+     * A list with the name of pre-configured groups of asset directories that need to be downloaded before the report
+     * generation starts. This is analogous to [assetFilesGroups], but the contents of the selected directories are
+     * downloaded completely.
+     */
+    val assetDirectoriesGroups: List<String> = emptyList(),
+
+    /**
      * The list of package configuration providers to use.
      *
      * **This value is only used if no [evaluator job][EvaluatorJobConfiguration] is configured, otherwise the
