@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrEmpty
 import org.eclipse.apoapsis.ortserver.utils.config.getStringListOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getStringListOrEmpty
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 import org.eclipse.apoapsis.ortserver.utils.config.withPath
@@ -83,6 +84,12 @@ class AdminConfigService(
 
         /** The name of the subsection containing the Jira server configuration for the notifier. */
         private const val NOTIFIER_JIRA_SECTION = "jira"
+
+        /** The name of the section defining global assets for the reporter. */
+        private const val GLOBAL_ASSETS_SECTION = "assets"
+
+        /** A special prefix to mark unresolvable assets in the reporter configuration. */
+        private const val UNRESOLVABLE_ASSET_PREFIX = "<<UNRESOLVABLE_ASSET>>"
 
         /** An object to obtain default values for the mail server configuration. */
         private val defaultMailServerConfig = MailServerConfiguration(fromAddress = "")
@@ -225,33 +232,44 @@ class AdminConfigService(
          */
         private fun parseReporterConfig(config: Config): ReporterConfig =
             config.parseObjectOrDefault(REPORTER_SECTION, AdminConfig.DEFAULT_REPORTER_CONFIG) {
+                val globalAssets = parseGlobalReporterAssets(this)
+
                 ReporterConfig(
                     howToFixTextProviderFile = getStringOrDefault(
                         "howToFixTextProviderFile",
                         ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
                     ),
                     customLicenseTextDir = getStringOrNull("customLicenseTextDir"),
-                    reportDefinitionsMap = parseReportDefinitions(this)
+                    reportDefinitionsMap = parseReportDefinitions(this, globalAssets),
+                    globalAssets = globalAssets
                 )
             }
 
         /**
-         * Parse the report definitions defined in the given [config].
+         * Parse the report definitions defined in the given [config] using the given [globalAssets].
          */
-        private fun parseReportDefinitions(config: Config): Map<String, ReportDefinition> =
+        private fun parseReportDefinitions(
+            config: Config,
+            globalAssets: GlobalReporterAssets
+        ): Map<String, ReportDefinition> =
             config.getObjectOrEmpty("reports").filterValues { it is ConfigObject }
                 .mapValues { entry ->
-                    parseReportDefinition((entry.value as ConfigObject).toConfig())
+                    parseReportDefinition((entry.value as ConfigObject).toConfig(), globalAssets)
                 }
 
         /**
-         * Parse a [ReportDefinition] at the root of the given [config].
+         * Parse a [ReportDefinition] at the root of the given [config] using the given [globalAssets].
          */
-        private fun parseReportDefinition(config: Config): ReportDefinition =
+        private fun parseReportDefinition(
+            config: Config,
+            globalAssets: GlobalReporterAssets
+        ): ReportDefinition =
             ReportDefinition(
                 pluginId = config.getString("pluginId"),
-                assetFiles = parseReporterAssets(config, "assetFiles", isDirectory = false),
-                assetDirectories = parseReporterAssets(config, "assetDirectories", isDirectory = true),
+                assetFiles = parseReporterAssets(config, "assetFiles", isDirectory = false) +
+                        parseReporterAssetReferences(config, "assetFilesRefs", globalAssets, isDirectory = false),
+                assetDirectories = parseReporterAssets(config, "assetDirectories", isDirectory = true) +
+                        parseReporterAssetReferences(config, "assetDirectoriesRefs", globalAssets, isDirectory = true),
                 nameMapping = config.parseObjectOrDefault("nameMapping", null) {
                     ReportNameMapping(
                         namePrefix = getString("namePrefix"),
@@ -260,6 +278,16 @@ class AdminConfigService(
                     )
                 }
             )
+
+        /**
+         * Validate the given [reporterConfig]. Add found issues to the given [issues] list.
+         */
+        private fun validateReporterConfig(issues: MutableList<String>, reporterConfig: ReporterConfig) {
+            issues += reporterConfig.reportDefinitions.flatMapTo(mutableSetOf()) { definition ->
+                (definition.assetFiles + definition.assetDirectories).map(ReporterAsset::sourcePath)
+                    .filter { it.startsWith(UNRESOLVABLE_ASSET_PREFIX) }
+            }.map { "Undefined reference to a reporter asset: '${it.removePrefix(UNRESOLVABLE_ASSET_PREFIX)}'." }
+        }
 
         /**
          * Return a [Set] with the paths to all configuration files referenced by this [AdminConfig]. This is used
@@ -292,9 +320,11 @@ class AdminConfigService(
         private fun ReporterConfig.getConfigurationFiles(target: MutableSet<String>) {
             target.addNonDefault(howToFixTextProviderFile, ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME)
             customLicenseTextDir?.also(target::add)
+            target += globalAssets.values.flatMap { it.map(ReporterAsset::sourcePath) }
 
             reportDefinitions.forEach { definition ->
                 (definition.assetFiles + definition.assetDirectories).map(ReporterAsset::sourcePath)
+                    .filterNot { it.startsWith(UNRESOLVABLE_ASSET_PREFIX) }
                     .forEach(target::add)
             }
         }
@@ -307,6 +337,15 @@ class AdminConfigService(
                 add(path)
             }
         }
+
+        /**
+         * Parse the section with the top-level reporter assets in the given [config]. These assets can then be
+         * referenced in report definitions. Return a [Map] that associates names to asset groups.
+         */
+        private fun parseGlobalReporterAssets(config: Config): GlobalReporterAssets =
+            config.getObjectOrEmpty(GLOBAL_ASSETS_SECTION).mapValues { entry ->
+                parseReporterAssets(config, "${GLOBAL_ASSETS_SECTION}.${entry.key}", isDirectory = false)
+            }
 
         /**
          * Parse a list of [ReporterAsset]s from the given [config] at the specified [path]. If [isDirectory] is
@@ -324,6 +363,32 @@ class AdminConfigService(
             } else {
                 emptyList()
             }
+
+        /**
+         * Parse a list of named references to [ReporterAsset]s from the given [config] at the specified [path] that
+         * are resolved against the given [globalAssets]. If [isDirectory] is *true*, make sure that the path for
+         * the asset ends with a slash. In case of unresolvable references, return special dummy assets; they will be
+         * detected by the validation and cause meaningful error messages to be generated.
+         */
+        private fun parseReporterAssetReferences(
+            config: Config,
+            path: String,
+            globalAssets: GlobalReporterAssets,
+            isDirectory: Boolean
+        ): List<ReporterAsset> =
+            config.getStringListOrEmpty(path).flatMap { globalAssets.resolveAssetReference(it, isDirectory) }
+
+        /**
+         * Return a list of [ReporterAsset]s that are assigned to the given [assetRef] name. If [isDirectory] is
+         * *true*, make sure that the path for the asset ends with a slash. If no asset with the provided name
+         * exists, return a special result that can later be detected by the validation.
+         */
+        private fun GlobalReporterAssets.resolveAssetReference(
+            assetRef: String,
+            isDirectory: Boolean
+        ): List<ReporterAsset> =
+            this[assetRef]?.map { directoryAsset(it, isDirectory) }
+                ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
 
         private fun parseMavenCentralMirror(config: Config): MavenCentralMirror? =
             config.parseObjectOrDefault("mavenCentralMirror", null) {
@@ -352,6 +417,14 @@ class AdminConfigService(
          */
         private fun directoryPath(path: String, isDirectory: Boolean): String =
             if (isDirectory && !path.endsWith("/")) "$path/" else path
+
+        /**
+         * Make sure the source path of the given [asset] points to a directory if [isDirectory] is *true* by
+         * appending a trailing slash to its source path if necessary.
+         */
+        private fun directoryAsset(asset: ReporterAsset, isDirectory: Boolean): ReporterAsset =
+            asset.takeIf { !isDirectory || asset.sourcePath.endsWith("/") }
+                ?: asset.copy(sourcePath = "${asset.sourcePath}/")
     }
 
     /**
@@ -400,6 +473,7 @@ class AdminConfigService(
         }
 
         validateScannerConfig(issues, config.scannerConfig)
+        validateReporterConfig(issues, config.reporterConfig)
 
         if (issues.isNotEmpty()) {
             throw ConfigException(

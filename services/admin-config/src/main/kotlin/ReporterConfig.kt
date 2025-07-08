@@ -115,6 +115,13 @@ data class ReportDefinition(
 )
 
 /**
+ * A type definition for a [Map] of named [ReporterAsset]s. In the [ReporterConfig], it is possible to define groups of
+ * asset files and directories that can then be referenced from report definitions by their name. This reduces
+ * redundancy in definitions and also allows selecting assets dynamically.
+ */
+typealias GlobalReporterAssets = Map<String, List<ReporterAsset>>
+
+/**
  * A data class that represents the configuration of the Reporter worker.
  *
  * An instance of this class is part of the [AdminConfig]. It defines the reports users can request from this ORT
@@ -143,7 +150,12 @@ data class ReporterConfig(
      * An optional path to a configuration directory containing custom license texts. If defined, all files from this
      * directory are downloaded and made available via a `DefaultLicenseTextProvider` instance.
      */
-    val customLicenseTextDir: String? = null
+    val customLicenseTextDir: String? = null,
+
+    /**
+     * A [Map] with global [ReporterAsset]s that can be referenced from report definitions.
+     */
+    val globalAssets: GlobalReporterAssets = emptyMap()
 ) {
     /**
      * A [Map] with the existing report definitions using lowercase names as keys. This is used to simplify

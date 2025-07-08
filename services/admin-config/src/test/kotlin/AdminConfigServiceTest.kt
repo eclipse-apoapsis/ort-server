@@ -171,6 +171,67 @@ class AdminConfigServiceTest : WordSpec({
             }
         }
 
+        "check that global reporter assets exist" {
+            val config = """
+                    reporter {
+                      assets {
+                        logo: [
+                          {
+                            sourcePath = "reporter/template/logo.png"
+                            targetFolder = "images"
+                            targetName = "report-logo.png"
+                          }
+                        ]
+                      }
+                    }
+                """.trimIndent()
+
+            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
+            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+
+            verify(exactly = 1) {
+                configManager.containsFile(context, Path("reporter/template/logo.png"))
+            }
+        }
+
+        "handle references to reporter assets that cannot be resolved" {
+            val config = """
+                    reporter {
+                      assets {
+                        logo: [
+                          {
+                            sourcePath = "reporter/template/logo.png"
+                            targetFolder = "images"
+                            targetName = "report-logo.png"
+                          }
+                        ]
+                      }
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFilesRefs = [ "logo", "nonExistingFile" ]
+                          assetDirectories = [
+                            {
+                              sourcePath = "reporter/template/assets-files"
+                              targetFolder = "assets"
+                              targetName = "files"
+                            }
+                          ]
+                          assetDirectoriesRefs = [ "nonExistingDirectory" ]
+                        }
+                      }
+                    }
+                """.trimIndent()
+
+            val service = createServiceWithConfig(config)
+            val exception = shouldThrow<ConfigException> {
+                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            }
+
+            exception.message shouldContain "'nonExistingFile'"
+            exception.message shouldContain "'nonExistingDirectory'"
+        }
+
         "throw an exception if a configuration file cannot be resolved" {
             val config = """
                     defaultRuleSet {
@@ -737,6 +798,85 @@ class AdminConfigServiceTest : WordSpec({
                     alwaysAppendIndex shouldBe false
                 }
             }
+        }
+
+        "support asset definitions on top-level of the reporter section" {
+            val config = """
+                    reporter {
+                      assets {
+                        pdfAssets: [
+                          {
+                            sourcePath = "reporter/template/logo.png"
+                            targetFolder = "images"
+                            targetName = "report-logo.png"
+                          },
+                          {
+                            sourcePath = "reporter/template/title.ttf"
+                            targetFolder = "fonts"
+                            targetName = "main-font.ftt"
+                          }
+                        ]
+                        themeAssets: [
+                          {
+                            sourcePath = "reporter/template/themes"
+                            targetFolder = "assets"
+                            targetName = "themes"
+                          }
+                        ]
+                        layoutAssets: [
+                          {
+                            sourcePath = "reporter/layout/tiles/"
+                          }
+                        ]
+                        specialAssets: [
+                          {
+                            sourcePath = "special/layout/foo"
+                          },
+                          {
+                            sourcePath = "special/layout/bar"
+                          }
+                        ]
+                      }
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFilesRefs = [ "pdfAssets" ]
+                          assetDirectories = [
+                            {
+                              sourcePath = "reporter/template/assets-files"
+                              targetFolder = "assets"
+                              targetName = "files"
+                            }
+                          ]
+                          assetDirectoriesRefs = [ "themeAssets", "layoutAssets" ]
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
+                pluginId shouldBe "PdfTemplate"
+                assetFiles shouldContainExactly listOf(
+                    ReporterAsset("reporter/template/logo.png", "images", "report-logo.png"),
+                    ReporterAsset("reporter/template/title.ttf", "fonts", "main-font.ftt")
+                )
+                assetDirectories shouldContainExactlyInAnyOrder listOf(
+                    ReporterAsset("reporter/template/assets-files/", "assets", "files"),
+                    ReporterAsset("reporter/template/themes/", "assets", "themes"),
+                    ReporterAsset("reporter/layout/tiles/")
+                )
+            }
+
+            reporterConfig.globalAssets.keys shouldContainExactlyInAnyOrder listOf(
+                "pdfAssets", "themeAssets", "layoutAssets", "specialAssets"
+            )
+            reporterConfig.globalAssets["specialAssets"].orEmpty() shouldContainExactly listOf(
+                ReporterAsset("special/layout/foo"),
+                ReporterAsset("special/layout/bar")
+            )
         }
     }
 
