@@ -48,6 +48,315 @@ class GradleInitGeneratorTest : WordSpec({
             mockBuilder.homeFileName shouldBe ".gradle/init.gradle.kts"
         }
 
+        "generate repositories blocks from definitions" {
+            val secUser1 = MockConfigFileBuilder.createSecret("user1Secret")
+            val secPass1 = MockConfigFileBuilder.createSecret("pass1Secret")
+            val secUser2 = MockConfigFileBuilder.createSecret("user2Secret")
+            val secPass2 = MockConfigFileBuilder.createSecret("pass2Secret")
+
+            val definition1 = GradleDefinition(
+                MockConfigFileBuilder.createInfrastructureService("https://repo1.example.org", secUser1, secPass1),
+                emptySet()
+            )
+
+            val definition2 = GradleDefinition(
+                MockConfigFileBuilder.createInfrastructureService("https://repo2.example.org", secUser2, secPass2),
+                emptySet()
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            GradleInitGenerator().generate(mockBuilder.builder, listOf(definition1, definition2))
+
+            val expectedContent = """
+                allprojects {
+                    repositories {
+                        maven {
+                            url = uri("https://repo1.example.org")
+                            credentials {
+                                username = "${MockConfigFileBuilder.testSecretRef(secUser1)}"
+                                password = "${MockConfigFileBuilder.testSecretRef(secPass1)}"
+                            }
+                        }
+                        maven {
+                            url = uri("https://repo2.example.org")
+                            credentials {
+                                username = "${MockConfigFileBuilder.testSecretRef(secUser2)}"
+                                password = "${MockConfigFileBuilder.testSecretRef(secPass2)}"
+                            }
+                        }
+                    }
+
+                    buildscript {
+                        repositories {
+                            maven {
+                                url = uri("https://repo1.example.org")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser1)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass1)}"
+                                }
+                            }
+                            maven {
+                                url = uri("https://repo2.example.org")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser2)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass2)}"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                settingsEvaluated {
+                    settings.pluginManagement {
+                        repositories {
+                            maven {
+                                url = uri("https://repo1.example.org")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser1)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass1)}"
+                                }
+                            }
+                            maven {
+                                url = uri("https://repo2.example.org")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser2)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass2)}"
+                                }
+                            }
+                            gradlePluginPortal()
+                        }
+                    }
+
+                    settings.dependencyResolutionManagement {
+                        repositories {
+                            maven {
+                                url = uri("https://repo1.example.org")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser1)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass1)}"
+                                }
+                            }
+                            maven {
+                                url = uri("https://repo2.example.org")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser2)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass2)}"
+                                }
+                            }
+                        }
+                    }
+                }
+
+            """.trimIndent()
+
+            val content = mockBuilder.generatedText()
+            content shouldBe expectedContent
+        }
+
+        "generate repositories section for both GradleDefinition and MavenCentralMirror if URL differs" {
+            val secUser = MockConfigFileBuilder.createSecret("userSecret")
+            val secPass = MockConfigFileBuilder.createSecret("passSecret")
+
+            val definition1 = GradleDefinition(
+                MockConfigFileBuilder.createInfrastructureService("https://repo.example.org", secUser, secPass),
+                emptySet()
+            )
+
+            val username = "test-username"
+            val infraUsernameSecret = MockConfigFileBuilder.createSecret("infra-secret-username")
+            val password = "test-password"
+            val infraPasswordSecret = MockConfigFileBuilder.createSecret("infra-secret-password")
+            val mavenCentralMirror = MavenCentralMirror(
+                id = "central",
+                name = "Maven Central",
+                url = "https://different-repo.example.org",
+                mirrorOf = "central",
+                usernameSecret = infraUsernameSecret.name,
+                passwordSecret = infraPasswordSecret.name
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraUsernameSecret.path)) } returns username
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraPasswordSecret.path)) } returns password
+            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+
+            GradleInitGenerator().generate(mockBuilder.builder, listOf(definition1))
+
+            val expectedContent = """
+                allprojects {
+                    repositories {
+                        maven {
+                            url = uri("${mavenCentralMirror.url}")
+                            credentials {
+                                username = "$username"
+                                password = "$password"
+                            }
+                        }
+                        maven {
+                            url = uri("https://repo.example.org")
+                            credentials {
+                                username = "${MockConfigFileBuilder.testSecretRef(secUser)}"
+                                password = "${MockConfigFileBuilder.testSecretRef(secPass)}"
+                            }
+                        }
+                    }
+
+                    buildscript {
+                        repositories {
+                            maven {
+                                url = uri("${mavenCentralMirror.url}")
+                                credentials {
+                                    username = "$username"
+                                    password = "$password"
+                                }
+                            }
+                            maven {
+                                url = uri("https://repo.example.org")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass)}"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                settingsEvaluated {
+                    settings.pluginManagement {
+                        repositories {
+                            maven {
+                                url = uri("${mavenCentralMirror.url}")
+                                credentials {
+                                    username = "$username"
+                                    password = "$password"
+                                }
+                            }
+                            maven {
+                                url = uri("https://repo.example.org")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass)}"
+                                }
+                            }
+                            gradlePluginPortal()
+                        }
+                    }
+
+                    settings.dependencyResolutionManagement {
+                        repositories {
+                            maven {
+                                url = uri("${mavenCentralMirror.url}")
+                                credentials {
+                                    username = "$username"
+                                    password = "$password"
+                                }
+                            }
+                            maven {
+                                url = uri("https://repo.example.org")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass)}"
+                                }
+                            }
+                        }
+                    }
+                }
+
+            """.trimIndent()
+
+            val content = mockBuilder.generatedText()
+            content shouldBe expectedContent
+        }
+
+        "prefer GradleDefinition over MavenCentralMirror if URLs match" {
+            val repositoryUrl = "https://repo.example.org"
+            val secUser = MockConfigFileBuilder.createSecret("userSecret")
+            val secPass = MockConfigFileBuilder.createSecret("passSecret")
+
+            val definition1 = GradleDefinition(
+                MockConfigFileBuilder.createInfrastructureService(repositoryUrl, secUser, secPass),
+                emptySet()
+            )
+
+            val username = "test-username"
+            val infraUsernameSecret = MockConfigFileBuilder.createSecret("infra-secret-username")
+            val password = "test-password"
+            val infraPasswordSecret = MockConfigFileBuilder.createSecret("infra-secret-password")
+            val mavenCentralMirror = MavenCentralMirror(
+                id = "central",
+                name = "Maven Central",
+                url = repositoryUrl,
+                mirrorOf = "central",
+                usernameSecret = infraUsernameSecret.name,
+                passwordSecret = infraPasswordSecret.name
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraUsernameSecret.path)) } returns username
+            every { mockBuilder.infraSecretResolverFun.invoke(Path(infraPasswordSecret.path)) } returns password
+            every { mockBuilder.adminConfig.mavenCentralMirror } returns mavenCentralMirror
+
+            GradleInitGenerator().generate(mockBuilder.builder, listOf(definition1))
+
+            val expectedContent = """
+                allprojects {
+                    repositories {
+                        maven {
+                            url = uri("$repositoryUrl")
+                            credentials {
+                                username = "${MockConfigFileBuilder.testSecretRef(secUser)}"
+                                password = "${MockConfigFileBuilder.testSecretRef(secPass)}"
+                            }
+                        }
+                    }
+
+                    buildscript {
+                        repositories {
+                            maven {
+                                url = uri("$repositoryUrl")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass)}"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                settingsEvaluated {
+                    settings.pluginManagement {
+                        repositories {
+                            maven {
+                                url = uri("$repositoryUrl")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass)}"
+                                }
+                            }
+                            gradlePluginPortal()
+                        }
+                    }
+
+                    settings.dependencyResolutionManagement {
+                        repositories {
+                            maven {
+                                url = uri("$repositoryUrl")
+                                credentials {
+                                    username = "${MockConfigFileBuilder.testSecretRef(secUser)}"
+                                    password = "${MockConfigFileBuilder.testSecretRef(secPass)}"
+                                }
+                            }
+                        }
+                    }
+                }
+
+            """.trimIndent()
+
+            val content = mockBuilder.generatedText()
+            content shouldBe expectedContent
+        }
+
         "generate an empty file if MavenCentralMirror is null" {
             val mockBuilder = MockConfigFileBuilder()
 
