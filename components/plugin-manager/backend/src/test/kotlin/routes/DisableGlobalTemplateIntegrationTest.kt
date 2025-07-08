@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.github.michaelbull.result.get
 
@@ -33,17 +33,18 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 
 import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
-class EnableGlobalTemplateIntegrationTest : PluginManagerIntegrationTest({
+class DisableGlobalTemplateIntegrationTest : PluginManagerIntegrationTest({
     val pluginType = PluginType.ADVISOR
     val pluginId = OssIndexFactory.descriptor.id
 
-    "EnableGlobalTemplate" should {
-        "enable a global template" {
+    "DisableGlobalTemplate" should {
+        "disable a global template" {
             pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.enableGlobal("template1", pluginType, pluginId, "test-user")
 
                 client.post(
-                    "/admin/plugins/$pluginType/$pluginId/templates/template1/enableGlobal"
+                    "/admin/plugins/$pluginType/$pluginId/templates/template1/disableGlobal"
                 ) shouldHaveStatus HttpStatusCode.OK
 
                 val result = pluginTemplateService.getTemplate("template1", pluginType, pluginId)
@@ -51,37 +52,24 @@ class EnableGlobalTemplateIntegrationTest : PluginManagerIntegrationTest({
 
                 val template = result.get()
                 template.shouldNotBeNull()
-                template.isGlobal shouldBe true
+                template.isGlobal shouldBe false
             }
         }
 
         "return NotFound if the template does not exist" {
             pluginManagerTestApplication { client ->
                 client.post(
-                    "/admin/plugins/$pluginType/$pluginId/templates/non-existing-template/enableGlobal"
+                    "/admin/plugins/$pluginType/$pluginId/templates/non-existing-template/disableGlobal"
                 ) shouldHaveStatus HttpStatusCode.NotFound
             }
         }
 
-        "return BadRequest if the template is already global" {
+        "return BadRequest if the template is global" {
             pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
-                pluginTemplateService.enableGlobal("template1", pluginType, pluginId, "test-user")
 
                 client.post(
-                    "/admin/plugins/$pluginType/$pluginId/templates/template1/enableGlobal"
-                ) shouldHaveStatus HttpStatusCode.BadRequest
-            }
-        }
-
-        "return BadRequest if there is another global template for the same plugin" {
-            pluginManagerTestApplication { client ->
-                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
-                pluginTemplateService.create("template2", pluginType, pluginId, "test-user", emptyList())
-                pluginTemplateService.enableGlobal("template2", pluginType, pluginId, "test-user")
-
-                client.post(
-                    "/admin/plugins/$pluginType/$pluginId/templates/template1/enableGlobal"
+                    "/admin/plugins/$pluginType/$pluginId/templates/template1/disableGlobal"
                 ) shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
@@ -89,9 +77,10 @@ class EnableGlobalTemplateIntegrationTest : PluginManagerIntegrationTest({
         "normalize the plugin ID" {
             pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.enableGlobal("template1", pluginType, pluginId, "test-user")
 
                 client.post(
-                    "/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1/enableGlobal"
+                    "/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1/disableGlobal"
                 ) shouldHaveStatus HttpStatusCode.OK
 
                 val result = pluginTemplateService.getTemplate("template1", pluginType, pluginId)
@@ -99,7 +88,7 @@ class EnableGlobalTemplateIntegrationTest : PluginManagerIntegrationTest({
 
                 val template = result.get()
                 template.shouldNotBeNull()
-                template.isGlobal shouldBe true
+                template.isGlobal shouldBe false
             }
         }
     }

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
@@ -35,16 +35,15 @@ import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.addTemplateToOrganization(
+internal fun Route.disableGlobalTemplate(
     pluginTemplateService: PluginTemplateService
-) = post("/admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/addToOrganization", {
-    operationId = "AddTemplateToOrganization"
-    summary = "Add a plugin template to an organization"
-    description = "Add a template to an organization. Only one template for a plugin can be assigned to an " +
-            "organization at the same time. An organization-specific template will override any global templates."
+) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/disableGlobal", {
+    operationId = "DisableGlobalPluginTemplate"
+    summary = "Disable a global plugin template"
+    description = "Disable a global plugin template for a specific plugin. This will disable the template globally, " +
+            "but it can still be used in organization-specific configurations."
     tags = listOf("Plugins")
 
     request {
@@ -59,27 +58,22 @@ internal fun Route.addTemplateToOrganization(
         }
 
         pathParameter<String>("templateName") {
-            description = "The name of the template to add."
-            required = true
-        }
-
-        queryParameter<String>("organizationId") {
-            description = "The ID of the organization to which the template should be added."
+            description = "The name of the plugin template to disable globally."
             required = true
         }
     }
 
     response {
         HttpStatusCode.OK to {
-            description = "The template was successfully added to the organization."
-        }
-
-        HttpStatusCode.NotFound to {
-            description = "The specified plugin, plugin template, or organization does not exist."
+            description = "Successfully disabled the global plugin template."
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The template is already assigned to the organization."
+            description = "The specified plugin is not installed or the template could not be disabled."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The specified plugin template does not exist."
         }
     }
 }) {
@@ -89,10 +83,9 @@ internal fun Route.addTemplateToOrganization(
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
-    val organizationId = call.requireIdParameter("organizationId")
 
-    pluginTemplateService.addOrganization(templateName, pluginType, pluginId, organizationId, userId).onSuccess {
-        call.respond(HttpStatusCode.OK, "Template added to organization successfully.")
+    pluginTemplateService.disableGlobal(templateName, pluginType, pluginId, userId).onSuccess {
+        call.respond(HttpStatusCode.OK, "Global plugin template disabled successfully.")
     }.onFailure {
         when (it) {
             is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)

@@ -17,13 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.github.michaelbull.result.get
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
-import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -36,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 
 import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
-class RemoveTemplateFromOrganizationIntegrationTest : PluginManagerIntegrationTest({
+class AddTemplateToOrganizationIntegrationTest : PluginManagerIntegrationTest({
     var organizationId: Long = 0
 
     val pluginType = PluginType.ADVISOR
@@ -46,43 +45,58 @@ class RemoveTemplateFromOrganizationIntegrationTest : PluginManagerIntegrationTe
         organizationId = dbExtension.fixtures.createOrganization().id
     }
 
-    "RemoveTemplateFromOrganization" should {
-        "remove a template from an organization if it exists" {
+    "AddTemplateToOrganization" should {
+        "add a template to an organization if it exists" {
             pluginManagerTestApplication { client ->
-                val organizationId2 = dbExtension.fixtures.createOrganization(name = "org2").id
-
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
-                pluginTemplateService.addOrganization("template1", pluginType, pluginId, organizationId, "test-user")
-                pluginTemplateService.addOrganization("template1", pluginType, pluginId, organizationId2, "test-user")
+
+                val organizationId2 = dbExtension.fixtures.createOrganization(name = "org2").id
 
                 client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/template1" +
-                            "/removeFromOrganization?organizationId=$organizationId"
+                            "/addToOrganization?organizationId=$organizationId"
+                ) shouldHaveStatus HttpStatusCode.OK
+                client.post(
+                    "/admin/plugins/$pluginType/$pluginId/templates/template1" +
+                            "/addToOrganization?organizationId=$organizationId2"
                 ) shouldHaveStatus HttpStatusCode.OK
 
                 val result = pluginTemplateService.getTemplate("template1", pluginType, pluginId)
                 result.isOk shouldBe true
 
                 val template = result.get().shouldNotBeNull()
-                template.organizationIds should containExactly(organizationId2)
+                template.organizationIds should containExactlyInAnyOrder(organizationId, organizationId2)
             }
         }
 
         "return NotFound if the template does not exist" {
             pluginManagerTestApplication { client ->
                 client.post(
-                    "/admin/plugins/$pluginType/$pluginId/templates/nonExistentTemplate" +
-                            "/removeFromOrganization?organizationId=1"
+                    "/admin/plugins/$pluginType/$pluginId/templates/non-existing-template" +
+                            "/addToOrganization?organizationId=$organizationId"
                 ) shouldHaveStatus HttpStatusCode.NotFound
             }
         }
 
-        "return BadRequest if the template is not assigned to the organization" {
+        "return NotFound if the organization does not exist" {
             pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(
-                    "/admin/plugins/$pluginType/$pluginId/templates/template1/removeFromOrganization?organizationId=1"
+                    "/admin/plugins/$pluginType/$pluginId/templates/template1" +
+                            "/addToOrganization?organizationId=999"
+                ) shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "return BadRequest if the template is already assigned to the organization" {
+            pluginManagerTestApplication { client ->
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.addOrganization("template1", pluginType, pluginId, 1, "test-user")
+
+                client.post(
+                    "/admin/plugins/$pluginType/$pluginId/templates/template1" +
+                            "/addToOrganization?organizationId=$organizationId"
                 ) shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
@@ -90,18 +104,17 @@ class RemoveTemplateFromOrganizationIntegrationTest : PluginManagerIntegrationTe
         "normalize the plugin ID" {
             pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
-                pluginTemplateService.addOrganization("template1", pluginType, pluginId, organizationId, "test-user")
 
                 client.post(
                     "/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1" +
-                            "/removeFromOrganization?organizationId=$organizationId"
+                            "/addToOrganization?organizationId=$organizationId"
                 ) shouldHaveStatus HttpStatusCode.OK
 
                 val result = pluginTemplateService.getTemplate("template1", pluginType, pluginId)
                 result.isOk shouldBe true
 
                 val template = result.get().shouldNotBeNull()
-                template.organizationIds should beEmpty()
+                template.organizationIds should containExactlyInAnyOrder(organizationId)
             }
         }
     }

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
@@ -38,12 +38,12 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.getTemplates(
+internal fun Route.getTemplate(
     pluginTemplateService: PluginTemplateService
-) = get("admin/plugins/{pluginType}/{pluginId}/templates", {
-    operationId = "GetPluginTemplates"
-    summary = "Get all templates for a plugin"
-    description = "Retrieve the templates for a specific plugin type and ID."
+) = get("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
+    operationId = "GetPluginTemplate"
+    summary = "Get a templates for a plugin"
+    description = "Retrieve the template with the given name for a specific plugin type and ID."
     tags = listOf("Plugins")
 
     request {
@@ -56,39 +56,42 @@ internal fun Route.getTemplates(
             description = "The ID of the plugin to retrieve templates for."
             required = true
         }
+
+        pathParameter<String>("templateName") {
+            description = "The name of the template to retrieve."
+            required = true
+        }
     }
 
     response {
         HttpStatusCode.OK to {
-            description = "A list of templates for the specified plugin."
+            description = "The template for the specified plugin."
 
-            body<List<PluginTemplate>> {
+            body<PluginTemplate> {
                 mediaTypes = setOf(ContentType.Application.Json)
 
                 example("Example") {
-                    listOf(
-                        PluginTemplate(
-                            name = "exampleTemplate",
-                            pluginType = PluginType.ADVISOR,
-                            pluginId = "examplePlugin",
-                            options = listOf(
-                                PluginOptionTemplate(
-                                    option = "exampleOption",
-                                    type = PluginOptionType.STRING,
-                                    value = "exampleValue",
-                                    isFinal = true
-                                )
-                            ),
-                            isGlobal = false,
-                            organizationIds = listOf(1, 2)
-                        )
+                    PluginTemplate(
+                        name = "exampleTemplate",
+                        pluginType = PluginType.ADVISOR,
+                        pluginId = "examplePlugin",
+                        options = listOf(
+                            PluginOptionTemplate(
+                                option = "exampleOption",
+                                type = PluginOptionType.STRING,
+                                value = "exampleValue",
+                                isFinal = true
+                            )
+                        ),
+                        isGlobal = false,
+                        organizationIds = listOf(1, 2)
                     )
                 }
             }
         }
 
-        HttpStatusCode.BadRequest to {
-            description = "The specified plugin does not exist."
+        HttpStatusCode.NotFound to {
+            description = "The specified plugin template does not exist."
         }
     }
 }) {
@@ -96,8 +99,9 @@ internal fun Route.getTemplates(
 
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
     val pluginId = call.requireParameter("pluginId")
+    val templateName = call.requireParameter("templateName")
 
-    pluginTemplateService.getTemplates(pluginType, pluginId).onSuccess {
+    pluginTemplateService.getTemplate(templateName, pluginType, pluginId).onSuccess {
         call.respond(HttpStatusCode.OK, it)
     }.onFailure {
         when (it) {

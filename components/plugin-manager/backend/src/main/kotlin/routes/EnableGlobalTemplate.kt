@@ -17,36 +17,33 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 
 import io.github.smiley4.ktoropenapi.post
 
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.createTemplate(
+internal fun Route.enableGlobalTemplate(
     pluginTemplateService: PluginTemplateService
-) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
-    operationId = "CreatePluginTemplate"
-    summary = "Create a new plugin template"
-    description = "Create a new plugin template."
+) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/enableGlobal", {
+    operationId = "EnableGlobalPluginTemplate"
+    summary = "Enable a global plugin template"
+    description = "Enable a global plugin template for a specific plugin. This will enable the template globally for " +
+            "all organizations, but it can still be overwritten by organization-specific templates."
     tags = listOf("Plugins")
 
     request {
@@ -61,31 +58,22 @@ internal fun Route.createTemplate(
         }
 
         pathParameter<String>("templateName") {
-            description = "The name of the template to create."
+            description = "The name of the plugin template to enable globally."
             required = true
-        }
-
-        body<List<PluginOptionTemplate>> {
-            description = "The list of plugin option templates."
-            mediaTypes = setOf(ContentType.Application.Json)
-            required = true
-
-            example("Example") {
-                listOf(
-                    PluginOptionTemplate("option1", PluginOptionType.STRING, "defaultValue", false),
-                    PluginOptionTemplate("option2", PluginOptionType.BOOLEAN, "true", true)
-                )
-            }
         }
     }
 
     response {
         HttpStatusCode.OK to {
-            description = "The template was successfully created."
+            description = "Successfully enabled the global plugin template."
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The specified plugin is not installed or the template could not be created."
+            description = "The specified plugin is not installed or the template could not be enabled."
+        }
+
+        HttpStatusCode.NotFound to {
+            description = "The specified plugin template does not exist."
         }
     }
 }) {
@@ -96,10 +84,8 @@ internal fun Route.createTemplate(
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
 
-    val options = call.receive<List<PluginOptionTemplate>>()
-
-    pluginTemplateService.create(templateName, pluginType, pluginId, userId, options).onSuccess {
-        call.respond(HttpStatusCode.OK, "Template created successfully.")
+    pluginTemplateService.enableGlobal(templateName, pluginType, pluginId, userId).onSuccess {
+        call.respond(HttpStatusCode.OK, "Global plugin template enabled successfully.")
     }.onFailure {
         when (it) {
             is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)
