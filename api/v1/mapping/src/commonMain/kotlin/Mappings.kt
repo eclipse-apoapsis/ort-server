@@ -492,6 +492,8 @@ fun ReporterJob.mapToApiSummary() =
 fun ReporterJobConfiguration.mapToApi() =
     ApiReporterJobConfiguration(
         formats,
+        assetFilesGroups,
+        assetDirectoriesGroups,
         packageConfigurationProviders.map { it.mapToApi() },
         config?.mapValues { it.value.mapToApi() },
         keepAliveWorker = keepAliveWorker
@@ -522,6 +524,8 @@ fun ApiNotifierJobConfiguration.mapToModel() =
 fun ApiReporterJobConfiguration.mapToModel() =
     ReporterJobConfiguration(
         formats,
+        assetFilesGroups,
+        assetDirectoriesGroups,
         packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
         config?.mapValues { it.value.mapToModel() },
         keepAliveWorker = keepAliveWorker
