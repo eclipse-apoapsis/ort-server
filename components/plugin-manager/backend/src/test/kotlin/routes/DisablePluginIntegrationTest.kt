@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 

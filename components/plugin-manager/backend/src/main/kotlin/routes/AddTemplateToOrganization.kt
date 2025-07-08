@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
@@ -35,15 +35,16 @@ import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.enableGlobalTemplate(
+internal fun Route.addTemplateToOrganization(
     pluginTemplateService: PluginTemplateService
-) = post("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/enableGlobal", {
-    operationId = "EnableGlobalPluginTemplate"
-    summary = "Enable a global plugin template"
-    description = "Enable a global plugin template for a specific plugin. This will enable the template globally for " +
-            "all organizations, but it can still be overwritten by organization-specific templates."
+) = post("/admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/addToOrganization", {
+    operationId = "AddTemplateToOrganization"
+    summary = "Add a plugin template to an organization"
+    description = "Add a template to an organization. Only one template for a plugin can be assigned to an " +
+            "organization at the same time. An organization-specific template will override any global templates."
     tags = listOf("Plugins")
 
     request {
@@ -58,22 +59,27 @@ internal fun Route.enableGlobalTemplate(
         }
 
         pathParameter<String>("templateName") {
-            description = "The name of the plugin template to enable globally."
+            description = "The name of the template to add."
+            required = true
+        }
+
+        queryParameter<String>("organizationId") {
+            description = "The ID of the organization to which the template should be added."
             required = true
         }
     }
 
     response {
         HttpStatusCode.OK to {
-            description = "Successfully enabled the global plugin template."
-        }
-
-        HttpStatusCode.BadRequest to {
-            description = "The specified plugin is not installed or the template could not be enabled."
+            description = "The template was successfully added to the organization."
         }
 
         HttpStatusCode.NotFound to {
-            description = "The specified plugin template does not exist."
+            description = "The specified plugin, plugin template, or organization does not exist."
+        }
+
+        HttpStatusCode.BadRequest to {
+            description = "The template is already assigned to the organization."
         }
     }
 }) {
@@ -83,9 +89,10 @@ internal fun Route.enableGlobalTemplate(
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
+    val organizationId = call.requireIdParameter("organizationId")
 
-    pluginTemplateService.enableGlobal(templateName, pluginType, pluginId, userId).onSuccess {
-        call.respond(HttpStatusCode.OK, "Global plugin template enabled successfully.")
+    pluginTemplateService.addOrganization(templateName, pluginType, pluginId, organizationId, userId).onSuccess {
+        call.respond(HttpStatusCode.OK, "Template added to organization successfully.")
     }.onFailure {
         when (it) {
             is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)

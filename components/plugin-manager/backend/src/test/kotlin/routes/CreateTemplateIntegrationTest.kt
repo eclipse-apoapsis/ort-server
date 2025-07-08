@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.github.michaelbull.result.get
 
@@ -25,6 +25,7 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
+import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
@@ -36,14 +37,14 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
-class UpdateTemplateOptionsIntegrationTest : PluginManagerIntegrationTest({
+class CreateTemplateIntegrationTest : PluginManagerIntegrationTest({
     val pluginType = PluginType.ADVISOR
     val pluginId = VulnerableCodeFactory.descriptor.id
     val serverUrlOption = VulnerableCodeFactory.descriptor.options.single { it.name == "serverUrl" }
     val readTimeoutOption = VulnerableCodeFactory.descriptor.options.single { it.name == "readTimeout" }
 
-    "UpdateTemplateOptions" should {
-        "fail if the template does not exist" {
+    "CreateTemplate" should {
+        "create a template" {
             pluginManagerTestApplication { client ->
                 val options = listOf(
                     PluginOptionTemplate(
@@ -55,52 +56,7 @@ class UpdateTemplateOptionsIntegrationTest : PluginManagerIntegrationTest({
                 )
 
                 val response =
-                    client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
-                        setBody(options)
-                    }
-
-                response shouldHaveStatus HttpStatusCode.NotFound
-            }
-        }
-
-        "fail if the template was deleted before" {
-            pluginManagerTestApplication { client ->
-                val options = listOf(
-                    PluginOptionTemplate(
-                        option = serverUrlOption.name,
-                        type = serverUrlOption.type.mapToApi(),
-                        value = "https://example.org",
-                        isFinal = true
-                    )
-                )
-
-                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
-                pluginTemplateService.delete("template1", pluginType, pluginId, "test-user")
-
-                val response =
-                    client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
-                        setBody(options)
-                    }
-
-                response shouldHaveStatus HttpStatusCode.BadRequest
-            }
-        }
-
-        "update the options of an existing template" {
-            pluginManagerTestApplication { client ->
-                val options = listOf(
-                    PluginOptionTemplate(
-                        option = serverUrlOption.name,
-                        type = serverUrlOption.type.mapToApi(),
-                        value = "https://example.org",
-                        isFinal = true
-                    )
-                )
-
-                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
-
-                val response =
-                    client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                    client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
                         setBody(options)
                     }
 
@@ -119,7 +75,41 @@ class UpdateTemplateOptionsIntegrationTest : PluginManagerIntegrationTest({
             }
         }
 
-        "normalize the plugin ID" {
+        "create a template if it was deleted before" {
+            pluginManagerTestApplication { client ->
+                val options = listOf(
+                    PluginOptionTemplate(
+                        option = serverUrlOption.name,
+                        type = serverUrlOption.type.mapToApi(),
+                        value = "https://example.org",
+                        isFinal = true
+                    )
+                )
+
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.delete("template1", pluginType, pluginId, "test-user")
+
+                val response =
+                    client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                        setBody(options)
+                    }
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val result = pluginTemplateService.getTemplate("template1", pluginType, pluginId)
+                result.isOk shouldBe true
+
+                val template = result.get()
+                template shouldNotBeNull {
+                    name shouldBe "template1"
+                    this.pluginType shouldBe PluginType.ADVISOR
+                    this.pluginId shouldBe pluginId
+                    this.options shouldBe options
+                }
+            }
+        }
+
+        "fail if the template does already exist" {
             pluginManagerTestApplication { client ->
                 val options = listOf(
                     PluginOptionTemplate(
@@ -133,7 +123,27 @@ class UpdateTemplateOptionsIntegrationTest : PluginManagerIntegrationTest({
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 val response =
-                    client.put("/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1") {
+                    client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                        setBody(options)
+                    }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+            }
+        }
+
+        "normalize the plugin ID" {
+            pluginManagerTestApplication { client ->
+                val options = listOf(
+                    PluginOptionTemplate(
+                        option = serverUrlOption.name,
+                        type = serverUrlOption.type.mapToApi(),
+                        value = "https://example.org",
+                        isFinal = true
+                    )
+                )
+
+                val response =
+                    client.post("/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1") {
                         setBody(options)
                     }
 
@@ -161,9 +171,7 @@ class UpdateTemplateOptionsIntegrationTest : PluginManagerIntegrationTest({
                     isFinal = true
                 )
 
-                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
-
-                client.put("/admin/plugins/$pluginType/$pluginId/templates/template1") {
+                client.post("/admin/plugins/$pluginType/$pluginId/templates/template1") {
                     setBody(listOf(nonExistingOption))
                 } shouldHaveStatus HttpStatusCode.BadRequest
 

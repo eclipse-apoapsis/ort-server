@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager
 
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints.mapToApi
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.mapToApi
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and

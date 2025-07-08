@@ -17,34 +17,36 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 
-import io.github.smiley4.ktoropenapi.post
+import io.github.smiley4.ktoropenapi.put
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.removeTemplateFromOrganization(
+internal fun Route.updateTemplateOptions(
     pluginTemplateService: PluginTemplateService
-) = post("/admin/plugins/{pluginType}/{pluginId}/templates/{templateName}/removeFromOrganization", {
-    operationId = "RemoveTemplateFromOrganization"
-    summary = "Remove a plugin template from an organization"
-    description = "Remove a plugin template from an organization. If any global templates are enabled for the " +
-            "plugin, they will now apply to the organization."
+) = put("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
+    operationId = "UpdatePluginTemplateOptions"
+    summary = "Update the options of a plugin template"
+    description = "Update the options of a plugin template."
     tags = listOf("Plugins")
 
     request {
@@ -59,27 +61,31 @@ internal fun Route.removeTemplateFromOrganization(
         }
 
         pathParameter<String>("templateName") {
-            description = "The name of the template to remove."
+            description = "The name of the template to update."
             required = true
         }
 
-        queryParameter<String>("organizationId") {
-            description = "The ID of the organization from which the template should be removed."
+        body<List<PluginOptionTemplate>> {
+            description = "The list of plugin option templates."
+            mediaTypes = setOf(ContentType.Application.Json)
             required = true
+
+            example("Example") {
+                listOf(
+                    PluginOptionTemplate("option1", PluginOptionType.STRING, "defaultValue", false),
+                    PluginOptionTemplate("option2", PluginOptionType.BOOLEAN, "true", true)
+                )
+            }
         }
     }
 
     response {
         HttpStatusCode.OK to {
-            description = "The template was successfully removed from the organization."
-        }
-
-        HttpStatusCode.NotFound to {
-            description = "The specified plugin, plugin template, or organization does not exist."
+            description = "The options were successfully updated."
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The template is not assigned to the organization."
+            description = "The specified plugin is not installed or the template could not be updated."
         }
     }
 }) {
@@ -89,10 +95,11 @@ internal fun Route.removeTemplateFromOrganization(
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")
-    val organizationId = call.requireIdParameter("organizationId")
 
-    pluginTemplateService.removeOrganization(templateName, pluginType, pluginId, organizationId, userId).onSuccess {
-        call.respond(HttpStatusCode.OK, "Template removed from organization successfully.")
+    val options = call.receive<List<PluginOptionTemplate>>()
+
+    pluginTemplateService.updateOptions(templateName, pluginType, pluginId, userId, options).onSuccess {
+        call.respond(HttpStatusCode.OK, "Template options updated successfully.")
     }.onFailure {
         when (it) {
             is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import io.github.smiley4.ktoropenapi.post
 
@@ -29,34 +29,34 @@ import io.ktor.server.routing.Route
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEnabled
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDisabled
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEvent
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.normalizePluginId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/enable", {
-    operationId = "EnablePlugin"
-    summary = "Enable an ORT plugin globally"
-    description = "Enable an ORT plugin globally to make it generally available to all organizations."
+internal fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plugins/{pluginType}/{pluginId}/disable", {
+    operationId = "DisablePlugin"
+    summary = "Disable an ORT plugin globally"
+    description = "Disable an ORT plugin globally to make it generally unavailable."
     tags = listOf("Plugins")
 
     request {
         pathParameter<String>("pluginType") {
-            description = "The type of the plugin to enable."
+            description = "The type of the plugin to disable."
             required = true
         }
 
         pathParameter<String>("pluginId") {
-            description = "The ID of the plugin to enable."
+            description = "The ID of the plugin to disable."
             required = true
         }
     }
 
     response {
-        HttpStatusCode.OK to {
-            description = "The plugin was enabled successfully."
+        HttpStatusCode.Accepted to {
+            description = "The plugin was disabled successfully."
         }
 
         HttpStatusCode.NotFound to {
@@ -64,7 +64,7 @@ internal fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plug
         }
 
         HttpStatusCode.NotModified to {
-            description = "The plugin is already enabled."
+            description = "The plugin is already disabled."
         }
     }
 }) {
@@ -82,11 +82,11 @@ internal fun Route.enablePlugin(eventStore: PluginEventStore) = post("admin/plug
 
     val plugin = eventStore.getPlugin(pluginType, pluginId)
 
-    if (plugin.isEnabled()) {
+    if (!plugin.isEnabled()) {
         call.respond(HttpStatusCode.NotModified)
     } else {
         val nextVersion = plugin.version + 1
-        val newEvent = PluginEvent(pluginType, pluginId, nextVersion, PluginEnabled, userId)
+        val newEvent = PluginEvent(pluginType, pluginId, nextVersion, PluginDisabled, userId)
         eventStore.appendEvent(newEvent)
         call.respond(HttpStatusCode.Accepted)
     }

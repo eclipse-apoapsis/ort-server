@@ -17,74 +17,88 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.pluginmanager.endpoints
+package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 
-import io.github.smiley4.ktoropenapi.delete
+import io.github.smiley4.ktoropenapi.get
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.deleteTemplate(
+internal fun Route.getTemplates(
     pluginTemplateService: PluginTemplateService
-) = delete("admin/plugins/{pluginType}/{pluginId}/templates/{templateName}", {
-    operationId = "DeletePluginTemplate"
-    summary = "Delete a plugin template"
-    description = "Delete a plugin template for a specific plugin. This will remove the template and its configuration."
+) = get("admin/plugins/{pluginType}/{pluginId}/templates", {
+    operationId = "GetPluginTemplates"
+    summary = "Get all templates for a plugin"
+    description = "Retrieve the templates for a specific plugin type and ID."
     tags = listOf("Plugins")
 
     request {
         pathParameter<String>("pluginType") {
-            description = "The type of the plugin this template is for."
+            description = "The type of the plugin to retrieve templates for."
             required = true
         }
 
         pathParameter<String>("pluginId") {
-            description = "The ID of the plugin this template is for."
-            required = true
-        }
-
-        pathParameter<String>("templateName") {
-            description = "The name of the plugin template to delete."
+            description = "The ID of the plugin to retrieve templates for."
             required = true
         }
     }
 
     response {
         HttpStatusCode.OK to {
-            description = "The plugin template was deleted successfully."
+            description = "A list of templates for the specified plugin."
+
+            body<List<PluginTemplate>> {
+                mediaTypes = setOf(ContentType.Application.Json)
+
+                example("Example") {
+                    listOf(
+                        PluginTemplate(
+                            name = "exampleTemplate",
+                            pluginType = PluginType.ADVISOR,
+                            pluginId = "examplePlugin",
+                            options = listOf(
+                                PluginOptionTemplate(
+                                    option = "exampleOption",
+                                    type = PluginOptionType.STRING,
+                                    value = "exampleValue",
+                                    isFinal = true
+                                )
+                            ),
+                            isGlobal = false,
+                            organizationIds = listOf(1, 2)
+                        )
+                    )
+                }
+            }
         }
 
         HttpStatusCode.BadRequest to {
-            description = "The specified plugin is not installed."
-        }
-
-        HttpStatusCode.NotFound to {
-            description = "The specified plugin or template was not found."
+            description = "The specified plugin does not exist."
         }
     }
 }) {
     requireSuperuser()
 
-    val userId = checkNotNull(call.principal<OrtPrincipal>()).getUserId()
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
     val pluginId = call.requireParameter("pluginId")
-    val templateName = call.requireParameter("templateName")
 
-    pluginTemplateService.delete(templateName, pluginType, pluginId, userId).onSuccess {
-        call.respond(HttpStatusCode.OK, "Template deleted successfully.")
+    pluginTemplateService.getTemplates(pluginType, pluginId).onSuccess {
+        call.respond(HttpStatusCode.OK, it)
     }.onFailure {
         when (it) {
             is TemplateError.InvalidPlugin -> call.respond(HttpStatusCode.BadRequest, it.message)
