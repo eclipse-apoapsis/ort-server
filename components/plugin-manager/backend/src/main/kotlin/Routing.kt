@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.disablePlu
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.enableGlobalTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.enablePlugin
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getInstalledPlugins
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getPluginsForRepository
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.getTemplates
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.routes.removeTemplateFromOrganization
@@ -48,6 +49,7 @@ fun Route.pluginManagerRoutes(
     enableGlobalTemplate(pluginTemplateService)
     enablePlugin(eventStore)
     getInstalledPlugins(pluginService)
+    getPluginsForRepository(pluginTemplateService)
     getTemplate(pluginTemplateService)
     getTemplates(pluginTemplateService)
     removeTemplateFromOrganization(pluginTemplateService)
