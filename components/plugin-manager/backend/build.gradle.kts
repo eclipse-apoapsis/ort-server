@@ -40,10 +40,10 @@ repositories {
 }
 
 dependencies {
-    api(projects.components.pluginManager.api)
+    api(projects.components.pluginManager.apiModel)
     api(projects.model)
 
-    implementation(projects.components.authorization.implementation)
+    implementation(projects.components.authorization.backend)
     implementation(projects.dao)
     implementation(projects.shared.ktorUtils)
 
