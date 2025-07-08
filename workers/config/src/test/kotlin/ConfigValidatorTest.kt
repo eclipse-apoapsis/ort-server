@@ -51,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.config.ReportDefinition
+import org.eclipse.apoapsis.ortserver.services.config.ReporterAsset
 import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
 import org.eclipse.apoapsis.ortserver.services.config.RuleSet
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -157,6 +158,38 @@ class ConfigValidatorTest : StringSpec({
         failedReports shouldContainExactlyInAnyOrder invalidFormats
     }
 
+    "Non-existing global reporter assets should be handled" {
+        val invalidAssetGroup1 = "nonExistingAsset"
+        val invalidAssetGroup2 = "anotherInvalidAsset"
+        val reporterJobConfig = ReporterJobConfiguration(
+            assetFilesGroups = listOf(invalidAssetGroup1),
+            assetDirectoriesGroups = listOf(invalidAssetGroup2, "testAssetGroup")
+        )
+        val configs = Fixtures(mockk()).jobConfigurations.copy(reporter = reporterJobConfig)
+        val script = loadScript("validation-success.params.kts")
+
+        val run = mockRun().apply {
+            every { jobConfigs } returns configs
+        }
+        val context = mockContext(run)
+
+        val validator = ConfigValidator.create(context, createAdminConfigService())
+        val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
+
+        validationResult.issues shouldHaveSize 3
+        val errorIssues = validationResult.issues.filter { it.severity == Severity.ERROR }
+        errorIssues.forAll { issue ->
+            issue.source shouldBe ConfigValidator.PARAMETER_VALIDATION_SOURCE
+            issue.message shouldContain "reporter asset group"
+        }
+
+        val regExErrorMessage = Regex(".*'(.+)'.*")
+        val failedGroups = errorIssues.map { issue ->
+            regExErrorMessage.matchEntire(issue.message).shouldNotBeNull().groupValues[1]
+        }
+        failedGroups shouldContainExactlyInAnyOrder listOf(invalidAssetGroup1, invalidAssetGroup2)
+    }
+
     "Exceptions when loading the admin configuration should be handled" {
         val script = loadScript("validation-success.params.kts")
         val context = mockContext(mockRun())
@@ -209,6 +242,9 @@ private val testAdminConfig = AdminConfig(
             "WebApp" to ReportDefinition("webapp-reporter")
         ),
         howToFixTextProviderFile = "how-to-fix.kts",
+        globalAssets = mapOf(
+            "testAssetGroup" to listOf(ReporterAsset("testAsset"))
+        )
     )
 )
 
