@@ -282,6 +282,14 @@ class GitHubConfigFileProviderTest : WordSpec({
             provider.contains(Context(REVISION), Path(DIRECTORY_PATH)) shouldBe false
         }
 
+        "return `true` if the path ending with a slash refers a directory" {
+            server.stubDirectory()
+
+            val provider = getProvider()
+
+            provider.contains(Context(REVISION), Path("$DIRECTORY_PATH/")) shouldBe true
+        }
+
         "return `false` if a `NotFound` response is received" {
             server.stubFileNotFound()
 
@@ -300,6 +308,18 @@ class GitHubConfigFileProviderTest : WordSpec({
             val provider = getProvider()
 
             val listFiles = provider.listFiles(Context(REVISION), Path(DIRECTORY_PATH))
+
+            listFiles shouldContainExactlyInAnyOrder expectedPaths
+        }
+
+        "return a list of files inside a given directory if the path ends with a slash" {
+            server.stubDirectory()
+
+            val expectedPaths = setOf(Path(CONFIG_PATH + "1"), Path(CONFIG_PATH + "2"))
+
+            val provider = getProvider()
+
+            val listFiles = provider.listFiles(Context(REVISION), Path("$DIRECTORY_PATH/"))
 
             listFiles shouldContainExactlyInAnyOrder expectedPaths
         }
