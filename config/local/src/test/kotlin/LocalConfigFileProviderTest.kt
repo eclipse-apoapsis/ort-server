@@ -112,6 +112,15 @@ class LocalConfigFileProviderTest : WordSpec({
             provider.contains(Context(""), CONFIG_PATH) shouldBe false
         }
 
+        "return `true` if the path ending on a slash refers to a directory" {
+            val directory = tempdir()
+            directory.resolve(CONFIG_PATH.path).mkdir()
+            val directoryPath = CONFIG_PATH.path + "/"
+            val provider = LocalConfigFileProvider(directory)
+
+            provider.contains(Context(""), Path(directoryPath)) shouldBe true
+        }
+
         "return `false` if a the file cannot be found" {
             val directory = tempdir()
             val provider = LocalConfigFileProvider(directory)
@@ -130,6 +139,20 @@ class LocalConfigFileProviderTest : WordSpec({
             val listFiles = provider.listFiles(Context(""), Path(""))
 
             val expectedFiles = files.map { Path(directory.resolve(it).absolutePath) }
+            listFiles shouldContainExactlyInAnyOrder expectedFiles
+        }
+
+        "return a list of files inside a given directory for a path ending on a slash" {
+            val directory = tempdir()
+            val subDirectory = directory.resolve("sub")
+            subDirectory.mkdir()
+            val files = listOf("file-1", "file-2", "file-3")
+            files.forEach { subDirectory.resolve(it).createNewFile() }
+            val provider = LocalConfigFileProvider(directory)
+
+            val listFiles = provider.listFiles(Context(""), Path("sub/"))
+
+            val expectedFiles = files.map { Path(subDirectory.resolve(it).absolutePath) }
             listFiles shouldContainExactlyInAnyOrder expectedFiles
         }
 
