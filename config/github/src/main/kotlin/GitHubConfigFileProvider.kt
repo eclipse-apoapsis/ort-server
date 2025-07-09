@@ -258,8 +258,9 @@ class GitHubConfigFileProvider(
     }
 
     override fun contains(context: Context, path: Path): Boolean {
+        val sanitizedPath = path.path.removeSuffix("/")
         val response = sendHttpRequest(
-            "/contents/${path.path}?ref=${context.name}",
+            "/contents/$sanitizedPath?ref=${context.name}",
             checkSuccess = false
         )
 
@@ -267,13 +268,16 @@ class GitHubConfigFileProvider(
 
         val jsonBody = getJsonBody(response)
 
-        return !jsonBody.isDirectory() && jsonBody.isFile()
+        val isDirectoryPath = sanitizedPath != path.path
+        return (isDirectoryPath && jsonBody.isDirectory()) ||
+                (!isDirectoryPath && !jsonBody.isDirectory() && jsonBody.isFile())
     }
 
     override fun listFiles(context: Context, path: Path): Set<Path> = runBlocking {
-        cache.getOrPutFolderContent(context.name, path.path) { downloadFolderContent(context, path) }
-            .map { Path(it) }
-            .toSet()
+        val sanitizedPath = path.path.removeSuffix("/")
+        cache.getOrPutFolderContent(context.name, sanitizedPath) {
+            downloadFolderContent(context, Path(sanitizedPath))
+        }.map { Path(it) }.toSet()
     }
 
     /**
