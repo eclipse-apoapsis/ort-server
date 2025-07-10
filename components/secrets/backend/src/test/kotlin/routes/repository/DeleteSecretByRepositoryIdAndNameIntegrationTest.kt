@@ -27,37 +27,22 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.createRepositorySecret
-import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.SecretService
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
-class DeleteSecretByRepositoryIdAndNameIntegrationTest : AbstractIntegrationTest({
+class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsIntegrationTest({
     var repoId = 0L
-    lateinit var secretRepository: SecretRepository
-    lateinit var secretService: SecretService
-
-    val secretErrorPath = "error-path"
 
     beforeEach {
         repoId = dbExtension.fixtures.repository.id
-        secretRepository = dbExtension.fixtures.secretRepository
-        secretService = SecretService(
-            dbExtension.db,
-            dbExtension.fixtures.secretRepository,
-            dbExtension.fixtures.infrastructureServiceRepository,
-            SecretStorage(SecretsProviderFactoryForTesting().createProvider(secretErrorPath))
-        )
     }
 
     "DeleteSecretByRepositoryIdAndName" should {
         "delete a secret" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret = secretRepository.createRepositorySecret(repoId)
 
                 client.delete("/repositories/$repoId/secrets/${secret.name}") shouldHaveStatus
@@ -71,7 +56,7 @@ class DeleteSecretByRepositoryIdAndNameIntegrationTest : AbstractIntegrationTest
         }
 
         "handle a failure from the SecretStorage" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret = secretRepository.createRepositorySecret(repoId, path = secretErrorPath)
 
                 client.delete("/repositories/$repoId/secrets/${secret.name}") shouldHaveStatus

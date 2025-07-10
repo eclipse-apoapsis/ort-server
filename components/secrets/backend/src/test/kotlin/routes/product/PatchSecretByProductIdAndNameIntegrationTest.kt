@@ -27,41 +27,28 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.UpdateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.createProductSecret
-import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.model.ProductId
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class PatchSecretByProductIdAndNameIntegrationTest : AbstractIntegrationTest({
+class PatchSecretByProductIdAndNameIntegrationTest : SecretsIntegrationTest({
     var prodId = 0L
-    lateinit var secretRepository: SecretRepository
-    lateinit var secretService: SecretService
 
     val secretErrorPath = "error-path"
 
     beforeEach {
         prodId = dbExtension.fixtures.product.id
-        secretRepository = dbExtension.fixtures.secretRepository
-        secretService = SecretService(
-            dbExtension.db,
-            dbExtension.fixtures.secretRepository,
-            dbExtension.fixtures.infrastructureServiceRepository,
-            SecretStorage(SecretsProviderFactoryForTesting().createProvider(secretErrorPath))
-        )
     }
 
     "PatchSecretByProductIdAndName" should {
         "update a secret's metadata" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret = secretRepository.createProductSecret(prodId)
 
                 val updatedDescription = "updated description"
@@ -80,7 +67,7 @@ class PatchSecretByProductIdAndNameIntegrationTest : AbstractIntegrationTest({
         }
 
         "update a secret's value" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret = secretRepository.createProductSecret(prodId)
 
                 val updateSecret = UpdateSecret("value".asPresent(), "description".asPresent())
@@ -97,7 +84,7 @@ class PatchSecretByProductIdAndNameIntegrationTest : AbstractIntegrationTest({
         }
 
         "handle a failure from the SecretStorage" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret = secretRepository.createProductSecret(prodId, path = secretErrorPath)
 
                 val updateSecret = UpdateSecret("value".asPresent(), "newDesc".asPresent())

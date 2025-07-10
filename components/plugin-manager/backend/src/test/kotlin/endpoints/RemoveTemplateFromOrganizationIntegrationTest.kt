@@ -31,20 +31,12 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
-class RemoveTemplateFromOrganizationIntegrationTest : AbstractIntegrationTest({
-    lateinit var pluginEventStore: PluginEventStore
-    lateinit var pluginService: PluginService
-    lateinit var pluginTemplateService: PluginTemplateService
+class RemoveTemplateFromOrganizationIntegrationTest : PluginManagerIntegrationTest({
     var organizationId: Long = 0
 
     val pluginType = PluginType.ADVISOR
@@ -52,21 +44,11 @@ class RemoveTemplateFromOrganizationIntegrationTest : AbstractIntegrationTest({
 
     beforeEach {
         organizationId = dbExtension.fixtures.createOrganization().id
-        pluginEventStore = PluginEventStore(dbExtension.db)
-        pluginService = PluginService(dbExtension.db)
-        pluginTemplateService = PluginTemplateService(
-            dbExtension.db,
-            PluginTemplateEventStore(dbExtension.db),
-            pluginService,
-            dbExtension.fixtures.organizationRepository
-        )
     }
 
     "RemoveTemplateFromOrganization" should {
         "remove a template from an organization if it exists" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val organizationId2 = dbExtension.fixtures.createOrganization(name = "org2").id
 
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
@@ -87,9 +69,7 @@ class RemoveTemplateFromOrganizationIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotFound if the template does not exist" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/nonExistentTemplate" +
                             "/removeFromOrganization?organizationId=1"
@@ -98,9 +78,7 @@ class RemoveTemplateFromOrganizationIntegrationTest : AbstractIntegrationTest({
         }
 
         "return BadRequest if the template is not assigned to the organization" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(
@@ -110,9 +88,7 @@ class RemoveTemplateFromOrganizationIntegrationTest : AbstractIntegrationTest({
         }
 
         "normalize the plugin ID" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.addOrganization("template1", pluginType, pluginId, organizationId, "test-user")
 

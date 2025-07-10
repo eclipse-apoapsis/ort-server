@@ -28,14 +28,13 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
-import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
-class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
+class GetConfigByKeyIntegrationTest : AdminConfigIntegrationTest({
     "GetConfigByKey" should {
         "return the value and enabled status of an existing config key" {
-            integrationTestApplication(routes = { adminConfigRoutes(dbExtension.db) }) { client ->
+            adminConfigTestApplication { client ->
                 // Insert a test config key to database
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
@@ -57,7 +56,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
         }
 
         "return the default value if the config key does not exist in db" {
-            integrationTestApplication(routes = { adminConfigRoutes(dbExtension.db) }) { client ->
+            adminConfigTestApplication { client ->
                 val response = client.get("/admin/config/HOME_ICON_URL")
                 response shouldHaveStatus HttpStatusCode.OK
 
@@ -69,7 +68,7 @@ class GetConfigByKeyIntegrationTest : AbstractIntegrationTest({
         }
 
         "return BadRequest if the config key is invalid" {
-            integrationTestApplication(routes = { adminConfigRoutes(dbExtension.db) }) { client ->
+            adminConfigTestApplication { client ->
                 client.get("/admin/config/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
             }
         }

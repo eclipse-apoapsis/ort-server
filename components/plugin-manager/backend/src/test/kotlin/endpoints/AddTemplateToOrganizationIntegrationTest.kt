@@ -30,20 +30,12 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
-class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
-    lateinit var pluginEventStore: PluginEventStore
-    lateinit var pluginService: PluginService
-    lateinit var pluginTemplateService: PluginTemplateService
+class AddTemplateToOrganizationIntegrationTest : PluginManagerIntegrationTest({
     var organizationId: Long = 0
 
     val pluginType = PluginType.ADVISOR
@@ -51,21 +43,11 @@ class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
 
     beforeEach {
         organizationId = dbExtension.fixtures.createOrganization().id
-        pluginEventStore = PluginEventStore(dbExtension.db)
-        pluginService = PluginService(dbExtension.db)
-        pluginTemplateService = PluginTemplateService(
-            dbExtension.db,
-            PluginTemplateEventStore(dbExtension.db),
-            pluginService,
-            dbExtension.fixtures.organizationRepository
-        )
     }
 
     "AddTemplateToOrganization" should {
         "add a template to an organization if it exists" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 val organizationId2 = dbExtension.fixtures.createOrganization(name = "org2").id
@@ -88,9 +70,7 @@ class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotFound if the template does not exist" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 client.post(
                     "/admin/plugins/$pluginType/$pluginId/templates/non-existing-template" +
                             "/addToOrganization?organizationId=$organizationId"
@@ -99,9 +79,7 @@ class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotFound if the organization does not exist" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(
@@ -112,9 +90,7 @@ class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
         }
 
         "return BadRequest if the template is already assigned to the organization" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.addOrganization("template1", pluginType, pluginId, 1, "test-user")
 
@@ -126,9 +102,7 @@ class AddTemplateToOrganizationIntegrationTest : AbstractIntegrationTest({
         }
 
         "normalize the plugin ID" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.post(

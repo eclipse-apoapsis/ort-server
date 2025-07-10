@@ -24,37 +24,15 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
-class DisablePluginIntegrationTest : AbstractIntegrationTest({
-    lateinit var eventStore: PluginEventStore
-    lateinit var pluginService: PluginService
-    lateinit var pluginTemplateService: PluginTemplateService
-
-    beforeEach {
-        eventStore = PluginEventStore(dbExtension.db)
-        pluginService = PluginService(dbExtension.db)
-        pluginTemplateService = PluginTemplateService(
-            dbExtension.db,
-            PluginTemplateEventStore(dbExtension.db),
-            pluginService,
-            dbExtension.fixtures.organizationRepository
-        )
-    }
-
+class DisablePluginIntegrationTest : PluginManagerIntegrationTest({
     "DisablePlugin" should {
         "return Accepted if the plugin was disabled" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(eventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val pluginType = PluginType.ADVISOR
                 val pluginId = VulnerableCodeFactory.descriptor.id
 
@@ -68,9 +46,7 @@ class DisablePluginIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotFound if the plugin is not installed" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(eventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val pluginType = PluginType.ADVISOR
 
                 client.post("/admin/plugins/$pluginType/unknown/disable") shouldHaveStatus HttpStatusCode.NotFound
@@ -78,9 +54,7 @@ class DisablePluginIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotModified if the plugin was already disabled" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(eventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val pluginType = PluginType.ADVISOR
                 val pluginId = VulnerableCodeFactory.descriptor.id
 

@@ -28,14 +28,13 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.components.adminconfig.AdminConfigIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
-import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
-class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
+class InsertOrUpdateConfigIntegrationTest : AdminConfigIntegrationTest({
     "InsertOrUpdateConfig" should {
         "insert the new config key if it doesn't exist" {
-            integrationTestApplication(routes = { adminConfigRoutes(dbExtension.db) }) { client ->
+            adminConfigTestApplication { client ->
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
                         Config(
@@ -56,7 +55,7 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
         }
 
         "update the value and isEnabled status of an existing config key" {
-            integrationTestApplication(routes = { adminConfigRoutes(dbExtension.db) }) { client ->
+            adminConfigTestApplication { client ->
                 client.post("/admin/config/HOME_ICON_URL") {
                     setBody(
                         Config(
@@ -94,7 +93,7 @@ class InsertOrUpdateConfigIntegrationTest : AbstractIntegrationTest({
         }
 
         "return BadRequest if the config key is invalid" {
-            integrationTestApplication(routes = { adminConfigRoutes(dbExtension.db) }) { client ->
+            adminConfigTestApplication { client ->
                 client.get("/admin/config/INVALID_KEY") shouldHaveStatus HttpStatusCode.BadRequest
             }
         }

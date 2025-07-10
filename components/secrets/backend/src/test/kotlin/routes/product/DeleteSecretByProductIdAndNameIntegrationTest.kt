@@ -33,40 +33,27 @@ import io.ktor.server.response.respond
 
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.createProductSecret
-import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.ProductId
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
-class DeleteSecretByProductIdAndNameIntegrationTest : AbstractIntegrationTest({
+class DeleteSecretByProductIdAndNameIntegrationTest : SecretsIntegrationTest({
     var prodId = 0L
-    lateinit var secretRepository: SecretRepository
-    lateinit var secretService: SecretService
 
     val secretErrorPath = "error-path"
 
     beforeEach {
         prodId = dbExtension.fixtures.product.id
-        secretRepository = dbExtension.fixtures.secretRepository
-        secretService = SecretService(
-            dbExtension.db,
-            dbExtension.fixtures.secretRepository,
-            dbExtension.fixtures.infrastructureServiceRepository,
-            SecretStorage(SecretsProviderFactoryForTesting().createProvider(secretErrorPath))
-        )
     }
 
     "DeleteSecretByProductIdAndName" should {
         "delete a secret" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret = secretRepository.createProductSecret(prodId)
 
                 client.delete("/products/$prodId/secrets/${secret.name}") shouldHaveStatus
@@ -80,7 +67,7 @@ class DeleteSecretByProductIdAndNameIntegrationTest : AbstractIntegrationTest({
         }
 
         "respond with Conflict when secret is in use" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 install(StatusPages) {
                     // TODO: This should use the same config as in core.
                     exception<ReferencedEntityException> { call, e ->
@@ -114,7 +101,7 @@ class DeleteSecretByProductIdAndNameIntegrationTest : AbstractIntegrationTest({
         }
 
         "handle a failure from the SecretStorage" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret = secretRepository.createProductSecret(prodId, path = secretErrorPath)
 
                 client.delete("/products/$prodId/secrets/${secret.name}") shouldHaveStatus

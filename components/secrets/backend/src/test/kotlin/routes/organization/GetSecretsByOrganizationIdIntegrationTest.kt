@@ -24,40 +24,26 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.createOrganizationSecret
-import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
-import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class GetSecretsByOrganizationIdIntegrationTest : AbstractIntegrationTest({
+class GetSecretsByOrganizationIdIntegrationTest : SecretsIntegrationTest({
     var orgId = 0L
-    lateinit var secretRepository: SecretRepository
-    lateinit var secretService: SecretService
 
     beforeEach {
         orgId = dbExtension.fixtures.organization.id
-        secretRepository = dbExtension.fixtures.secretRepository
-        secretService = SecretService(
-            dbExtension.db,
-            dbExtension.fixtures.secretRepository,
-            dbExtension.fixtures.infrastructureServiceRepository,
-            SecretStorage(SecretsProviderFactoryForTesting().createProvider())
-        )
     }
 
     "GetSecretsByOrganizationId" should {
         "return all secrets for this organization" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret1 = secretRepository.createOrganizationSecret(orgId, "path1", "name1", "description1")
                 val secret2 = secretRepository.createOrganizationSecret(orgId, "path2", "name2", "description2")
 
@@ -77,7 +63,7 @@ class GetSecretsByOrganizationIdIntegrationTest : AbstractIntegrationTest({
         }
 
         "support query parameters" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 secretRepository.createOrganizationSecret(orgId, "path1", "name1", "description1")
                 val secret = secretRepository.createOrganizationSecret(orgId, "path2", "name2", "description2")
 
