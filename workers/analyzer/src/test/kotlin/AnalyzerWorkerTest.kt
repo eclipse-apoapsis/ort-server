@@ -111,7 +111,8 @@ private val analyzerJob = AnalyzerJob(
     startedAt = Clock.System.now(),
     finishedAt = null,
     configuration = AnalyzerJobConfiguration(),
-    status = JobStatus.CREATED
+    status = JobStatus.CREATED,
+    errorMessage = null
 )
 
 /**

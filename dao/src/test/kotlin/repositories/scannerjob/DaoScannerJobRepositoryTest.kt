@@ -70,6 +70,7 @@ class DaoScannerJobRepositoryTest : WorkerJobRepositoryTest<ScannerJob>() {
                 finishedAt = null,
                 configuration = scannerJobConfiguration,
                 status = JobStatus.CREATED,
+                errorMessage = null
             )
         }
 
@@ -95,19 +96,27 @@ class DaoScannerJobRepositoryTest : WorkerJobRepositoryTest<ScannerJob>() {
             val updateStartedAt = Clock.System.now().asPresent()
             val updatedFinishedAt = Clock.System.now().asPresent()
             val updateStatus = JobStatus.FINISHED.asPresent()
+            val updateErrorMessage = "Scanner job error msg".asPresent()
 
-            val updateResult =
-                scannerJobRepository.update(scannerJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
+            val updateResult = scannerJobRepository.update(
+                scannerJob.id,
+                updateStartedAt,
+                updatedFinishedAt,
+                updateStatus,
+                updateErrorMessage
+            )
 
             updateResult shouldBe scannerJob.copy(
                 startedAt = updateStartedAt.value.toDatabasePrecision(),
                 finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
+                status = updateStatus.value,
+                errorMessage = updateErrorMessage.value
             )
             scannerJobRepository.get(scannerJob.id) shouldBe scannerJob.copy(
                 startedAt = updateStartedAt.value.toDatabasePrecision(),
                 finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
+                status = updateStatus.value,
+                errorMessage = updateErrorMessage.value
             )
         }
 
