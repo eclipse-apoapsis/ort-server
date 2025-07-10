@@ -87,14 +87,20 @@ class WorkerJobRepositories(
      * Update the status for a job for the given [endpoint] and [jobId] in the database to the provided [status].
      * If [finished] is *true*, also set the finished time.
      */
-    fun updateJobStatus(endpoint: Endpoint<*>, jobId: Long, status: JobStatus, finished: Boolean = true): WorkerJob {
+    fun updateJobStatus(
+        endpoint: Endpoint<*>,
+        jobId: Long,
+        status: JobStatus,
+        finished: Boolean = true,
+        errorMessage: String? = null
+    ): WorkerJob {
         val repository = jobRepositories.getValue(endpoint.configPrefix)
 
         return requireNotNull(repository.get(jobId)) {
             "Job for endpoint '${endpoint.configPrefix}' with ID '$jobId' not found."
         }.also {
             if (finished) {
-                repository.complete(jobId, Clock.System.now(), status)
+                repository.complete(jobId, Clock.System.now(), status, errorMessage)
             } else {
                 repository.update(
                     id = jobId,

@@ -53,13 +53,15 @@ class DaoAdvisorJobRepository(private val db: Database) : AdvisorJobRepository {
         id: Long,
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
-        status: OptionalValue<JobStatus>
+        status: OptionalValue<JobStatus>,
+        errorMessage: OptionalValue<String>
     ): AdvisorJob = db.blockingQuery {
         val advisorJob = AdvisorJobDao[id]
 
         startedAt.ifPresent { advisorJob.startedAt = it }
         finishedAt.ifPresent { advisorJob.finishedAt = it }
         status.ifPresent { advisorJob.status = it }
+        errorMessage.ifPresent { advisorJob.errorMessage = it }
 
         AdvisorJobDao[id].mapToModel()
     }

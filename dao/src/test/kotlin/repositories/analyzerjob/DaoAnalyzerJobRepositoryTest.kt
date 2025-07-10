@@ -67,7 +67,8 @@ class DaoAnalyzerJobRepositoryTest : WorkerJobRepositoryTest<AnalyzerJob>() {
                 startedAt = null,
                 finishedAt = null,
                 configuration = jobConfigurations.analyzer,
-                status = JobStatus.CREATED
+                status = JobStatus.CREATED,
+                errorMessage = null
             )
         }
 
@@ -93,19 +94,27 @@ class DaoAnalyzerJobRepositoryTest : WorkerJobRepositoryTest<AnalyzerJob>() {
             val updateStartedAt = Clock.System.now().asPresent()
             val updatedFinishedAt = Clock.System.now().asPresent()
             val updateStatus = JobStatus.FINISHED.asPresent()
+            val updateErrorMessage = "Analyzer job error message".asPresent()
 
-            val updateResult =
-                analyzerJobRepository.update(analyzerJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
+            val updateResult = analyzerJobRepository.update(
+                analyzerJob.id,
+                updateStartedAt,
+                updatedFinishedAt,
+                updateStatus,
+                updateErrorMessage
+            )
 
             updateResult shouldBe analyzerJob.copy(
                 startedAt = updateStartedAt.value.toDatabasePrecision(),
                 finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
+                status = updateStatus.value,
+                errorMessage = updateErrorMessage.value
             )
             analyzerJobRepository.get(analyzerJob.id) shouldBe analyzerJob.copy(
                 startedAt = updateStartedAt.value.toDatabasePrecision(),
                 finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
+                status = updateStatus.value,
+                errorMessage = updateErrorMessage.value
             )
         }
 

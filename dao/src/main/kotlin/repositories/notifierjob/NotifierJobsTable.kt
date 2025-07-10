@@ -42,6 +42,7 @@ object NotifierJobsTable : LongIdTable("notifier_jobs") {
     val finishedAt = timestamp("finished_at").nullable()
     val configuration = jsonb<NotifierJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
+    val errorMessage = text("error_message").nullable()
 }
 
 class NotifierJobDao(id: EntityID<Long>) : LongEntity(id) {
@@ -55,6 +56,7 @@ class NotifierJobDao(id: EntityID<Long>) : LongEntity(id) {
     var finishedAt by NotifierJobsTable.finishedAt.transformToDatabasePrecision()
     var configuration by NotifierJobsTable.configuration
     var status by NotifierJobsTable.status
+    var errorMessage by NotifierJobsTable.errorMessage
 
     fun mapToModel() = NotifierJob(
         id = id.value,
@@ -63,6 +65,7 @@ class NotifierJobDao(id: EntityID<Long>) : LongEntity(id) {
         startedAt = startedAt,
         finishedAt = finishedAt,
         configuration = configuration,
-        status = status
+        status = status,
+        errorMessage = errorMessage
     )
 }

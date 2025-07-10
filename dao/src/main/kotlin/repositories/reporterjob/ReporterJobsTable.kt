@@ -48,6 +48,7 @@ object ReporterJobsTable : LongIdTable("reporter_jobs") {
     val finishedAt = timestamp("finished_at").nullable()
     val configuration = jsonb<ReporterJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
+    val errorMessage = text("error_message").nullable()
 }
 
 class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
@@ -62,6 +63,7 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
     var finishedAt by ReporterJobsTable.finishedAt.transformToDatabasePrecision()
     var configuration by ReporterJobsTable.configuration
     var status by ReporterJobsTable.status
+    var errorMessage by ReporterJobsTable.errorMessage
 
     fun mapToModel() = ReporterJob(
         id = id.value,
@@ -71,7 +73,8 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
         finishedAt = finishedAt,
         configuration = configuration,
         status = status,
-        filenames = reporterRun?.reports?.map { it.filename }?.sorted().orEmpty()
+        filenames = reporterRun?.reports?.map { it.filename }?.sorted().orEmpty(),
+        errorMessage = errorMessage
     )
 
     fun mapToJobSummaryModel() = JobSummary(
@@ -79,6 +82,7 @@ class ReporterJobDao(id: EntityID<Long>) : LongEntity(id) {
         createdAt = createdAt,
         startedAt = startedAt,
         finishedAt = finishedAt,
-        status = status
+        status = status,
+        errorMessage = errorMessage
     )
 }

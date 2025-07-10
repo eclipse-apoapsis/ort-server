@@ -159,5 +159,10 @@ data class JobSummary(
     /**
      * The job status.
      */
-    val status: JobStatus
+    val status: JobStatus,
+
+    /**
+     * Job execution error message, if any.
+     */
+    val errorMessage: String?
 )

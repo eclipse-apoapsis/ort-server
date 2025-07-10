@@ -46,6 +46,7 @@ object EvaluatorJobsTable : LongIdTable("evaluator_jobs") {
     val finishedAt = timestamp("finished_at").nullable()
     val configuration = jsonb<EvaluatorJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
+    val errorMessage = text("error_message").nullable()
 }
 
 class EvaluatorJobDao(id: EntityID<Long>) : LongEntity(id) {
@@ -59,6 +60,7 @@ class EvaluatorJobDao(id: EntityID<Long>) : LongEntity(id) {
     var finishedAt by EvaluatorJobsTable.finishedAt.transformToDatabasePrecision()
     var configuration by EvaluatorJobsTable.configuration
     var status by EvaluatorJobsTable.status
+    var errorMessage by EvaluatorJobsTable.errorMessage
 
     // TODO: Add `evaluatorRun` property when implementing the evaluator run model.
 
@@ -70,6 +72,7 @@ class EvaluatorJobDao(id: EntityID<Long>) : LongEntity(id) {
         finishedAt = finishedAt,
         configuration = configuration,
         status = status,
+        errorMessage = errorMessage
     )
 
     fun mapToJobSummaryModel() = JobSummary(
@@ -77,6 +80,7 @@ class EvaluatorJobDao(id: EntityID<Long>) : LongEntity(id) {
         createdAt = createdAt,
         startedAt = startedAt,
         finishedAt = finishedAt,
-        status = status
+        status = status,
+        errorMessage = errorMessage
     )
 }
