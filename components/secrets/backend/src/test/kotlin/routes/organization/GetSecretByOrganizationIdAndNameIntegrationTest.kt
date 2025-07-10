@@ -24,35 +24,21 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.createOrganizationSecret
-import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
-import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.SecretService
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class GetSecretByOrganizationIdAndNameIntegrationTest : AbstractIntegrationTest({
+class GetSecretByOrganizationIdAndNameIntegrationTest : SecretsIntegrationTest({
     var orgId = 0L
-    lateinit var secretRepository: SecretRepository
-    lateinit var secretService: SecretService
 
     beforeEach {
         orgId = dbExtension.fixtures.organization.id
-        secretRepository = dbExtension.fixtures.secretRepository
-        secretService = SecretService(
-            dbExtension.db,
-            dbExtension.fixtures.secretRepository,
-            dbExtension.fixtures.infrastructureServiceRepository,
-            SecretStorage(SecretsProviderFactoryForTesting().createProvider())
-        )
     }
 
     "GetSecretByOrganizationIdAndName" should {
         "return a single secret" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret = secretRepository.createOrganizationSecret(orgId)
 
                 val response = client.get("/organizations/$orgId/secrets/${secret.name}")
@@ -63,7 +49,7 @@ class GetSecretByOrganizationIdAndNameIntegrationTest : AbstractIntegrationTest(
         }
 
         "respond with 'NotFound' if no secret exists" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 client.get("/organizations/$orgId/secrets/999999") shouldHaveStatus
                         HttpStatusCode.NotFound
             }

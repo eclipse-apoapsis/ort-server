@@ -34,39 +34,25 @@ import io.ktor.server.response.respond
 
 import org.eclipse.apoapsis.ortserver.components.secrets.CreateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
-import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
-import org.eclipse.apoapsis.ortserver.components.secrets.secretsValidations
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class PostSecretForOrganizationIntegrationTest : AbstractIntegrationTest({
+class PostSecretForOrganizationIntegrationTest : SecretsIntegrationTest({
     var orgId = 0L
-    lateinit var secretRepository: SecretRepository
-    lateinit var secretService: SecretService
 
     beforeEach {
         orgId = dbExtension.fixtures.organization.id
-        secretRepository = dbExtension.fixtures.secretRepository
-        secretService = SecretService(
-            dbExtension.db,
-            dbExtension.fixtures.secretRepository,
-            dbExtension.fixtures.infrastructureServiceRepository,
-            SecretStorage(SecretsProviderFactoryForTesting().createProvider())
-        )
     }
 
     "PostSecretForOrganization" should {
         "create a secret in the database" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret = CreateSecret("name", "value", "description")
 
                 val response = client.post("/organizations/$orgId/secrets") {
@@ -85,7 +71,7 @@ class PostSecretForOrganizationIntegrationTest : AbstractIntegrationTest({
         }
 
         "respond with 'Conflict' if the secret already exists" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 install(StatusPages) {
                     // TODO: This should use the same config as in core.
                     exception<UniqueConstraintException> { call, e ->
@@ -109,10 +95,7 @@ class PostSecretForOrganizationIntegrationTest : AbstractIntegrationTest({
         }
 
         "respond with 'Bad Request' if the secret's name is invalid" {
-            integrationTestApplication(
-                routes = { secretsRoutes(secretService) },
-                validations = { secretsValidations() }
-            ) { client ->
+            secretsTestApplication { client ->
                 install(StatusPages) {
                     // TODO: This should use the same config as in core.
                     exception<RequestValidationException> { call, e ->

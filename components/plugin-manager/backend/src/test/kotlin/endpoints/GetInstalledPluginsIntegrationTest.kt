@@ -30,38 +30,16 @@ import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 import org.ossreviewtoolkit.plugins.packagemanagers.node.npm.NpmFactory
 
-class GetInstalledPluginsIntegrationTest : AbstractIntegrationTest({
-    lateinit var eventStore: PluginEventStore
-    lateinit var pluginService: PluginService
-    lateinit var pluginTemplateService: PluginTemplateService
-
-    beforeEach {
-        eventStore = PluginEventStore(dbExtension.db)
-        pluginService = PluginService(dbExtension.db)
-        pluginTemplateService = PluginTemplateService(
-            dbExtension.db,
-            PluginTemplateEventStore(dbExtension.db),
-            pluginService,
-            dbExtension.fixtures.organizationRepository
-        )
-    }
-
+class GetInstalledPluginsIntegrationTest : PluginManagerIntegrationTest({
     "GetInstalledPlugins" should {
         "return all installed ORT plugins" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(eventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val response = client.get("/admin/plugins")
 
                 response shouldHaveStatus HttpStatusCode.OK
@@ -70,12 +48,10 @@ class GetInstalledPluginsIntegrationTest : AbstractIntegrationTest({
                     pluginDescriptors.filter { it.type == pluginType } shouldNot beEmpty()
                 }
             }
-        }
+            }
 
         "return if plugins are enabled or disabled" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(eventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val npmType = PluginType.PACKAGE_MANAGER
                 val npmId = NpmFactory.descriptor.id
                 val vulnerableCodeType = PluginType.ADVISOR

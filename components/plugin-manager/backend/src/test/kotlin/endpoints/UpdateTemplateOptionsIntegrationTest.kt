@@ -29,44 +29,22 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 
-class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
-    lateinit var pluginEventStore: PluginEventStore
-    lateinit var pluginService: PluginService
-    lateinit var pluginTemplateService: PluginTemplateService
-
+class UpdateTemplateOptionsIntegrationTest : PluginManagerIntegrationTest({
     val pluginType = PluginType.ADVISOR
     val pluginId = VulnerableCodeFactory.descriptor.id
     val serverUrlOption = VulnerableCodeFactory.descriptor.options.single { it.name == "serverUrl" }
     val readTimeoutOption = VulnerableCodeFactory.descriptor.options.single { it.name == "readTimeout" }
 
-    beforeEach {
-        pluginEventStore = PluginEventStore(dbExtension.db)
-        pluginService = PluginService(dbExtension.db)
-        pluginTemplateService = PluginTemplateService(
-            dbExtension.db,
-            PluginTemplateEventStore(dbExtension.db),
-            pluginService,
-            dbExtension.fixtures.organizationRepository
-        )
-    }
-
     "UpdateTemplateOptions" should {
         "fail if the template does not exist" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val options = listOf(
                     PluginOptionTemplate(
                         option = serverUrlOption.name,
@@ -86,9 +64,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
         }
 
         "fail if the template was deleted before" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val options = listOf(
                     PluginOptionTemplate(
                         option = serverUrlOption.name,
@@ -111,9 +87,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
         }
 
         "update the options of an existing template" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val options = listOf(
                     PluginOptionTemplate(
                         option = serverUrlOption.name,
@@ -146,9 +120,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
         }
 
         "normalize the plugin ID" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val options = listOf(
                     PluginOptionTemplate(
                         option = serverUrlOption.name,
@@ -181,9 +153,7 @@ class UpdateTemplateOptionsIntegrationTest : AbstractIntegrationTest({
         }
 
         "fail if a plugin option is invalid" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 val nonExistingOption = PluginOptionTemplate(
                     option = "invalidOption",
                     type = PluginOptionType.STRING,

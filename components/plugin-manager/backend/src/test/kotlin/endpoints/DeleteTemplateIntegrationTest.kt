@@ -25,40 +25,18 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
-class DeleteTemplateIntegrationTest : AbstractIntegrationTest({
-    lateinit var pluginEventStore: PluginEventStore
-    lateinit var pluginService: PluginService
-    lateinit var pluginTemplateService: PluginTemplateService
-
+class DeleteTemplateIntegrationTest : PluginManagerIntegrationTest({
     val pluginType = PluginType.ADVISOR
     val pluginId = OssIndexFactory.descriptor.id
 
-    beforeEach {
-        pluginEventStore = PluginEventStore(dbExtension.db)
-        pluginService = PluginService(dbExtension.db)
-        pluginTemplateService = PluginTemplateService(
-            dbExtension.db,
-            PluginTemplateEventStore(dbExtension.db),
-            pluginService,
-            dbExtension.fixtures.organizationRepository
-        )
-    }
-
     "DeleteTemplate" should {
         "delete a template if it exists" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.delete("/admin/plugins/$pluginType/$pluginId/templates/template1") shouldHaveStatus
@@ -69,18 +47,14 @@ class DeleteTemplateIntegrationTest : AbstractIntegrationTest({
         }
 
         "return NotFound if the template does not exist" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 client.delete("/admin/plugins/$pluginType/$pluginId/templates/non-existing") shouldHaveStatus
                         HttpStatusCode.NotFound
             }
         }
 
         "normalize the plugin ID" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
 
                 client.delete("/admin/plugins/$pluginType/${pluginId.uppercase()}/templates/template1") shouldHaveStatus

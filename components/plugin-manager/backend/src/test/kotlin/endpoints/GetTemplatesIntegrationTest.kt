@@ -28,41 +28,19 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginManagerIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.ossreviewtoolkit.plugins.advisors.ossindex.OssIndexFactory
 
-class GetTemplatesIntegrationTest : AbstractIntegrationTest({
-    lateinit var pluginEventStore: PluginEventStore
-    lateinit var pluginService: PluginService
-    lateinit var pluginTemplateService: PluginTemplateService
-
+class GetTemplatesIntegrationTest : PluginManagerIntegrationTest({
     val pluginType = PluginType.ADVISOR
     val pluginId = OssIndexFactory.descriptor.id
 
-    beforeEach {
-        pluginEventStore = PluginEventStore(dbExtension.db)
-        pluginService = PluginService(dbExtension.db)
-        pluginTemplateService = PluginTemplateService(
-            dbExtension.db,
-            PluginTemplateEventStore(dbExtension.db),
-            pluginService,
-            dbExtension.fixtures.organizationRepository
-        )
-    }
-
     "GetTemplates" should {
         "return the templates for a plugin in alphabetic order" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.create("template3", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.create("template2", pluginType, pluginId, "test-user", emptyList())
@@ -99,9 +77,7 @@ class GetTemplatesIntegrationTest : AbstractIntegrationTest({
         }
 
         "return BadRequest if the plugin does not exist" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 client.get(
                     "/admin/plugins/$pluginType/non-existing-plugin/templates"
                 ) shouldHaveStatus HttpStatusCode.BadRequest
@@ -109,9 +85,7 @@ class GetTemplatesIntegrationTest : AbstractIntegrationTest({
         }
 
         "normalize the plugin ID" {
-            integrationTestApplication(
-                routes = { pluginManagerRoutes(pluginEventStore, pluginService, pluginTemplateService) }
-            ) { client ->
+            pluginManagerTestApplication { client ->
                 pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.create("template2", pluginType, pluginId, "test-user", emptyList())
                 pluginTemplateService.create("template3", pluginType, pluginId, "test-user", emptyList())

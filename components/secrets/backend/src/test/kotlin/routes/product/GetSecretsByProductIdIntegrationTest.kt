@@ -24,39 +24,25 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.createProductSecret
-import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
-import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class GetSecretsByProductIdIntegrationTest : AbstractIntegrationTest({
+class GetSecretsByProductIdIntegrationTest : SecretsIntegrationTest({
     var prodId = 0L
-    lateinit var secretRepository: SecretRepository
-    lateinit var secretService: SecretService
 
     beforeEach {
         prodId = dbExtension.fixtures.product.id
-        secretRepository = dbExtension.fixtures.secretRepository
-        secretService = SecretService(
-            dbExtension.db,
-            dbExtension.fixtures.secretRepository,
-            dbExtension.fixtures.infrastructureServiceRepository,
-            SecretStorage(SecretsProviderFactoryForTesting().createProvider())
-        )
     }
 
     "GetSecretsByProductId" should {
         "return all secrets for this product" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 val secret1 = secretRepository.createProductSecret(prodId, "path1", "name1", "description1")
                 val secret2 = secretRepository.createProductSecret(prodId, "path2", "name2", "description2")
 
@@ -76,7 +62,7 @@ class GetSecretsByProductIdIntegrationTest : AbstractIntegrationTest({
         }
 
         "support query parameters" {
-            integrationTestApplication(routes = { secretsRoutes(secretService) }) { client ->
+            secretsTestApplication { client ->
                 secretRepository.createProductSecret(prodId, "path1", "name1", "description1")
                 val secret = secretRepository.createProductSecret(prodId, "path2", "name2", "description2")
 
