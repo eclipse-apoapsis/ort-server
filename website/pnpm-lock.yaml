@@ -122,7 +122,7 @@ importers:
         version: 3.8.1(acorn@8.14.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.3.1
-        version: 4.5.0(prettier@3.6.1)
+        version: 4.5.1(prettier@3.6.1)
       prettier:
         specifier: ^3.3.3
         version: 3.6.1
@@ -1318,8 +1318,8 @@ packages:
       react-dom: '>=16.8.0'
       react-hook-form: ^7.0.0
 
-  '@ianvs/prettier-plugin-sort-imports@4.5.0':
-    resolution: {integrity: sha512-KNejY0Amu7a4AYGgKrIo7DzVMCKyHkF9w0dEQ+PqbVXarCNRy6+k/bL25cfDU7KT30zwdAAHNDDCprBCepEhbQ==}
+  '@ianvs/prettier-plugin-sort-imports@4.5.1':
+    resolution: {integrity: sha512-vOQwIyQHnHz0ikvHEQDzwUkNfX74o/7qNEpm9LiPtyBvCg/AU/DOkhwe1o92chPS1QzS6G7HeiO+OwIt8a358A==}
     peerDependencies:
       '@prettier/plugin-oxc': ^0.0.4
       '@vue/compiler-sfc': 2.7.x || 3.x
@@ -8507,7 +8507,7 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
       react-hook-form: 7.56.4(react@19.1.0)
 
-  '@ianvs/prettier-plugin-sort-imports@4.5.0(prettier@3.6.1)':
+  '@ianvs/prettier-plugin-sort-imports@4.5.1(prettier@3.6.1)':
     dependencies:
       '@babel/generator': 7.28.0
       '@babel/parser': 7.28.0
@@ -8578,7 +8578,7 @@ snapshots:
   '@jridgewell/source-map@0.3.6':
     dependencies:
       '@jridgewell/gen-mapping': 0.3.12
-      '@jridgewell/trace-mapping': 0.3.25
+      '@jridgewell/trace-mapping': 0.3.29
 
   '@jridgewell/sourcemap-codec@1.5.0': {}
 
