@@ -82,7 +82,8 @@ private val evaluatorJob = EvaluatorJob(
     startedAt = Clock.System.now(),
     finishedAt = null,
     configuration = EvaluatorJobConfiguration(),
-    status = JobStatus.CREATED
+    status = JobStatus.CREATED,
+    errorMessage = null
 )
 
 class EvaluatorWorkerTest : StringSpec({

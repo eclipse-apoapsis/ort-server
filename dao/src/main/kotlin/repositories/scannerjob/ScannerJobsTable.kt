@@ -46,6 +46,7 @@ object ScannerJobsTable : LongIdTable("scanner_jobs") {
     val finishedAt = timestamp("finished_at").nullable()
     val configuration = jsonb<ScannerJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
+    val errorMessage = text("error_message").nullable()
 }
 
 class ScannerJobDao(id: EntityID<Long>) : LongEntity(id) {
@@ -59,6 +60,7 @@ class ScannerJobDao(id: EntityID<Long>) : LongEntity(id) {
     var finishedAt by ScannerJobsTable.finishedAt.transformToDatabasePrecision()
     var configuration by ScannerJobsTable.configuration
     var status by ScannerJobsTable.status
+    var errorMessage by ScannerJobsTable.errorMessage
 
     // TODO: Add `scannerRun` property when implementing scanner run model and worker
 
@@ -70,6 +72,7 @@ class ScannerJobDao(id: EntityID<Long>) : LongEntity(id) {
         finishedAt = finishedAt,
         configuration = configuration,
         status = status,
+        errorMessage = errorMessage
     )
 
     fun mapToJobSummaryModel() = JobSummary(
@@ -77,6 +80,7 @@ class ScannerJobDao(id: EntityID<Long>) : LongEntity(id) {
         createdAt = createdAt,
         startedAt = startedAt,
         finishedAt = finishedAt,
-        status = status
+        status = status,
+        errorMessage = errorMessage
     )
 }

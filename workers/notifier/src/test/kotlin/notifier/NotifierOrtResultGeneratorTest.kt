@@ -162,7 +162,8 @@ private val notifierJob = NotifierJob(
     startedAt = Clock.System.now(),
     finishedAt = null,
     configuration = NotifierJobConfiguration(),
-    status = JobStatus.CREATED
+    status = JobStatus.CREATED,
+    errorMessage = null
 )
 
 /**

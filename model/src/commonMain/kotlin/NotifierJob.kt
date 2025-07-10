@@ -57,5 +57,10 @@ data class NotifierJob(
     /**
      * The job status.
      */
-    override val status: JobStatus
+    override val status: JobStatus,
+
+    /**
+     * Job execution error message, if any.
+     */
+    override val errorMessage: String?
 ) : WorkerJob

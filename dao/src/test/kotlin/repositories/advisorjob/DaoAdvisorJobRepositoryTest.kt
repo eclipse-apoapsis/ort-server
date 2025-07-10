@@ -70,6 +70,7 @@ class DaoAdvisorJobRepositoryTest : WorkerJobRepositoryTest<AdvisorJob>() {
                 finishedAt = null,
                 configuration = advisorJobConfiguration,
                 status = JobStatus.CREATED,
+                errorMessage = null
             )
         }
 
@@ -95,19 +96,27 @@ class DaoAdvisorJobRepositoryTest : WorkerJobRepositoryTest<AdvisorJob>() {
             val updateStartedAt = Clock.System.now().asPresent()
             val updatedFinishedAt = Clock.System.now().asPresent()
             val updateStatus = JobStatus.FINISHED.asPresent()
+            val updateErrorMessage = "Advisor job error message".asPresent()
 
-            val updateResult =
-                advisorJobRepository.update(advisorJob.id, updateStartedAt, updatedFinishedAt, updateStatus)
+            val updateResult = advisorJobRepository.update(
+                advisorJob.id,
+                updateStartedAt,
+                updatedFinishedAt,
+                updateStatus,
+                updateErrorMessage
+            )
 
             updateResult shouldBe advisorJob.copy(
                 startedAt = updateStartedAt.value.toDatabasePrecision(),
                 finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
+                status = updateStatus.value,
+                errorMessage = updateErrorMessage.value
             )
             advisorJobRepository.get(advisorJob.id) shouldBe advisorJob.copy(
                 startedAt = updateStartedAt.value.toDatabasePrecision(),
                 finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updateStatus.value
+                status = updateStatus.value,
+                errorMessage = updateErrorMessage.value
             )
         }
 

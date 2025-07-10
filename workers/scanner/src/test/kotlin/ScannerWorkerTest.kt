@@ -83,7 +83,8 @@ private val scannerJob = ScannerJob(
     startedAt = Clock.System.now(),
     finishedAt = null,
     configuration = ScannerJobConfiguration(),
-    status = JobStatus.CREATED
+    status = JobStatus.CREATED,
+    errorMessage = null
 )
 
 class ScannerWorkerTest : StringSpec({

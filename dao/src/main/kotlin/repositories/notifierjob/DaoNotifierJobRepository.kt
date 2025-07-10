@@ -53,13 +53,15 @@ class DaoNotifierJobRepository(private val db: Database) : NotifierJobRepository
         id: Long,
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
-        status: OptionalValue<JobStatus>
+        status: OptionalValue<JobStatus>,
+        errorMessage: OptionalValue<String>
     ): NotifierJob = db.blockingQuery {
         val notifierJob = NotifierJobDao[id]
 
         startedAt.ifPresent { notifierJob.startedAt = it }
         finishedAt.ifPresent { notifierJob.finishedAt = it }
         status.ifPresent { notifierJob.status = it }
+        errorMessage.ifPresent { notifierJob.errorMessage = it }
 
         notifierJob.mapToModel()
     }
