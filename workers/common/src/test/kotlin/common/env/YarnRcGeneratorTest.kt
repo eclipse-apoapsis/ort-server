@@ -67,14 +67,12 @@ class YarnRcGeneratorTest : WordSpec({
 
             YarnRcGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            val expectedLines = listOf(
-                "npmRegistries:",
-                "  \"$REGISTRY_URI\":",
-                "    npmAlwaysAuth: true",
-                "    npmAuthIdent: \"" +
-                        "${MockConfigFileBuilder.testSecretRef(usernameSecret)}:" +
-                        "${MockConfigFileBuilder.testSecretRef(passwordSecret)}\""
-            )
+            val expectedLines = """
+                npmRegistries:
+                  "$REGISTRY_URI":
+                    npmAlwaysAuth: true
+                    npmAuthIdent: "${MockConfigFileBuilder.testSecretRef(usernameSecret)}:${MockConfigFileBuilder.testSecretRef(passwordSecret)}"
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
@@ -106,20 +104,16 @@ class YarnRcGeneratorTest : WordSpec({
 
             YarnRcGenerator().generate(mockBuilder.builder, definitions)
 
-            val expectedLines = listOf(
-                "npmRegistries:",
-                "  \"$REGISTRY_URI\":",
-                "    npmAlwaysAuth: true",
-                "    npmAuthIdent: \"" +
-                        "${MockConfigFileBuilder.testSecretRef(usernameSecret)}:" +
-                        "${MockConfigFileBuilder.testSecretRef(passwordSecret1)}\"",
-                "",
-                "  \"${REGISTRY_URI}1\":",
-                "    npmAlwaysAuth: true",
-                "    npmAuthIdent: \"" +
-                        "${MockConfigFileBuilder.testSecretRef(usernameSecret)}:" +
-                        "${MockConfigFileBuilder.testSecretRef(passwordSecret2)}\""
-            )
+            val expectedLines = """
+                npmRegistries:
+                  "$REGISTRY_URI":
+                    npmAlwaysAuth: true
+                    npmAuthIdent: "${MockConfigFileBuilder.testSecretRef(usernameSecret)}:${MockConfigFileBuilder.testSecretRef(passwordSecret1)}"
+
+                  "${REGISTRY_URI}1":
+                    npmAlwaysAuth: true
+                    npmAuthIdent: "${MockConfigFileBuilder.testSecretRef(usernameSecret)}:${MockConfigFileBuilder.testSecretRef(passwordSecret2)}"
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
 
             lines shouldContainExactly expectedLines
@@ -139,12 +133,12 @@ class YarnRcGeneratorTest : WordSpec({
 
             YarnRcGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            val expectedLines = listOf(
-                "npmRegistries:",
-                "  \"$REGISTRY_URI\":",
-                "    npmAlwaysAuth: true",
-                "    npmAuthToken: \"${MockConfigFileBuilder.testSecretRef(passwordSecret)}\""
-            )
+            val expectedLines = """
+                npmRegistries:
+                  "$REGISTRY_URI":
+                    npmAlwaysAuth: true
+                    npmAuthToken: "${MockConfigFileBuilder.testSecretRef(passwordSecret)}"
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
@@ -163,11 +157,11 @@ class YarnRcGeneratorTest : WordSpec({
 
             YarnRcGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            val expectedLines = listOf(
-                "npmRegistries:",
-                "  \"$REGISTRY_URI\":",
-                "    npmAuthToken: \"${MockConfigFileBuilder.testSecretRef(passwordSecret)}\""
-            )
+            val expectedLines = """
+                npmRegistries:
+                  "$REGISTRY_URI":
+                    npmAuthToken: "${MockConfigFileBuilder.testSecretRef(passwordSecret)}"
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }

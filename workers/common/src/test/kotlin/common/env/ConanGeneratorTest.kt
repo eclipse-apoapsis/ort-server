@@ -66,17 +66,17 @@ class ConanGeneratorTest : WordSpec({
 
             ConanGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            val expectedLines = listOf(
-                "{",
-                "  \"remotes\": [",
-                "    {",
-                "      \"name\": \"$REMOTE_NAME\",",
-                "      \"url\": \"$REMOTE_URL\",",
-                "      \"verify_ssl\": true",
-                "    }",
-                "  ]",
-                "}"
-            )
+            val expectedLines = """
+                {
+                  "remotes": [
+                    {
+                      "name": "$REMOTE_NAME",
+                      "url": "$REMOTE_URL",
+                      "verify_ssl": true
+                    }
+                  ]
+                }
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
@@ -103,22 +103,22 @@ class ConanGeneratorTest : WordSpec({
 
             ConanGenerator().generate(mockBuilder.builder, definitions)
 
-            val expectedLines = listOf(
-                "{",
-                "  \"remotes\": [",
-                "    {",
-                "      \"name\": \"$REMOTE_NAME\",",
-                "      \"url\": \"$REMOTE_URL\",",
-                "      \"verify_ssl\": true",
-                "    },",
-                "    {",
-                "      \"name\": \"${REMOTE_NAME + 1}\",",
-                "      \"url\": \"${REMOTE_URL + 1}\",",
-                "      \"verify_ssl\": false",
-                "    }",
-                "  ]",
-                "}"
-            )
+            val expectedLines = """
+                {
+                  "remotes": [
+                    {
+                      "name": "$REMOTE_NAME",
+                      "url": "$REMOTE_URL",
+                      "verify_ssl": true
+                    },
+                    {
+                      "name": "${REMOTE_NAME + 1}",
+                      "url": "${REMOTE_URL + 1}",
+                      "verify_ssl": false
+                    }
+                  ]
+                }
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
@@ -136,17 +136,17 @@ class ConanGeneratorTest : WordSpec({
 
             ConanGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            val expectedLines = listOf(
-                "{",
-                "  \"remotes\": [",
-                "    {",
-                "      \"name\": \"$REMOTE_NAME\",",
-                "      \"url\": \"$REMOTE_URL\",",
-                "      \"verify_ssl\": true",
-                "    }",
-                "  ]",
-                "}"
-            )
+            val expectedLines = """
+                {
+                  "remotes": [
+                    {
+                      "name": "$REMOTE_NAME",
+                      "url": "$REMOTE_URL",
+                      "verify_ssl": true
+                    }
+                  ]
+                }
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
@@ -164,17 +164,17 @@ class ConanGeneratorTest : WordSpec({
 
             ConanGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            val expectedLines = listOf(
-                "{",
-                "  \"remotes\": [",
-                "    {",
-                "      \"name\": \"$REMOTE_NAME\",",
-                "      \"url\": \"$REMOTE_URL\",",
-                "      \"verify_ssl\": true",
-                "    }",
-                "  ]",
-                "}"
-            )
+            val expectedLines = """
+                {
+                  "remotes": [
+                    {
+                      "name": "$REMOTE_NAME",
+                      "url": "$REMOTE_URL",
+                      "verify_ssl": true
+                    }
+                  ]
+                }
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
