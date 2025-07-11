@@ -69,42 +69,42 @@ class GradleInitGeneratorTest : WordSpec({
 
             GradleInitGenerator().generate(mockBuilder.builder, emptyList())
 
-            val expectedLines = listOf(
-                "allprojects {",
-                "    repositories {",
-                "        maven {",
-                "            url = uri(\"${mavenCentralMirror.url}\")",
-                "        }",
-                "    }",
-                "",
-                "    buildscript {",
-                "        repositories {",
-                "            maven {",
-                "                url = uri(\"${mavenCentralMirror.url}\")",
-                "            }",
-                "        }",
-                "    }",
-                "}",
-                "",
-                "settingsEvaluated {",
-                "    settings.pluginManagement {",
-                "        repositories {",
-                "            maven {",
-                "                url = uri(\"${mavenCentralMirror.url}\")",
-                "            }",
-                "            gradlePluginPortal()",
-                "        }",
-                "    }",
-                "",
-                "    settings.dependencyResolutionManagement {",
-                "        repositories {",
-                "            maven {",
-                "                url = uri(\"${mavenCentralMirror.url}\")",
-                "            }",
-                "        }",
-                "    }",
-                "}"
-            )
+            val expectedLines = """
+                allprojects {
+                    repositories {
+                        maven {
+                            url = uri("${mavenCentralMirror.url}")
+                        }
+                    }
+
+                    buildscript {
+                        repositories {
+                            maven {
+                                url = uri("${mavenCentralMirror.url}")
+                            }
+                        }
+                    }
+                }
+
+                settingsEvaluated {
+                    settings.pluginManagement {
+                        repositories {
+                            maven {
+                                url = uri("${mavenCentralMirror.url}")
+                            }
+                            gradlePluginPortal()
+                        }
+                    }
+
+                    settings.dependencyResolutionManagement {
+                        repositories {
+                            maven {
+                                url = uri("${mavenCentralMirror.url}")
+                            }
+                        }
+                    }
+                }
+            """.trimIndent().lines()
 
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
@@ -131,58 +131,58 @@ class GradleInitGeneratorTest : WordSpec({
 
             GradleInitGenerator().generate(mockBuilder.builder, emptyList())
 
-            val expectedLines = listOf(
-                "allprojects {",
-                "    repositories {",
-                "        maven {",
-                "            url = uri(\"${mavenCentralMirror.url}\")",
-                "            credentials {",
-                "                username = \"$username\"",
-                "                password = \"$password\"",
-                "            }",
-                "        }",
-                "    }",
-                "",
-                "    buildscript {",
-                "        repositories {",
-                "            maven {",
-                "                url = uri(\"${mavenCentralMirror.url}\")",
-                "                credentials {",
-                "                    username = \"$username\"",
-                "                    password = \"$password\"",
-                "                }",
-                "            }",
-                "        }",
-                "    }",
-                "}",
-                "",
-                "settingsEvaluated {",
-                "    settings.pluginManagement {",
-                "        repositories {",
-                "            maven {",
-                "                url = uri(\"${mavenCentralMirror.url}\")",
-                "                credentials {",
-                "                    username = \"$username\"",
-                "                    password = \"$password\"",
-                "                }",
-                "            }",
-                "            gradlePluginPortal()",
-                "        }",
-                "    }",
-                "",
-                "    settings.dependencyResolutionManagement {",
-                "        repositories {",
-                "            maven {",
-                "                url = uri(\"${mavenCentralMirror.url}\")",
-                "                credentials {",
-                "                    username = \"$username\"",
-                "                    password = \"$password\"",
-                "                }",
-                "            }",
-                "        }",
-                "    }",
-                "}"
-            )
+            val expectedLines = """
+                allprojects {
+                    repositories {
+                        maven {
+                            url = uri("${mavenCentralMirror.url}")
+                            credentials {
+                                username = "$username"
+                                password = "$password"
+                            }
+                        }
+                    }
+
+                    buildscript {
+                        repositories {
+                            maven {
+                                url = uri("${mavenCentralMirror.url}")
+                                credentials {
+                                    username = "$username"
+                                    password = "$password"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                settingsEvaluated {
+                    settings.pluginManagement {
+                        repositories {
+                            maven {
+                                url = uri("${mavenCentralMirror.url}")
+                                credentials {
+                                    username = "$username"
+                                    password = "$password"
+                                }
+                            }
+                            gradlePluginPortal()
+                        }
+                    }
+
+                    settings.dependencyResolutionManagement {
+                        repositories {
+                            maven {
+                                url = uri("${mavenCentralMirror.url}")
+                                credentials {
+                                    username = "$username"
+                                    password = "$password"
+                                }
+                            }
+                        }
+                    }
+                }
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }

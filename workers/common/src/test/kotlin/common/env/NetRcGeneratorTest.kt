@@ -62,11 +62,11 @@ class NetRcGeneratorTest : StringSpec({
 
             val mockBuilder = MockConfigFileBuilder()
 
-            val expectedLines = listOf(
-                "machine repo1.example.org login ${testSecretRef(secUser1)} password ${testSecretRef(secPass1)}",
-                "machine repo2.example.org login ${testSecretRef(secUser2)} password ${testSecretRef(secPass2)}",
-                "machine repo3.example.org login ${testSecretRef(secUser2)} password ${testSecretRef(secPass2)}"
-            )
+            val expectedLines = """
+                machine repo1.example.org login ${testSecretRef(secUser1)} password ${testSecretRef(secPass1)}
+                machine repo2.example.org login ${testSecretRef(secUser2)} password ${testSecretRef(secPass2)}
+                machine repo3.example.org login ${testSecretRef(secUser2)} password ${testSecretRef(secPass2)}
+            """.trimIndent().lines()
 
             val generator = NetRcGenerator()
             generator.generate(mockBuilder.builder, definitions(serviceIgnored, service1, service2, service3))
@@ -88,9 +88,9 @@ class NetRcGeneratorTest : StringSpec({
 
             val mockBuilder = MockConfigFileBuilder()
 
-            val expectedLines = listOf(
-                "machine repo.example.org login ${testSecretRef(secUser1)} password ${testSecretRef(secPass1)}"
-            )
+            val expectedLines = """
+                machine repo.example.org login ${testSecretRef(secUser1)} password ${testSecretRef(secPass1)}
+            """.trimIndent().lines()
 
             val generator = NetRcGenerator()
             generator.generate(mockBuilder.builder, definitions(service1, service2, service3))
@@ -109,9 +109,9 @@ class NetRcGeneratorTest : StringSpec({
 
             val mockBuilder = MockConfigFileBuilder()
 
-            val expectedLines = listOf(
-                "machine repo.example.org login ${testSecretRef(secUser1)} password ${testSecretRef(secPass1)}"
-            )
+            val expectedLines = """
+                machine repo.example.org login ${testSecretRef(secUser1)} password ${testSecretRef(secPass1)}
+            """.trimIndent().lines()
 
             val generator = NetRcGenerator()
             generator.generate(mockBuilder.builder, definitions(service1, service2))
@@ -138,9 +138,9 @@ class NetRcGeneratorTest : StringSpec({
 
             val mockBuilder = MockConfigFileBuilder()
 
-            val expectedLines = listOf(
-                "machine repo1.example.org login ${testSecretRef(secUser)} password ${testSecretRef(secPass)}"
-            )
+            val expectedLines = """
+                machine repo1.example.org login ${testSecretRef(secUser)} password ${testSecretRef(secPass)}
+            """.trimIndent().lines()
 
             val generator = NetRcGenerator()
             generator.generate(mockBuilder.builder, definitions)

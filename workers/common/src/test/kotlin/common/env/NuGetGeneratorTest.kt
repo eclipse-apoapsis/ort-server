@@ -69,22 +69,21 @@ class NuGetGeneratorTest : WordSpec({
 
             NuGetGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            val expectedLines = listOf(
-                "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
-                "<configuration>",
-                "  <packageSources>",
-                "    <add key=\"nuget.org\" value=\"https://api.nuget.org/v3/index.json\" protocolVersion=\"3\" />",
-                "  </packageSources>",
-                "",
-                "  <packageSourceCredentials>",
-                "  </packageSourceCredentials>",
-                "",
-                "  <apikeys>",
-                "    <add key=https://api.nuget.org/v3/index.json " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(passwordSecret)}\" />",
-                "  </apikeys>",
-                "</configuration>"
-            )
+            val expectedLines = """
+                <?xml version="1.0" encoding="utf-8"?>
+                <configuration>
+                  <packageSources>
+                    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+                  </packageSources>
+
+                  <packageSourceCredentials>
+                  </packageSourceCredentials>
+
+                  <apikeys>
+                    <add key=https://api.nuget.org/v3/index.json value="${MockConfigFileBuilder.testSecretRef(passwordSecret)}" />
+                  </apikeys>
+                </configuration>
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
@@ -133,39 +132,33 @@ class NuGetGeneratorTest : WordSpec({
 
             NuGetGenerator().generate(mockBuilder.builder, definitions)
 
-            val expectedLines = listOf(
-                "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
-                "<configuration>",
-                "  <packageSources>",
-                "    <add key=\"nuget.org\" value=\"https://api.nuget.org/v3/index.json\" protocolVersion=\"3\" />",
-                "    <add key=\"nuget.org1\" value=\"https://api.nuget.org/v3/index.json1\" protocolVersion=\"3\" />",
-                "    <add key=\"nuget.org2\" value=\"https://api.nuget.org/v3/index.json2\" protocolVersion=\"3\" />",
-                "    <add key=\"nuget.org3\" value=\"https://api.nuget.org/v3/index.json3\" protocolVersion=\"3\" />",
-                "  </packageSources>",
-                "",
-                "  <packageSourceCredentials>",
-                "    <nuget.org1>",
-                "      <add key=\"Username\" " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(usernameSecret)}\" />",
-                "      <add key=\"ClearTextPassword\" " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(passwordSecret2)}\" />",
-                "    </nuget.org1>",
-                "    <nuget.org2>",
-                "      <add key=\"Username\" " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(usernameSecret)}\" />",
-                "      <add key=\"ClearTextPassword\" " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(passwordSecret3)}\" />",
-                "    </nuget.org2>",
-                "  </packageSourceCredentials>",
-                "",
-                "  <apikeys>",
-                "    <add key=https://api.nuget.org/v3/index.json " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(passwordSecret1)}\" />",
-                "    <add key=https://api.nuget.org/v3/index.json3 " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(passwordSecret4)}\" />",
-                "  </apikeys>",
-                "</configuration>"
-            )
+            val expectedLines = """
+                <?xml version="1.0" encoding="utf-8"?>
+                <configuration>
+                  <packageSources>
+                    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+                    <add key="nuget.org1" value="https://api.nuget.org/v3/index.json1" protocolVersion="3" />
+                    <add key="nuget.org2" value="https://api.nuget.org/v3/index.json2" protocolVersion="3" />
+                    <add key="nuget.org3" value="https://api.nuget.org/v3/index.json3" protocolVersion="3" />
+                  </packageSources>
+
+                  <packageSourceCredentials>
+                    <nuget.org1>
+                      <add key="Username" value="${MockConfigFileBuilder.testSecretRef(usernameSecret)}" />
+                      <add key="ClearTextPassword" value="${MockConfigFileBuilder.testSecretRef(passwordSecret2)}" />
+                    </nuget.org1>
+                    <nuget.org2>
+                      <add key="Username" value="${MockConfigFileBuilder.testSecretRef(usernameSecret)}" />
+                      <add key="ClearTextPassword" value="${MockConfigFileBuilder.testSecretRef(passwordSecret3)}" />
+                    </nuget.org2>
+                  </packageSourceCredentials>
+
+                  <apikeys>
+                    <add key=https://api.nuget.org/v3/index.json value="${MockConfigFileBuilder.testSecretRef(passwordSecret1)}" />
+                    <add key=https://api.nuget.org/v3/index.json3 value="${MockConfigFileBuilder.testSecretRef(passwordSecret4)}" />
+                  </apikeys>
+                </configuration>
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
 
             lines shouldContainExactly expectedLines
@@ -187,26 +180,24 @@ class NuGetGeneratorTest : WordSpec({
 
             NuGetGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            val expectedLines = listOf(
-                "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
-                "<configuration>",
-                "  <packageSources>",
-                "    <add key=\"nuget.org\" value=\"https://api.nuget.org/v3/index.json\" protocolVersion=\"3\" />",
-                "  </packageSources>",
-                "",
-                "  <packageSourceCredentials>",
-                "    <nuget.org>",
-                "      <add key=\"Username\" " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(usernameSecret)}\" />",
-                "      <add key=\"ClearTextPassword\" " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(passwordSecret)}\" />",
-                "    </nuget.org>",
-                "  </packageSourceCredentials>",
-                "",
-                "  <apikeys>",
-                "  </apikeys>",
-                "</configuration>"
-            )
+            val expectedLines = """
+                <?xml version="1.0" encoding="utf-8"?>
+                <configuration>
+                  <packageSources>
+                    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+                  </packageSources>
+
+                  <packageSourceCredentials>
+                    <nuget.org>
+                      <add key="Username" value="${MockConfigFileBuilder.testSecretRef(usernameSecret)}" />
+                      <add key="ClearTextPassword" value="${MockConfigFileBuilder.testSecretRef(passwordSecret)}" />
+                    </nuget.org>
+                  </packageSourceCredentials>
+
+                  <apikeys>
+                  </apikeys>
+                </configuration>
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
@@ -227,26 +218,24 @@ class NuGetGeneratorTest : WordSpec({
 
             NuGetGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            val expectedLines = listOf(
-                "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
-                "<configuration>",
-                "  <packageSources>",
-                "    <add key=\"nuget.org\" value=\"https://api.nuget.org/v3/index.json\" />",
-                "  </packageSources>",
-                "",
-                "  <packageSourceCredentials>",
-                "    <nuget.org>",
-                "      <add key=\"Username\" " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(usernameSecret)}\" />",
-                "      <add key=\"ClearTextPassword\" " +
-                        "value=\"${MockConfigFileBuilder.testSecretRef(passwordSecret)}\" />",
-                "    </nuget.org>",
-                "  </packageSourceCredentials>",
-                "",
-                "  <apikeys>",
-                "  </apikeys>",
-                "</configuration>"
-            )
+            val expectedLines = """
+                <?xml version="1.0" encoding="utf-8"?>
+                <configuration>
+                  <packageSources>
+                    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+                  </packageSources>
+
+                  <packageSourceCredentials>
+                    <nuget.org>
+                      <add key="Username" value="${MockConfigFileBuilder.testSecretRef(usernameSecret)}" />
+                      <add key="ClearTextPassword" value="${MockConfigFileBuilder.testSecretRef(passwordSecret)}" />
+                    </nuget.org>
+                  </packageSourceCredentials>
+
+                  <apikeys>
+                  </apikeys>
+                </configuration>
+            """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
             lines shouldContainExactly expectedLines
         }
