@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 import org.eclipse.apoapsis.ortserver.workers.common.auth.credentialResolver
+import org.eclipse.apoapsis.ortserver.workers.common.auth.infraSecretResolverFromConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 
 import org.slf4j.LoggerFactory
@@ -79,10 +80,10 @@ object EnvironmentForkHelper {
 
         logger.info("Read authentication information about {} services from forked process.", authInfo.services.size)
 
-        val authenticator = OrtServerAuthenticator.install()
         val config = WorkerOrtConfig.create()
         config.setUpOrtEnvironment()
 
+        val authenticator = OrtServerAuthenticator.install(infraSecretResolverFromConfig(config.configManager))
         authenticator.updateAuthenticationInfo(authInfo)
 
         val netrcManager = NetRcManager.create(credentialResolver(authInfo))
