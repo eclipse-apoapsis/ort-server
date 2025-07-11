@@ -50,7 +50,8 @@ interface WorkerJobRepository<T : WorkerJob> {
         id: Long,
         startedAt: OptionalValue<Instant?> = OptionalValue.Absent,
         finishedAt: OptionalValue<Instant?> = OptionalValue.Absent,
-        status: OptionalValue<JobStatus> = OptionalValue.Absent
+        status: OptionalValue<JobStatus> = OptionalValue.Absent,
+        errorMessage: OptionalValue<String> = OptionalValue.Absent
     ): T
 
     /**
@@ -70,7 +71,7 @@ interface WorkerJobRepository<T : WorkerJob> {
     /**
      * Mark a job by [id] as completed by updating the given [finishedAt] date and setting the given [status].
      */
-    fun complete(id: Long, finishedAt: Instant, status: JobStatus): T {
+    fun complete(id: Long, finishedAt: Instant, status: JobStatus, errorMessage: String? = null): T {
         require(status in completedJobStates) {
             "complete can only be called with a JobStatus that mark the job as completed: $completedJobStates."
         }
@@ -78,7 +79,8 @@ interface WorkerJobRepository<T : WorkerJob> {
         return update(
             id,
             finishedAt = finishedAt.asPresent(),
-            status = status.asPresent()
+            status = status.asPresent(),
+            errorMessage = errorMessage?.asPresent() ?: OptionalValue.Absent
         )
     }
 

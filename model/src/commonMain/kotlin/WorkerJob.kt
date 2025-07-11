@@ -45,4 +45,7 @@ interface WorkerJob {
 
     /** The job status. */
     val status: JobStatus
+
+    /** Job execution error message, if any. */
+    val errorMessage: String?
 }
