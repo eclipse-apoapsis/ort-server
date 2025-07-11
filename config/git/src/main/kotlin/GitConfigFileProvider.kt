@@ -100,7 +100,10 @@ class GitConfigFileProvider internal constructor(
 
     override fun contains(context: Context, path: Path): Boolean {
         updateWorkingTree(context.name)
-        return configDir.resolve(path.path).isFile
+        val p = configDir.resolve(path.path)
+        val isDirectoryPath = path.path.endsWith("/")
+
+        return (!isDirectoryPath && p.isFile) || (isDirectoryPath && p.isDirectory)
     }
 
     override fun listFiles(context: Context, path: Path): Set<Path> {
