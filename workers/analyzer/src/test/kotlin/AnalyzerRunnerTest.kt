@@ -58,7 +58,6 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
@@ -684,19 +683,12 @@ class AnalyzerRunnerTest : WordSpec({
         }
 
         "set up the ORT environment" {
-            mockkObject(WorkerOrtConfig)
-            val workerOrtConfigMock = mockk<WorkerOrtConfig> {
-                every { setUpOrtEnvironment() } just runs
-            }
-            every { WorkerOrtConfig.create() } returns workerOrtConfigMock
-
             val exchangeDir = tempdir()
             exchangeDir.resolve("analyzer-config.json").writeValue(AnalyzerJobConfiguration())
 
             AnalyzerRunner.main(arrayOf(exchangeDir.absolutePath, "non-existing-directory"))
 
             verify {
-                workerOrtConfigMock.setUpOrtEnvironment()
                 EnvironmentForkHelper.setupFork(System.`in`)
             }
         }

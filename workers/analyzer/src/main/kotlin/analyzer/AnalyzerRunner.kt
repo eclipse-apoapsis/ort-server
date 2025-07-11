@@ -33,7 +33,6 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.utils.config.getInterpolatedStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
-import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentForkHelper
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition
@@ -116,8 +115,6 @@ class AnalyzerRunner(
             val exchangeDir = File(args[0])
 
             runCatching {
-                val workerOrtConfig = WorkerOrtConfig.create()
-                workerOrtConfig.setUpOrtEnvironment()
                 EnvironmentForkHelper.setupFork(System.`in`)
 
                 val projectDir = File(args[1])
