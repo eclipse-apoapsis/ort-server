@@ -65,14 +65,27 @@ class GradleInitGenerator : EnvironmentConfigGenerator<GradleDefinition> {
         builder.buildInUserHome(TARGET_NAME) {
             val repositories = buildList {
                 builder.adminConfig.mavenCentralMirror?.let { mirror ->
-                    add(
-                        GradleRepositoryEntry(
-                            mirror.url,
-                            mirror.usernameSecret?.let { builder.infraSecretResolverFun(Path(it)) },
-                            mirror.passwordSecret?.let { builder.infraSecretResolverFun(Path(it)) }
+                    val isOverridden = definitions.any { it.service.url == mirror.url }
+                    if (!isOverridden) {
+                        add(
+                            GradleRepositoryEntry(
+                                mirror.url,
+                                mirror.usernameSecret?.let { builder.infraSecretResolverFun(Path(it)) },
+                                mirror.passwordSecret?.let { builder.infraSecretResolverFun(Path(it)) }
+                            )
                         )
-                    )
+                    }
                 }
+
+                addAll(
+                    definitions.map { definition ->
+                        GradleRepositoryEntry(
+                            definition.service.url,
+                            builder.secretRef(definition.service.usernameSecret),
+                            builder.secretRef(definition.service.passwordSecret)
+                        )
+                    }
+                )
             }
 
             if (repositories.isNotEmpty()) {
