@@ -24,6 +24,11 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldInclude
 
+import io.mockk.every
+import io.mockk.mockk
+
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Secret
 
 class CredentialResolverTest : WordSpec({
@@ -76,6 +81,20 @@ class CredentialResolverTest : WordSpec({
             val resolvedSecrets = resolveCredentials(resolverFun, secret1, secret2)
 
             resolvedSecrets shouldBe secretsMap
+        }
+    }
+
+    "infraSecretResolverFromConfig()" should {
+        "return a resolver function that delegates to the config manager" {
+            val secret = Path("testSecret")
+            val secretValue = "verySecretValue"
+            val configManager = mockk<ConfigManager> {
+                every { getSecret(secret) } returns secretValue
+            }
+
+            val resolver = infraSecretResolverFromConfig(configManager)
+
+            resolver(secret) shouldBe secretValue
         }
     }
 })
