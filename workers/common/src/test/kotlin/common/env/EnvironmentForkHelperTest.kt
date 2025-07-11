@@ -47,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 
@@ -88,9 +89,11 @@ class EnvironmentForkHelperTest : StringSpec({
             config.setUpOrtEnvironment()
         }
 
+        val slotResolver = mutableListOf<InfraSecretResolverFun>()
         verify(exactly = 2) {
-            OrtServerAuthenticator.install()
+            OrtServerAuthenticator.install(capture(slotResolver))
         }
+        slotResolver.last().invoke(testSecret) shouldBe testSecretValue
 
         val slotAuthInfo = slot<AuthenticationInfo>()
         verify {
@@ -183,7 +186,7 @@ private fun installAuthenticatorMock(authInfo: AuthenticationInfo): OrtServerAut
         every { updateAuthenticationInfo(any()) } just runs
         every { updateAuthenticationListener(any()) } just runs
     }.also {
-        every { OrtServerAuthenticator.install() } returns it
+        every { OrtServerAuthenticator.install(any()) } returns it
     }
 
 /**

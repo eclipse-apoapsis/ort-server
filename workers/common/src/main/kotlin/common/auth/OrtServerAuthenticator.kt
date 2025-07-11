@@ -35,12 +35,17 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
 
 /**
- * Implementation of an [Authenticator] which is responsible for handling authentication within ORT Server.
+ * Implementation of an [Authenticator] which is responsible for handling authentication within ORT Server. This class
+ * supports both authentication based on credentials managed on behalf of end users, and authentication based on
+ * secrets obtained via the configuration. The latter is done by using URLs that have a user info component; however,
+ * the credentials contained here are not used directly, but resolved against the secrets provider from the
+ * configuration. This makes it easy to specify the URLs of external systems in the configuration and map them to
+ * credentials managed by a secrets storage.
  *
  * This implementation uses special authentication logic based on infrastructure services and their associated
  * credentials. It also uses functionality from ORT's authentication mechanism, but makes sure that the different
  * sources of authentication information are queried in the correct order:
- * - If the URL contains credentials, these are used first.
+ * - If the URL contains credentials, these are used first after attempting to resolve them.
  * - If there was already an [Authenticator] installed when this instance was created, it is invoked next. This allows
  *   overriding the default authentication mechanism temporarily.
  * - If the former steps did not yield a result, the class obtains the credentials from the best-matching
@@ -54,20 +59,24 @@ private val logger = LoggerFactory.getLogger(OrtServerAuthenticator::class.java)
  */
 internal class OrtServerAuthenticator(
     /** The original authenticator that was active when this instance was installed. */
-    original: Authenticator? = null
+    original: Authenticator? = null,
+
+    /** The function to resolve secrets passed in URLs. */
+    secretResolverFun: InfraSecretResolverFun
 ) : OrtAuthenticator(original) {
     companion object {
         /** Empty authentication information to be used before this authenticator gets initialized. */
         private val emptyAuthenticationInfo = AuthenticationInfo(emptyMap(), emptyList())
 
         /**
-         * Install this authenticator as the global default if it is not already installed.
+         * Install this authenticator as the global default if it is not already installed. Use the provided
+         * [secretResolverFun] to resolve credentials that are passed in URLs.
          */
         @Synchronized
-        fun install(): OrtServerAuthenticator {
+        fun install(secretResolverFun: InfraSecretResolverFun = undefinedInfraSecretResolver): OrtServerAuthenticator {
             val active = getDefault()
             return active as? OrtServerAuthenticator
-                ?: OrtServerAuthenticator(active).also {
+                ?: OrtServerAuthenticator(active, secretResolverFun).also {
                     setDefault(it)
                     logger.info("OrtServerAuthenticator was successfully installed.")
                 }
@@ -93,6 +102,7 @@ internal class OrtServerAuthenticator(
 
     override val delegateAuthenticators: List<Authenticator> = listOfNotNull(
         UserInfoAuthenticator(),
+        UserInfoSecretAuthenticator.create(secretResolverFun),
         original,
         ServicesAuthenticator(refServices, refListener)
     )
