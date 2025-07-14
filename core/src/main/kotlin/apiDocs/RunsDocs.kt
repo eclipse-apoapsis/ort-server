@@ -261,6 +261,14 @@ val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
             description = "The ID of the ORT run."
         }
 
+        queryParameter<Boolean>("resolved") {
+            description =
+                """
+                    If true, only resolved vulnerabilities are returned. If false, only unresolved vulnerabilities are
+                    returned. If missing, both resolved and unresolved vulnerabilities are returned.
+                """.trimIndent()
+        }
+
         standardListQueryParameters()
     }
 

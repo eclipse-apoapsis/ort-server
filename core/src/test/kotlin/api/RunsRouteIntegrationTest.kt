@@ -120,6 +120,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -643,61 +645,85 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     advisorJobId = advisorJob.id,
                     startTime = Clock.System.now().toDatabasePrecision(),
                     endTime = Clock.System.now().toDatabasePrecision(),
-                    environment = Environment(
-                        ortVersion = "1.0",
-                        javaVersion = "11.0.16",
-                        os = "Linux",
-                        processors = 8,
-                        maxMemory = 8321499136,
-                        variables = emptyMap(),
-                        toolVersions = emptyMap()
-                    ),
-                    config = AdvisorConfiguration(
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    results = generateAdvisorResult()
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities")
+
+                response.status shouldBe HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
+
+                vulnerabilities.data shouldHaveSize 2
+
+                with(vulnerabilities.data[0]) {
+                    vulnerability.externalId shouldBe "CVE-2018-14721"
+                    rating shouldBe VulnerabilityRating.MEDIUM
+
+                    with(identifier) {
+                        type shouldBe "Maven"
+                        namespace shouldBe "com.fasterxml.jackson.core"
+                        name shouldBe "jackson-databind"
+                        version shouldBe "2.9.6"
+                    }
+                }
+
+                with(vulnerabilities.data[1]) {
+                    vulnerability.externalId shouldBe "CVE-2021-1234"
+                    rating shouldBe VulnerabilityRating.MEDIUM
+
+                    with(identifier) {
+                        type shouldBe "Maven"
+                        namespace shouldBe "org.apache.logging.log4j"
+                        name shouldBe "log4j-core"
+                        version shouldBe "2.14.0"
+                    }
+                }
+            }
+        }
+
+        "show only the resolved vulnerabilities of an ORT run" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(
+                    ortRunId = ortRun.id,
+                    configuration = AdvisorJobConfiguration(
                         config = mapOf(
                             "VulnerableCode" to PluginConfig(
                                 options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
                                 secrets = mapOf("apiKey" to "key")
                             )
                         )
-                    ),
-                    results = mapOf(
-                        Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0") to listOf(
-                            AdvisorResult(
-                                advisorName = "advisor",
-                                capabilities = listOf("vulnerabilities"),
-                                startTime = Clock.System.now().toDatabasePrecision(),
-                                endTime = Clock.System.now().toDatabasePrecision(),
-                                issues = emptyList(),
-                                defects = emptyList(),
-                                vulnerabilities = listOf(
-                                    Vulnerability(
-                                        externalId = "CVE-2021-1234",
-                                        summary = "A vulnerability",
-                                        description = "A description",
-                                        references = listOf(
-                                            VulnerabilityReference(
-                                                url = "https://example.com",
-                                                scoringSystem = "CVSS",
-                                                severity = "LOW",
-                                                score = 1.2f,
-                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-                                            ),
-                                            VulnerabilityReference(
-                                                url = "https://example.com",
-                                                scoringSystem = "CVSS",
-                                                severity = "MEDIUM",
-                                                score = 4.2f,
-                                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    ),
+                    )
                 )
 
-                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities")
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    results = generateAdvisorResult()
+                )
+
+                // Add a resolution for one of the vulnerabilities.
+                val vulnerabilityResolution = VulnerabilityResolution(
+                    externalId = ".*CVE-2021-12.*", // Matching RegEx
+                    reason = "INEFFECTIVE_VULNERABILITY",
+                    comment = "This is ineffective because of some reasons."
+                )
+                dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    Resolutions(vulnerabilities = listOf(vulnerabilityResolution))
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities?resolved=true")
 
                 response.status shouldBe HttpStatusCode.OK
                 val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
@@ -713,6 +739,74 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         name shouldBe "log4j-core"
                         version shouldBe "2.14.0"
                     }
+
+                    with(first().resolutions.first()) {
+                        externalId shouldBe ".*CVE-2021-12.*" // Matching RegEx
+                        reason shouldBe "INEFFECTIVE_VULNERABILITY"
+                        comment shouldBe "This is ineffective because of some reasons."
+                    }
+                }
+            }
+        }
+
+        "show only the unresolved vulnerabilities of an ORT run" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val advisorJob = dbExtension.fixtures.createAdvisorJob(
+                    ortRunId = ortRun.id,
+                    configuration = AdvisorJobConfiguration(
+                        config = mapOf(
+                            "VulnerableCode" to PluginConfig(
+                                options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+                                secrets = mapOf("apiKey" to "key")
+                            )
+                        )
+                    )
+                )
+
+                dbExtension.fixtures.advisorRunRepository.create(
+                    advisorJobId = advisorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    environment = generateAdvisorEnvironment(),
+                    config = generateAdvisorConfiguration(),
+                    results = generateAdvisorResult()
+                )
+
+                // Add a resolution for one of the vulnerabilities.
+                val vulnerabilityResolution = VulnerabilityResolution(
+                    externalId = ".*CVE-2021-12.*", // Matching RegEx
+                    reason = "INEFFECTIVE_VULNERABILITY",
+                    comment = "This is ineffective because of some reasons."
+                )
+                dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
+                    ortRun.id,
+                    Resolutions(vulnerabilities = listOf(vulnerabilityResolution))
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities?resolved=false")
+
+                response.status shouldBe HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
+
+                with(vulnerabilities.data) {
+                    shouldHaveSize(1)
+                    first().vulnerability.externalId shouldBe "CVE-2018-14721"
+                    first().rating shouldBe VulnerabilityRating.MEDIUM
+
+                    with(first().identifier) {
+                        type shouldBe "Maven"
+                        namespace shouldBe "com.fasterxml.jackson.core"
+                        name shouldBe "jackson-databind"
+                        version shouldBe "2.9.6"
+                    }
+
+                    first().resolutions shouldBe emptyList()
                 }
             }
         }
@@ -2219,3 +2313,84 @@ private fun checkLogArchive(archiveFile: File, sources: Set<LogSource>) {
  * Return the name of the log file for this [LogSource].
  */
 private fun LogSource.logFileName() = "${name.lowercase()}.log"
+
+private fun generateAdvisorEnvironment() = Environment(
+    ortVersion = "1.0",
+    javaVersion = "11.0.16",
+    os = "Linux",
+    processors = 8,
+    maxMemory = 8321499136,
+    variables = emptyMap(),
+    toolVersions = emptyMap()
+)
+
+private fun generateAdvisorConfiguration() = AdvisorConfiguration(
+    config = mapOf(
+        "VulnerableCode" to PluginConfig(
+            options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
+            secrets = mapOf("apiKey" to "key")
+        )
+    )
+)
+
+private fun generateAdvisorResult() = mapOf(
+        Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0") to listOf(
+            AdvisorResult(
+                advisorName = "advisor",
+                capabilities = listOf("vulnerabilities"),
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                issues = emptyList(),
+                defects = emptyList(),
+                vulnerabilities = listOf(
+                    Vulnerability(
+                        externalId = "CVE-2021-1234",
+                        summary = "A vulnerability",
+                        description = "A description",
+                        references = listOf(
+                            VulnerabilityReference(
+                                url = "https://example.com",
+                                scoringSystem = "CVSS",
+                                severity = "LOW",
+                                score = 1.2f,
+                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                            ),
+                            VulnerabilityReference(
+                                url = "https://example.com",
+                                scoringSystem = "CVSS",
+                                severity = "MEDIUM",
+                                score = 4.2f,
+                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+        Identifier("Maven", "com.fasterxml.jackson.core", "jackson-databind", "2.9.6") to listOf(
+            AdvisorResult(
+                advisorName = "advisor",
+                capabilities = listOf("vulnerabilities"),
+                startTime = Clock.System.now().toDatabasePrecision(),
+                endTime = Clock.System.now().toDatabasePrecision(),
+                issues = emptyList(),
+                defects = emptyList(),
+                vulnerabilities = listOf(
+                    Vulnerability(
+                        externalId = "CVE-2018-14721",
+                        summary = "A vulnerability",
+                        description = "A description",
+                        references = listOf(
+                            VulnerabilityReference(
+                                url = "https://example.com",
+                                scoringSystem = "CVSS",
+                                severity = "MEDIUM",
+                                score = 4.2f,
+                                vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
