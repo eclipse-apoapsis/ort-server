@@ -68,7 +68,7 @@ jobs:
         ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.ORG_GPG_SUBKEY_ID }}
         ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GPG_PASSPHRASE }}
         SONATYPE_CONNECT_TIMEOUT_SECONDS: 300
-      run: ./gradlew --stacktrace --no-configuration-cache publishAndReleaseToMavenCentral
+      run: ./gradlew --stacktrace publishAndReleaseToMavenCentral
 
   build-cli:
     strategy:
