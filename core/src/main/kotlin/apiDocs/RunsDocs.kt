@@ -55,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
@@ -286,7 +287,14 @@ val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
                                     )
                                 ),
                                 identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
-                                rating = VulnerabilityRating.HIGH
+                                rating = VulnerabilityRating.HIGH,
+                                listOf(
+                                    VulnerabilityResolution(
+                                        externalId = "CVE-2021-1234",
+                                        reason = "INEFFECTIVE_VULNERABILITY",
+                                        comment = "A comment why the vulnerability can be resolved."
+                                    )
+                                )
                             )
                         ),
                         PagingData(
