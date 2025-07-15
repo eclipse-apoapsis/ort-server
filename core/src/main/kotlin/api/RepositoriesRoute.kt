@@ -48,7 +48,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForRepositoryIdAndName
@@ -66,7 +66,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postInfrastructureServiceForR
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToRepositoryGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
-import org.eclipse.apoapsis.ortserver.core.utils.getUnavailablePlugins
+import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
@@ -90,7 +90,7 @@ import org.koin.ktor.ext.inject
 fun Route.repositories() = route("repositories/{repositoryId}") {
     val orchestratorService by inject<OrchestratorService>()
     val ortRunService by inject<OrtRunService>()
-    val pluginService by inject<PluginService>()
+    val pluginTemplateService by inject<PluginTemplateService>()
     val repositoryService by inject<RepositoryService>()
     val userService by inject<UserService>()
     val infrastructureServiceService by inject<InfrastructureServiceService>()
@@ -155,14 +155,20 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
                 }
 
-                // Check if unavailable plugins are used.
-                val unavailablePlugins = createOrtRun.getUnavailablePlugins(pluginService)
-                if (unavailablePlugins.isNotEmpty()) {
+                // Validate the plugin configuration.
+                val validationResult = pluginTemplateService.validatePluginConfigs(
+                    pluginConfigs = createOrtRun.getPluginConfigs().mapValues { (_, pluginConfigs) ->
+                        pluginConfigs.mapValues { (_, pluginConfig) -> pluginConfig.mapToModel() }
+                    },
+                    organizationId = it.organizationId
+                )
+
+                if (!validationResult.isValid) {
                     call.respond(
                         HttpStatusCode.BadRequest,
                         ErrorResponse(
-                            message = "Unavailable plugins are used.",
-                            cause = unavailablePlugins.errorMessage()
+                            message = "Invalid plugin configuration.",
+                            cause = validationResult.errors.joinToString(separator = "\n")
                         )
                     )
                     return@post
