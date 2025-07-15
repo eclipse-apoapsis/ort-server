@@ -23,13 +23,16 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.fold
+import com.github.michaelbull.result.getOrElse
 import com.github.michaelbull.result.map
+import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.toErrorIfNull
 import com.github.michaelbull.result.toResultOr
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesQuery
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
@@ -341,6 +344,69 @@ class PluginTemplateService(
             }
     }
 
+    /**
+     * Validate the provided [pluginConfigs] against the admin configuration for the provided
+     * [organization][organizationId].
+     */
+    fun validatePluginConfigs(
+        pluginConfigs: Map<PluginType, Map<String, PluginConfig>>,
+        organizationId: Long
+    ): PluginConfigValidationResult {
+        validateOrganizationExists(organizationId).onFailure { error ->
+            return PluginConfigValidationResult(listOf(error.message))
+        }
+
+        val plugins = pluginService.getPlugins()
+        val errors = mutableListOf<String>()
+
+        pluginConfigs.forEach { (pluginType, configs) ->
+            configs.forEach { (pluginId, config) ->
+                val descriptor = plugins.singleOrNull {
+                    it.type == pluginType && it.id == normalizePluginId(pluginType, pluginId)
+                }
+
+                if (descriptor == null) {
+                    errors += "The plugin with type '$pluginType' and ID '$pluginId' is not installed."
+                    return@forEach
+                }
+
+                if (!pluginService.isEnabled(pluginType, pluginId)) {
+                    errors += "The plugin with type '$pluginType' and ID '$pluginId' is disabled by the administrators."
+                    return@forEach
+                }
+
+                val template = getTemplateForOrganization(pluginType, pluginId, organizationId).getOrElse {
+                    errors += it.message
+                    return@forEach
+                }
+
+                if (template == null) {
+                    return@forEach
+                }
+
+                // Check if option is set which is fixed by a template.
+                (config.options.keys + config.secrets.keys).forEach { option ->
+                    val pluginOption = descriptor.options.find { it.name == option }
+
+                    if (pluginOption == null) {
+                        errors += "The plugin option '$option' is not defined for the plugin with type " +
+                                "'$pluginType' and ID '$pluginId'."
+                    }
+
+                    val templateOption = template.options.find { it.option == option }
+
+                    if (templateOption?.isFinal == true) {
+                        errors += "The plugin option '$option' for the plugin with type '$pluginType' and ID " +
+                                "'$pluginId' is set to a fixed value by the server administrators and cannot be" +
+                                " changed."
+                    }
+                }
+            }
+        }
+
+        return PluginConfigValidationResult(errors)
+    }
+
     /** Returns the [PluginTemplateState] with the given [templateName], [pluginType], and [pluginId] if it exists. */
     private fun getTemplateState(
         templateName: String,
@@ -491,7 +557,18 @@ class PluginTemplateService(
 }
 
 internal sealed interface TemplateError {
-    data class InvalidPlugin(val message: String) : TemplateError
-    data class InvalidState(val message: String) : TemplateError
-    data class NotFound(val message: String) : TemplateError
+    val message: String
+
+    data class InvalidPlugin(override val message: String) : TemplateError
+    data class InvalidState(override val message: String) : TemplateError
+    data class NotFound(override val message: String) : TemplateError
+}
+
+/** The result of validating plugin configs against the admin configuration for a specific organization. */
+class PluginConfigValidationResult(
+    /** The list of errors found during validation. */
+    val errors: List<String>
+) {
+    /** Whether the plugin configuration is valid. */
+    val isValid = errors.isEmpty()
 }

@@ -74,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
@@ -89,6 +90,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
@@ -883,6 +885,60 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 errorMessage shouldContain packageManagerPluginId
                 errorMessage shouldContain reporterPluginId
                 errorMessage shouldContain scannerPluginId
+            }
+        }
+
+        "respond with 'BadRequest' if final plugin template options are overwritten" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                val installedPlugins = pluginService.getPlugins()
+
+                val pluginType = PluginType.ADVISOR
+                val plugin = installedPlugins.first { it.type == pluginType && it.id == "VulnerableCode" }
+                val pluginId = plugin.id
+                val pluginOption = plugin.options.first { it.name == "serverUrl" }
+
+                // Create a plugin template with a final option.
+                superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test") {
+                    setBody(
+                        listOf(
+                            PluginOptionTemplate(
+                                option = pluginOption.name,
+                                type = pluginOption.type,
+                                value = "https://example.org",
+                                isFinal = true
+                            )
+                        )
+                    )
+                }
+
+                // Make the plugin template globally active.
+                superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test/enableGlobal")
+
+                // Create a run trying to overwrite the final option.
+                val createRun = CreateOrtRun(
+                    "main",
+                    null,
+                    ApiJobConfigurations(
+                        advisor = AdvisorJobConfiguration(
+                            advisors = listOf(pluginId),
+                            config = mapOf(
+                                pluginId to PluginConfig(
+                                    options = mapOf(pluginOption.name to "https://new.example.org"),
+                                    secrets = emptyMap()
+                                )
+                            )
+                        )
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                response.bodyAsText() shouldContain "is set to a fixed value by the server administrators"
             }
         }
 
