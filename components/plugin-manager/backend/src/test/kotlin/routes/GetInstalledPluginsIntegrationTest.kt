@@ -48,7 +48,7 @@ class GetInstalledPluginsIntegrationTest : PluginManagerIntegrationTest({
                     pluginDescriptors.filter { it.type == pluginType } shouldNot beEmpty()
                 }
             }
-            }
+        }
 
         "return if plugins are enabled or disabled" {
             pluginManagerTestApplication { client ->
