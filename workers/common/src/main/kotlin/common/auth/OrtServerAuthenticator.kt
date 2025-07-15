@@ -21,12 +21,8 @@ package org.eclipse.apoapsis.ortserver.workers.common.auth
 
 import java.net.Authenticator
 import java.net.PasswordAuthentication
-import java.net.URI
 import java.net.URL
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
-
-import org.apache.commons.text.similarity.FuzzyScore
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -83,7 +79,7 @@ internal class OrtServerAuthenticator(
      * expected that the services are updated concurrently, but they may be accessed from different threads.
      * Therefore, an atomic reference is used to ensure safe publishing of changes.
      */
-    private val refServices = AtomicReference(ServiceData(emptyMap(), emptyAuthenticationInfo))
+    private val refServices = AtomicReference(ServiceData(AuthenticatedServices.empty(), emptyAuthenticationInfo))
 
     /**
      * A reference to the listener to be notified about successful authentications. This listener can be set
@@ -109,17 +105,13 @@ internal class OrtServerAuthenticator(
     fun updateAuthenticationInfo(info: AuthenticationInfo) {
         logger.info("Updating the list of authenticated services. Setting ${info.services.size} services.")
 
-        val validatedServices = info.services.filterNot { CredentialsType.NO_AUTHENTICATION in it.credentialsTypes }
-            .mapNotNull { service ->
-                runCatching {
-                    URI.create(service.url) to service
-                }.onFailure {
-                    logger.error("Invalid URI for service '${service.name}': '${service.url}'. Ignoring service.", it)
-                }.getOrNull()
-            }.groupBy { it.first.host }
-            .mapValues { e -> e.value.map { it.second.withTrailingSlash() } }
+        val authenticatedServices = AuthenticatedServices.create(
+            info.services.filterNot { CredentialsType.NO_AUTHENTICATION in it.credentialsTypes },
+            InfrastructureService::url,
+            InfrastructureService::name
+        )
 
-        refServices.set(ServiceData(validatedServices, info))
+        refServices.set(ServiceData(authenticatedServices, info))
     }
 
     /**
@@ -136,25 +128,17 @@ internal class OrtServerAuthenticator(
  * An internally used data class to store information about the services that can be authenticated.
  */
 private data class ServiceData(
-    /** A [Map] storing the known services grouped by their host name. */
-    private val servicesByHost: Map<String, Collection<InfrastructureService>>,
+    /** The object managing the known infrastructure services. */
+    private val authenticatedServices: AuthenticatedServices<InfrastructureService>,
 
     /** The object with authentication information. */
     val authenticationInfo: AuthenticationInfo
 ) {
     /**
-     * Find the best-matching [InfrastructureService] for the given [host] and optional [url]. If there are multiple
-     * services for the same host, the one with the longest matching URL is returned. Returns `null` if no
-     * matching service is found.
+     * Find the best-matching [InfrastructureService] for the given [host] and optional [url].
      */
-    fun getAuthenticatedService(host: String, url: URL?): InfrastructureService? {
-        val hostName = url?.host ?: host
-        val services = servicesByHost[hostName].orEmpty()
-
-        return services.singleOrNull().also {
-            logger.debug("Using single service for host '{}'.", hostName)
-        } ?: findBestMatchingService(services, url)
-    }
+    fun getAuthenticatedService(host: String, url: URL?): InfrastructureService? =
+        authenticatedServices.getAuthenticatedServiceFor(host, url)
 }
 
 /**
@@ -187,70 +171,3 @@ private class ServicesAuthenticator(
         }
     }
 }
-
-/**
- * Return an [InfrastructureService] instance whose URI is guaranteed to end on a slash. This is needed for correct
- * prefix matching.
- */
-private fun InfrastructureService.withTrailingSlash(): InfrastructureService =
-    this.takeIf { url.endsWith('/') } ?: copy(url = "$url/")
-
-/**
- * Try to find the best matching [InfrastructureService] in the given list of [services] for the given [url]. This
- * function is used if multiple services are available for the same host. It applies some heuristics to find the
- * service whose URL is most closely matching the given [url]. If no services are available for the host, result is
- * *null*.
- */
-private fun findBestMatchingService(services: Collection<InfrastructureService>, url: URL?): InfrastructureService? {
-    logger.debug(
-        "Finding best matching service for '{}' from {}.",
-        url?.toString(),
-        services.joinToString { "${it.name} (${it.url})" }
-    )
-
-    val matchingServices = url?.let { requestUrl ->
-        val strUrl = "${requestUrl.toString().removeSuffix("/")}/"
-        services.filter { strUrl.startsWith(it.url) || it.url == strUrl }
-    } ?: services
-
-    return matchingServices.maxByOrNull { it.url.length } ?: findMostSimilarService(services, url)
-}
-
-/**
- * An object for doing fuzzy matching of URLs to authenticate against service URLs. This is used as a heuristic if
- * there are multiple services defined for a host, but no prefix match is found.
- */
-private val fuzzyScore = FuzzyScore(Locale.US)
-
-/**
- * Try to find an [InfrastructureService] that most closely matches the given [url]. This function is called if no
- * service for the URL can be found based on prefix matching. If there are services at all, it tries to find the best
- * match using a fuzzy search.
- */
-private fun findMostSimilarService(services: Collection<InfrastructureService>, url: URL?): InfrastructureService? =
-    if (services.isEmpty() || url == null) {
-        null
-    } else {
-        val strUrl = url.toString().removeSuffix("/")
-        logger.warn(
-            "No unique infrastructure service found to match '{}'. Trying to find the best match. " +
-                    "If this yields an incorrect service, please declare one with a URL that is a prefix of this URL.",
-            strUrl
-        )
-
-        val sortedServicesWithScores = services.map { service ->
-            service to fuzzyScore.fuzzyScore(service.url.removeSuffix("/"), strUrl)
-        }.sortedByDescending { it.second }
-
-        sortedServicesWithScores.first().takeUnless { sortedServicesWithScores[1].second == it.second }?.first
-            .also { service ->
-                if (service == null) {
-                    logger.warn(
-                        "Found multiple services with the same matching score for '{}': {}.",
-                        strUrl,
-                        sortedServicesWithScores.takeWhile { it.second == sortedServicesWithScores.first().second }
-                            .joinToString { "${it.first.name} (${it.first.url})" }
-                    )
-                }
-            }
-    }
