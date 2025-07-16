@@ -20,7 +20,7 @@
 # License-Filename: LICENSE
 
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
-FROM eclipse-temurin:21.0.7_6-jdk-jammy@sha256:d19563c7792d72d3a185208b37e0661c41205848c6beb6b9b1e639fee97926a1
+FROM eclipse-temurin:21.0.7_6-jdk-jammy@sha256:c99563ed0eeddb4dcfcb2c899493dd3916a2052eac32381581f2531c984c7c64
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
