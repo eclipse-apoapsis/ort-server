@@ -38,7 +38,7 @@ RUN scancode-license-data --path /opt/scancode-license-data \
     && rm -rf /opt/scancode-license-data/static
 
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
-FROM eclipse-temurin:21.0.7_6-jdk-jammy@sha256:c99563ed0eeddb4dcfcb2c899493dd3916a2052eac32381581f2531c984c7c64
+FROM eclipse-temurin:21.0.7_6-jdk-jammy@sha256:746ad7128069fdaa77df1f06a0463ad50f4ae787648cbbcc6d6ab0e702e6c97e
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
