@@ -24,6 +24,7 @@ import git.semver.plugin.gradle.PrintTask
 val dockerBaseBuildArgs: String by project
 val dockerBaseImageTag: String by project
 val dockerImageTag: String by project
+val containerEngineCommand: String by project
 
 plugins {
     alias(libs.plugins.gitSemver)
@@ -120,7 +121,7 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
             inputs.dir(context)
 
             commandLine = listOf(
-                "docker", "build",
+                containerEngineCommand, "build",
                 "-f", dockerfile.path,
                 *buildArgs.toTypedArray(),
                 "-t", "ort-server-${name.lowercase()}:$dockerImageTag",
@@ -139,7 +140,7 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
             inputs.dir(context)
 
             commandLine = listOf(
-                "docker", "build",
+                containerEngineCommand, "build",
                 "-f", dockerfile.path,
                 *buildArgs.toTypedArray(),
                 "-t", "ort-server-${name.lowercase()}-worker-base-image:$dockerBaseImageTag",
