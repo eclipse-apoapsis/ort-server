@@ -115,7 +115,7 @@ const OverviewContent = () => {
         </Link>
         <Link
           to='/admin/runs'
-          search={{ status: [runStatusSchema.Values.ACTIVE] }}
+          search={{ status: [runStatusSchema.enum.ACTIVE] }}
         >
           <StatisticsCard
             title='Active runs'
