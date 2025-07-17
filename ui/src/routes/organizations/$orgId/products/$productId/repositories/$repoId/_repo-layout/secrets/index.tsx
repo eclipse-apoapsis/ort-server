@@ -26,6 +26,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { EditIcon, PlusIcon } from 'lucide-react';
+import z from 'zod';
 
 import {
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
@@ -456,9 +457,11 @@ const RepositorySecrets = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/'
 )({
-  validateSearch: paginationSearchParameterSchema
-    .merge(productPaginationSearchParameterSchema)
-    .merge(orgPaginationSearchParameterSchema),
+  validateSearch: z.object({
+    ...paginationSearchParameterSchema.shape,
+    ...productPaginationSearchParameterSchema.shape,
+    ...orgPaginationSearchParameterSchema.shape,
+  }),
   loaderDeps: ({
     search: {
       page,

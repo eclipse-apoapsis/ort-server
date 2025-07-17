@@ -32,6 +32,7 @@ import {
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import z from 'zod';
 
 import { useRunsServiceGetApiV1RunsByRunIdProjects } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
@@ -432,12 +433,14 @@ const ProjectsComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/projects/'
 )({
-  validateSearch: declaredLicenseSearchParameterSchema
-    .merge(definitionFilePathSearchParameterSchema)
-    .merge(paginationSearchParameterSchema)
-    .merge(projectIdentifierSearchParameterSchema)
-    .merge(sortingSearchParameterSchema)
-    .merge(markedSearchParameterSchema),
+  validateSearch: z.object({
+    ...declaredLicenseSearchParameterSchema.shape,
+    ...definitionFilePathSearchParameterSchema.shape,
+    ...paginationSearchParameterSchema.shape,
+    ...projectIdentifierSearchParameterSchema.shape,
+    ...sortingSearchParameterSchema.shape,
+    ...markedSearchParameterSchema.shape,
+  }),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
       context.queryClient,
