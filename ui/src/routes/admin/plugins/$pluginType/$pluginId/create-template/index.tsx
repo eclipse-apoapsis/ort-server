@@ -18,6 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CheckedState } from '@radix-ui/react-checkbox';
 import {
   createFileRoute,
   useLoaderData,
@@ -238,7 +239,10 @@ const CreateTemplate = () => {
                 <FormItem>
                   <FormLabel>Template Name</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input
+                      {...field}
+                      value={typeof field.value === 'string' ? field.value : ''}
+                    />
                   </FormControl>
                   <FormDescription>
                     The name of the template to create.
@@ -267,7 +271,10 @@ const CreateTemplate = () => {
                       render={({ field }) => (
                         <FormControl>
                           {option.type === 'BOOLEAN' ? (
-                            <Checkbox {...field} />
+                            <Checkbox
+                              checked={field.value as CheckedState}
+                              onCheckedChange={field.onChange}
+                            />
                           ) : option.isRequired ? (
                             <Input
                               {...field}
@@ -277,7 +284,13 @@ const CreateTemplate = () => {
                                   ? 'number'
                                   : 'text'
                               }
-                              disabled={isNotSet}
+                              value={
+                                typeof field.value === 'string' ||
+                                typeof field.value === 'number'
+                                  ? field.value
+                                  : ''
+                              }
+                              disabled={Boolean(isNotSet)}
                             />
                           ) : (
                             <OptionalInput
@@ -306,9 +319,9 @@ const CreateTemplate = () => {
                           }}
                         >
                           <Checkbox
-                            checked={field.value}
+                            checked={field.value as CheckedState}
                             onCheckedChange={field.onChange}
-                            disabled={isNotSet}
+                            disabled={Boolean(isNotSet)}
                           />
                           isFinal
                         </label>
@@ -326,7 +339,7 @@ const CreateTemplate = () => {
                           }}
                         >
                           <Checkbox
-                            checked={field.value}
+                            checked={field.value as CheckedState}
                             onCheckedChange={field.onChange}
                           />
                           undefined
