@@ -62,11 +62,11 @@ const formSchema = z.object({
   username: z.string().min(1),
   firstName: asOptionalField(z.string().min(1)),
   lastName: asOptionalField(z.string().min(1)),
-  email: asOptionalField(z.string().email()),
+  email: asOptionalField(z.email()),
   password: asOptionalField(z.string().min(1)),
   temporary: z.boolean(),
   organizations: z.array(z.string()).min(1, {
-    message: 'The user must be part of at least one organization.',
+    error: 'The user must be part of at least one organization.',
   }),
 });
 

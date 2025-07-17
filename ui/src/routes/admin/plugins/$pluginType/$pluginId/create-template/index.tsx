@@ -26,7 +26,7 @@ import {
 } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { z, ZodTypeAny } from 'zod';
+import { z, ZodType } from 'zod';
 
 import { usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateName } from '@/api/queries';
 import {
@@ -61,7 +61,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
 import { Route as LayoutRoute } from '../../../route.tsx';
 
-function optionTypeToZodType(type: PluginOptionType): ZodTypeAny {
+function optionTypeToZodType(type: PluginOptionType): ZodType {
   switch (type) {
     case 'BOOLEAN':
       return z.boolean();
@@ -83,7 +83,7 @@ function optionTypeToZodType(type: PluginOptionType): ZodTypeAny {
 const templateName = 'Template Name';
 
 function buildFormSchema(options: Array<PluginOption>) {
-  const shape: Record<string, ZodTypeAny> = {};
+  const shape: Record<string, ZodType> = {};
   shape[templateName] = z.string().min(1);
   for (const opt of options) {
     let schema = optionTypeToZodType(opt.type);

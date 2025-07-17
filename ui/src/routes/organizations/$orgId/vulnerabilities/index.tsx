@@ -28,6 +28,7 @@ import {
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import z from 'zod';
 
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdVulnerabilities } from '@/api/queries';
 import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
@@ -362,9 +363,11 @@ const OrganizationVulnerabilitiesComponent = () => {
 };
 
 export const Route = createFileRoute('/organizations/$orgId/vulnerabilities/')({
-  validateSearch: paginationSearchParameterSchema
-    .merge(sortingSearchParameterSchema)
-    .merge(markedSearchParameterSchema),
+  validateSearch: z.object({
+    ...paginationSearchParameterSchema.shape,
+    ...sortingSearchParameterSchema.shape,
+    ...markedSearchParameterSchema.shape,
+  }),
   loader: async ({ context, params }) => {
     await prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
       context.queryClient,

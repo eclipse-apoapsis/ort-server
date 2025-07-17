@@ -31,6 +31,7 @@ import {
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import z from 'zod';
 
 import { useProductsServiceGetApiV1ProductsByProductIdVulnerabilities } from '@/api/queries';
 import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
@@ -425,11 +426,13 @@ const ProductVulnerabilitiesComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/vulnerabilities/'
 )({
-  validateSearch: paginationSearchParameterSchema
-    .merge(sortingSearchParameterSchema)
-    .merge(packageIdentifierSearchParameterSchema)
-    .merge(vulnerabilityRatingSearchParameterSchema)
-    .merge(markedSearchParameterSchema),
+  validateSearch: z.object({
+    ...paginationSearchParameterSchema.shape,
+    ...sortingSearchParameterSchema.shape,
+    ...packageIdentifierSearchParameterSchema.shape,
+    ...vulnerabilityRatingSearchParameterSchema.shape,
+    ...markedSearchParameterSchema.shape,
+  }),
   loader: async ({ context, params }) => {
     await prefetchUseProductsServiceGetApiV1ProductsByProductId(
       context.queryClient,
