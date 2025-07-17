@@ -82,5 +82,9 @@ jib {
     container {
         mainClass = "org.eclipse.apoapsis.ortserver.workers.evaluator.EntrypointKt"
         creationTime.set("USE_CURRENT_TIMESTAMP")
+
+        if (System.getProperty("idea.active").toBoolean()) {
+            jvmFlags = listOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5060")
+        }
     }
 }
