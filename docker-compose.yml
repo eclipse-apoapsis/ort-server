@@ -593,7 +593,7 @@ services:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
         tag: "grafana"
-  
+
   loki:
     image: grafana/loki:latest
     ports:
