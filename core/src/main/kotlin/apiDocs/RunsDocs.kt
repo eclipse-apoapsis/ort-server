@@ -34,6 +34,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Licenses
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
@@ -57,8 +59,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
-import org.eclipse.apoapsis.ortserver.model.LogLevel
-import org.eclipse.apoapsis.ortserver.model.LogSource
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
