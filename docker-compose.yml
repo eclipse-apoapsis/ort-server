@@ -161,6 +161,7 @@ services:
       retries: 5
     ports:
       - "${ORT_SERVER_CORE_PORT:-8080}:8080"
+      - "5000:5000"
     environment:
       PORT: 8080
       UI_HOST: "localhost:5173"
@@ -369,6 +370,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    ports:
+      - "5020:5020"
     environment:
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
@@ -411,6 +414,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    ports:
+      - "5060:5060"
     environment:
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
@@ -454,6 +459,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    ports:
+      - "5070:5070"
     environment:
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
@@ -502,6 +509,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    ports:
+      - "5050:5050"
     environment:
       DB_URL: "jdbc:postgresql://postgres"
       DB_HOST: "postgres"
