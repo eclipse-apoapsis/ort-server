@@ -19,26 +19,23 @@
 
 import z from 'zod';
 
-import { OrtRunStatus, Severity, VulnerabilityRating } from '@/api/requests';
+import {
+  $OrtRunStatus,
+  $Severity,
+  $VulnerabilityRating,
+} from '@/api/requests/schemas.gen';
 
 // Enum schema for the groupId parameter of the Groups endpoints
 export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
 
 // Enum schema for the possible values of the status parameter of the ORT run
-export const runStatusSchema: z.ZodEnum<[OrtRunStatus, ...OrtRunStatus[]]> =
-  z.enum(['CREATED', 'ACTIVE', 'FAILED', 'FINISHED', 'FINISHED_WITH_ISSUES']);
+export const runStatusSchema = z.enum($OrtRunStatus.enum);
 
 // Enum schema for the possible values of the severities
-export const severitySchema: z.ZodEnum<[Severity, ...Severity[]]> = z.enum([
-  'HINT',
-  'WARNING',
-  'ERROR',
-]);
+export const severitySchema = z.enum($Severity.enum);
 
 // Enum schema for the possible values of the advisory overall vulnerability ratings
-export const vulnerabilityRatingSchema: z.ZodEnum<
-  [VulnerabilityRating, ...VulnerabilityRating[]]
-> = z.enum(['NONE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
+export const vulnerabilityRatingSchema = z.enum($VulnerabilityRating.enum);
 
 // Enum schema and type for the possible values of the issue categories.
 export const issueCategorySchema = z.enum([
