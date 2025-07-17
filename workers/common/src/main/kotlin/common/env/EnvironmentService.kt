@@ -257,49 +257,33 @@ class EnvironmentService(
         val secretOrganizationLevel =
             secretRepository.getByIdAndName(OrganizationId(ortRun.organizationId), secretName)
 
-        secretRepositoryLevel?.let {
-            secretProductLevel?.let {
-                secretOrganizationLevel?.let {
-                    logger.info(
-                        "Found secret '$secretName' at repository, product and organization level " +
-                            "for service '$serviceName'. Using repository level."
+        return (secretRepositoryLevel ?: secretProductLevel ?: secretOrganizationLevel).also { resolvedSecret ->
+            if (resolvedSecret == null) {
+                logger.error("Could not find secret '$secretName' for service '$serviceName'.")
+            } else {
+                val message = buildString {
+                    append("Found secret '$secretName' for service '$serviceName' at the following levels: ")
+
+                    append(
+                        listOfNotNull(
+                            "repository".takeIf { secretRepositoryLevel != null },
+                            "product".takeIf { secretProductLevel != null },
+                            "organization".takeIf { secretOrganizationLevel != null }
+                        ).joinToString(", ", postfix = ". ")
                     )
-                    return secretRepositoryLevel
+
+                    append("Using")
+
+                    when {
+                        secretRepositoryLevel != null -> append(" repository level.")
+                        secretProductLevel != null -> append(" product level.")
+                        else -> append(" organization level.")
+                    }
                 }
 
-                logger.info(
-                    "Found secret '$secretName' at repository and product level " +
-                        "for service '$serviceName'. Using repository level."
-                )
-                return secretRepositoryLevel
+                logger.info(message)
             }
-            secretOrganizationLevel?.let {
-                logger.info(
-                    "Found secret '$secretName' at repository and organization level " +
-                        "for service '$serviceName'. Using repository level."
-                )
-                return secretRepositoryLevel
-            }
-            return secretRepositoryLevel
         }
-
-        secretProductLevel?.let {
-            secretOrganizationLevel?.let {
-                logger.info(
-                    "Found secret '$secretName' at product and organization level " +
-                        "for service '$serviceName'. Using product level."
-                )
-                return secretProductLevel
-            }
-            return secretProductLevel
-        }
-
-        secretOrganizationLevel?.let {
-            return secretOrganizationLevel
-        }
-
-        logger.error("No secret found by name '$secretName' for service '$serviceName'.")
-        return null
     }
 }
 
