@@ -69,7 +69,7 @@ internal fun Route.getTemplate(
 
             jsonBody<PluginTemplate> {
                 example("Example") {
-                    PluginTemplate(
+                    value = PluginTemplate(
                         name = "exampleTemplate",
                         pluginType = PluginType.ADVISOR,
                         pluginId = "examplePlugin",
