@@ -70,7 +70,7 @@ internal fun Route.createTemplate(
             required = true
 
             example("Example") {
-                listOf(
+                value = listOf(
                     PluginOptionTemplate("option1", PluginOptionType.STRING, "defaultValue", false),
                     PluginOptionTemplate("option2", PluginOptionType.BOOLEAN, "true", true)
                 )
