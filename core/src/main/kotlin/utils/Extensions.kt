@@ -21,7 +21,10 @@ package org.eclipse.apoapsis.ortserver.core.utils
 
 import io.ktor.server.config.tryGetString
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 
@@ -43,3 +46,87 @@ fun ConfigManager.createKeycloakClientConfiguration(): KeycloakClientConfigurati
         subjectClientId = getString("keycloak.subjectClientId")
     )
 }
+
+private val emptyPluginConfig = PluginConfig(options = emptyMap(), secrets = emptyMap())
+
+/**
+ * Get all [PluginConfig]s from a [CreateOrtRun] object. The result is a map from [PluginType]s to maps of plugin IDs to
+ * [PluginConfig]s. Some job configs allow to enable plugins without additional configuration, in this case an empty
+ * [PluginConfig] is used as the value for the plugin ID in the map.
+ */
+fun CreateOrtRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConfig>> =
+    buildMap {
+        jobConfigs.advisor?.let { jobConfig ->
+            val allAdvisors = jobConfig.advisors + jobConfig.config?.keys.orEmpty()
+            put(PluginType.ADVISOR, allAdvisors.associateWith { jobConfig.config?.get(it) ?: emptyPluginConfig })
+        }
+
+        jobConfigs.analyzer.let { jobConfig ->
+            val allPackageManagers = jobConfig.packageManagerOptions?.keys.orEmpty() +
+                    jobConfig.enabledPackageManagers.orEmpty() -
+                    jobConfig.disabledPackageManagers.orEmpty()
+
+            put(
+                PluginType.PACKAGE_MANAGER,
+                allPackageManagers.associateWith { packageManager ->
+                    jobConfig.packageManagerOptions?.get(packageManager)?.options?.let {
+                        PluginConfig(it, emptyMap())
+                    } ?: emptyPluginConfig
+                }
+            )
+
+            jobConfig.packageCurationProviders?.let { packageCurationProviders ->
+                put(
+                    PluginType.PACKAGE_CURATION_PROVIDER,
+                    packageCurationProviders.associate { providerConfig ->
+                        providerConfig.type to PluginConfig(
+                            options = providerConfig.options,
+                            secrets = providerConfig.secrets
+                        )
+                    }
+                )
+            }
+        }
+
+        jobConfigs.scanner?.let { jobConfig ->
+            val allScanners = jobConfig.scanners.orEmpty() +
+                    jobConfig.projectScanners.orEmpty() +
+                    jobConfig.config?.keys.orEmpty()
+            put(PluginType.SCANNER, allScanners.associateWith { jobConfig.config?.get(it) ?: emptyPluginConfig })
+        }
+
+        jobConfigs.evaluator?.let { jobConfig ->
+            jobConfig.packageConfigurationProviders?.let { packageConfigurationProviders ->
+                put(
+                    PluginType.PACKAGE_CONFIGURATION_PROVIDER,
+                    packageConfigurationProviders.associate { providerConfig ->
+                        providerConfig.type to PluginConfig(
+                            options = providerConfig.options,
+                            secrets = providerConfig.secrets
+                        )
+                    }
+                )
+            }
+        }
+
+        jobConfigs.reporter?.let { jobConfig ->
+            val allReporters = jobConfig.formats + jobConfig.config?.keys.orEmpty()
+            put(PluginType.REPORTER, allReporters.associateWith { jobConfig.config?.get(it) ?: emptyPluginConfig })
+
+            // Ignore package configuration providers if the evaluator job is configured, because then the reporter
+            // worker ignores that part of the configuration.
+            if (jobConfigs.evaluator == null) {
+                jobConfig.packageConfigurationProviders?.let { packageConfigurationProviders ->
+                    put(
+                        PluginType.PACKAGE_CONFIGURATION_PROVIDER,
+                        packageConfigurationProviders.associate { providerConfig ->
+                            providerConfig.type to PluginConfig(
+                                options = providerConfig.options,
+                                secrets = providerConfig.secrets
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }.filterValues { it.isNotEmpty() }
