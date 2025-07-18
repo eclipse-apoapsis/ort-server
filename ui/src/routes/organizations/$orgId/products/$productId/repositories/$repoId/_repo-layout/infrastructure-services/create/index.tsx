@@ -282,16 +282,6 @@ const CreateInfrastructureServicePage = () => {
                     credentials.
                   </p>
                   <p>
-                    In most cases, the desired option is to add the credentials
-                    to the Netrc file, as this allows access to the service from
-                    most external tools. Normally, Git should be able to obtain
-                    the credentials from the Netrc file, however, there are rare
-                    cases when Git is not able to authenticate against a
-                    repository based on the information in the Netrc file. In
-                    these cases, you can choose to add the credentials to the
-                    Git credentials file.
-                  </p>
-                  <p>
                     In some cases, there could be conflicting services; for
                     instance, if multiple repositories with different
                     credentials are defined on the same repository server.
