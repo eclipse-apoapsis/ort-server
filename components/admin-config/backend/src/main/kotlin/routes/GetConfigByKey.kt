@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigTable
 import org.eclipse.apoapsis.ortserver.components.authorization.requireAuthenticated
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.jetbrains.exposed.sql.Database
@@ -52,7 +53,7 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            body<Config> {
+            jsonBody<Config> {
                 example("Config values") {
                     value = """
                     {

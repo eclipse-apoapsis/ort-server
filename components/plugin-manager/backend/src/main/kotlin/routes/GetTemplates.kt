@@ -24,7 +24,6 @@ import com.github.michaelbull.result.onSuccess
 
 import io.github.smiley4.ktoropenapi.get
 
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -36,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.getTemplates(
@@ -62,9 +62,7 @@ internal fun Route.getTemplates(
         HttpStatusCode.OK to {
             description = "A list of templates for the specified plugin."
 
-            body<List<PluginTemplate>> {
-                mediaTypes = setOf(ContentType.Application.Json)
-
+            jsonBody<List<PluginTemplate>> {
                 example("Example") {
                     listOf(
                         PluginTemplate(
