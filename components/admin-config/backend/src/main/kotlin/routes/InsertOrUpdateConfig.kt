@@ -52,12 +52,10 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
         jsonBody<Config> {
             description = "The config value and isEnabled properties."
             example("Config value") {
-                value = """
-                    {
-                        "isEnabled": true,
-                        "value": "http://example.com/icon.png"
-                    }
-                """.trimIndent()
+                value = Config(
+                    isEnabled = true,
+                    value = "http://example.com/icon.png"
+                )
             }
         }
     }

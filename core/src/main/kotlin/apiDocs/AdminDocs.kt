@@ -177,12 +177,10 @@ val patchSectionById: RouteConfig.() -> Unit = {
 
         jsonBody<UpdateContentManagementSection> {
             example("Update Section") {
-                value = """
-                    {
-                        "isEnabled": true,
-                        "markdown": "# This is a new footer"
-                    }
-                """.trimIndent()
+                value = UpdateContentManagementSection(
+                    isEnabled = true,
+                    markdown = "# This is a new footer"
+                )
             }
             description = "Set the values that should be updated."
         }
