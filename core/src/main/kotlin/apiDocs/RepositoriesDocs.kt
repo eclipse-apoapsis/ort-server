@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
@@ -254,7 +255,8 @@ val patchRepositoryById: RouteConfig.() -> Unit = {
             example("Update Repository") {
                 value = UpdateRepository(
                     type = RepositoryType.GIT_REPO.asPresent(),
-                    url = "https://example.com/org/updated-repo.git".asPresent()
+                    url = "https://example.com/org/updated-repo.git".asPresent(),
+                    description = "Updated repository description.".asPresent()
                 )
             }
         }
@@ -270,7 +272,8 @@ val patchRepositoryById: RouteConfig.() -> Unit = {
                         organizationId = 2,
                         productId = 3,
                         type = RepositoryType.GIT_REPO,
-                        url = "https://example.com/org/updated-repo.git"
+                        url = "https://example.com/org/updated-repo.git",
+                        description = "Updated repository description."
                     )
                 }
             }
@@ -612,7 +615,8 @@ val patchInfrastructureServiceForRepositoryIdAndName: RouteConfig.() -> Unit = {
                     url = "https://github.com".asPresent(),
                     description = "Updated description".asPresent(),
                     usernameSecretRef = "newGitHubUser".asPresent(),
-                    passwordSecretRef = "newGitHubPassword".asPresent()
+                    passwordSecretRef = "newGitHubPassword".asPresent(),
+                    credentialsTypes = setOf(CredentialsType.NETRC_FILE).asPresent()
                 )
             }
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
@@ -629,7 +633,8 @@ val patchInfrastructureServiceForRepositoryIdAndName: RouteConfig.() -> Unit = {
                         url = "https://github.com",
                         description = "Updated description",
                         usernameSecretRef = "newGitHubUser",
-                        passwordSecretRef = "newGitHubPassword"
+                        passwordSecretRef = "newGitHubPassword",
+                        credentialsTypes = setOf(CredentialsType.NETRC_FILE)
                     )
                 }
             }
