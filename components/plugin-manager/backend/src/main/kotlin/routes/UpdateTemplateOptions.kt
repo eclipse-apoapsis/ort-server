@@ -24,7 +24,6 @@ import com.github.michaelbull.result.onSuccess
 
 import io.github.smiley4.ktoropenapi.put
 
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
@@ -39,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.TemplateError
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 internal fun Route.updateTemplateOptions(
@@ -65,9 +65,8 @@ internal fun Route.updateTemplateOptions(
             required = true
         }
 
-        body<List<PluginOptionTemplate>> {
+        jsonBody<List<PluginOptionTemplate>> {
             description = "The list of plugin option templates."
-            mediaTypes = setOf(ContentType.Application.Json)
             required = true
 
             example("Example") {

@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
 import io.github.smiley4.ktoropenapi.get
 
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -32,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOption
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
 import org.ossreviewtoolkit.plugins.api.PluginDescriptor as OrtPluginDescriptor
 import org.ossreviewtoolkit.plugins.api.PluginOption as OrtPluginOption
@@ -46,8 +46,7 @@ internal fun Route.getInstalledPlugins(pluginService: PluginService) = get("admi
     response {
         HttpStatusCode.OK to {
             description = "Success"
-            body<List<PluginDescriptor>> {
-                mediaTypes = setOf(ContentType.Application.Json)
+            jsonBody<List<PluginDescriptor>> {
                 example("List of ORT plugins") {
                     value = listOf(
                         PluginDescriptor(
