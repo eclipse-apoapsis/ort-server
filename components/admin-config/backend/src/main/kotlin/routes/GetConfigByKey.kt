@@ -55,12 +55,10 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
             description = "Success"
             jsonBody<Config> {
                 example("Config values") {
-                    value = """
-                    {
-                        "isEnabled": false,
-                        "value": "http://example.com/icon.png"
-                    }
-                """.trimIndent()
+                    value = Config(
+                        isEnabled = false,
+                        value = "http://example.com/icon.png"
+                    )
                 }
             }
         }

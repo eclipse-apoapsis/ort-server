@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
+import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
@@ -53,12 +54,10 @@ internal fun Route.patchSecretByRepositoryIdAndName(secretService: SecretService
             }
             jsonBody<UpdateSecret> {
                 example("Update Secret") {
-                    value = """
-                    {
-                        "value": "r3p0-s3cr3t-08_15",
-                        "description": "New access token for Maven Repo 1"
-                    }
-                """.trimIndent()
+                    value = UpdateSecret(
+                        value = "r3p0-s3cr3t-08_15".asPresent(),
+                        description = "New access token for Maven Repo 1".asPresent()
+                    )
                 }
                 description = "Set the values that should be updated. To delete a value, set it explicitly to null."
             }
