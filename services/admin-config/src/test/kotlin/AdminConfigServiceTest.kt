@@ -27,6 +27,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -46,9 +47,11 @@ import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
+@Suppress("LargeClass")
 class AdminConfigServiceTest : WordSpec({
     "loadAdminConfig()" should {
         "return the default configuration if there is no config file" {
@@ -103,6 +106,129 @@ class AdminConfigServiceTest : WordSpec({
                 configManager.containsFile(context, Path("testResolutionsFile2"))
                 configManager.containsFile(context, Path("testEvaluatorRules2"))
             }
+        }
+
+        "check that configuration files referenced by the reporter section exist" {
+            val config = """
+                    reporter {
+                      howToFixTextProviderFile = "testHowToFixTextProviderFile"
+                      customLicenseTextDir = "testCustomLicenseTextDir"
+                    }
+                """.trimIndent()
+
+            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
+            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+
+            verify(exactly = 1) {
+                configManager.containsFile(context, Path("testHowToFixTextProviderFile"))
+                configManager.containsFile(context, Path("testCustomLicenseTextDir"))
+            }
+        }
+
+        "check that reporter assets referenced by the reporter section exist" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFiles = [
+                            {
+                              sourcePath = "reporter/template/logo.png"
+                              targetFolder = "images"
+                              targetName = "report-logo.png"
+                            },
+                            {
+                              sourcePath = "reporter/template/title.ttf"
+                              targetFolder = "fonts"
+                              targetName = "main-font.ftt"
+                            }
+                          ]
+                          assetDirectories = [
+                            {
+                              sourcePath = "reporter/template/assets-files"
+                              targetFolder = "assets"
+                              targetName = "files"
+                            }
+                          ]
+                          nameMapping {
+                            namePrefix = "disclosure-"
+                            startIndex = 0
+                            alwaysAppendIndex = true
+                          }
+                        }
+                      }
+                    }
+                """.trimIndent()
+
+            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
+            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+
+            verify(exactly = 1) {
+                configManager.containsFile(context, Path("reporter/template/logo.png"))
+                configManager.containsFile(context, Path("reporter/template/title.ttf"))
+                configManager.containsFile(context, Path("reporter/template/assets-files/"))
+            }
+        }
+
+        "check that global reporter assets exist" {
+            val config = """
+                    reporter {
+                      assets {
+                        logo: [
+                          {
+                            sourcePath = "reporter/template/logo.png"
+                            targetFolder = "images"
+                            targetName = "report-logo.png"
+                          }
+                        ]
+                      }
+                    }
+                """.trimIndent()
+
+            val (service, configManager) = createServiceAndConfigManager { initAdminConfig(config) }
+            service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+
+            verify(exactly = 1) {
+                configManager.containsFile(context, Path("reporter/template/logo.png"))
+            }
+        }
+
+        "handle references to reporter assets that cannot be resolved" {
+            val config = """
+                    reporter {
+                      assets {
+                        logo: [
+                          {
+                            sourcePath = "reporter/template/logo.png"
+                            targetFolder = "images"
+                            targetName = "report-logo.png"
+                          }
+                        ]
+                      }
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFilesRefs = [ "logo", "nonExistingFile" ]
+                          assetDirectories = [
+                            {
+                              sourcePath = "reporter/template/assets-files"
+                              targetFolder = "assets"
+                              targetName = "files"
+                            }
+                          ]
+                          assetDirectoriesRefs = [ "nonExistingDirectory" ]
+                        }
+                      }
+                    }
+                """.trimIndent()
+
+            val service = createServiceWithConfig(config)
+            val exception = shouldThrow<ConfigException> {
+                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            }
+
+            exception.message shouldContain "'nonExistingFile'"
+            exception.message shouldContain "'nonExistingDirectory'"
         }
 
         "throw an exception if a configuration file cannot be resolved" {
@@ -486,6 +612,268 @@ class AdminConfigServiceTest : WordSpec({
                 useSsl shouldBe true
                 fromAddress shouldBe "notifier@ort-server.example.com"
             }
+        }
+    }
+
+    "reporterConfig" should {
+        "return a default configuration if nothing is configured" {
+            val service = createServiceWithConfig("")
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.reportDefinitions.keys should beEmpty()
+            reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
+            reporterConfig.customLicenseTextDir should beNull()
+            reporterConfig shouldBe AdminConfig.DEFAULT_REPORTER_CONFIG
+        }
+
+        "use default values for unspecified properties" {
+            val config = """
+                    reporter {
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.reportDefinitions.keys should beEmpty()
+            reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
+            reporterConfig.customLicenseTextDir should beNull()
+        }
+
+        "parse simple properties from the reporter section of the config file" {
+            val config = """
+                    reporter {
+                      howToFixTextProviderFile = "testHowToFixTextProviderFile"
+                      customLicenseTextDir = "testCustomLicenseTextDir"
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.howToFixTextProviderFile shouldBe "testHowToFixTextProviderFile"
+            reporterConfig.customLicenseTextDir shouldBe "testCustomLicenseTextDir"
+        }
+
+        "parse report definitions from the reporter section of the config file" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFiles = [
+                            {
+                              sourcePath = "reporter/template/logo.png"
+                              targetFolder = "images"
+                              targetName = "report-logo.png"
+                            },
+                            {
+                              sourcePath = "reporter/template/title.ttf"
+                              targetFolder = "fonts"
+                              targetName = "main-font.ftt"
+                            }
+                          ]
+                          assetDirectories = [
+                            {
+                              sourcePath = "reporter/template/assets-files"
+                              targetFolder = "assets"
+                              targetName = "files"
+                            },
+                            {
+                              sourcePath = "reporter/template/other-assets-files/"
+                              targetFolder = "other-assets"
+                              targetName = "more-files"
+                            }
+                          ]
+                          nameMapping {
+                            namePrefix = "disclosure-"
+                            startIndex = 0
+                            alwaysAppendIndex = true
+                          }
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.reportDefinitions["disclosurePdf"] shouldNotBeNull {
+                pluginId shouldBe "PdfTemplate"
+                assetFiles shouldContainExactly listOf(
+                    ReporterAsset("reporter/template/logo.png", "images", "report-logo.png"),
+                    ReporterAsset("reporter/template/title.ttf", "fonts", "main-font.ftt")
+                )
+                assetDirectories shouldContainExactly listOf(
+                    ReporterAsset("reporter/template/assets-files/", "assets", "files"),
+                    ReporterAsset("reporter/template/other-assets-files/", "other-assets", "more-files")
+                )
+                nameMapping shouldNotBeNull {
+                    namePrefix shouldBe "disclosure-"
+                    startIndex shouldBe 0
+                    alwaysAppendIndex shouldBe true
+                }
+            }
+        }
+
+        "Handle optional properties in report definitions" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.reportDefinitions["disclosurePdf"] shouldNotBeNull {
+                pluginId shouldBe "PdfTemplate"
+                assetFiles should beEmpty()
+                assetDirectories should beEmpty()
+                nameMapping should beNull()
+            }
+        }
+
+        "Handle optional properties in a reporter asset" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFiles = [
+                            {
+                              sourcePath = "reporter/template/logo.png"
+                              targetName = "report-logo.png"
+                            },
+                            {
+                              sourcePath = "reporter/template/title.ttf"
+                              targetFolder = "fonts"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.reportDefinitions["disclosurePdf"] shouldNotBeNull {
+                assetFiles shouldContainExactly listOf(
+                    ReporterAsset("reporter/template/logo.png", null, "report-logo.png"),
+                    ReporterAsset("reporter/template/title.ttf", "fonts", null)
+                )
+            }
+        }
+
+        "Handle optional properties in a name mapping" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          nameMapping {
+                            namePrefix = "disclosure-"
+                          }
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.reportDefinitions["disclosurePdf"] shouldNotBeNull {
+                nameMapping shouldNotBeNull {
+                    namePrefix shouldBe "disclosure-"
+                    startIndex shouldBe 1
+                    alwaysAppendIndex shouldBe false
+                }
+            }
+        }
+
+        "support asset definitions on top-level of the reporter section" {
+            val config = """
+                    reporter {
+                      assets {
+                        pdfAssets: [
+                          {
+                            sourcePath = "reporter/template/logo.png"
+                            targetFolder = "images"
+                            targetName = "report-logo.png"
+                          },
+                          {
+                            sourcePath = "reporter/template/title.ttf"
+                            targetFolder = "fonts"
+                            targetName = "main-font.ftt"
+                          }
+                        ]
+                        themeAssets: [
+                          {
+                            sourcePath = "reporter/template/themes"
+                            targetFolder = "assets"
+                            targetName = "themes"
+                          }
+                        ]
+                        layoutAssets: [
+                          {
+                            sourcePath = "reporter/layout/tiles/"
+                          }
+                        ]
+                        specialAssets: [
+                          {
+                            sourcePath = "special/layout/foo"
+                          },
+                          {
+                            sourcePath = "special/layout/bar"
+                          }
+                        ]
+                      }
+                      reports {
+                        disclosurePdf {
+                          pluginId = "PdfTemplate"
+                          assetFilesRefs = [ "pdfAssets" ]
+                          assetDirectories = [
+                            {
+                              sourcePath = "reporter/template/assets-files"
+                              targetFolder = "assets"
+                              targetName = "files"
+                            }
+                          ]
+                          assetDirectoriesRefs = [ "themeAssets", "layoutAssets" ]
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.reportDefinitions["disclosurePdf"] shouldNotBeNull {
+                pluginId shouldBe "PdfTemplate"
+                assetFiles shouldContainExactly listOf(
+                    ReporterAsset("reporter/template/logo.png", "images", "report-logo.png"),
+                    ReporterAsset("reporter/template/title.ttf", "fonts", "main-font.ftt")
+                )
+                assetDirectories shouldContainExactlyInAnyOrder listOf(
+                    ReporterAsset("reporter/template/assets-files/", "assets", "files"),
+                    ReporterAsset("reporter/template/themes/", "assets", "themes"),
+                    ReporterAsset("reporter/layout/tiles/")
+                )
+            }
+
+            reporterConfig.globalAssets.keys shouldContainExactlyInAnyOrder listOf(
+                "pdfAssets", "themeAssets", "layoutAssets", "specialAssets"
+            )
+            reporterConfig.globalAssets["specialAssets"].orEmpty() shouldContainExactly listOf(
+                ReporterAsset("special/layout/foo"),
+                ReporterAsset("special/layout/bar")
+            )
         }
     }
 
