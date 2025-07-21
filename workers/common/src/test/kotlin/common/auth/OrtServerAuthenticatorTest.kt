@@ -235,8 +235,6 @@ class OrtServerAuthenticatorTest : WordSpec() {
             }
 
             "return credentials from a single service for the host" {
-                val url = "https://repo.example.com/org/repo"
-
                 val authenticator = OrtServerAuthenticator.install()
                 val services = listOf(
                     createService("s3", "https://repo.example.com/org/other_repo", usernameSecret, passwordSecret)
@@ -250,7 +248,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
                     "tcp",
                     "hello",
                     "https",
-                    URI.create(url).toURL(),
+                    null,
                     Authenticator.RequestorType.SERVER
                 )
 
@@ -272,6 +270,35 @@ class OrtServerAuthenticatorTest : WordSpec() {
                         passwordSecret
                     ),
                     createService("s4", "https://repos.example.com/artifactory/api/npm/repo2")
+                )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
+
+                val pwd = Authenticator.requestPasswordAuthentication(
+                    "repo.example.com",
+                    null,
+                    443,
+                    "tcp",
+                    "hello",
+                    "https",
+                    URI.create(url).toURL(),
+                    Authenticator.RequestorType.SERVER
+                )
+
+                pwd.userName shouldBe USERNAME
+                pwd.password shouldBe PASSWORD.toCharArray()
+            }
+
+            "return the credentials from the single service if the prefix does not match, but fuzzy search is enabled" {
+                val url = "https://repos.example.com/artifactory/repo1/@scope/lib/-/name/lib-1.0.0.tgz"
+
+                val authenticator = OrtServerAuthenticator.install()
+                val services = listOf(
+                    createService(
+                        "svc",
+                        "https://repos.example.com/artifactory/api/npm/repo1",
+                        usernameSecret,
+                        passwordSecret
+                    ),
                 )
                 authenticator.updateAuthenticationInfo(createAuthInfo(services))
 

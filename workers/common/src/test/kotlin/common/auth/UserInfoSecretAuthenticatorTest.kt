@@ -86,7 +86,7 @@ class UserInfoSecretAuthenticatorTest : StringSpec({
         ) should beNull()
     }
 
-    "A non-exact match for a URL should be performed" {
+    "A prefix match for a URL should be performed" {
         val url = "https://test-match.example.com/test/sub/path/artifact.tar.gz"
         val env = mapOf(
             "TOP_LEVEL_URL" to "https://foo:bar@test-match.example.com/test",
@@ -97,6 +97,12 @@ class UserInfoSecretAuthenticatorTest : StringSpec({
             userName shouldBe testSecrets[USERNAME_SECRET]
             String(password) shouldBe testSecrets[PASSWORD_SECRET]
         }
+    }
+
+    "No result should be returned if the URL prefix does not match" {
+        val env = mapOf("NO_MATCH_URL" to "https://$USERNAME_SECRET:$PASSWORD_SECRET@example.com/test/sub/path")
+
+        testAuthentication("https://example.com/test", env = env) should beNull()
     }
 })
 
