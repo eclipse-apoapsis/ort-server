@@ -73,6 +73,6 @@ jib {
 
     container {
         mainClass = "org.eclipse.apoapsis.ortserver.tasks.TaskRunnerKt"
-        creationTime.set("USE_CURRENT_TIMESTAMP")
+        creationTime = "USE_CURRENT_TIMESTAMP"
     }
 }
