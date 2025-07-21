@@ -38,7 +38,7 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass = "io.ktor.server.netty.EngineMain"
 
     val isDevelopment = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -151,7 +151,7 @@ jib {
 
     container {
         mainClass = "io.ktor.server.netty.EngineMain"
-        creationTime.set("USE_CURRENT_TIMESTAMP")
+        creationTime = "USE_CURRENT_TIMESTAMP"
 
         if (System.getProperty("idea.active").toBoolean()) {
             jvmFlags = listOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5000")
