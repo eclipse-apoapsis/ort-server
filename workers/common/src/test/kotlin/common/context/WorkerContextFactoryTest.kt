@@ -25,6 +25,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -65,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
@@ -73,7 +75,7 @@ class WorkerContextFactoryTest : WordSpec({
     beforeEach {
         mockkObject(OrtServerAuthenticator)
 
-        every { OrtServerAuthenticator.install() } returns mockk(relaxed = true)
+        every { OrtServerAuthenticator.install(any()) } returns mockk(relaxed = true)
     }
 
     afterEach {
@@ -467,7 +469,7 @@ class WorkerContextFactoryTest : WordSpec({
                 every { updateAuthenticationInfo(any()) } just runs
                 every { updateAuthenticationListener(any()) } just runs
             }
-            every { OrtServerAuthenticator.install() } returns authenticator
+            every { OrtServerAuthenticator.install(any()) } returns authenticator
 
             val helper = ContextFactoryTestHelper()
             val context = helper.context()
@@ -526,6 +528,22 @@ class WorkerContextFactoryTest : WordSpec({
             with(slotAuthServices.captured) {
                 services shouldContainExactlyInAnyOrder listOf(service1, service2)
                 secrets shouldContainExactly expectedSecrets
+            }
+        }
+
+        "pass a correct resolver function to the authenticator" {
+            val helper = ContextFactoryTestHelper()
+            helper.context()
+
+            val slotResolverFun = slot<InfraSecretResolverFun>()
+            verify {
+                OrtServerAuthenticator.install(capture(slotResolverFun))
+            }
+
+            with(slotResolverFun.captured) {
+                configSecrets.entries.forAll { e ->
+                    this(Path(e.key)) shouldBe e.value
+                }
             }
         }
     }

@@ -199,7 +199,12 @@ fun AdvisorConfiguration.mapToOrt() =
 
 fun AdvisorResult.mapToOrt() =
     OrtAdvisorResult(
-        advisor = OrtAdvisorDetails(advisorName, capabilities.mapTo(enumSetOf(), OrtAdvisorCapability::valueOf)),
+        advisor = OrtAdvisorDetails(
+            advisorName,
+            capabilities.mapTo(enumSetOf()) {
+                OrtAdvisorCapability.valueOf(it.uppercase())
+            }
+        ),
         summary = OrtAdvisorSummary(
             startTime = startTime.toJavaInstant(),
             endTime = endTime.toJavaInstant(),

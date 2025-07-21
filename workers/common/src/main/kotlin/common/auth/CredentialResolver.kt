@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.auth
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Secret
 
@@ -66,3 +67,10 @@ internal fun credentialResolver(authenticationInfo: AuthenticationInfo): Credent
  */
 internal fun resolveCredentials(resolverFun: CredentialResolverFun, vararg secrets: Secret): Map<Secret, String> =
     secrets.associateWith(resolverFun)
+
+/**
+ * Return an [InfraSecretResolverFun] that delegates to the given [configManager] to resolve secrets.
+ */
+internal fun infraSecretResolverFromConfig(configManager: ConfigManager): InfraSecretResolverFun = { secret ->
+    configManager.getSecret(secret)
+}

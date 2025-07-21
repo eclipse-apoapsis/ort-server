@@ -48,6 +48,7 @@ object AnalyzerJobsTable : LongIdTable("analyzer_jobs") {
     val finishedAt = timestamp("finished_at").nullable()
     val configuration = jsonb<AnalyzerJobConfiguration>("configuration")
     val status = enumerationByName<JobStatus>("status", 128)
+    val errorMessage = text("error_message").nullable()
 }
 
 class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
@@ -61,6 +62,7 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
     var finishedAt by AnalyzerJobsTable.finishedAt.transformToDatabasePrecision()
     var configuration by AnalyzerJobsTable.configuration
     var status by AnalyzerJobsTable.status
+    var errorMessage by AnalyzerJobsTable.errorMessage
 
     val analyzerRun by AnalyzerRunDao optionalBackReferencedOn AnalyzerRunsTable.analyzerJobId
 
@@ -71,7 +73,8 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
         startedAt = startedAt,
         finishedAt = finishedAt,
         configuration = configuration,
-        status = status
+        status = status,
+        errorMessage = errorMessage
     )
 
     fun mapToJobSummaryModel() = JobSummary(
@@ -79,6 +82,7 @@ class AnalyzerJobDao(id: EntityID<Long>) : LongEntity(id) {
         createdAt = createdAt,
         startedAt = startedAt,
         finishedAt = finishedAt,
-        status = status
+        status = status,
+        errorMessage = errorMessage
     )
 }

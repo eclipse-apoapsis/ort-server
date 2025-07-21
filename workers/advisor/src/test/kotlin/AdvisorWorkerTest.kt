@@ -68,7 +68,8 @@ private val advisorJob = AdvisorJob(
     startedAt = Clock.System.now(),
     finishedAt = null,
     configuration = AdvisorJobConfiguration(),
-    status = JobStatus.CREATED
+    status = JobStatus.CREATED,
+    errorMessage = null
 )
 
 /**

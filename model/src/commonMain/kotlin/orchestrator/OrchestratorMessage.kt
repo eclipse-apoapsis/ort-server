@@ -220,5 +220,6 @@ data class WorkerError(
  */
 @Serializable
 data class LostSchedule(
+    /** The ID of ORT Run, where jobs schedule is missing. */
     val ortRunId: Long
 ) : OrchestratorMessage()

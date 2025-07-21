@@ -24,6 +24,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { View } from 'lucide-react';
+import z from 'zod';
 
 import {
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
@@ -328,9 +329,10 @@ const RunsComponent = () => {
 };
 
 export const Route = createFileRoute('/admin/runs/')({
-  validateSearch: paginationSearchParameterSchema.merge(
-    statusSearchParameterSchema
-  ),
+  validateSearch: z.object({
+    ...paginationSearchParameterSchema.shape,
+    ...statusSearchParameterSchema.shape,
+  }),
   loaderDeps: ({ search: { page, pageSize, status } }) => ({
     page,
     pageSize,

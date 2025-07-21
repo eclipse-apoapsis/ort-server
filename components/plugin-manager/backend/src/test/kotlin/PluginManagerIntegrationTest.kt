@@ -41,7 +41,8 @@ abstract class PluginManagerIntegrationTest(
                 dbExtension.db,
                 PluginTemplateEventStore(dbExtension.db),
                 pluginService,
-                dbExtension.fixtures.organizationRepository
+                dbExtension.fixtures.organizationRepository,
+                dbExtension.fixtures.repositoryRepository
             )
         }
 

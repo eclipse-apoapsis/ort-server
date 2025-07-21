@@ -31,6 +31,7 @@ import {
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import z from 'zod';
 
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import {
@@ -335,11 +336,13 @@ const RuleViolationsComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/rule-violations/'
 )({
-  validateSearch: paginationSearchParameterSchema
-    .merge(severitySearchParameterSchema)
-    .merge(packageIdentifierSearchParameterSchema)
-    .merge(sortingSearchParameterSchema)
-    .merge(markedSearchParameterSchema),
+  validateSearch: z.object({
+    ...paginationSearchParameterSchema.shape,
+    ...severitySearchParameterSchema.shape,
+    ...packageIdentifierSearchParameterSchema.shape,
+    ...sortingSearchParameterSchema.shape,
+    ...markedSearchParameterSchema.shape,
+  }),
   loader: async ({ context, params }) => {
     await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
       context.queryClient,

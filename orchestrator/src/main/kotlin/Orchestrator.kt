@@ -330,7 +330,13 @@ class Orchestrator(
         )
 
         db.blockingQueryCatching(transactionIsolation = isolationLevel) {
-            val job = workerJobRepositories.updateJobStatus(endpoint, message.jobId, status)
+            val job = workerJobRepositories.updateJobStatus(
+                endpoint,
+                message.jobId,
+                status,
+                true,
+                extractErrorMessage(message)
+            )
             if (issues.isNotEmpty()) ortRunRepository.update(job.ortRunId, issues = issues.asPresent())
 
             nextJobsToSchedule(endpoint, job.ortRunId, header)
@@ -476,10 +482,12 @@ typealias CreatedJobs = List<JobScheduleFunc>
 fun <T : Any> Endpoint<T>.createErrorIssue(error: Any): Issue = Issue(
     timestamp = Clock.System.now(),
     source = configPrefix,
-    message = (error as? WorkerErrorMessage)?.errorMessage
-        ?: "The $configPrefix worker failed due to an unexpected error.",
+    message = extractErrorMessage(error) ?: "The $configPrefix worker failed due to an unexpected error.",
     severity = Severity.ERROR
 )
+
+private fun extractErrorMessage(message: Any): String? =
+    (message as? WorkerErrorMessage)?.errorMessage
 
 /**
  * Return a [Pair] with the given [scheduleContext] and the list of jobs that can be scheduled in the current phase

@@ -53,13 +53,15 @@ class DaoScannerJobRepository(private val db: Database) : ScannerJobRepository {
         id: Long,
         startedAt: OptionalValue<Instant?>,
         finishedAt: OptionalValue<Instant?>,
-        status: OptionalValue<JobStatus>
+        status: OptionalValue<JobStatus>,
+        errorMessage: OptionalValue<String>
     ): ScannerJob = db.blockingQuery {
         val scannerJob = ScannerJobDao[id]
 
         startedAt.ifPresent { scannerJob.startedAt = it }
         finishedAt.ifPresent { scannerJob.finishedAt = it }
         status.ifPresent { scannerJob.status = it }
+        errorMessage.ifPresent { scannerJob.errorMessage = it }
 
         ScannerJobDao[id].mapToModel()
     }

@@ -26,6 +26,9 @@ import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValue
 
+import org.ossreviewtoolkit.utils.common.replaceCredentialsInUri
+import org.ossreviewtoolkit.utils.common.toUri
+
 /**
  * Return the boolean value with the given [path] or [default] if it cannot be found.
  */
@@ -158,6 +161,21 @@ fun Config.getInterpolatedStringOrNull(path: String, variables: Map<String, Stri
  */
 fun Config.getInterpolatedStringOrDefault(path: String, default: String, variables: Map<String, String>): String =
     substituteVariables(getStringOrDefault(path, default), variables)
+
+/**
+ * Return the string at the given [path] and make sure that it is a valid URL. The URL may contain a user info
+ * component to set up authentication for this service; in this case, any credentials are removed. If the [path] does
+ * not point to a valid URL, throw an exception. Components dealing with URLs should use this function to make sure
+ * that they work with a sanitized URL.
+ */
+fun Config.getServiceUrl(path: String): String {
+    val url = getString(path)
+    url.toUri {
+        it.toURL()
+    }.getOrThrow()
+
+    return url.replaceCredentialsInUri()
+}
 
 /**
  * Return a new string based on [string] with all variable references replaced by their current values in the given

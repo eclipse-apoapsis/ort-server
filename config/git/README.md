@@ -43,12 +43,15 @@ configManager {
 }
 ```
 
-The provider supports password authentication for private repositories using these configuration options:
-
-| Option                     | Secret | Description                                      |
-|----------------------------|--------|--------------------------------------------------|
-| gitConfigFileProviderUser  | yes    | The username to use for authentication.          |
-| gitConfigFileProviderToken | yes    | The token or password to use for authentication. |
+The provider relies on the authentication mechanism in ORT Server to deal with private repositories.
+To enable this, add the _names_ of the secrets defining the username and password (or token) to the _user info_ component of the repository URL, e.g.:
+```
+configManager {
+  fileProvider = "git-config"
+  gitUrl = "https://gitConfigFileProviderUser:gitConfigFileProviderToken@config.repository.git"
+}
+```
+The concrete secret values are then queried from the _secrets provider_.
 
 ### Runtime configuration
 

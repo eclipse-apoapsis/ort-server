@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.utils.config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
@@ -185,6 +186,40 @@ class ExtensionsTest : WordSpec({
             val result = config.getStringListOrEmpty("undefinedList")
 
             result should beEmpty()
+        }
+    }
+
+    "getServiceUrl" should {
+        "return a valid URL" {
+            val serviceUrl = "https://example.com:8080/path?query=value#fragment"
+            val config = ConfigFactory.parseMap(
+                mapOf("service.url" to serviceUrl)
+            )
+
+            val result = config.getServiceUrl("service.url")
+
+            result shouldBe serviceUrl
+        }
+
+        "throw an exception if the URL is invalid" {
+            val config = ConfigFactory.parseMap(
+                mapOf("service.url" to "not-a-valid-url")
+            )
+
+            shouldThrow<IllegalArgumentException> {
+                config.getServiceUrl("service.url")
+            }
+        }
+
+        "remove the user info component from the URL" {
+            val serviceUrl = "https://example.com:8080/path?query=value#fragment"
+            val config = ConfigFactory.parseMap(
+                mapOf("service.url" to "https://scott:tiger@example.com:8080/path?query=value#fragment")
+            )
+
+            val result = config.getServiceUrl("service.url")
+
+            result shouldBe serviceUrl
         }
     }
 })

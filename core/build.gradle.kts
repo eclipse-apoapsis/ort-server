@@ -152,6 +152,10 @@ jib {
     container {
         mainClass = "io.ktor.server.netty.EngineMain"
         creationTime.set("USE_CURRENT_TIMESTAMP")
+
+        if (System.getProperty("idea.active").toBoolean()) {
+            jvmFlags = listOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5000")
+        }
     }
 }
 

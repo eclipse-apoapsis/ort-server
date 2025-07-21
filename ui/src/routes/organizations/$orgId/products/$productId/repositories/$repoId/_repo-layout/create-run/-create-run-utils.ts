@@ -38,9 +38,7 @@ const packageManagerOptionsSchema = z.object({
   // An optional array of package manager IDs (as enums) that must run after the current one.
   mustRunAfter: z
     .array(
-      z.nativeEnum(
-        Object.fromEntries(packageManagers.map((pm) => [pm.id, pm.id]))
-      )
+      z.enum(Object.fromEntries(packageManagers.map((pm) => [pm.id, pm.id])))
     )
     .optional(),
   options: z.array(keyValueSchema).optional(),

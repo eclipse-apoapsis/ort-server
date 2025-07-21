@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigTable
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.jetbrains.exposed.sql.Database
@@ -48,15 +49,13 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
             required = true
         }
 
-        body<Config> {
+        jsonBody<Config> {
             description = "The config value and isEnabled properties."
             example("Config value") {
-                value = """
-                    {
-                        "isEnabled": true,
-                        "value": "http://example.com/icon.png"
-                    }
-                """.trimIndent()
+                value = Config(
+                    isEnabled = true,
+                    value = "http://example.com/icon.png"
+                )
             }
         }
     }

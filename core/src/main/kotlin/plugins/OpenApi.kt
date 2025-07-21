@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.github.smiley4.ktoropenapi.OpenApi
 import io.github.smiley4.ktoropenapi.config.AuthType
+import io.github.smiley4.ktoropenapi.config.ExampleEncoder
 import io.github.smiley4.ktoropenapi.openApi
 import io.github.smiley4.ktorswaggerui.swaggerUI
 import io.github.smiley4.schemakenerator.core.CoreSteps.addMissingSupertypeSubtypeRelations
@@ -43,6 +44,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
@@ -54,6 +56,7 @@ import org.koin.ktor.ext.inject
 
 fun Application.configureOpenApi() {
     val config: ApplicationConfig by inject()
+    val json: Json by inject()
 
     install(OpenApi) {
         // Don't show the routes providing the custom json-schemas.
@@ -151,6 +154,10 @@ fun Application.configureOpenApi() {
                     .withTitle(TitleType.OPENAPI_SIMPLE)
                     .compileReferencingRoot(pathType = RefType.OPENAPI_SIMPLE)
             }
+        }
+
+        examples {
+            encoder(ExampleEncoder.kotlinx(json))
         }
     }
 

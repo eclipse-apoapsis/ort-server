@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
@@ -80,11 +81,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.services.ProjectService
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
-import org.eclipse.apoapsis.ortserver.services.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.services.ortrun.IssueService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.PackageService
 import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
+import org.eclipse.apoapsis.ortserver.services.ortrun.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
@@ -209,9 +210,14 @@ fun Route.runs() = route("runs") {
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
                     val pagingOptions = call.pagingOptions(SortProperty("externalId", SortDirection.ASCENDING))
+                    val filters = call.vulnerabilityFilters()
 
                     val vulnerabilitiesForOrtRun =
-                        vulnerabilityService.listForOrtRunId(ortRun.id, pagingOptions.mapToModel())
+                        vulnerabilityService.listForOrtRunId(
+                            ortRun.id,
+                            pagingOptions.mapToModel(),
+                            filters.mapToModel()
+                        )
 
                     val pagedResponse = vulnerabilitiesForOrtRun.mapToApi(VulnerabilityWithIdentifier::mapToApi)
 
@@ -496,6 +502,14 @@ private fun ApplicationCall.ruleViolationFilters(): RuleViolationFilters =
 private fun ApplicationCall.issueFilters() =
     IssueFilter(
         resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull(),
+    )
+
+/**
+ * Extract the vulnerability filters from this [ApplicationCall].
+ */
+private fun ApplicationCall.vulnerabilityFilters() =
+    VulnerabilityFilters(
+        resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull()
     )
 
 /**

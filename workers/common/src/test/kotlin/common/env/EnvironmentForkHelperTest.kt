@@ -40,13 +40,16 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.URI
 
+import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
+import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 
 class EnvironmentForkHelperTest : StringSpec({
     beforeEach {
@@ -76,11 +79,21 @@ class EnvironmentForkHelperTest : StringSpec({
 
         val authenticator = installAuthenticatorMock(authInfo)
 
-        doFork()
+        val config = doFork()
+        val testSecret = Path("testSecret")
+        val testSecretValue = "value of test secret"
+        val configManager = config.configManager
+        every { configManager.getSecret(testSecret) } returns testSecretValue
 
-        verify(exactly = 2) {
-            OrtServerAuthenticator.install()
+        verify {
+            config.setUpOrtEnvironment()
         }
+
+        val slotResolver = mutableListOf<InfraSecretResolverFun>()
+        verify(exactly = 2) {
+            OrtServerAuthenticator.install(capture(slotResolver))
+        }
+        slotResolver.last().invoke(testSecret) shouldBe testSecretValue
 
         val slotAuthInfo = slot<AuthenticationInfo>()
         verify {
@@ -143,14 +156,24 @@ class EnvironmentForkHelperTest : StringSpec({
 })
 
 /**
- * Simulate a fork operation by transferring the relevant information to the simulated child process.
+ * Simulate a fork operation by transferring the relevant information to the simulated child process. Return a mock
+ * for the [WorkerOrtConfig] which is used in the forked process.
  */
-private fun doFork() {
+private fun doFork(): WorkerOrtConfig {
+    val mockConfig = mockk<WorkerOrtConfig> {
+        every { setUpOrtEnvironment() } just runs
+        every { configManager } returns mockk()
+    }
+    mockkObject(WorkerOrtConfig)
+    every { WorkerOrtConfig.create() } returns mockConfig
+
     val processInput = ByteArrayOutputStream()
     EnvironmentForkHelper.prepareFork(processInput)
 
     val stdin = ByteArrayInputStream(processInput.toByteArray())
     EnvironmentForkHelper.setupFork(stdin)
+
+    return mockConfig
 }
 
 /**
@@ -163,7 +186,7 @@ private fun installAuthenticatorMock(authInfo: AuthenticationInfo): OrtServerAut
         every { updateAuthenticationInfo(any()) } just runs
         every { updateAuthenticationListener(any()) } just runs
     }.also {
-        every { OrtServerAuthenticator.install() } returns it
+        every { OrtServerAuthenticator.install(any()) } returns it
     }
 
 /**

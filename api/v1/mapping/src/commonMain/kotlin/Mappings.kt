@@ -84,8 +84,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfoCurationData as ApiVcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters as ApiVulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolution as ApiVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier as ApiVulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
@@ -130,6 +132,7 @@ import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.UserGroup
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
@@ -152,6 +155,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
@@ -583,7 +587,12 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
 )
 
 fun VulnerabilityWithIdentifier.mapToApi() =
-    ApiVulnerabilityWithIdentifier(vulnerability.mapToApi(), identifier.mapToApi(), rating.mapToApi())
+    ApiVulnerabilityWithIdentifier(
+        vulnerability.mapToApi(),
+        identifier.mapToApi(),
+        rating.mapToApi(),
+        resolutions.map { it.mapToApi() }
+    )
 
 fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description, references.map { it.mapToApi() })
 
@@ -794,6 +803,8 @@ fun PackageCurationData.mapToApi() = ApiPackageCurationData(
 
 fun RuleViolationResolution.mapToApi() = ApiRuleViolationResolution(message, reason, comment)
 
+fun VulnerabilityResolution.mapToApi() = ApiVulnerabilityResolution(externalId, reason, comment)
+
 fun VcsInfoCurationData.mapToApi() = ApiVcsInfoCurationData(
     type = type?.mapToApi(),
     url = url,
@@ -809,6 +820,8 @@ fun ApiPackageFilters.mapToModel(): PackageFilters =
     )
 
 fun ApiRuleViolationFilters.mapToModel(): RuleViolationFilters = RuleViolationFilters(resolved = resolved)
+
+fun ApiVulnerabilityFilters.mapToModel(): VulnerabilityFilters = VulnerabilityFilters(resolved = resolved)
 
 fun Project.mapToApi() = ApiProject(
     identifier.mapToApi(),

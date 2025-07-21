@@ -113,7 +113,13 @@ class GitConfigFileProviderTest : WordSpec({
         "return `false` if the path refers to a directory" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
 
-            provider.contains(RESOLVED_CONTEXT_MAIN, Path("customer1/")) shouldBe false
+            provider.contains(RESOLVED_CONTEXT_MAIN, Path("customer1")) shouldBe false
+        }
+
+        "return `true` if the path ending on a slash refers to a directory" {
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+
+            provider.contains(RESOLVED_CONTEXT_MAIN, Path("customer1/")) shouldBe true
         }
 
         "return `false` if a the file cannot be found" {
@@ -126,6 +132,20 @@ class GitConfigFileProviderTest : WordSpec({
     "listFiles" should {
         "return a list of files inside a given directory" {
             val filesPath = "customer2/product2"
+            val expectedFiles = listOf(
+                "customer2/product2/copyright-garbage.yml",
+                "customer2/product2/evaluator.rules.kts",
+                "customer2/product2/license-classifications.yml"
+            )
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+
+            val listFiles = provider.listFiles(RESOLVED_CONTEXT_MAIN, Path(filesPath)).map { it.path }
+
+            listFiles shouldContainExactlyInAnyOrder expectedFiles
+        }
+
+        "return a list of files inside a given directory if the paths end with a slash" {
+            val filesPath = "customer2/product2/"
             val expectedFiles = listOf(
                 "customer2/product2/copyright-garbage.yml",
                 "customer2/product2/evaluator.rules.kts",

@@ -18,6 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CheckedState } from '@radix-ui/react-checkbox';
 import {
   createFileRoute,
   useLoaderData,
@@ -25,7 +26,7 @@ import {
 } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { z, ZodTypeAny } from 'zod';
+import { z, ZodType } from 'zod';
 
 import { usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateName } from '@/api/queries';
 import {
@@ -60,7 +61,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
 import { Route as LayoutRoute } from '../../../route.tsx';
 
-function optionTypeToZodType(type: PluginOptionType): ZodTypeAny {
+function optionTypeToZodType(type: PluginOptionType): ZodType {
   switch (type) {
     case 'BOOLEAN':
       return z.boolean();
@@ -82,7 +83,7 @@ function optionTypeToZodType(type: PluginOptionType): ZodTypeAny {
 const templateName = 'Template Name';
 
 function buildFormSchema(options: Array<PluginOption>) {
-  const shape: Record<string, ZodTypeAny> = {};
+  const shape: Record<string, ZodType> = {};
   shape[templateName] = z.string().min(1);
   for (const opt of options) {
     let schema = optionTypeToZodType(opt.type);
@@ -238,7 +239,10 @@ const CreateTemplate = () => {
                 <FormItem>
                   <FormLabel>Template Name</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input
+                      {...field}
+                      value={typeof field.value === 'string' ? field.value : ''}
+                    />
                   </FormControl>
                   <FormDescription>
                     The name of the template to create.
@@ -267,7 +271,10 @@ const CreateTemplate = () => {
                       render={({ field }) => (
                         <FormControl>
                           {option.type === 'BOOLEAN' ? (
-                            <Checkbox {...field} />
+                            <Checkbox
+                              checked={field.value as CheckedState}
+                              onCheckedChange={field.onChange}
+                            />
                           ) : option.isRequired ? (
                             <Input
                               {...field}
@@ -277,7 +284,13 @@ const CreateTemplate = () => {
                                   ? 'number'
                                   : 'text'
                               }
-                              disabled={isNotSet}
+                              value={
+                                typeof field.value === 'string' ||
+                                typeof field.value === 'number'
+                                  ? field.value
+                                  : ''
+                              }
+                              disabled={Boolean(isNotSet)}
                             />
                           ) : (
                             <OptionalInput
@@ -306,9 +319,9 @@ const CreateTemplate = () => {
                           }}
                         >
                           <Checkbox
-                            checked={field.value}
+                            checked={field.value as CheckedState}
                             onCheckedChange={field.onChange}
-                            disabled={isNotSet}
+                            disabled={Boolean(isNotSet)}
                           />
                           isFinal
                         </label>
@@ -326,7 +339,7 @@ const CreateTemplate = () => {
                           }}
                         >
                           <Checkbox
-                            checked={field.value}
+                            checked={field.value as CheckedState}
                             onCheckedChange={field.onChange}
                           />
                           undefined

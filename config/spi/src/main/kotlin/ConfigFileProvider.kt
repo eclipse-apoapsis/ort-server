@@ -45,8 +45,10 @@ interface ConfigFileProvider {
     fun getFile(context: Context, path: Path): InputStream
 
     /**
-     * Return a flag whether there is a configuration file with the given [path] in the given [context]. If this
-     * function returns *true*, it should be possible to actually read this file via the [getFile] function.
+     * Return a flag whether the specified [path] exists in the given [context]. The [path] can either denote a file or
+     * a folder; in the latter case, it should end with a slash. If this function returns *true*, it should be possible
+     * to actually read this file via the [getFile] function or, in case of a directory, list its content via the
+     * [listFiles] function.
      */
     fun contains(context: Context, path: Path): Boolean
 

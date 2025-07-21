@@ -72,6 +72,7 @@ class DaoNotifierJobRepositoryTest : WorkerJobRepositoryTest<NotifierJob>() {
                 finishedAt = null,
                 configuration = notifierJobConfiguration,
                 status = JobStatus.CREATED,
+                errorMessage = null
             )
         }
 
@@ -93,24 +94,28 @@ class DaoNotifierJobRepositoryTest : WorkerJobRepositoryTest<NotifierJob>() {
             val updatedStartedAt = Clock.System.now().asPresent()
             val updatedFinishedAt = Clock.System.now().asPresent()
             val updatedStatus = JobStatus.FINISHED.asPresent()
+            val updateErrorMessage = "Notifier job error message".asPresent()
 
             val updateResult = notifierJobRepository.update(
                 notifierJob.id,
                 updatedStartedAt,
                 updatedFinishedAt,
-                updatedStatus
+                updatedStatus,
+                updateErrorMessage
             )
 
              updateResult shouldBe notifierJob.copy(
                 startedAt = updatedStartedAt.value.toDatabasePrecision(),
                 finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updatedStatus.value
+                status = updatedStatus.value,
+                errorMessage = updateErrorMessage.value
             )
 
             notifierJobRepository.get(notifierJob.id) shouldBe notifierJob.copy(
                 startedAt = updatedStartedAt.value.toDatabasePrecision(),
                 finishedAt = updatedFinishedAt.value.toDatabasePrecision(),
-                status = updatedStatus.value
+                status = updatedStatus.value,
+                errorMessage = updateErrorMessage.value
             )
         }
 

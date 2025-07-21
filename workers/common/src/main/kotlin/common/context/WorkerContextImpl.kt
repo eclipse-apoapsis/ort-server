@@ -49,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 import org.eclipse.apoapsis.ortserver.workers.common.auth.credentialResolver
+import org.eclipse.apoapsis.ortserver.workers.common.auth.infraSecretResolverFromConfig
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
 
 import org.ossreviewtoolkit.utils.common.safeDeleteRecursively
@@ -96,7 +97,7 @@ internal class WorkerContextImpl(
     /**
      * The authenticator to be used for all requests during the lifetime of this context.
      */
-    private val authenticator = OrtServerAuthenticator.install()
+    private val authenticator = OrtServerAuthenticator.install(infraSecretResolverFromConfig(configManager))
 
     /**
      * A reference to hold the function for resolving credentials. The function is updated whenever new authentication

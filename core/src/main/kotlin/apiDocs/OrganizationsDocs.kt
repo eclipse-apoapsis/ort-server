@@ -26,6 +26,7 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
@@ -350,7 +351,8 @@ val patchInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit =
                     url = "https://github.com".asPresent(),
                     description = "Updated description".asPresent(),
                     usernameSecretRef = "newGitHubUser".asPresent(),
-                    passwordSecretRef = "newGitHubPassword".asPresent()
+                    passwordSecretRef = "newGitHubPassword".asPresent(),
+                    credentialsTypes = setOf(CredentialsType.NETRC_FILE).asPresent()
                 )
             }
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
@@ -367,7 +369,8 @@ val patchInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit =
                         url = "https://github.com",
                         description = "Updated description",
                         usernameSecretRef = "newGitHubUser",
-                        passwordSecretRef = "newGitHubPassword"
+                        passwordSecretRef = "newGitHubPassword",
+                        credentialsTypes = setOf(CredentialsType.NETRC_FILE)
                     )
                 }
             }

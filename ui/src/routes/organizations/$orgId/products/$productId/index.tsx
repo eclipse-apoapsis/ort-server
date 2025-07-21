@@ -20,6 +20,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
+import z from 'zod';
 
 import { useProductsServiceGetApiV1ProductsByProductId } from '@/api/queries';
 import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
@@ -166,9 +167,10 @@ const ProductComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/'
 )({
-  validateSearch: paginationSearchParameterSchema.merge(
-    sortingSearchParameterSchema
-  ),
+  validateSearch: z.object({
+    ...paginationSearchParameterSchema.shape,
+    ...sortingSearchParameterSchema.shape,
+  }),
   loader: async ({ context, params }) => {
     await prefetchUseProductsServiceGetApiV1ProductsByProductId(
       context.queryClient,

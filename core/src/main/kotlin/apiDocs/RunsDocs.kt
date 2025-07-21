@@ -34,6 +34,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Licenses
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogLevel
+import org.eclipse.apoapsis.ortserver.api.v1.model.LogSource
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
@@ -55,9 +57,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
-import org.eclipse.apoapsis.ortserver.model.LogLevel
-import org.eclipse.apoapsis.ortserver.model.LogSource
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
@@ -260,6 +261,14 @@ val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
             description = "The ID of the ORT run."
         }
 
+        queryParameter<Boolean>("resolved") {
+            description =
+                """
+                    If true, only resolved vulnerabilities are returned. If false, only unresolved vulnerabilities are
+                    returned. If missing, both resolved and unresolved vulnerabilities are returned.
+                """.trimIndent()
+        }
+
         standardListQueryParameters()
     }
 
@@ -286,7 +295,14 @@ val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
                                     )
                                 ),
                                 identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
-                                rating = VulnerabilityRating.HIGH
+                                rating = VulnerabilityRating.HIGH,
+                                listOf(
+                                    VulnerabilityResolution(
+                                        externalId = "CVE-2021-1234",
+                                        reason = "INEFFECTIVE_VULNERABILITY",
+                                        comment = "A comment why the vulnerability can be resolved."
+                                    )
+                                )
                             )
                         ),
                         PagingData(

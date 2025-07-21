@@ -22,13 +22,16 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
+import com.github.michaelbull.result.fold
 import com.github.michaelbull.result.map
 import com.github.michaelbull.result.toErrorIfNull
 import com.github.michaelbull.result.toResultOr
 
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesQuery
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
 import org.jetbrains.exposed.sql.Database
 
@@ -36,11 +39,13 @@ import org.ossreviewtoolkit.model.utils.DatabaseUtils.transaction
 import org.ossreviewtoolkit.utils.ort.runBlocking
 
 /** A service for managing plugin templates. */
+@Suppress("TooManyFunctions")
 class PluginTemplateService(
     private val db: Database,
     private val eventStore: PluginTemplateEventStore,
     private val pluginService: PluginService,
-    private val organizationRepository: OrganizationRepository
+    private val organizationRepository: OrganizationRepository,
+    private val repositoryRepository: RepositoryRepository
 ) {
     /**
      * Assign the plugin template with the given [templateName], [pluginType], and [pluginId] to the organization with
@@ -196,6 +201,41 @@ class PluginTemplateService(
             }
     }
 
+    internal fun getPluginsForRepository(
+        repositoryId: Long
+    ): Result<List<PreconfiguredPluginDescriptor>, TemplateError> = db.transaction {
+        val organizationId = repositoryRepository.get(repositoryId)?.organizationId
+
+        if (organizationId == null) {
+            return@transaction TemplateError.NotFound("No repository with ID '$repositoryId' found.").toErr()
+        }
+
+        pluginService.getPlugins().filter { it.enabled }
+            .fold(initial = emptyList<PreconfiguredPluginDescriptor>()) { acc, plugin ->
+                getTemplateForOrganization(plugin.type, plugin.id, organizationId).map { template ->
+                    acc + PreconfiguredPluginDescriptor(
+                        id = plugin.id,
+                        type = plugin.type,
+                        displayName = plugin.displayName,
+                        description = plugin.description,
+                        options = plugin.options.map { option ->
+                            val templateOption = template?.options?.find { it.option == option.name }
+
+                            PreconfiguredPluginOption(
+                                name = option.name,
+                                description = option.description,
+                                type = option.type,
+                                defaultValue = templateOption?.value ?: option.defaultValue,
+                                isFixed = templateOption?.isFinal == true,
+                                isNullable = option.isNullable,
+                                isRequired = option.isRequired
+                            )
+                        }
+                    )
+                }
+            }
+    }
+
     /** Return the plugin template with the given [templateName], [pluginType], and [pluginId]. */
     internal fun getTemplate(
         templateName: String, pluginType: PluginType, pluginId: String
@@ -208,6 +248,22 @@ class PluginTemplateService(
                     "No plugin template with name '$templateName' for plugin type '$pluginType' and ID '$pluginId' " +
                             "found."
                 )
+            }
+    }
+
+    /**
+     *  Return the plugin template with the given [pluginType], [pluginId] for the organization with the given
+     *  [organizationId]. This is either a template that is assigned to the organization, a global template if no
+     *  template is assigned to the organization, or `null` if no template exists for the organization.
+     */
+    internal fun getTemplateForOrganization(
+        pluginType: PluginType,
+        pluginId: String,
+        organizationId: Long
+    ): Result<PluginTemplate?, TemplateError> = db.transaction {
+        validatePlugin(pluginType, pluginId)
+            .map { normalizedPluginId ->
+                GetPluginTemplateForOrganizationQuery(pluginType, normalizedPluginId, organizationId).execute()
             }
     }
 
