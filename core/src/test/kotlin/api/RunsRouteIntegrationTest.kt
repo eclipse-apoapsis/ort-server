@@ -537,7 +537,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${run.id}/logs?level=$invalidLevel")
 
-                response.status shouldBe HttpStatusCode.BadRequest
+                response shouldHaveStatus HttpStatusCode.BadRequest
                 val cause = response.body<ErrorResponse>().cause
                 cause shouldContain invalidLevel
                 cause shouldContain "INFO"
@@ -564,7 +564,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${run.id}/logs?steps=Analyzer,$invalidStep")
 
-                response.status shouldBe HttpStatusCode.BadRequest
+                response shouldHaveStatus HttpStatusCode.BadRequest
                 val cause = response.body<ErrorResponse>().cause
                 cause shouldContain invalidStep
                 cause shouldContain "ANALYZER"
@@ -652,7 +652,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
 
                 vulnerabilities.data shouldHaveSize 2
@@ -725,7 +725,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities?resolved=true")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
 
                 with(vulnerabilities.data) {
@@ -791,7 +791,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities?resolved=false")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
 
                 with(vulnerabilities.data) {
@@ -860,7 +860,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val pagedIssues = response.body<PagedResponse<ApiIssue>>()
 
                 pagedIssues.pagination.totalCount shouldBe 0
@@ -936,7 +936,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues?limit=2")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val pagedIssues = response.body<PagedResponse<ApiIssue>>()
 
                 with(pagedIssues.pagination) {
@@ -1035,7 +1035,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/issues?limit=1")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val pagedIssues = response.body<PagedResponse<ApiIssue>>()
 
                 with(pagedIssues.pagination) {
@@ -1212,7 +1212,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/packages")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
 
                 with(packages.data) {
@@ -1305,7 +1305,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     }
                 }
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
 
                 packages.data.size shouldBe 1
@@ -1354,7 +1354,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     }
                 }
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
 
                 packages.data.size shouldBe 2
@@ -1461,7 +1461,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/projects")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val projects = response.body<PagedResponse<ApiProject>>()
 
                 with(projects.data) {
@@ -2125,7 +2125,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/statistics")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
 
                 val statistics = response.body<OrtRunStatistics>()
 
@@ -2180,7 +2180,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/statistics")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
 
                 val statistics = response.body<OrtRunStatistics>()
 
@@ -2253,7 +2253,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/runs/$ortRunId/packages/licenses")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
 
                 val licenses = response.body<Licenses>()
 

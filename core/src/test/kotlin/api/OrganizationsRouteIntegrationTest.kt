@@ -1429,7 +1429,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         "/api/v1/organizations/$orgId/vulnerabilities?sort=-rating,-repositoriesCount"
                     )
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
                         OrganizationVulnerability(
@@ -1632,7 +1632,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/statistics/runs")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
 
                 val statistics = response.body<OrtRunStatistics>()
 
@@ -1679,7 +1679,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/statistics/runs")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
 
                 val statistics = response.body<OrtRunStatistics>()
 
