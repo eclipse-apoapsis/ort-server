@@ -35,17 +35,22 @@ private val logger = LoggerFactory.getLogger(AuthenticatedServices::class.java)
  */
 internal class AuthenticatedServices<T> private constructor(
     /** A [Map] storing the known services grouped by their host name. */
-    private val servicesByHost: Map<String, Collection<AuthenticatedService<T>>>
+    private val servicesByHost: Map<String, Collection<AuthenticatedService<T>>>,
+
+    /** A flag whether fuzzy search is enabled if no prefix match is found. */
+    private val enableFuzzyMatching: Boolean
 ) {
     companion object {
         /**
          * Create an instance of [AuthenticatedServices] from a given collection of [services]. Use the given
          * [urlExtractor] and [nameExtractor] functions to obtain the corresponding properties from the services.
+         * Use the [enableFuzzyMatching] flag to control the behavior if no prefix match is found for a URL.
          */
         fun <T> create(
             services: Collection<T>,
             urlExtractor: (T) -> String,
-            nameExtractor: (T) -> String
+            nameExtractor: (T) -> String,
+            enableFuzzyMatching: Boolean
         ): AuthenticatedServices<T> {
             val validatedServices = services.mapNotNull { service ->
                 runCatching {
@@ -62,7 +67,7 @@ internal class AuthenticatedServices<T> private constructor(
                 .mapValues { e ->
                     e.value.map { it.second.withTrailingSlash() }
                 }
-            return AuthenticatedServices(validatedServices)
+            return AuthenticatedServices(validatedServices, enableFuzzyMatching)
         }
 
         /**
@@ -70,7 +75,7 @@ internal class AuthenticatedServices<T> private constructor(
          * any authentication requests.
          */
         fun <T> empty(): AuthenticatedServices<T> =
-            AuthenticatedServices(emptyMap())
+            AuthenticatedServices(emptyMap(), enableFuzzyMatching = false)
     }
 
     /**
@@ -83,9 +88,9 @@ internal class AuthenticatedServices<T> private constructor(
         val services = servicesByHost[hostName].orEmpty()
 
         return (
-                services.singleOrNull()?.also {
+                services.singleOrNull()?.takeIf { url == null }?.also {
                     logger.debug("Using single service for host '{}'.", hostName)
-                } ?: findBestMatchingService(services, url)
+                } ?: findBestMatchingService(services, url, enableFuzzyMatching)
                 )?.service
     }
 }
@@ -115,11 +120,13 @@ private fun <T> AuthenticatedService<T>.withTrailingSlash(): AuthenticatedServic
 /**
  * Try to find the best matching service in the given list of [services] for the given [url]. This function is used if
  * multiple services are available for the same host. It applies some heuristics to find the service whose URL is most
- * closely matching the given [url]. If no services are available for the host, result is *null*.
+ * closely matching the given [url] if [enableFuzzyMatching] is *true*. If no services are available for the host,
+ * result is *null*.
  */
 private fun <T> findBestMatchingService(
     services: Collection<AuthenticatedService<T>>,
-    url: URL?
+    url: URL?,
+    enableFuzzyMatching: Boolean
 ): AuthenticatedService<T>? {
     logger.debug(
         "Finding best matching service for '{}' from {}.",
@@ -132,7 +139,8 @@ private fun <T> findBestMatchingService(
         services.filter { strUrl.startsWith(it.serviceUrl) || it.serviceUrl == strUrl }
     } ?: services
 
-    return matchingServices.maxByOrNull { it.serviceUrl.length } ?: findMostSimilarService(services, url)
+    return matchingServices.maxByOrNull { it.serviceUrl.length }
+        ?: findMostSimilarService(services, url, enableFuzzyMatching)
 }
 
 /**
@@ -143,36 +151,45 @@ private val fuzzyScore = FuzzyScore(Locale.US)
 
 /**
  * Try to find a service that most closely matches the given [url]. This function is called if no service for the URL
- * can be found based on prefix matching. If there are services at all, it tries to find the best match using a fuzzy
- * search.
+ * can be found based on prefix matching. If there are services at all and [enableFuzzyMatching] is *true*, it tries to
+ * find the best match using a fuzzy search.
  */
 private fun <T> findMostSimilarService(
     services: Collection<AuthenticatedService<T>>,
-    url: URL?
-): AuthenticatedService<T>? =
-    if (services.isEmpty() || url == null) {
-        null
-    } else {
-        val strUrl = url.toString().removeSuffix("/")
-        logger.warn(
-            "No unique infrastructure service found to match '{}'. Trying to find the best match. " +
-                    "If this yields an incorrect service, please declare one with a URL that is a prefix of this URL.",
-            strUrl
+    url: URL?,
+    enableFuzzyMatching: Boolean
+): AuthenticatedService<T>? {
+    if (services.isEmpty() || url == null || !enableFuzzyMatching) return null
+
+    if (services.size < 2) {
+        logger.info(
+            "Found only a single service for '{}', but there is no prefix match. " +
+                    "Returning it, since fuzzy search is enabled.",
+            url.host
         )
-
-        val sortedServicesWithScores = services.map { service ->
-            service to fuzzyScore.fuzzyScore(service.serviceUrl.removeSuffix("/"), strUrl)
-        }.sortedByDescending { it.second }
-
-        sortedServicesWithScores.first().takeUnless { sortedServicesWithScores[1].second == it.second }?.first
-            .also { service ->
-                if (service == null) {
-                    logger.warn(
-                        "Found multiple services with the same matching score for '{}': {}.",
-                        strUrl,
-                        sortedServicesWithScores.takeWhile { it.second == sortedServicesWithScores.first().second }
-                            .joinToString { "${it.first.serviceName} (${it.first.serviceUrl})" }
-                    )
-                }
-            }
+        return services.first()
     }
+
+    val strUrl = url.toString().removeSuffix("/")
+    logger.warn(
+        "No unique infrastructure service found to match '{}'. Trying to find the best match. " +
+                "If this yields an incorrect service, please declare one with a URL that is a prefix of this URL.",
+        strUrl
+    )
+
+    val sortedServicesWithScores = services.map { service ->
+        service to fuzzyScore.fuzzyScore(service.serviceUrl.removeSuffix("/"), strUrl)
+    }.sortedByDescending { it.second }
+
+    return sortedServicesWithScores.first().takeUnless { sortedServicesWithScores[1].second == it.second }?.first
+        .also { service ->
+            if (service == null) {
+                logger.warn(
+                    "Found multiple services with the same matching score for '{}': {}.",
+                    strUrl,
+                    sortedServicesWithScores.takeWhile { it.second == sortedServicesWithScores.first().second }
+                        .joinToString { "${it.first.serviceName} (${it.first.serviceUrl})" }
+                )
+            }
+        }
+}

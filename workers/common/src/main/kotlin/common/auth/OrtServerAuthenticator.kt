@@ -118,7 +118,8 @@ internal class OrtServerAuthenticator(
         val authenticatedServices = AuthenticatedServices.create(
             info.services.filterNot { CredentialsType.NO_AUTHENTICATION in it.credentialsTypes },
             InfrastructureService::url,
-            InfrastructureService::name
+            InfrastructureService::name,
+            enableFuzzyMatching = true
         )
 
         refServices.set(ServiceData(authenticatedServices, info))

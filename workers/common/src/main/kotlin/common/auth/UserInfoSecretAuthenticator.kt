@@ -60,7 +60,8 @@ internal class UserInfoSecretAuthenticator private constructor(
                 AuthenticatedServices.create(
                     gatherAuthenticationData(secretResolverFun),
                     AuthenticationData::url,
-                    AuthenticationData::variableName
+                    AuthenticationData::variableName,
+                    enableFuzzyMatching = false
                 )
             )
 
