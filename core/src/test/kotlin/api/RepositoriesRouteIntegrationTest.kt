@@ -766,7 +766,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(createRun)
                 }
 
-                response.status shouldBe HttpStatusCode.NotFound
+                response shouldHaveStatus HttpStatusCode.NotFound
             }
         }
 
@@ -809,7 +809,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(createRun)
                 }
 
-                response.status shouldBe HttpStatusCode.BadRequest
+                response shouldHaveStatus HttpStatusCode.BadRequest
                 val errorMessage = response.bodyAsText()
                 errorMessage shouldContain "not installed"
                 errorMessage shouldContain advisorPluginId
@@ -874,7 +874,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(createRun)
                 }
 
-                response.status shouldBe HttpStatusCode.BadRequest
+                response shouldHaveStatus HttpStatusCode.BadRequest
                 val errorMessage = response.bodyAsText()
                 errorMessage shouldContain "disabled"
                 errorMessage shouldContain advisorPluginId

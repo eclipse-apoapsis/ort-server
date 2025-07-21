@@ -753,7 +753,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val response =
                     superuserClient.get("/api/v1/products/$productId/vulnerabilities?sort=-rating,-repositoriesCount")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(
                         ProductVulnerability(
@@ -1023,7 +1023,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/products/$prodId/statistics/runs")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
 
                 val statistics = response.body<OrtRunStatistics>()
 
@@ -1072,7 +1072,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val response = superuserClient.get("/api/v1/products/$prodId/statistics/runs")
 
-                response.status shouldBe HttpStatusCode.OK
+                response shouldHaveStatus HttpStatusCode.OK
                 val statistics = response.body<OrtRunStatistics>()
 
                 with(statistics) {
@@ -1296,7 +1296,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(createRun)
                 }
 
-                response.status shouldBe HttpStatusCode.BadRequest
+                response shouldHaveStatus HttpStatusCode.BadRequest
                 val errorMessage = response.bodyAsText()
                 errorMessage shouldContain "not installed"
                 errorMessage shouldContain advisorPluginId
@@ -1501,7 +1501,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     setBody(createRun)
                 }
 
-                response.status shouldBe HttpStatusCode.BadRequest
+                response shouldHaveStatus HttpStatusCode.BadRequest
                 val errorMessage = response.bodyAsText()
                 errorMessage shouldContain "disabled"
                 errorMessage shouldContain advisorPluginId
