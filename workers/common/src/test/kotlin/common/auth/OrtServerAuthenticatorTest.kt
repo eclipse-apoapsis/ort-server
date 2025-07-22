@@ -25,6 +25,7 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 
 import io.mockk.every
@@ -461,6 +462,50 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 )
 
                 pwd should beNull()
+            }
+
+            "not cache the credentials for a host" {
+                val host = "repo.example.com"
+                val url = "https://$host/org/repo"
+                val authenticator = OrtServerAuthenticator.install()
+                val services = listOf(
+                    createService(
+                        "right_service",
+                        url,
+                        usernameSecret,
+                        passwordSecret
+                    ),
+                    createService(
+                        "left_service",
+                        "https://$host/other-org/other-repo"
+                    )
+                )
+                authenticator.updateAuthenticationInfo(createAuthInfo(services))
+
+                Authenticator.requestPasswordAuthentication(
+                    host,
+                    null,
+                    443,
+                    "https",
+                    "hello",
+                    null,
+                    URI.create("https://test:test-secret@$host/other-org/other-repo").toURL(),
+                    Authenticator.RequestorType.SERVER
+                ) shouldNot beNull()
+
+                val pwd = Authenticator.requestPasswordAuthentication(
+                    host,
+                    null,
+                    443,
+                    "https",
+                    "hello",
+                    null,
+                    URI.create(url).toURL(),
+                    Authenticator.RequestorType.SERVER
+                )
+
+                pwd.userName shouldBe USERNAME
+                pwd.password shouldBe PASSWORD.toCharArray()
             }
         }
 
