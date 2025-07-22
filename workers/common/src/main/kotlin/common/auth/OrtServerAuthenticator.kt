@@ -63,7 +63,7 @@ internal class OrtServerAuthenticator(
 
     /** The function to resolve secrets passed in URLs. */
     secretResolverFun: InfraSecretResolverFun
-) : OrtAuthenticator(original) {
+) : OrtAuthenticator(original, cacheAuthentication = false) {
     companion object {
         /** Empty authentication information to be used before this authenticator gets initialized. */
         private val emptyAuthenticationInfo = AuthenticationInfo(emptyMap(), emptyList())
