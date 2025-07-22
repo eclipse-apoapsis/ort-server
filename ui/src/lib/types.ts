@@ -28,21 +28,6 @@ import { RepositoryType } from '@/api/requests';
 // limited set of values. Define the possible values here to use in the UI.
 // Note: with the upcoming plugin support, some of these types may be deprecated or changed.
 
-export const advisors = [
-  {
-    id: 'OssIndex',
-    label: 'OSS Index',
-  },
-  {
-    id: 'OSV',
-    label: 'OSV',
-  },
-  {
-    id: 'VulnerableCode',
-    label: 'VulnerableCode',
-  },
-] as const;
-
 export const packageManagers = [
   {
     id: 'Bazel',
@@ -149,37 +134,6 @@ export const packageManagers = [
 // To make sure the package manager ids are used type-safely elsewhere,
 // export them as a type.
 export type PackageManagerId = (typeof packageManagers)[number]['id'];
-
-export const reportFormats = [
-  {
-    id: 'CycloneDX',
-    label: 'CycloneDX SBOM (JSON and XML formats)',
-  },
-  {
-    id: 'SpdxDocument',
-    label: 'SPDX SBOM (JSON and YAML formats)',
-  },
-  {
-    id: 'PlainTextTemplate',
-    label: 'NOTICE file (DEFAULT and SUMMARY formats)',
-  },
-  {
-    id: 'WebApp',
-    label: 'ORT Web App',
-  },
-  {
-    id: 'PdfTemplate',
-    label: 'ORT PDF Reports',
-  },
-  {
-    id: 'OrtResult',
-    label: 'ORT Result',
-  },
-  {
-    id: 'RunStatistics',
-    label: 'Run Statistics',
-  },
-] as const;
 
 // Some types coming from the query client need to be shown in a more user-friendly way.
 

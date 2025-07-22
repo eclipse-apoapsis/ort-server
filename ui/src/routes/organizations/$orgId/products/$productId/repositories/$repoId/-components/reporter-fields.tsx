@@ -19,6 +19,7 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
+import { PreconfiguredPluginDescriptor } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import {
   AccordionContent,
@@ -33,20 +34,26 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { reportFormats } from '@/lib/types';
 import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
 
 type ReporterFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
   value: string;
   onToggle: () => void;
+  reporterPlugins: PreconfiguredPluginDescriptor[];
 };
 
 export const ReporterFields = ({
   form,
   value,
   onToggle,
+  reporterPlugins,
 }: ReporterFieldsProps) => {
+  const reporterOptions = reporterPlugins.map((plugin) => ({
+    id: plugin.id,
+    label: plugin.displayName,
+  }));
+
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -72,7 +79,7 @@ export const ReporterFields = ({
             description={
               <>Select the report formats to generate from the run.</>
             }
-            options={reportFormats}
+            options={reporterOptions}
           />
           {form.getValues('jobConfigs.reporter.formats').includes('WebApp') && (
             <FormField

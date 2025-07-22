@@ -19,6 +19,7 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
+import { PreconfiguredPluginDescriptor } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import {
   AccordionContent,
@@ -33,20 +34,26 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { advisors } from '@/lib/types';
 import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
 
 type AdvisorFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
   value: string;
   onToggle: () => void;
+  advisorPlugins: PreconfiguredPluginDescriptor[];
 };
 
 export const AdvisorFields = ({
   form,
   value,
   onToggle,
+  advisorPlugins,
 }: AdvisorFieldsProps) => {
+  const advisorOptions = advisorPlugins.map((plugin) => ({
+    id: plugin.id,
+    label: plugin.displayName,
+  }));
+
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -91,7 +98,7 @@ export const AdvisorFields = ({
             name='jobConfigs.advisor.advisors'
             label='Enabled advisors'
             description={<>Select the advisors enabled for this run.</>}
-            options={advisors}
+            options={advisorOptions}
           />
         </AccordionContent>
       </AccordionItem>

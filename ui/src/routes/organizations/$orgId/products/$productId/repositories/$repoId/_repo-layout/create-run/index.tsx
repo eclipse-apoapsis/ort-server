@@ -69,8 +69,13 @@ import {
 const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const ortRun = Route.useLoaderData();
+  const { ortRun, plugins } = Route.useLoaderData();
   const [isTest, setIsTest] = useState(false);
+
+  const advisorPlugins =
+    plugins?.filter((plugin) => plugin.type === 'ADVISOR') || [];
+  const reporterPlugins =
+    plugins?.filter((plugin) => plugin.type === 'REPORTER') || [];
 
   type AccordionSection =
     | 'analyzer'
@@ -419,6 +424,7 @@ const CreateRunPage = () => {
                 form={form}
                 value='advisor'
                 onToggle={() => toggleAccordionOpen('advisor')}
+                advisorPlugins={advisorPlugins}
               />
               <ScannerFields
                 form={form}
@@ -430,6 +436,7 @@ const CreateRunPage = () => {
                 form={form}
                 value='reporter'
                 onToggle={() => toggleAccordionOpen('reporter')}
+                reporterPlugins={reporterPlugins}
               />
               <NotifierFields
                 form={form}
@@ -525,15 +532,24 @@ export const Route = createFileRoute(
   // the query will not be run. This corresponds to the "New run" case, where a new
   // ORT Run is created from scratch, using all defaults.
   loader: async ({ params, deps: { rerunIndex } }) => {
-    if (rerunIndex === undefined) {
-      return null;
-    }
-    return await RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-      {
+    const [ortRun, plugins] = await Promise.all([
+      rerunIndex !== undefined
+        ? RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
+            {
+              repositoryId: Number.parseInt(params.repoId),
+              ortRunIndex: rerunIndex,
+            }
+          )
+        : Promise.resolve(null as null),
+      RepositoriesService.getApiV1RepositoriesByRepositoryIdPlugins({
         repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: rerunIndex,
-      }
-    );
+      }),
+    ]);
+
+    return {
+      ortRun,
+      plugins,
+    };
   },
   component: CreateRunPage,
   validateSearch: rerunIndexSchema,
