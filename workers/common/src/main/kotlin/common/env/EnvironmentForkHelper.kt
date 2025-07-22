@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.infraSecretResolverFro
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 
 /**
  * An object to support with setting up a worker execution environment in a forked Java process.
@@ -62,10 +63,17 @@ object EnvironmentForkHelper {
 
         val authenticator = OrtServerAuthenticator.install()
         val authInfo = authenticator.authenticationInfo
+        val mdcContext = MDC.getCopyOfContextMap().orEmpty()
 
-        Json.encodeToStream(authInfo.toSerializableAuthenticationInfo(), out)
+        val forkData = SerializableForkData(
+            authInfo = authInfo.toSerializableAuthenticationInfo(),
+            mdcContext = mdcContext
+        )
+
+        Json.encodeToStream(forkData, out)
 
         logger.info("Wrote authentication information about {} services to forked process.", authInfo.services.size)
+        logger.info("Wrote MDC context with {} entries to forked process.", mdcContext.size)
     }
 
     /**
@@ -76,9 +84,14 @@ object EnvironmentForkHelper {
     fun setupFork(pipe: InputStream) {
         logger.info("Setting up forked process...")
 
-        val authInfo = Json.decodeFromStream<SerializableAuthenticationInfo>(pipe).toAuthenticationInfo()
+        val forkData = Json.decodeFromStream<SerializableForkData>(pipe)
+        val authInfo = forkData.authInfo.toAuthenticationInfo()
+        val mdcContext = forkData.mdcContext
+
+        restoreMdcContext(mdcContext)
 
         logger.info("Read authentication information about {} services from forked process.", authInfo.services.size)
+        logger.info("Read MDC context with {} entries from forked process.", mdcContext.size)
 
         val config = WorkerOrtConfig.create()
         config.setUpOrtEnvironment()
@@ -89,6 +102,12 @@ object EnvironmentForkHelper {
         val netrcManager = NetRcManager.create(credentialResolver(authInfo))
         authenticator.updateAuthenticationListener(netrcManager)
     }
+
+    /**
+     * Restore the MDC context from the given [context] map.
+     */
+    private fun restoreMdcContext(context: Map<String, String>) =
+        if (context.isEmpty()) MDC.clear() else MDC.setContextMap(context)
 
     /**
      * Convert this [AuthenticationInfo] to a [SerializableAuthenticationInfo] that can be passed to a forked process.
@@ -153,6 +172,18 @@ object EnvironmentForkHelper {
             repository = null
         )
 }
+
+/**
+ * A data class to store all information that needs to be handed to the forked process.
+ */
+@Serializable
+private data class SerializableForkData(
+    /** Authentication information for services. */
+    val authInfo: SerializableAuthenticationInfo,
+
+    /** The MDC context to be restored in the forked process. */
+    val mdcContext: Map<String, String>
+)
 
 /**
  * A data class to store the relevant part of the authentication information that needs to be serialized to the
