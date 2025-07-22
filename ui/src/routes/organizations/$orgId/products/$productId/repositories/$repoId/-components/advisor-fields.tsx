@@ -52,6 +52,7 @@ export const AdvisorFields = ({
   const advisorOptions = advisorPlugins.map((plugin) => ({
     id: plugin.id,
     label: plugin.displayName,
+    description: plugin.description,
   }));
 
   return (
