@@ -46,7 +46,7 @@ type MultiSelectFieldProps<
   name: TName;
   label?: string;
   description?: React.ReactNode;
-  options: readonly { id: string; label: string }[];
+  options: readonly { id: string; label: string; description?: string }[];
   className?: string;
 };
 
@@ -126,7 +126,14 @@ export const MultiSelectField = <
                   }}
                 />
               </FormControl>
-              <FormLabel className='font-normal'>{option.label}</FormLabel>
+              <div className='flex flex-col'>
+                <FormLabel className='font-normal'>{option.label}</FormLabel>
+                {option.description != null && (
+                  <div className='text-sm text-gray-500'>
+                    {option.description}
+                  </div>
+                )}
+              </div>
             </FormItem>
           ))}
           <FormMessage />

@@ -52,6 +52,7 @@ export const ReporterFields = ({
   const reporterOptions = reporterPlugins.map((plugin) => ({
     id: plugin.id,
     label: plugin.displayName,
+    description: plugin.description,
   }));
 
   return (
