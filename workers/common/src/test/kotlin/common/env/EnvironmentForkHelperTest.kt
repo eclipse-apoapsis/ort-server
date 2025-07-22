@@ -51,6 +51,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerOrtConfig
 
+import org.slf4j.MDC
+
 class EnvironmentForkHelperTest : StringSpec({
     beforeEach {
         mockkObject(OrtServerAuthenticator)
@@ -59,6 +61,7 @@ class EnvironmentForkHelperTest : StringSpec({
 
     afterEach {
         unmockkAll()
+        MDC.clear()
     }
 
     "Authentication information should be correctly initialized" {
@@ -152,6 +155,37 @@ class EnvironmentForkHelperTest : StringSpec({
         netrcText shouldContain "machine ${service2.host()}"
         netrcText shouldContain secretValue(passwordSecret2.name)
         netrcText shouldNotContain service1.host()
+    }
+
+    "MDC context should be correctly transferred and restored in forked process" {
+        val originalMdcContext = mapOf(
+            "traceId" to "test-trace-123",
+            "ortRunId" to "456",
+            "analyzerJobId" to "789",
+            "component" to "analyzer-worker"
+        )
+
+        originalMdcContext.forEach { (key, value) -> MDC.put(key, value) }
+
+        // Simulate the fork process
+        val processInput = ByteArrayOutputStream()
+        EnvironmentForkHelper.prepareFork(processInput)
+
+        // Clear MDC to simulate fresh forked process
+        MDC.clear()
+        MDC.getCopyOfContextMap() shouldBe null
+
+        // Simulate setupFork in the forked process
+        val stdin = ByteArrayInputStream(processInput.toByteArray())
+        EnvironmentForkHelper.setupFork(stdin)
+
+        val restoredContext = MDC.getCopyOfContextMap()
+        restoredContext shouldBe originalMdcContext
+
+        MDC.get("traceId") shouldBe "test-trace-123"
+        MDC.get("ortRunId") shouldBe "456"
+        MDC.get("analyzerJobId") shouldBe "789"
+        MDC.get("component") shouldBe "analyzer-worker"
     }
 })
 
