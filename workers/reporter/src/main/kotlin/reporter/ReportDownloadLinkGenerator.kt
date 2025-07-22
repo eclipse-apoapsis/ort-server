@@ -89,7 +89,7 @@ internal class ReportDownloadLinkGenerator(
         random.nextBytes(tokenBytes)
         val tokenString = Base64.UrlSafe.encode(tokenBytes)
 
-        val link = "$linkPrefix/api/v1/runs/$runId/downloads/report/$tokenString"
+        val link = "${linkPrefix.removeSuffix("/")}/api/v1/runs/$runId/downloads/report/$tokenString"
         return ReportDownloadLink(link, clock.now() + validityTime)
     }
 }

@@ -77,6 +77,14 @@ class ReportDownloadLinkGeneratorTest : WordSpec({
             link.downloadLink shouldBe ""
             link.expirationTime shouldBe Instant.fromEpochMilliseconds(0)
         }
+
+        "ignore a trailing slash in the link prefix" {
+            val generator = ReportDownloadLinkGenerator("$LINK_PREFIX/", 32, 1.minutes)
+
+            val link = generator.generateLink(RUN_ID)
+
+            link.downloadLink shouldStartWith EXPECTED_LINK_PREFIX
+        }
     }
 })
 
