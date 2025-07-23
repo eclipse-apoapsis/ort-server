@@ -21,7 +21,10 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { hasAuthParams } from 'react-oidc-context';
 
+import { CopyToClipboard } from '@/components/copy-to-clipboard.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { Button } from '@/components/ui/button.tsx';
+import { Textarea } from '@/components/ui/textarea.tsx';
 import { config } from '@/config';
 import { OpenAPI } from './api/requests/index.ts';
 import { useUser } from './hooks/use-user.ts';
@@ -132,7 +135,32 @@ export const App = () => {
   }
 
   if (!auth.isAuthenticated) {
-    return <div>Unable to log in</div>;
+    const errorMessage = auth.error
+      ? `${auth.error.source} error:\n${auth.error.message}\nStack trace:\n${auth.error.stack}`
+      : undefined;
+    return (
+      <div className='flex flex-col items-start gap-4 p-5'>
+        <div>Unable to log in</div>
+        {errorMessage && (
+          <div className='flex gap-1'>
+            <Textarea
+              readOnly
+              className='h-40 w-96'
+              value={errorMessage}
+            ></Textarea>
+            <CopyToClipboard copyText={errorMessage} />
+          </div>
+        )}
+        <Button
+          onClick={() => {
+            auth.signinRedirect();
+          }}
+          variant='outline'
+        >
+          Retry sign in
+        </Button>
+      </div>
+    );
   }
 
   if (!tokenIsSet) {
