@@ -653,8 +653,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     environmentConfig = envConfig
                 )
                 val reporterJob = ReporterJobConfiguration(
-                    copyrightGarbageFile = "COPYRIGHT_GARBAGE",
-                    customLicenseTextDir = "LICENSE_TEXTS"
+                    assetFilesGroups = listOf("niceLogos"),
+                    assetDirectoriesGroups = listOf("niceThemes")
                 )
                 val parameters = mapOf("p1" to "v1", "p2" to "v2")
                 val ruleSet = "test"
@@ -707,8 +707,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 }
 
                 run.jobConfigs.reporter shouldNotBeNull {
-                    copyrightGarbageFile shouldBe "COPYRIGHT_GARBAGE"
-                    customLicenseTextDir shouldBe "LICENSE_TEXTS"
+                    assetFilesGroups shouldBe reporterJob.assetFilesGroups
+                    assetDirectoriesGroups shouldBe reporterJob.assetDirectoriesGroups
                 }
 
                 run.jobConfigs.parameters shouldBe parameters
