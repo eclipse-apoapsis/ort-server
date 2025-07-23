@@ -55,83 +55,87 @@ const environmentVariableSchema = z.object({
   value: z.string().min(1).nullable().optional(),
 });
 
-export const createRunFormSchema = z.object({
-  revision: z.string(),
-  path: z.string(),
-  jobConfigs: z.object({
-    analyzer: z.object({
-      enabled: z.boolean(),
-      repositoryConfigPath: z.string().optional(),
-      allowDynamicVersions: z.boolean(),
-      skipExcluded: z.boolean(),
-      environmentVariables: z.array(environmentVariableSchema).optional(),
-      packageManagers: z
-        .object({
-          Bazel: packageManagerOptionsSchema,
-          Bower: packageManagerOptionsSchema,
-          Bundler: packageManagerOptionsSchema,
-          Cargo: packageManagerOptionsSchema,
-          Carthage: packageManagerOptionsSchema,
-          CocoaPods: packageManagerOptionsSchema,
-          Composer: packageManagerOptionsSchema,
-          Conan: packageManagerOptionsSchema,
-          GoMod: packageManagerOptionsSchema,
-          Gradle: packageManagerOptionsSchema,
-          GradleInspector: packageManagerOptionsSchema,
-          Maven: packageManagerOptionsSchema,
-          NPM: packageManagerOptionsSchema,
-          NuGet: packageManagerOptionsSchema,
-          PIP: packageManagerOptionsSchema,
-          Pipenv: packageManagerOptionsSchema,
-          PNPM: packageManagerOptionsSchema,
-          Poetry: packageManagerOptionsSchema,
-          Pub: packageManagerOptionsSchema,
-          SBT: packageManagerOptionsSchema,
-          SpdxDocumentFile: packageManagerOptionsSchema,
-          Stack: packageManagerOptionsSchema,
-          SwiftPM: packageManagerOptionsSchema,
-          Yarn: packageManagerOptionsSchema,
-          Yarn2: packageManagerOptionsSchema,
-        })
-        .refine((schema) => {
-          // Ensure that not both Gradle and GradleInspector are enabled at the same time.
-          return !(schema.Gradle.enabled && schema.GradleInspector.enabled);
-        }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
-    }),
-    advisor: z.object({
-      enabled: z.boolean(),
-      skipExcluded: z.boolean(),
-      advisors: z.array(z.string()),
-    }),
-    scanner: z.object({
-      enabled: z.boolean(),
-      skipConcluded: z.boolean(),
-      skipExcluded: z.boolean(),
-    }),
-    evaluator: z.object({
-      enabled: z.boolean(),
+export const createRunFormSchema = () => {
+  return z.object({
+    revision: z.string(),
+    path: z.string(),
+    jobConfigs: z.object({
+      analyzer: z.object({
+        enabled: z.boolean(),
+        repositoryConfigPath: z.string().optional(),
+        allowDynamicVersions: z.boolean(),
+        skipExcluded: z.boolean(),
+        environmentVariables: z.array(environmentVariableSchema).optional(),
+        packageManagers: z
+          .object({
+            Bazel: packageManagerOptionsSchema,
+            Bower: packageManagerOptionsSchema,
+            Bundler: packageManagerOptionsSchema,
+            Cargo: packageManagerOptionsSchema,
+            Carthage: packageManagerOptionsSchema,
+            CocoaPods: packageManagerOptionsSchema,
+            Composer: packageManagerOptionsSchema,
+            Conan: packageManagerOptionsSchema,
+            GoMod: packageManagerOptionsSchema,
+            Gradle: packageManagerOptionsSchema,
+            GradleInspector: packageManagerOptionsSchema,
+            Maven: packageManagerOptionsSchema,
+            NPM: packageManagerOptionsSchema,
+            NuGet: packageManagerOptionsSchema,
+            PIP: packageManagerOptionsSchema,
+            Pipenv: packageManagerOptionsSchema,
+            PNPM: packageManagerOptionsSchema,
+            Poetry: packageManagerOptionsSchema,
+            Pub: packageManagerOptionsSchema,
+            SBT: packageManagerOptionsSchema,
+            SpdxDocumentFile: packageManagerOptionsSchema,
+            Stack: packageManagerOptionsSchema,
+            SwiftPM: packageManagerOptionsSchema,
+            Yarn: packageManagerOptionsSchema,
+            Yarn2: packageManagerOptionsSchema,
+          })
+          .refine((schema) => {
+            // Ensure that not both Gradle and GradleInspector are enabled at the same time.
+            return !(schema.Gradle.enabled && schema.GradleInspector.enabled);
+          }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
+      }),
+      advisor: z.object({
+        enabled: z.boolean(),
+        skipExcluded: z.boolean(),
+        advisors: z.array(z.string()),
+      }),
+      scanner: z.object({
+        enabled: z.boolean(),
+        skipConcluded: z.boolean(),
+        skipExcluded: z.boolean(),
+      }),
+      evaluator: z.object({
+        enabled: z.boolean(),
+        ruleSet: z.string().optional(),
+        licenseClassificationsFile: z.string().optional(),
+        copyrightGarbageFile: z.string().optional(),
+        resolutionsFile: z.string().optional(),
+      }),
+      reporter: z.object({
+        enabled: z.boolean(),
+        formats: z.array(z.string()),
+        deduplicateDependencyTree: z.boolean().optional(),
+      }),
+      notifier: z.object({
+        enabled: z.boolean(),
+        recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
+      }),
+      parameters: z.array(keyValueSchema).optional(),
       ruleSet: z.string().optional(),
-      licenseClassificationsFile: z.string().optional(),
-      copyrightGarbageFile: z.string().optional(),
-      resolutionsFile: z.string().optional(),
     }),
-    reporter: z.object({
-      enabled: z.boolean(),
-      formats: z.array(z.string()),
-      deduplicateDependencyTree: z.boolean().optional(),
-    }),
-    notifier: z.object({
-      enabled: z.boolean(),
-      recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
-    }),
-    parameters: z.array(keyValueSchema).optional(),
-    ruleSet: z.string().optional(),
-  }),
-  labels: z.array(keyValueSchema).optional(),
-  jobConfigContext: z.string().optional(),
-});
+    labels: z.array(keyValueSchema).optional(),
+    jobConfigContext: z.string().optional(),
+  });
+};
 
-export type CreateRunFormValues = z.infer<typeof createRunFormSchema>;
+export type CreateRunFormValues = z.infer<
+  ReturnType<typeof createRunFormSchema>
+>;
 
 /**
  * Converts an object map coming from the back-end to an array of key-value pairs.
@@ -219,7 +223,7 @@ export const flattenErrors = (
  */
 export function defaultValues(
   ortRun: OrtRun | null
-): z.infer<typeof createRunFormSchema> {
+): z.infer<ReturnType<typeof createRunFormSchema>> {
   /**
    * Constructs the default options for a package manager, either as a blank set of options
    * or from an earlier ORT run if rerun functionality is used.
@@ -430,7 +434,7 @@ export function defaultValues(
  * to the API. This function converts form values to correct payload to create an ORT run.
  */
 export function formValuesToPayload(
-  values: z.infer<typeof createRunFormSchema>
+  values: z.infer<ReturnType<typeof createRunFormSchema>>
 ): CreateOrtRun {
   /**
    * A helper function to get the enabled package managers from the form values.

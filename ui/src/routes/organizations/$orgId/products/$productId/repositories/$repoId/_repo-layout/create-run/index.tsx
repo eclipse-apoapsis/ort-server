@@ -124,8 +124,10 @@ const CreateRunPage = () => {
       },
     });
 
-  const form = useForm({
-    resolver: zodResolver(createRunFormSchema),
+  const formSchema = createRunFormSchema();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: defaultValues(ortRun),
   });
 
