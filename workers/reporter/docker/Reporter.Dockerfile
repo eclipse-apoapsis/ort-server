@@ -20,7 +20,7 @@
 # License-Filename: LICENSE
 
 # Build-Stage for Python executing scancode-license-data to get the license texts in a directory
-FROM python:3.13-slim AS scancode-license-data-build
+FROM --platform=linux/amd64 python:3.13-slim AS scancode-license-data-build
 
 # Keep in sync with Scanner.Dockerfile
 ARG SCANCODE_VERSION=32.4.0
