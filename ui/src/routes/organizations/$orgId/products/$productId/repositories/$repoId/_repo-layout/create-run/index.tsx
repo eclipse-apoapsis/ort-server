@@ -124,7 +124,7 @@ const CreateRunPage = () => {
       },
     });
 
-  const formSchema = createRunFormSchema();
+  const formSchema = createRunFormSchema(advisorPlugins);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

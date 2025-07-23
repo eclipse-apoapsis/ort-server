@@ -18,12 +18,15 @@
  */
 
 import { FieldErrors } from 'react-hook-form';
-import { z } from 'zod';
+import { z, ZodType } from 'zod';
 
 import {
   AnalyzerJobConfiguration,
   CreateOrtRun,
   OrtRun,
+  PluginConfig,
+  PluginOptionType,
+  PreconfiguredPluginDescriptor,
   ReporterJobConfiguration,
 } from '@/api/requests';
 import { PackageManagerId, packageManagers } from '@/lib/types';
@@ -55,7 +58,62 @@ const environmentVariableSchema = z.object({
   value: z.string().min(1).nullable().optional(),
 });
 
-export const createRunFormSchema = () => {
+function optionTypeToZodType(type: PluginOptionType): ZodType {
+  switch (type) {
+    case 'BOOLEAN':
+      return z.boolean();
+    case 'INTEGER':
+      return z.coerce.string();
+    case 'LONG':
+      return z.coerce.string();
+    case 'SECRET':
+      return z.string();
+    case 'STRING':
+      return z.string();
+    case 'STRING_LIST':
+      return z.array(z.string());
+    default:
+      throw new Error(`Unsupported option type: ${type}`);
+  }
+}
+
+const createPluginConfigSchema = (plugin: PreconfiguredPluginDescriptor) => {
+  const optionsSchema: Record<string, z.ZodTypeAny> = {};
+  const secretsSchema: Record<string, z.ZodTypeAny> = {};
+
+  plugin.options?.forEach((option) => {
+    let schema = optionTypeToZodType(option.type);
+    if (option.isNullable) {
+      schema = schema.nullable();
+    }
+    if (!option.isRequired) {
+      schema = schema.optional();
+    }
+
+    if (option.type == 'SECRET') {
+      secretsSchema[option.name] = schema;
+    } else {
+      optionsSchema[option.name] = schema;
+    }
+  });
+
+  return z
+    .object({
+      options: z.object(optionsSchema).optional(),
+      secrets: z.object(secretsSchema).optional(),
+    })
+    .optional();
+};
+
+export const createRunFormSchema = (
+  advisorPlugins: PreconfiguredPluginDescriptor[]
+) => {
+  const advisorConfigSchema: Record<string, z.ZodTypeAny> = {};
+
+  advisorPlugins.forEach((plugin) => {
+    advisorConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
+  });
+
   return z.object({
     revision: z.string(),
     path: z.string(),
@@ -103,6 +161,7 @@ export const createRunFormSchema = () => {
         enabled: z.boolean(),
         skipExcluded: z.boolean(),
         advisors: z.array(z.string()),
+        config: z.object(advisorConfigSchema).optional(),
       }),
       scanner: z.object({
         enabled: z.boolean(),
@@ -375,6 +434,9 @@ export function defaultValues(
             advisors:
               ortRun.jobConfigs.advisor?.advisors ||
               baseDefaults.jobConfigs.advisor.advisors,
+            config: ortRun.jobConfigs.advisor?.config as
+              | Record<string, unknown>
+              | undefined,
           },
           scanner: {
             enabled:
@@ -534,10 +596,70 @@ export function formValuesToPayload(
   // Advisor configuration
   //
 
+  function createAdvisorPluginConfig(
+    config: Record<string, unknown> | undefined,
+    advisors: string[]
+  ): { [key: string]: PluginConfig } | undefined {
+    if (!config) return undefined;
+
+    const filtered = Object.fromEntries(
+      Object.entries(config)
+        .filter(([key]) => advisors.includes(key))
+        .map(([key, value]) => {
+          if (value && typeof value === 'object') {
+            const pluginConfig = value as Record<string, unknown>;
+            const convertedConfig: PluginConfig = {
+              options: {},
+              secrets: {},
+            };
+
+            if (
+              pluginConfig.options &&
+              typeof pluginConfig.options === 'object'
+            ) {
+              convertedConfig.options = Object.fromEntries(
+                Object.entries(pluginConfig.options as Record<string, unknown>)
+                  .filter(
+                    ([, optValue]) =>
+                      optValue !== undefined && optValue !== null
+                  )
+                  .map(([optKey, optValue]) => [optKey, String(optValue)])
+              );
+            }
+
+            if (
+              pluginConfig.secrets &&
+              typeof pluginConfig.secrets === 'object'
+            ) {
+              convertedConfig.secrets = Object.fromEntries(
+                Object.entries(pluginConfig.secrets as Record<string, unknown>)
+                  .filter(
+                    ([, secValue]) =>
+                      secValue !== undefined && secValue !== null
+                  )
+                  .map(([secKey, secValue]) => [secKey, String(secValue)])
+              );
+            }
+
+            return [key, convertedConfig];
+          }
+          return [key, value];
+        })
+    );
+
+    return Object.keys(filtered).length > 0
+      ? (filtered as { [key: string]: PluginConfig })
+      : undefined;
+  }
+
   const advisorConfig = values.jobConfigs.advisor.enabled
     ? {
         skipExcluded: values.jobConfigs.advisor.skipExcluded,
         advisors: values.jobConfigs.advisor.advisors,
+        config: createAdvisorPluginConfig(
+          values.jobConfigs.advisor.config,
+          values.jobConfigs.advisor.advisors
+        ),
       }
     : undefined;
 
