@@ -17,14 +17,15 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
+import { createFileRoute, Link } from '@tanstack/react-router';
 
 import {
   usePluginsServiceGetApiV1AdminPluginsKey,
   usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdDisable,
   usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdEnable,
 } from '@/api/queries';
-import { ApiError, PluginDescriptor } from '@/api/requests';
+import { ApiError, PluginDescriptor, PluginsService } from '@/api/requests';
 import { ToastError } from '@/components/toast-error.tsx';
 import {
   Card,
@@ -36,7 +37,6 @@ import {
 import { Switch } from '@/components/ui/switch.tsx';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast } from '@/lib/toast.ts';
-import { Route as LayoutRoute } from './route.tsx';
 
 type PluginListCardProps = {
   title: string;
@@ -147,7 +147,10 @@ const PluginListCard = ({
 };
 
 const PluginsComponent = () => {
-  const { plugins } = useLoaderData({ from: LayoutRoute.id });
+  const { data: plugins } = useQuery({
+    queryKey: [usePluginsServiceGetApiV1AdminPluginsKey],
+    queryFn: () => PluginsService.getApiV1AdminPlugins(),
+  });
 
   const advisors = plugins?.filter((plugin) => plugin.type === 'ADVISOR') || [];
   const packageConfigurationProviders =
