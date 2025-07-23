@@ -20,7 +20,7 @@
 import { UseFormReturn } from 'react-hook-form';
 
 import { PreconfiguredPluginDescriptor } from '@/api/requests';
-import { MultiSelectField } from '@/components/form/multi-select-field';
+import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import {
   AccordionContent,
   AccordionItem,
@@ -49,12 +49,6 @@ export const AdvisorFields = ({
   onToggle,
   advisorPlugins,
 }: AdvisorFieldsProps) => {
-  const advisorOptions = advisorPlugins.map((plugin) => ({
-    id: plugin.id,
-    label: plugin.displayName,
-    description: plugin.description,
-  }));
-
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -94,12 +88,13 @@ export const AdvisorFields = ({
               </FormItem>
             )}
           />
-          <MultiSelectField
+          <PluginMultiSelectField
             form={form}
             name='jobConfigs.advisor.advisors'
+            configName='jobConfigs.advisor.config'
             label='Enabled advisors'
             description={<>Select the advisors enabled for this run.</>}
-            options={advisorOptions}
+            plugins={advisorPlugins}
           />
         </AccordionContent>
       </AccordionItem>
