@@ -92,6 +92,41 @@ export const App = () => {
     }
   }, [auth.user]);
 
+  // Handle errors for the silent renew process
+  useEffect(() => {
+    const nonRetryableErrors = [
+      'token is not active',
+      'session not active',
+      'no matching state',
+      'login required',
+      'session expired',
+      'session not found',
+    ];
+
+    const handleSilentRenewError = async (error: Error) => {
+      if (
+        !nonRetryableErrors.some((msg) =>
+          error.message.toLowerCase().includes(msg)
+        )
+      ) {
+        // Retry silent signin after 5 seconds to mitigate transient issues
+        setTimeout(() => {
+          auth.refreshUser();
+        }, 5000);
+      } else {
+        auth.signinRedirect({ redirect_uri: window.location.href });
+      }
+    };
+
+    // Register the silent renew error handler
+    auth.events.addSilentRenewError(handleSilentRenewError);
+
+    return () => {
+      // Unregister the silent renew error handler on component unmount
+      auth.events.removeSilentRenewError(handleSilentRenewError);
+    };
+  }, [auth]);
+
   if (auth.isLoading) {
     return <LoadingIndicator />;
   }
