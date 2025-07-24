@@ -17,9 +17,14 @@
  * License-Filename: LICENSE
  */
 
-import { useAuth } from 'react-oidc-context';
+import { useEffect } from 'react';
+import { AuthContextProps, useAuth } from 'react-oidc-context';
 
 import { config } from '@/config';
+
+export const authRef: { current: AuthContextProps | null } = {
+  current: null,
+};
 
 export const useUser = () => {
   const auth = useAuth();
@@ -56,6 +61,11 @@ export const useUser = () => {
 
   // Return end-user's full name, including all name parts.
   const fullName = auth?.user?.profile?.name;
+
+  useEffect(() => {
+    // Store the auth context in a ref for use outside of components.
+    authRef.current = auth;
+  }, [auth]);
 
   return {
     hasRole,
