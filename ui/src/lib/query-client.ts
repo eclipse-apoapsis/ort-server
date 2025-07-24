@@ -17,6 +17,45 @@
  * License-Filename: LICENSE
  */
 
-import { QueryClient } from '@tanstack/react-query';
+import { QueryCache, QueryClient } from '@tanstack/react-query';
 
-export const queryClient = new QueryClient();
+import { ApiError } from '@/api/requests';
+import { authRef } from '@/hooks/use-user';
+
+export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: async (error) => {
+      if (error instanceof ApiError && error.status === 401) {
+        try {
+          /*
+           * Attempt to refresh the user session silently.
+           * Add a small delay to mitigate potential transient issues.
+           * The timeout can be small, as this block is only reached
+           * when the original request has already been retried.
+           */
+          setTimeout(async () => {
+            const user = await authRef.current?.signinSilent();
+
+            if (!user) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                'Silent sign-in returned null — treating as unauthenticated'
+              );
+              // Redirect to login
+              authRef.current?.signinRedirect({
+                redirect_uri: window.location.href,
+              });
+            }
+          }, 2000);
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('Silent sign-in failed: ', error);
+          // Redirect to login
+          authRef.current?.signinRedirect({
+            redirect_uri: window.location.href,
+          });
+        }
+      }
+    },
+  }),
+});
