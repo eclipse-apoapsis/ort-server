@@ -167,6 +167,7 @@ export const PluginMultiSelectField = <
                               <Checkbox
                                 checked={field.value as CheckedState}
                                 onCheckedChange={field.onChange}
+                                disabled={option.isFixed}
                               />
                             ) : option.isRequired ? (
                               <Input
@@ -178,6 +179,7 @@ export const PluginMultiSelectField = <
                                     : 'text'
                                 }
                                 value={field.value}
+                                disabled={option.isFixed}
                               />
                             ) : (
                               <OptionalInput
@@ -189,9 +191,16 @@ export const PluginMultiSelectField = <
                                     : 'text'
                                 }
                                 value={field.value}
+                                disabled={option.isFixed}
                               />
                             )}
                           </FormControl>
+                          {option.isFixed && (
+                            <FormDescription className='text-muted-foreground font-semibold text-yellow-700'>
+                              This option is set by an administrator and cannot
+                              be changed.
+                            </FormDescription>
+                          )}
                         </FormItem>
                       )}
                     />
