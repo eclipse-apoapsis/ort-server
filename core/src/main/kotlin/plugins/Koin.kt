@@ -23,15 +23,16 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 
 import org.eclipse.apoapsis.ortserver.core.di.ortServerModule
+import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 
 import org.jetbrains.exposed.sql.Database
 
 import org.koin.ktor.plugin.Koin
 
-fun Application.configureKoin(db: Database? = null) {
+fun Application.configureKoin(db: Database? = null, authorizationService: AuthorizationService? = null) {
     install(Koin) {
         modules(
-            ortServerModule(environment.config, db)
+            ortServerModule(environment.config, db, authorizationService)
         )
     }
 }

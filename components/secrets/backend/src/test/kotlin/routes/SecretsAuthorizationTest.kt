@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.components.secrets.UpdateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
@@ -42,6 +43,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     var orgId = 0L
     var prodId = 0L
     var repoId = 0L
+    lateinit var repositoryService: RepositoryService
     lateinit var secretService: SecretService
 
     beforeEach {
@@ -50,6 +52,19 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         repoId = dbExtension.fixtures.repository.id
 
         authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
+
+        repositoryService = RepositoryService(
+            dbExtension.db,
+            dbExtension.fixtures.ortRunRepository,
+            dbExtension.fixtures.repositoryRepository,
+            dbExtension.fixtures.analyzerJobRepository,
+            dbExtension.fixtures.advisorJobRepository,
+            dbExtension.fixtures.scannerJobRepository,
+            dbExtension.fixtures.evaluatorJobRepository,
+            dbExtension.fixtures.reporterJobRepository,
+            dbExtension.fixtures.notifierJobRepository,
+            authorizationService
+        )
 
         secretService = SecretService(
             dbExtension.db,
@@ -62,7 +77,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "DeleteSecretByOrganizationIdAndName" should {
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -74,7 +89,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "DeleteSecretByProductIdAndName" should {
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = ProductPermission.WRITE_SECRETS.roleName(prodId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -86,7 +101,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "DeleteSecretByRepositoryIdAndName" should {
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -95,10 +110,22 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
+    "GetAvailableSecretsByRepositoryId" should {
+        "require RepositoryPermission.READ" {
+            requestShouldRequireRole(
+                routes = { secretsRoutes(repositoryService, secretService) },
+                role = RepositoryPermission.READ.roleName(repoId),
+                successStatus = HttpStatusCode.NotFound
+            ) {
+                get("/repositories/$repoId/secrets/availableSecrets")
+            }
+        }
+    }
+
     "GetSecretByOrganizationIdAndName" should {
         "require OrganizationPermission.READ" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = OrganizationPermission.READ.roleName(orgId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -110,7 +137,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "GetSecretByProductIdAndName" should {
         "require ProductPermission.READ" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = ProductPermission.READ.roleName(prodId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -122,7 +149,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "GetSecretByRepositoryIdAndName" should {
         "require RepositoryPermission.READ" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = RepositoryPermission.READ.roleName(repoId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -134,7 +161,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "GetSecretsByOrganizationId" should {
         "require OrganizationPermission.READ" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = OrganizationPermission.READ.roleName(orgId)
             ) {
                 get("/organizations/$orgId/secrets")
@@ -145,7 +172,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "GetSecretsByProductId" should {
         "require ProductPermission.READ" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = ProductPermission.READ.roleName(prodId)
             ) {
                 get("/products/$prodId/secrets")
@@ -156,7 +183,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "GetSecretsByRepositoryId" should {
         "require RepositoryPermission.READ" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = RepositoryPermission.READ.roleName(repoId)
             ) {
                 get("/repositories/$repoId/secrets")
@@ -167,7 +194,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "PatchSecretByOrganizationIdAndName" should {
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -180,7 +207,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "PatchSecretByProductIdAndName" should {
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = ProductPermission.WRITE_SECRETS.roleName(prodId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -193,7 +220,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "PatchSecretByRepositoryIdAndName" should {
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -206,7 +233,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "PostSecretForOrganization" should {
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
                 successStatus = HttpStatusCode.Created
             ) {
@@ -219,7 +246,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "PostSecretForProduct" should {
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = ProductPermission.WRITE_SECRETS.roleName(prodId),
                 successStatus = HttpStatusCode.Created
             ) {
@@ -232,7 +259,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     "PostSecretForRepository" should {
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsRoutes(secretService) },
+                routes = { secretsRoutes(repositoryService, secretService) },
                 role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
                 successStatus = HttpStatusCode.Created
             ) {
