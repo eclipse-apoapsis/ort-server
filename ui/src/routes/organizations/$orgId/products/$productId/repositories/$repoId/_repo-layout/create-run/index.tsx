@@ -126,7 +126,11 @@ const CreateRunPage = () => {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues(ortRun?.data ?? null, isSuperuser),
+    defaultValues: defaultValues(
+      ortRun?.data ?? null,
+      advisorPlugins,
+      isSuperuser
+    ),
   });
 
   const watchedValues = form.watch();
