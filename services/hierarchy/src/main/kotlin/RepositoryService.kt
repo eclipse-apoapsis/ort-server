@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTab
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -96,6 +97,11 @@ class RepositoryService(
         val reporterJob = reporterJobRepository.getForOrtRun(ortRun.id)
         val notifierJob = notifierJobRepository.getForOrtRun(ortRun.id)
         Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob, notifierJob)
+    }
+
+    /** Get the [Hierarchy] for the provided [repository][repositoryId]. */
+    suspend fun getHierarchy(repositoryId: Long): Hierarchy = db.dbQuery {
+        repositoryRepository.getHierarchy(repositoryId)
     }
 
     suspend fun getOrtRun(repositoryId: Long, ortRunIndex: Long): OrtRun? = db.dbQuery {
