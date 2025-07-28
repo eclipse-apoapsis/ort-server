@@ -54,7 +54,7 @@ fun Application.configureRouting() {
                 products()
                 repositories()
                 runs()
-                secretsRoutes(get())
+                secretsRoutes(get(), get())
                 versions()
             }
         }
