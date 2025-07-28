@@ -277,11 +277,49 @@ export const flattenErrors = (
 };
 
 /**
+ * Merge the plugin configs from the last run with the default plugin configs. The configs from the last run take
+ * precedence.
+ */
+function mergePluginConfigs(
+  lastRunConfig: { [p: string]: PluginConfig } | null | undefined,
+  defaultConfig: Record<string, PluginConfig>
+): Record<string, PluginConfig> {
+  const merged: Record<string, PluginConfig> = {};
+
+  for (const pluginId of Object.keys(defaultConfig)) {
+    const defaultPlugin = defaultConfig[pluginId];
+    const ortPlugin = lastRunConfig?.[pluginId];
+
+    merged[pluginId] = {
+      options: {
+        ...(defaultPlugin?.options ?? {}),
+        ...(ortPlugin?.options ?? {}),
+      },
+      secrets: {
+        ...(defaultPlugin?.secrets ?? {}),
+        ...(ortPlugin?.secrets ?? {}),
+      },
+    };
+  }
+
+  if (lastRunConfig) {
+    for (const pluginId of Object.keys(lastRunConfig)) {
+      if (!merged[pluginId] && lastRunConfig[pluginId]) {
+        merged[pluginId] = lastRunConfig[pluginId];
+      }
+    }
+  }
+
+  return merged;
+}
+
+/**
  * Get the default values for the create run form. The form can be provided with a previously run
  * ORT run, in which case the values from it are used as defaults. Otherwise uses base defaults.
  */
 export function defaultValues(
-  ortRun: OrtRun | null
+  ortRun: OrtRun | null,
+  advisorPlugins: PreconfiguredPluginDescriptor[]
 ): z.infer<ReturnType<typeof createRunFormSchema>> {
   /**
    * Constructs the default options for a package manager, either as a blank set of options
@@ -329,6 +367,27 @@ export function defaultValues(
       })
     : false;
 
+  const advisorDefaultConfig = advisorPlugins.reduce(
+    (acc, plugin) => {
+      const options: Record<string, string> = {};
+      const secrets: Record<string, string> = {};
+
+      plugin.options?.forEach((option) => {
+        if (option.defaultValue !== undefined) {
+          if (option.type === 'SECRET') {
+            secrets[option.name] = String(option.defaultValue);
+          } else {
+            options[option.name] = String(option.defaultValue);
+          }
+        }
+      });
+
+      acc[plugin.id] = { options: options, secrets: secrets };
+      return acc;
+    },
+    {} as Record<string, PluginConfig>
+  );
+
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults = {
     revision: '',
@@ -371,6 +430,7 @@ export function defaultValues(
         enabled: true,
         skipExcluded: true,
         advisors: ['OSV', 'VulnerableCode'],
+        config: advisorDefaultConfig,
       },
       scanner: {
         enabled: true,
@@ -434,9 +494,10 @@ export function defaultValues(
             advisors:
               ortRun.jobConfigs.advisor?.advisors ||
               baseDefaults.jobConfigs.advisor.advisors,
-            config: ortRun.jobConfigs.advisor?.config as
-              | Record<string, unknown>
-              | undefined,
+            config: mergePluginConfigs(
+              ortRun?.jobConfigs?.advisor?.config,
+              advisorDefaultConfig
+            ),
           },
           scanner: {
             enabled:
