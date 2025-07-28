@@ -32,13 +32,15 @@ import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.getSecre
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.patchSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.postSecretForProduct
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.deleteSecretByRepositoryIdAndName
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getAvailableSecretsByRepositoryId
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getSecretsByRepositoryId
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.patchSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.postSecretForRepository
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 
-fun Route.secretsRoutes(secretService: SecretService) {
+fun Route.secretsRoutes(repositoryService: RepositoryService, secretService: SecretService) {
     // Organization secrets
     deleteSecretByOrganizationIdAndName(secretService)
     getSecretByOrganizationIdAndName(secretService)
@@ -55,6 +57,7 @@ fun Route.secretsRoutes(secretService: SecretService) {
 
     // Repository secrets
     deleteSecretByRepositoryIdAndName(secretService)
+    getAvailableSecretsByRepositoryId(repositoryService, secretService)
     getSecretByRepositoryIdAndName(secretService)
     getSecretsByRepositoryId(secretService)
     patchSecretByRepositoryIdAndName(secretService)
