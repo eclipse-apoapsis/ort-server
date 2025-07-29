@@ -26,7 +26,11 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { postRepositoryRunMutation } from '@/api/@tanstack/react-query.gen';
-import { getPluginsForRepository, getRepositoryRun } from '@/api/sdk.gen';
+import {
+  getAvailableRepositorySecrets,
+  getPluginsForRepository,
+  getRepositoryRun,
+} from '@/api/sdk.gen';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { InlineCode } from '@/components/typography.tsx';
 import { Accordion } from '@/components/ui/accordion';
@@ -71,7 +75,7 @@ import {
 const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { ortRun, plugins } = Route.useLoaderData();
+  const { ortRun, plugins, secrets } = Route.useLoaderData();
   const [isTest, setIsTest] = useState(false);
   const isSuperuser = useUser().isSuperuser || false;
   const permissions = Route.useRouteContext().permissions;
@@ -432,6 +436,7 @@ const CreateRunPage = () => {
                 value='advisor'
                 onToggle={() => toggleAccordionOpen('advisor')}
                 advisorPlugins={advisorPlugins}
+                secrets={secrets.data || []}
                 isSuperuser={isSuperuser}
               />
               <ScannerFields
@@ -547,7 +552,7 @@ export const Route = createFileRoute(
   // the query will not be run. This corresponds to the "New run" case, where a new
   // ORT Run is created from scratch, using all defaults.
   loader: async ({ params, deps: { rerunIndex } }) => {
-    const [ortRun, plugins] = await Promise.all([
+    const [ortRun, plugins, secrets] = await Promise.all([
       rerunIndex !== undefined
         ? getRepositoryRun({
             path: {
@@ -561,11 +566,17 @@ export const Route = createFileRoute(
           repositoryId: Number.parseInt(params.repoId),
         },
       }),
+      getAvailableRepositorySecrets({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+        },
+      }),
     ]);
 
     return {
       ortRun,
       plugins,
+      secrets,
     };
   },
   component: CreateRunPage,
