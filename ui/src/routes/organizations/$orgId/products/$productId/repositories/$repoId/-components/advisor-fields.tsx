@@ -19,7 +19,7 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
-import { PreconfiguredPluginDescriptor } from '@/api/requests';
+import { PreconfiguredPluginDescriptor, Secret } from '@/api/requests';
 import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import {
   AccordionContent,
@@ -41,6 +41,7 @@ type AdvisorFieldsProps = {
   value: string;
   onToggle: () => void;
   advisorPlugins: PreconfiguredPluginDescriptor[];
+  secrets: Secret[];
 };
 
 export const AdvisorFields = ({
@@ -48,6 +49,7 @@ export const AdvisorFields = ({
   value,
   onToggle,
   advisorPlugins,
+  secrets,
 }: AdvisorFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
@@ -95,6 +97,7 @@ export const AdvisorFields = ({
             label='Enabled advisors'
             description={<>Select the advisors enabled for this run.</>}
             plugins={advisorPlugins}
+            secrets={secrets}
           />
         </AccordionContent>
       </AccordionItem>

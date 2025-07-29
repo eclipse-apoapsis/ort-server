@@ -27,7 +27,7 @@ import {
   UseFormReturn,
 } from 'react-hook-form';
 
-import { PreconfiguredPluginDescriptor } from '@/api/requests';
+import { PreconfiguredPluginDescriptor, Secret } from '@/api/requests';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -41,6 +41,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input.tsx';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.tsx';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
@@ -54,6 +61,7 @@ type PluginMultiSelectFieldProps<
   label?: string;
   description?: React.ReactNode;
   plugins: readonly PreconfiguredPluginDescriptor[];
+  secrets: readonly Secret[];
   className?: string;
 };
 
@@ -67,6 +75,7 @@ export const PluginMultiSelectField = <
   label,
   description,
   plugins,
+  secrets,
   className,
 }: PluginMultiSelectFieldProps<TFieldValues, TName>) => {
   return (
@@ -149,7 +158,7 @@ export const PluginMultiSelectField = <
                       control={form.control}
                       key={option.name}
                       name={
-                        `${configName}.${plugin.id}.options.${option.name}` as Path<TFieldValues>
+                        `${configName}.${plugin.id}.${option.type === 'SECRET' ? 'secrets' : 'options'}.${option.name}` as Path<TFieldValues>
                       }
                       render={({ field }) => (
                         <FormItem className='flex flex-col space-y-1'>
@@ -169,6 +178,47 @@ export const PluginMultiSelectField = <
                                 onCheckedChange={field.onChange}
                                 disabled={option.isFixed}
                               />
+                            ) : option.type == 'SECRET' ? (
+                              secrets.length === 0 ? (
+                                <FormMessage className='font-semibold text-red-600'>
+                                  No secrets available. Create a new secret to
+                                  be able to use this option.
+                                </FormMessage>
+                              ) : (
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={undefined}
+                                  value={field.value}
+                                  disabled={option.isFixed}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder='Select a secret' />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {secrets.map((secret) => (
+                                      <SelectItem
+                                        key={secret.name}
+                                        value={secret.name}
+                                      >
+                                        {secret.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                  {field.value &&
+                                    !secrets.some(
+                                      (secret) => secret.name === field.value
+                                    ) && (
+                                      <FormMessage className='font-semibold text-red-600'>
+                                        The selected secret '{field.value}' does
+                                        not exist. The value could come from a
+                                        previous run or could be a default value
+                                        set by an administrator. Select a valid
+                                        secret or create a new secret with this
+                                        name.
+                                      </FormMessage>
+                                    )}
+                                </Select>
+                              )
                             ) : option.isRequired ? (
                               <Input
                                 {...field}
