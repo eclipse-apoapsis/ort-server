@@ -332,6 +332,29 @@ function mergePluginConfigs(
   return merged;
 }
 
+function getPluginDefaultValues(plugins: PreconfiguredPluginDescriptor[]) {
+  return plugins.reduce(
+    (acc, plugin) => {
+      const options: Record<string, string> = {};
+      const secrets: Record<string, string> = {};
+
+      plugin.options?.forEach((option) => {
+        if (option.defaultValue !== undefined) {
+          if (option.type === 'SECRET') {
+            secrets[option.name] = String(option.defaultValue);
+          } else {
+            options[option.name] = String(option.defaultValue);
+          }
+        }
+      });
+
+      acc[plugin.id] = { options: options, secrets: secrets };
+      return acc;
+    },
+    {} as Record<string, PluginConfig>
+  );
+}
+
 /**
  * Get the default values for the create run form. The form can be provided with a previously run
  * ORT run, in which case the values from it are used as defaults. Otherwise uses base defaults.
@@ -387,26 +410,7 @@ export function defaultValues(
       })
     : false;
 
-  const advisorDefaultConfig = advisorPlugins.reduce(
-    (acc, plugin) => {
-      const options: Record<string, string> = {};
-      const secrets: Record<string, string> = {};
-
-      plugin.options?.forEach((option) => {
-        if (option.defaultValue !== undefined) {
-          if (option.type === 'SECRET') {
-            secrets[option.name] = String(option.defaultValue);
-          } else {
-            options[option.name] = String(option.defaultValue);
-          }
-        }
-      });
-
-      acc[plugin.id] = { options: options, secrets: secrets };
-      return acc;
-    },
-    {} as Record<string, PluginConfig>
-  );
+  const advisorPluginDefaultValues = getPluginDefaultValues(advisorPlugins);
 
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults = {
@@ -457,7 +461,7 @@ export function defaultValues(
         enabled: true,
         skipExcluded: true,
         advisors: ['OSV', 'VulnerableCode'],
-        config: advisorDefaultConfig,
+        config: advisorPluginDefaultValues,
         keepAliveWorker: false,
       },
       scanner: {
@@ -551,7 +555,7 @@ export function defaultValues(
               baseDefaults.jobConfigs.advisor.advisors,
             config: mergePluginConfigs(
               ortRun?.jobConfigs?.advisor?.config,
-              advisorDefaultConfig
+              advisorPluginDefaultValues
             ),
             keepAliveWorker:
               (ortRun.jobConfigs.advisor?.keepAliveWorker && isSuperuser) ||
