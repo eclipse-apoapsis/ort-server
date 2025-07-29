@@ -557,6 +557,64 @@ export function defaultValues(
 }
 
 /**
+ * Convert the plugin config from form values to the payload format expected by the back-end. Configuration for plugins
+ * which are not enabled is not included in the payload.
+ */
+function createPluginPayload(
+  config: Record<string, unknown> | undefined,
+  enabledPlugins: string[]
+): { [key: string]: PluginConfig } | undefined {
+  if (!config) return undefined;
+
+  const filtered = Object.fromEntries(
+    Object.entries(config)
+      .filter(([key]) => enabledPlugins.includes(key))
+      .map(([key, value]) => {
+        if (value && typeof value === 'object') {
+          const pluginConfig = value as Record<string, unknown>;
+          const convertedConfig: PluginConfig = {
+            options: {},
+            secrets: {},
+          };
+
+          if (
+            pluginConfig.options &&
+            typeof pluginConfig.options === 'object'
+          ) {
+            convertedConfig.options = Object.fromEntries(
+              Object.entries(pluginConfig.options as Record<string, unknown>)
+                .filter(
+                  ([, optValue]) => optValue !== undefined && optValue !== null
+                )
+                .map(([optKey, optValue]) => [optKey, String(optValue)])
+            );
+          }
+
+          if (
+            pluginConfig.secrets &&
+            typeof pluginConfig.secrets === 'object'
+          ) {
+            convertedConfig.secrets = Object.fromEntries(
+              Object.entries(pluginConfig.secrets as Record<string, unknown>)
+                .filter(
+                  ([, secValue]) => secValue !== undefined && secValue !== null
+                )
+                .map(([secKey, secValue]) => [secKey, String(secValue)])
+            );
+          }
+
+          return [key, convertedConfig];
+        }
+        return [key, value];
+      })
+  );
+
+  return Object.keys(filtered).length > 0
+    ? (filtered as { [key: string]: PluginConfig })
+    : undefined;
+}
+
+/**
  * Due to API schema and requirements for the form schema, the form values can't be directly passed
  * to the API. This function converts form values to correct payload to create an ORT run.
  */
@@ -661,67 +719,11 @@ export function formValuesToPayload(
   // Advisor configuration
   //
 
-  function createAdvisorPluginConfig(
-    config: Record<string, unknown> | undefined,
-    advisors: string[]
-  ): { [key: string]: PluginConfig } | undefined {
-    if (!config) return undefined;
-
-    const filtered = Object.fromEntries(
-      Object.entries(config)
-        .filter(([key]) => advisors.includes(key))
-        .map(([key, value]) => {
-          if (value && typeof value === 'object') {
-            const pluginConfig = value as Record<string, unknown>;
-            const convertedConfig: PluginConfig = {
-              options: {},
-              secrets: {},
-            };
-
-            if (
-              pluginConfig.options &&
-              typeof pluginConfig.options === 'object'
-            ) {
-              convertedConfig.options = Object.fromEntries(
-                Object.entries(pluginConfig.options as Record<string, unknown>)
-                  .filter(
-                    ([, optValue]) =>
-                      optValue !== undefined && optValue !== null
-                  )
-                  .map(([optKey, optValue]) => [optKey, String(optValue)])
-              );
-            }
-
-            if (
-              pluginConfig.secrets &&
-              typeof pluginConfig.secrets === 'object'
-            ) {
-              convertedConfig.secrets = Object.fromEntries(
-                Object.entries(pluginConfig.secrets as Record<string, unknown>)
-                  .filter(
-                    ([, secValue]) =>
-                      secValue !== undefined && secValue !== null
-                  )
-                  .map(([secKey, secValue]) => [secKey, String(secValue)])
-              );
-            }
-
-            return [key, convertedConfig];
-          }
-          return [key, value];
-        })
-    );
-
-    return Object.keys(filtered).length > 0
-      ? (filtered as { [key: string]: PluginConfig })
-      : undefined;
-  }
-
   const advisorConfig = values.jobConfigs.advisor.enabled
     ? {
         skipExcluded: values.jobConfigs.advisor.skipExcluded,
         advisors: values.jobConfigs.advisor.advisors,
-        config: createAdvisorPluginConfig(
+        config: createPluginPayload(
           values.jobConfigs.advisor.config,
           values.jobConfigs.advisor.advisors
         ),
