@@ -19,7 +19,7 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
-import { PreconfiguredPluginDescriptor } from '@/api';
+import { PreconfiguredPluginDescriptor, Secret } from '@/api';
 import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import {
   AccordionContent,
@@ -41,6 +41,7 @@ type AdvisorFieldsProps = {
   value: string;
   onToggle: () => void;
   advisorPlugins: PreconfiguredPluginDescriptor[];
+  secrets: Secret[];
   isSuperuser: boolean;
 };
 
@@ -49,6 +50,7 @@ export const AdvisorFields = ({
   value,
   onToggle,
   advisorPlugins,
+  secrets,
   isSuperuser,
 }: AdvisorFieldsProps) => {
   return (
@@ -97,6 +99,7 @@ export const AdvisorFields = ({
             label='Enabled advisors'
             description={<>Select the advisors enabled for this run.</>}
             plugins={advisorPlugins}
+            secrets={secrets}
           />
           {isSuperuser && (
             <FormField
