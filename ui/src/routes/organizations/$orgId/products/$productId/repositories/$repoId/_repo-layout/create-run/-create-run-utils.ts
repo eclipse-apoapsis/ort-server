@@ -27,7 +27,6 @@ import {
   PluginConfig,
   PluginOptionType,
   PreconfiguredPluginDescriptor,
-  ReporterJobConfiguration,
 } from '@/api/requests';
 import { PackageManagerId, packageManagers } from '@/lib/types';
 
@@ -106,12 +105,19 @@ const createPluginConfigSchema = (plugin: PreconfiguredPluginDescriptor) => {
 };
 
 export const createRunFormSchema = (
-  advisorPlugins: PreconfiguredPluginDescriptor[]
+  advisorPlugins: PreconfiguredPluginDescriptor[],
+  reporterPlugins: PreconfiguredPluginDescriptor[]
 ) => {
   const advisorConfigSchema: Record<string, z.ZodTypeAny> = {};
 
   advisorPlugins.forEach((plugin) => {
     advisorConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
+  });
+
+  const reporterConfigSchema: Record<string, z.ZodTypeAny> = {};
+
+  reporterPlugins.forEach((plugin) => {
+    reporterConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
   });
 
   return z.object({
@@ -178,7 +184,7 @@ export const createRunFormSchema = (
       reporter: z.object({
         enabled: z.boolean(),
         formats: z.array(z.string()),
-        deduplicateDependencyTree: z.boolean().optional(),
+        config: z.object(reporterConfigSchema).optional(),
       }),
       notifier: z.object({
         enabled: z.boolean(),
@@ -342,7 +348,8 @@ function getPluginDefaultValues(plugins: PreconfiguredPluginDescriptor[]) {
  */
 export function defaultValues(
   ortRun: OrtRun | null,
-  advisorPlugins: PreconfiguredPluginDescriptor[]
+  advisorPlugins: PreconfiguredPluginDescriptor[],
+  reporterPlugins: PreconfiguredPluginDescriptor[]
 ): z.infer<ReturnType<typeof createRunFormSchema>> {
   /**
    * Constructs the default options for a package manager, either as a blank set of options
@@ -380,17 +387,8 @@ export function defaultValues(
     };
   };
 
-  // Find out if any of the reporters had their options.deduplicateDependencyTree set to true in the previous run.
-  // This is used to set the default value for the deduplicateDependencyTree toggle in the UI.
-  const deduplicateDependencyTreeEnabled = ortRun
-    ? ortRun.jobConfigs.reporter?.config &&
-      Object.keys(ortRun.jobConfigs.reporter.config ?? {}).some((key) => {
-        const config = ortRun.jobConfigs.reporter?.config?.[key];
-        return config?.options?.deduplicateDependencyTree === 'true';
-      })
-    : false;
-
   const advisorPluginDefaultValues = getPluginDefaultValues(advisorPlugins);
+  const reporterPluginDefaultValues = getPluginDefaultValues(reporterPlugins);
 
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults = {
@@ -452,6 +450,7 @@ export function defaultValues(
         enabled: true,
         formats: ['CycloneDX', 'SpdxDocument', 'WebApp'],
         deduplicateDependencyTree: false,
+        config: reporterPluginDefaultValues,
       },
       notifier: {
         enabled: false,
@@ -530,8 +529,10 @@ export function defaultValues(
               ortRun.jobConfigs.reporter?.formats?.map((format) =>
                 format === 'CycloneDx' ? 'CycloneDX' : format
               ) || baseDefaults.jobConfigs.reporter.formats,
-            deduplicateDependencyTree:
-              deduplicateDependencyTreeEnabled || undefined,
+            config: mergePluginConfigs(
+              ortRun?.jobConfigs?.reporter?.config,
+              reporterPluginDefaultValues
+            ),
           },
           notifier: {
             enabled:
@@ -752,61 +753,13 @@ export function formValuesToPayload(
   // Reporter configuration
   //
 
-  // Check if CycloneDX, SPDX, and/or NOTICE file reports are enabled in the form,
-  // and configure them to use all output formats, accordingly.
-
-  const cycloneDxEnabled =
-    values.jobConfigs.reporter.formats.includes('CycloneDX');
-  const spdxDocumentEnabled =
-    values.jobConfigs.reporter.formats.includes('SpdxDocument');
-  const noticeFileEnabled =
-    values.jobConfigs.reporter.formats.includes('PlainTextTemplate');
-
-  const config: ReporterJobConfiguration['config'] = {};
-
-  if (spdxDocumentEnabled) {
-    config.SpdxDocument = {
-      options: {
-        outputFileFormats: 'YAML,JSON',
-      },
-      secrets: {},
-    };
-  }
-
-  if (cycloneDxEnabled) {
-    config.CycloneDX = {
-      options: {
-        outputFileFormats: 'XML,JSON',
-      },
-      secrets: {},
-    };
-  }
-
-  if (noticeFileEnabled) {
-    config.PlainTextTemplate = {
-      options: {
-        templateIds: 'NOTICE_DEFAULT,NOTICE_SUMMARY',
-      },
-      secrets: {},
-    };
-  }
-
-  // If WebApp and the deduplicateDependencyTree option are enabled, add the configuration.
-
-  const webAppEnabled = values.jobConfigs.reporter.formats.includes('WebApp');
-  if (webAppEnabled && values.jobConfigs.reporter.deduplicateDependencyTree) {
-    config.WebApp = {
-      options: {
-        deduplicateDependencyTree: 'true',
-      },
-      secrets: {},
-    };
-  }
-
   const reporterConfig = values.jobConfigs.reporter.enabled
     ? {
         formats: values.jobConfigs.reporter.formats,
-        config: Object.keys(config).length > 0 ? config : undefined,
+        config: createPluginPayload(
+          values.jobConfigs.reporter.config,
+          values.jobConfigs.reporter.formats
+        ),
       }
     : undefined;
 

@@ -124,11 +124,11 @@ const CreateRunPage = () => {
       },
     });
 
-  const formSchema = createRunFormSchema(advisorPlugins);
+  const formSchema = createRunFormSchema(advisorPlugins, reporterPlugins);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues(ortRun, advisorPlugins),
+    defaultValues: defaultValues(ortRun, advisorPlugins, reporterPlugins),
   });
 
   const {
@@ -440,6 +440,7 @@ const CreateRunPage = () => {
                 value='reporter'
                 onToggle={() => toggleAccordionOpen('reporter')}
                 reporterPlugins={reporterPlugins}
+                secrets={secrets}
               />
               <NotifierFields
                 form={form}
