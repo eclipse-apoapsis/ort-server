@@ -45,8 +45,14 @@ private const val ACCOUNT_KEY =
 private const val CONTAINER = "test"
 
 class AzureBlobStorageProviderTest : WordSpec({
-    val azuriteContainer =
-        install(ContainerExtension(GenericContainer(AZURITE_IMAGE).apply { withExposedPorts(10000) }))
+    val azuriteContainer = install(
+        ContainerExtension(
+            GenericContainer(AZURITE_IMAGE)
+                // Skip the API version check to work around https://github.com/Azure/Azurite/issues/2562.
+                .withCommand("azurite-blob", "--skipApiVersionCheck", "--blobHost", "0.0.0.0")
+                .withExposedPorts(10000)
+        )
+    )
 
     lateinit var containerClient: BlobContainerClient
 
