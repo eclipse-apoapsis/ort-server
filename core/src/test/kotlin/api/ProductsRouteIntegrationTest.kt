@@ -1308,7 +1308,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "trigger ORT runs FAILED for repositories in the product" {
+        "create ORT runs when 'repositoryFailedIds' is set and the last runs of all repositories failed" {
             integrationTestApplication {
                 val productId = createProduct().id
                 val description = "description"
@@ -1373,7 +1373,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "should return 'Conflict' when the latest ORT run for a repository does not have FAILED status" {
+        "return 'Conflict' when 'repositoryFailedIds' is used and the latest run for a repository did not fail" {
             integrationTestApplication {
                 val productId = createProduct().id
                 val description = "description"
