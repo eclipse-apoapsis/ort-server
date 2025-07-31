@@ -1308,6 +1308,76 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "respond with 'BadRequest' if disabled plugins are used" {
+            integrationTestApplication {
+                val productId = createProduct().id
+                val repositoryId = productService.createRepository(
+                    type = RepositoryType.GIT,
+                    url = "https://example.org/repo.git",
+                    productId = productId,
+                    description = null
+                ).id
+
+                val installedPlugins = pluginService.getPlugins()
+                val advisorPluginId = installedPlugins.first { it.type == PluginType.ADVISOR }.id
+                val packageConfigurationProviderPluginId =
+                    installedPlugins.first { it.type == PluginType.PACKAGE_CONFIGURATION_PROVIDER }.id
+                val packageCurationProviderPluginId =
+                    installedPlugins.first { it.type == PluginType.PACKAGE_CURATION_PROVIDER }.id
+                val packageManagerPluginId = installedPlugins.first { it.type == PluginType.PACKAGE_MANAGER }.id
+                val reporterPluginId = installedPlugins.first { it.type == PluginType.REPORTER }.id
+                val scannerPluginId = installedPlugins.first { it.type == PluginType.SCANNER }.id
+
+                // Disable one plugin of each type.
+                suspend fun disablePlugin(pluginType: PluginType, pluginId: String) =
+                    superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/disable")
+
+                disablePlugin(PluginType.ADVISOR, advisorPluginId)
+                disablePlugin(PluginType.PACKAGE_CONFIGURATION_PROVIDER, packageConfigurationProviderPluginId)
+                disablePlugin(PluginType.PACKAGE_CURATION_PROVIDER, packageCurationProviderPluginId)
+                disablePlugin(PluginType.PACKAGE_MANAGER, packageManagerPluginId)
+                disablePlugin(PluginType.REPORTER, reporterPluginId)
+                disablePlugin(PluginType.SCANNER, scannerPluginId)
+
+                // Create a run with disabled plugins.
+                val createRun = CreateOrtRun(
+                    revision = "main",
+                    jobConfigs = JobConfigurations(
+                        analyzer = AnalyzerJobConfiguration(
+                            enabledPackageManagers = listOf(packageManagerPluginId),
+                            packageCurationProviders = listOf(
+                                ProviderPluginConfiguration(type = packageCurationProviderPluginId)
+                            )
+                        ),
+                        advisor = AdvisorJobConfiguration(advisors = listOf(advisorPluginId)),
+                        scanner = ScannerJobConfiguration(scanners = listOf(scannerPluginId)),
+                        evaluator = EvaluatorJobConfiguration(
+                            packageConfigurationProviders = listOf(
+                                ProviderPluginConfiguration(type = packageConfigurationProviderPluginId)
+                            )
+                        ),
+                        reporter = ReporterJobConfiguration(
+                            formats = listOf(reporterPluginId)
+                        )
+                    )
+                )
+
+                val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                    setBody(createRun)
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+                val errorMessage = response.bodyAsText()
+                errorMessage shouldContain "disabled"
+                errorMessage shouldContain advisorPluginId
+                errorMessage shouldContain packageConfigurationProviderPluginId
+                errorMessage shouldContain packageCurationProviderPluginId
+                errorMessage shouldContain packageManagerPluginId
+                errorMessage shouldContain reporterPluginId
+                errorMessage shouldContain scannerPluginId
+            }
+        }
+
         "create ORT runs when 'repositoryFailedIds' is set and the last runs of all repositories failed" {
             integrationTestApplication {
                 val productId = createProduct().id
@@ -1440,76 +1510,6 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 body.message shouldBe "The repositories do not have a latest ORT run " +
                         "with status FAILED for product $productId."
                 body.cause shouldBe "Invalid repository IDs: $repository3Id"
-            }
-        }
-
-        "respond with 'BadRequest' if disabled plugins are used" {
-            integrationTestApplication {
-                val productId = createProduct().id
-                val repositoryId = productService.createRepository(
-                    type = RepositoryType.GIT,
-                    url = "https://example.org/repo.git",
-                    productId = productId,
-                    description = null
-                ).id
-
-                val installedPlugins = pluginService.getPlugins()
-                val advisorPluginId = installedPlugins.first { it.type == PluginType.ADVISOR }.id
-                val packageConfigurationProviderPluginId =
-                    installedPlugins.first { it.type == PluginType.PACKAGE_CONFIGURATION_PROVIDER }.id
-                val packageCurationProviderPluginId =
-                    installedPlugins.first { it.type == PluginType.PACKAGE_CURATION_PROVIDER }.id
-                val packageManagerPluginId = installedPlugins.first { it.type == PluginType.PACKAGE_MANAGER }.id
-                val reporterPluginId = installedPlugins.first { it.type == PluginType.REPORTER }.id
-                val scannerPluginId = installedPlugins.first { it.type == PluginType.SCANNER }.id
-
-                // Disable one plugin of each type.
-                suspend fun disablePlugin(pluginType: PluginType, pluginId: String) =
-                    superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/disable")
-
-                disablePlugin(PluginType.ADVISOR, advisorPluginId)
-                disablePlugin(PluginType.PACKAGE_CONFIGURATION_PROVIDER, packageConfigurationProviderPluginId)
-                disablePlugin(PluginType.PACKAGE_CURATION_PROVIDER, packageCurationProviderPluginId)
-                disablePlugin(PluginType.PACKAGE_MANAGER, packageManagerPluginId)
-                disablePlugin(PluginType.REPORTER, reporterPluginId)
-                disablePlugin(PluginType.SCANNER, scannerPluginId)
-
-                // Create a run with disabled plugins.
-                val createRun = CreateOrtRun(
-                    revision = "main",
-                    jobConfigs = JobConfigurations(
-                        analyzer = AnalyzerJobConfiguration(
-                            enabledPackageManagers = listOf(packageManagerPluginId),
-                            packageCurationProviders = listOf(
-                                ProviderPluginConfiguration(type = packageCurationProviderPluginId)
-                            )
-                        ),
-                        advisor = AdvisorJobConfiguration(advisors = listOf(advisorPluginId)),
-                        scanner = ScannerJobConfiguration(scanners = listOf(scannerPluginId)),
-                        evaluator = EvaluatorJobConfiguration(
-                            packageConfigurationProviders = listOf(
-                                ProviderPluginConfiguration(type = packageConfigurationProviderPluginId)
-                            )
-                        ),
-                        reporter = ReporterJobConfiguration(
-                            formats = listOf(reporterPluginId)
-                        )
-                    )
-                )
-
-                val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
-                    setBody(createRun)
-                }
-
-                response shouldHaveStatus HttpStatusCode.BadRequest
-                val errorMessage = response.bodyAsText()
-                errorMessage shouldContain "disabled"
-                errorMessage shouldContain advisorPluginId
-                errorMessage shouldContain packageConfigurationProviderPluginId
-                errorMessage shouldContain packageCurationProviderPluginId
-                errorMessage shouldContain packageManagerPluginId
-                errorMessage shouldContain reporterPluginId
-                errorMessage shouldContain scannerPluginId
             }
         }
 
