@@ -942,14 +942,16 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        val keepAliveTestCases = listOf(
-            ForbiddenKeepAliveWorkerTestcase("Advisor", "advisorKeepAlive", keepAliveAdvisor = true),
-            ForbiddenKeepAliveWorkerTestcase("Analyzer", "analyzerKeepAlive", keepAliveAnalyzer = true),
-            ForbiddenKeepAliveWorkerTestcase("Evaluator", "evaluatorKeepAlive", keepAliveEvaluator = true),
-            ForbiddenKeepAliveWorkerTestcase("Notifier", "notifierKeepAlive", keepAliveNotifier = true),
-            ForbiddenKeepAliveWorkerTestcase("Reporter", "reporterKeepAlive", keepAliveReporter = true),
-            ForbiddenKeepAliveWorkerTestcase("Scanner", "scannerKeepAlive", keepAliveScanner = true)
-        )
+        val keepAliveJobConfigs = ApiJobConfigurations().let {
+            listOf(
+                it.copy(analyzer = AnalyzerJobConfiguration(keepAliveWorker = true)),
+                it.copy(advisor = AdvisorJobConfiguration(keepAliveWorker = true)),
+                it.copy(evaluator = EvaluatorJobConfiguration(keepAliveWorker = true)),
+                it.copy(notifier = NotifierJobConfiguration(keepAliveWorker = true)),
+                it.copy(reporter = ReporterJobConfiguration(keepAliveWorker = true)),
+                it.copy(scanner = ScannerJobConfiguration(keepAliveWorker = true))
+            )
+        }
 
         "respond with 'Forbidden' if 'keepAliveWorker' is set by a non super-user" {
             integrationTestApplication {
@@ -960,63 +962,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     RepositoryPermission.TRIGGER_ORT_RUN.roleName(repositoryId)
                 )
 
-                keepAliveTestCases.forAll { testCase ->
-                    val createRun = CreateOrtRun(
-                        "main",
-                        null,
-                        ApiJobConfigurations(
-                            analyzer = AnalyzerJobConfiguration(keepAliveWorker = testCase.keepAliveAnalyzer),
-                            advisor = AdvisorJobConfiguration(keepAliveWorker = testCase.keepAliveAdvisor),
-                            evaluator = EvaluatorJobConfiguration(keepAliveWorker = testCase.keepAliveEvaluator),
-                            notifier = NotifierJobConfiguration(keepAliveWorker = testCase.keepAliveNotifier),
-                            reporter = ReporterJobConfiguration(keepAliveWorker = testCase.keepAliveReporter),
-                            scanner = ScannerJobConfiguration(keepAliveWorker = testCase.keepAliveScanner)
-                        )
-                    )
-
+                keepAliveJobConfigs.forAll {
                     val response = testUserClient.post("/api/v1/repositories/$repositoryId/runs") {
-                        setBody(createRun)
+                        setBody(CreateOrtRun(revision = "main", jobConfigs = it))
                     }
 
                     response shouldHaveStatus HttpStatusCode.Forbidden
-                    response.body<ErrorResponse>().message shouldContainIgnoringCase "keepAlive"
-                    response.body<ErrorResponse>().message shouldContainIgnoringCase testCase.workerName
-                }
-            }
-        }
-
-        "respond with 'Forbidden' if the 'keepAlive' parameter is set by a non super-user" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                keycloak.keycloakAdminClient.addUserRole(
-                    TEST_USER.username.value,
-                    RepositoryPermission.TRIGGER_ORT_RUN.roleName(repositoryId)
-                )
-
-                keepAliveTestCases.forAll { testCase ->
-                    val createRun = CreateOrtRun(
-                        "main",
-                        null,
-                        ApiJobConfigurations(
-                            parameters = mapOf(
-                                "advisorKeepAlive" to testCase.keepAliveAdvisor.toString(),
-                                "analyzerKeepAlive" to testCase.keepAliveAnalyzer.toString(),
-                                "evaluatorKeepAlive" to testCase.keepAliveEvaluator.toString(),
-                                "notifierKeepAlive" to testCase.keepAliveNotifier.toString(),
-                                "reporterKeepAlive" to testCase.keepAliveReporter.toString(),
-                                "scannerKeepAlive" to testCase.keepAliveScanner.toString()
-                            )
-                        )
-                    )
-
-                    val response = testUserClient.post("/api/v1/repositories/$repositoryId/runs") {
-                        setBody(createRun)
-                    }
-
-                    response shouldHaveStatus HttpStatusCode.Forbidden
-                    response.body<ErrorResponse>().message shouldContainIgnoringCase "keepAlive"
-                    response.body<ErrorResponse>().message shouldContainIgnoringCase testCase.workerName
+                    response.body<ErrorResponse>().message shouldContainIgnoringCase "keepAliveWorker"
                 }
             }
         }
@@ -1025,51 +977,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                keepAliveTestCases.forAll { testCase ->
-                    val createRun = CreateOrtRun(
-                        "main",
-                        null,
-                        ApiJobConfigurations(
-                            analyzer = AnalyzerJobConfiguration(keepAliveWorker = testCase.keepAliveAnalyzer),
-                            advisor = AdvisorJobConfiguration(keepAliveWorker = testCase.keepAliveAdvisor),
-                            evaluator = EvaluatorJobConfiguration(keepAliveWorker = testCase.keepAliveEvaluator),
-                            notifier = NotifierJobConfiguration(keepAliveWorker = testCase.keepAliveNotifier),
-                            reporter = ReporterJobConfiguration(keepAliveWorker = testCase.keepAliveReporter),
-                            scanner = ScannerJobConfiguration(keepAliveWorker = testCase.keepAliveScanner)
-                        )
-                    )
-
+                keepAliveJobConfigs.forAll {
                     val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
-                        setBody(createRun)
-                    }
-
-                    response shouldHaveStatus HttpStatusCode.Created
-                }
-            }
-        }
-
-        "continue if the 'keepAlive' parameter is set by a super-user" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                keepAliveTestCases.forAll { testCase ->
-                    val createRun = CreateOrtRun(
-                        "main",
-                        null,
-                        ApiJobConfigurations(
-                            parameters = mapOf(
-                                "advisorKeepAlive" to testCase.keepAliveAdvisor.toString(),
-                                "analyzerKeepAlive" to testCase.keepAliveAnalyzer.toString(),
-                                "evaluatorKeepAlive" to testCase.keepAliveEvaluator.toString(),
-                                "notifierKeepAlive" to testCase.keepAliveNotifier.toString(),
-                                "reporterKeepAlive" to testCase.keepAliveReporter.toString(),
-                                "scannerKeepAlive" to testCase.keepAliveScanner.toString()
-                            )
-                        )
-                    )
-
-                    val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
-                        setBody(createRun)
+                        setBody(CreateOrtRun(revision = "main", jobConfigs = it))
                     }
 
                     response shouldHaveStatus HttpStatusCode.Created
@@ -1727,14 +1637,3 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 })
-
-private data class ForbiddenKeepAliveWorkerTestcase(
-    val workerName: String,
-    val parameterName: String,
-    val keepAliveAdvisor: Boolean = false,
-    val keepAliveAnalyzer: Boolean = false,
-    val keepAliveEvaluator: Boolean = false,
-    val keepAliveNotifier: Boolean = false,
-    val keepAliveReporter: Boolean = false,
-    val keepAliveScanner: Boolean = false
-)
