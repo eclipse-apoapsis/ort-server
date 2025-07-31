@@ -51,6 +51,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
 import { AdvisorFields } from '../../-components/advisor-fields';
 import { AnalyzerFields } from '../../-components/analyzer-fields';
@@ -71,6 +72,8 @@ const CreateRunPage = () => {
   const params = Route.useParams();
   const { ortRun, plugins } = Route.useLoaderData();
   const [isTest, setIsTest] = useState(false);
+  const user = useUser();
+  const isSuperuser = user.hasRole(['superuser']);
 
   const advisorPlugins =
     plugins?.filter((plugin) => plugin.type === 'ADVISOR') || [];
@@ -126,7 +129,7 @@ const CreateRunPage = () => {
 
   const form = useForm({
     resolver: zodResolver(createRunFormSchema),
-    defaultValues: defaultValues(ortRun),
+    defaultValues: defaultValues(ortRun, isSuperuser),
   });
 
   const {
@@ -419,29 +422,39 @@ const CreateRunPage = () => {
                 form={form}
                 value='analyzer'
                 onToggle={() => toggleAccordionOpen('analyzer')}
+                isSuperuser={isSuperuser}
               />
               <AdvisorFields
                 form={form}
                 value='advisor'
                 onToggle={() => toggleAccordionOpen('advisor')}
                 advisorPlugins={advisorPlugins}
+                isSuperuser={isSuperuser}
               />
               <ScannerFields
                 form={form}
                 value='scanner'
                 onToggle={() => toggleAccordionOpen('scanner')}
+                isSuperuser={isSuperuser}
               />
-              <EvaluatorFields form={form} />
+              <EvaluatorFields
+                form={form}
+                value='evaluator'
+                onToggle={() => toggleAccordionOpen('evaluator')}
+                isSuperuser={isSuperuser}
+              />
               <ReporterFields
                 form={form}
                 value='reporter'
                 onToggle={() => toggleAccordionOpen('reporter')}
                 reporterPlugins={reporterPlugins}
+                isSuperuser={isSuperuser}
               />
               <NotifierFields
                 form={form}
                 value='notifier'
                 onToggle={() => toggleAccordionOpen('notifier')}
+                isSuperuser={isSuperuser}
               />
             </Accordion>
           </CardContent>
