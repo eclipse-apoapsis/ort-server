@@ -1255,12 +1255,6 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "respond with 'BadRequest' if not installed plugins are used" {
             integrationTestApplication {
                 val productId = createProduct().id
-                val repositoryId = productService.createRepository(
-                    type = RepositoryType.GIT,
-                    url = "https://example.org/repo.git",
-                    productId = productId,
-                    description = null
-                ).id
 
                 val advisorPluginId = "notInstalledAdvisor"
                 val packageConfigurationProviderPluginId = "notInstalledPackageConfigurationProvider"
@@ -1292,7 +1286,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     )
                 )
 
-                val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                val response = superuserClient.post("/api/v1/products/$productId/runs") {
                     setBody(createRun)
                 }
 
@@ -1311,12 +1305,6 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "respond with 'BadRequest' if disabled plugins are used" {
             integrationTestApplication {
                 val productId = createProduct().id
-                val repositoryId = productService.createRepository(
-                    type = RepositoryType.GIT,
-                    url = "https://example.org/repo.git",
-                    productId = productId,
-                    description = null
-                ).id
 
                 val installedPlugins = pluginService.getPlugins()
                 val advisorPluginId = installedPlugins.first { it.type == PluginType.ADVISOR }.id
@@ -1362,7 +1350,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     )
                 )
 
-                val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                val response = superuserClient.post("/api/v1/products/$productId/runs") {
                     setBody(createRun)
                 }
 
