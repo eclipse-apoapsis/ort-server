@@ -38,12 +38,14 @@ type ScannerFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
   value: string;
   onToggle: () => void;
+  isSuperuser: boolean;
 };
 
 export const ScannerFields = ({
   form,
   value,
   onToggle,
+  isSuperuser,
 }: ScannerFieldsProps) => {
   return (
     <div className='flex flex-row align-middle'>
@@ -106,6 +108,30 @@ export const ScannerFields = ({
               </FormItem>
             )}
           />
+          {isSuperuser && (
+            <FormField
+              control={form.control}
+              name='jobConfigs.scanner.keepAliveWorker'
+              render={({ field }) => (
+                <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
+                  <div className='space-y-0.5'>
+                    <FormLabel>Keep worker alive</FormLabel>
+                    <FormDescription>
+                      A flag to control whether the worker is kept alive for
+                      debugging purposes. This flag only has an effect if the
+                      ORT Server is deployed on Kubernetes.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
         </AccordionContent>
       </AccordionItem>
     </div>
