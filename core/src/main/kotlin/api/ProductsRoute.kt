@@ -353,16 +353,14 @@ fun Route.products() = route("products/{productId}") {
 
                 createOrtRun.repositoryFailedIds.isNotEmpty() -> {
                     val productRepoIds = productService.getLatestOrtRunWithFailedStatusForProduct(productId)
-
                     val repoIdsNotInProduct = createOrtRun.repositoryFailedIds.filter { it !in productRepoIds }
 
                     if (repoIdsNotInProduct.isNotEmpty()) {
                         call.respond(
                             HttpStatusCode.Conflict,
                             ErrorResponse(
-                                message =
-                                    "The repositories do not have a latest ORT run " +
-                                            "with status FAILED for product $productId.",
+                                message = "The repositories do not have a latest ORT run with status FAILED for " +
+                                        "product $productId.",
                                 cause = "Invalid repository IDs: ${repoIdsNotInProduct.joinToString()}"
                             )
                         )
