@@ -254,6 +254,7 @@ private fun mockScannerWrapperFactory(scannerName: String) =
             every { details } returns mockk {
                 every { name } returns scannerName
             }
+            every { version } returns "1.0.0"
             every { descriptor.id } returns scannerName
             every { descriptor.displayName } returns scannerName
             every { readFromStorage } returns true
