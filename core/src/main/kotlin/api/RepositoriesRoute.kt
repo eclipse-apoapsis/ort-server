@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToRepositoryGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
+import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
@@ -174,20 +175,13 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     return@post
                 }
 
-                // Restrict some job configuration options to superusers only.
-                if (!hasRole(Superuser.ROLE_NAME)) {
-                    // Keep alive worker configuration might be directly set in the worker's job configuration
-                    forbidIfTrue("advisor.keepAliveWorker", createOrtRun.jobConfigs.advisor?.keepAliveWorker)
-                    forbidIfTrue("analyzer.keepAliveWorker", createOrtRun.jobConfigs.analyzer.keepAliveWorker)
-                    forbidIfTrue("evaluator.keepAliveWorker", createOrtRun.jobConfigs.evaluator?.keepAliveWorker)
-                    forbidIfTrue("notifier.keepAliveWorker", createOrtRun.jobConfigs.notifier?.keepAliveWorker)
-                    forbidIfTrue("reporter.keepAliveWorker", createOrtRun.jobConfigs.reporter?.keepAliveWorker)
-                    forbidIfTrue("scanner.keepAliveWorker", createOrtRun.jobConfigs.scanner?.keepAliveWorker)
-
-                    // Keep alive worker configuration might also be set in the general configuration parameters
-                    createOrtRun.jobConfigs.parameters?.entries
-                        ?.find { entry -> entry.key.endsWith("keepalive", ignoreCase = true) && entry.value == "true" }
-                        ?.let { entry -> throw ForbiddenConfigurationPropertyException(entry.key) }
+                // Restrict the `keepAliveWorker` flags to superusers only.
+                if (createOrtRun.hasKeepAliveWorkerFlag() && !hasRole(Superuser.ROLE_NAME)) {
+                    call.respond(
+                        HttpStatusCode.Forbidden,
+                        ErrorResponse("The 'keepAliveWorker' flag is only allowed for superusers.")
+                    )
+                    return@post
                 }
 
                 call.respond(
@@ -344,8 +338,4 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             )
         }
     }
-}
-
-private fun forbidIfTrue(name: String, value: Boolean?) {
-    if (value == true) throw ForbiddenConfigurationPropertyException(name)
 }

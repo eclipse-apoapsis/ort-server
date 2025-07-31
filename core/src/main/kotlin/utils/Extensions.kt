@@ -130,3 +130,12 @@ fun CreateOrtRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConfig>> 
             }
         }
     }.filterValues { it.isNotEmpty() }
+
+/** Return true if the `keepAliveWorker` flag is enabled in any job config. */
+fun CreateOrtRun.hasKeepAliveWorkerFlag() =
+    jobConfigs.advisor?.keepAliveWorker == true ||
+    jobConfigs.analyzer.keepAliveWorker ||
+    jobConfigs.evaluator?.keepAliveWorker == true ||
+    jobConfigs.notifier?.keepAliveWorker == true ||
+    jobConfigs.reporter?.keepAliveWorker == true ||
+    jobConfigs.scanner?.keepAliveWorker == true
