@@ -44,8 +44,10 @@ import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.getFullName
 import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.getUsername
+import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
@@ -62,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getUnavailablePlugins
+import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
@@ -335,6 +338,15 @@ fun Route.products() = route("products/{productId}") {
                         message = "Unavailable plugins are used.",
                         cause = unavailablePlugins.errorMessage()
                     )
+                )
+                return@post
+            }
+
+            // Restrict the `keepAliveWorker` flags to superusers only.
+            if (createOrtRun.hasKeepAliveWorkerFlag() && !hasRole(Superuser.ROLE_NAME)) {
+                call.respond(
+                    HttpStatusCode.Forbidden,
+                    ErrorResponse("The 'keepAliveWorker' flag is only allowed for superusers.")
                 )
                 return@post
             }
