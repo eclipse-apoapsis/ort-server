@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.core.api
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -35,6 +36,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldContainIgnoringCase
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -58,6 +60,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
@@ -75,6 +78,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWith
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
@@ -1363,6 +1367,51 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 errorMessage shouldContain packageManagerPluginId
                 errorMessage shouldContain reporterPluginId
                 errorMessage shouldContain scannerPluginId
+            }
+        }
+
+        val keepAliveJobConfigs = JobConfigurations().let {
+            listOf(
+                it.copy(analyzer = AnalyzerJobConfiguration(keepAliveWorker = true)),
+                it.copy(advisor = AdvisorJobConfiguration(keepAliveWorker = true)),
+                it.copy(evaluator = EvaluatorJobConfiguration(keepAliveWorker = true)),
+                it.copy(notifier = NotifierJobConfiguration(keepAliveWorker = true)),
+                it.copy(reporter = ReporterJobConfiguration(keepAliveWorker = true)),
+                it.copy(scanner = ScannerJobConfiguration(keepAliveWorker = true))
+            )
+        }
+
+        "respond with 'Forbidden' if 'keepAliveWorker' is set by a non super-user" {
+            integrationTestApplication {
+                val productId = createProduct().id
+
+                keycloak.keycloakAdminClient.addUserRole(
+                    TEST_USER.username.value,
+                    ProductPermission.TRIGGER_ORT_RUN.roleName(productId)
+                )
+
+                keepAliveJobConfigs.forAll {
+                    val response = testUserClient.post("/api/v1/products/$productId/runs") {
+                        setBody(CreateOrtRun(revision = "main", jobConfigs = it))
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.Forbidden
+                    response.body<ErrorResponse>().message shouldContainIgnoringCase "keepAliveWorker"
+                }
+            }
+        }
+
+        "continue if 'keepAliveWorker' is set by a super-user" {
+            integrationTestApplication {
+                val productId = createProduct().id
+
+                keepAliveJobConfigs.forAll {
+                    val response = superuserClient.post("/api/v1/products/$productId/runs") {
+                        setBody(CreateOrtRun(revision = "main", jobConfigs = it))
+                    }
+
+                    response shouldHaveStatus HttpStatusCode.Created
+                }
             }
         }
 
