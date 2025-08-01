@@ -35,6 +35,9 @@ dependencies {
 
     runtimeOnly(libs.logback)
 
+    testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.secrets.secretsSpi))
+
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

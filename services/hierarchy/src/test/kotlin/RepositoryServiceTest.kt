@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
+import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 import org.jetbrains.exposed.sql.Database
 
 class RepositoryServiceTest : WordSpec({
@@ -139,6 +140,26 @@ class RepositoryServiceTest : WordSpec({
             val service = createService()
 
             service.getJobs(fixtures.repository.id, -1L) should beNull()
+        }
+    }
+
+    "getHierarchy" should {
+        "return the hierarchy of the repository" {
+            val service = createService()
+
+            service.getHierarchy(fixtures.repository.id).shouldNotBeNull {
+                organization.id shouldBe fixtures.organization.id
+                product.id shouldBe fixtures.product.id
+                repository.id shouldBe fixtures.repository.id
+            }
+        }
+
+        "throw an exception if the repository does not exist" {
+            val service = createService()
+
+            shouldThrow<EntityNotFoundException> {
+                service.getHierarchy(9999)
+            }
         }
     }
 

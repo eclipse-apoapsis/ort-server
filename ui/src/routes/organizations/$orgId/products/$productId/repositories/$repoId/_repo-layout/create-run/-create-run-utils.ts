@@ -18,13 +18,15 @@
  */
 
 import { FieldErrors } from 'react-hook-form';
-import { z } from 'zod';
+import { z, ZodType } from 'zod';
 
 import {
   AnalyzerJobConfiguration,
   CreateOrtRun,
   OrtRun,
-  ReporterJobConfiguration,
+  PluginConfig,
+  PluginOptionType,
+  PreconfiguredPluginDescriptor,
 } from '@/api/requests';
 import { PackageManagerId, packageManagers } from '@/lib/types';
 
@@ -55,83 +57,150 @@ const environmentVariableSchema = z.object({
   value: z.string().min(1).nullable().optional(),
 });
 
-export const createRunFormSchema = z.object({
-  revision: z.string(),
-  path: z.string(),
-  jobConfigs: z.object({
-    analyzer: z.object({
-      enabled: z.boolean(),
-      repositoryConfigPath: z.string().optional(),
-      allowDynamicVersions: z.boolean(),
-      skipExcluded: z.boolean(),
-      environmentVariables: z.array(environmentVariableSchema).optional(),
-      packageManagers: z
-        .object({
-          Bazel: packageManagerOptionsSchema,
-          Bower: packageManagerOptionsSchema,
-          Bundler: packageManagerOptionsSchema,
-          Cargo: packageManagerOptionsSchema,
-          Carthage: packageManagerOptionsSchema,
-          CocoaPods: packageManagerOptionsSchema,
-          Composer: packageManagerOptionsSchema,
-          Conan: packageManagerOptionsSchema,
-          GoMod: packageManagerOptionsSchema,
-          Gradle: packageManagerOptionsSchema,
-          GradleInspector: packageManagerOptionsSchema,
-          Maven: packageManagerOptionsSchema,
-          NPM: packageManagerOptionsSchema,
-          NuGet: packageManagerOptionsSchema,
-          PIP: packageManagerOptionsSchema,
-          Pipenv: packageManagerOptionsSchema,
-          PNPM: packageManagerOptionsSchema,
-          Poetry: packageManagerOptionsSchema,
-          Pub: packageManagerOptionsSchema,
-          SBT: packageManagerOptionsSchema,
-          SpdxDocumentFile: packageManagerOptionsSchema,
-          Stack: packageManagerOptionsSchema,
-          SwiftPM: packageManagerOptionsSchema,
-          Yarn: packageManagerOptionsSchema,
-          Yarn2: packageManagerOptionsSchema,
-        })
-        .refine((schema) => {
-          // Ensure that not both Gradle and GradleInspector are enabled at the same time.
-          return !(schema.Gradle.enabled && schema.GradleInspector.enabled);
-        }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
-    }),
-    advisor: z.object({
-      enabled: z.boolean(),
-      skipExcluded: z.boolean(),
-      advisors: z.array(z.string()),
-    }),
-    scanner: z.object({
-      enabled: z.boolean(),
-      skipConcluded: z.boolean(),
-      skipExcluded: z.boolean(),
-    }),
-    evaluator: z.object({
-      enabled: z.boolean(),
-      ruleSet: z.string().optional(),
-      licenseClassificationsFile: z.string().optional(),
-      copyrightGarbageFile: z.string().optional(),
-      resolutionsFile: z.string().optional(),
-    }),
-    reporter: z.object({
-      enabled: z.boolean(),
-      formats: z.array(z.string()),
-      deduplicateDependencyTree: z.boolean().optional(),
-    }),
-    notifier: z.object({
-      enabled: z.boolean(),
-      recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
-    }),
-    parameters: z.array(keyValueSchema).optional(),
-    ruleSet: z.string().optional(),
-  }),
-  labels: z.array(keyValueSchema).optional(),
-  jobConfigContext: z.string().optional(),
-});
+function optionTypeToZodType(type: PluginOptionType): ZodType {
+  switch (type) {
+    case 'BOOLEAN':
+      return z.boolean();
+    case 'INTEGER':
+      return z.coerce.string();
+    case 'LONG':
+      return z.coerce.string();
+    case 'SECRET':
+      return z.string();
+    case 'STRING':
+      return z.string();
+    case 'STRING_LIST':
+      return z.array(z.string());
+    default:
+      throw new Error(`Unsupported option type: ${type}`);
+  }
+}
 
-export type CreateRunFormValues = z.infer<typeof createRunFormSchema>;
+const createPluginConfigSchema = (plugin: PreconfiguredPluginDescriptor) => {
+  const optionsSchema: Record<string, z.ZodTypeAny> = {};
+  const secretsSchema: Record<string, z.ZodTypeAny> = {};
+
+  plugin.options?.forEach((option) => {
+    let schema = optionTypeToZodType(option.type);
+    if (option.isNullable) {
+      schema = schema.nullable();
+    }
+    if (!option.isRequired) {
+      schema = schema.optional();
+    }
+
+    if (option.type == 'SECRET') {
+      secretsSchema[option.name] = schema;
+    } else {
+      optionsSchema[option.name] = schema;
+    }
+  });
+
+  return z
+    .object({
+      options: z.object(optionsSchema).optional(),
+      secrets: z.object(secretsSchema).optional(),
+    })
+    .optional();
+};
+
+export const createRunFormSchema = (
+  advisorPlugins: PreconfiguredPluginDescriptor[],
+  reporterPlugins: PreconfiguredPluginDescriptor[]
+) => {
+  const advisorConfigSchema: Record<string, z.ZodTypeAny> = {};
+
+  advisorPlugins.forEach((plugin) => {
+    advisorConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
+  });
+
+  const reporterConfigSchema: Record<string, z.ZodTypeAny> = {};
+
+  reporterPlugins.forEach((plugin) => {
+    reporterConfigSchema[plugin.id] = createPluginConfigSchema(plugin);
+  });
+
+  return z.object({
+    revision: z.string(),
+    path: z.string(),
+    jobConfigs: z.object({
+      analyzer: z.object({
+        enabled: z.boolean(),
+        repositoryConfigPath: z.string().optional(),
+        allowDynamicVersions: z.boolean(),
+        skipExcluded: z.boolean(),
+        environmentVariables: z.array(environmentVariableSchema).optional(),
+        packageManagers: z
+          .object({
+            Bazel: packageManagerOptionsSchema,
+            Bower: packageManagerOptionsSchema,
+            Bundler: packageManagerOptionsSchema,
+            Cargo: packageManagerOptionsSchema,
+            Carthage: packageManagerOptionsSchema,
+            CocoaPods: packageManagerOptionsSchema,
+            Composer: packageManagerOptionsSchema,
+            Conan: packageManagerOptionsSchema,
+            GoMod: packageManagerOptionsSchema,
+            Gradle: packageManagerOptionsSchema,
+            GradleInspector: packageManagerOptionsSchema,
+            Maven: packageManagerOptionsSchema,
+            NPM: packageManagerOptionsSchema,
+            NuGet: packageManagerOptionsSchema,
+            PIP: packageManagerOptionsSchema,
+            Pipenv: packageManagerOptionsSchema,
+            PNPM: packageManagerOptionsSchema,
+            Poetry: packageManagerOptionsSchema,
+            Pub: packageManagerOptionsSchema,
+            SBT: packageManagerOptionsSchema,
+            SpdxDocumentFile: packageManagerOptionsSchema,
+            Stack: packageManagerOptionsSchema,
+            SwiftPM: packageManagerOptionsSchema,
+            Yarn: packageManagerOptionsSchema,
+            Yarn2: packageManagerOptionsSchema,
+          })
+          .refine((schema) => {
+            // Ensure that not both Gradle and GradleInspector are enabled at the same time.
+            return !(schema.Gradle.enabled && schema.GradleInspector.enabled);
+          }, '"Gradle Legacy" and "Gradle" cannot be enabled at the same time.'),
+      }),
+      advisor: z.object({
+        enabled: z.boolean(),
+        skipExcluded: z.boolean(),
+        advisors: z.array(z.string()),
+        config: z.object(advisorConfigSchema).optional(),
+      }),
+      scanner: z.object({
+        enabled: z.boolean(),
+        skipConcluded: z.boolean(),
+        skipExcluded: z.boolean(),
+      }),
+      evaluator: z.object({
+        enabled: z.boolean(),
+        ruleSet: z.string().optional(),
+        licenseClassificationsFile: z.string().optional(),
+        copyrightGarbageFile: z.string().optional(),
+        resolutionsFile: z.string().optional(),
+      }),
+      reporter: z.object({
+        enabled: z.boolean(),
+        formats: z.array(z.string()),
+        config: z.object(reporterConfigSchema).optional(),
+      }),
+      notifier: z.object({
+        enabled: z.boolean(),
+        recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
+      }),
+      parameters: z.array(keyValueSchema).optional(),
+      ruleSet: z.string().optional(),
+    }),
+    labels: z.array(keyValueSchema).optional(),
+    jobConfigContext: z.string().optional(),
+  });
+};
+
+export type CreateRunFormValues = z.infer<
+  ReturnType<typeof createRunFormSchema>
+>;
 
 /**
  * Converts an object map coming from the back-end to an array of key-value pairs.
@@ -214,12 +283,74 @@ export const flattenErrors = (
 };
 
 /**
+ * Merge the plugin configs from the last run with the default plugin configs. The configs from the last run take
+ * precedence.
+ */
+function mergePluginConfigs(
+  lastRunConfig: { [p: string]: PluginConfig } | null | undefined,
+  defaultConfig: Record<string, PluginConfig>
+): Record<string, PluginConfig> {
+  const merged: Record<string, PluginConfig> = {};
+
+  for (const pluginId of Object.keys(defaultConfig)) {
+    const defaultPlugin = defaultConfig[pluginId];
+    const ortPlugin = lastRunConfig?.[pluginId];
+
+    merged[pluginId] = {
+      options: {
+        ...(defaultPlugin?.options ?? {}),
+        ...(ortPlugin?.options ?? {}),
+      },
+      secrets: {
+        ...(defaultPlugin?.secrets ?? {}),
+        ...(ortPlugin?.secrets ?? {}),
+      },
+    };
+  }
+
+  if (lastRunConfig) {
+    for (const pluginId of Object.keys(lastRunConfig)) {
+      if (!merged[pluginId] && lastRunConfig[pluginId]) {
+        merged[pluginId] = lastRunConfig[pluginId];
+      }
+    }
+  }
+
+  return merged;
+}
+
+function getPluginDefaultValues(plugins: PreconfiguredPluginDescriptor[]) {
+  return plugins.reduce(
+    (acc, plugin) => {
+      const options: Record<string, string> = {};
+      const secrets: Record<string, string> = {};
+
+      plugin.options?.forEach((option) => {
+        if (option.defaultValue !== undefined) {
+          if (option.type === 'SECRET') {
+            secrets[option.name] = String(option.defaultValue);
+          } else {
+            options[option.name] = String(option.defaultValue);
+          }
+        }
+      });
+
+      acc[plugin.id] = { options: options, secrets: secrets };
+      return acc;
+    },
+    {} as Record<string, PluginConfig>
+  );
+}
+
+/**
  * Get the default values for the create run form. The form can be provided with a previously run
  * ORT run, in which case the values from it are used as defaults. Otherwise uses base defaults.
  */
 export function defaultValues(
-  ortRun: OrtRun | null
-): z.infer<typeof createRunFormSchema> {
+  ortRun: OrtRun | null,
+  advisorPlugins: PreconfiguredPluginDescriptor[],
+  reporterPlugins: PreconfiguredPluginDescriptor[]
+): z.infer<ReturnType<typeof createRunFormSchema>> {
   /**
    * Constructs the default options for a package manager, either as a blank set of options
    * or from an earlier ORT run if rerun functionality is used.
@@ -256,15 +387,8 @@ export function defaultValues(
     };
   };
 
-  // Find out if any of the reporters had their options.deduplicateDependencyTree set to true in the previous run.
-  // This is used to set the default value for the deduplicateDependencyTree toggle in the UI.
-  const deduplicateDependencyTreeEnabled = ortRun
-    ? ortRun.jobConfigs.reporter?.config &&
-      Object.keys(ortRun.jobConfigs.reporter.config ?? {}).some((key) => {
-        const config = ortRun.jobConfigs.reporter?.config?.[key];
-        return config?.options?.deduplicateDependencyTree === 'true';
-      })
-    : false;
+  const advisorPluginDefaultValues = getPluginDefaultValues(advisorPlugins);
+  const reporterPluginDefaultValues = getPluginDefaultValues(reporterPlugins);
 
   // Default values for the form: edit only these, not the defaultValues object.
   const baseDefaults = {
@@ -308,6 +432,7 @@ export function defaultValues(
         enabled: true,
         skipExcluded: true,
         advisors: ['OSV', 'VulnerableCode'],
+        config: advisorPluginDefaultValues,
       },
       scanner: {
         enabled: true,
@@ -325,6 +450,7 @@ export function defaultValues(
         enabled: true,
         formats: ['CycloneDX', 'SpdxDocument', 'WebApp'],
         deduplicateDependencyTree: false,
+        config: reporterPluginDefaultValues,
       },
       notifier: {
         enabled: false,
@@ -371,6 +497,10 @@ export function defaultValues(
             advisors:
               ortRun.jobConfigs.advisor?.advisors ||
               baseDefaults.jobConfigs.advisor.advisors,
+            config: mergePluginConfigs(
+              ortRun?.jobConfigs?.advisor?.config,
+              advisorPluginDefaultValues
+            ),
           },
           scanner: {
             enabled:
@@ -399,8 +529,10 @@ export function defaultValues(
               ortRun.jobConfigs.reporter?.formats?.map((format) =>
                 format === 'CycloneDx' ? 'CycloneDX' : format
               ) || baseDefaults.jobConfigs.reporter.formats,
-            deduplicateDependencyTree:
-              deduplicateDependencyTreeEnabled || undefined,
+            config: mergePluginConfigs(
+              ortRun?.jobConfigs?.reporter?.config,
+              reporterPluginDefaultValues
+            ),
           },
           notifier: {
             enabled:
@@ -426,11 +558,69 @@ export function defaultValues(
 }
 
 /**
+ * Convert the plugin config from form values to the payload format expected by the back-end. Configuration for plugins
+ * which are not enabled is not included in the payload.
+ */
+function createPluginPayload(
+  config: Record<string, unknown> | undefined,
+  enabledPlugins: string[]
+): { [key: string]: PluginConfig } | undefined {
+  if (!config) return undefined;
+
+  const filtered = Object.fromEntries(
+    Object.entries(config)
+      .filter(([key]) => enabledPlugins.includes(key))
+      .map(([key, value]) => {
+        if (value && typeof value === 'object') {
+          const pluginConfig = value as Record<string, unknown>;
+          const convertedConfig: PluginConfig = {
+            options: {},
+            secrets: {},
+          };
+
+          if (
+            pluginConfig.options &&
+            typeof pluginConfig.options === 'object'
+          ) {
+            convertedConfig.options = Object.fromEntries(
+              Object.entries(pluginConfig.options as Record<string, unknown>)
+                .filter(
+                  ([, optValue]) => optValue !== undefined && optValue !== null
+                )
+                .map(([optKey, optValue]) => [optKey, String(optValue)])
+            );
+          }
+
+          if (
+            pluginConfig.secrets &&
+            typeof pluginConfig.secrets === 'object'
+          ) {
+            convertedConfig.secrets = Object.fromEntries(
+              Object.entries(pluginConfig.secrets as Record<string, unknown>)
+                .filter(
+                  ([, secValue]) => secValue !== undefined && secValue !== null
+                )
+                .map(([secKey, secValue]) => [secKey, String(secValue)])
+            );
+          }
+
+          return [key, convertedConfig];
+        }
+        return [key, value];
+      })
+  );
+
+  return Object.keys(filtered).length > 0
+    ? (filtered as { [key: string]: PluginConfig })
+    : undefined;
+}
+
+/**
  * Due to API schema and requirements for the form schema, the form values can't be directly passed
  * to the API. This function converts form values to correct payload to create an ORT run.
  */
 export function formValuesToPayload(
-  values: z.infer<typeof createRunFormSchema>
+  values: z.infer<ReturnType<typeof createRunFormSchema>>
 ): CreateOrtRun {
   /**
    * A helper function to get the enabled package managers from the form values.
@@ -534,6 +724,10 @@ export function formValuesToPayload(
     ? {
         skipExcluded: values.jobConfigs.advisor.skipExcluded,
         advisors: values.jobConfigs.advisor.advisors,
+        config: createPluginPayload(
+          values.jobConfigs.advisor.config,
+          values.jobConfigs.advisor.advisors
+        ),
       }
     : undefined;
 
@@ -559,61 +753,13 @@ export function formValuesToPayload(
   // Reporter configuration
   //
 
-  // Check if CycloneDX, SPDX, and/or NOTICE file reports are enabled in the form,
-  // and configure them to use all output formats, accordingly.
-
-  const cycloneDxEnabled =
-    values.jobConfigs.reporter.formats.includes('CycloneDX');
-  const spdxDocumentEnabled =
-    values.jobConfigs.reporter.formats.includes('SpdxDocument');
-  const noticeFileEnabled =
-    values.jobConfigs.reporter.formats.includes('PlainTextTemplate');
-
-  const config: ReporterJobConfiguration['config'] = {};
-
-  if (spdxDocumentEnabled) {
-    config.SpdxDocument = {
-      options: {
-        outputFileFormats: 'YAML,JSON',
-      },
-      secrets: {},
-    };
-  }
-
-  if (cycloneDxEnabled) {
-    config.CycloneDX = {
-      options: {
-        outputFileFormats: 'XML,JSON',
-      },
-      secrets: {},
-    };
-  }
-
-  if (noticeFileEnabled) {
-    config.PlainTextTemplate = {
-      options: {
-        templateIds: 'NOTICE_DEFAULT,NOTICE_SUMMARY',
-      },
-      secrets: {},
-    };
-  }
-
-  // If WebApp and the deduplicateDependencyTree option are enabled, add the configuration.
-
-  const webAppEnabled = values.jobConfigs.reporter.formats.includes('WebApp');
-  if (webAppEnabled && values.jobConfigs.reporter.deduplicateDependencyTree) {
-    config.WebApp = {
-      options: {
-        deduplicateDependencyTree: 'true',
-      },
-      secrets: {},
-    };
-  }
-
   const reporterConfig = values.jobConfigs.reporter.enabled
     ? {
         formats: values.jobConfigs.reporter.formats,
-        config: Object.keys(config).length > 0 ? config : undefined,
+        config: createPluginPayload(
+          values.jobConfigs.reporter.config,
+          values.jobConfigs.reporter.formats
+        ),
       }
     : undefined;
 

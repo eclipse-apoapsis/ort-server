@@ -113,9 +113,9 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
 
 /**
  * Creates the Koin module for the ORT server. The [config] is used to configure the application and the database. For
- * integration tests, the [database][db] from the testcontainer can be provided directly.
+ * integration tests, the [database][db] from the testcontainer and an [authorizationService] can be provided directly.
  */
-fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
+fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationService: AuthorizationService?) = module {
     single { config }
     single { ConfigFactory.parseMap(config.toMap()) }
     singleOf(ConfigManager::create)
@@ -194,9 +194,13 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
     singleOf(::SecretService)
     singleOf(::VulnerabilityService)
 
-    single<AuthorizationService> {
-        val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
-        DefaultAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
+    if (authorizationService != null) {
+        single<AuthorizationService> { authorizationService }
+    } else {
+        single<AuthorizationService> {
+            val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
+            DefaultAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
+        }
     }
 
     single<UserService> {

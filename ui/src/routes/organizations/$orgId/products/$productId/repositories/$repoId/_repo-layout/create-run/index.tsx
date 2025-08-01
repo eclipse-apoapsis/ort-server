@@ -69,7 +69,7 @@ import {
 const CreateRunPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const { ortRun, plugins } = Route.useLoaderData();
+  const { ortRun, plugins, secrets } = Route.useLoaderData();
   const [isTest, setIsTest] = useState(false);
 
   const advisorPlugins =
@@ -124,9 +124,11 @@ const CreateRunPage = () => {
       },
     });
 
-  const form = useForm({
-    resolver: zodResolver(createRunFormSchema),
-    defaultValues: defaultValues(ortRun),
+  const formSchema = createRunFormSchema(advisorPlugins, reporterPlugins);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaultValues(ortRun, advisorPlugins, reporterPlugins),
   });
 
   const {
@@ -425,6 +427,7 @@ const CreateRunPage = () => {
                 value='advisor'
                 onToggle={() => toggleAccordionOpen('advisor')}
                 advisorPlugins={advisorPlugins}
+                secrets={secrets}
               />
               <ScannerFields
                 form={form}
@@ -437,6 +440,7 @@ const CreateRunPage = () => {
                 value='reporter'
                 onToggle={() => toggleAccordionOpen('reporter')}
                 reporterPlugins={reporterPlugins}
+                secrets={secrets}
               />
               <NotifierFields
                 form={form}
@@ -532,7 +536,7 @@ export const Route = createFileRoute(
   // the query will not be run. This corresponds to the "New run" case, where a new
   // ORT Run is created from scratch, using all defaults.
   loader: async ({ params, deps: { rerunIndex } }) => {
-    const [ortRun, plugins] = await Promise.all([
+    const [ortRun, plugins, secrets] = await Promise.all([
       rerunIndex !== undefined
         ? RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
             {
@@ -544,11 +548,15 @@ export const Route = createFileRoute(
       RepositoriesService.getApiV1RepositoriesByRepositoryIdPlugins({
         repositoryId: Number.parseInt(params.repoId),
       }),
+      RepositoriesService.getApiV1RepositoriesByRepositoryIdAvailableSecrets({
+        repositoryId: Number.parseInt(params.repoId),
+      }),
     ]);
 
     return {
       ortRun,
       plugins,
+      secrets,
     };
   },
   component: CreateRunPage,
