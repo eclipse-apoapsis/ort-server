@@ -44,7 +44,7 @@ class ScanSummariesIssuesTableTest : WordSpec() {
             "create an entity for an issue" {
                 val summary = createScanSummary()
                 val issue = Issue(
-                    timestamp = Instant.parse("2024-10-18T05:56:06Z"),
+                    timestamp = Instant.parse("2024-10-18T05:56:06.123455Z"),
                     source = "test",
                     message = "Some test issue",
                     severity = Severity.WARNING,
@@ -59,6 +59,8 @@ class ScanSummariesIssuesTableTest : WordSpec() {
                     ScanSummariesIssuesDao.all().toList() shouldContainExactlyInAnyOrder listOf(newEntity)
 
                     val expectedIssue = issue.copy(
+                        // Check if the timestamp is normalized to the database precision.
+                        timestamp = Instant.parse("2024-10-18T05:56:06Z"),
                         identifier = null,
                         worker = null
                     )
