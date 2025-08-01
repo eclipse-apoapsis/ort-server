@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.tables
 
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssuesTable
+import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -53,7 +54,7 @@ class ScanSummariesIssuesDao(id: EntityID<Long>) : LongEntity(id) {
 
     var scanSummary by ScanSummaryDao referencedOn ScanSummariesIssuesTable.scanSummaryId
     var issue by IssueDao referencedOn ScanSummariesIssuesTable.issueId
-    var timestamp by ScanSummariesIssuesTable.timestamp
+    var timestamp by ScanSummariesIssuesTable.timestamp.transformToDatabasePrecision()
 
     /**
      * Map this DAO to an [Issue].
