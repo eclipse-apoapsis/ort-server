@@ -25,6 +25,7 @@ import org.ossreviewtoolkit.model.config.DownloaderConfiguration
 import org.ossreviewtoolkit.model.config.ScannerConfiguration
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
+import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
@@ -35,6 +36,9 @@ import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 class AdminConfig(
     /** The configuration for the Scanner worker. */
     val scannerConfig: ScannerConfig = DEFAULT_SCANNER_CONFIG,
+
+    /** The configuration for the Reporter worker. */
+    val reporterConfig: ReporterConfig = DEFAULT_REPORTER_CONFIG,
 
     /** The configuration for the Notifier worker. */
     val notifierConfig: NotifierConfig = DEFAULT_NOTIFIER_CONFIG,
@@ -92,6 +96,17 @@ class AdminConfig(
             jira = null,
             disableMailNotifications = false,
             disableJiraNotifications = false
+        )
+
+        /**
+         * A default [ReporterConfig] instance that is used if the admin configuration does not contain any
+         * reporter-specific settings. This instance is not really useful, however, since it does not support any
+         * reports. Typically, some reports should be configured.
+         */
+        val DEFAULT_REPORTER_CONFIG = ReporterConfig(
+            reportDefinitions = emptyMap(),
+            howToFixTextProviderFile = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
+            customLicenseTextDir = null
         )
 
         /**

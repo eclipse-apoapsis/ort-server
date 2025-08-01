@@ -26,10 +26,12 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.services.config.ReporterConfig
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 
@@ -153,6 +155,9 @@ class ConfigValidator private constructor(
         val validationIssues = mutableListOf<Issue>()
 
         validateRuleSet(adminConfig, resolvedConfigurations.ruleSet, validationIssues)
+        resolvedConfigurations.reporter?.also {
+            validateReporterConfig(adminConfig.reporterConfig, it, validationIssues)
+        }
 
         takeIf { validationIssues.isEmpty() } ?: ConfigValidationResultFailure(issues + validationIssues)
     }.getOrElse { exception ->
@@ -176,5 +181,33 @@ class ConfigValidator private constructor(
                 PARAMETER_VALIDATION_SOURCE
             )
         }
+    }
+
+    /**
+     * Perform validation of the given reporter [jobConfig] based on the given [reporterAdminConfig]. For invalid
+     * properties, create corresponding issues and add them to the given [validationIssues].
+     */
+    private fun validateReporterConfig(
+        reporterAdminConfig: ReporterConfig,
+        jobConfig: ReporterJobConfiguration,
+        validationIssues: MutableList<Issue>
+    ) {
+        jobConfig.formats.filterNot { it in reporterAdminConfig.reportDefinitions.keys }.forEach { format ->
+            validationIssues += createIssue(
+                "Invalid reporter format '$format'. " +
+                        "Available formats are: ${reporterAdminConfig.reportDefinitions.keys.joinToString(", ")}.",
+                PARAMETER_VALIDATION_SOURCE
+            )
+        }
+
+        (jobConfig.assetFilesGroups + jobConfig.assetDirectoriesGroups)
+            .filterNot { it in reporterAdminConfig.globalAssets }
+            .forEach { assetGroup ->
+                validationIssues += createIssue(
+                    "Invalid reporter asset group '$assetGroup'. " +
+                            "Available asset groups are: ${reporterAdminConfig.globalAssets.keys.joinToString(", ")}.",
+                    PARAMETER_VALIDATION_SOURCE
+                )
+            }
     }
 }

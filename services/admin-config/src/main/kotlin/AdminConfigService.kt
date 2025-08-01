@@ -37,9 +37,12 @@ import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getObjectOrEmpty
 import org.eclipse.apoapsis.ortserver.utils.config.getStringListOrDefault
+import org.eclipse.apoapsis.ortserver.utils.config.getStringListOrEmpty
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrNull
 import org.eclipse.apoapsis.ortserver.utils.config.withPath
+
+import org.ossreviewtoolkit.utils.ort.ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
 
 import org.slf4j.LoggerFactory
 
@@ -53,6 +56,7 @@ import org.slf4j.LoggerFactory
  * unspecified, and the [DEFAULT_PATH] must not exist. In all other cases, a missing configuration file causes an
  * exception to be thrown.
  */
+@Suppress("TooManyFunctions")
 class AdminConfigService(
     private val configManager: ConfigManager
 ) {
@@ -69,6 +73,9 @@ class AdminConfigService(
         /** The name of the section containing the scanner-related configuration. */
         private const val SCANNER_SECTION = "scanner"
 
+        /** The name of the section containing the reporter-related configuration. */
+        private const val REPORTER_SECTION = "reporter"
+
         /** The name of the section containing the notifier-related configuration. */
         private const val NOTIFIER_SECTION = "notifier"
 
@@ -77,6 +84,15 @@ class AdminConfigService(
 
         /** The name of the subsection containing the Jira server configuration for the notifier. */
         private const val NOTIFIER_JIRA_SECTION = "jira"
+
+        /** The name of the section defining global assets for the reporter. */
+        private const val GLOBAL_ASSETS_SECTION = "assets"
+
+        /** A special prefix to mark unresolvable assets in the reporter configuration. */
+        private const val UNRESOLVABLE_ASSET_PREFIX = "<<UNRESOLVABLE_ASSET>>"
+
+        /** An object to obtain default values for the mail server configuration. */
+        private val defaultMailServerConfig = MailServerConfiguration(fromAddress = "")
 
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
 
@@ -91,6 +107,7 @@ class AdminConfigService(
 
             return AdminConfig(
                 scannerConfig = parseScannerConfig(config),
+                reporterConfig = parseReporterConfig(config),
                 notifierConfig = parseNotifierConfig(config),
                 defaultRuleSet = defaultRuleSet,
                 ruleSets = ruleSets,
@@ -130,20 +147,19 @@ class AdminConfigService(
          * [ScannerConfig] instance.
          */
         private fun parseScannerConfig(config: Config): ScannerConfig =
-            config.withPath(SCANNER_SECTION)?.let { c ->
-                val scannerConfig = c.getConfig(SCANNER_SECTION)
+            config.parseObjectOrDefault(SCANNER_SECTION, AdminConfig.DEFAULT_SCANNER_CONFIG) {
                 ScannerConfig(
-                    detectedLicenseMappings = scannerConfig.getObjectOrDefault("detectedLicenseMappings") {
+                    detectedLicenseMappings = getObjectOrDefault("detectedLicenseMappings") {
                         ConfigValueFactory.fromMap(AdminConfig.DEFAULT_SCANNER_CONFIG.detectedLicenseMappings)
                     }.mapValues { it.value.unwrapped().toString() },
-                    ignorePatterns = scannerConfig.getStringListOrDefault("ignorePatterns") {
+                    ignorePatterns = getStringListOrDefault("ignorePatterns") {
                         AdminConfig.DEFAULT_SCANNER_CONFIG.ignorePatterns
                     },
-                    sourceCodeOrigins = scannerConfig.getStringListOrDefault("sourceCodeOrigins") {
+                    sourceCodeOrigins = getStringListOrDefault("sourceCodeOrigins") {
                         AdminConfig.DEFAULT_SCANNER_CONFIG.sourceCodeOrigins.map { it.name }
                     }.map { SourceCodeOrigin.valueOf(it.uppercase()) }
                 )
-            } ?: AdminConfig.DEFAULT_SCANNER_CONFIG
+            }
 
         /**
          * Validate the given [scannerConfig]. Add found issues to the given [issues] list.
@@ -164,71 +180,113 @@ class AdminConfigService(
          * corresponding [NotifierConfig] instance.
          */
         private fun parseNotifierConfig(config: Config): NotifierConfig =
-            config.withPath(NOTIFIER_SECTION)?.let { c ->
-                val notifierConfig = c.getConfig(NOTIFIER_SECTION)
+            config.parseObjectOrDefault(NOTIFIER_SECTION, AdminConfig.DEFAULT_NOTIFIER_CONFIG) {
                 NotifierConfig(
-                    notifierRules = notifierConfig.getStringOrDefault(
+                    notifierRules = getStringOrDefault(
                         "notifierRules",
                         AdminConfig.DEFAULT_NOTIFIER_CONFIG.notifierRules
                     ),
-                    disableMailNotifications = notifierConfig.getBooleanOrDefault(
+                    disableMailNotifications = getBooleanOrDefault(
                         "disableMailNotifications",
                         AdminConfig.DEFAULT_NOTIFIER_CONFIG.disableMailNotifications
                     ),
-                    disableJiraNotifications = notifierConfig.getBooleanOrDefault(
+                    disableJiraNotifications = getBooleanOrDefault(
                         "disableJiraNotifications",
                         AdminConfig.DEFAULT_NOTIFIER_CONFIG.disableJiraNotifications
                     ),
-                    mail = parseNotifierMailConfig(notifierConfig),
-                    jira = parseNotifierJiraConfig(notifierConfig)
+                    mail = parseNotifierMailConfig(this),
+                    jira = parseNotifierJiraConfig(this)
                 )
-            } ?: AdminConfig.DEFAULT_NOTIFIER_CONFIG
+            }
 
         /**
          * Parse the mail server configuration for the notifier from the given [config] if it is defined.
          */
         private fun parseNotifierMailConfig(config: Config): MailServerConfiguration? =
-            config.withPath(NOTIFIER_MAIL_SECTION)?.let { mailConfig ->
-                val defaults = MailServerConfiguration(fromAddress = "")
-                with(mailConfig.getConfig(NOTIFIER_MAIL_SECTION)) {
-                    MailServerConfiguration(
-                        hostName = getStringOrDefault("host", defaults.hostName),
-                        port = getIntOrDefault("port", defaults.port),
-                        username = getStringOrDefault("username", defaults.username),
-                        password = getStringOrDefault("password", defaults.password),
-                        useSsl = getBooleanOrDefault("ssl", defaults.useSsl),
-                        fromAddress = getString("fromAddress")
-                    )
-                }
+            config.parseObjectOrDefault(NOTIFIER_MAIL_SECTION, null) {
+                MailServerConfiguration(
+                    hostName = getStringOrDefault("host", defaultMailServerConfig.hostName),
+                    port = getIntOrDefault("port", defaultMailServerConfig.port),
+                    username = getStringOrDefault("username", defaultMailServerConfig.username),
+                    password = getStringOrDefault("password", defaultMailServerConfig.password),
+                    useSsl = getBooleanOrDefault("ssl", defaultMailServerConfig.useSsl),
+                    fromAddress = getString("fromAddress")
+                )
             }
 
         /**
          * Parse the Jira server configuration for the notifier from the given [config] if it is defined.
          */
         private fun parseNotifierJiraConfig(config: Config): JiraRestClientConfiguration? =
-            config.withPath(NOTIFIER_JIRA_SECTION)?.let { jiraConfig ->
-                with(jiraConfig.getConfig(NOTIFIER_JIRA_SECTION)) {
-                    JiraRestClientConfiguration(
-                        serverUrl = getString("url"),
-                        username = getString("username"),
-                        password = getString("password"),
-                    )
-                }
+            config.parseObjectOrDefault(NOTIFIER_JIRA_SECTION, null) {
+                JiraRestClientConfiguration(
+                    serverUrl = getString("url"),
+                    username = getString("username"),
+                    password = getString("password"),
+                )
             }
 
-        private fun parseMavenCentralMirror(config: Config): MavenCentralMirror? {
-            if (!config.hasPath("mavenCentralMirror")) return null
+        /**
+         * Parse the properties related to the reporter configuration from the given [config] and return a
+         * corresponding [ReporterConfig] instance.
+         */
+        private fun parseReporterConfig(config: Config): ReporterConfig =
+            config.parseObjectOrDefault(REPORTER_SECTION, AdminConfig.DEFAULT_REPORTER_CONFIG) {
+                val globalAssets = parseGlobalReporterAssets(this)
 
-            val mirrorConfig = config.getConfig("mavenCentralMirror")
+                ReporterConfig(
+                    howToFixTextProviderFile = getStringOrDefault(
+                        "howToFixTextProviderFile",
+                        ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
+                    ),
+                    customLicenseTextDir = getStringOrNull("customLicenseTextDir"),
+                    reportDefinitions = parseReportDefinitions(this, globalAssets),
+                    globalAssets = globalAssets
+                )
+            }
 
-            return MavenCentralMirror(
-                id = mirrorConfig.getString("id"),
-                name = mirrorConfig.getString("name"),
-                url = mirrorConfig.getString("url"),
-                mirrorOf = mirrorConfig.getString("mirrorOf"),
-                usernameSecret = mirrorConfig.getStringOrNull("username"),
-                passwordSecret = mirrorConfig.getStringOrNull("password")
+        /**
+         * Parse the report definitions defined in the given [config] using the given [globalAssets].
+         */
+        private fun parseReportDefinitions(
+            config: Config,
+            globalAssets: GlobalReporterAssets
+        ): Map<String, ReportDefinition> =
+            config.getObjectOrEmpty("reports").filterValues { it is ConfigObject }
+                .mapValues { entry ->
+                    parseReportDefinition((entry.value as ConfigObject).toConfig(), globalAssets)
+                }
+
+        /**
+         * Parse a [ReportDefinition] at the root of the given [config] using the given [globalAssets].
+         */
+        private fun parseReportDefinition(
+            config: Config,
+            globalAssets: GlobalReporterAssets
+        ): ReportDefinition =
+            ReportDefinition(
+                pluginId = config.getString("pluginId"),
+                assetFiles = parseReporterAssets(config, "assetFiles", isDirectory = false) +
+                        parseReporterAssetReferences(config, "assetFilesRefs", globalAssets, isDirectory = false),
+                assetDirectories = parseReporterAssets(config, "assetDirectories", isDirectory = true) +
+                        parseReporterAssetReferences(config, "assetDirectoriesRefs", globalAssets, isDirectory = true),
+                nameMapping = config.parseObjectOrDefault("nameMapping", null) {
+                    ReportNameMapping(
+                        namePrefix = getString("namePrefix"),
+                        startIndex = getIntOrDefault("startIndex", 1),
+                        alwaysAppendIndex = getBooleanOrDefault("alwaysAppendIndex", false)
+                    )
+                }
             )
+
+        /**
+         * Validate the given [reporterConfig]. Add found issues to the given [issues] list.
+         */
+        private fun validateReporterConfig(issues: MutableList<String>, reporterConfig: ReporterConfig) {
+            issues += reporterConfig.reportDefinitions.values.flatMapTo(mutableSetOf()) { definition ->
+                (definition.assetFiles + definition.assetDirectories).map(ReporterAsset::sourcePath)
+                    .filter { it.startsWith(UNRESOLVABLE_ASSET_PREFIX) }
+            }.map { "Undefined reference to a reporter asset: '${it.removePrefix(UNRESOLVABLE_ASSET_PREFIX)}'." }
         }
 
         /**
@@ -242,6 +300,8 @@ class AdminConfigService(
             config.ruleSetNames.forEach { ruleSet ->
                 config.getRuleSet(ruleSet).getConfigurationFiles(this)
             }
+
+            config.reporterConfig.getConfigurationFiles(this)
         }
 
         /**
@@ -255,6 +315,21 @@ class AdminConfigService(
         }
 
         /**
+         * Add all configuration files referenced by this [ReporterConfig] to the given [target] set for validation.
+         */
+        private fun ReporterConfig.getConfigurationFiles(target: MutableSet<String>) {
+            target.addNonDefault(howToFixTextProviderFile, ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME)
+            customLicenseTextDir?.also(target::add)
+            target += globalAssets.values.flatMap { it.map(ReporterAsset::sourcePath) }
+
+            reportDefinitions.values.forEach { definition ->
+                (definition.assetFiles + definition.assetDirectories).map(ReporterAsset::sourcePath)
+                    .filterNot { it.startsWith(UNRESOLVABLE_ASSET_PREFIX) }
+                    .forEach(target::add)
+            }
+        }
+
+        /**
          * Add the given [path] to this [Set] only if it is not *null* and not equal to the given [default].
          */
         private fun MutableSet<String>.addNonDefault(path: String?, default: String) {
@@ -262,6 +337,94 @@ class AdminConfigService(
                 add(path)
             }
         }
+
+        /**
+         * Parse the section with the top-level reporter assets in the given [config]. These assets can then be
+         * referenced in report definitions. Return a [Map] that associates names to asset groups.
+         */
+        private fun parseGlobalReporterAssets(config: Config): GlobalReporterAssets =
+            config.getObjectOrEmpty(GLOBAL_ASSETS_SECTION).mapValues { entry ->
+                parseReporterAssets(config, "${GLOBAL_ASSETS_SECTION}.${entry.key}", isDirectory = false)
+            }
+
+        /**
+         * Parse a list of [ReporterAsset]s from the given [config] at the specified [path]. If [isDirectory] is
+         * *true*, make sure that all source paths end with a trailing slash.
+         */
+        private fun parseReporterAssets(config: Config, path: String, isDirectory: Boolean): List<ReporterAsset> =
+            if (config.hasPath(path)) {
+                config.getConfigList(path).map { c ->
+                    ReporterAsset(
+                        sourcePath = directoryPath(c.getString("sourcePath"), isDirectory),
+                        targetFolder = c.getStringOrNull("targetFolder"),
+                        targetName = c.getStringOrNull("targetName")
+                    )
+                }
+            } else {
+                emptyList()
+            }
+
+        /**
+         * Parse a list of named references to [ReporterAsset]s from the given [config] at the specified [path] that
+         * are resolved against the given [globalAssets]. If [isDirectory] is *true*, make sure that the path for
+         * the asset ends with a slash. In case of unresolvable references, return special dummy assets; they will be
+         * detected by the validation and cause meaningful error messages to be generated.
+         */
+        private fun parseReporterAssetReferences(
+            config: Config,
+            path: String,
+            globalAssets: GlobalReporterAssets,
+            isDirectory: Boolean
+        ): List<ReporterAsset> =
+            config.getStringListOrEmpty(path).flatMap { globalAssets.resolveAssetReference(it, isDirectory) }
+
+        /**
+         * Return a list of [ReporterAsset]s that are assigned to the given [assetRef] name. If [isDirectory] is
+         * *true*, make sure that the path for the asset ends with a slash. If no asset with the provided name
+         * exists, return a special result that can later be detected by the validation.
+         */
+        private fun GlobalReporterAssets.resolveAssetReference(
+            assetRef: String,
+            isDirectory: Boolean
+        ): List<ReporterAsset> =
+            this[assetRef]?.map { directoryAsset(it, isDirectory) }
+                ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
+
+        private fun parseMavenCentralMirror(config: Config): MavenCentralMirror? =
+            config.parseObjectOrDefault("mavenCentralMirror", null) {
+                MavenCentralMirror(
+                    id = getString("id"),
+                    name = getString("name"),
+                    url = getString("url"),
+                    mirrorOf = getString("mirrorOf"),
+                    usernameSecret = getStringOrNull("username"),
+                    passwordSecret = getStringOrNull("password")
+                )
+            }
+
+        /**
+         * Parse an object defined at the given [path] in this [Config] using the provided [parser] function.
+         * Return the given [default] object if the path does not exist.
+         */
+        private fun <T> Config.parseObjectOrDefault(path: String, default: T, parser: Config.() -> T): T =
+            withPath(path)?.let { c ->
+                parser(c.getConfig(path))
+            } ?: default
+
+        /**
+         * Make sure the given [path] points to a directory if [isDirectory] is *true* by appending a trailing slash if
+         * necessary.
+         */
+        private fun directoryPath(path: String, isDirectory: Boolean): String =
+            if (isDirectory && !path.endsWith("/")) "$path/" else path
+
+        /**
+         * Make sure the source path of the given [asset] points to a directory if [isDirectory] is *true* by
+         * appending a trailing slash to its source path if necessary.
+         */
+        private fun directoryAsset(asset: ReporterAsset, isDirectory: Boolean): ReporterAsset =
+            asset.takeIf { !isDirectory || asset.sourcePath.endsWith("/") }
+                ?: asset.copy(sourcePath = "${asset.sourcePath}/")
     }
 
     /**
@@ -310,6 +473,7 @@ class AdminConfigService(
         }
 
         validateScannerConfig(issues, config.scannerConfig)
+        validateReporterConfig(issues, config.reporterConfig)
 
         if (issues.isNotEmpty()) {
             throw ConfigException(
