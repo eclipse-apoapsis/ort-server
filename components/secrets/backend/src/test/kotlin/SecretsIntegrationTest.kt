@@ -22,15 +22,19 @@ package org.eclipse.apoapsis.ortserver.components.secrets
 import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 
+import io.mockk.mockk
+
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 /** An [AbstractIntegrationTest] pre-configured for testing the secrets routes. */
 @Suppress("UnnecessaryAbstractClass")
 abstract class SecretsIntegrationTest(body: SecretsIntegrationTest.() -> Unit) : AbstractIntegrationTest({}) {
+    lateinit var repositoryService: RepositoryService
     lateinit var secretRepository: SecretRepository
     lateinit var secretService: SecretService
 
@@ -38,6 +42,18 @@ abstract class SecretsIntegrationTest(body: SecretsIntegrationTest.() -> Unit) :
 
     init {
         beforeEach {
+            repositoryService = RepositoryService(
+                dbExtension.db,
+                dbExtension.fixtures.ortRunRepository,
+                dbExtension.fixtures.repositoryRepository,
+                dbExtension.fixtures.analyzerJobRepository,
+                dbExtension.fixtures.advisorJobRepository,
+                dbExtension.fixtures.scannerJobRepository,
+                dbExtension.fixtures.evaluatorJobRepository,
+                dbExtension.fixtures.reporterJobRepository,
+                dbExtension.fixtures.notifierJobRepository,
+                mockk()
+            )
             secretRepository = dbExtension.fixtures.secretRepository
             secretService = SecretService(
                 dbExtension.db,
@@ -53,7 +69,7 @@ abstract class SecretsIntegrationTest(body: SecretsIntegrationTest.() -> Unit) :
     fun secretsTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
     ) = integrationTestApplication(
-        routes = { secretsRoutes(secretService) },
+        routes = { secretsRoutes(repositoryService, secretService) },
         validations = { secretsValidations() },
         block = block
     )
