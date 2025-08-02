@@ -41,6 +41,7 @@ type ReporterFieldsProps = {
   value: string;
   onToggle: () => void;
   reporterPlugins: PreconfiguredPluginDescriptor[];
+  isSuperuser: boolean;
 };
 
 export const ReporterFields = ({
@@ -48,6 +49,7 @@ export const ReporterFields = ({
   value,
   onToggle,
   reporterPlugins,
+  isSuperuser,
 }: ReporterFieldsProps) => {
   const reporterOptions = reporterPlugins.map((plugin) => ({
     id: plugin.id,
@@ -101,6 +103,30 @@ export const ReporterFields = ({
                     <FormDescription>
                       NOTE: This option is currently effective only for the
                       WebApp report format.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
+          {isSuperuser && (
+            <FormField
+              control={form.control}
+              name='jobConfigs.reporter.keepAliveWorker'
+              render={({ field }) => (
+                <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
+                  <div className='space-y-0.5'>
+                    <FormLabel>Keep worker alive</FormLabel>
+                    <FormDescription>
+                      A flag to control whether the worker is kept alive for
+                      debugging purposes. This flag only has an effect if the
+                      ORT Server is deployed on Kubernetes.
                     </FormDescription>
                   </div>
                   <FormControl>

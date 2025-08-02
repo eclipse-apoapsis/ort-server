@@ -65,6 +65,7 @@ export const createRunFormSchema = z.object({
       allowDynamicVersions: z.boolean(),
       skipExcluded: z.boolean(),
       environmentVariables: z.array(environmentVariableSchema).optional(),
+      keepAliveWorker: z.boolean(),
       packageManagers: z
         .object({
           Bazel: packageManagerOptionsSchema,
@@ -101,12 +102,14 @@ export const createRunFormSchema = z.object({
     advisor: z.object({
       enabled: z.boolean(),
       skipExcluded: z.boolean(),
+      keepAliveWorker: z.boolean(),
       advisors: z.array(z.string()),
     }),
     scanner: z.object({
       enabled: z.boolean(),
       skipConcluded: z.boolean(),
       skipExcluded: z.boolean(),
+      keepAliveWorker: z.boolean(),
     }),
     evaluator: z.object({
       enabled: z.boolean(),
@@ -114,15 +117,18 @@ export const createRunFormSchema = z.object({
       licenseClassificationsFile: z.string().optional(),
       copyrightGarbageFile: z.string().optional(),
       resolutionsFile: z.string().optional(),
+      keepAliveWorker: z.boolean(),
     }),
     reporter: z.object({
       enabled: z.boolean(),
       formats: z.array(z.string()),
       deduplicateDependencyTree: z.boolean().optional(),
+      keepAliveWorker: z.boolean(),
     }),
     notifier: z.object({
       enabled: z.boolean(),
       recipientAddresses: z.array(z.object({ email: z.string() })).optional(),
+      keepAliveWorker: z.boolean(),
     }),
     parameters: z.array(keyValueSchema).optional(),
     ruleSet: z.string().optional(),
@@ -276,6 +282,7 @@ export function defaultValues(
         repositoryConfigPath: '',
         allowDynamicVersions: true,
         skipExcluded: true,
+        keepAliveWorker: false,
         packageManagers: {
           Bazel: defaultPackageManagerOptions('Bazel'),
           Bower: defaultPackageManagerOptions('Bower'),
@@ -308,11 +315,13 @@ export function defaultValues(
         enabled: true,
         skipExcluded: true,
         advisors: ['OSV', 'VulnerableCode'],
+        keepAliveWorker: false,
       },
       scanner: {
         enabled: true,
         skipConcluded: true,
         skipExcluded: true,
+        keepAliveWorker: false,
       },
       evaluator: {
         enabled: true,
@@ -320,15 +329,18 @@ export function defaultValues(
         licenseClassificationsFile: '',
         copyrightGarbageFile: '',
         resolutionsFile: '',
+        keepAliveWorker: false,
       },
       reporter: {
         enabled: true,
         formats: ['CycloneDX', 'SpdxDocument', 'WebApp'],
         deduplicateDependencyTree: false,
+        keepAliveWorker: false,
       },
       notifier: {
         enabled: false,
         recipientAddresses: [],
+        keepAliveWorker: false,
       },
     },
     jobConfigContext: '',
@@ -360,6 +372,9 @@ export function defaultValues(
             environmentVariables:
               ortRun.jobConfigs.analyzer?.environmentConfig
                 ?.environmentVariables || undefined,
+            keepAliveWorker:
+              ortRun.jobConfigs.analyzer?.keepAliveWorker ||
+              baseDefaults.jobConfigs.analyzer.keepAliveWorker,
           },
           advisor: {
             enabled:
@@ -371,6 +386,9 @@ export function defaultValues(
             advisors:
               ortRun.jobConfigs.advisor?.advisors ||
               baseDefaults.jobConfigs.advisor.advisors,
+            keepAliveWorker:
+              ortRun.jobConfigs.advisor?.keepAliveWorker ||
+              baseDefaults.jobConfigs.advisor.keepAliveWorker,
           },
           scanner: {
             enabled:
@@ -382,11 +400,17 @@ export function defaultValues(
             skipExcluded:
               ortRun.jobConfigs.scanner?.skipExcluded ||
               baseDefaults.jobConfigs.scanner.skipExcluded,
+            keepAliveWorker:
+              ortRun.jobConfigs.scanner?.keepAliveWorker ||
+              baseDefaults.jobConfigs.scanner.keepAliveWorker,
           },
           evaluator: {
             enabled:
               ortRun.jobConfigs.evaluator !== undefined &&
               ortRun.jobConfigs.evaluator !== null,
+            keepAliveWorker:
+              ortRun.jobConfigs.evaluator?.keepAliveWorker ||
+              baseDefaults.jobConfigs.evaluator.keepAliveWorker,
           },
           reporter: {
             enabled:
@@ -401,6 +425,9 @@ export function defaultValues(
               ) || baseDefaults.jobConfigs.reporter.formats,
             deduplicateDependencyTree:
               deduplicateDependencyTreeEnabled || undefined,
+            keepAliveWorker:
+              ortRun.jobConfigs.reporter?.keepAliveWorker ||
+              baseDefaults.jobConfigs.reporter.keepAliveWorker,
           },
           notifier: {
             enabled:
@@ -412,6 +439,9 @@ export function defaultValues(
               ortRun.jobConfigs.notifier?.recipientAddresses?.map((email) => ({
                 email,
               })) || baseDefaults.jobConfigs.notifier.recipientAddresses,
+            keepAliveWorker:
+              ortRun.jobConfigs.notifier?.keepAliveWorker ||
+              baseDefaults.jobConfigs.notifier.keepAliveWorker,
           },
           // Convert the parameters object map coming from the back-end to an array of key-value pairs.
           // This needs to be done because the useFieldArray hook requires an array of objects.
@@ -524,6 +554,7 @@ export function formValuesToPayload(
     packageManagerOptions: getPackageManagerOptions(
       values.jobConfigs.analyzer.packageManagers
     ),
+    keepAliveWorker: values.jobConfigs.analyzer.keepAliveWorker || undefined,
   };
 
   //
@@ -534,6 +565,7 @@ export function formValuesToPayload(
     ? {
         skipExcluded: values.jobConfigs.advisor.skipExcluded,
         advisors: values.jobConfigs.advisor.advisors,
+        keepAliveWorker: values.jobConfigs.advisor.keepAliveWorker || undefined,
       }
     : undefined;
 
@@ -546,6 +578,7 @@ export function formValuesToPayload(
         createMissingArchives: true,
         skipConcluded: values.jobConfigs.scanner.skipConcluded,
         skipExcluded: values.jobConfigs.scanner.skipExcluded,
+        keepAliveWorker: values.jobConfigs.scanner.keepAliveWorker || undefined,
       }
     : undefined;
 
@@ -553,7 +586,12 @@ export function formValuesToPayload(
   // Evaluator configuration
   //
 
-  const evaluatorConfig = values.jobConfigs.evaluator.enabled ? {} : undefined;
+  const evaluatorConfig = values.jobConfigs.evaluator.enabled
+    ? {
+        keepAliveWorker:
+          values.jobConfigs.evaluator.keepAliveWorker || undefined,
+      }
+    : undefined;
 
   //
   // Reporter configuration
@@ -614,6 +652,8 @@ export function formValuesToPayload(
     ? {
         formats: values.jobConfigs.reporter.formats,
         config: Object.keys(config).length > 0 ? config : undefined,
+        keepAliveWorker:
+          values.jobConfigs.reporter.keepAliveWorker || undefined,
       }
     : undefined;
 
@@ -630,6 +670,8 @@ export function formValuesToPayload(
   const notifierConfig = values.jobConfigs.notifier.enabled
     ? {
         recipientAddresses: addresses || undefined,
+        keepAliveWorker:
+          values.jobConfigs.notifier.keepAliveWorker || undefined,
       }
     : undefined;
 

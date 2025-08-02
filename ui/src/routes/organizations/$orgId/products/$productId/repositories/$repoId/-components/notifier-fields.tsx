@@ -28,6 +28,7 @@ import {
 import { Button } from '@/components/ui/button';
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -42,12 +43,14 @@ type NotifierFieldsProps = {
   form: UseFormReturn<CreateRunFormValues>;
   value: string;
   onToggle: () => void;
+  isSuperuser: boolean;
 };
 
 export const NotifierFields = ({
   form,
   value,
   onToggle,
+  isSuperuser,
 }: NotifierFieldsProps) => {
   const { fields, append, remove } = useFieldArray({
     name: 'jobConfigs.notifier.recipientAddresses',
@@ -119,6 +122,30 @@ export const NotifierFields = ({
             Add recipient address
             <PlusIcon className='ml-1 h-4 w-4' />
           </Button>
+          {isSuperuser && (
+            <FormField
+              control={form.control}
+              name='jobConfigs.notifier.keepAliveWorker'
+              render={({ field }) => (
+                <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
+                  <div className='space-y-0.5'>
+                    <FormLabel>Keep worker alive</FormLabel>
+                    <FormDescription>
+                      A flag to control whether the worker is kept alive for
+                      debugging purposes. This flag only has an effect if the
+                      ORT Server is deployed on Kubernetes.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
         </AccordionContent>
       </AccordionItem>
     </div>
