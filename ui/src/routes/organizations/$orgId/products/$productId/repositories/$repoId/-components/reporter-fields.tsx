@@ -19,20 +19,14 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
-import { PreconfiguredPluginDescriptor } from '@/api/requests';
-import { MultiSelectField } from '@/components/form/multi-select-field';
+import { PreconfiguredPluginDescriptor, Secret } from '@/api/requests';
+import { PluginMultiSelectField } from '@/components/form/plugin-multi-select-field.tsx';
 import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form';
+import { FormControl, FormField } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
 
@@ -41,6 +35,7 @@ type ReporterFieldsProps = {
   value: string;
   onToggle: () => void;
   reporterPlugins: PreconfiguredPluginDescriptor[];
+  secrets: Secret[];
 };
 
 export const ReporterFields = ({
@@ -48,13 +43,8 @@ export const ReporterFields = ({
   value,
   onToggle,
   reporterPlugins,
+  secrets,
 }: ReporterFieldsProps) => {
-  const reporterOptions = reporterPlugins.map((plugin) => ({
-    id: plugin.id,
-    label: plugin.displayName,
-    description: plugin.description,
-  }));
-
   return (
     <div className='flex flex-row align-middle'>
       <FormField
@@ -73,46 +63,17 @@ export const ReporterFields = ({
       <AccordionItem value={value} className='flex-1'>
         <AccordionTrigger onClick={onToggle}>Reporter</AccordionTrigger>
         <AccordionContent>
-          <MultiSelectField
+          <PluginMultiSelectField
             form={form}
             name='jobConfigs.reporter.formats'
+            configName='jobConfigs.reporter.config'
             label='Report formats'
             description={
               <>Select the report formats to generate from the run.</>
             }
-            options={reporterOptions}
+            plugins={reporterPlugins}
+            secrets={secrets}
           />
-          {form.getValues('jobConfigs.reporter.formats').includes('WebApp') && (
-            <FormField
-              control={form.control}
-              name='jobConfigs.reporter.deduplicateDependencyTree'
-              render={({ field }) => (
-                <FormItem className='mb-4 flex flex-row items-center justify-between rounded-lg border p-4'>
-                  <div className='space-y-0.5'>
-                    <FormLabel>Deduplicate dependency tree</FormLabel>
-                    <FormDescription>
-                      A flag to control whether subtrees occurring multiple
-                      times in the dependency tree are stripped.
-                    </FormDescription>
-                    <FormDescription>
-                      This will significantly reduce memory consumption of the
-                      Reporter and might alleviate some out-of-memory issues.
-                    </FormDescription>
-                    <FormDescription>
-                      NOTE: This option is currently effective only for the
-                      WebApp report format.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          )}
         </AccordionContent>
       </AccordionItem>
     </div>

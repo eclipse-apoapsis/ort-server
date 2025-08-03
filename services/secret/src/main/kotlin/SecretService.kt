@@ -20,7 +20,11 @@
 package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
@@ -82,6 +86,34 @@ class SecretService(
      */
     suspend fun getSecretByIdAndName(id: HierarchyId, name: String): Secret? = db.dbQuery {
         secretRepository.getByIdAndName(id, name)
+    }
+
+    /**
+     * List all secrets for the provided [hierarchy]. If there are secrets with the same name in different levels of the
+     * hierarchy, only the one closest to the repository is returned.
+     */
+    suspend fun listForHierarchy(
+        hierarchy: Hierarchy
+    ): List<Secret> = db.dbQuery {
+        val parameters = ListQueryParameters(limit = Integer.MAX_VALUE)
+        val organizationSecrets = secretRepository.listForId(OrganizationId(hierarchy.organization.id), parameters)
+        val productSecrets = secretRepository.listForId(ProductId(hierarchy.product.id), parameters)
+        val repositorySecrets = secretRepository.listForId(RepositoryId(hierarchy.repository.id), parameters)
+
+        buildList {
+            addAll(repositorySecrets.data)
+            addAll(
+                productSecrets.data.filter { productSecret ->
+                    repositorySecrets.data.none { it.name == productSecret.name }
+                }
+            )
+            addAll(
+                organizationSecrets.data.filter { organizationSecret ->
+                    repositorySecrets.data.none { it.name == organizationSecret.name } &&
+                            productSecrets.data.none { it.name == organizationSecret.name }
+                }
+            )
+        }
     }
 
     /**

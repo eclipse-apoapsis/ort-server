@@ -32,6 +32,7 @@ dependencies {
 
     implementation(projects.components.authorization.backend)
     implementation(projects.model)
+    implementation(projects.services.hierarchyService)
     implementation(projects.services.secretService)
     implementation(projects.shared.apiMappings)
     implementation(projects.shared.apiModel)
@@ -46,4 +47,5 @@ dependencies {
     testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
+    testImplementation(libs.mockk)
 }
