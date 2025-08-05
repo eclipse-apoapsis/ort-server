@@ -53,9 +53,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getIssueCategory } from '@/helpers/get-issue-category';
-import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
+import {
+  getIssueSeverityBackgroundColor,
+  getResolvedBackgroundColor,
+} from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
@@ -63,6 +67,9 @@ import {
   IssueCategory,
   issueCategorySchema,
   issueCategorySearchParameterSchema,
+  ItemResolved,
+  itemResolvedSchema,
+  itemStatusSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
@@ -180,6 +187,46 @@ const IssuesComponent = () => {
     }),
     columnHelper.accessor(
       (issue) => {
+        return getResolvedStatus(issue);
+      },
+      {
+        id: 'itemStatus',
+        header: 'Status',
+        size: 50,
+        cell: ({ getValue }) => {
+          return (
+            <Badge
+              className={`border ${getResolvedBackgroundColor(getValue())}`}
+            >
+              {getValue()}
+            </Badge>
+          );
+        },
+        filterFn: (row, _columnId, filterValue): boolean => {
+          return filterValue.includes(getResolvedStatus(row.original));
+        },
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
+              label: itemResolved,
+              value: itemResolved,
+            })),
+            setSelected: (statuses: ItemResolved[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  itemResolved: statuses.length === 0 ? undefined : statuses,
+                },
+              });
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor(
+      (issue) => {
         return getIssueCategory(issue.message);
       },
       {
@@ -266,6 +313,11 @@ const IssuesComponent = () => {
     [search.severity]
   );
 
+  const itemStatus = useMemo(
+    () => (search.itemResolved ? search.itemResolved : undefined),
+    [search.itemResolved]
+  );
+
   const category = useMemo(
     () => (search.category ? search.category : undefined),
     [search.category]
@@ -281,6 +333,9 @@ const IssuesComponent = () => {
     if (severity) {
       filters.push({ id: 'severity', value: severity });
     }
+    if (itemStatus) {
+      filters.push({ id: 'itemStatus', value: itemStatus });
+    }
     if (category) {
       filters.push({ id: 'category', value: category });
     }
@@ -288,7 +343,7 @@ const IssuesComponent = () => {
       filters.push({ id: 'packageIdentifier', value: packageIdentifier });
     }
     return filters;
-  }, [severity, category, packageIdentifier]);
+  }, [severity, itemStatus, category, packageIdentifier]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
@@ -411,6 +466,7 @@ export const Route = createFileRoute(
   validateSearch: z.object({
     ...paginationSearchParameterSchema.shape,
     ...severitySearchParameterSchema.shape,
+    ...itemStatusSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...issueCategorySearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
