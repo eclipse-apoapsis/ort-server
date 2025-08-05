@@ -48,7 +48,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
@@ -63,7 +63,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRunsForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
-import org.eclipse.apoapsis.ortserver.core.utils.getUnavailablePlugins
+import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
@@ -90,7 +90,7 @@ import org.koin.ktor.ext.inject
 @Suppress("LongMethod")
 fun Route.products() = route("products/{productId}") {
     val productService by inject<ProductService>()
-    val pluginService by inject<PluginService>()
+    val pluginTemplateService by inject<PluginTemplateService>()
     val repositoryService by inject<RepositoryService>()
     val vulnerabilityService by inject<VulnerabilityService>()
     val issueService by inject<IssueService>()
@@ -324,19 +324,33 @@ fun Route.products() = route("products/{productId}") {
             requirePermission(ProductPermission.TRIGGER_ORT_RUN)
 
             val productId = call.requireIdParameter("productId")
+
+            val product = productService.getProduct(productId)
+
+            if (product == null) {
+                call.respond(HttpStatusCode.NotFound)
+                return@post
+            }
+
             val createOrtRun = call.receive<CreateOrtRun>()
             val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
                 UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
             }
 
-            // Check if unavailable plugins are used.
-            val unavailablePlugins = createOrtRun.getUnavailablePlugins(pluginService)
-            if (unavailablePlugins.isNotEmpty()) {
+            // Validate the plugin configuration.
+            val validationResult = pluginTemplateService.validatePluginConfigs(
+                pluginConfigs = createOrtRun.getPluginConfigs().mapValues { (_, pluginConfigs) ->
+                    pluginConfigs.mapValues { (_, pluginConfig) -> pluginConfig.mapToModel() }
+                },
+                organizationId = product.organizationId
+            )
+
+            if (!validationResult.isValid) {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     ErrorResponse(
-                        message = "Unavailable plugins are used.",
-                        cause = unavailablePlugins.errorMessage()
+                        message = "Invalid plugin configuration.",
+                        cause = validationResult.errors.joinToString(separator = "\n")
                     )
                 )
                 return@post
