@@ -24,6 +24,7 @@ import {
   VulnerabilityRating,
 } from '@/api/requests';
 import { PackageManagerId } from '@/lib/types';
+import { ItemResolved } from '@/schemas';
 
 // Combine statuses reported either by ORT Runs or the individual jobs within them.
 export type Status = JobStatus | OrtRunStatus | undefined;
@@ -152,6 +153,14 @@ export function getRuleViolationSeverityBackgroundColor(
 // Get the color class for coloring the background of issue severities
 export function getIssueSeverityBackgroundColor(severity: Severity): string {
   return ISSUE_SEVERITY_BG_COLOR[severity];
+}
+
+// Get the color class for resolved status of items like issues, vulnerabilities, and rule violations.
+// Reuse the issue severity background colors for 'Resolved' status.
+export function getResolvedBackgroundColor(status: ItemResolved): string {
+  return status === 'Resolved'
+    ? getIssueSeverityBackgroundColor('HINT')
+    : getIssueSeverityBackgroundColor('WARNING');
 }
 
 // Get the color class for coloring the background of ecosystems.
