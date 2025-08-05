@@ -111,7 +111,10 @@ const RunComponent = () => {
               repoId: params.repoId,
               runIndex: params.runIndex,
             }}
-            search={{ sortBy: [{ id: 'severity', desc: true }] }}
+            search={{
+              sortBy: [{ id: 'severity', desc: true }],
+              itemResolved: ['Unresolved'],
+            }}
           >
             <IssuesStatisticsCard
               jobIncluded={ortRun.jobConfigs.analyzer !== undefined}
