@@ -34,6 +34,10 @@ export const runStatusSchema = z.enum($OrtRunStatus.enum);
 // Enum schema for the possible values of the severities
 export const severitySchema = z.enum($Severity.enum);
 
+// Enum schema and type for the resolved statuses of issues, vulnerabilites, and rule violations
+export const itemResolvedSchema = z.enum(['Resolved', 'Unresolved']);
+export type ItemResolved = z.infer<typeof itemResolvedSchema>;
+
 // Enum schema for the possible values of the advisory overall vulnerability ratings
 export const vulnerabilityRatingSchema = z.enum($VulnerabilityRating.enum);
 
@@ -85,6 +89,10 @@ export const statusSearchParameterSchema = z.object({
 
 export const severitySearchParameterSchema = z.object({
   severity: z.array(severitySchema).optional(),
+});
+
+export const itemStatusSearchParameterSchema = z.object({
+  itemResolved: z.array(itemResolvedSchema).optional(),
 });
 
 export const packageIdentifierSearchParameterSchema = z.object({
