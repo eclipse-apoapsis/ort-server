@@ -17,9 +17,15 @@
  * License-Filename: LICENSE
  */
 
-import { Issue, RuleViolation } from '@/api/requests';
+import {
+  Issue,
+  RuleViolation,
+  VulnerabilityWithIdentifier,
+} from '@/api/requests';
 
-export function getResolvedStatus(item: Issue | RuleViolation) {
+export function getResolvedStatus(
+  item: Issue | RuleViolation | VulnerabilityWithIdentifier
+) {
   return item.resolutions && item.resolutions.length > 0
     ? 'Resolved'
     : 'Unresolved';
