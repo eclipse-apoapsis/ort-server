@@ -83,7 +83,10 @@ const RunComponent = () => {
               repoId: params.repoId,
               runIndex: params.runIndex,
             }}
-            search={{ sortBy: [{ id: 'rating', desc: true }] }}
+            search={{
+              sortBy: [{ id: 'rating', desc: true }],
+              itemResolved: ['Unresolved'],
+            }}
           >
             <VulnerabilitiesStatisticsCard
               jobIncluded={ortRun.jobConfigs.advisor !== undefined}
