@@ -62,6 +62,7 @@ const Layout = () => {
           params,
           search: {
             sortBy: [{ id: 'severity', desc: true }],
+            itemResolved: ['Unresolved'],
           },
           icon: () => <Scale className='h-4 w-4' />,
         },
@@ -125,6 +126,7 @@ const Layout = () => {
           params,
           search: {
             sortBy: [{ id: 'severity', desc: true }],
+            itemResolved: ['Unresolved'],
           },
           icon: () => <Bug className='h-4 w-4' />,
         },

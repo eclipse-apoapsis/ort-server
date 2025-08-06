@@ -64,7 +64,10 @@ const RunComponent = () => {
               repoId: params.repoId,
               runIndex: params.runIndex,
             }}
-            search={{ sortBy: [{ id: 'severity', desc: true }] }}
+            search={{
+              sortBy: [{ id: 'severity', desc: true }],
+              itemResolved: ['Unresolved'],
+            }}
           >
             <RuleViolationsStatisticsCard
               jobIncluded={ortRun.jobConfigs.evaluator !== undefined}
