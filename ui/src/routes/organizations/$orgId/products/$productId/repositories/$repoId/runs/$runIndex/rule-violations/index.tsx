@@ -53,12 +53,19 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
+import {
+  getResolvedBackgroundColor,
+  getRuleViolationSeverityBackgroundColor,
+} from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import {
+  ItemResolved,
+  itemResolvedSchema,
+  itemStatusSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
@@ -180,6 +187,46 @@ const RuleViolationsComponent = () => {
     }),
     columnHelper.accessor(
       (ruleViolation) => {
+        return getResolvedStatus(ruleViolation);
+      },
+      {
+        id: 'itemStatus',
+        header: 'Status',
+        size: 50,
+        cell: ({ getValue }) => {
+          return (
+            <Badge
+              className={`border ${getResolvedBackgroundColor(getValue())}`}
+            >
+              {getValue()}
+            </Badge>
+          );
+        },
+        filterFn: (row, _columnId, filterValue): boolean => {
+          return filterValue.includes(getResolvedStatus(row.original));
+        },
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
+              label: itemResolved,
+              value: itemResolved,
+            })),
+            setSelected: (statuses: ItemResolved[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  itemResolved: statuses.length === 0 ? undefined : statuses,
+                },
+              });
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor(
+      (ruleViolation) => {
         return identifierToString(ruleViolation.packageId);
       },
       {
@@ -228,6 +275,11 @@ const RuleViolationsComponent = () => {
     [search.severity]
   );
 
+  const itemStatus = useMemo(
+    () => (search.itemResolved ? search.itemResolved : undefined),
+    [search.itemResolved]
+  );
+
   const packageIdentifier = useMemo(
     () => (search.pkgId ? search.pkgId : undefined),
     [search.pkgId]
@@ -238,11 +290,14 @@ const RuleViolationsComponent = () => {
     if (severity) {
       filters.push({ id: 'severity', value: severity });
     }
+    if (itemStatus) {
+      filters.push({ id: 'itemStatus', value: itemStatus });
+    }
     if (packageIdentifier) {
       filters.push({ id: 'packageIdentifier', value: packageIdentifier });
     }
     return filters;
-  }, [severity, packageIdentifier]);
+  }, [severity, itemStatus, packageIdentifier]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
@@ -339,6 +394,7 @@ export const Route = createFileRoute(
   validateSearch: z.object({
     ...paginationSearchParameterSchema.shape,
     ...severitySearchParameterSchema.shape,
+    ...itemStatusSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
