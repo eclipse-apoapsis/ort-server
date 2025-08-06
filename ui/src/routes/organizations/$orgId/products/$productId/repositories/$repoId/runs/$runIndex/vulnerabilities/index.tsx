@@ -63,16 +63,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
+import {
+  getResolvedBackgroundColor,
+  getVulnerabilityRatingBackgroundColor,
+} from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import {
   identifierToPurl,
   identifierToString,
 } from '@/helpers/identifier-conversion';
+import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import {
+  ItemResolved,
+  itemResolvedSchema,
+  itemStatusSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
@@ -232,6 +239,46 @@ const VulnerabilitiesComponent = () => {
     }),
     columnHelper.accessor(
       (vuln) => {
+        return getResolvedStatus(vuln);
+      },
+      {
+        id: 'itemStatus',
+        header: 'Status',
+        size: 50,
+        cell: ({ getValue }) => {
+          return (
+            <Badge
+              className={`border ${getResolvedBackgroundColor(getValue())}`}
+            >
+              {getValue()}
+            </Badge>
+          );
+        },
+        filterFn: (row, _columnId, filterValue): boolean => {
+          return filterValue.includes(getResolvedStatus(row.original));
+        },
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
+              label: itemResolved,
+              value: itemResolved,
+            })),
+            setSelected: (statuses: ItemResolved[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  itemResolved: statuses.length === 0 ? undefined : statuses,
+                },
+              });
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor(
+      (vuln) => {
         // TODO: This is a temporary front-end only solution to support PURL
         //       identifiers. The backend endpoints should be updated to return
         //       PURL identifiers natively so this will need to be removed
@@ -302,6 +349,11 @@ const VulnerabilitiesComponent = () => {
     [search.pageSize]
   );
 
+  const itemStatus = useMemo(
+    () => (search.itemResolved ? search.itemResolved : undefined),
+    [search.itemResolved]
+  );
+
   const packageIdentifier = useMemo(
     () => (search.pkgId ? search.pkgId : undefined),
     [search.pkgId]
@@ -314,6 +366,9 @@ const VulnerabilitiesComponent = () => {
 
   const columnFilters = useMemo(() => {
     const filters = [];
+    if (itemStatus) {
+      filters.push({ id: 'itemStatus', value: itemStatus });
+    }
     if (packageIdentifier) {
       filters.push({ id: 'packageIdentifier', value: packageIdentifier });
     }
@@ -321,7 +376,7 @@ const VulnerabilitiesComponent = () => {
       filters.push({ id: 'rating', value: rating });
     }
     return filters;
-  }, [packageIdentifier, rating]);
+  }, [itemStatus, packageIdentifier, rating]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
@@ -442,6 +497,7 @@ export const Route = createFileRoute(
   validateSearch: z.object({
     ...paginationSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
+    ...itemStatusSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...vulnerabilityRatingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
