@@ -78,6 +78,7 @@ const Layout = () => {
           params,
           search: {
             sortBy: [{ id: 'rating', desc: true }],
+            itemResolved: ['Unresolved'],
           },
           icon: () => <ShieldQuestion className='h-4 w-4' />,
         },
