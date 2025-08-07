@@ -35,7 +35,7 @@ enum class OrganizationRole(
 
     /** A [ProductRole] that is granted for each [Product] of this [Organization]. */
     val includedProductRole: ProductRole
-) {
+): Role {
     /** A role that grants read permissions for an [Organization]. */
     READER(
         permissions = setOf(

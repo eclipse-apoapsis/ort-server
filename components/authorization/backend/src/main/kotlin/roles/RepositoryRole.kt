@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 enum class RepositoryRole(
     /** The [RepositoryPermission]s granted by this role. */
     val permissions: Set<RepositoryPermission>
-) {
+): Role {
     /** A role that grants read permissions for a [Repository]. */
     READER(
         permissions = setOf(
