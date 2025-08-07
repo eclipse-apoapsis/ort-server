@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.R
 import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.RepositoryConfigurationsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.scannerjob.ScannerJobsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNameDAO
+import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNameDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNamesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoryDao
@@ -116,7 +116,7 @@ class OrtRunDao(id: EntityID<Long>) : LongEntity(id) {
     var vcsId by OrtRunsTable.vcsId
     var vcsProcessedId by OrtRunsTable.vcsProcessedId
     var environmentConfigPath by OrtRunsTable.environmentConfigPath
-    var userDisplayName by UserDisplayNameDAO optionalReferencedOn OrtRunsTable.userDisplayName
+    var userDisplayName by UserDisplayNameDao optionalReferencedOn OrtRunsTable.userDisplayName
 
     val advisorJob by AdvisorJobDao optionalBackReferencedOn AdvisorJobsTable.ortRunId
     val analyzerJob by AnalyzerJobDao optionalBackReferencedOn AnalyzerJobsTable.ortRunId
