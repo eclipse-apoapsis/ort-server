@@ -59,7 +59,7 @@ export function FilterMultiSelect<TValue>({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant='ghost' size='sm' className='px-1'>
+        <Button variant='ghost' size='narrow'>
           <Filter
             className={cn(
               selected.length > 0 ? 'text-blue-500' : undefined,

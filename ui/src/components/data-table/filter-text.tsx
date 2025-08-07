@@ -53,7 +53,7 @@ export function FilterText({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant='ghost' className='px-1'>
+        <Button variant='ghost' size='narrow'>
           <Filter
             className={cn(value.length > 0 && 'text-blue-500', 'h-4 w-4')}
           />
