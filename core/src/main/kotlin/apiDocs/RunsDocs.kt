@@ -352,6 +352,12 @@ val getRuleViolationsByRunId: RouteConfig.() -> Unit = {
                         listOf(
                             RuleViolation(
                                 "Unmapped declared license found",
+                                Identifier(
+                                    "Maven",
+                                    "org.glassfish.jersey.media",
+                                    "jersey-media-jaxb",
+                                    "2.42"
+                                ),
                                 "GPL-1.0-or-later",
                                 "DETECTED",
                                 Severity.ERROR,
@@ -374,12 +380,6 @@ val getRuleViolationsByRunId: RouteConfig.() -> Unit = {
                                     |Documentation in how to configure curations in the `.ort.yml` file can be found
                                     |[here](https://oss-review-toolkit.org/ort/docs/configuration/ort-yml).
                                     """.trimMargin(),
-                                Identifier(
-                                    "Maven",
-                                    "org.glassfish.jersey.media",
-                                    "jersey-media-jaxb",
-                                    "2.42"
-                                ),
                                 listOf(
                                     RuleViolationResolution(
                                         message =

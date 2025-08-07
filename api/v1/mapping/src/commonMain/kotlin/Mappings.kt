@@ -598,12 +598,12 @@ fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description
 
 fun RuleViolation.mapToApi() = ApiRuleViolation(
     rule,
+    id?.mapToApi(),
     license,
     licenseSource,
     severity.mapToApi(),
     message,
     howToFix,
-    id?.mapToApi(),
     resolutions.map { it.mapToApi() }
 )
 

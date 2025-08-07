@@ -24,12 +24,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RuleViolation(
     val rule: String,
+    val id: Identifier? = null,
     val license: String?,
     val licenseSource: String?,
     val severity: Severity,
     val message: String,
     val howToFix: String,
-    val id: Identifier? = null,
     val resolutions: List<RuleViolationResolution> = emptyList()
 )
 
