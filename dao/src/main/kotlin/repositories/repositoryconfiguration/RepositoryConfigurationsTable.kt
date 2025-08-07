@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
@@ -52,6 +53,7 @@ class RepositoryConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var ruleViolationResolutions by RuleViolationResolutionDao via RepositoryConfigurationsRuleViolationResolutionsTable
     var vulnerabilityResolutions by VulnerabilityResolutionDao via RepositoryConfigurationsVulnerabilityResolutionsTable
     var pathExcludes by PathExcludeDao via RepositoryConfigurationsPathExcludes
+    var pathIncludes by PathIncludeDao via RepositoryConfigurationsPathIncludes
     var scopeExcludes by ScopeExcludeDao via RepositoryConfigurationsScopeExcludesTable
     var curations by PackageCurationDao via RepositoryConfigurationsPackageCurationsTable
     var licenseFindingCurations by LicenseFindingCurationDao via RepositoryConfigurationsLicenseFindingCurationsTable
@@ -67,6 +69,9 @@ class RepositoryConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
         excludes = Excludes(
             paths = pathExcludes.map(PathExcludeDao::mapToModel),
             scopes = scopeExcludes.map(ScopeExcludeDao::mapToModel)
+        ),
+        includes = Includes(
+            paths = pathIncludes.map(PathIncludeDao::mapToModel)
         ),
         resolutions = Resolutions(
             issues = issueResolutions.map(IssueResolutionDao::mapToModel),

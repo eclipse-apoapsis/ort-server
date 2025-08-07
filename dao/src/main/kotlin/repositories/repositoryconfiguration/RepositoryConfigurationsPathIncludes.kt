@@ -17,17 +17,17 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.model.runs.repository
+package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
-data class RepositoryConfiguration(
-    val id: Long,
-    val ortRunId: Long,
-    val analyzerConfig: RepositoryAnalyzerConfiguration? = null,
-    val excludes: Excludes = Excludes(),
-    val includes: Includes = Includes(),
-    val resolutions: Resolutions = Resolutions(),
-    val curations: Curations = Curations(),
-    val packageConfigurations: List<PackageConfiguration> = emptyList(),
-    val licenseChoices: LicenseChoices = LicenseChoices(),
-    val provenanceSnippetChoices: List<ProvenanceSnippetChoices> = emptyList()
-)
+import org.jetbrains.exposed.sql.Table
+
+/**
+ * An intermediate table to store references from [RepositoryConfigurationsTable] and [PathExcludesTable].
+ */
+object RepositoryConfigurationsPathIncludes : Table("repository_configurations_path_includes") {
+    val repositoryConfigurationId = reference("repository_configuration_id", RepositoryConfigurationsTable)
+    val pathIncludeId = reference("path_include_id", PathIncludesTable)
+
+    override val primaryKey: PrimaryKey
+        get() = PrimaryKey(repositoryConfigurationId, pathIncludeId, name = "${tableName}_pkey")
+}

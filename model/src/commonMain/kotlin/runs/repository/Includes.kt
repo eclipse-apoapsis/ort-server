@@ -19,15 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
-data class RepositoryConfiguration(
-    val id: Long,
-    val ortRunId: Long,
-    val analyzerConfig: RepositoryAnalyzerConfiguration? = null,
-    val excludes: Excludes = Excludes(),
-    val includes: Includes = Includes(),
-    val resolutions: Resolutions = Resolutions(),
-    val curations: Curations = Curations(),
-    val packageConfigurations: List<PackageConfiguration> = emptyList(),
-    val licenseChoices: LicenseChoices = LicenseChoices(),
-    val provenanceSnippetChoices: List<ProvenanceSnippetChoices> = emptyList()
+/**
+ * Represents a collection of path include patterns.
+ */
+data class Includes(
+    /** A list of [PathInclude] objects defining patterns and reasons for including specific paths. */
+    val paths: List<PathInclude> = emptyList(),
 )

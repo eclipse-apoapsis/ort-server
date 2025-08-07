@@ -55,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
@@ -63,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathInclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
@@ -135,6 +137,7 @@ import org.ossreviewtoolkit.model.config.AdvisorConfiguration as OrtAdvisorConfi
 import org.ossreviewtoolkit.model.config.AnalyzerConfiguration as OrtAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.Curations as OrtCurations
 import org.ossreviewtoolkit.model.config.Excludes as OrtExcludes
+import org.ossreviewtoolkit.model.config.Includes as OrtIncludes
 import org.ossreviewtoolkit.model.config.IssueResolution as OrtIssueResolution
 import org.ossreviewtoolkit.model.config.LicenseChoices as OrtLicenseChoices
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration as OrtLicenseFindingCuration
@@ -151,6 +154,7 @@ import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.SnippetChoices as OrtSnippetChoices
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
+import org.ossreviewtoolkit.model.config.config.PathInclude as OrtPathInclude
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoice as OrtSnippetChoice
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason as OrtSnippetChoiceReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability as OrtVulnerability
@@ -287,6 +291,10 @@ fun OrtExcludes.mapToModel() = Excludes(
 
 fun OrtIdentifier.mapToModel() = Identifier(type = type, namespace = namespace, name = name, version = version)
 
+fun OrtIncludes.mapToModel() = Includes(
+    paths = paths.map(OrtPathInclude::mapToModel),
+)
+
 fun OrtIssueResolution.mapToModel() = IssueResolution(message = message, reason = reason.name, comment = comment)
 
 fun OrtLicenseChoices.mapToModel() = LicenseChoices(
@@ -384,6 +392,8 @@ fun OrtPackageManagerConfiguration.mapToModel() =
 
 fun OrtPathExclude.mapToModel() = PathExclude(pattern = pattern, reason = reason.name, comment = comment)
 
+fun OrtPathInclude.mapToModel() = PathInclude(pattern, reason.name, comment)
+
 fun OrtPluginConfig.mapToModel() = PluginConfig(options = options, secrets = secrets)
 
 fun OrtProcessedDeclaredLicense.mapToModel() =
@@ -448,6 +458,7 @@ fun OrtRepositoryConfiguration.mapToModel(ortRunId: Long) = RepositoryConfigurat
     ortRunId = ortRunId,
     analyzerConfig = analyzer?.mapToModel(),
     excludes = excludes.mapToModel(),
+    includes = includes.mapToModel(),
     resolutions = resolutions.mapToModel(),
     curations = curations.mapToModel(),
     packageConfigurations = packageConfigurations.map(OrtPackageConfiguration::mapToModel),
