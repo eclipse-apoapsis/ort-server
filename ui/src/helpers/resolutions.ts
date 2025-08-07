@@ -23,9 +23,12 @@ import {
   VulnerabilityWithIdentifier,
 } from '@/api/requests';
 
-export function getResolvedStatus(
-  item: Issue | RuleViolation | VulnerabilityWithIdentifier
-) {
+export type ItemWithResolutions =
+  | Issue
+  | RuleViolation
+  | VulnerabilityWithIdentifier;
+
+export function getResolvedStatus(item: ItemWithResolutions) {
   return item.resolutions && item.resolutions.length > 0
     ? 'Resolved'
     : 'Unresolved';
