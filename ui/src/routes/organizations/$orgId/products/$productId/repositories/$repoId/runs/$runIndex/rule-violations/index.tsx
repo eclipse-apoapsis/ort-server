@@ -44,6 +44,7 @@ import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
+import { Resolutions } from '@/components/resolutions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -83,6 +84,13 @@ const renderSubComponent = ({ row }: { row: Row<RuleViolation> }) => {
 
   return (
     <div className='flex flex-col gap-4'>
+      {getResolvedStatus(ruleViolation) === 'Resolved' && (
+        <>
+          <div className='text-lg font-semibold'>Resolutions</div>
+          <Resolutions item={ruleViolation} />
+        </>
+      )}
+      <h2 className='text-lg font-semibold'>Details</h2>
       <div>{ruleViolation.message}</div>
       <div className='grid grid-cols-8 gap-2'>
         <div className='col-span-2 font-semibold'>License:</div>

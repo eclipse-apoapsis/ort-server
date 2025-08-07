@@ -41,6 +41,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { Resolutions } from '@/components/resolutions';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
@@ -87,6 +88,13 @@ const renderSubComponent = ({ row }: { row: Row<Issue> }) => {
 
   return (
     <div className='flex flex-col gap-4'>
+      {getResolvedStatus(issue) === 'Resolved' && (
+        <>
+          <div className='text-lg font-semibold'>Resolutions</div>
+          <Resolutions item={issue} />
+        </>
+      )}
+      <h2 className='text-lg font-semibold'>Details</h2>
       <div className='flex gap-1 text-sm'>
         <div className='font-semibold'>Created at</div>
         <TimestampWithUTC timestamp={issue.timestamp} />
