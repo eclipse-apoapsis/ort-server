@@ -19,15 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs
 
-import kotlinx.serialization.Serializable
-
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 
 /**
  * A data class describing a rule violation that occurred during an ORT run.
  */
-@Serializable
 data class RuleViolation(
     val rule: String,
     val packageId: Identifier?,
@@ -42,7 +39,6 @@ data class RuleViolation(
 /**
  * Filters to apply when querying for rule violations.
  */
-@Serializable
 data class RuleViolationFilters(
     /**
      * Filter to only return resolved rule violations. Null if both, resolved an unresolved rule violations should be

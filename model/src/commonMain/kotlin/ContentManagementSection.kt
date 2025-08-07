@@ -20,12 +20,10 @@
 package org.eclipse.apoapsis.ortserver.model
 
 import kotlinx.datetime.Instant
-import kotlinx.serialization.Serializable
 
 /**
  * Markdown-formatted text to be displayed in UI sections.
  */
-@Serializable
 data class ContentManagementSection(
     val id: String,
     val isEnabled: Boolean,

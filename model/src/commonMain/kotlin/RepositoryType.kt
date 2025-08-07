@@ -19,12 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
-import kotlinx.serialization.Serializable
-
 /**
  * A class to represent the type of a source code repository.
  */
-@Serializable
 data class RepositoryType(val name: String) {
     companion object {
         val GIT = RepositoryType("GIT")
