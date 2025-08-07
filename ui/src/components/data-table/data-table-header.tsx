@@ -99,7 +99,8 @@ export function DataTableHeader<TData>({
                   >
                     <Button
                       variant='ghost'
-                      className='px-1'
+                      size='narrow'
+                      className='ml-4'
                       onClick={column.getToggleSortingHandler()}
                     >
                       {column.getIsSorted() === 'asc' ? (
@@ -131,9 +132,9 @@ export function DataTableHeader<TData>({
                 colSpan={header.colSpan}
               >
                 {header.isPlaceholder ? null : (
-                  <div className='flex items-center gap-2'>
+                  <div className='flex items-center'>
                     {flexRender(column.columnDef.header, header.getContext())}
-                    <div className='flex items-center gap-1'>
+                    <div className='flex items-center'>
                       {groupingEnabled &&
                       setGroupingOptions &&
                       column.getCanGroup()
