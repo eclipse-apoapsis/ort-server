@@ -28,7 +28,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolut
  * A data class describing a rule violation that occurred during an ORT run.
  */
 @Serializable
-data class OrtRuleViolation(
+data class RuleViolation(
     val rule: String,
     val packageId: Identifier?,
     val license: String?,

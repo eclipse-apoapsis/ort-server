@@ -60,11 +60,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraph
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
@@ -211,7 +211,7 @@ class Fixtures(private val db: Database) {
         IdentifierDao.getOrPut(identifier).mapToModel()
     }
 
-    fun getViolation() = OrtRuleViolation(
+    fun getViolation() = RuleViolation(
         rule = "rule",
         packageId = identifier,
         license = "license",

@@ -139,13 +139,13 @@ import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
 import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.PackageRunData
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
@@ -596,7 +596,7 @@ fun VulnerabilityWithIdentifier.mapToApi() =
 
 fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description, references.map { it.mapToApi() })
 
-fun OrtRuleViolation.mapToApi() = ApiRuleViolation(
+fun RuleViolation.mapToApi() = ApiRuleViolation(
     rule,
     license,
     licenseSource,

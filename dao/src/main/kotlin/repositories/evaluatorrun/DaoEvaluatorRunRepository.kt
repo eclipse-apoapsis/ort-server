@@ -26,7 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 
 import org.jetbrains.exposed.sql.Database
 
@@ -38,7 +38,7 @@ class DaoEvaluatorRunRepository(private val db: Database) : EvaluatorRunReposito
         evaluatorJobId: Long,
         startTime: Instant,
         endTime: Instant,
-        violations: List<OrtRuleViolation>
+        violations: List<RuleViolation>
     ): EvaluatorRun = db.blockingQuery {
         val ruleViolations = mapAndDeduplicate(violations, RuleViolationDao::getOrPut)
 

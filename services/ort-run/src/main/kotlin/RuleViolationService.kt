@@ -26,7 +26,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.RuleViolationsTable
 import org.eclipse.apoapsis.ortserver.model.CountByCategory
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -46,12 +46,12 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
         ortRunId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         ruleViolationFilter: RuleViolationFilters = RuleViolationFilters()
-    ): ListQueryResult<OrtRuleViolation> {
+    ): ListQueryResult<RuleViolation> {
         val ortRun = ortRunService.getOrtRun(ortRunId) ?: throw ResourceNotFoundException(
             "ORT run with ID $ortRunId not found."
         )
 
-        var comparator = compareBy<OrtRuleViolation> { 0 }
+        var comparator = compareBy<RuleViolation> { 0 }
 
         parameters.sortFields.forEach { orderField ->
             when (orderField.name) {
@@ -99,10 +99,10 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
         )
     }
 
-    private fun List<OrtRuleViolation>.applyResultFilter(
+    private fun List<RuleViolation>.applyResultFilter(
         ruleViolationFilter: RuleViolationFilters,
         resolutions: List<RuleViolationResolution>
-    ): List<OrtRuleViolation> = when (ruleViolationFilter.resolved) {
+    ): List<RuleViolation> = when (ruleViolationFilter.resolved) {
         true -> {
             filter { violation ->
                 resolutions.any { it.matches(violation.mapToOrt()) }
