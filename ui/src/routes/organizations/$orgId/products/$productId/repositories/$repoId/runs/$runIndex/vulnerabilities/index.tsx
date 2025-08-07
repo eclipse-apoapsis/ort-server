@@ -45,6 +45,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
+import { Resolutions } from '@/components/resolutions';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -102,6 +103,13 @@ const renderSubComponent = ({
 
   return (
     <div className='flex flex-col gap-4'>
+      {getResolvedStatus(row.original) === 'Resolved' && (
+        <>
+          <div className='text-lg font-semibold'>Resolutions</div>
+          <Resolutions item={row.original} />
+        </>
+      )}
+      <h2 className='text-lg font-semibold'>Details</h2>
       <VulnerabilityMetrics vulnerability={vulnerability} />
       <div className='text-lg font-semibold'>Description</div>
       <MarkdownRenderer
