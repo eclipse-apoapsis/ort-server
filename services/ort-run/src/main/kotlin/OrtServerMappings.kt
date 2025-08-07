@@ -567,7 +567,7 @@ fun ResolvedPackageCurations.mapToOrt() =
 fun RuleViolation.mapToOrt() =
     OrtRuleViolation(
         rule = rule,
-        pkg = packageId?.mapToOrt(),
+        pkg = id?.mapToOrt(),
         license = license?.let { SpdxSingleLicenseExpression.parse(it) },
         licenseSource = licenseSource?.let { LicenseSource.valueOf(it) },
         severity = severity.mapToOrt(),

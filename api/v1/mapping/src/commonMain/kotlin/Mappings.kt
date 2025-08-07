@@ -603,7 +603,7 @@ fun RuleViolation.mapToApi() = ApiRuleViolation(
     severity.mapToApi(),
     message,
     howToFix,
-    packageId?.mapToApi(),
+    id?.mapToApi(),
     resolutions.map { it.mapToApi() }
 )
 

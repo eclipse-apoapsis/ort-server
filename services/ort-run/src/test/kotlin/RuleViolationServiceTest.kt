@@ -97,7 +97,7 @@ class RuleViolationServiceTest : WordSpec() {
                     message shouldBe "Message-1"
                     howToFix shouldBe "How_to_fix-1"
 
-                    with(packageId) {
+                    with(id) {
                         this!!.type shouldBe "Maven"
                         namespace shouldBe "org.apache.logging.log4j"
                         name shouldBe "log4j-core"
@@ -113,7 +113,7 @@ class RuleViolationServiceTest : WordSpec() {
                     message shouldBe "Message-2"
                     howToFix shouldBe "How_to_fix-2"
 
-                    with(packageId) {
+                    with(id) {
                         this!!.type shouldBe "Maven"
                         namespace shouldBe "com.fasterxml.jackson.core"
                         name shouldBe "jackson-databind"
@@ -128,7 +128,7 @@ class RuleViolationServiceTest : WordSpec() {
                     severity shouldBe Severity.HINT
                     message shouldBe "Message-3"
                     howToFix shouldBe "How_to_fix-3"
-                    packageId shouldBe null
+                    id shouldBe null
                 }
             }
 
@@ -354,7 +354,7 @@ class RuleViolationServiceTest : WordSpec() {
             configuration = EvaluatorJobConfiguration()
         )
 
-        ruleViolations.forEach { it.packageId?.let { identifier -> fixtures.createIdentifier(identifier) } }
+        ruleViolations.forEach { it.id?.let { identifier -> fixtures.createIdentifier(identifier) } }
 
         fixtures.evaluatorRunRepository.create(
             evaluatorJobId = evaluatorJob.id,

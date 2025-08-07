@@ -475,7 +475,7 @@ fun OrtRootDependencyIndex.mapToModel() =
 
 fun OrtRuleViolation.mapToModel() = RuleViolation(
     rule = rule,
-    packageId = pkg?.mapToModel(),
+    id = pkg?.mapToModel(),
     severity = severity.mapToModel(),
     message = message,
     howToFix = howToFix,

@@ -235,7 +235,7 @@ const RuleViolationsComponent = () => {
     ),
     columnHelper.accessor(
       (ruleViolation) => {
-        return identifierToString(ruleViolation.packageId);
+        return identifierToString(ruleViolation.id);
       },
       {
         id: 'packageIdentifier',

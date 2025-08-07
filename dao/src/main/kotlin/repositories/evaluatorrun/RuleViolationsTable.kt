@@ -35,7 +35,7 @@ import org.jetbrains.exposed.sql.and
  */
 object RuleViolationsTable : SortableTable("rule_violations") {
     val rule = text("rule").sortable()
-    val packageIdentifierId = reference("package_identifier_id", IdentifiersTable).nullable()
+    val identifierId = reference("identifier_id", IdentifiersTable).nullable()
     val license = text("license").nullable()
     val licenseSource = text("license_source").nullable()
     val severity = enumerationByName<Severity>("severity", 128).sortable()
@@ -48,7 +48,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
         fun getOrPut(ruleViolation: RuleViolation): RuleViolationDao =
             findByRuleViolation(ruleViolation) ?: new {
                 rule = ruleViolation.rule
-                packageIdentifierId = getPackageIdentifierDaoOrNull(ruleViolation)
+                identifierId = getIdentifierDaoOrNull(ruleViolation)
                 license = ruleViolation.license
                 licenseSource = ruleViolation.licenseSource
                 severity = ruleViolation.severity
@@ -57,28 +57,28 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
             }
 
         private fun findByRuleViolation(ruleViolation: RuleViolation): RuleViolationDao? {
-            val identifierDao = getPackageIdentifierDaoOrNull(ruleViolation)
+            val identifierDao = getIdentifierDaoOrNull(ruleViolation)
 
             return find {
                 RuleViolationsTable.rule eq ruleViolation.rule and
-                        (RuleViolationsTable.packageIdentifierId eq identifierDao?.id) and
+                        (RuleViolationsTable.identifierId eq identifierDao?.id) and
                         (RuleViolationsTable.license eq ruleViolation.license) and
                         (RuleViolationsTable.licenseSource eq ruleViolation.licenseSource) and
                         (RuleViolationsTable.severity eq ruleViolation.severity)
             }.find { it.message == ruleViolation.message && it.howToFix == ruleViolation.howToFix }
         }
 
-        private fun getPackageIdentifierDaoOrNull(ruleViolation: RuleViolation): IdentifierDao? {
-            val packageId = ruleViolation.packageId
+        private fun getIdentifierDaoOrNull(ruleViolation: RuleViolation): IdentifierDao? {
+            val identifier = ruleViolation.id
             return when {
-                packageId != null -> IdentifierDao.findByIdentifier(packageId)
+                identifier != null -> IdentifierDao.findByIdentifier(identifier)
                 else -> null
             }
         }
     }
 
     var rule by RuleViolationsTable.rule
-    var packageIdentifierId by IdentifierDao optionalReferencedOn RuleViolationsTable.packageIdentifierId
+    var identifierId by IdentifierDao optionalReferencedOn RuleViolationsTable.identifierId
     var license by RuleViolationsTable.license
     var licenseSource by RuleViolationsTable.licenseSource
     var severity by RuleViolationsTable.severity
@@ -87,7 +87,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
 
     fun mapToModel() = RuleViolation(
         rule = rule,
-        packageId = packageIdentifierId?.mapToModel(),
+        id = identifierId?.mapToModel(),
         license = license,
         licenseSource = licenseSource,
         severity = severity,
