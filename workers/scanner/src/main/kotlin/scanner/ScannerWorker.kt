@@ -94,7 +94,9 @@ class ScannerWorker(
                 )
             }
 
-            if (issues.any { it.severity >= Severity.WARNING }) {
+            val allIssues = issues + scannerRunResult.scannerRun.issues.values.flatten().map { it.mapToModel() }
+
+            if (allIssues.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
             } else {
                 RunResult.Success
