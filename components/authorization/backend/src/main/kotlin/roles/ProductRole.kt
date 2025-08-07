@@ -35,7 +35,7 @@ enum class ProductRole(
 
     /** The [RepositoryRole] that is granted for each [Repository] of this [Product]. */
     val includedRepositoryRole: RepositoryRole
-) {
+): Role {
     /** A role that grants read permissions for a [Product]. */
     READER(
         permissions = setOf(
