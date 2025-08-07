@@ -1421,6 +1421,7 @@ private fun createOrtRun(
         ortRunId = ortRunDao.id.value,
         analyzerConfig = repositoryConfiguration.analyzerConfig,
         excludes = repositoryConfiguration.excludes,
+        includes = repositoryConfiguration.includes,
         resolutions = repositoryConfiguration.resolutions,
         curations = repositoryConfiguration.curations,
         packageConfigurations = repositoryConfiguration.packageConfigurations,

@@ -20,8 +20,10 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -32,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCuration
@@ -40,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageLicenseChoice
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PathExclude
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PathInclude
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
@@ -109,6 +113,34 @@ class DaoRepositoryConfigurationRepositoryTest : WordSpec({
             dbEntry.shouldNotBeNull()
             dbEntry shouldBe repositoryConfig.copy(id = createdRepositoryConfiguration.id, ortRunId = ortRunId)
         }
+
+        "handle duplicates in path includes" {
+            val config = repositoryConfig.copy(includes = Includes(paths = listOf(pathInclude, pathInclude)))
+
+            val createdRepositoryConfiguration = repositoryConfigurationRepository.create(
+                ortRunId, config
+            )
+
+            val dbEntry = repositoryConfigurationRepository.get(createdRepositoryConfiguration.id)
+
+            dbEntry shouldNotBeNull {
+                includes.paths should containExactly(pathInclude)
+            }
+        }
+
+        "handle path includes correctly" {
+            val config = repositoryConfig.copy(includes = Includes(paths = listOf(pathInclude)))
+
+            val createdRepositoryConfiguration = repositoryConfigurationRepository.create(
+                ortRunId, config
+            )
+
+            val dbEntry = repositoryConfigurationRepository.get(createdRepositoryConfiguration.id)
+
+            dbEntry shouldNotBeNull {
+                includes.paths should containExactly(pathInclude)
+            }
+        }
     }
 
     "get" should {
@@ -123,6 +155,7 @@ private fun DaoRepositoryConfigurationRepository.create(ortRunId: Long, reposito
         ortRunId = ortRunId,
         analyzerConfig = repositoryConfig.analyzerConfig,
         excludes = repositoryConfig.excludes,
+        includes = repositoryConfig.includes,
         resolutions = repositoryConfig.resolutions,
         curations = repositoryConfig.curations,
         packageConfigurations = repositoryConfig.packageConfigurations,
@@ -149,6 +182,12 @@ private val pathExclude = PathExclude(
     pattern = "**/file.txt",
     reason = "BUILD_TOOL_OF",
     comment = "Test path exclude."
+)
+
+private val pathInclude = PathInclude(
+    pattern = "**/include.txt",
+    reason = "INCLUDE_EXAMPLE",
+    comment = "Test path include."
 )
 
 private val scopeExclude = ScopeExclude(
@@ -269,6 +308,9 @@ private val repositoryConfig = RepositoryConfiguration(
     excludes = Excludes(
         paths = listOf(pathExclude),
         scopes = listOf(scopeExclude)
+    ),
+    includes = Includes(
+        paths = listOf(pathInclude)
     ),
     resolutions = Resolutions(
         issues = listOf(issueResolution),

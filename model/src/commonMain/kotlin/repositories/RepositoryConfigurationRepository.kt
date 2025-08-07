@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetChoices
@@ -40,6 +41,7 @@ interface RepositoryConfigurationRepository {
         ortRunId: Long,
         analyzerConfig: RepositoryAnalyzerConfiguration?,
         excludes: Excludes,
+        includes: Includes,
         resolutions: Resolutions,
         curations: Curations,
         packageConfigurations: List<PackageConfiguration>,

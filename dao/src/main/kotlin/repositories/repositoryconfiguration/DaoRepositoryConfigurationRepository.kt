@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
@@ -47,6 +48,7 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
         ortRunId: Long,
         analyzerConfig: RepositoryAnalyzerConfiguration?,
         excludes: Excludes,
+        includes: Includes,
         resolutions: Resolutions,
         curations: Curations,
         packageConfigurations: List<PackageConfiguration>,
@@ -60,6 +62,7 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
             }
             this.pathExcludes = mapAndDeduplicate(excludes.paths, PathExcludeDao::getOrPut)
             this.scopeExcludes = mapAndDeduplicate(excludes.scopes, ScopeExcludeDao::getOrPut)
+            this.pathIncludes = mapAndDeduplicate(includes.paths, PathIncludeDao::getOrPut)
             this.issueResolutions = mapAndDeduplicate(resolutions.issues, IssueResolutionDao::getOrPut)
             this.ruleViolationResolutions =
                 mapAndDeduplicate(resolutions.ruleViolations, RuleViolationResolutionDao::getOrPut)
