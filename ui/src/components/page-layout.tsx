@@ -45,7 +45,7 @@ export const PageLayout = ({
             <Sidebar sections={sections} />
           </Pane>
         )}
-        <Content className='w-full md:max-w-5xl'>{children}</Content>
+        <Content className='w-full md:max-w-6xl'>{children}</Content>
       </Page>
     </>
   );
