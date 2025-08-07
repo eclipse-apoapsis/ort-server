@@ -29,7 +29,7 @@ data class RuleViolation(
     val severity: Severity,
     val message: String,
     val howToFix: String,
-    val packageId: Identifier? = null,
+    val id: Identifier? = null,
     val resolutions: List<RuleViolationResolution> = emptyList()
 )
 

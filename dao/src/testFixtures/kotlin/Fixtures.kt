@@ -213,7 +213,7 @@ class Fixtures(private val db: Database) {
 
     fun getViolation() = RuleViolation(
         rule = "rule",
-        packageId = identifier,
+        id = identifier,
         license = "license",
         licenseSource = "license source",
         message = "message",

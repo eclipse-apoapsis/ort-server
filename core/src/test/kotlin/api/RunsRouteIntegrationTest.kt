@@ -1768,7 +1768,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 ruleViolations.forEach {
-                    it.packageId?.let { identifier ->
+                    it.id?.let { identifier ->
                         dbExtension.fixtures.createIdentifier(
                             identifier
                         )
@@ -1821,7 +1821,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 obsoleteRuleViolations.forEach {
-                    it.packageId?.let { identifier ->
+                    it.id?.let { identifier ->
                         dbExtension.fixtures.createIdentifier(
                             identifier
                         )

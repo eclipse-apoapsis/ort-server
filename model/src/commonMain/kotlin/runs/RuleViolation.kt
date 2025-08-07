@@ -27,7 +27,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolut
  */
 data class RuleViolation(
     val rule: String,
-    val packageId: Identifier?,
+    val id: Identifier?,
     val license: String?,
     val licenseSource: String?,
     val severity: Severity,
