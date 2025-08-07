@@ -285,9 +285,9 @@ fun OrtExcludes.mapToModel() = Excludes(
     scopes = scopes.map(OrtScopeExclude::mapToModel)
 )
 
-fun OrtIdentifier.mapToModel() = Identifier(type, namespace, name, version)
+fun OrtIdentifier.mapToModel() = Identifier(type = type, namespace = namespace, name = name, version = version)
 
-fun OrtIssueResolution.mapToModel() = IssueResolution(message, reason.name, comment)
+fun OrtIssueResolution.mapToModel() = IssueResolution(message = message, reason = reason.name, comment = comment)
 
 fun OrtLicenseChoices.mapToModel() = LicenseChoices(
     repositoryLicenseChoices = repositoryLicenseChoices.map(OrtSpdxLicenseChoice::mapToModel),
@@ -382,7 +382,7 @@ fun OrtPackageManagerConfiguration.mapToModel() =
         options = options
     )
 
-fun OrtPathExclude.mapToModel() = PathExclude(pattern, reason.name, comment)
+fun OrtPathExclude.mapToModel() = PathExclude(pattern = pattern, reason = reason.name, comment = comment)
 
 fun OrtPluginConfig.mapToModel() = PluginConfig(options = options, secrets = secrets)
 
@@ -483,7 +483,11 @@ fun OrtRuleViolation.mapToModel() = RuleViolation(
     licenseSource = licenseSource?.name
 )
 
-fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(message, reason.name, comment)
+fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(
+    message = message,
+    reason = reason.name,
+    comment = comment
+)
 
 fun OrtScannerConfiguration.mapToModel() =
     ScannerConfiguration(
@@ -541,7 +545,7 @@ fun OrtScanSummary.mapToModel() =
         issues = issues.map { it.mapToModel(worker = ScannerRunDao.ISSUE_WORKER_TYPE) }
     )
 
-fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern, reason.name, comment)
+fun OrtScopeExclude.mapToModel() = ScopeExclude(pattern = pattern, reason = reason.name, comment = comment)
 
 fun OrtSeverity.mapToModel() = when (this) {
     OrtSeverity.ERROR -> Severity.ERROR
@@ -559,15 +563,15 @@ fun OrtSnippet.mapToModel() = Snippet(
 )
 
 fun OrtSnippetChoice.mapToModel() = SnippetChoice(
-    Given(given.sourceLocation.mapToModel()),
-    Choice(choice.purl, choice.reason.mapToOrt(), choice.comment)
+    given = Given(sourceLocation = given.sourceLocation.mapToModel()),
+    choice = Choice(purl = choice.purl, reason = choice.reason.mapToOrt(), comment = choice.comment)
 )
 
 fun OrtSnippetChoiceReason.mapToOrt() = SnippetChoiceReason.valueOf(name)
 
 fun OrtSnippetChoices.mapToModel() = ProvenanceSnippetChoices(
-    Provenance(provenance.url),
-    choices.map(OrtSnippetChoice::mapToModel)
+    provenance = Provenance(url = provenance.url),
+    choices = choices.map(OrtSnippetChoice::mapToModel)
 )
 
 fun OrtSnippetFinding.mapToModel() = SnippetFinding(
@@ -575,11 +579,11 @@ fun OrtSnippetFinding.mapToModel() = SnippetFinding(
     snippets = snippets.mapTo(mutableSetOf(), OrtSnippet::mapToModel)
 )
 
-fun OrtSpdxLicenseChoice.mapToModel() = SpdxLicenseChoice(given?.toString(), choice.toString())
+fun OrtSpdxLicenseChoice.mapToModel() = SpdxLicenseChoice(given = given?.toString(), choice = choice.toString())
 
 fun OrtTextLocation.mapToModel() = TextLocation(path = path, startLine = startLine, endLine = endLine)
 
-fun OrtVcsInfo.mapToModel() = VcsInfo(type.mapToModel(), url, revision, path)
+fun OrtVcsInfo.mapToModel() = VcsInfo(type = type.mapToModel(), url = url, revision = revision, path = path)
 
 fun OrtVcsInfoCurationData.mapToModel() = VcsInfoCurationData(
     type = type?.mapToModel(),
@@ -588,7 +592,7 @@ fun OrtVcsInfoCurationData.mapToModel() = VcsInfoCurationData(
     path = path
 )
 
-fun OrtVcsMatcher.mapToModel() = VcsMatcher(type.mapToModel(), url, revision)
+fun OrtVcsMatcher.mapToModel() = VcsMatcher(type = type.mapToModel(), url = url, revision = revision)
 
 fun OrtVcsType.mapToModel() = RepositoryType.forName(toString())
 
@@ -609,4 +613,8 @@ fun OrtVulnerabilityReference.mapToModel() =
         vector = vector
     )
 
-fun OrtVulnerabilityResolution.mapToModel() = VulnerabilityResolution(id, reason.name, comment)
+fun OrtVulnerabilityResolution.mapToModel() = VulnerabilityResolution(
+    externalId = id,
+    reason = reason.name,
+    comment = comment
+)

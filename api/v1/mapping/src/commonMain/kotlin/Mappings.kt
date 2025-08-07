@@ -161,12 +161,12 @@ import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
 fun AdvisorJob.mapToApi() =
     ApiAdvisorJob(
-        id,
-        createdAt,
-        startedAt,
-        finishedAt,
-        configuration.mapToApi(),
-        status.mapToApi()
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        configuration = configuration.mapToApi(),
+        status = status.mapToApi()
     )
 
 fun AdvisorJob.mapToApiSummary() =
@@ -180,28 +180,28 @@ fun AdvisorJob.mapToApiSummary() =
 
 fun AdvisorJobConfiguration.mapToApi() =
     ApiAdvisorJobConfiguration(
-        advisors,
-        skipExcluded,
-        config?.mapValues { it.value.mapToApi() },
-        keepAliveWorker
+        advisors = advisors,
+        skipExcluded = skipExcluded,
+        config = config?.mapValues { it.value.mapToApi() },
+        keepAliveWorker = keepAliveWorker
     )
 
 fun ApiAdvisorJobConfiguration.mapToModel() =
     AdvisorJobConfiguration(
-        advisors,
-        skipExcluded,
-        config?.mapValues { it.value.mapToModel() },
-        keepAliveWorker
+        advisors = advisors,
+        skipExcluded = skipExcluded,
+        config = config?.mapValues { it.value.mapToModel() },
+        keepAliveWorker = keepAliveWorker
     )
 
 fun AnalyzerJob.mapToApi() =
     ApiAnalyzerJob(
-        id,
-        createdAt,
-        startedAt,
-        finishedAt,
-        configuration.mapToApi(),
-        status.mapToApi()
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        configuration = configuration.mapToApi(),
+        status = status.mapToApi()
     )
 
 fun AnalyzerJob.mapToApiSummary() =
@@ -215,40 +215,40 @@ fun AnalyzerJob.mapToApiSummary() =
 
 fun AnalyzerJobConfiguration.mapToApi() =
     ApiAnalyzerJobConfiguration(
-        allowDynamicVersions,
-        disabledPackageManagers,
-        enabledPackageManagers,
-        environmentConfig?.mapToApi(),
-        submoduleFetchStrategy?.mapToApi(),
-        packageCurationProviders.map { it.mapToApi() },
-        packageManagerOptions?.mapValues { it.value.mapToApi() },
-        repositoryConfigPath,
-        skipExcluded,
-        keepAliveWorker
+        allowDynamicVersions = allowDynamicVersions,
+        disabledPackageManagers = disabledPackageManagers,
+        enabledPackageManagers = enabledPackageManagers,
+        environmentConfig = environmentConfig?.mapToApi(),
+        submoduleFetchStrategy = submoduleFetchStrategy?.mapToApi(),
+        packageCurationProviders = packageCurationProviders.map { it.mapToApi() },
+        packageManagerOptions = packageManagerOptions?.mapValues { it.value.mapToApi() },
+        repositoryConfigPath = repositoryConfigPath,
+        skipExcluded = skipExcluded,
+        keepAliveWorker = keepAliveWorker
     )
 
 fun ApiAnalyzerJobConfiguration.mapToModel() =
     AnalyzerJobConfiguration(
-        allowDynamicVersions,
-        disabledPackageManagers,
-        enabledPackageManagers,
-        environmentConfig?.mapToModel(),
-        submoduleFetchStrategy?.mapToModel(),
-        packageCurationProviders?.map { it.mapToModel() }.orEmpty(),
-        packageManagerOptions?.mapValues { it.value.mapToModel() },
-        repositoryConfigPath,
-        skipExcluded,
-        keepAliveWorker
+        allowDynamicVersions = allowDynamicVersions,
+        disabledPackageManagers = disabledPackageManagers,
+        enabledPackageManagers = enabledPackageManagers,
+        environmentConfig = environmentConfig?.mapToModel(),
+        submoduleFetchStrategy = submoduleFetchStrategy?.mapToModel(),
+        packageCurationProviders = packageCurationProviders?.map { it.mapToModel() }.orEmpty(),
+        packageManagerOptions = packageManagerOptions?.mapValues { it.value.mapToModel() },
+        repositoryConfigPath = repositoryConfigPath,
+        skipExcluded = skipExcluded,
+        keepAliveWorker = keepAliveWorker
     )
 
 fun EvaluatorJob.mapToApi() =
     ApiEvaluatorJob(
-        id,
-        createdAt,
-        startedAt,
-        finishedAt,
-        configuration.mapToApi(),
-        status.mapToApi()
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        configuration = configuration.mapToApi(),
+        status = status.mapToApi()
     )
 
 fun EvaluatorJob.mapToApiSummary() =
@@ -262,44 +262,44 @@ fun EvaluatorJob.mapToApiSummary() =
 
 fun EvaluatorJobConfiguration.mapToApi() =
     ApiEvaluatorJobConfiguration(
-        packageConfigurationProviders.map { it.mapToApi() },
-        keepAliveWorker
+        packageConfigurationProviders = packageConfigurationProviders.map { it.mapToApi() },
+        keepAliveWorker = keepAliveWorker
     )
 
 fun ApiEvaluatorJobConfiguration.mapToModel() =
     EvaluatorJobConfiguration(
-        packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
-        keepAliveWorker
+        packageConfigurationProviders = packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
+        keepAliveWorker = keepAliveWorker
     )
 
 fun Issue.mapToApi() =
     ApiIssue(
-        timestamp,
-        source,
-        message,
-        severity.mapToApi(),
-        affectedPath,
-        identifier?.mapToApi(),
-        worker,
-        resolutions.map { it.mapToApi() }
+        timestamp = timestamp,
+        source = source,
+        message = message,
+        severity = severity.mapToApi(),
+        affectedPath = affectedPath,
+        identifier = identifier?.mapToApi(),
+        worker = worker,
+        resolutions = resolutions.map { it.mapToApi() }
     )
 
 fun ApiIssue.mapToModel() =
     Issue(
-        timestamp,
-        source,
-        message,
-        severity.mapToModel(),
-        affectedPath,
-        identifier?.mapToModel(),
-        worker,
-        resolutions.map { it.mapToModel() }
+        timestamp = timestamp,
+        source = source,
+        message = message,
+        severity = severity.mapToModel(),
+        affectedPath = affectedPath,
+        identifier = identifier?.mapToModel(),
+        worker = worker,
+        resolutions = resolutions.map { it.mapToModel() }
     )
 
-fun IssueResolution.mapToApi() = ApiIssueResolution(message, reason, comment)
+fun IssueResolution.mapToApi() = ApiIssueResolution(message = message, reason = reason, comment = comment)
 
 fun ApiIssueResolution.mapToModel() =
-    IssueResolution(message, reason, comment)
+    IssueResolution(message = message, reason = reason, comment = comment)
 
 fun Severity.mapToApi() = when (this) {
     Severity.ERROR -> ApiSeverity.ERROR
@@ -319,45 +319,45 @@ fun ApiJobStatus.mapToModel() = JobStatus.valueOf(name)
 
 fun JobConfigurations.mapToApi() =
     ApiJobConfigurations(
-        analyzer.mapToApi(),
-        advisor?.mapToApi(),
-        scanner?.mapToApi(),
-        evaluator?.mapToApi(),
-        reporter?.mapToApi(),
-        notifier?.mapToApi(),
-        parameters,
-        ruleSet
+        analyzer = analyzer.mapToApi(),
+        advisor = advisor?.mapToApi(),
+        scanner = scanner?.mapToApi(),
+        evaluator = evaluator?.mapToApi(),
+        reporter = reporter?.mapToApi(),
+        notifier = notifier?.mapToApi(),
+        parameters = parameters,
+        ruleSet = ruleSet
     )
 
 fun ApiJobConfigurations.mapToModel() =
     JobConfigurations(
-        analyzer.mapToModel(),
-        advisor?.mapToModel(),
-        scanner?.mapToModel(),
-        evaluator?.mapToModel(),
-        reporter?.mapToModel(),
-        notifier?.mapToModel(),
-        parameters.orEmpty(),
-        ruleSet
+        analyzer = analyzer.mapToModel(),
+        advisor = advisor?.mapToModel(),
+        scanner = scanner?.mapToModel(),
+        evaluator = evaluator?.mapToModel(),
+        reporter = reporter?.mapToModel(),
+        notifier = notifier?.mapToModel(),
+        parameters = parameters.orEmpty(),
+        ruleSet = ruleSet
     )
 
 fun Jobs.mapToApi() =
     ApiJobs(
-        analyzer?.mapToApi(),
-        advisor?.mapToApi(),
-        scanner?.mapToApi(),
-        evaluator?.mapToApi(),
-        reporter?.mapToApi(),
-        notifier?.mapToApi()
+        analyzer = analyzer?.mapToApi(),
+        advisor = advisor?.mapToApi(),
+        scanner = scanner?.mapToApi(),
+        evaluator = evaluator?.mapToApi(),
+        reporter = reporter?.mapToApi(),
+        notifier = notifier?.mapToApi()
     )
 
 fun Jobs.mapToApiSummary() =
     ApiJobSummaries(
-        analyzer?.mapToApiSummary(),
-        advisor?.mapToApiSummary(),
-        scanner?.mapToApiSummary(),
-        evaluator?.mapToApiSummary(),
-        reporter?.mapToApiSummary()
+        analyzer = analyzer?.mapToApiSummary(),
+        advisor = advisor?.mapToApiSummary(),
+        scanner = scanner?.mapToApiSummary(),
+        evaluator = evaluator?.mapToApiSummary(),
+        reporter = reporter?.mapToApiSummary()
     )
 
 fun LogLevel.mapToApi() = ApiLogLevel.valueOf(name)
@@ -374,25 +374,25 @@ fun OrtRun.mapToApi(jobs: ApiJobs) =
     ApiOrtRun(
         id = id,
         index = index,
-        organizationId,
-        productId,
-        repositoryId,
-        revision,
-        resolvedRevision,
-        path,
-        createdAt,
-        finishedAt,
-        jobConfigs.mapToApi(),
-        resolvedJobConfigs?.mapToApi(),
-        jobs,
-        status.mapToApi(),
-        labels,
+        organizationId = organizationId,
+        productId = productId,
+        repositoryId = repositoryId,
+        revision = revision,
+        resolvedRevision = resolvedRevision,
+        path = path,
+        createdAt = createdAt,
+        finishedAt = finishedAt,
+        jobConfigs = jobConfigs.mapToApi(),
+        resolvedJobConfigs = resolvedJobConfigs?.mapToApi(),
+        jobs = jobs,
+        status = status.mapToApi(),
+        labels = labels,
         issues = issues.map { it.mapToApi() },
-        jobConfigContext,
-        resolvedJobConfigContext,
-        environmentConfigPath,
-        traceId,
-        userDisplayName?.mapToApi()
+        jobConfigContext = jobConfigContext,
+        resolvedJobConfigContext = resolvedJobConfigContext,
+        environmentConfigPath = environmentConfigPath,
+        traceId = traceId,
+        userDisplayName = userDisplayName?.mapToApi()
     )
 
 fun OrtRun.mapToApiSummary(jobs: ApiJobSummaries) =
@@ -439,14 +439,20 @@ fun OrtRunSummary.mapToApi() =
 
 fun JobSummaries.mapToApi() =
     ApiJobSummaries(
-        analyzer?.mapToApi(),
-        advisor?.mapToApi(),
-        scanner?.mapToApi(),
-        evaluator?.mapToApi(),
-        reporter?.mapToApi()
+        analyzer = analyzer?.mapToApi(),
+        advisor = advisor?.mapToApi(),
+        scanner = scanner?.mapToApi(),
+        evaluator = evaluator?.mapToApi(),
+        reporter = reporter?.mapToApi()
     )
 
-fun JobSummary.mapToApi() = ApiJobSummary(id, createdAt, startedAt, finishedAt, status.mapToApi())
+fun JobSummary.mapToApi() = ApiJobSummary(
+    id = id,
+    createdAt = createdAt,
+    startedAt = startedAt,
+    finishedAt = finishedAt,
+    status = status.mapToApi()
+)
 
 fun OrtRunStatus.mapToApi() = ApiOrtRunStatus.valueOf(name)
 
@@ -467,9 +473,16 @@ fun ApiOrtRunFilters.mapToModel(): OrtRunFilters =
 
 fun ApiComparisonOperator.mapToModel() = ComparisonOperator.valueOf(name)
 
-fun Product.mapToApi() = ApiProduct(id, organizationId, name, description)
+fun Product.mapToApi() = ApiProduct(id = id, organizationId = organizationId, name = name, description = description)
 
-fun Repository.mapToApi() = ApiRepository(id, organizationId, productId, type.mapToApi(), url, description)
+fun Repository.mapToApi() = ApiRepository(
+    id = id,
+    organizationId = organizationId,
+    productId = productId,
+    type = type.mapToApi(),
+    url = url,
+    description = description
+)
 
 fun RepositoryType.mapToApi() = ApiRepositoryType.valueOf(name)
 
@@ -477,13 +490,13 @@ fun ApiRepositoryType.mapToModel() = RepositoryType.forName(name)
 
 fun ReporterJob.mapToApi() =
     ApiReporterJob(
-        id,
-        createdAt,
-        startedAt,
-        finishedAt,
-        configuration.mapToApi(),
-        status.mapToApi(),
-        filenames
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        configuration = configuration.mapToApi(),
+        status = status.mapToApi(),
+        reportFilenames = filenames
     )
 
 fun ReporterJob.mapToApiSummary() =
@@ -497,27 +510,27 @@ fun ReporterJob.mapToApiSummary() =
 
 fun ReporterJobConfiguration.mapToApi() =
     ApiReporterJobConfiguration(
-        copyrightGarbageFile,
-        formats,
-        howToFixTextProviderFile,
-        licenseClassificationsFile,
-        packageConfigurationProviders.map { it.mapToApi() },
-        resolutionsFile,
-        customLicenseTextDir,
-        assetFiles.map { it.mapToApi() },
-        assetDirectories.map { it.mapToApi() },
-        config?.mapValues { it.value.mapToApi() },
+        copyrightGarbageFile = copyrightGarbageFile,
+        formats = formats,
+        howToFixTextProviderFile = howToFixTextProviderFile,
+        licenseClassificationsFile = licenseClassificationsFile,
+        packageConfigurationProviders = packageConfigurationProviders.map { it.mapToApi() },
+        resolutionsFile = resolutionsFile,
+        customLicenseTextDir = customLicenseTextDir,
+        assetFiles = assetFiles.map { it.mapToApi() },
+        assetDirectories = assetDirectories.map { it.mapToApi() },
+        config = config?.mapValues { it.value.mapToApi() },
         keepAliveWorker = keepAliveWorker
     )
 
 fun NotifierJob.mapToApi() =
     ApiNotifierJob(
-        id,
-        createdAt,
-        startedAt,
-        finishedAt,
-        configuration.mapToApi(),
-        status.mapToApi()
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        configuration = configuration.mapToApi(),
+        status = status.mapToApi()
     )
 
 fun NotifierJobConfiguration.mapToApi() =
@@ -534,27 +547,27 @@ fun ApiNotifierJobConfiguration.mapToModel() =
 
 fun ApiReporterJobConfiguration.mapToModel() =
     ReporterJobConfiguration(
-        copyrightGarbageFile,
-        formats,
-        howToFixTextProviderFile,
-        licenseClassificationsFile,
-        packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
-        resolutionsFile,
-        customLicenseTextDir,
-        assetFiles?.map { it.mapToModel() }.orEmpty(),
-        assetDirectories?.map { it.mapToModel() }.orEmpty(),
-        config?.mapValues { it.value.mapToModel() },
+        copyrightGarbageFile = copyrightGarbageFile,
+        formats = formats,
+        howToFixTextProviderFile = howToFixTextProviderFile,
+        licenseClassificationsFile = licenseClassificationsFile,
+        packageConfigurationProviders = packageConfigurationProviders?.map { it.mapToModel() }.orEmpty(),
+        resolutionsFile = resolutionsFile,
+        customLicenseTextDir = customLicenseTextDir,
+        assetFiles = assetFiles?.map { it.mapToModel() }.orEmpty(),
+        assetDirectories = assetDirectories?.map { it.mapToModel() }.orEmpty(),
+        config = config?.mapValues { it.value.mapToModel() },
         keepAliveWorker = keepAliveWorker
     )
 
 fun ScannerJob.mapToApi() =
     ApiScannerJob(
-        id,
-        createdAt,
-        startedAt,
-        finishedAt,
-        configuration.mapToApi(),
-        status.mapToApi()
+        id = id,
+        createdAt = createdAt,
+        startedAt = startedAt,
+        finishedAt = finishedAt,
+        configuration = configuration.mapToApi(),
+        status = status.mapToApi()
     )
 
 fun ScannerJob.mapToApiSummary() =
@@ -567,100 +580,126 @@ fun ScannerJob.mapToApiSummary() =
     )
 
 fun ScannerJobConfiguration.mapToApi() = ApiScannerJobConfiguration(
-    projectScanners,
-    scanners,
-    skipConcluded,
-    skipExcluded,
-    config?.mapValues { it.value.mapToApi() },
-    keepAliveWorker,
-    submoduleFetchStrategy.mapToApi()
+    projectScanners = projectScanners,
+    scanners = scanners,
+    skipConcluded = skipConcluded,
+    skipExcluded = skipExcluded,
+    config = config?.mapValues { it.value.mapToApi() },
+    keepAliveWorker = keepAliveWorker,
+    submoduleFetchStrategy = submoduleFetchStrategy.mapToApi()
 )
 
 fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
-    projectScanners,
-    scanners,
-    skipConcluded,
-    skipExcluded,
-    config?.mapValues { it.value.mapToModel() },
-    keepAliveWorker,
-    submoduleFetchStrategy.mapToModel()
+    projectScanners = projectScanners,
+    scanners = scanners,
+    skipConcluded = skipConcluded,
+    skipExcluded = skipExcluded,
+    config = config?.mapValues { it.value.mapToModel() },
+    keepAliveWorker = keepAliveWorker,
+    submoduleFetchStrategy = submoduleFetchStrategy.mapToModel()
 )
 
 fun VulnerabilityWithIdentifier.mapToApi() =
     ApiVulnerabilityWithIdentifier(
-        vulnerability.mapToApi(),
-        identifier.mapToApi(),
-        rating.mapToApi(),
-        resolutions.map { it.mapToApi() }
+        vulnerability = vulnerability.mapToApi(),
+        identifier = identifier.mapToApi(),
+        rating = rating.mapToApi(),
+        resolutions = resolutions.map { it.mapToApi() }
     )
 
-fun Vulnerability.mapToApi() = ApiVulnerability(externalId, summary, description, references.map { it.mapToApi() })
-
-fun RuleViolation.mapToApi() = ApiRuleViolation(
-    rule,
-    id?.mapToApi(),
-    license,
-    licenseSource,
-    severity.mapToApi(),
-    message,
-    howToFix,
-    resolutions.map { it.mapToApi() }
+fun Vulnerability.mapToApi() = ApiVulnerability(
+    externalId = externalId,
+    summary = summary,
+    description = description,
+    references = references.map { it.mapToApi() }
 )
 
-fun Identifier.mapToApi() = ApiIdentifier(type, namespace, name, version)
+fun RuleViolation.mapToApi() = ApiRuleViolation(
+    rule = rule,
+    id = id?.mapToApi(),
+    license = license,
+    licenseSource = licenseSource,
+    severity = severity.mapToApi(),
+    message = message,
+    howToFix = howToFix,
+    resolutions = resolutions.map { it.mapToApi() }
+)
 
-fun ApiIdentifier.mapToModel() = Identifier(type, namespace, name, version)
+fun Identifier.mapToApi() = ApiIdentifier(type = type, namespace = namespace, name = name, version = version)
 
-fun VulnerabilityReference.mapToApi() = ApiVulnerabilityReference(url, scoringSystem, severity, score, vector)
+fun ApiIdentifier.mapToModel() = Identifier(type = type, namespace = namespace, name = name, version = version)
+
+fun VulnerabilityReference.mapToApi() = ApiVulnerabilityReference(
+    url = url,
+    scoringSystem = scoringSystem,
+    severity = severity,
+    score = score,
+    vector = vector
+)
 
 fun ProcessedDeclaredLicense.mapToApi() =
     ApiProcessedDeclaredLicense(
-        spdxExpression,
-        mappedLicenses,
-        unmappedLicenses
+        spdxExpression = spdxExpression,
+        mappedLicenses = mappedLicenses,
+        unmappedLicenses = unmappedLicenses
     )
 
 fun RemoteArtifact.mapToApi() =
     ApiRemoteArtifact(
-        url,
-        hashValue,
-        hashAlgorithm
+        url = url,
+        hashValue = hashValue,
+        hashAlgorithm = hashAlgorithm
     )
 
 fun VcsInfo.mapToApi() =
     ApiVcsInfo(
-        type.name,
-        url,
-        revision,
-        path
+        type = type.name,
+        url = url,
+        revision = revision,
+        path = path
     )
 
 fun InfrastructureService.mapToApi() =
     ApiInfrastructureService(
-        name,
-        url,
-        description,
-        usernameSecret.name,
-        passwordSecret.name,
-        credentialsTypes.mapToApi()
+        name = name,
+        url = url,
+        description = description,
+        usernameSecretRef = usernameSecret.name,
+        passwordSecretRef = passwordSecret.name,
+        credentialsTypes = credentialsTypes.mapToApi()
     )
 
 fun ApiInfrastructureService.mapToModel() =
     InfrastructureServiceDeclaration(
-        name,
-        url,
-        description,
-        usernameSecretRef,
-        passwordSecretRef,
-        credentialsTypes.mapToModel()
+        name = name,
+        url = url,
+        description = description,
+        usernameSecret = usernameSecretRef,
+        passwordSecret = passwordSecretRef,
+        credentialsTypes = credentialsTypes.mapToModel()
     )
 
 fun InfrastructureServiceDeclaration.mapToApi() =
-    ApiInfrastructureService(name, url, description, usernameSecret, passwordSecret, credentialsTypes.mapToApi())
+    ApiInfrastructureService(
+        name = name,
+        url = url,
+        description = description,
+        usernameSecretRef = usernameSecret,
+        passwordSecretRef = passwordSecret,
+        credentialsTypes = credentialsTypes.mapToApi()
+    )
 
-fun ApiEnvironmentVariableDeclaration.mapToModel() = EnvironmentVariableDeclaration(name, secretName, value)
+fun ApiEnvironmentVariableDeclaration.mapToModel() = EnvironmentVariableDeclaration(
+    name = name,
+    secretName = secretName,
+    value = value
+)
 
-fun EnvironmentVariableDeclaration.mapToApi() = ApiEnvironmentVariableDeclaration(name, secretName, value)
+fun EnvironmentVariableDeclaration.mapToApi() = ApiEnvironmentVariableDeclaration(
+    name = name,
+    secretName = secretName,
+    value = value
+)
 
 fun EnvironmentConfig.mapToApi() =
     ApiEnvironmentConfig(
@@ -715,10 +754,10 @@ fun ApiProviderPluginConfiguration.mapToModel() =
     )
 
 fun ReporterAsset.mapToApi() =
-    ApiReporterAsset(sourcePath, targetFolder, targetName)
+    ApiReporterAsset(sourcePath = sourcePath, targetFolder = targetFolder, targetName = targetName)
 
 fun ApiReporterAsset.mapToModel() =
-    ReporterAsset(sourcePath, targetFolder, targetName)
+    ReporterAsset(sourcePath = sourcePath, targetFolder = targetFolder, targetName = targetName)
 
 fun SourceCodeOrigin.mapToApi() =
     when (this) {
@@ -732,7 +771,7 @@ fun ApiSourceCodeOrigin.mapToModel() =
         ApiSourceCodeOrigin.VCS -> SourceCodeOrigin.VCS
     }
 
-fun User.mapToApi() = ApiUser(username, firstName, lastName, email)
+fun User.mapToApi() = ApiUser(username = username, firstName = firstName, lastName = lastName, email = email)
 
 fun UserGroup.mapToApi() = ApiUserGroup.valueOf(name)
 
@@ -767,22 +806,22 @@ fun ShortestDependencyPath.mapToApi() = ApiShortestDependencyPath(
 )
 
 fun PackageRunData.mapToApi() = ApiPackage(
-    pkg.identifier.mapToApi(),
-    pkg.purl,
-    pkg.cpe,
-    pkg.authors,
-    pkg.declaredLicenses,
-    pkg.processedDeclaredLicense.mapToApi(),
-    pkg.description,
-    pkg.homepageUrl,
-    pkg.binaryArtifact.mapToApi(),
-    pkg.sourceArtifact.mapToApi(),
-    pkg.vcs.mapToApi(),
-    pkg.vcsProcessed.mapToApi(),
-    pkg.isMetadataOnly,
-    pkg.isModified,
-    shortestDependencyPaths.map { it.mapToApi() },
-    curations.map { it.mapToApi() }
+    identifier = pkg.identifier.mapToApi(),
+    purl = pkg.purl,
+    cpe = pkg.cpe,
+    authors = pkg.authors,
+    declaredLicenses = pkg.declaredLicenses,
+    processedDeclaredLicense = pkg.processedDeclaredLicense.mapToApi(),
+    description = pkg.description,
+    homepageUrl = pkg.homepageUrl,
+    binaryArtifact = pkg.binaryArtifact.mapToApi(),
+    sourceArtifact = pkg.sourceArtifact.mapToApi(),
+    vcs = pkg.vcs.mapToApi(),
+    vcsProcessed = pkg.vcsProcessed.mapToApi(),
+    isMetadataOnly = pkg.isMetadataOnly,
+    isModified = pkg.isModified,
+    shortestDependencyPaths = shortestDependencyPaths.map { it.mapToApi() },
+    curations = curations.map { it.mapToApi() }
 )
 
 fun PackageCurationData.mapToApi() = ApiPackageCurationData(
@@ -801,9 +840,17 @@ fun PackageCurationData.mapToApi() = ApiPackageCurationData(
     declaredLicenseMapping = declaredLicenseMapping
 )
 
-fun RuleViolationResolution.mapToApi() = ApiRuleViolationResolution(message, reason, comment)
+fun RuleViolationResolution.mapToApi() = ApiRuleViolationResolution(
+    message = message,
+    reason = reason,
+    comment = comment
+)
 
-fun VulnerabilityResolution.mapToApi() = ApiVulnerabilityResolution(externalId, reason, comment)
+fun VulnerabilityResolution.mapToApi() = ApiVulnerabilityResolution(
+    externalId = externalId,
+    reason = reason,
+    comment = comment
+)
 
 fun VcsInfoCurationData.mapToApi() = ApiVcsInfoCurationData(
     type = type?.mapToApi(),
@@ -824,20 +871,20 @@ fun ApiRuleViolationFilters.mapToModel(): RuleViolationFilters = RuleViolationFi
 fun ApiVulnerabilityFilters.mapToModel(): VulnerabilityFilters = VulnerabilityFilters(resolved = resolved)
 
 fun Project.mapToApi() = ApiProject(
-    identifier.mapToApi(),
-    cpe,
-    definitionFilePath,
-    authors,
-    declaredLicenses,
-    processedDeclaredLicense.mapToApi(),
-    vcs.mapToApi(),
-    vcsProcessed.mapToApi(),
-    description,
-    homepageUrl,
-    scopeNames
+    identifier = identifier.mapToApi(),
+    cpe = cpe,
+    definitionFilePath = definitionFilePath,
+    authors = authors,
+    declaredLicenses = declaredLicenses,
+    processedDeclaredLicense = processedDeclaredLicense.mapToApi(),
+    vcs = vcs.mapToApi(),
+    vcsProcessed = vcsProcessed.mapToApi(),
+    description = description,
+    homepageUrl = homepageUrl,
+    scopeNames = scopeNames
 )
 
-fun UserDisplayName.mapToApi() = ApiUserDisplayName(username, fullName)
+fun UserDisplayName.mapToApi() = ApiUserDisplayName(username = username, fullName = fullName)
 
 fun ContentManagementSection.mapToApi() = ApiContentManagementSection(
     id = id,
@@ -846,4 +893,4 @@ fun ContentManagementSection.mapToApi() = ApiContentManagementSection(
     updatedAt = updatedAt
 )
 
-fun OidcConfig.mapToApi() = ApiOidcConfig(accessTokenUrl, clientId)
+fun OidcConfig.mapToApi() = ApiOidcConfig(accessTokenUrl = accessTokenUrl, clientId = clientId)
