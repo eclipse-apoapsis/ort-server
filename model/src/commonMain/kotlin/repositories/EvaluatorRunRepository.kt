@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 
 /**
  * A repository of [evaluator runs][EvaluatorRun].
@@ -35,7 +35,7 @@ interface EvaluatorRunRepository {
         evaluatorJobId: Long,
         startTime: Instant,
         endTime: Instant,
-        violations: List<OrtRuleViolation>
+        violations: List<RuleViolation>
     ): EvaluatorRun
 
     /**

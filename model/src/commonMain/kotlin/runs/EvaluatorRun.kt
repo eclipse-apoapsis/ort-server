@@ -26,5 +26,5 @@ data class EvaluatorRun(
     val evaluatorJobId: Long,
     val startTime: Instant,
     val endTime: Instant,
-    val violations: List<OrtRuleViolation>
+    val violations: List<RuleViolation>
 )

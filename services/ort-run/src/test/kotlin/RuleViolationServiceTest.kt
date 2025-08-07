@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
@@ -183,7 +183,7 @@ class RuleViolationServiceTest : WordSpec() {
                 val ortRun2Id = createRuleViolationEntries(
                     repositoryId,
                     generateRuleViolations().plus(
-                        OrtRuleViolation(
+                        RuleViolation(
                             "Rule-1",
                             Identifier(
                                 "Maven",
@@ -211,7 +211,7 @@ class RuleViolationServiceTest : WordSpec() {
                 val ortRun1Id = createRuleViolationEntries(
                     repositoryId,
                     generateRuleViolations().plus(
-                        OrtRuleViolation(
+                        RuleViolation(
                             "Rule-1",
                             Identifier(
                                 "Maven",
@@ -230,7 +230,7 @@ class RuleViolationServiceTest : WordSpec() {
                 val ortRun2Id = createRuleViolationEntries(
                     repositoryId,
                     generateRuleViolations().plus(
-                        OrtRuleViolation(
+                        RuleViolation(
                             "Rule-1",
                             Identifier(
                                 "Maven",
@@ -263,7 +263,7 @@ class RuleViolationServiceTest : WordSpec() {
                 val ortRun2Id = createRuleViolationEntries(
                     repositoryId,
                     generateRuleViolations().plus(
-                        OrtRuleViolation(
+                        RuleViolation(
                             "Rule-1",
                             Identifier(
                                 "Maven",
@@ -298,9 +298,9 @@ class RuleViolationServiceTest : WordSpec() {
         }
     }
 
-    private fun generateRuleViolations(): List<OrtRuleViolation> =
+    private fun generateRuleViolations(): List<RuleViolation> =
         listOf(
-            OrtRuleViolation(
+            RuleViolation(
                 "Rule-1",
                 Identifier(
                     "Maven",
@@ -314,7 +314,7 @@ class RuleViolationServiceTest : WordSpec() {
                 "Message-1",
                 "How_to_fix-1"
             ),
-            OrtRuleViolation(
+            RuleViolation(
                 "Rule-2",
                 Identifier(
                     "Maven",
@@ -328,7 +328,7 @@ class RuleViolationServiceTest : WordSpec() {
                 "Message-2",
                 "How_to_fix-2"
             ),
-            OrtRuleViolation(
+            RuleViolation(
                 "Rule-3-no-id",
                 null,
                 "License-3",
@@ -341,7 +341,7 @@ class RuleViolationServiceTest : WordSpec() {
 
     private fun createRuleViolationEntries(
         repositoryId: Long = fixtures.createRepository().id,
-        ruleViolations: List<OrtRuleViolation> = generateRuleViolations()
+        ruleViolations: List<RuleViolation> = generateRuleViolations()
     ): OrtRun {
         val ortRun = fixtures.createOrtRun(
             repositoryId = repositoryId,

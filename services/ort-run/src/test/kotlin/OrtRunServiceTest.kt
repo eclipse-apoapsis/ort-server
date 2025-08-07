@@ -73,8 +73,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
@@ -1029,7 +1029,7 @@ class OrtRunServiceTest : WordSpec({
                 startTime = Clock.System.now().toDatabasePrecision(),
                 endTime = Clock.System.now().toDatabasePrecision(),
                 violations = listOf(
-                    OrtRuleViolation(
+                    RuleViolation(
                         rule = "rule",
                         fixtures.identifier,
                         license = "license",
@@ -1054,7 +1054,7 @@ class OrtRunServiceTest : WordSpec({
                 startTime = Clock.System.now().toDatabasePrecision(),
                 endTime = Clock.System.now().toDatabasePrecision(),
                 violations = listOf(
-                    OrtRuleViolation(
+                    RuleViolation(
                         rule = "rule",
                         fixtures.identifier,
                         license = "license",

@@ -80,7 +80,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
-import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation
+import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
@@ -108,11 +108,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
@@ -1711,7 +1711,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val ruleViolations = listOf(
                     // 4th record after sort by "rule"
-                    OrtRuleViolation(
+                    RuleViolation(
                         "z-Rule-1",
                         Identifier(
                             "Maven",
@@ -1726,7 +1726,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         "How_to_fix-1"
                     ),
                     // 3rd record after sort by "rule"
-                    OrtRuleViolation(
+                    RuleViolation(
                         "b-Rule-2",
                         Identifier(
                             "Maven",
@@ -1741,7 +1741,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         "How_to_fix-2"
                     ),
                     // 1st record after sort by "rule"
-                    OrtRuleViolation(
+                    RuleViolation(
                         "1-Rule-3",
                         Identifier(
                             "Maven",
@@ -1756,7 +1756,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         "How_to_fix-3"
                     ),
                     // 2nd record after sort by "rule", without package identifier
-                    OrtRuleViolation(
+                    RuleViolation(
                         "a-Rule-4",
                         null,
                         "License-4",
@@ -1795,7 +1795,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val obsoleteRuleViolations = listOf(
-                    OrtRuleViolation(
+                    RuleViolation(
                         "Rule-1-obsolete",
                         Identifier(
                             "Maven",
@@ -1809,7 +1809,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         "Message-1-obsolete",
                         "How_to_fix-1-obsolete"
                     ),
-                    OrtRuleViolation(
+                    RuleViolation(
                         "Rule-2-obsolete",
                         null,
                         "License-2-obsolete",
@@ -1839,7 +1839,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
 
                 response shouldHaveStatus HttpStatusCode.OK
 
-                val ruleViolationsResponse = response.body<PagedResponse<RuleViolation>>()
+                val ruleViolationsResponse = response.body<PagedResponse<ApiRuleViolation>>()
 
                 ruleViolationsResponse.data shouldHaveSize(4)
 
@@ -2075,7 +2075,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     endTime = now.toDatabasePrecision(),
                     violations = listOf(
                         // 4th record after sort by "rule"
-                        OrtRuleViolation(
+                        RuleViolation(
                             "z-Rule-1",
                             Identifier("Maven", "com.example", "example", "1.0"),
                             "License-1",
@@ -2085,7 +2085,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             "How_to_fix-1"
                         ),
                         // 3rd record after sort by "rule"
-                        OrtRuleViolation(
+                        RuleViolation(
                             "b-Rule-2",
                             Identifier("Maven", "com.example", "example", "1.0"),
                             "License-2",
@@ -2095,7 +2095,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             "How_to_fix-2"
                         ),
                         // 1st record after sort by "rule"
-                        OrtRuleViolation(
+                        RuleViolation(
                             "1-Rule-3",
                             Identifier("NPM", "com.example", "example2", "1.0"),
                             "License-3",
@@ -2105,7 +2105,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             "How_to_fix-3"
                         ),
                         // 2nd record after sort by "rule", without package identifier
-                        OrtRuleViolation(
+                        RuleViolation(
                             "a-Rule-4",
                             null,
                             "License-4",

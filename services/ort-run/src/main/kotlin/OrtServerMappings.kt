@@ -45,12 +45,12 @@ import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.EvaluatorRun
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation as RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult

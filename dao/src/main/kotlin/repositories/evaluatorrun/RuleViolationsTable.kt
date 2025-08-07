@@ -24,7 +24,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.id.EntityID
@@ -45,7 +45,7 @@ object RuleViolationsTable : SortableTable("rule_violations") {
 
 class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<RuleViolationDao>(RuleViolationsTable) {
-        fun getOrPut(ruleViolation: OrtRuleViolation): RuleViolationDao =
+        fun getOrPut(ruleViolation: RuleViolation): RuleViolationDao =
             findByRuleViolation(ruleViolation) ?: new {
                 rule = ruleViolation.rule
                 packageIdentifierId = getPackageIdentifierDaoOrNull(ruleViolation)
@@ -56,7 +56,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
                 howToFix = ruleViolation.howToFix
             }
 
-        private fun findByRuleViolation(ruleViolation: OrtRuleViolation): RuleViolationDao? {
+        private fun findByRuleViolation(ruleViolation: RuleViolation): RuleViolationDao? {
             val identifierDao = getPackageIdentifierDaoOrNull(ruleViolation)
 
             return find {
@@ -68,7 +68,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
             }.find { it.message == ruleViolation.message && it.howToFix == ruleViolation.howToFix }
         }
 
-        private fun getPackageIdentifierDaoOrNull(ruleViolation: OrtRuleViolation): IdentifierDao? {
+        private fun getPackageIdentifierDaoOrNull(ruleViolation: RuleViolation): IdentifierDao? {
             val packageId = ruleViolation.packageId
             return when {
                 packageId != null -> IdentifierDao.findByIdentifier(packageId)
@@ -85,7 +85,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
     var message by RuleViolationsTable.message
     var howToFix by RuleViolationsTable.howToFix
 
-    fun mapToModel() = OrtRuleViolation(
+    fun mapToModel() = RuleViolation(
         rule = rule,
         packageId = packageIdentifierId?.mapToModel(),
         license = license,

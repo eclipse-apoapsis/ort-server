@@ -95,10 +95,10 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.runs.OrtRuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
+import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
@@ -847,7 +847,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         )
                     )
 
-                val commonRuleViolation = OrtRuleViolation(
+                val commonRuleViolation = RuleViolation(
                     "rule",
                     null,
                     null,
@@ -866,7 +866,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     endTime = Clock.System.now(),
                     violations = listOf(
                         commonRuleViolation,
-                        OrtRuleViolation(
+                        RuleViolation(
                             "rule1",
                             null,
                             null,
@@ -1011,7 +1011,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     endTime = Clock.System.now(),
                     violations = listOf(
                         commonRuleViolation,
-                        OrtRuleViolation(
+                        RuleViolation(
                             "rule2",
                             null,
                             null,
