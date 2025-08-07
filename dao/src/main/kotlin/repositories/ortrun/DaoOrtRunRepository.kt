@@ -28,7 +28,7 @@ import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNameDAO
+import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNameDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
@@ -95,7 +95,7 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             this.labels = mapAndDeduplicate(labels.entries, ::getLabelDao)
             this.traceId = traceId
             this.environmentConfigPath = environmentConfigPath
-            this.userDisplayName = UserDisplayNameDAO.insertOrUpdate(userDisplayName)
+            this.userDisplayName = UserDisplayNameDao.insertOrUpdate(userDisplayName)
         }.mapToModel()
     }
 

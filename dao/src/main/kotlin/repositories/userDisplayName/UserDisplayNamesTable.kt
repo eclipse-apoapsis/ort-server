@@ -57,12 +57,12 @@ object UserDisplayNamesTable : IdTable<String>("user_display_names") {
     val createdAt = timestamp("created_at")
 }
 
-class UserDisplayNameDAO(id: EntityID<String>) : Entity<String>(id) {
-    companion object : EntityClass<String, UserDisplayNameDAO>(UserDisplayNamesTable) {
+class UserDisplayNameDao(id: EntityID<String>) : Entity<String>(id) {
+    companion object : EntityClass<String, UserDisplayNameDao>(UserDisplayNamesTable) {
         /**
          * Insert a new entry, if it does not already exist, else update the entry.
          */
-        fun insertOrUpdate(userDisplayName: UserDisplayName?): UserDisplayNameDAO? {
+        fun insertOrUpdate(userDisplayName: UserDisplayName?): UserDisplayNameDao? {
             // Tests may pass `null` as `userDisplayName`
             if (userDisplayName == null) {
                 return null
@@ -75,7 +75,7 @@ class UserDisplayNameDAO(id: EntityID<String>) : Entity<String>(id) {
                 it[this.createdAt] = Clock.System.now()
             }
 
-            return UserDisplayNameDAO[userDisplayName.userId]
+            return UserDisplayNameDao[userDisplayName.userId]
         }
     }
 
