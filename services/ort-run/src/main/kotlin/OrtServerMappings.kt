@@ -200,8 +200,8 @@ fun AdvisorConfiguration.mapToOrt() =
 fun AdvisorResult.mapToOrt() =
     OrtAdvisorResult(
         advisor = OrtAdvisorDetails(
-            advisorName,
-            capabilities.mapTo(enumSetOf()) {
+            name = advisorName,
+            capabilities = capabilities.mapTo(enumSetOf()) {
                 OrtAdvisorCapability.valueOf(it.uppercase())
             }
         ),
@@ -254,9 +254,9 @@ private fun Collection<Issue>.mapToOrt(): Map<OrtIdentifier, List<OrtIssue>> =
         issue.identifier?.let { it.mapToOrt() to issue.mapToOrt() }
     }.groupBy({ it.first }, { it.second })
 
-fun ArtifactProvenance.mapToOrt() = OrtArtifactProvenance(sourceArtifact.mapToOrt())
+fun ArtifactProvenance.mapToOrt() = OrtArtifactProvenance(sourceArtifact = sourceArtifact.mapToOrt())
 
-fun CopyrightFinding.mapToOrt() = OrtCopyrightFinding(statement, location.mapToOrt())
+fun CopyrightFinding.mapToOrt() = OrtCopyrightFinding(statement = statement, location = location.mapToOrt())
 
 fun Curations.mapToOrt() = OrtCurations(
     packages = packages.map(PackageCuration::mapToOrt),
@@ -317,13 +317,26 @@ fun EvaluatorRun.mapToOrt() =
         violations = violations.map(RuleViolation::mapToOrt)
     )
 
-fun Excludes.mapToOrt() = OrtExcludes(paths.map(PathExclude::mapToOrt), scopes.map(ScopeExclude::mapToOrt))
+fun Excludes.mapToOrt() = OrtExcludes(
+    paths = paths.map(PathExclude::mapToOrt),
+    scopes = scopes.map(ScopeExclude::mapToOrt)
+)
 
-fun Identifier.mapToOrt() = OrtIdentifier(type, namespace, name, version)
+fun Identifier.mapToOrt() = OrtIdentifier(type = type, namespace = namespace, name = name, version = version)
 
-fun Issue.mapToOrt() = OrtIssue(timestamp.toJavaInstant(), source, message, severity.mapToOrt(), affectedPath)
+fun Issue.mapToOrt() = OrtIssue(
+    timestamp = timestamp.toJavaInstant(),
+    source = source,
+    message = message,
+    severity = severity.mapToOrt(),
+    affectedPath = affectedPath
+)
 
-fun IssueResolution.mapToOrt() = OrtIssueResolution(message, OrtIssueResolutionReason.valueOf(reason), comment)
+fun IssueResolution.mapToOrt() = OrtIssueResolution(
+    message = message,
+    reason = OrtIssueResolutionReason.valueOf(reason),
+    comment = comment
+)
 
 fun KnownProvenance.mapToOrt() =
     when (this) {
@@ -437,9 +450,16 @@ fun PackageLicenseChoice.mapToOrt() =
         licenseChoices = licenseChoices.map(SpdxLicenseChoice::mapToOrt)
     )
 
-fun PackageManagerConfiguration.mapToOrt() = OrtPackageManagerConfiguration(mustRunAfter, options)
+fun PackageManagerConfiguration.mapToOrt() = OrtPackageManagerConfiguration(
+    mustRunAfter = mustRunAfter,
+    options = options
+)
 
-fun PathExclude.mapToOrt() = OrtPathExclude(pattern, OrtPathExcludeReason.valueOf(reason), comment)
+fun PathExclude.mapToOrt() = OrtPathExclude(
+    pattern = pattern,
+    reason = OrtPathExcludeReason.valueOf(reason),
+    comment = comment
+)
 
 fun PluginConfig.mapToOrt() =
     OrtPluginConfig(
@@ -486,8 +506,8 @@ fun ProvenanceResolutionResult.mapToOrt() =
     )
 
 fun ProvenanceSnippetChoices.mapToOrt() = OrtSnippetChoices(
-    OrtProvenance(provenance.url),
-    choices.map(SnippetChoice::mapToOrt)
+    provenance = OrtProvenance(url = provenance.url),
+    choices = choices.map(SnippetChoice::mapToOrt)
 )
 
 fun ProviderPluginConfiguration.mapToOrt() =
@@ -591,7 +611,7 @@ fun ScannerConfiguration.mapToOrt() =
         ignorePatterns = ignorePatterns
     )
 
-fun ScannerDetail.mapToOrt() = OrtScannerDetails(name, version, configuration)
+fun ScannerDetail.mapToOrt() = OrtScannerDetails(name = name, version = version, configuration = configuration)
 
 fun ScannerRun.mapToOrt() =
     OrtScannerRun(
@@ -624,7 +644,11 @@ fun ScanSummary.mapToOrt() =
         issues = issues.map(Issue::mapToOrt)
     )
 
-fun ScopeExclude.mapToOrt() = OrtScopeExclude(pattern, OrtScopeExcludeReason.valueOf(reason), comment)
+fun ScopeExclude.mapToOrt() = OrtScopeExclude(
+    pattern = pattern,
+    reason = OrtScopeExcludeReason.valueOf(reason),
+    comment = comment
+)
 
 fun Severity.mapToOrt() = when (this) {
     Severity.ERROR -> OrtSeverity.ERROR
@@ -642,11 +666,11 @@ fun Snippet.mapToOrt() = OrtSnippet(
 )
 
 fun SnippetChoice.mapToOrt() = OrtSnippetChoice(
-    Given(given.sourceLocation.mapToOrt()),
-    Choice(
-        choice.purl,
-        choice.reason.mapToOrt(),
-        choice.comment
+    given = Given(sourceLocation = given.sourceLocation.mapToOrt()),
+    choice = Choice(
+        purl = choice.purl,
+        reason = choice.reason.mapToOrt(),
+        comment = choice.comment
     )
 )
 
@@ -657,7 +681,7 @@ fun SnippetFinding.mapToOrt() = OrtSnippetFinding(
     snippets = snippets.mapTo(mutableSetOf()) { it.mapToOrt() }
 )
 
-fun SpdxLicenseChoice.mapToOrt() = OrtSpdxLicenseChoice(given?.toSpdx(), choice.toSpdx())
+fun SpdxLicenseChoice.mapToOrt() = OrtSpdxLicenseChoice(given = given?.toSpdx(), choice = choice.toSpdx())
 
 fun SourceCodeOrigin.mapToOrt() =
     when (this) {
@@ -665,9 +689,9 @@ fun SourceCodeOrigin.mapToOrt() =
         SourceCodeOrigin.VCS -> OrtSourceCodeOrigin.VCS
     }
 
-fun TextLocation.mapToOrt() = OrtTextLocation(path, startLine, endLine)
+fun TextLocation.mapToOrt() = OrtTextLocation(path = path, startLine = startLine, endLine = endLine)
 
-fun VcsInfo.mapToOrt() = OrtVcsInfo(OrtVcsType.forName(type.name), url, revision, path)
+fun VcsInfo.mapToOrt() = OrtVcsInfo(type = OrtVcsType.forName(type.name), url = url, revision = revision, path = path)
 
 fun VcsInfoCurationData.mapToOrt() = OrtVcsInfoCurationData(
     type = type?.name?.let { OrtVcsType.forName(it) },
@@ -676,7 +700,7 @@ fun VcsInfoCurationData.mapToOrt() = OrtVcsInfoCurationData(
     path = path
 )
 
-fun VcsMatcher.mapToOrt() = OrtVcsMatcher(OrtVcsType.forName(type.name), url, revision)
+fun VcsMatcher.mapToOrt() = OrtVcsMatcher(type = OrtVcsType.forName(type.name), url = url, revision = revision)
 
 fun Vulnerability.mapToOrt() =
     OrtVulnerability(
@@ -687,11 +711,11 @@ fun Vulnerability.mapToOrt() =
     )
 
 fun VulnerabilityReference.mapToOrt() = OrtVulnerabilityReference(
-    URI.create(url),
-    scoringSystem,
-    severity,
-    score,
-    vector
+    url = URI.create(url),
+    scoringSystem = scoringSystem,
+    severity = severity,
+    score = score,
+    vector = vector
 )
 
 fun VulnerabilityResolution.mapToOrt() = OrtVulnerabilityResolution(
