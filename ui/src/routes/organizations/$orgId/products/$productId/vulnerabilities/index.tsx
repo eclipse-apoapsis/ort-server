@@ -36,6 +36,7 @@ import z from 'zod';
 import { useProductsServiceGetApiV1ProductsByProductIdVulnerabilities } from '@/api/queries';
 import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
 import { ProductVulnerability, VulnerabilityRating } from '@/api/requests';
+import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -256,7 +257,9 @@ const ProductVulnerabilitiesComponent = () => {
           id: 'packageIdentifier',
           header: 'Package ID',
           cell: ({ getValue }) => {
-            return <div className='font-semibold'>{getValue()}</div>;
+            return (
+              <BreakableString text={getValue()} className='font-semibold' />
+            );
           },
           meta: {
             filter: {

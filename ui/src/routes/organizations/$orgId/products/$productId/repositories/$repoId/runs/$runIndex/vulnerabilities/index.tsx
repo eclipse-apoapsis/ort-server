@@ -40,6 +40,7 @@ import {
   VulnerabilityRating,
   VulnerabilityWithIdentifier,
 } from '@/api/requests';
+import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -320,7 +321,9 @@ const VulnerabilitiesComponent = () => {
         id: 'packageIdentifier',
         header: 'Package ID',
         cell: ({ getValue }) => {
-          return <div className='font-semibold'>{getValue()}</div>;
+          return (
+            <BreakableString text={getValue()} className='font-semibold' />
+          );
         },
         meta: {
           filter: {
