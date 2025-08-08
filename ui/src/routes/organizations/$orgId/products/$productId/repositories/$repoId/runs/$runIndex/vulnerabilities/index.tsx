@@ -47,6 +47,12 @@ import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Resolutions } from '@/components/resolutions';
 import { ToastError } from '@/components/toast-error';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -100,59 +106,72 @@ const renderSubComponent = ({
   row: Row<VulnerabilityWithIdentifier>;
 }) => {
   const vulnerability = row.original.vulnerability;
+  const hasResolutions = getResolvedStatus(row.original) === 'Resolved';
 
   return (
-    <div className='flex flex-col gap-4'>
-      {getResolvedStatus(row.original) === 'Resolved' && (
-        <>
-          <div className='text-lg font-semibold'>Resolutions</div>
+    <Accordion
+      type='multiple'
+      className='w-full'
+      defaultValue={hasResolutions ? ['resolutions'] : ['details']}
+    >
+      <AccordionItem value='resolutions'>
+        <AccordionTrigger className='font-semibold'>
+          Resolutions
+        </AccordionTrigger>
+        <AccordionContent>
           <Resolutions item={row.original} />
-        </>
-      )}
-      <h2 className='text-lg font-semibold'>Details</h2>
-      <VulnerabilityMetrics vulnerability={vulnerability} />
-      <div className='text-lg font-semibold'>Description</div>
-      <MarkdownRenderer
-        markdown={vulnerability.description || 'No description.'}
-      />
-      <div className='mt-2 text-lg font-semibold'>
-        Links to vulnerability references
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Severity</TableHead>
-            <TableHead>Scoring system</TableHead>
-            <TableHead>Score</TableHead>
-            <TableHead>Vector</TableHead>
-            <TableHead>Link</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {vulnerability.references
-            .sort((refA, refB) => (refB.score ?? 0) - (refA.score ?? 0))
-            .map((reference, index) => (
-              <TableRow key={index}>
-                <TableCell>{reference.severity || '-'}</TableCell>
-                <TableCell>{reference.scoringSystem || '-'}</TableCell>
-                <TableCell>{reference.score || '-'}</TableCell>
-                <TableCell>{reference.vector || '-'}</TableCell>
-                <TableCell>
-                  {
-                    <Link
-                      className='font-semibold break-all text-blue-400 hover:underline'
-                      to={reference.url}
-                      target='_blank'
-                    >
-                      {reference.url}
-                    </Link>
-                  }
-                </TableCell>
-              </TableRow>
-            ))}
-        </TableBody>
-      </Table>
-    </div>
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value='details'>
+        <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
+        <AccordionContent>
+          <div className='flex flex-col gap-4'>
+            <VulnerabilityMetrics vulnerability={vulnerability} />
+            <div className='text-lg font-semibold'>Description</div>
+            <MarkdownRenderer
+              markdown={vulnerability.description || 'No description.'}
+            />
+            <div className='mt-2 text-lg font-semibold'>
+              Links to vulnerability references
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Severity</TableHead>
+                  <TableHead>Scoring system</TableHead>
+                  <TableHead>Score</TableHead>
+                  <TableHead>Vector</TableHead>
+                  <TableHead>Link</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {vulnerability.references
+                  .sort((refA, refB) => (refB.score ?? 0) - (refA.score ?? 0))
+                  .map((reference, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{reference.severity || '-'}</TableCell>
+                      <TableCell>{reference.scoringSystem || '-'}</TableCell>
+                      <TableCell>{reference.score || '-'}</TableCell>
+                      <TableCell>{reference.vector || '-'}</TableCell>
+                      <TableCell>
+                        {
+                          <Link
+                            className='font-semibold break-all text-blue-400 hover:underline'
+                            to={reference.url}
+                            target='_blank'
+                          >
+                            {reference.url}
+                          </Link>
+                        }
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };
 
