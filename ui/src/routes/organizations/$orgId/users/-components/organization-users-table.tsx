@@ -151,22 +151,7 @@ const columns = [
           }
         );
 
-      // Leave all groups except the one to join.
-      async function leaveOtherGroups(joinGroupId: string) {
-        const groups = row.original.groups;
-        const otherGroups = groups.filter((group) => group !== joinGroupId);
-
-        for (const group of otherGroups) {
-          await leaveGroup({
-            organizationId: organizationId,
-            groupId: group,
-            username: row.original.user.username,
-          });
-        }
-      }
-
       async function joinAdminsGroup() {
-        await leaveOtherGroups('ADMINS');
         await joinGroup({
           organizationId: organizationId,
           groupId: 'ADMINS',
@@ -177,7 +162,6 @@ const columns = [
       }
 
       async function joinWritersGroup() {
-        await leaveOtherGroups('WRITERS');
         await joinGroup({
           organizationId: organizationId,
           groupId: 'WRITERS',
@@ -188,7 +172,6 @@ const columns = [
       }
 
       async function joinReadersGroup() {
-        await leaveOtherGroups('READERS');
         await joinGroup({
           organizationId: organizationId,
           groupId: 'READERS',

@@ -1564,7 +1564,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     listOf(
                         ApiUserWithGroups(
                             ApiUser(SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email),
-                            listOf(ApiUserGroup.ADMINS, ApiUserGroup.WRITERS)
+                            listOf(ApiUserGroup.ADMINS)
                         ),
                         ApiUserWithGroups(
                             ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),

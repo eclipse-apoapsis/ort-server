@@ -750,19 +750,24 @@ class KeycloakAuthorizationService(
         }
     }
 
-    override suspend fun <ID : HierarchyId> addUserRole(
+    override suspend fun <TYPE : Role<TYPE, ID>, ID : HierarchyId> addUserRole(
         username: String,
         hierarchyId: ID,
-        role: Role<ID>
+        role: Role<TYPE, ID>
     ) {
         val group = keycloakGroupPrefix + role.groupName(hierarchyId)
         keycloakClient.addUserToGroup(UserName(username), GroupName(group))
+
+        role.getSiblings().forEach { siblingRole ->
+            val siblingGroup = keycloakGroupPrefix + siblingRole.groupName(hierarchyId)
+            keycloakClient.removeUserFromGroup(UserName(username), GroupName(siblingGroup))
+        }
     }
 
-    override suspend fun <ID : HierarchyId> removeUserRole(
+    override suspend fun <TYPE : Role<TYPE, ID>, ID : HierarchyId> removeUserRole(
         username: String,
         hierarchyId: ID,
-        role: Role<ID>
+        role: Role<TYPE, ID>
     ) {
         val group = keycloakGroupPrefix + role.groupName(hierarchyId)
         keycloakClient.removeUserFromGroup(UserName(username), GroupName(group))

@@ -32,7 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 enum class RepositoryRole(
     /** The [RepositoryPermission]s granted by this role. */
     val permissions: Set<RepositoryPermission>
-) : Role<RepositoryId> {
+) : Role<RepositoryRole, RepositoryId> {
     /** A role that grants read permissions for a [Repository]. */
     READER(
         permissions = setOf(
@@ -91,6 +91,8 @@ enum class RepositoryRole(
         fun extractRepositoryIdFromGroup(groupName: String): Long? =
             groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
+
+    override fun getSiblings(): Set<RepositoryRole> = enumValues<RepositoryRole>().toSet() - this
 
     override fun groupName(id: RepositoryId) = "${groupPrefix(id.value)}${name.uppercase()}S"
 

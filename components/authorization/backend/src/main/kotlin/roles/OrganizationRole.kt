@@ -36,7 +36,7 @@ enum class OrganizationRole(
 
     /** A [ProductRole] that is granted for each [Product] of this [Organization]. */
     val includedProductRole: ProductRole
-) : Role<OrganizationId> {
+) : Role<OrganizationRole, OrganizationId> {
     /** A role that grants read permissions for an [Organization]. */
     READER(
         permissions = setOf(
@@ -98,6 +98,8 @@ enum class OrganizationRole(
         fun extractOrganizationIdFromGroup(groupName: String): Long? =
             groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
+
+    override fun getSiblings(): Set<OrganizationRole> = enumValues<OrganizationRole>().toSet() - this
 
     override fun groupName(id: OrganizationId) = "${groupPrefix(id.value)}${name.uppercase()}S"
 

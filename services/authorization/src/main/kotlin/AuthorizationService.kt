@@ -105,13 +105,22 @@ interface AuthorizationService {
     suspend fun ensureSuperuserAndSynchronizeRolesAndPermissions()
 
     /**
-     * Add the [role] for the hierarchy element with the given [hierarchyId] to the user with the given [username].
+     * Add the [role] for the hierarchy element with the given [hierarchyId] to the user with the given [username]. If
+     * the user already has another role for the same hierarchy element, it will be replaced by the new [role].
      */
-    suspend fun <ID : HierarchyId> addUserRole(username: String, hierarchyId: ID, role: Role<ID>)
+    suspend fun <TYPE : Role<TYPE, ID>, ID : HierarchyId> addUserRole(
+        username: String,
+        hierarchyId: ID,
+        role: Role<TYPE, ID>
+    )
 
     /**
      * Remove the [role] for the hierarchy element with the given [hierarchyId] from the user with the given [username].
      * If the user does not have the role, nothing happens.
      */
-    suspend fun <ID : HierarchyId> removeUserRole(username: String, hierarchyId: ID, role: Role<ID>)
+    suspend fun <TYPE : Role<TYPE, ID>, ID : HierarchyId> removeUserRole(
+        username: String,
+        hierarchyId: ID,
+        role: Role<TYPE, ID>
+    )
 }

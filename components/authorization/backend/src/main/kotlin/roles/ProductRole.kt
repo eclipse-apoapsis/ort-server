@@ -36,7 +36,7 @@ enum class ProductRole(
 
     /** The [RepositoryRole] that is granted for each [Repository] of this [Product]. */
     val includedRepositoryRole: RepositoryRole
-) : Role<ProductId> {
+) : Role<ProductRole, ProductId> {
     /** A role that grants read permissions for a [Product]. */
     READER(
         permissions = setOf(
@@ -99,6 +99,8 @@ enum class ProductRole(
         fun extractProductIdFromGroup(groupName: String): Long? =
             groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
+
+    override fun getSiblings(): Set<ProductRole> = enumValues<ProductRole>().toSet() - this
 
     override fun groupName(id: ProductId) = "${groupPrefix(id.value)}${name.uppercase()}S"
 
