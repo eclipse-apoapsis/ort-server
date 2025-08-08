@@ -19,7 +19,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
+import { InfoIcon, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -54,6 +54,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip.tsx';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
@@ -157,7 +162,24 @@ const CreateInfrastructureServicePage = () => {
               name='name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>
+                    Name
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <span>
+                          <InfoIcon size={16} />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Provide a meaningful name that explains the purpose of
+                        this infrastructure service.
+                        <br />A meaningful name helps you and others in your
+                        organization <br />
+                        <b>identify and reuse</b> the infrastructure service
+                        easily, avoiding duplicates.
+                      </TooltipContent>
+                    </Tooltip>
+                  </FormLabel>
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>

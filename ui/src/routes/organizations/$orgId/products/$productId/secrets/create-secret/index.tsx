@@ -19,7 +19,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
+import { InfoIcon, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -43,6 +43,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip.tsx';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -108,7 +113,25 @@ const CreateProductSecretPage = () => {
               name='name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>
+                    Name
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <span>
+                          <InfoIcon size={16} />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Use clear names like <i>username-abc123</i>,{' '}
+                        <i>password-for-user-abc123</i>, or{' '}
+                        <i>token-for-user-abc123</i>.<br />
+                        This strongly recommended convention makes it easier to{' '}
+                        <b>identify, reuse and share secrets</b>
+                        <br />
+                        within your product area and <b>avoid duplicates</b>.
+                      </TooltipContent>
+                    </Tooltip>
+                  </FormLabel>
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
@@ -134,7 +157,23 @@ const CreateProductSecretPage = () => {
               name='description'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>
+                    Description
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <span>
+                          <InfoIcon size={16} />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Provide a meaningful description that explains the
+                        purpose of this secret.
+                        <br />A good description helps you and others in your
+                        product area <b>identify and reuse</b> the secret
+                        easily.
+                      </TooltipContent>
+                    </Tooltip>
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
