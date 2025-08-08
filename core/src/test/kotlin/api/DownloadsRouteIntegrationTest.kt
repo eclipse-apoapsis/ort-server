@@ -38,7 +38,7 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
-import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
+import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.storage.Key
@@ -51,7 +51,7 @@ class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
     var repositoryId = -1L
 
     beforeEach {
-        val authorizationService = DefaultAuthorizationService(
+        val authorizationService = KeycloakAuthorizationService(
             keycloakClient,
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,

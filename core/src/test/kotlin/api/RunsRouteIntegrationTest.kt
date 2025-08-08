@@ -123,7 +123,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
-import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
+import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
@@ -150,7 +150,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     var repositoryId = -1L
 
     beforeEach {
-        val authorizationService = DefaultAuthorizationService(
+        val authorizationService = KeycloakAuthorizationService(
             keycloakClient,
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,

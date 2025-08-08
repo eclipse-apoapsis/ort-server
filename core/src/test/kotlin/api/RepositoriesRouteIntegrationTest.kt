@@ -105,7 +105,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRe
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
+import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -136,7 +136,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     var productId = -1L
 
     beforeEach {
-        val authorizationService = DefaultAuthorizationService(
+        val authorizationService = KeycloakAuthorizationService(
             keycloakClient,
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,

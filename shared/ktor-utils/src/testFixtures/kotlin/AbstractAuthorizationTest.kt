@@ -61,7 +61,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthenti
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
-import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
+import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.utils.test.Authorization
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
@@ -109,7 +109,7 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
     lateinit var authorizationService: AuthorizationService
 
     override suspend fun beforeEach(testCase: TestCase) {
-        authorizationService = DefaultAuthorizationService(
+        authorizationService = KeycloakAuthorizationService(
             keycloakClient,
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,

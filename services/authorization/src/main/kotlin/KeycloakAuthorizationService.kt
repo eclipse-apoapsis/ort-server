@@ -45,15 +45,15 @@ import org.jetbrains.exposed.sql.Database
 
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger(DefaultAuthorizationService::class.java)
+private val logger = LoggerFactory.getLogger(KeycloakAuthorizationService::class.java)
 
 internal const val ROLE_DESCRIPTION = "This role is auto-generated, do not edit or remove."
 
 /**
- * The default implementation of [AuthorizationService], using a [keycloakClient] to manage Keycloak roles.
+ * An implementation of [AuthorizationService], based on [Keycloak](https://www.keycloak.org/).
  */
 @Suppress("TooManyFunctions")
-class DefaultAuthorizationService(
+class KeycloakAuthorizationService(
     private val keycloakClient: KeycloakClient,
     private val db: Database,
     private val organizationRepository: OrganizationRepository,

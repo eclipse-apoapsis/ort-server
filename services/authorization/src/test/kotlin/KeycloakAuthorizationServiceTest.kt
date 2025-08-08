@@ -57,7 +57,7 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
 @Suppress("LargeClass")
-class DefaultAuthorizationServiceTest : WordSpec({
+class KeycloakAuthorizationServiceTest : WordSpec({
     val keycloakGroupPrefix = "PREFIX_"
 
     val organizationId = 1L
@@ -98,7 +98,7 @@ class DefaultAuthorizationServiceTest : WordSpec({
     }
 
     fun createService(keycloakClient: KeycloakClient) =
-        DefaultAuthorizationService(
+        KeycloakAuthorizationService(
             keycloakClient,
             mockk(),
             organizationRepository,
