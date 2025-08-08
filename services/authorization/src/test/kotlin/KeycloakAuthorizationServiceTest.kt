@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.contain
 import io.kotest.matchers.collections.containAll
@@ -39,6 +40,7 @@ import io.mockk.mockk
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestClient
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
@@ -49,8 +51,11 @@ import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryR
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
@@ -923,6 +928,87 @@ class KeycloakAuthorizationServiceTest : WordSpec({
                 val group = keycloakClient.getGroup(GroupName(keycloakGroupPrefix + role.groupName(repositoryId)))
                 keycloakClient.getGroupClientRoles(group.id).map { it.name.value } should
                         contain(role.roleName(repositoryId))
+            }
+        }
+    }
+
+    "addUserRole" should {
+        val keycloakClient = KeycloakTestClient()
+        keycloakClient.createUser(UserName("user"))
+
+        val service = createService(keycloakClient)
+        service.createOrganizationPermissions(organizationId)
+        service.createOrganizationRoles(organizationId)
+        service.createProductPermissions(productId)
+        service.createProductRoles(productId)
+        service.createRepositoryPermissions(repositoryId)
+        service.createRepositoryRoles(repositoryId)
+
+        "add the user to the correct group" {
+            OrganizationRole.entries.forAll { role ->
+                service.addUserRole("user", OrganizationId(organizationId), role)
+
+                val groupName = keycloakGroupPrefix + role.groupName(OrganizationId(organizationId))
+                keycloakClient.getGroupMembers(GroupName(groupName))
+                    .map { it.username.value } should containExactly("user")
+            }
+
+            ProductRole.entries.forAll { role ->
+                service.addUserRole("user", ProductId(productId), role)
+
+                val groupName = keycloakGroupPrefix + role.groupName(ProductId(productId))
+                keycloakClient.getGroupMembers(GroupName(groupName))
+                    .map { it.username.value } should containExactly("user")
+            }
+
+            RepositoryRole.entries.forAll { role ->
+                service.addUserRole("user", RepositoryId(repositoryId), role)
+
+                val groupName = keycloakGroupPrefix + role.groupName(RepositoryId(repositoryId))
+                keycloakClient.getGroupMembers(GroupName(groupName))
+                    .map { it.username.value } should containExactly("user")
+            }
+        }
+    }
+
+    "removeUserRole" should {
+        val keycloakClient = KeycloakTestClient()
+        keycloakClient.createUser(UserName("user"))
+
+        val service = createService(keycloakClient)
+        service.createOrganizationPermissions(organizationId)
+        service.createOrganizationRoles(organizationId)
+        service.createProductPermissions(productId)
+        service.createProductRoles(productId)
+        service.createRepositoryPermissions(repositoryId)
+        service.createRepositoryRoles(repositoryId)
+
+        "remove the user from the correct group" {
+            OrganizationRole.entries.forAll { role ->
+                service.addUserRole("user", OrganizationId(organizationId), role)
+                service.removeUserRole("user", OrganizationId(organizationId), role)
+
+                val groupName = keycloakGroupPrefix + role.groupName(OrganizationId(organizationId))
+                keycloakClient.getGroupMembers(GroupName(groupName))
+                    .map { it.username.value } should beEmpty()
+            }
+
+            ProductRole.entries.forAll { role ->
+                service.addUserRole("user", ProductId(productId), role)
+                service.removeUserRole("user", ProductId(productId), role)
+
+                val groupName = keycloakGroupPrefix + role.groupName(ProductId(productId))
+                keycloakClient.getGroupMembers(GroupName(groupName))
+                    .map { it.username.value } should beEmpty()
+            }
+
+            RepositoryRole.entries.forAll { role ->
+                service.addUserRole("user", RepositoryId(repositoryId), role)
+                service.removeUserRole("user", RepositoryId(repositoryId), role)
+
+                val groupName = keycloakGroupPrefix + role.groupName(RepositoryId(repositoryId))
+                keycloakClient.getGroupMembers(GroupName(groupName))
+                    .map { it.username.value } should beEmpty()
             }
         }
     }
