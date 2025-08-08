@@ -32,8 +32,10 @@ import org.eclipse.apoapsis.ortserver.components.authorization.permissions.Repos
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Role
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
@@ -748,19 +750,21 @@ class DefaultAuthorizationService(
         }
     }
 
-    override suspend fun addUserToGroup(
+    override suspend fun <ID : HierarchyId> addUserRole(
         username: String,
-        groupName: String
+        hierarchyId: ID,
+        role: Role<ID>
     ) {
-        val group = keycloakGroupPrefix + groupName // Allow multiple ORT instances to share the same Keycloak realm
+        val group = keycloakGroupPrefix + role.groupName(hierarchyId)
         keycloakClient.addUserToGroup(UserName(username), GroupName(group))
     }
 
-    override suspend fun removeUserFromGroup(
+    override suspend fun <ID : HierarchyId> removeUserRole(
         username: String,
-        groupName: String
+        hierarchyId: ID,
+        role: Role<ID>
     ) {
-        val group = keycloakGroupPrefix + groupName // Allow multiple ORT instances to share the same Keycloak realm
+        val group = keycloakGroupPrefix + role.groupName(hierarchyId)
         keycloakClient.removeUserFromGroup(UserName(username), GroupName(group))
     }
 }
