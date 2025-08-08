@@ -27,29 +27,32 @@ type ResolutionsProps = {
 export function Resolutions({ item }: ResolutionsProps) {
   return (
     <>
-      {item.resolutions &&
+      {item.resolutions && item.resolutions.length > 0 ? (
         item.resolutions.map((resolution) => (
           <Card>
             <CardHeader>
               <CardTitle>{resolution.reason}</CardTitle>
             </CardHeader>
-            <CardContent className='flex flex-col'>
+            <CardContent className='flex flex-col gap-2'>
+              <div className='italic'>{resolution.comment}</div>
               <div className='flex gap-2'>
-                <div className='font-semibold'>
+                <div className='text-muted-foreground font-semibold'>
                   {'externalId' in resolution
                     ? 'ID Matcher:'
                     : 'Message Matcher:'}
                 </div>
-                {'externalId' in resolution
-                  ? resolution.externalId
-                  : resolution.message}
-              </div>
-              <div className='text-muted-foreground italic'>
-                {resolution.comment}
+                <div className='text-muted-foreground'>
+                  {'externalId' in resolution
+                    ? resolution.externalId
+                    : resolution.message}
+                </div>
               </div>
             </CardContent>
           </Card>
-        ))}
+        ))
+      ) : (
+        <div className='text-muted-foreground italic'>No resolutions.</div>
+      )}
     </>
   );
 }
