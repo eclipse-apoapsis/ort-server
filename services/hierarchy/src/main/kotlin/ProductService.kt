@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTa
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -140,12 +141,10 @@ class ProductService(
             )
         }
 
-        val groupName = productRole.groupName(productId)
-
         // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
         // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
         // and just let the exception propagate.
-        authorizationService.addUserToGroup(username, groupName)
+        authorizationService.addUserRole(username, ProductId(productId), productRole)
     }
 
     /**
@@ -168,12 +167,10 @@ class ProductService(
             )
         }
 
-        val groupName = productRole.groupName(productId)
-
         // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
         // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
         // and just let the exception propagate.
-        authorizationService.removeUserFromGroup(username, groupName)
+        authorizationService.removeUserRole(username, ProductId(productId), productRole)
     }
 
     suspend fun getRepositoryIdsForProduct(productId: Long): List<Long> = db.dbQuery {

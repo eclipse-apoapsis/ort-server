@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
@@ -163,12 +164,10 @@ class RepositoryService(
             )
         }
 
-        val groupName = repositoryRole.groupName(repositoryId)
-
         // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
         // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
         // and just let the exception propagate.
-        authorizationService.removeUserFromGroup(username, groupName)
+        authorizationService.removeUserRole(username, RepositoryId(repositoryId), repositoryRole)
     }
 
     /**
@@ -191,12 +190,10 @@ class RepositoryService(
             )
         }
 
-        val groupName = repositoryRole.groupName(repositoryId)
-
         // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
         // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
         // and just let the exception propagate.
-        authorizationService.addUserToGroup(username, groupName)
+        authorizationService.addUserRole(username, RepositoryId(repositoryId), repositoryRole)
     }
 
     /**

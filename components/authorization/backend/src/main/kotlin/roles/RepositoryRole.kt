@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.authorization.roles
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 
 /**
@@ -31,7 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 enum class RepositoryRole(
     /** The [RepositoryPermission]s granted by this role. */
     val permissions: Set<RepositoryPermission>
-): Role {
+) : Role<RepositoryId> {
     /** A role that grants read permissions for a [Repository]. */
     READER(
         permissions = setOf(
@@ -90,6 +91,8 @@ enum class RepositoryRole(
         fun extractRepositoryIdFromGroup(groupName: String): Long? =
             groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
+
+    override fun groupName(id: RepositoryId) = "${groupPrefix(id.value)}${name.uppercase()}S"
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */
     fun groupName(repositoryId: Long): String = "${groupPrefix(repositoryId)}${name.uppercase()}S"

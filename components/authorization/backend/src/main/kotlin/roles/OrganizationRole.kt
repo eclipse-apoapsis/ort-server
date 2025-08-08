@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.authorization.roles
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.util.extractIdAfterPrefix
 
@@ -35,7 +36,7 @@ enum class OrganizationRole(
 
     /** A [ProductRole] that is granted for each [Product] of this [Organization]. */
     val includedProductRole: ProductRole
-): Role {
+) : Role<OrganizationId> {
     /** A role that grants read permissions for an [Organization]. */
     READER(
         permissions = setOf(
@@ -97,6 +98,8 @@ enum class OrganizationRole(
         fun extractOrganizationIdFromGroup(groupName: String): Long? =
             groupName.extractIdAfterPrefix(GROUP_PREFIX)
     }
+
+    override fun groupName(id: OrganizationId) = "${groupPrefix(id.value)}${name.uppercase()}S"
 
     /** A unique name for this role to be used to represent the role as a group in Keycloak. */
     fun groupName(organizationId: Long): String = "${groupPrefix(organizationId)}${name.uppercase()}S"

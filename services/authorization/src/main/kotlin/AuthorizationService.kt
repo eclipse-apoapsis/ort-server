@@ -19,13 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Role
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 
 /**
  * A service to manage roles and permissions in Keycloak.
@@ -109,12 +105,13 @@ interface AuthorizationService {
     suspend fun ensureSuperuserAndSynchronizeRolesAndPermissions()
 
     /**
-     * Add a user [username] to the group with the given [groupName].
+     * Add the [role] for the hierarchy element with the given [hierarchyId] to the user with the given [username].
      */
-    suspend fun addUserToGroup(username: String, groupName: String)
+    suspend fun <ID : HierarchyId> addUserRole(username: String, hierarchyId: ID, role: Role<ID>)
 
     /**
-     * Remove a user [username] from a group with the given [groupName].
+     * Remove the [role] for the hierarchy element with the given [hierarchyId] from the user with the given [username].
+     * If the user does not have the role, nothing happens.
      */
-    suspend fun removeUserFromGroup(username: String, groupName: String)
+    suspend fun <ID : HierarchyId> removeUserRole(username: String, hierarchyId: ID, role: Role<ID>)
 }

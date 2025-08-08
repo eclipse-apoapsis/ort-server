@@ -33,10 +33,12 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.spyk
 
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
@@ -142,7 +144,7 @@ class RepositoryServiceTest : WordSpec({
         }
     }
 
-    "addUserToGroup" should {
+    "addUserRole" should {
         "throw an exception if the organization does not exist" {
             val service = createService()
 
@@ -151,9 +153,9 @@ class RepositoryServiceTest : WordSpec({
             }
         }
 
-        "throw an exception if the group does not exist" {
+        "throw an exception if the role does not exist" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserToGroup(any(), any()) } just runs
+                coEvery { addUserRole(any(), any(), any()) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -168,9 +170,9 @@ class RepositoryServiceTest : WordSpec({
             }
         }
 
-        "generate the Keycloak group name" {
+        "add the role to the user" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserToGroup(any(), any()) } just runs
+                coEvery { addUserRole(any(), any(), any()) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -183,15 +185,16 @@ class RepositoryServiceTest : WordSpec({
             service.addUserToGroup("username", 1, "readers")
 
             coVerify(exactly = 1) {
-                authorizationService.addUserToGroup(
+                authorizationService.addUserRole(
                     "username",
-                    "REPOSITORY_1_READERS"
+                    RepositoryId(1),
+                    RepositoryRole.READER
                 )
             }
         }
     }
 
-    "removeUsersFromGroup" should {
+    "removeUserRole" should {
         "throw an exception if the organization does not exist" {
             val service = createService()
 
@@ -202,7 +205,7 @@ class RepositoryServiceTest : WordSpec({
 
         "throw an exception if the group does not exist" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserToGroup(any(), any()) } just runs
+                coEvery { addUserRole(any(), any(), any()) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -217,9 +220,9 @@ class RepositoryServiceTest : WordSpec({
             }
         }
 
-        "generate the Keycloak group name" {
+        "remove the role from the user" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { removeUserFromGroup(any(), any()) } just runs
+                coEvery { removeUserRole(any(), any(), any()) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -232,9 +235,10 @@ class RepositoryServiceTest : WordSpec({
             service.removeUserFromGroup("username", 1, "readers")
 
             coVerify(exactly = 1) {
-                authorizationService.removeUserFromGroup(
+                authorizationService.removeUserRole(
                     "username",
-                    "REPOSITORY_1_READERS"
+                    RepositoryId(1),
+                    RepositoryRole.READER
                 )
             }
         }

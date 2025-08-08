@@ -19,5 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.roles
 
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
+
 /** A parent interface for all role types in the authorization system. */
-sealed interface Role
+sealed interface Role<ID : HierarchyId> {
+    /** A unique name for this role to be used to represent the role as a group in Keycloak. */
+    fun groupName(id: ID): String
+}
