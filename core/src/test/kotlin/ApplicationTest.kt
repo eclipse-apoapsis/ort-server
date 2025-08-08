@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.core
 
 import io.ktor.server.application.Application
 
+import io.mockk.mockk
+
 import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
 import org.eclipse.apoapsis.ortserver.core.plugins.*
 import org.eclipse.apoapsis.ortserver.core.testutils.configureTestAuthentication
@@ -41,7 +43,7 @@ fun main(args: Array<String>) = io.ktor.server.netty.EngineMain.main(args)
  *                   authentication which is always valid.
  */
 fun Application.testModule(db: Database) {
-    configureKoin(db)
+    configureKoin(db, authorizationService = mockk())
     configureTestAuthentication()
     configureStatusPages()
     configureRouting()
