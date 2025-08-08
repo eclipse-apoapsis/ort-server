@@ -37,6 +37,7 @@ import { useRunsServiceGetApiV1RunsByRunIdIssues } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { Issue, Severity } from '@/api/requests';
+import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
@@ -293,7 +294,9 @@ const IssuesComponent = () => {
         id: 'packageIdentifier',
         header: 'Package ID',
         cell: ({ getValue }) => {
-          return <div className='font-semibold'>{getValue()}</div>;
+          return (
+            <BreakableString text={getValue()} className='font-semibold' />
+          );
         },
         meta: {
           filter: {
