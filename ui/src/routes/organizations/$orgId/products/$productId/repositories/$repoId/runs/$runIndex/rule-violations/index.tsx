@@ -45,6 +45,12 @@ import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Resolutions } from '@/components/resolutions';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -81,30 +87,43 @@ const columnHelper = createColumnHelper<RuleViolation>();
 
 const renderSubComponent = ({ row }: { row: Row<RuleViolation> }) => {
   const ruleViolation = row.original;
+  const hasResolutions = getResolvedStatus(ruleViolation) === 'Resolved';
 
   return (
-    <div className='flex flex-col gap-4'>
-      {getResolvedStatus(ruleViolation) === 'Resolved' && (
-        <>
-          <div className='text-lg font-semibold'>Resolutions</div>
-          <Resolutions item={ruleViolation} />
-        </>
-      )}
-      <h2 className='text-lg font-semibold'>Details</h2>
-      <div>{ruleViolation.message}</div>
-      <div className='grid grid-cols-8 gap-2'>
-        <div className='col-span-2 font-semibold'>License:</div>
-        <div className='col-span-6'>
-          <FormattedValue value={ruleViolation.license} />
-        </div>
-        <div className='col-span-2 font-semibold'>License source:</div>
-        <div className='col-span-6'>
-          <FormattedValue value={ruleViolation.licenseSource} />
-        </div>
-        <div className='col-span-2 font-semibold'>How to fix:</div>
-      </div>
-      <MarkdownRenderer markdown={ruleViolation.howToFix} />
-    </div>
+    <Accordion
+      type='multiple'
+      className='w-full'
+      defaultValue={hasResolutions ? ['resolutions'] : ['details']}
+    >
+      <AccordionItem value='resolutions'>
+        <AccordionTrigger className='font-semibold'>
+          Resolutions
+        </AccordionTrigger>
+        <AccordionContent>
+          <Resolutions item={row.original} />
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value='details'>
+        <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
+        <AccordionContent>
+          <div className='flex flex-col gap-4'>
+            <div>{ruleViolation.message}</div>
+            <div className='grid grid-cols-8 gap-2'>
+              <div className='col-span-2 font-semibold'>License:</div>
+              <div className='col-span-6'>
+                <FormattedValue value={ruleViolation.license} />
+              </div>
+              <div className='col-span-2 font-semibold'>License source:</div>
+              <div className='col-span-6'>
+                <FormattedValue value={ruleViolation.licenseSource} />
+              </div>
+              <div className='col-span-2 font-semibold'>How to fix:</div>
+            </div>
+            <MarkdownRenderer markdown={ruleViolation.howToFix} />
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };
 

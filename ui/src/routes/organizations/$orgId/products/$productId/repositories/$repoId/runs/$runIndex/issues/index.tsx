@@ -44,6 +44,12 @@ import { LoadingIndicator } from '@/components/loading-indicator';
 import { Resolutions } from '@/components/resolutions';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import { ToastError } from '@/components/toast-error';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -85,28 +91,41 @@ const columnHelper = createColumnHelper<Issue>();
 
 const renderSubComponent = ({ row }: { row: Row<Issue> }) => {
   const issue = row.original;
+  const hasResolutions = getResolvedStatus(issue) === 'Resolved';
 
   return (
-    <div className='flex flex-col gap-4'>
-      {getResolvedStatus(issue) === 'Resolved' && (
-        <>
-          <div className='text-lg font-semibold'>Resolutions</div>
+    <Accordion
+      type='multiple'
+      className='w-full'
+      defaultValue={hasResolutions ? ['resolutions'] : ['details']}
+    >
+      <AccordionItem value='resolutions'>
+        <AccordionTrigger className='font-semibold'>
+          Resolutions
+        </AccordionTrigger>
+        <AccordionContent>
           <Resolutions item={issue} />
-        </>
-      )}
-      <h2 className='text-lg font-semibold'>Details</h2>
-      <div className='flex gap-1 text-sm'>
-        <div className='font-semibold'>Created at</div>
-        <TimestampWithUTC timestamp={issue.timestamp} />
-        <div>by</div>
-        <div className='font-semibold'>
-          <FormattedValue value={issue.worker} />
-        </div>
-      </div>
-      <div className='text-muted-foreground break-all whitespace-pre-line italic'>
-        {issue.message || 'No details.'}
-      </div>
-    </div>
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value='details'>
+        <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
+        <AccordionContent>
+          <div className='flex flex-col gap-4'>
+            <div className='flex gap-1 text-sm'>
+              <div className='font-semibold'>Created at</div>
+              <TimestampWithUTC timestamp={issue.timestamp} />
+              <div>by</div>
+              <div className='font-semibold'>
+                <FormattedValue value={issue.worker} />
+              </div>
+            </div>
+            <div className='text-muted-foreground break-all whitespace-pre-line italic'>
+              {issue.message || 'No details.'}
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };
 
