@@ -34,8 +34,10 @@ import io.mockk.runs
 import io.mockk.spyk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Role
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -155,7 +157,7 @@ class RepositoryServiceTest : WordSpec({
 
         "throw an exception if the role does not exist" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any(), any()) } just runs
+                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -172,7 +174,7 @@ class RepositoryServiceTest : WordSpec({
 
         "add the role to the user" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any(), any()) } just runs
+                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -205,7 +207,7 @@ class RepositoryServiceTest : WordSpec({
 
         "throw an exception if the group does not exist" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any(), any()) } just runs
+                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -222,7 +224,7 @@ class RepositoryServiceTest : WordSpec({
 
         "remove the role from the user" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { removeUserRole(any(), any(), any()) } just runs
+                coEvery { removeUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
             }
 
             // Create a spy of the service to partially mock it

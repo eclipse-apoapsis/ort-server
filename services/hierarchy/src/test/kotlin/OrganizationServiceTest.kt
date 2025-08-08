@@ -31,10 +31,12 @@ import io.mockk.runs
 import io.mockk.spyk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.Role
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 
@@ -117,7 +119,7 @@ class OrganizationServiceTest : WordSpec({
 
         "throw an exception if the role does not exist" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any(), any()) } just runs
+                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -139,7 +141,7 @@ class OrganizationServiceTest : WordSpec({
 
         "add the role to the user" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any(), any()) } just runs
+                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -177,7 +179,7 @@ class OrganizationServiceTest : WordSpec({
 
         "throw an exception if the role does not exist" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any(), any()) } just runs
+                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
             }
 
             // Create a spy of the service to partially mock it
@@ -199,7 +201,7 @@ class OrganizationServiceTest : WordSpec({
 
         "remove the role from the user" {
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { removeUserRole(any(), any(), any()) } just runs
+                coEvery { removeUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
             }
 
             // Create a spy of the service to partially mock it

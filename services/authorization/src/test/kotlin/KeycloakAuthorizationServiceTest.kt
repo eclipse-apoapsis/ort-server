@@ -969,6 +969,26 @@ class KeycloakAuthorizationServiceTest : WordSpec({
                     .map { it.username.value } should containExactly("user")
             }
         }
+
+        "remove other roles for the same entity" {
+            service.addUserRole("user", OrganizationId(organizationId), OrganizationRole.READER)
+            service.addUserRole("user", OrganizationId(organizationId), OrganizationRole.WRITER)
+            service.addUserRole("user", OrganizationId(organizationId), OrganizationRole.ADMIN)
+
+            val readerGroupName =
+                keycloakGroupPrefix + OrganizationRole.READER.groupName(OrganizationId(organizationId))
+            val writerGroupName =
+                keycloakGroupPrefix + OrganizationRole.WRITER.groupName(OrganizationId(organizationId))
+            val adminGroupName =
+                keycloakGroupPrefix + OrganizationRole.ADMIN.groupName(OrganizationId(organizationId))
+
+            keycloakClient.getGroupMembers(GroupName(readerGroupName))
+                .map { it.username.value } should beEmpty()
+            keycloakClient.getGroupMembers(GroupName(writerGroupName))
+                .map { it.username.value } should beEmpty()
+            keycloakClient.getGroupMembers(GroupName(adminGroupName))
+                .map { it.username.value } should containExactly("user")
+        }
     }
 
     "removeUserRole" should {
