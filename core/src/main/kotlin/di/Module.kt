@@ -84,8 +84,8 @@ import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.ContentManagementService
-import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.ProjectService
@@ -196,7 +196,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?) = module {
 
     single<AuthorizationService> {
         val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
-        DefaultAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
+        KeycloakAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
     }
 
     single<UserService> {

@@ -105,7 +105,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
-import org.eclipse.apoapsis.ortserver.services.DefaultAuthorizationService
+import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
@@ -129,7 +129,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     var orgId = -1L
 
     beforeEach {
-        val authorizationService = DefaultAuthorizationService(
+        val authorizationService = KeycloakAuthorizationService(
             keycloakClient,
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
