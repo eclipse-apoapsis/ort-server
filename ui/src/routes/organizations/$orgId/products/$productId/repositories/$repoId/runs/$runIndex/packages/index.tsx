@@ -38,6 +38,7 @@ import {
   useRunsServiceGetApiV1RunsByRunIdPackagesSuspense,
 } from '@/api/queries/suspense';
 import { Package, RepositoryType } from '@/api/requests';
+import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { DependencyPaths } from '@/components/dependency-paths';
@@ -233,7 +234,9 @@ const PackagesComponent = () => {
         id: `${packageIdType === 'ORT_ID' ? 'identifier' : 'purl'}`,
         header: 'Package ID',
         cell: ({ getValue }) => {
-          return <div className='font-semibold'>{getValue()}</div>;
+          return (
+            <BreakableString text={getValue()} className='font-semibold' />
+          );
         },
         meta: {
           filter: {

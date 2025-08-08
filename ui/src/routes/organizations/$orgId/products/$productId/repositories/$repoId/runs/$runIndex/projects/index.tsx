@@ -38,6 +38,7 @@ import { useRunsServiceGetApiV1RunsByRunIdProjects } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { Project, RepositoryType } from '@/api/requests';
+import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
@@ -262,7 +263,9 @@ const ProjectsComponent = () => {
         id: 'projectIdentifier',
         header: 'Project ID',
         cell: ({ getValue }) => {
-          return <div className='font-semibold'>{getValue()}</div>;
+          return (
+            <BreakableString text={getValue()} className='font-semibold' />
+          );
         },
         meta: {
           filter: {

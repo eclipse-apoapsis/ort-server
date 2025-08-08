@@ -39,6 +39,7 @@ import {
   useRunsServiceGetApiV1RunsByRunIdRuleViolationsSuspense,
 } from '@/api/queries/suspense';
 import { RuleViolation, Severity } from '@/api/requests';
+import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
@@ -260,7 +261,9 @@ const RuleViolationsComponent = () => {
         id: 'packageIdentifier',
         header: 'Package ID',
         cell: ({ getValue }) => {
-          return <div className='font-semibold'>{getValue()}</div>;
+          return (
+            <BreakableString text={getValue()} className='font-semibold' />
+          );
         },
         meta: {
           filter: {

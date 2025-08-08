@@ -33,6 +33,7 @@ import z from 'zod';
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdVulnerabilities } from '@/api/queries';
 import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
 import { OrganizationVulnerability } from '@/api/requests';
+import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -240,9 +241,9 @@ const OrganizationVulnerabilitiesComponent = () => {
         {
           id: 'identifier',
           header: 'Package ID',
-          cell: ({ row }) => {
+          cell: ({ getValue }) => {
             return (
-              <div className='font-semibold'>{row.getValue('identifier')}</div>
+              <BreakableString text={getValue()} className='font-semibold' />
             );
           },
           enableColumnFilter: false,
