@@ -206,7 +206,11 @@ class KeycloakTestClient(
     }
 
     override suspend fun removeUserFromGroup(username: UserName, groupName: GroupName) {
-        TODO("Not yet implemented")
+        val user = getUser(username)
+        val group = getGroup(groupName)
+        userGroups[user.id]?.let {
+            userGroups[user.id] = it - group.id
+        }
     }
 
     override suspend fun getGroupMembers(groupName: GroupName): Set<User> {
