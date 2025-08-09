@@ -47,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.getUsername
 import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
@@ -65,9 +66,11 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
+import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.UserService
@@ -89,6 +92,7 @@ import org.koin.ktor.ext.inject
 
 @Suppress("LongMethod")
 fun Route.products() = route("products/{productId}") {
+    val authorizationService by inject<AuthorizationService>()
     val productService by inject<ProductService>()
     val pluginTemplateService by inject<PluginTemplateService>()
     val repositoryService by inject<RepositoryService>()
@@ -180,7 +184,25 @@ fun Route.products() = route("products/{productId}") {
                 val productId = call.requireIdParameter("productId")
                 val groupId = call.requireParameter("groupId")
 
-                productService.addUserToGroup(user.username, productId, groupId)
+                if (productService.getProduct(productId) == null) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse("Product with ID '$productId' not found.")
+                    )
+                    return@put
+                }
+
+                val role = try {
+                    ProductRole.valueOf(groupId.uppercase().removeSuffix("S"))
+                } catch (_: IllegalArgumentException) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse("Group with groupId '$groupId' not found.")
+                    )
+                    return@put
+                }
+
+                authorizationService.addUserRole(user.username, ProductId(productId), role)
                 call.respond(HttpStatusCode.NoContent)
             }
 
@@ -191,7 +213,25 @@ fun Route.products() = route("products/{productId}") {
                 val groupId = call.requireParameter("groupId")
                 val username = call.requireParameter("username")
 
-                productService.removeUserFromGroup(username, productId, groupId)
+                if (productService.getProduct(productId) == null) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse("Product with ID '$productId' not found.")
+                    )
+                    return@delete
+                }
+
+                val role = try {
+                    ProductRole.valueOf(groupId.uppercase().removeSuffix("S"))
+                } catch (_: IllegalArgumentException) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse("Group with groupId '$groupId' not found.")
+                    )
+                    return@delete
+                }
+
+                authorizationService.removeUserRole(username, ProductId(productId), role)
                 call.respond(HttpStatusCode.NoContent)
             }
         }

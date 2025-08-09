@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.hasPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
@@ -66,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
+import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -76,6 +78,7 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.ortrun.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
@@ -88,6 +91,7 @@ import org.koin.ktor.ext.inject
 
 @Suppress("LongMethod")
 fun Route.organizations() = route("organizations") {
+    val authorizationService by inject<AuthorizationService>()
     val organizationService by inject<OrganizationService>()
     val infrastructureServiceService by inject<InfrastructureServiceService>()
     val repositoryService by inject<RepositoryService>()
@@ -270,7 +274,25 @@ fun Route.organizations() = route("organizations") {
                     val organizationId = call.requireIdParameter("organizationId")
                     val groupId = call.requireParameter("groupId")
 
-                    organizationService.addUserToGroup(user.username, organizationId, groupId)
+                    if (organizationService.getOrganization(organizationId) == null) {
+                        call.respond(
+                            HttpStatusCode.NotFound,
+                            ErrorResponse("Organization with ID '$organizationId' not found.")
+                        )
+                        return@put
+                    }
+
+                    val role = try {
+                        OrganizationRole.valueOf(groupId.uppercase().removeSuffix("S"))
+                    } catch (_: IllegalArgumentException) {
+                        call.respond(
+                            HttpStatusCode.NotFound,
+                            ErrorResponse("Group with groupId '$groupId' not found.")
+                        )
+                        return@put
+                    }
+
+                    authorizationService.addUserRole(user.username, OrganizationId(organizationId), role)
                     call.respond(HttpStatusCode.NoContent)
                 }
 
@@ -281,7 +303,25 @@ fun Route.organizations() = route("organizations") {
                     val groupId = call.requireParameter("groupId")
                     val username = call.requireParameter("username")
 
-                    organizationService.removeUserFromGroup(username, organizationId, groupId)
+                    if (organizationService.getOrganization(organizationId) == null) {
+                        call.respond(
+                            HttpStatusCode.NotFound,
+                            ErrorResponse("Organization with ID '$organizationId' not found.")
+                        )
+                        return@delete
+                    }
+
+                    val role = try {
+                        OrganizationRole.valueOf(groupId.uppercase().removeSuffix("S"))
+                    } catch (_: IllegalArgumentException) {
+                        call.respond(
+                            HttpStatusCode.NotFound,
+                            ErrorResponse("Group with groupId '$groupId' not found.")
+                        )
+                        return@delete
+                    }
+
+                    authorizationService.removeUserRole(username, OrganizationId(organizationId), role)
                     call.respond(HttpStatusCode.NoContent)
                 }
             }

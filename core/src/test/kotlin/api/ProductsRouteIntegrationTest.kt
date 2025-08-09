@@ -91,6 +91,7 @@ import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -105,6 +106,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
+import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -122,6 +124,7 @@ import org.eclipse.apoapsis.ortserver.utils.test.Integration
 class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
+    lateinit var authorizationService: AuthorizationService
     lateinit var organizationService: OrganizationService
     lateinit var pluginService: PluginService
     lateinit var productService: ProductService
@@ -129,7 +132,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     var orgId = -1L
 
     beforeEach {
-        val authorizationService = KeycloakAuthorizationService(
+        authorizationService = KeycloakAuthorizationService(
             keycloakClient,
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
@@ -166,9 +169,6 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         description: String = productDescription,
         organizationId: Long = orgId
     ) = organizationService.createProduct(name, description, organizationId)
-
-    suspend fun addUserToGroup(username: String, organizationId: Long, groupId: String) =
-        productService.addUserToGroup(username, organizationId, groupId)
 
     "GET /products/{productId}" should {
         "return a single product" {
@@ -636,15 +636,17 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 integrationTestApplication {
                     val createdProd = createProduct()
                     val user = Username(TEST_USER.username.value)
-                    addUserToGroup(user.username, createdProd.id, groupId)
 
-                    // Check pre-condition
-                    val groupName = when (groupId) {
-                        "readers" -> ProductRole.READER.groupName(createdProd.id)
-                        "writers" -> ProductRole.WRITER.groupName(createdProd.id)
-                        "admins" -> ProductRole.ADMIN.groupName(createdProd.id)
+                    val role = when (groupId) {
+                        "readers" -> ProductRole.READER
+                        "writers" -> ProductRole.WRITER
+                        "admins" -> ProductRole.ADMIN
                         else -> error("Unknown group: $groupId")
                     }
+                    authorizationService.addUserRole(user.username, ProductId(createdProd.id), role)
+
+                    // Check pre-condition
+                    val groupName = role.groupName(createdProd.id)
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
                     val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
                     membersBefore shouldHaveSize 1
@@ -1107,9 +1109,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val productId = createProduct().id
 
-                addUserToGroup(TEST_USER.username.value, productId, "READERS")
-                addUserToGroup(SUPERUSER.username.value, productId, "WRITERS")
-                addUserToGroup(SUPERUSER.username.value, productId, "ADMINS")
+                authorizationService.addUserRole(TEST_USER.username.value, ProductId(productId), ProductRole.READER)
+                authorizationService.addUserRole(SUPERUSER.username.value, ProductId(productId), ProductRole.WRITER)
+                authorizationService.addUserRole(SUPERUSER.username.value, ProductId(productId), ProductRole.ADMIN)
 
                 val response = superuserClient.get("/api/v1/products/$productId/users")
 

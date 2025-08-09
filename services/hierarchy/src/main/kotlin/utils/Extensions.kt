@@ -19,18 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.services.utils
 
-import kotlin.enums.EnumEntries
-
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 
 import org.jetbrains.exposed.sql.SortOrder
-
-/**
- * Return a readable string representation of the given [EnumEntries].
- */
-internal fun EnumEntries<out Enum<*>>.toJoinedString(): String =
-    this.dropLast(1).joinToString(", ", transform = { "'${it.name.lowercase()}s'" })
-        .let { "$it or '${this.last().name.lowercase()}s'" }
 
 /**
  * Convert this [OrderDirection] constant to the corresponding [SortOrder].

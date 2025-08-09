@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -29,18 +28,12 @@ import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import io.mockk.spyk
 
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.Role
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
-import org.eclipse.apoapsis.ortserver.model.HierarchyId
-import org.eclipse.apoapsis.ortserver.model.Product
-import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 
 import org.jetbrains.exposed.sql.Database
@@ -124,131 +117,6 @@ class ProductServiceTest : WordSpec({
             fixtures.repositoryRepository.listForProduct(product.id).totalCount shouldBe 0
             fixtures.ortRunRepository.listForRepository(repo1.id).totalCount shouldBe 0
             fixtures.ortRunRepository.listForRepository(repo2.id).totalCount shouldBe 0
-        }
-    }
-
-    "addUserRole" should {
-        "throw an exception if the organization does not exist" {
-            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
-
-            shouldThrow<ResourceNotFoundException> {
-                service.addUserToGroup("username", 1, "readers")
-            }
-        }
-
-        "throw an exception if the role does not exist" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
-            }
-
-            // Create a spy of the service to partially mock it
-            val service = spyk(
-                ProductService(
-                    db,
-                    productRepository,
-                    repositoryRepository,
-                    ortRunRepository,
-                    authorizationService
-                )
-            ) {
-                println(getProduct(1))
-                coEvery { getProduct(any()) } returns Product(1, 1, "name")
-            }
-
-            shouldThrow<ResourceNotFoundException> {
-                service.addUserToGroup("username", 1, "viewers")
-            }
-        }
-
-        "add the role to the user" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
-            }
-
-            // Create a spy of the service to partially mock it
-            val service = spyk(
-                ProductService(
-                    db,
-                    productRepository,
-                    repositoryRepository,
-                    ortRunRepository,
-                    authorizationService
-                )
-            ) {
-                coEvery { getProduct(any()) } returns Product(1, 1, "name")
-            }
-
-            service.addUserToGroup("username", 1, "readers")
-
-            coVerify(exactly = 1) {
-                authorizationService.addUserRole(
-                    "username",
-                    ProductId(1),
-                    ProductRole.READER
-                )
-            }
-        }
-    }
-
-    "removeUserRole" should {
-        "throw an exception if the organization does not exist" {
-            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
-
-            shouldThrow<ResourceNotFoundException> {
-                service.removeUserFromGroup("username", 1, "readers")
-            }
-        }
-
-        "throw an exception if the group does not exist" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
-            }
-
-            // Create a spy of the service to partially mock it
-            val service = spyk(
-                ProductService(
-                    db,
-                    productRepository,
-                    repositoryRepository,
-                    ortRunRepository,
-                    authorizationService
-                )
-            ) {
-                coEvery { getProduct(any()) } returns Product(1, 1, "name")
-            }
-
-            shouldThrow<ResourceNotFoundException> {
-                service.removeUserFromGroup("username", 1, "viewers")
-            }
-        }
-
-        "remove the role from the user" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { removeUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
-            }
-
-            // Create a spy of the service to partially mock it
-            val service = spyk(
-                ProductService(
-                    db,
-                    productRepository,
-                    repositoryRepository,
-                    ortRunRepository,
-                    authorizationService
-                )
-            ) {
-                coEvery { getProduct(any()) } returns Product(1, 1, "name")
-            }
-
-            service.removeUserFromGroup("username", 1, "readers")
-
-            coVerify(exactly = 1) {
-                authorizationService.removeUserRole(
-                    "username",
-                    ProductId(1),
-                    ProductRole.READER
-                )
-            }
         }
     }
 

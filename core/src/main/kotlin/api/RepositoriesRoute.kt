@@ -47,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.getUsername
 import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
@@ -71,6 +72,7 @@ import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.UserService
@@ -89,6 +91,7 @@ import org.koin.ktor.ext.inject
 
 @Suppress("LongMethod")
 fun Route.repositories() = route("repositories/{repositoryId}") {
+    val authorizationService by inject<AuthorizationService>()
     val orchestratorService by inject<OrchestratorService>()
     val ortRunService by inject<OrtRunService>()
     val pluginTemplateService by inject<PluginTemplateService>()
@@ -307,7 +310,25 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val groupId = call.requireParameter("groupId")
 
-                repositoryService.addUserToGroup(user.username, repositoryId, groupId)
+                if (repositoryService.getRepository(repositoryId) == null) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse("Repository with ID '$repositoryId' not found.")
+                    )
+                    return@put
+                }
+
+                val role = try {
+                    RepositoryRole.valueOf(groupId.uppercase().removeSuffix("S"))
+                } catch (_: IllegalArgumentException) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse("Group with groupId '$groupId' not found.")
+                    )
+                    return@put
+                }
+
+                authorizationService.addUserRole(user.username, RepositoryId(repositoryId), role)
                 call.respond(HttpStatusCode.NoContent)
             }
 
@@ -318,7 +339,25 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 val groupId = call.requireParameter("groupId")
                 val username = call.requireParameter("username")
 
-                repositoryService.removeUserFromGroup(username, repositoryId, groupId)
+                if (repositoryService.getRepository(repositoryId) == null) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse("Repository with ID '$repositoryId' not found.")
+                    )
+                    return@delete
+                }
+
+                val role = try {
+                    RepositoryRole.valueOf(groupId.uppercase().removeSuffix("S"))
+                } catch (_: IllegalArgumentException) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse("Group with groupId '$groupId' not found.")
+                    )
+                    return@delete
+                }
+
+                authorizationService.removeUserRole(username, RepositoryId(repositoryId), role)
                 call.respond(HttpStatusCode.NoContent)
             }
         }
