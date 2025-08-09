@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
@@ -27,7 +26,6 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTa
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Product
-import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -36,7 +34,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
-import org.eclipse.apoapsis.ortserver.services.utils.toJoinedString
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
@@ -119,58 +116,6 @@ class ProductService(
         description: OptionalValue<String?> = OptionalValue.Absent
     ): Product = db.dbQuery {
         productRepository.update(productId, name, description)
-    }
-
-    /**
-     * Add a user to one of the three groups that grant roles and permissions on product level.
-     */
-    suspend fun addUserToGroup(
-        username: String,
-        productId: Long,
-        groupId: String
-    ) {
-        getProduct(productId)
-            ?: throw ResourceNotFoundException("Product with productId '$productId' not found.")
-
-        val productRole = try {
-            ProductRole.valueOf(groupId.uppercase().removeSuffix("S"))
-        } catch (e: IllegalArgumentException) {
-            throw ResourceNotFoundException(
-                "Group with groupId '$groupId' not found. Must be one of ${ProductRole.entries.toJoinedString()}",
-                e
-            )
-        }
-
-        // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
-        // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
-        // and just let the exception propagate.
-        authorizationService.addUserRole(username, ProductId(productId), productRole)
-    }
-
-    /**
-     * Remove a user from a group that grant roles and permissions on product level.
-     */
-    suspend fun removeUserFromGroup(
-        username: String,
-        productId: Long,
-        groupId: String
-    ) {
-        getProduct(productId)
-            ?: throw ResourceNotFoundException("Product with productId '$productId' not found.")
-
-        val productRole = try {
-            ProductRole.valueOf(groupId.uppercase().removeSuffix("S"))
-        } catch (e: IllegalArgumentException) {
-            throw ResourceNotFoundException(
-                "Group with groupId '$groupId' not found. Must be one of ${ProductRole.entries.toJoinedString()}",
-                e
-            )
-        }
-
-        // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
-        // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
-        // and just let the exception propagate.
-        authorizationService.removeUserRole(username, ProductId(productId), productRole)
     }
 
     suspend fun getRepositoryIdsForProduct(productId: Long): List<Long> = db.dbQuery {

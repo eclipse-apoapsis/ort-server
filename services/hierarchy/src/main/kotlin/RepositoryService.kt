@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
@@ -31,7 +30,6 @@ import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.Repository
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.AdvisorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
@@ -44,7 +42,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.ScannerJobRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
-import org.eclipse.apoapsis.ortserver.services.utils.toJoinedString
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
@@ -142,58 +139,6 @@ class RepositoryService(
         description: OptionalValue<String?> = OptionalValue.Absent
     ): Repository = db.dbQuery {
         repositoryRepository.update(repositoryId, type, url, description)
-    }
-
-    /**
-     * Remove a user from a group that grant roles and permissions on repository level.
-     */
-    suspend fun removeUserFromGroup(
-        username: String,
-        repositoryId: Long,
-        groupId: String
-    ) {
-        getRepository(repositoryId)
-            ?: throw ResourceNotFoundException("Repository with repositoryId '$repositoryId' not found.")
-
-        val repositoryRole = try {
-            RepositoryRole.valueOf(groupId.uppercase().removeSuffix("S"))
-        } catch (e: IllegalArgumentException) {
-            throw ResourceNotFoundException(
-                "Group with groupId '$groupId' not found. Must be one of ${RepositoryRole.entries.toJoinedString()}",
-                e
-            )
-        }
-
-        // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
-        // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
-        // and just let the exception propagate.
-        authorizationService.removeUserRole(username, RepositoryId(repositoryId), repositoryRole)
-    }
-
-    /**
-     * Add a user to one of the three groups that grant roles and permissions on repository level.
-     */
-    suspend fun addUserToGroup(
-        username: String,
-        repositoryId: Long,
-        groupId: String
-    ) {
-        getRepository(repositoryId)
-            ?: throw ResourceNotFoundException("Repository with repositoryId '$repositoryId' not found.")
-
-        val repositoryRole = try {
-            RepositoryRole.valueOf(groupId.uppercase().removeSuffix("S"))
-        } catch (e: IllegalArgumentException) {
-            throw ResourceNotFoundException(
-                "Group with groupId '$groupId' not found. Must be one of ${RepositoryRole.entries.toJoinedString()}",
-                e
-            )
-        }
-
-        // As the AuthorizationService does not distinguish between technical exceptions (e.g., cannot connect to
-        // Keycloak) and business exceptions (e.g., user not found), we can't do special exception handling here
-        // and just let the exception propagate.
-        authorizationService.addUserRole(username, RepositoryId(repositoryId), repositoryRole)
     }
 
     /**

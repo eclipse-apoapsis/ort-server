@@ -101,6 +101,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
+import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -119,6 +120,7 @@ import org.eclipse.apoapsis.ortserver.utils.test.Integration
 class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
+    lateinit var authorizationService: AuthorizationService
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
 
@@ -126,7 +128,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var secretRepository: SecretRepository
 
     beforeEach {
-        val authorizationService = KeycloakAuthorizationService(
+        authorizationService = KeycloakAuthorizationService(
             keycloakClient,
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
@@ -170,9 +172,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         name: String = secretName,
         description: String = secretDescription,
     ) = secretRepository.create(path, name, description, OrganizationId(organizationId))
-
-    suspend fun addUserToGroup(username: String, organizationId: Long, groupId: String) =
-        organizationService.addUserToGroup(username, organizationId, groupId)
 
     "GET /organizations" should {
         "return all existing organizations for the superuser" {
@@ -1232,15 +1231,17 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 integrationTestApplication {
                     val createdOrg = createOrganization()
                     val user = Username(TEST_USER.username.value)
-                    addUserToGroup(user.username, createdOrg.id, groupId)
 
-                    // Check pre-condition
-                    val groupName = when (groupId) {
-                        "readers" -> OrganizationRole.READER.groupName(createdOrg.id)
-                        "writers" -> OrganizationRole.WRITER.groupName(createdOrg.id)
-                        "admins" -> OrganizationRole.ADMIN.groupName(createdOrg.id)
+                    val role = when (groupId) {
+                        "readers" -> OrganizationRole.READER
+                        "writers" -> OrganizationRole.WRITER
+                        "admins" -> OrganizationRole.ADMIN
                         else -> error("Unknown group: $groupId")
                     }
+                    authorizationService.addUserRole(user.username, OrganizationId(createdOrg.id), role)
+
+                    // Check pre-condition
+                    val groupName = role.groupName(createdOrg.id)
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
                     val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
                     membersBefore shouldHaveSize 1
@@ -1709,9 +1710,21 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                addUserToGroup(TEST_USER.username.value, orgId, "READERS")
-                addUserToGroup(SUPERUSER.username.value, orgId, "WRITERS")
-                addUserToGroup(SUPERUSER.username.value, orgId, "ADMINS")
+                authorizationService.addUserRole(
+                    TEST_USER.username.value,
+                    OrganizationId(orgId),
+                    OrganizationRole.READER
+                )
+                authorizationService.addUserRole(
+                    SUPERUSER.username.value,
+                    OrganizationId(orgId),
+                    OrganizationRole.WRITER
+                )
+                authorizationService.addUserRole(
+                    SUPERUSER.username.value,
+                    OrganizationId(orgId),
+                    OrganizationRole.ADMIN
+                )
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/users")
 

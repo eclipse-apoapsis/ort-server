@@ -105,10 +105,10 @@ import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRe
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
-import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
@@ -125,18 +125,18 @@ import org.eclipse.apoapsis.ortserver.utils.test.Integration
 class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     tags(Integration)
 
+    lateinit var authorizationService: AuthorizationService
     lateinit var productService: ProductService
     lateinit var ortRunRepository: OrtRunRepository
     lateinit var pluginService: PluginService
     lateinit var secretRepository: SecretRepository
-    lateinit var repositoryService: RepositoryService
     lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
 
     var orgId = -1L
     var productId = -1L
 
     beforeEach {
-        val authorizationService = KeycloakAuthorizationService(
+        authorizationService = KeycloakAuthorizationService(
             keycloakClient,
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
@@ -162,19 +162,6 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             authorizationService
         )
 
-        repositoryService = RepositoryService(
-            dbExtension.db,
-            dbExtension.fixtures.ortRunRepository,
-            dbExtension.fixtures.repositoryRepository,
-            dbExtension.fixtures.analyzerJobRepository,
-            dbExtension.fixtures.advisorJobRepository,
-            dbExtension.fixtures.scannerJobRepository,
-            dbExtension.fixtures.evaluatorJobRepository,
-            dbExtension.fixtures.reporterJobRepository,
-            dbExtension.fixtures.notifierJobRepository,
-            authorizationService
-        )
-
         infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
         ortRunRepository = dbExtension.fixtures.ortRunRepository
         secretRepository = dbExtension.fixtures.secretRepository
@@ -196,9 +183,6 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         prodId: Long = productId,
         description: String? = repositoryDescription
     ) = productService.createRepository(type, url, prodId, description)
-
-    suspend fun addUserToGroup(username: String, organizationId: Long, groupId: String) =
-        repositoryService.addUserToGroup(username, organizationId, groupId)
 
     fun createJobSummaries(ortRunId: Long) = dbExtension.fixtures.createJobs(ortRunId).mapToApiSummary()
 
@@ -1518,15 +1502,17 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 integrationTestApplication {
                     val createdRepo = createRepository()
                     val user = Username(TEST_USER.username.value)
-                    addUserToGroup(user.username, createdRepo.id, groupId)
 
-                    // Check pre-condition
-                    val groupName = when (groupId) {
-                        "readers" -> RepositoryRole.READER.groupName(createdRepo.id)
-                        "writers" -> RepositoryRole.WRITER.groupName(createdRepo.id)
-                        "admins" -> RepositoryRole.ADMIN.groupName(createdRepo.id)
+                    val role = when (groupId) {
+                        "readers" -> RepositoryRole.READER
+                        "writers" -> RepositoryRole.WRITER
+                        "admins" -> RepositoryRole.ADMIN
                         else -> error("Unknown group: $groupId")
                     }
+                    authorizationService.addUserRole(user.username, RepositoryId(createdRepo.id), role)
+
+                    // Check pre-condition
+                    val groupName = role.groupName(createdRepo.id)
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
                     val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
                     membersBefore shouldHaveSize 1
@@ -1553,9 +1539,21 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                addUserToGroup(TEST_USER.username.value, repositoryId, "READERS")
-                addUserToGroup(SUPERUSER.username.value, repositoryId, "WRITERS")
-                addUserToGroup(SUPERUSER.username.value, repositoryId, "ADMINS")
+                authorizationService.addUserRole(
+                    TEST_USER.username.value,
+                    RepositoryId(repositoryId),
+                    RepositoryRole.READER
+                )
+                authorizationService.addUserRole(
+                    SUPERUSER.username.value,
+                    RepositoryId(repositoryId),
+                    RepositoryRole.WRITER
+                )
+                authorizationService.addUserRole(
+                    SUPERUSER.username.value,
+                    RepositoryId(repositoryId),
+                    RepositoryRole.ADMIN
+                )
 
                 val response = superuserClient.get("/api/v1/repositories/$repositoryId/users")
 

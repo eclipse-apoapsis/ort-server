@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -31,17 +30,10 @@ import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import io.mockk.spyk
 
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.Role
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
-import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.JobStatus
-import org.eclipse.apoapsis.ortserver.model.Repository
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
-import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 import org.jetbrains.exposed.sql.Database
@@ -143,106 +135,6 @@ class RepositoryServiceTest : WordSpec({
             val service = createService()
 
             service.getJobs(fixtures.repository.id, -1L) should beNull()
-        }
-    }
-
-    "addUserRole" should {
-        "throw an exception if the organization does not exist" {
-            val service = createService()
-
-            shouldThrow<ResourceNotFoundException> {
-                service.addUserToGroup("username", 1, "readers")
-            }
-        }
-
-        "throw an exception if the role does not exist" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
-            }
-
-            // Create a spy of the service to partially mock it
-            val service = spyk(
-                createService(authorizationService)
-            ) {
-                coEvery { getRepository(any()) } returns Repository(1, 1, 1, RepositoryType.GIT, "url")
-            }
-
-            shouldThrow<ResourceNotFoundException> {
-                service.addUserToGroup("username", 1, "viewers")
-            }
-        }
-
-        "add the role to the user" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
-            }
-
-            // Create a spy of the service to partially mock it
-            val service = spyk(
-                createService(authorizationService)
-            ) {
-                coEvery { getRepository(any()) } returns Repository(1, 1, 1, RepositoryType.GIT, "url")
-            }
-
-            service.addUserToGroup("username", 1, "readers")
-
-            coVerify(exactly = 1) {
-                authorizationService.addUserRole(
-                    "username",
-                    RepositoryId(1),
-                    RepositoryRole.READER
-                )
-            }
-        }
-    }
-
-    "removeUserRole" should {
-        "throw an exception if the organization does not exist" {
-            val service = createService()
-
-            shouldThrow<ResourceNotFoundException> {
-                service.removeUserFromGroup("username", 1, "readers")
-            }
-        }
-
-        "throw an exception if the group does not exist" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { addUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
-            }
-
-            // Create a spy of the service to partially mock it
-            val service = spyk(
-                createService(authorizationService)
-            ) {
-                coEvery { getRepository(any()) } returns Repository(1, 1, 1, RepositoryType.GIT, "url")
-            }
-
-            shouldThrow<ResourceNotFoundException> {
-                service.removeUserFromGroup("username", 1, "viewers")
-            }
-        }
-
-        "remove the role from the user" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { removeUserRole(any(), any() as HierarchyId, any() as Role<*, HierarchyId>) } just runs
-            }
-
-            // Create a spy of the service to partially mock it
-            val service = spyk(
-                createService(authorizationService)
-            ) {
-                coEvery { getRepository(any()) } returns Repository(1, 1, 1, RepositoryType.GIT, "url")
-            }
-
-            service.removeUserFromGroup("username", 1, "readers")
-
-            coVerify(exactly = 1) {
-                authorizationService.removeUserRole(
-                    "username",
-                    RepositoryId(1),
-                    RepositoryRole.READER
-                )
-            }
         }
     }
 
