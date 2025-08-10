@@ -47,3 +47,7 @@ fun ApplicationCall.requireIdParameter(name: String): Long {
 
     return if (id != null && id > 0) id else throw ParameterConversionException(name, "ID")
 }
+
+inline fun <reified T : Enum<T>> ApplicationCall.requireEnumParameter(name: String): T =
+    runCatching { enumValueOf<T>(requireParameter(name)) }
+        .getOrElse { throw ParameterConversionException(name, "Enum<${T::class.simpleName}>") }

@@ -26,7 +26,7 @@ import { z } from 'zod';
 import {
   useAdminServicePostApiV1AdminUsers,
   useOrganizationsServiceGetApiV1Organizations,
-  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole,
 } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field';
@@ -104,33 +104,30 @@ const CreateUser = () => {
   const {
     mutateAsync: addUserToReaders,
     isPending: isAddUserToReadersPending,
-  } =
-    useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId(
-      {
-        onSuccess(_, variables) {
-          const organizationName = organizations?.data.find(
-            (org) => org.id === variables.organizationId
-          )?.name;
+  } = useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole({
+    onSuccess(_, variables) {
+      const organizationName = organizations?.data.find(
+        (org) => org.id === variables.organizationId
+      )?.name;
 
-          toast.info('Add Access Rights', {
-            description: `The "${variables.requestBody?.username}" user was created and added to the "${organizationName}" organization as part of the READERS group.`,
-          });
-          navigate({
-            to: '/admin/users',
-          });
+      toast.info('Add Access Rights', {
+        description: `The "${variables.requestBody?.username}" user was created and assigned the READER role for the "${organizationName}" organization.`,
+      });
+      navigate({
+        to: '/admin/users',
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -152,12 +149,12 @@ const CreateUser = () => {
         temporary: values.temporary,
       },
     });
-    // Add the user to the READERS group for each selected organization.
+    // Add the READER role to the user for each selected organization.
     await Promise.all(
       values.organizations.map((orgId) =>
         addUserToReaders({
           organizationId: Number.parseInt(orgId),
-          groupId: 'readers',
+          role: 'READER',
           requestBody: {
             username: values.username,
           },

@@ -27,10 +27,10 @@ import {
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
 import {
-  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId,
+  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdRolesByRole,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsers,
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-  useRepositoriesServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
+  useRepositoriesServicePutApiV1RepositoriesByRepositoryIdRolesByRole,
 } from '@/api/queries';
 import { ApiError, UserWithGroups } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -43,6 +43,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
+import { mapUserGroupToRepositoryRole } from '@/helpers/role-helpers.ts';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast.ts';
 
@@ -104,57 +105,53 @@ const columns = [
       const repoId = Number.parseInt(params.repoId);
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
-        useRepositoriesServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId(
-          {
-            onSuccess(_response, parameters) {
-              queryClient.invalidateQueries({
-                queryKey: [
-                  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-                ],
-              });
-              toast.info('Join Group', {
-                description: `User "${row.original.user.username}" joined group ${parameters.groupId} successfully.`,
-              });
-            },
-            onError(error: ApiError) {
-              toast.error(error.message, {
-                description: <ToastError error={error} />,
-                duration: Infinity,
-                cancel: {
-                  label: 'Dismiss',
-                  onClick: () => {},
-                },
-              });
-            },
-          }
-        );
+        useRepositoriesServicePutApiV1RepositoriesByRepositoryIdRolesByRole({
+          onSuccess(_response, parameters) {
+            queryClient.invalidateQueries({
+              queryKey: [
+                useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
+              ],
+            });
+            toast.info('Join Group', {
+              description: `User "${row.original.user.username}" joined group ${parameters.role} successfully.`,
+            });
+          },
+          onError(error: ApiError) {
+            toast.error(error.message, {
+              description: <ToastError error={error} />,
+              duration: Infinity,
+              cancel: {
+                label: 'Dismiss',
+                onClick: () => {},
+              },
+            });
+          },
+        });
 
       const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-        useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdGroupsByGroupId(
-          {
-            onSuccess(_response, parameters) {
-              // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
-              toast.info('Leave Group', {
-                description: `User "${row.original.user.username}" left group ${parameters.groupId} successfully.`,
-              });
-            },
-            onError(error: ApiError) {
-              toast.error(error.message, {
-                description: <ToastError error={error} />,
-                duration: Infinity,
-                cancel: {
-                  label: 'Dismiss',
-                  onClick: () => {},
-                },
-              });
-            },
-          }
-        );
+        useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdRolesByRole({
+          onSuccess(_response, parameters) {
+            // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
+            toast.info('Leave Group', {
+              description: `User "${row.original.user.username}" left group ${parameters.role} successfully.`,
+            });
+          },
+          onError(error: ApiError) {
+            toast.error(error.message, {
+              description: <ToastError error={error} />,
+              duration: Infinity,
+              cancel: {
+                label: 'Dismiss',
+                onClick: () => {},
+              },
+            });
+          },
+        });
 
       async function joinAdminsGroup() {
         await joinGroup({
           repositoryId: repoId,
-          groupId: 'ADMINS',
+          role: 'ADMIN',
           requestBody: {
             username: row.original.user.username,
           },
@@ -164,7 +161,7 @@ const columns = [
       async function joinWritersGroup() {
         await joinGroup({
           repositoryId: repoId,
-          groupId: 'WRITERS',
+          role: 'WRITER',
           requestBody: {
             username: row.original.user.username,
           },
@@ -174,7 +171,7 @@ const columns = [
       async function joinReadersGroup() {
         await joinGroup({
           repositoryId: repoId,
-          groupId: 'READERS',
+          role: 'READER',
           requestBody: {
             username: row.original.user.username,
           },
@@ -189,7 +186,7 @@ const columns = [
             row.original.groups.map((group) =>
               leaveGroup({
                 repositoryId: repoId,
-                groupId: group,
+                role: mapUserGroupToRepositoryRole(group),
                 username: row.original.user.username,
               })
             )

@@ -41,19 +41,20 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.getFullName
 import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.getUsername
 import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
+import org.eclipse.apoapsis.ortserver.components.authorization.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromProductGroup
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductRoleFromUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatisticsByProductId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoriesByProductId
@@ -62,7 +63,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepos
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProductById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRunsForProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
-import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToProductGroup
+import org.eclipse.apoapsis.ortserver.core.apiDocs.putProductRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
@@ -85,6 +86,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
@@ -173,31 +175,19 @@ fun Route.products() = route("products/{productId}") {
         }
     }
 
-    route("groups") {
-        // Instead of identifying arbitrary groups with a groupId, there are only 3 groups with fixed
-        // groupId "readers", "writers" or "admins".
-        route("{groupId}") {
-            put(putUserToProductGroup) {
+    route("roles") {
+        route("{role}") {
+            put(putProductRoleToUser) {
                 requirePermission(ProductPermission.MANAGE_GROUPS)
 
                 val user = call.receive<Username>()
                 val productId = call.requireIdParameter("productId")
-                val groupId = call.requireParameter("groupId")
+                val role = call.requireEnumParameter<ProductRole>("role").mapToModel()
 
                 if (productService.getProduct(productId) == null) {
                     call.respond(
                         HttpStatusCode.NotFound,
                         ErrorResponse("Product with ID '$productId' not found.")
-                    )
-                    return@put
-                }
-
-                val role = try {
-                    ProductRole.valueOf(groupId.uppercase().removeSuffix("S"))
-                } catch (_: IllegalArgumentException) {
-                    call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Group with groupId '$groupId' not found.")
                     )
                     return@put
                 }
@@ -206,27 +196,17 @@ fun Route.products() = route("products/{productId}") {
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            delete(deleteUserFromProductGroup) {
+            delete(deleteProductRoleFromUser) {
                 requirePermission(ProductPermission.MANAGE_GROUPS)
 
                 val productId = call.requireIdParameter("productId")
-                val groupId = call.requireParameter("groupId")
+                val role = call.requireEnumParameter<ProductRole>("role").mapToModel()
                 val username = call.requireParameter("username")
 
                 if (productService.getProduct(productId) == null) {
                     call.respond(
                         HttpStatusCode.NotFound,
                         ErrorResponse("Product with ID '$productId' not found.")
-                    )
-                    return@delete
-                }
-
-                val role = try {
-                    ProductRole.valueOf(groupId.uppercase().removeSuffix("S"))
-                } catch (_: IllegalArgumentException) {
-                    call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Group with groupId '$groupId' not found.")
                     )
                     return@delete
                 }

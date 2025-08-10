@@ -26,7 +26,7 @@ import { z } from 'zod';
 
 import {
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole,
 } from '@/api/queries';
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
@@ -55,6 +55,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { mapGroupSchemaToOrganizationRole } from '@/helpers/role-helpers.ts';
 import { toast } from '@/lib/toast';
 import { groupsSchema } from '@/schemas';
 import { OrganizationUsersTable } from './-components/organization-users-table';
@@ -83,35 +84,33 @@ const ManageUsers = () => {
   const queryClient = useQueryClient();
 
   const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId(
-      {
-        onSuccess() {
-          queryClient.invalidateQueries({
-            queryKey: [
-              useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-            ],
-          });
-          toast.info('Add User', {
-            description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
-          });
-        },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+    useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole({
+      onSuccess() {
+        queryClient.invalidateQueries({
+          queryKey: [
+            useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
+          ],
+        });
+        toast.info('Add User', {
+          description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   async function onAddUser(values: z.infer<typeof formSchema>) {
     await addUser({
       organizationId: Number.parseInt(params.orgId),
-      groupId: values.groupId,
+      role: mapGroupSchemaToOrganizationRole(values.groupId),
       requestBody: {
         username: values.username,
       },

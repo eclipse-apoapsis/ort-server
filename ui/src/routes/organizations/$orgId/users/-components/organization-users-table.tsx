@@ -27,10 +27,10 @@ import {
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
 import {
-  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdRolesByRole,
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsers,
   useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId,
+  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole,
 } from '@/api/queries';
 import { ApiError, UserWithGroups } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -43,6 +43,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
+import { mapUserGroupToOrganizationRole } from '@/helpers/role-helpers.ts';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast.ts';
 
@@ -104,7 +105,7 @@ const columns = [
       const organizationId = Number.parseInt(params.orgId);
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
-        useOrganizationsServicePutApiV1OrganizationsByOrganizationIdGroupsByGroupId(
+        useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole(
           {
             onSuccess(_response, parameters) {
               queryClient.invalidateQueries({
@@ -113,7 +114,7 @@ const columns = [
                 ],
               });
               toast.info('Join Group', {
-                description: `User "${row.original.user.username}" joined group ${parameters.groupId} successfully.`,
+                description: `User "${row.original.user.username}" joined group ${parameters.role} successfully.`,
               });
             },
             onError(error: ApiError) {
@@ -130,12 +131,12 @@ const columns = [
         );
 
       const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-        useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdGroupsByGroupId(
+        useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdRolesByRole(
           {
             onSuccess(_response, parameters) {
               // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
               toast.info('Leave Group', {
-                description: `User "${row.original.user.username}" left group ${parameters.groupId} successfully.`,
+                description: `User "${row.original.user.username}" left group ${parameters.role} successfully.`,
               });
             },
             onError(error: ApiError) {
@@ -154,7 +155,7 @@ const columns = [
       async function joinAdminsGroup() {
         await joinGroup({
           organizationId: organizationId,
-          groupId: 'ADMINS',
+          role: 'ADMIN',
           requestBody: {
             username: row.original.user.username,
           },
@@ -164,7 +165,7 @@ const columns = [
       async function joinWritersGroup() {
         await joinGroup({
           organizationId: organizationId,
-          groupId: 'WRITERS',
+          role: 'WRITER',
           requestBody: {
             username: row.original.user.username,
           },
@@ -174,7 +175,7 @@ const columns = [
       async function joinReadersGroup() {
         await joinGroup({
           organizationId: organizationId,
-          groupId: 'READERS',
+          role: 'READER',
           requestBody: {
             username: row.original.user.username,
           },
@@ -189,7 +190,7 @@ const columns = [
             row.original.groups.map((group) =>
               leaveGroup({
                 organizationId: organizationId,
-                groupId: group,
+                role: mapUserGroupToOrganizationRole(group),
                 username: row.original.user.username,
               })
             )

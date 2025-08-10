@@ -41,13 +41,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.getFullName
 import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.getUsername
 import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
+import org.eclipse.apoapsis.ortserver.components.authorization.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
@@ -55,7 +56,7 @@ import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromRepositoryGroup
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryRoleFromUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByRepositoryId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunsByRepositoryId
@@ -65,7 +66,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.patchInfrastructureServiceFor
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postInfrastructureServiceForRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
-import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToRepositoryGroup
+import org.eclipse.apoapsis.ortserver.core.apiDocs.putRepositoryRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
@@ -84,6 +85,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
@@ -299,31 +301,19 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
     }
 
-    route("groups") {
-        // Instead of identifying arbitrary groups with a groupId, there are only 3 groups with fixed
-        // groupId "readers", "writers" or "admins".
-        route("{groupId}") {
-            put(putUserToRepositoryGroup) {
+    route("roles") {
+        route("{role}") {
+            put(putRepositoryRoleToUser) {
                 requirePermission(RepositoryPermission.MANAGE_GROUPS)
 
                 val user = call.receive<Username>()
                 val repositoryId = call.requireIdParameter("repositoryId")
-                val groupId = call.requireParameter("groupId")
+                val role = call.requireEnumParameter<RepositoryRole>("role").mapToModel()
 
                 if (repositoryService.getRepository(repositoryId) == null) {
                     call.respond(
                         HttpStatusCode.NotFound,
                         ErrorResponse("Repository with ID '$repositoryId' not found.")
-                    )
-                    return@put
-                }
-
-                val role = try {
-                    RepositoryRole.valueOf(groupId.uppercase().removeSuffix("S"))
-                } catch (_: IllegalArgumentException) {
-                    call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Group with groupId '$groupId' not found.")
                     )
                     return@put
                 }
@@ -332,27 +322,17 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            delete(deleteUserFromRepositoryGroup) {
+            delete(deleteRepositoryRoleFromUser) {
                 requirePermission(RepositoryPermission.MANAGE_GROUPS)
 
                 val repositoryId = call.requireIdParameter("repositoryId")
-                val groupId = call.requireParameter("groupId")
+                val role = call.requireEnumParameter<RepositoryRole>("role").mapToModel()
                 val username = call.requireParameter("username")
 
                 if (repositoryService.getRepository(repositoryId) == null) {
                     call.respond(
                         HttpStatusCode.NotFound,
                         ErrorResponse("Repository with ID '$repositoryId' not found.")
-                    )
-                    return@delete
-                }
-
-                val role = try {
-                    RepositoryRole.valueOf(groupId.uppercase().removeSuffix("S"))
-                } catch (_: IllegalArgumentException) {
-                    call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Group with groupId '$groupId' not found.")
                     )
                     return@delete
                 }

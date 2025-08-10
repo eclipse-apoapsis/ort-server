@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
@@ -214,17 +215,19 @@ val postRepository: RouteConfig.() -> Unit = {
     }
 }
 
-val putUserToProductGroup: RouteConfig.() -> Unit = {
-    operationId = "PutUserToGroupProduct"
-    summary = "Add a user to a group on product level"
+val putProductRoleToUser: RouteConfig.() -> Unit = {
+    operationId = "PutProductRoleToUser"
+    summary = "Assign a product role to a user"
+    description = "Assign a product role to a user. If the user already has another role for the same product, it " +
+            "will be replaced with the new one."
     tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
             description = "The product's ID."
         }
-        pathParameter<String>("groupId") {
-            description = "One of 'readers', 'writers' or 'admins'."
+        pathParameter<ProductRole>("role") {
+            description = "The role to assign to the user."
         }
 
         jsonBody<Username> {
@@ -236,40 +239,40 @@ val putUserToProductGroup: RouteConfig.() -> Unit = {
 
     response {
         HttpStatusCode.NoContent to {
-            description = "Successfully added the user to the group."
+            description = "Successfully added the role to the user."
         }
 
         HttpStatusCode.NotFound to {
-            description = "Product or group not found."
+            description = "Product or role not found."
         }
     }
 }
 
-val deleteUserFromProductGroup: RouteConfig.() -> Unit = {
-    operationId = "DeleteUserFromGroupProduct"
-    summary = "Remove a user from a group on product level"
+val deleteProductRoleFromUser: RouteConfig.() -> Unit = {
+    operationId = "DeleteProductRoleFromUser"
+    summary = "Remove a product role from a user"
     tags = listOf("Products")
 
     request {
         pathParameter<Long>("productId") {
             description = "The product's ID."
         }
-        pathParameter<String>("groupId") {
-            description = "One of 'readers', 'writers' or 'admins'."
+        pathParameter<ProductRole>("role") {
+            description = "The role to remove from the user."
         }
 
         queryParameter<String>("username") {
-            description = "The username of the user to remove from the group on product level."
+            description = "The username of the user."
         }
     }
 
     response {
         HttpStatusCode.NoContent to {
-            description = "Successfully removed the user from the group."
+            description = "Successfully removed the role from the user."
         }
 
         HttpStatusCode.NotFound to {
-            description = "Product or group not found."
+            description = "Product or role not found."
         }
     }
 }

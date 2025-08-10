@@ -26,7 +26,7 @@ import { z } from 'zod';
 
 import {
   useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-  useRepositoriesServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId,
+  useRepositoriesServicePutApiV1RepositoriesByRepositoryIdRolesByRole,
 } from '@/api/queries';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
@@ -55,6 +55,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { mapGroupSchemaToRepositoryRole } from '@/helpers/role-helpers.ts';
 import { toast } from '@/lib/toast';
 import { groupsSchema } from '@/schemas';
 import { RepositoryUsersTable } from './-components/repository-users-table';
@@ -83,7 +84,7 @@ const ManageUsers = () => {
   const queryClient = useQueryClient();
 
   const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useRepositoriesServicePutApiV1RepositoriesByRepositoryIdGroupsByGroupId({
+    useRepositoriesServicePutApiV1RepositoriesByRepositoryIdRolesByRole({
       onSuccess() {
         queryClient.invalidateQueries({
           queryKey: [
@@ -109,7 +110,7 @@ const ManageUsers = () => {
   async function onAddUser(values: z.infer<typeof formSchema>) {
     await addUser({
       repositoryId: Number.parseInt(params.repoId),
-      groupId: values.groupId,
+      role: mapGroupSchemaToRepositoryRole(values.groupId),
       requestBody: {
         username: values.username,
       },

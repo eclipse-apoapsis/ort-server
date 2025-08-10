@@ -18,30 +18,26 @@
  */
 
 plugins {
-    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-kotlin-multiplatform-conventions")
     id("ort-server-publication-conventions")
+
+    // Apply third-party plugins.
+    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver.components.authorization"
 
-dependencies {
-    api(projects.clients.keycloak)
-    api(projects.components.authorization.apiModel)
+kotlin {
+    linuxX64()
+    macosArm64()
+    macosX64()
+    mingwX64()
 
-    api(ktorLibs.server.auth)
-    api(ktorLibs.server.auth.jwt)
-    api(ktorLibs.server.core)
-
-    implementation(projects.model)
-    implementation(projects.shared.ktorUtils)
-
-    implementation(libs.aedile)
-
-    testImplementation(testFixtures(projects.clients.keycloak))
-
-    testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestAssertionsKtor)
-    testImplementation(libs.kotestRunnerJunit5)
-    testImplementation(libs.mockk)
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation(libs.kotlinxSerializationJson)
+            }
+        }
+    }
 }

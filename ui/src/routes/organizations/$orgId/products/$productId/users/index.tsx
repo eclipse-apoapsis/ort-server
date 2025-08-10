@@ -26,7 +26,7 @@ import { z } from 'zod';
 
 import {
   useProductsServiceGetApiV1ProductsByProductIdUsersKey,
-  useProductsServicePutApiV1ProductsByProductIdGroupsByGroupId,
+  useProductsServicePutApiV1ProductsByProductIdRolesByRole,
 } from '@/api/queries';
 import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
@@ -55,6 +55,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { mapGroupSchemaToProductRole } from '@/helpers/role-helpers.ts';
 import { toast } from '@/lib/toast';
 import { groupsSchema } from '@/schemas';
 import { ProductUsersTable } from './-components/product-users-table';
@@ -83,7 +84,7 @@ const ManageUsers = () => {
   const queryClient = useQueryClient();
 
   const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useProductsServicePutApiV1ProductsByProductIdGroupsByGroupId({
+    useProductsServicePutApiV1ProductsByProductIdRolesByRole({
       onSuccess() {
         queryClient.invalidateQueries({
           queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
@@ -107,7 +108,7 @@ const ManageUsers = () => {
   async function onAddUser(values: z.infer<typeof formSchema>) {
     await addUser({
       productId: Number.parseInt(params.productId),
-      groupId: values.groupId,
+      role: mapGroupSchemaToProductRole(values.groupId),
       requestBody: {
         username: values.username,
       },

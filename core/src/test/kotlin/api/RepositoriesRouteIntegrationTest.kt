@@ -88,6 +88,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWith
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
+import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole as ApiRepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
@@ -1321,7 +1323,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "PUT/DELETE /repositories/{repositoryId}/groups/{groupId}" should {
+    "PUT/DELETE /repositories/{repositoryId}/roles/{role}" should {
         forAll(
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
@@ -1334,11 +1336,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {
-                        HttpMethod.Put -> put("/api/v1/repositories/${createdRepo.id}/groups/readers") {
+                        HttpMethod.Put -> put("/api/v1/repositories/${createdRepo.id}/roles/READER") {
                             setBody(user)
                         }
                         HttpMethod.Delete -> delete(
-                            "/api/v1/repositories/${createdRepo.id}/groups/readers?username=${user.username}"
+                            "/api/v1/repositories/${createdRepo.id}/roles/READER?username=${user.username}"
                         )
                         else -> error("Unsupported method: $method")
                     }
@@ -1356,12 +1358,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     val user = Username("non-existing-username")
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/repositories/${createdRepo.id}/groups/readers"
+                            "/api/v1/repositories/${createdRepo.id}/roles/READER"
                         ) {
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/repositories/${createdRepo.id}/groups/readers?username=${user.username}"
+                            "/api/v1/repositories/${createdRepo.id}/roles/READER?username=${user.username}"
                         )
                         else -> error("Unsupported method: $method")
                     }
@@ -1378,18 +1380,18 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
         ) { method ->
-            "respond with 'NotFound' if the organization does not exist for method '${method.value}'" {
+            "respond with 'NotFound' if the repository does not exist for method '${method.value}'" {
                 integrationTestApplication {
                     val user = Username(TEST_USER.username.value)
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/repositories/999999/groups/readers"
+                            "/api/v1/repositories/999999/roles/READER"
                         ) {
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/repositories/999999/groups/readers?username=${user.username}"
+                            "/api/v1/repositories/999999/roles/READER?username=${user.username}"
                         )
                         else -> error("Unsupported method: $method")
                     }
@@ -1397,7 +1399,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NotFound
 
                     val body = response.body<ErrorResponse>()
-                    body.message shouldBe "Resource not found."
+                    body.message shouldContain "not found"
                 }
             }
         }
@@ -1412,7 +1414,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/repositories/${createdRepo.id}/groups/readers"
+                            "/api/v1/repositories/${createdRepo.id}/roles/READER"
                         ) {
                             setBody(org)
                         }
@@ -1428,59 +1430,47 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
         ) { method ->
-            "respond with 'NotFound' if the group does not exist for method '${method.value}'" {
+            "respond with 'BadRequest' if the role does not exist for method '${method.value}'" {
                 integrationTestApplication {
                     val createdRepo = createRepository()
                     val user = Username(TEST_USER.username.value)
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/repositories/${createdRepo.id}/groups/non-existing-group"
+                            "/api/v1/repositories/${createdRepo.id}/roles/non-existing-role"
                         ) {
                             setBody(user)
                         }
 
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/repositories/${createdRepo.id}/groups/non-existing-group?username=${user.username}"
+                            "/api/v1/repositories/${createdRepo.id}/roles/non-existing-role?username=${user.username}"
                         )
 
                         else -> error("Unsupported method: $method")
                     }
 
-                    response shouldHaveStatus HttpStatusCode.NotFound
-
-                    val body = response.body<ErrorResponse>()
-                    body.message shouldBe "Resource not found."
+                    response shouldHaveStatus HttpStatusCode.BadRequest
                 }
             }
         }
     }
 
-    "PUT /repositories/{orgId}/groups/{groupId}" should {
-        forAll(
-            row("readers"),
-            row("writers"),
-            row("admins")
-        ) { groupId ->
-            "add a user to the '$groupId' group" {
+    "PUT /repositories/{orgId}/roles/{role}" should {
+        enumValues<ApiRepositoryRole>().forAll { role ->
+            "assign the '$role' role to the user" {
                 integrationTestApplication {
                     val createdRepo = createRepository()
                     val user = Username(TEST_USER.username.value)
 
                     val response = superuserClient.put(
-                        "/api/v1/repositories/${createdRepo.id}/groups/$groupId"
+                        "/api/v1/repositories/${createdRepo.id}/roles/${role.name}"
                     ) {
                         setBody(user)
                     }
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 
-                    val groupName = when (groupId) {
-                        "readers" -> RepositoryRole.READER.groupName(createdRepo.id)
-                        "writers" -> RepositoryRole.WRITER.groupName(createdRepo.id)
-                        "admins" -> RepositoryRole.ADMIN.groupName(createdRepo.id)
-                        else -> error("Unknown group: $groupId")
-                    }
+                    val groupName = role.mapToModel().groupName(createdRepo.id)
                     val group = keycloakClient.getGroup(GroupName(groupName))
                     group.shouldNotBeNull()
 
@@ -1492,34 +1482,24 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "DELETE /repositories/{orgId}/groups/{groupId}" should {
-        forAll(
-            row("readers"),
-            row("writers"),
-            row("admins")
-        ) { groupId ->
-            "remove a user from the '$groupId' group" {
+    "DELETE /repositories/{orgId}/roles/{role}" should {
+        enumValues<ApiRepositoryRole>().forAll { role ->
+            "remove the '$role' role from the user" {
                 integrationTestApplication {
                     val createdRepo = createRepository()
                     val user = Username(TEST_USER.username.value)
 
-                    val role = when (groupId) {
-                        "readers" -> RepositoryRole.READER
-                        "writers" -> RepositoryRole.WRITER
-                        "admins" -> RepositoryRole.ADMIN
-                        else -> error("Unknown group: $groupId")
-                    }
-                    authorizationService.addUserRole(user.username, RepositoryId(createdRepo.id), role)
+                    authorizationService.addUserRole(user.username, RepositoryId(createdRepo.id), role.mapToModel())
 
                     // Check pre-condition
-                    val groupName = role.groupName(createdRepo.id)
+                    val groupName = role.mapToModel().groupName(createdRepo.id)
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
                     val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
                     membersBefore shouldHaveSize 1
                     membersBefore.map { it.username } shouldContain TEST_USER.username
 
                     val response = superuserClient.delete(
-                        "/api/v1/repositories/${createdRepo.id}/groups/$groupId?username=${user.username}"
+                        "/api/v1/repositories/${createdRepo.id}/roles/${role.name}?username=${user.username}"
                     )
 
                     response shouldHaveStatus HttpStatusCode.NoContent

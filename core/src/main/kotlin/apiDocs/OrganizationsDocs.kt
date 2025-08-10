@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
+import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
@@ -399,17 +400,19 @@ val deleteInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit 
     }
 }
 
-val putUserToOrganizationGroup: RouteConfig.() -> Unit = {
-    operationId = "PutUserToGroupOrganization"
-    summary = "Add a user to a group on organization level"
+val putOrganizationRoleToUser: RouteConfig.() -> Unit = {
+    operationId = "PutOrganizationRoleToUser"
+    summary = "Assign an organization role to a user"
+    description = "Assign an organization role to a user. If the user already has another role for the same " +
+            "organization, it will be replaced with the new one."
     tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
             description = "The organization's ID."
         }
-        pathParameter<String>("groupId") {
-            description = "One of 'readers', 'writers' or 'admins'."
+        pathParameter<OrganizationRole>("role") {
+            description = "The role to assign to the user."
         }
 
         jsonBody<Username> {
@@ -421,40 +424,40 @@ val putUserToOrganizationGroup: RouteConfig.() -> Unit = {
 
     response {
         HttpStatusCode.NoContent to {
-            description = "Successfully added the user to the group."
+            description = "Successfully added the role to the user."
         }
 
         HttpStatusCode.NotFound to {
-            description = "Organization or group not found."
+            description = "Organization or role not found."
         }
     }
 }
 
-val deleteUserFromOrganizationGroup: RouteConfig.() -> Unit = {
-    operationId = "DeleteUserFromGroupOrganization"
-    summary = "Remove a user from a group on organization level"
+val deleteOrganizationRoleFromUser: RouteConfig.() -> Unit = {
+    operationId = "DeleteOrganizationRoleFromUser"
+    summary = "Remove an organization role from a user"
     tags = listOf("Organizations")
 
     request {
         pathParameter<Long>("organizationId") {
             description = "The organization's ID."
         }
-        pathParameter<String>("groupId") {
-            description = "One of 'readers', 'writers' or 'admins'."
+        pathParameter<String>("role") {
+            description = "The role to remove from the user."
         }
 
         queryParameter<String>("username") {
-            description = "The username of the user to remove from the group on organization level."
+            description = "The username of the user."
         }
     }
 
     response {
         HttpStatusCode.NoContent to {
-            description = "Successfully removed the user from the group."
+            description = "Successfully removed the role from the user."
         }
 
         HttpStatusCode.NotFound to {
-            description = "Organization or group not found."
+            description = "Organization or role not found."
         }
     }
 }
