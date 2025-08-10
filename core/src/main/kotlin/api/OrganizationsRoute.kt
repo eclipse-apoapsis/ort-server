@@ -40,16 +40,17 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.hasPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserFromOrganizationGroup
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationRoleFromUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationProducts
@@ -62,7 +63,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postInfrastructureServiceForOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
-import org.eclipse.apoapsis.ortserver.core.apiDocs.putUserToOrganizationGroup
+import org.eclipse.apoapsis.ortserver.core.apiDocs.putOrganizationRoleToUser
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
@@ -84,6 +85,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.paginate
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
@@ -263,31 +265,19 @@ fun Route.organizations() = route("organizations") {
             }
         }
 
-        route("groups") {
-            // Instead of identifying arbitrary groups with a groupId, there are only 3 groups with fixed
-            // groupId "readers", "writers" or "admins".
-            route("{groupId}") {
-                put(putUserToOrganizationGroup) {
+        route("roles") {
+            route("{role}") {
+                put(putOrganizationRoleToUser) {
                     requirePermission(OrganizationPermission.MANAGE_GROUPS)
 
                     val user = call.receive<Username>()
                     val organizationId = call.requireIdParameter("organizationId")
-                    val groupId = call.requireParameter("groupId")
+                    val role = call.requireEnumParameter<OrganizationRole>("role").mapToModel()
 
                     if (organizationService.getOrganization(organizationId) == null) {
                         call.respond(
                             HttpStatusCode.NotFound,
                             ErrorResponse("Organization with ID '$organizationId' not found.")
-                        )
-                        return@put
-                    }
-
-                    val role = try {
-                        OrganizationRole.valueOf(groupId.uppercase().removeSuffix("S"))
-                    } catch (_: IllegalArgumentException) {
-                        call.respond(
-                            HttpStatusCode.NotFound,
-                            ErrorResponse("Group with groupId '$groupId' not found.")
                         )
                         return@put
                     }
@@ -296,27 +286,17 @@ fun Route.organizations() = route("organizations") {
                     call.respond(HttpStatusCode.NoContent)
                 }
 
-                delete(deleteUserFromOrganizationGroup) {
+                delete(deleteOrganizationRoleFromUser) {
                     requirePermission(OrganizationPermission.MANAGE_GROUPS)
 
                     val organizationId = call.requireIdParameter("organizationId")
-                    val groupId = call.requireParameter("groupId")
+                    val role = call.requireEnumParameter<OrganizationRole>("role").mapToModel()
                     val username = call.requireParameter("username")
 
                     if (organizationService.getOrganization(organizationId) == null) {
                         call.respond(
                             HttpStatusCode.NotFound,
                             ErrorResponse("Organization with ID '$organizationId' not found.")
-                        )
-                        return@delete
-                    }
-
-                    val role = try {
-                        OrganizationRole.valueOf(groupId.uppercase().removeSuffix("S"))
-                    } catch (_: IllegalArgumentException) {
-                        call.respond(
-                            HttpStatusCode.NotFound,
-                            ErrorResponse("Group with groupId '$groupId' not found.")
                         )
                         return@delete
                     }

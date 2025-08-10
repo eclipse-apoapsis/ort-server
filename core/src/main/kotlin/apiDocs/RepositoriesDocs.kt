@@ -63,6 +63,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
@@ -663,17 +664,19 @@ val deleteInfrastructureServiceForRepositoryIdAndName: RouteConfig.() -> Unit = 
     }
 }
 
-val putUserToRepositoryGroup: RouteConfig.() -> Unit = {
-    operationId = "PutUserToGroupRepository"
-    summary = "Add a user to a group on repository level"
+val putRepositoryRoleToUser: RouteConfig.() -> Unit = {
+    operationId = "PutRepositoryRoleToUser"
+    summary = "Assign a repository role to a user"
+    description = "Assign a repository role to a user. If the user already has another role for the same repository, " +
+            "it will be replaced with the new one."
     tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {
             description = "The repository's ID."
         }
-        pathParameter<String>("groupId") {
-            description = "One of 'readers', 'writers' or 'admins'."
+        pathParameter<RepositoryRole>("role") {
+            description = "The role to assign to the user."
         }
 
         jsonBody<Username> {
@@ -685,40 +688,40 @@ val putUserToRepositoryGroup: RouteConfig.() -> Unit = {
 
     response {
         HttpStatusCode.NoContent to {
-            description = "Successfully added the user to the group."
+            description = "Successfully added the role to the user."
         }
 
         HttpStatusCode.NotFound to {
-            description = "Repository or group not found."
+            description = "Repository or role not found."
         }
     }
 }
 
-val deleteUserFromRepositoryGroup: RouteConfig.() -> Unit = {
-    operationId = "DeleteUserFromGroupRepository"
-    summary = "Remove a user from a group on repository level"
+val deleteRepositoryRoleFromUser: RouteConfig.() -> Unit = {
+    operationId = "DeleteRepositoryRoleFromUser"
+    summary = "Remove a repository role from a user"
     tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {
             description = "The repository's ID."
         }
-        pathParameter<String>("groupId") {
-            description = "One of 'readers', 'writers' or 'admins'."
+        pathParameter<RepositoryRole>("role") {
+            description = "The role to remove from the user."
         }
 
         queryParameter<String>("username") {
-            description = "The username of the user to remove from the group on repository level."
+            description = "The username of the user."
         }
     }
 
     response {
         HttpStatusCode.NoContent to {
-            description = "Successfully removed the user from the group."
+            description = "Successfully removed the role from the user."
         }
 
         HttpStatusCode.NotFound to {
-            description = "Repository or group not found."
+            description = "Repository or role not found."
         }
     }
 }

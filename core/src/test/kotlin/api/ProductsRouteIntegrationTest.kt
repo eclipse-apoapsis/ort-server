@@ -80,6 +80,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
+import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole as ApiProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
@@ -457,7 +459,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "PUT/DELETE /products/{productId}/groups/{groupId}" should {
+    "PUT/DELETE /products/{productId}/roles/{role}" should {
         forAll(
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
@@ -470,11 +472,11 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {
-                        HttpMethod.Put -> put("/api/v1/products/${createdProd.id}/groups/readers") {
+                        HttpMethod.Put -> put("/api/v1/products/${createdProd.id}/roles/READER") {
                             setBody(user)
                         }
                         HttpMethod.Delete -> delete(
-                            "/api/v1/products/${createdProd.id}/groups/readers?username=${user.username}"
+                            "/api/v1/products/${createdProd.id}/roles/READER?username=${user.username}"
                         )
                         else -> error("Unsupported method: $method")
                     }
@@ -492,12 +494,12 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     val user = Username("non-existing-username")
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/products/${createdProd.id}/groups/readers"
+                            "/api/v1/products/${createdProd.id}/roles/READER"
                         ) {
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/products/${createdProd.id}/groups/readers?username=${user.username}"
+                            "/api/v1/products/${createdProd.id}/roles/READER?username=${user.username}"
                         )
                         else -> error("Unsupported method: $method")
                     }
@@ -514,18 +516,18 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
         ) { method ->
-            "respond with 'NotFound' if the organization does not exist for method '${method.value}'" {
+            "respond with 'NotFound' if the product does not exist for method '${method.value}'" {
                 integrationTestApplication {
                     val user = Username(TEST_USER.username.value)
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/products/999999/groups/readers"
+                            "/api/v1/products/999999/roles/READER"
                         ) {
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/products/999999/groups/readers?username=${user.username}"
+                            "/api/v1/products/999999/roles/READER?username=${user.username}"
                         )
                         else -> error("Unsupported method: $method")
                     }
@@ -533,7 +535,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NotFound
 
                     val body = response.body<ErrorResponse>()
-                    body.message shouldBe "Resource not found."
+                    body.message shouldContain "not found"
                 }
             }
         }
@@ -548,7 +550,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/products/${createdProd.id}/groups/readers"
+                            "/api/v1/products/${createdProd.id}/roles/READER"
                         ) {
                             setBody(org)
                         }
@@ -564,57 +566,45 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
         ) { method ->
-            "respond with 'NotFound' if the group does not exist for method '${method.value}'" {
+            "respond with 'BadRequest' if the role does not exist for method '${method.value}'" {
                 integrationTestApplication {
                     val createdProd = createProduct()
                     val user = Username(TEST_USER.username.value)
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/products/${createdProd.id}/groups/non-existing-group"
+                            "/api/v1/products/${createdProd.id}/roles/non-existing-role"
                         ) {
                             setBody(user)
                         }
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/products/${createdProd.id}/groups/non-existing-group?username=${user.username}"
+                            "/api/v1/products/${createdProd.id}/roles/non-existing-role?username=${user.username}"
                         )
                         else -> error("Unsupported method: $method")
                     }
 
-                    response shouldHaveStatus HttpStatusCode.NotFound
-
-                    val body = response.body<ErrorResponse>()
-                    body.message shouldBe "Resource not found."
+                    response shouldHaveStatus HttpStatusCode.BadRequest
                 }
             }
         }
     }
 
-    "PUT /products/{productId}/groups/{groupId}" should {
-        forAll(
-            row("readers"),
-            row("writers"),
-            row("admins")
-        ) { groupId ->
-            "add a user to the '$groupId' group" {
+    "PUT /products/{productId}/roles/{role}" should {
+        enumValues<ApiProductRole>().forAll { role ->
+            "assign the '$role' role to the user" {
                 integrationTestApplication {
                     val createdProd = createProduct()
                     val user = Username(TEST_USER.username.value)
 
                     val response = superuserClient.put(
-                        "/api/v1/products/${createdProd.id}/groups/$groupId"
+                        "/api/v1/products/${createdProd.id}/roles/${role.name}"
                     ) {
                         setBody(user)
                     }
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 
-                    val groupName = when (groupId) {
-                        "readers" -> ProductRole.READER.groupName(createdProd.id)
-                        "writers" -> ProductRole.WRITER.groupName(createdProd.id)
-                        "admins" -> ProductRole.ADMIN.groupName(createdProd.id)
-                        else -> error("Unknown group: $groupId")
-                    }
+                    val groupName = role.mapToModel().groupName(createdProd.id)
                     val group = keycloakClient.getGroup(GroupName(groupName))
                     group.shouldNotBeNull()
 
@@ -626,34 +616,24 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "DELETE /products/{productId}/groups/{groupId}" should {
-        forAll(
-            row("readers"),
-            row("writers"),
-            row("admins")
-        ) { groupId ->
-            "remove a user from the '$groupId' group" {
+    "DELETE /products/{productId}/roles/{role}" should {
+        enumValues<ApiProductRole>().forAll { role ->
+            "remove the '$role' role from the user" {
                 integrationTestApplication {
                     val createdProd = createProduct()
                     val user = Username(TEST_USER.username.value)
 
-                    val role = when (groupId) {
-                        "readers" -> ProductRole.READER
-                        "writers" -> ProductRole.WRITER
-                        "admins" -> ProductRole.ADMIN
-                        else -> error("Unknown group: $groupId")
-                    }
-                    authorizationService.addUserRole(user.username, ProductId(createdProd.id), role)
+                    authorizationService.addUserRole(user.username, ProductId(createdProd.id), role.mapToModel())
 
                     // Check pre-condition
-                    val groupName = role.groupName(createdProd.id)
+                    val groupName = role.mapToModel().groupName(createdProd.id)
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
                     val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
                     membersBefore shouldHaveSize 1
                     membersBefore.map { it.username } shouldContain TEST_USER.username
 
                     val response = superuserClient.delete(
-                        "/api/v1/products/${createdProd.id}/groups/$groupId?username=${user.username}"
+                        "/api/v1/products/${createdProd.id}/roles/${role.name}?username=${user.username}"
                     )
 
                     response shouldHaveStatus HttpStatusCode.NoContent

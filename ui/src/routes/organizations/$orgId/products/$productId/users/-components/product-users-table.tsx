@@ -27,10 +27,10 @@ import {
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
 import {
-  useProductsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId,
+  useProductsServiceDeleteApiV1ProductsByProductIdRolesByRole,
   useProductsServiceGetApiV1ProductsByProductIdUsers,
   useProductsServiceGetApiV1ProductsByProductIdUsersKey,
-  useProductsServicePutApiV1ProductsByProductIdGroupsByGroupId,
+  useProductsServicePutApiV1ProductsByProductIdRolesByRole,
 } from '@/api/queries';
 import { ApiError, UserWithGroups } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -43,6 +43,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
+import { mapUserGroupToProductRole } from '@/helpers/role-helpers.ts';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast.ts';
 
@@ -104,13 +105,13 @@ const columns = [
       const productId = Number.parseInt(params.productId);
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
-        useProductsServicePutApiV1ProductsByProductIdGroupsByGroupId({
+        useProductsServicePutApiV1ProductsByProductIdRolesByRole({
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
               queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
             });
             toast.info('Join Group', {
-              description: `User "${row.original.user.username}" joined group ${parameters.groupId} successfully.`,
+              description: `User "${row.original.user.username}" joined group ${parameters.role} successfully.`,
             });
           },
           onError(error: ApiError) {
@@ -126,11 +127,11 @@ const columns = [
         });
 
       const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-        useProductsServiceDeleteApiV1ProductsByProductIdGroupsByGroupId({
+        useProductsServiceDeleteApiV1ProductsByProductIdRolesByRole({
           onSuccess(_response, parameters) {
             // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
             toast.info('Leave Group', {
-              description: `User "${row.original.user.username}" left group ${parameters.groupId} successfully.`,
+              description: `User "${row.original.user.username}" left group ${parameters.role} successfully.`,
             });
           },
           onError(error: ApiError) {
@@ -148,7 +149,7 @@ const columns = [
       async function joinAdminsGroup() {
         await joinGroup({
           productId: productId,
-          groupId: 'ADMINS',
+          role: 'ADMIN',
           requestBody: {
             username: row.original.user.username,
           },
@@ -158,7 +159,7 @@ const columns = [
       async function joinWritersGroup() {
         await joinGroup({
           productId: productId,
-          groupId: 'WRITERS',
+          role: 'WRITER',
           requestBody: {
             username: row.original.user.username,
           },
@@ -168,7 +169,7 @@ const columns = [
       async function joinReadersGroup() {
         await joinGroup({
           productId: productId,
-          groupId: 'READERS',
+          role: 'READER',
           requestBody: {
             username: row.original.user.username,
           },
@@ -183,7 +184,7 @@ const columns = [
             row.original.groups.map((group) =>
               leaveGroup({
                 productId: productId,
-                groupId: group,
+                role: mapUserGroupToProductRole(group),
                 username: row.original.user.username,
               })
             )

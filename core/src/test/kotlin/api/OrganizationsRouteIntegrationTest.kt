@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.core.api
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
@@ -75,6 +76,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
+import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole as ApiOrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
@@ -1041,7 +1044,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "PUT/DELETE /organizations/{orgId}/groups/{groupId}" should {
+    "PUT/DELETE /organizations/{orgId}/roles/{role}" should {
         forAll(
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
@@ -1055,12 +1058,12 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {
-                        HttpMethod.Put -> put("/api/v1/organizations/${createdOrg.id}/groups/readers") {
+                        HttpMethod.Put -> put("/api/v1/organizations/${createdOrg.id}/roles/READER") {
                             setBody(user)
                         }
 
                         HttpMethod.Delete -> delete(
-                            "/api/v1/organizations/${createdOrg.id}/groups/readers?username=${user.username}"
+                            "/api/v1/organizations/${createdOrg.id}/roles/READER?username=${user.username}"
                         )
 
                         else -> error("Unsupported method: $method")
@@ -1080,13 +1083,13 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/organizations/${createdOrg.id}/groups/readers"
+                            "/api/v1/organizations/${createdOrg.id}/roles/READER"
                         ) {
                             setBody(user)
                         }
 
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/organizations/${createdOrg.id}/groups/readers?username=${user.username}"
+                            "/api/v1/organizations/${createdOrg.id}/roles/READER?username=${user.username}"
                         )
 
                         else -> error("Unsupported method: $method")
@@ -1110,13 +1113,13 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/organizations/999999/groups/readers"
+                            "/api/v1/organizations/999999/roles/READER"
                         ) {
                             setBody(user)
                         }
 
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/organizations/999999/groups/readers?username=${user.username}"
+                            "/api/v1/organizations/999999/roles/READER?username=${user.username}"
                         )
 
                         else -> error("Unsupported method: $method")
@@ -1125,7 +1128,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NotFound
 
                     val body = response.body<ErrorResponse>()
-                    body.message shouldBe "Resource not found."
+                    body.message shouldContain "not found"
                 }
             }
         }
@@ -1140,7 +1143,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/organizations/${createdOrg.id}/groups/readers"
+                            "/api/v1/organizations/${createdOrg.id}/roles/READER"
                         ) {
                             setBody(org)
                         }
@@ -1157,59 +1160,47 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             row(HttpMethod.Put),
             row(HttpMethod.Delete)
         ) { method ->
-            "respond with 'NotFound' if the group does not exist for method '${method.value}'" {
+            "respond with 'BadRequest' if the role does not exist for method '${method.value}'" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
                     val user = Username(TEST_USER.username.value)
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(
-                            "/api/v1/organizations/${createdOrg.id}/groups/non-existing-group"
+                            "/api/v1/organizations/${createdOrg.id}/roles/non-existing-role"
                         ) {
                             setBody(user)
                         }
 
                         HttpMethod.Delete -> superuserClient.delete(
-                            "/api/v1/organizations/${createdOrg.id}/groups/non-existing-group?username=${user.username}"
+                            "/api/v1/organizations/${createdOrg.id}/roles/non-existing-role?username=${user.username}"
                         )
 
                         else -> error("Unsupported method: $method")
                     }
 
-                    response shouldHaveStatus HttpStatusCode.NotFound
-
-                    val body = response.body<ErrorResponse>()
-                    body.message shouldBe "Resource not found."
+                    response shouldHaveStatus HttpStatusCode.BadRequest
                 }
             }
         }
     }
 
-    "PUT /organizations/{orgId}/groups/{groupId}" should {
-        forAll(
-            row("readers"),
-            row("writers"),
-            row("admins")
-        ) { groupId ->
-            "add a user to the '$groupId' group" {
+    "PUT /organizations/{orgId}/roles/{role}" should {
+        enumValues<ApiOrganizationRole>().forAll { role ->
+            "assign the '$role' role to the user" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
                     val user = Username(TEST_USER.username.value)
 
                     val response = superuserClient.put(
-                        "/api/v1/organizations/${createdOrg.id}/groups/$groupId"
+                        "/api/v1/organizations/${createdOrg.id}/roles/${role.name}"
                     ) {
                         setBody(user)
                     }
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 
-                    val groupName = when (groupId) {
-                        "readers" -> OrganizationRole.READER.groupName(createdOrg.id)
-                        "writers" -> OrganizationRole.WRITER.groupName(createdOrg.id)
-                        "admins" -> OrganizationRole.ADMIN.groupName(createdOrg.id)
-                        else -> error("Unknown group: $groupId")
-                    }
+                    val groupName = role.mapToModel().groupName(createdOrg.id)
                     val group = keycloakClient.getGroup(GroupName(groupName))
                     group.shouldNotBeNull()
 
@@ -1221,34 +1212,24 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
-    "DELETE /organizations/{orgId}/groups/{groupId}" should {
-        forAll(
-            row("readers"),
-            row("writers"),
-            row("admins")
-        ) { groupId ->
-            "remove a user from the '$groupId' group" {
+    "DELETE /organizations/{orgId}/roles/{role}" should {
+        enumValues<ApiOrganizationRole>().forAll { role ->
+            "remove the '$role' role from the user" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
                     val user = Username(TEST_USER.username.value)
 
-                    val role = when (groupId) {
-                        "readers" -> OrganizationRole.READER
-                        "writers" -> OrganizationRole.WRITER
-                        "admins" -> OrganizationRole.ADMIN
-                        else -> error("Unknown group: $groupId")
-                    }
-                    authorizationService.addUserRole(user.username, OrganizationId(createdOrg.id), role)
+                    authorizationService.addUserRole(user.username, OrganizationId(createdOrg.id), role.mapToModel())
 
                     // Check pre-condition
-                    val groupName = role.groupName(createdOrg.id)
+                    val groupName = role.mapToModel().groupName(createdOrg.id)
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
                     val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
                     membersBefore shouldHaveSize 1
                     membersBefore.map { it.username } shouldContain TEST_USER.username
 
                     val response = superuserClient.delete(
-                        "/api/v1/organizations/${createdOrg.id}/groups/$groupId?username=${user.username}"
+                        "/api/v1/organizations/${createdOrg.id}/roles/${role.name}?username=${user.username}"
                     )
 
                     response shouldHaveStatus HttpStatusCode.NoContent
