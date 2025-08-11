@@ -23,6 +23,11 @@ import java.util.zip.ZipFile
 import kotlin.collections.forEach
 import kotlin.sequences.forEach
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -144,5 +149,80 @@ abstract class CollectDependencyPluginsTask : DefaultTask() {
                     }
                 }
         }
+    }
+}
+
+/**
+ * A data class representing the structure of a plugin information file, as far as it is relevant for collecting
+ * plugin information. Here only a rather restricted subset of information is stored that is required to query the
+ * available plugins and group them. Detail information can then be obtained by parsing the full plugin information
+ * file.
+ */
+@Serializable
+internal data class PluginInfo(
+    /** The section with the plugin descriptor. */
+    val descriptor: PluginDescriptor,
+
+    /** The type of the plugin as denoted by the fully-qualified name of its factory class. */
+    val factoryClass: String
+)
+
+/**
+ * A data class defining the relevant information from a plugin descriptor.
+ */
+@Serializable
+internal data class PluginDescriptor(
+    /** The plugin ID. */
+    val id: String
+)
+
+/**
+ * A task to generate a summary document about the available plugins in the current build. This summary is a simple
+ * text file listing limited information about all plugins. The file conforms to CSV format using the comma as
+ * delimiter. Each line represents a plugin, with the following fields:
+ * - the plugin ID
+ * - the plugin type
+ * - the full name of the plugin info file which can be read for more details
+ */
+abstract class PluginSummaryTask : DefaultTask() {
+    companion object {
+        /** The name of the output file for the plugin summary. */
+        const val SUMMARY_FILE_NAME = "plugin_summary.csv"
+
+        private val json: Json = Json {
+            ignoreUnknownKeys = true
+        }
+    }
+
+    init {
+        group = "plugin-info"
+        description = "Generates a summary of all collected plugin information."
+    }
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val infoDirectories: ConfigurableFileCollection
+
+    /** The directory where the collected plugin information files will be stored. */
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @OptIn(ExperimentalSerializationApi::class)
+    @TaskAction
+    fun generateSummary() {
+        val pluginInfos = infoDirectories.flatMap { infoDirectory ->
+            infoDirectory.listFiles { it.isFile && it.extension == "json" }.orEmpty().toList()
+        }.map { file ->
+            file.name to file.inputStream().use {
+                inputStream -> json.decodeFromStream<PluginInfo>(inputStream)
+            }
+        }
+
+        val outputFile = outputDirectory.get().asFile.resolve(SUMMARY_FILE_NAME)
+        outputFile.writeText(
+            pluginInfos.joinToString(separator = "\n") { (fileName, pluginDescriptor) ->
+                "${pluginDescriptor.descriptor.id},${pluginDescriptor.factoryClass},$fileName"
+            }
+        )
     }
 }
