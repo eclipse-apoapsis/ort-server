@@ -52,6 +52,9 @@ dependencies {
     // Depend on the projects that contain custom plugins to make sure they are built before this project.
     compileOnly(projects.shared.packageCurationProviders)
     compileOnly(projects.shared.reporters)
+
+    testImplementation(libs.kotestAssertionsCore)
+    testImplementation(libs.kotestRunnerJunit5)
 }
 
 val pluginSummary = tasks.register("pluginSummary", PluginSummaryTask::class.java) {
