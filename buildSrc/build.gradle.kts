@@ -34,3 +34,12 @@ dependencies {
     implementation(libs.plugin.kotlin)
     implementation(libs.plugin.mavenPublish)
 }
+
+gradlePlugin {
+    plugins {
+        create("pluginInfoCollector") {
+            id = "plugin-info-collector"
+            implementationClass = "PluginInfoCollectorPlugin"
+        }
+    }
+}
