@@ -20,6 +20,8 @@
 plugins {
     // Use Kotlin DSL to write precompiled script plugins.
     `kotlin-dsl`
+
+    alias(libs.plugins.kotlinSerialization)
 }
 
 repositories {
@@ -29,6 +31,7 @@ repositories {
 
 dependencies {
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+    implementation(libs.kotlinxSerializationJson)
     implementation(libs.plugin.dependencyAnalysis)
     implementation(libs.plugin.detekt)
     implementation(libs.plugin.kotlin)
