@@ -35,7 +35,6 @@ plugins {
     // Apply third-party plugins.
     alias(libs.plugins.jib)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.ksp)
 }
 
 group = "org.eclipse.apoapsis.ortserver.workers"
@@ -61,6 +60,7 @@ dependencies {
     implementation(projects.components.pluginManager.backend)
     implementation(projects.dao)
     implementation(projects.model)
+    implementation(projects.shared.packageCurationProviders)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
@@ -76,9 +76,6 @@ dependencies {
     implementation(platform(ortLibs.ortPlugins.packageCurationProviders))
     implementation(platform(ortLibs.ortPlugins.packageManagers))
     implementation(platform(ortLibs.ortPlugins.versionControlSystems))
-
-    ksp(ortLibs.ortPlugins.packageCurationProviders.api)
-    ksp(ortLibs.ortPlugins.compiler)
 
     runtimeOnly(platform(projects.config))
     runtimeOnly(platform(projects.secrets))
