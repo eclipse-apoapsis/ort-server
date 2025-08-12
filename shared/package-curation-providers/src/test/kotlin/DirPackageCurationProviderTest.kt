@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.analyzer
+package org.eclipse.apoapsis.ortserver.shared.packagecurationproviders
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
