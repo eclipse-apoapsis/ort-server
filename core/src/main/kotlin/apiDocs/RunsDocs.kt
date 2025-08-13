@@ -25,8 +25,6 @@ import io.ktor.http.HttpStatusCode
 
 import kotlin.time.Duration.Companion.minutes
 
-import kotlinx.datetime.Clock
-
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorCapability
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
@@ -614,8 +612,8 @@ val getOrtRuns: RouteConfig.() -> Unit = {
                                 productId = 1,
                                 repositoryId = 1,
                                 revision = "main",
-                                createdAt = Clock.System.now(),
-                                finishedAt = Clock.System.now(),
+                                createdAt = CREATED_AT,
+                                finishedAt = FINISHED_AT,
                                 jobs = JobSummaries(
                                     analyzer = createJobSummary(10.minutes),
                                     advisor = createJobSummary(8.minutes),
