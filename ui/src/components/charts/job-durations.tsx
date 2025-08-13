@@ -116,41 +116,41 @@ export const JobDurations = ({
 
   const chartData = runs?.data?.map((run) => {
     const analyzerDuration =
-      run.jobs.analyzer?.createdAt && run.jobs.analyzer?.finishedAt
+      run.jobs.analyzer?.startedAt && run.jobs.analyzer?.finishedAt
         ? calculateDuration(
-            run.jobs.analyzer.createdAt,
+            run.jobs.analyzer.startedAt,
             run.jobs.analyzer.finishedAt
           ).durationMs
         : null;
 
     const advisorDuration =
-      run.jobs.advisor?.createdAt && run.jobs.advisor?.finishedAt
+      run.jobs.advisor?.startedAt && run.jobs.advisor?.finishedAt
         ? calculateDuration(
-            run.jobs.advisor.createdAt,
+            run.jobs.advisor.startedAt,
             run.jobs.advisor.finishedAt
           ).durationMs
         : null;
 
     const scannerDuration =
-      run.jobs.scanner?.createdAt && run.jobs.scanner?.finishedAt
+      run.jobs.scanner?.startedAt && run.jobs.scanner?.finishedAt
         ? calculateDuration(
-            run.jobs.scanner.createdAt,
+            run.jobs.scanner.startedAt,
             run.jobs.scanner.finishedAt
           ).durationMs
         : null;
 
     const evaluatorDuration =
-      run.jobs.evaluator?.createdAt && run.jobs.evaluator?.finishedAt
+      run.jobs.evaluator?.startedAt && run.jobs.evaluator?.finishedAt
         ? calculateDuration(
-            run.jobs.evaluator.createdAt,
+            run.jobs.evaluator.startedAt,
             run.jobs.evaluator.finishedAt
           ).durationMs
         : null;
 
     const reporterDuration =
-      run.jobs.reporter?.createdAt && run.jobs.reporter?.finishedAt
+      run.jobs.reporter?.startedAt && run.jobs.reporter?.finishedAt
         ? calculateDuration(
-            run.jobs.reporter.createdAt,
+            run.jobs.reporter.startedAt,
             run.jobs.reporter.finishedAt
           ).durationMs
         : null;
