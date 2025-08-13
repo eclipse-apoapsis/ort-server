@@ -31,6 +31,8 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
+import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginInfo
+import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginType
 import org.eclipse.apoapsis.ortserver.utils.config.getBooleanOrDefault
 import org.eclipse.apoapsis.ortserver.utils.config.getConfigOrEmpty
 import org.eclipse.apoapsis.ortserver.utils.config.getIntOrDefault
@@ -93,6 +95,9 @@ class AdminConfigService(
 
         /** An object to obtain default values for the mail server configuration. */
         private val defaultMailServerConfig = MailServerConfiguration(fromAddress = "")
+
+        /** The type for reporter plugins. */
+        private val reporterPluginType = PluginType("org.ossreviewtoolkit.reporter.ReporterFactory")
 
         private val logger = LoggerFactory.getLogger(AdminConfigService::class.java)
 
@@ -252,10 +257,12 @@ class AdminConfigService(
             config: Config,
             globalAssets: GlobalReporterAssets
         ): Map<String, ReportDefinition> =
-            config.getObjectOrEmpty("reports").filterValues { it is ConfigObject }
-                .mapValues { entry ->
-                    parseReportDefinition((entry.value as ConfigObject).toConfig(), globalAssets)
-                }
+            addDefinitionsForUnreferencedPlugins(
+                config.getObjectOrEmpty("reports").filterValues { it is ConfigObject }
+                    .mapValues { entry ->
+                        parseReportDefinition((entry.value as ConfigObject).toConfig(), globalAssets)
+                    }
+            )
 
         /**
          * Parse a [ReportDefinition] at the root of the given [config] using the given [globalAssets].
@@ -280,6 +287,27 @@ class AdminConfigService(
             )
 
         /**
+         * Create dummy [ReportDefinition]s for all reporter plugins that are not referenced in the given
+         * [definitions]. This makes sure that there is always a definition for each existing reporter plugin.
+         */
+        private fun addDefinitionsForUnreferencedPlugins(
+            definitions: Map<String, ReportDefinition>
+        ): Map<String, ReportDefinition> {
+            val allReporterPlugins = getReporterPluginIds()
+            val referencedPlugins = definitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
+
+            return definitions + (allReporterPlugins.keys - referencedPlugins).associate { pluginId ->
+                val originalPluginId = allReporterPlugins.getValue(pluginId)
+                originalPluginId to ReportDefinition(
+                    pluginId = originalPluginId,
+                    assetFiles = emptyList(),
+                    assetDirectories = emptyList(),
+                    nameMapping = null
+                )
+            }
+        }
+
+        /**
          * Validate the given [reporterConfig]. Add found issues to the given [issues] list.
          */
         private fun validateReporterConfig(issues: MutableList<String>, reporterConfig: ReporterConfig) {
@@ -287,6 +315,13 @@ class AdminConfigService(
                 (definition.assetFiles + definition.assetDirectories).map(ReporterAsset::sourcePath)
                     .filter { it.startsWith(UNRESOLVABLE_ASSET_PREFIX) }
             }.map { "Undefined reference to a reporter asset: '${it.removePrefix(UNRESOLVABLE_ASSET_PREFIX)}'." }
+
+            val reporterPlugins = getReporterPluginIds()
+            issues += reporterConfig.reportDefinitionNames.map { it to reporterConfig.getReportDefinition(it) }
+                .filter { it.second?.pluginId?.lowercase() !in reporterPlugins }
+                .map {
+                    "Unknown reporter plugin '${it.second?.pluginId}' referenced from report definition '${it.first}'."
+                }
         }
 
         /**
@@ -389,6 +424,15 @@ class AdminConfigService(
         ): List<ReporterAsset> =
             this[assetRef]?.map { directoryAsset(it, isDirectory) }
                 ?: listOf(ReporterAsset(UNRESOLVABLE_ASSET_PREFIX + assetRef))
+
+        /**
+         * Return a map with the IDs of all available reporter plugins. The keys of the map are the IDs in lowercase
+         * to enable case-insensitive matching. The values are the IDs in original case.
+         */
+        private fun getReporterPluginIds(): Map<String, String> =
+            PluginInfo.pluginsForType(reporterPluginType)
+                .map { it.id.id }
+                .associateBy { it.lowercase() }
 
         private fun parseMavenCentralMirror(config: Config): MavenCentralMirror? =
             config.parseObjectOrDefault("mavenCentralMirror", null) {
