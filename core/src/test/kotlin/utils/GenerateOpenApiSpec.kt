@@ -62,7 +62,12 @@ class GenerateOpenApiSpec : StringSpec({
             outputDir.mkdirs()
 
             val outputFile = outputDir.resolve("openapi.json")
-            outputFile.writeText(response.bodyAsText())
+            outputFile.writeText(
+                response.bodyAsText().replaceFirst(
+                    Regex("\"version\"\\s*:\\s*\"[^\"]+\""),
+                    "\"version\": \"1.0.0\""
+                )
+            )
 
             outputFile shouldBe aFile()
         }
