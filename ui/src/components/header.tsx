@@ -195,7 +195,7 @@ export const Header = () => {
                       ? dbProductName.value
                       : PRODUCT_NAME
                   }
-                  className='size-6'
+                  className='h-6'
                 />
                 <span className='sr-only'>Home</span>
               </Link>
