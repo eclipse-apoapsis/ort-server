@@ -16,12 +16,18 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
+
 import { useNavigate } from '@tanstack/react-router';
 import { Sigma } from 'lucide-react';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
+import {
+  DEFAULT_RUNS,
+  RunsFilterForm,
+  type RunsFilterValues,
+} from '@/components/form/runs-filter-form';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { RunDuration } from '@/components/run-duration';
 import { ToastError } from '@/components/toast-error';
@@ -34,14 +40,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { config } from '@/config';
 import {
   calculateDuration,
   convertDurationToHms,
 } from '@/helpers/calculate-duration';
-import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 const chartConfig = {
@@ -80,10 +83,18 @@ export const JobDurations = ({
   pageIndex,
   pageSize,
 }: JobDurationsProps) => {
-  const [fetchMode, setFetchMode] = useState<'VISIBLE_RUNS' | 'ALL_RUNS'>(
-    'VISIBLE_RUNS'
-  );
   const navigate = useNavigate();
+
+  // This state drives the query for the runs, and it is updated on form submission.
+  const [applied, setApplied] = useState<RunsFilterValues>({
+    fetchMode: 'VISIBLE_RUNS',
+    nRuns: DEFAULT_RUNS,
+  });
+
+  // Compute query params from applied values.
+  const limit = applied.fetchMode === 'VISIBLE_RUNS' ? pageSize : applied.nRuns;
+  const offset =
+    applied.fetchMode === 'VISIBLE_RUNS' ? pageIndex * pageSize : undefined;
 
   const {
     data: runs,
@@ -93,8 +104,8 @@ export const JobDurations = ({
   } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
     {
       repositoryId: Number.parseInt(repoId),
-      limit: fetchMode === 'VISIBLE_RUNS' ? pageSize : ALL_ITEMS,
-      offset: fetchMode === 'VISIBLE_RUNS' ? pageIndex * pageSize : undefined,
+      limit,
+      offset,
       sort: '-index',
     },
     undefined,
@@ -211,22 +222,19 @@ export const JobDurations = ({
           Durations
           <div className='flex items-center space-x-2'>
             <div className='text-sm font-normal'>Show durations for</div>
-            <RadioGroup
-              value={fetchMode}
-              onValueChange={(value) =>
-                setFetchMode(value as 'VISIBLE_RUNS' | 'ALL_RUNS')
-              }
-              className='flex gap-2'
-            >
-              <div className='flex items-center space-x-2'>
-                <RadioGroupItem value='VISIBLE_RUNS' id='visible' />
-                <Label htmlFor='visible'>current view</Label>
-              </div>
-              <div className='flex items-center space-x-2'>
-                <RadioGroupItem value='ALL_RUNS' id='all' />
-                <Label htmlFor='all'>all runs</Label>
-              </div>
-            </RadioGroup>
+            <RunsFilterForm
+              initialValues={applied}
+              onApply={(values) => {
+                // Normalize and apply; this triggers refetch via derived params.
+                setApplied({
+                  fetchMode: values.fetchMode,
+                  nRuns:
+                    values.fetchMode === 'CUSTOM_RUNS'
+                      ? (values.nRuns ?? DEFAULT_RUNS)
+                      : undefined,
+                });
+              }}
+            />
           </div>
         </CardTitle>
       </CardHeader>
