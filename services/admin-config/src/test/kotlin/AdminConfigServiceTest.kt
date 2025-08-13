@@ -298,6 +298,35 @@ class AdminConfigServiceTest : WordSpec({
             exception.message shouldContain "'sourceCodeOrigins'"
         }
 
+        "throw an exception if a non-existing reporter plugin is referenced" {
+            val invalidPluginId = "nonExistingPlugin"
+            val reportDefinitionName = "someStrangeReport"
+            val config = """
+                    reporter {
+                      reports {
+                        $reportDefinitionName {
+                          pluginId = "$invalidPluginId"
+                          assetFiles = [
+                            {
+                              sourcePath = "reporter/template/logo.png"
+                              targetFolder = "images"
+                              targetName = "report-logo.png"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val exception = shouldThrow<ConfigException> {
+                service.loadAdminConfig(context, ORGANIZATION_ID, validate = true)
+            }
+
+            exception.message shouldContain invalidPluginId
+            exception.message shouldContain reportDefinitionName
+        }
+
         "only validate the configuration if requested" {
             val config = """
                     defaultRuleSet {
@@ -622,7 +651,6 @@ class AdminConfigServiceTest : WordSpec({
 
             val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
 
-            reporterConfig.reportDefinitionNames should beEmpty()
             reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
             reporterConfig.customLicenseTextDir should beNull()
             reporterConfig shouldBe AdminConfig.DEFAULT_REPORTER_CONFIG
@@ -637,7 +665,6 @@ class AdminConfigServiceTest : WordSpec({
 
             val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
 
-            reporterConfig.reportDefinitionNames should beEmpty()
             reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
             reporterConfig.customLicenseTextDir should beNull()
         }
@@ -877,6 +904,47 @@ class AdminConfigServiceTest : WordSpec({
                 ReporterAsset("special/layout/foo"),
                 ReporterAsset("special/layout/bar")
             )
+        }
+
+        "generate default report definitions for unreferenced reporter plugins" {
+            val config = """
+                    reporter {
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.getReportDefinition("HtmlTemplate") shouldNotBeNull {
+                pluginId shouldBe "HtmlTemplate"
+                assetFiles shouldBe emptyList()
+                assetDirectories shouldBe emptyList()
+                nameMapping shouldBe null
+            }
+        }
+
+        "allow overriding a report definition for a reporter plugin even if the case does not match" {
+            val config = """
+                    reporter {
+                      reports {
+                        disclosurePdf {
+                          pluginId = "pdftemplate"
+                          nameMapping {
+                            namePrefix = "disclosure-"
+                          }
+                        }
+                      }
+                    }
+                """.trimIndent()
+            val service = createServiceWithConfig(config)
+
+            val reporterConfig = service.loadAdminConfig(context, ORGANIZATION_ID).reporterConfig
+
+            reporterConfig.getReportDefinition("disclosurePdf") shouldNotBeNull {
+                nameMapping shouldNotBeNull {
+                    namePrefix shouldBe "disclosure-"
+                }
+            }
         }
     }
 

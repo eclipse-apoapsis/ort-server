@@ -29,6 +29,7 @@ dependencies {
     api(projects.config.configSpi)
     api(projects.model)
 
+    implementation(projects.shared.pluginInfo)
     implementation(projects.utils.config)
     implementation(projects.utils.logging)
 
