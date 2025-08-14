@@ -18,7 +18,6 @@
  */
 
 import { useNavigate } from '@tanstack/react-router';
-import { Sigma } from 'lucide-react';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
@@ -248,10 +247,7 @@ export const JobDurations = ({
                         {index === item.payload.finishedDurations - 1 && (
                           <div className='flex w-full flex-col items-center justify-between'>
                             <div className='flex w-full items-center justify-between'>
-                              <div className='flex items-center gap-1'>
-                                <Sigma className='text-muted-foreground -ml-0.5 size-4 shrink-0' />
-                                <div>Total</div>
-                              </div>
+                              Total run duration:
                               <div className='text-muted-foreground mt-0.5 flex flex-col font-mono text-xs'>
                                 <RunDuration
                                   createdAt={item.payload.createdAt}
