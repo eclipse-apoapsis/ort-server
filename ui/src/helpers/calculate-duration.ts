@@ -93,7 +93,8 @@ type DurationChartData = {
 };
 
 export function getDurationChartData(
-  runs: PagedResponse_OrtRunSummary | undefined
+  runs: PagedResponse_OrtRunSummary | undefined,
+  showInfra: boolean
 ): DurationChartData[] | undefined {
   return runs?.data.map((run) => {
     const getJobDuration = (job: JobSummary | null | undefined) => {
@@ -123,7 +124,7 @@ export function getDurationChartData(
     // As a safety measure to prevent illogical results showing, negative values
     // for the intrastructure durations are filtered out.
     const infrastructureDuration =
-      runDuration && runDuration - finishedJobsDuration > 0
+      runDuration && showInfra && runDuration - finishedJobsDuration > 0
         ? runDuration - finishedJobsDuration
         : null;
 

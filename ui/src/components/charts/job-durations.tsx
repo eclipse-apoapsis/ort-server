@@ -40,6 +40,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { config } from '@/config';
 import {
   convertDurationToHms,
@@ -95,6 +97,9 @@ export const JobDurations = ({
     nRuns: DEFAULT_RUNS,
   });
 
+  // This state is used to toggle the visibility of the infrastructure duration in the chart.
+  const [showInfrastructure, setShowInfrastructure] = useState(false);
+
   // Compute query params from applied values.
   const limit = applied.fetchMode === 'VISIBLE_RUNS' ? pageSize : applied.nRuns;
   const offset =
@@ -118,7 +123,7 @@ export const JobDurations = ({
     }
   );
 
-  const chartData = getDurationChartData(runs);
+  const chartData = getDurationChartData(runs, showInfrastructure);
 
   if (runsIsPending) {
     return <LoadingIndicator />;
@@ -159,21 +164,35 @@ export const JobDurations = ({
       <CardHeader>
         <CardTitle className='flex items-center justify-between'>
           Durations
-          <div className='flex items-center space-x-2'>
-            <div className='text-sm font-normal'>Show durations for</div>
-            <RunsFilterForm
-              initialValues={applied}
-              onApply={(values) => {
-                // Normalize and apply; this triggers refetch via derived params.
-                setApplied({
-                  fetchMode: values.fetchMode,
-                  nRuns:
-                    values.fetchMode === 'CUSTOM_RUNS'
-                      ? (values.nRuns ?? DEFAULT_RUNS)
-                      : undefined,
-                });
-              }}
-            />
+          <div className='flex flex-col items-end'>
+            <div className='flex items-center space-x-2'>
+              <div className='text-sm font-normal'>Show durations for</div>
+              <RunsFilterForm
+                initialValues={applied}
+                onApply={(values) => {
+                  // Normalize and apply; this triggers refetch via derived params.
+                  setApplied({
+                    fetchMode: values.fetchMode,
+                    nRuns:
+                      values.fetchMode === 'CUSTOM_RUNS'
+                        ? (values.nRuns ?? DEFAULT_RUNS)
+                        : undefined,
+                  });
+                }}
+              />
+            </div>
+            <div className='flex items-center gap-3'>
+              <Checkbox
+                id='infra'
+                checked={showInfrastructure}
+                onCheckedChange={(value) => {
+                  setShowInfrastructure(value === true);
+                }}
+              />
+              <Label htmlFor='infra'>
+                Show effect of infrastructure to run durations
+              </Label>
+            </div>
           </div>
         </CardTitle>
       </CardHeader>
