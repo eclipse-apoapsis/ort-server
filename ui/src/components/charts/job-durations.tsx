@@ -42,8 +42,8 @@ import {
 } from '@/components/ui/chart';
 import { config } from '@/config';
 import {
-  calculateDuration,
   convertDurationToHms,
+  getDurationChartData,
 } from '@/helpers/calculate-duration';
 import { toast } from '@/lib/toast';
 
@@ -118,97 +118,7 @@ export const JobDurations = ({
     }
   );
 
-  const chartData = runs?.data?.map((run) => {
-    const analyzerDuration =
-      run.jobs.analyzer?.startedAt && run.jobs.analyzer?.finishedAt
-        ? calculateDuration(
-            run.jobs.analyzer.startedAt,
-            run.jobs.analyzer.finishedAt
-          ).durationMs
-        : null;
-
-    const advisorDuration =
-      run.jobs.advisor?.startedAt && run.jobs.advisor?.finishedAt
-        ? calculateDuration(
-            run.jobs.advisor.startedAt,
-            run.jobs.advisor.finishedAt
-          ).durationMs
-        : null;
-
-    const scannerDuration =
-      run.jobs.scanner?.startedAt && run.jobs.scanner?.finishedAt
-        ? calculateDuration(
-            run.jobs.scanner.startedAt,
-            run.jobs.scanner.finishedAt
-          ).durationMs
-        : null;
-
-    const evaluatorDuration =
-      run.jobs.evaluator?.startedAt && run.jobs.evaluator?.finishedAt
-        ? calculateDuration(
-            run.jobs.evaluator.startedAt,
-            run.jobs.evaluator.finishedAt
-          ).durationMs
-        : null;
-
-    const reporterDuration =
-      run.jobs.reporter?.startedAt && run.jobs.reporter?.finishedAt
-        ? calculateDuration(
-            run.jobs.reporter.startedAt,
-            run.jobs.reporter.finishedAt
-          ).durationMs
-        : null;
-
-    const finishedJobsDuration =
-      (analyzerDuration ?? 0) +
-      (advisorDuration ?? 0) +
-      (scannerDuration ?? 0) +
-      (evaluatorDuration ?? 0) +
-      (reporterDuration ?? 0);
-
-    const runDuration =
-      run.createdAt && run.finishedAt
-        ? calculateDuration(run.createdAt, run.finishedAt).durationMs
-        : null;
-
-    // For an unknown reason, the logic for calculating the infrastructure duration
-    // based on [startedAt, finishedAt] of the individual jobs and [createdAt, finishedAt]
-    // of the run produces negative values sometimes in the Docker Compose setup.
-    //
-    // This doesn't make sense, as the total run should always take more time than the sum
-    // of the durations of the individual jobs included in the run.
-    //
-    // TO prevent weird results showing, negative values for the intrastructure durations
-    // are filtered out.
-    const infrastructureDuration =
-      runDuration && runDuration - finishedJobsDuration > 0
-        ? runDuration - finishedJobsDuration
-        : null;
-
-    // Calculate how many durations are non-null. This is needed for proper indexing in the tooltip,
-    // to render the total duration at the end of the tooltip.
-    const finishedDurations = [
-      analyzerDuration,
-      advisorDuration,
-      scannerDuration,
-      evaluatorDuration,
-      reporterDuration,
-      infrastructureDuration,
-    ].filter((duration) => duration !== null).length;
-
-    return {
-      runId: run.index,
-      finishedDurations,
-      createdAt: run.createdAt,
-      finishedAt: run.finishedAt,
-      infrastructure: infrastructureDuration,
-      analyzer: analyzerDuration,
-      advisor: advisorDuration,
-      scanner: scannerDuration,
-      evaluator: evaluatorDuration,
-      reporter: reporterDuration,
-    };
-  });
+  const chartData = getDurationChartData(runs);
 
   if (runsIsPending) {
     return <LoadingIndicator />;

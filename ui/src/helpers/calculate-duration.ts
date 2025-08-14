@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import { JobSummary, PagedResponse_OrtRunSummary } from '@/api/requests';
+
 function divmod(a: number, b: number): [number, number] {
   const remainder = a % b;
   return [(a - remainder) / b, remainder];
@@ -73,6 +75,85 @@ export function convertDurationToHms(durationMs: number): string {
 
   return formattedDuration.join(' ');
 }
+
+// Helper type and function to calculate the job, infrastructure, and
+// total durations for the runs, to be used in the durations chart.
+
+type DurationChartData = {
+  runId: number;
+  finishedDurations: number;
+  createdAt: string;
+  finishedAt: string | null | undefined;
+  infrastructure: number | null;
+  analyzer: number | null;
+  advisor: number | null;
+  scanner: number | null;
+  evaluator: number | null;
+  reporter: number | null;
+};
+
+export function getDurationChartData(
+  runs: PagedResponse_OrtRunSummary | undefined
+): DurationChartData[] | undefined {
+  return runs?.data.map((run) => {
+    const getJobDuration = (job: JobSummary | null | undefined) => {
+      return job?.startedAt && job?.finishedAt
+        ? calculateDuration(job.startedAt, job.finishedAt).durationMs
+        : null;
+    };
+
+    const analyzerDuration = getJobDuration(run.jobs.analyzer);
+    const advisorDuration = getJobDuration(run.jobs.advisor);
+    const scannerDuration = getJobDuration(run.jobs.scanner);
+    const evaluatorDuration = getJobDuration(run.jobs.evaluator);
+    const reporterDuration = getJobDuration(run.jobs.reporter);
+
+    const runDuration =
+      run.finishedAt && run.createdAt
+        ? calculateDuration(run.createdAt, run.finishedAt).durationMs
+        : null;
+
+    // The Advisor and Scanner jobs run in parallel, so take the longer of the two for calculations.
+    const finishedJobsDuration =
+      (analyzerDuration ?? 0) +
+      Math.max(advisorDuration ?? 0, scannerDuration ?? 0) +
+      (evaluatorDuration ?? 0) +
+      (reporterDuration ?? 0);
+
+    // As a safety measure to prevent illogical results showing, negative values
+    // for the intrastructure durations are filtered out.
+    const infrastructureDuration =
+      runDuration && runDuration - finishedJobsDuration > 0
+        ? runDuration - finishedJobsDuration
+        : null;
+
+    // Calculate how many durations are non-null. This is needed for proper indexing in the tooltip,
+    // to render the total duration at the end of the tooltip.
+    const finishedDurations = [
+      analyzerDuration,
+      advisorDuration,
+      scannerDuration,
+      evaluatorDuration,
+      reporterDuration,
+      infrastructureDuration,
+    ].filter((duration) => duration !== null).length;
+
+    return {
+      runId: run.index,
+      finishedDurations: finishedDurations,
+      createdAt: run.createdAt,
+      finishedAt: run.finishedAt,
+      infrastructure: infrastructureDuration,
+      analyzer: analyzerDuration,
+      advisor: advisorDuration,
+      scanner: scannerDuration,
+      evaluator: evaluatorDuration,
+      reporter: reporterDuration,
+    };
+  });
+}
+
+// Unit tests.
 
 if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest;
