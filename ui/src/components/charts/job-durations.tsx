@@ -48,6 +48,10 @@ import {
 import { toast } from '@/lib/toast';
 
 const chartConfig = {
+  infrastructure: {
+    label: 'Infrastructure',
+    color: 'gray',
+  },
   analyzer: {
     label: 'Analyzer',
     color: 'var(--analyzer)',
@@ -155,24 +159,49 @@ export const JobDurations = ({
           ).durationMs
         : null;
 
+    const finishedJobsDuration =
+      (analyzerDuration ?? 0) +
+      (advisorDuration ?? 0) +
+      (scannerDuration ?? 0) +
+      (evaluatorDuration ?? 0) +
+      (reporterDuration ?? 0);
+
+    const runDuration =
+      run.createdAt && run.finishedAt
+        ? calculateDuration(run.createdAt, run.finishedAt).durationMs
+        : null;
+
+    // For an unknown reason, the logic for calculating the infrastructure duration
+    // based on [startedAt, finishedAt] of the individual jobs and [createdAt, finishedAt]
+    // of the run produces negative values sometimes in the Docker Compose setup.
+    //
+    // This doesn't make sense, as the total run should always take more time than the sum
+    // of the durations of the individual jobs included in the run.
+    //
+    // TO prevent weird results showing, negative values for the intrastructure durations
+    // are filtered out.
+    const infrastructureDuration =
+      runDuration && runDuration - finishedJobsDuration > 0
+        ? runDuration - finishedJobsDuration
+        : null;
+
     // Calculate how many durations are non-null. This is needed for proper indexing in the tooltip,
     // to render the total duration at the end of the tooltip.
-    const finishedJobs = [
+    const finishedDurations = [
       analyzerDuration,
       advisorDuration,
       scannerDuration,
       evaluatorDuration,
       reporterDuration,
+      infrastructureDuration,
     ].filter((duration) => duration !== null).length;
-
-    const createdAt = run.createdAt;
-    const finishedAt = run.finishedAt;
 
     return {
       runId: run.index,
-      finishedJobs,
-      createdAt,
-      finishedAt,
+      finishedDurations,
+      createdAt: run.createdAt,
+      finishedAt: run.finishedAt,
+      infrastructure: infrastructureDuration,
       analyzer: analyzerDuration,
       advisor: advisorDuration,
       scanner: scannerDuration,
@@ -287,7 +316,7 @@ export const JobDurations = ({
                             {convertDurationToHms(Number(value))}
                           </div>
                         </div>
-                        {index === item.payload.finishedJobs - 1 && (
+                        {index === item.payload.finishedDurations - 1 && (
                           <div className='flex w-full flex-col items-center justify-between'>
                             <div className='flex w-full items-center justify-between'>
                               <div className='flex items-center gap-1'>
@@ -313,6 +342,12 @@ export const JobDurations = ({
               }
             />
             <ChartLegend content={<ChartLegendContent />} />
+            <Bar
+              dataKey='infrastructure'
+              stackId='a'
+              fill='var(--color-infrastructure)'
+              className='cursor-pointer'
+            />
             <Bar
               dataKey='analyzer'
               stackId='a'
