@@ -127,13 +127,13 @@ const EditInfrastructureServicePage = () => {
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    values: {
       name: service?.name,
       url: service?.url,
       description: service?.description ?? undefined,
       usernameSecretRef: service?.usernameSecretRef,
       passwordSecretRef: service?.passwordSecretRef,
-      credentialsTypes: service?.credentialsTypes,
+      credentialsTypes: service?.credentialsTypes ?? [],
     },
   });
 
