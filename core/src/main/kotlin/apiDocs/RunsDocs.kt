@@ -27,6 +27,8 @@ import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorCapability
+import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
@@ -302,6 +304,10 @@ val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
                                         reason = "INEFFECTIVE_VULNERABILITY",
                                         comment = "A comment why the vulnerability can be resolved."
                                     )
+                                ),
+                                advisor = AdvisorDetails(
+                                    name = "VulnerableCode",
+                                    capabilities = setOf(AdvisorCapability.VULNERABILITIES)
                                 )
                             )
                         ),
