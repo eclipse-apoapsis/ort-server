@@ -114,6 +114,14 @@ class InfrastructureServiceService(
     }
 
     /**
+     * Return the [InfrastructureService] for the given [name] and hierarchy entity [id].
+     */
+    suspend fun getForId(id: HierarchyId, name: String): InfrastructureService? =
+        db.dbQuery {
+            infrastructureServiceRepository.getByIdAndName(id, name)
+        }
+
+    /**
      * Return a list with [InfrastructureService]s assigned to the hierarchy entity [id], applying the provided
      * [parameters].
      */
