@@ -918,6 +918,57 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
+    "GET /organizations/{orgId}/infrastructure-services/{name}" should {
+        "return an infrastructure service" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val userSecret = createSecret(orgId, path = "user", name = "user")
+                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+
+                val service = infrastructureServiceRepository.create(
+                    "testRepository",
+                    "http://repo.example.org/test",
+                    "test repo description",
+                    userSecret,
+                    passSecret,
+                    emptySet(),
+                    OrganizationId(orgId)
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/organizations/$orgId/infrastructure-services/${service.name}"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                response shouldHaveBody service.mapToApi()
+            }
+        }
+
+        "respond with 'NotFound' if no infrastructure service exists" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val response = superuserClient
+                    .get("/api/v1/organizations/$orgId/infrastructure-services/not-existing-service")
+
+                response shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "require OrganizationPermission.READ" {
+            val orgId = createOrganization().id
+
+            requestShouldRequireRole(
+                role = OrganizationPermission.READ.roleName(orgId),
+                successStatus = HttpStatusCode.NotFound
+            ) {
+                get("/api/v1/organizations/$orgId/infrastructure-services/not-found")
+            }
+        }
+    }
+
     "PATCH /organizations/{orgId}/infrastructure-services/{name}" should {
         "update an infrastructure service" {
             integrationTestApplication {
