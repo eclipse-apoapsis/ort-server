@@ -1192,6 +1192,57 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 
+    "GET /repositories/{repositoryId}/infrastructure-service/{name}" should {
+        "return an infrastructure service" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                val userSecret = createSecret(repositoryId, path = "user", name = "user")
+                val passSecret = createSecret(repositoryId, path = "pass", name = "pass")
+
+                val service = infrastructureServiceRepository.create(
+                    "testRepository",
+                    "http://repo.example.org/test",
+                    "test repo description",
+                    userSecret,
+                    passSecret,
+                    emptySet(),
+                    RepositoryId(repositoryId)
+                )
+
+                val response = superuserClient.get(
+                    "/api/v1/repositories/$repositoryId/infrastructure-services/${service.name}"
+                )
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                response shouldHaveBody service.mapToApi()
+            }
+        }
+
+        "respond with 'NotFound' if no infrastructure service exists" {
+            integrationTestApplication {
+                val repositoryId = createRepository().id
+
+                val response = superuserClient
+                    .get("/api/v1/repositories/$repositoryId/infrastructure-services/not-existing-service")
+
+                response shouldHaveStatus HttpStatusCode.NotFound
+            }
+        }
+
+        "require RepositoryPermission.READ" {
+            val repositoryId = createRepository().id
+
+            requestShouldRequireRole(
+                role = RepositoryPermission.READ.roleName(repositoryId),
+                successStatus = HttpStatusCode.NotFound
+            ) {
+                get("/api/v1/repositories/$repositoryId/infrastructure-services/not-found")
+            }
+        }
+    }
+
     "PATCH /repositories/{repositoryId}/infrastructure-services/{name}" should {
         "update an infrastructure service" {
             integrationTestApplication {
