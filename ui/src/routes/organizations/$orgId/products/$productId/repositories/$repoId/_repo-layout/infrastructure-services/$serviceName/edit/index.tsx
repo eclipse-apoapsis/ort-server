@@ -24,10 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdInfrastructureServicesKey,
-  useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName,
-} from '@/api/queries';
+import { useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName } from '@/api/queries';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsSuspense } from '@/api/queries/suspense.ts';
 import { ApiError, RepositoriesService } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
@@ -83,23 +80,20 @@ const EditInfrastructureServicePage = () => {
       limit: ALL_ITEMS,
     });
 
-  const { data: infrastructureServices } = useSuspenseQuery({
+  const { data: service } = useSuspenseQuery({
     queryKey: [
-      useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdInfrastructureServicesKey,
+      useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName,
       params.repoId,
+      params.serviceName,
     ],
     queryFn: () =>
-      RepositoriesService.getApiV1RepositoriesByRepositoryIdInfrastructureServices(
+      RepositoriesService.getApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName(
         {
           repositoryId: Number.parseInt(params.repoId),
-          limit: ALL_ITEMS,
+          serviceName: params.serviceName,
         }
       ),
   });
-
-  const service = infrastructureServices?.data.find(
-    (service) => service.name === params.serviceName
-  );
 
   const { mutateAsync, isPending } =
     useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName(
@@ -360,14 +354,15 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdInfrastructureServicesKey,
+        useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName,
         params.repoId,
+        params.serviceName,
       ],
       queryFn: () =>
-        RepositoriesService.getApiV1RepositoriesByRepositoryIdInfrastructureServices(
+        RepositoriesService.getApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName(
           {
             repositoryId: Number.parseInt(params.repoId),
-            limit: ALL_ITEMS,
+            serviceName: params.serviceName,
           }
         ),
     });
