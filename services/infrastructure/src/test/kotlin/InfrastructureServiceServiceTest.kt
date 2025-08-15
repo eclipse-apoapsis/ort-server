@@ -66,7 +66,7 @@ class InfrastructureServiceServiceTest : WordSpec({
         unmockkAll()
     }
 
-    "createForOrganization" should {
+    "createForId" should {
         "create an infrastructure service for an organization" {
             testWithHelper {
                 val userSecret = mockOrganizationSecret(USERNAME_SECRET)
@@ -123,7 +123,7 @@ class InfrastructureServiceServiceTest : WordSpec({
         }
     }
 
-    "updateForOrganization" should {
+    "updateForId" should {
         "update the properties of a service" {
             testWithHelper {
                 val userSecret = mockOrganizationSecret(USERNAME_SECRET)
@@ -201,7 +201,7 @@ class InfrastructureServiceServiceTest : WordSpec({
         }
     }
 
-    "deleteForOrganization" should {
+    "deleteForId" should {
         "delete an infrastructure service" {
             testWithHelper {
                 every { repository.deleteForIdAndName(ORGANIZATION_ID, SERVICE_NAME) } just runs
@@ -215,7 +215,7 @@ class InfrastructureServiceServiceTest : WordSpec({
         }
     }
 
-    "listForOrganization" should {
+    "listForId" should {
         "return a list with the infrastructure services of the organization" {
             val services = listOf<InfrastructureService>(mockk(), mockk(), mockk())
             val parameters = ListQueryParameters(limit = 7, offset = 11)
