@@ -57,6 +57,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceFo
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryRoleFromUser
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServiceForRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByRepositoryId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunsByRepositoryId
@@ -268,6 +269,18 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         route("{serviceName}") {
+            get(getInfrastructureServiceForRepositoryIdAndName) {
+                requirePermission(RepositoryPermission.READ)
+
+                val repositoryId = call.requireIdParameter("repositoryId")
+                val serviceName = call.requireParameter("serviceName")
+
+                infrastructureServiceService
+                    .getForId(RepositoryId(repositoryId), serviceName)
+                    ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+                    ?: call.respond(HttpStatusCode.NotFound)
+            }
+
             patch(patchInfrastructureServiceForRepositoryIdAndName) {
                 requirePermission(RepositoryPermission.WRITE)
 
