@@ -51,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationRoleFromUser
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationProducts
@@ -232,6 +233,18 @@ fun Route.organizations() = route("organizations") {
             }
 
             route("{serviceName}") {
+                get(getInfrastructureServiceForOrganizationIdAndName) {
+                    requirePermission(OrganizationPermission.READ)
+
+                    val organizationId = call.requireIdParameter("organizationId")
+                    val serviceName = call.requireParameter("serviceName")
+
+                    infrastructureServiceService
+                        .getForId(OrganizationId(organizationId), serviceName)
+                        ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+                        ?: call.respond(HttpStatusCode.NotFound)
+                }
+
                 patch(patchInfrastructureServiceForOrganizationIdAndName) {
                     requirePermission(OrganizationPermission.WRITE)
 
