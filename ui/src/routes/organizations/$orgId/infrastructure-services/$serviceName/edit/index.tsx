@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
   useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
 } from '@/api/queries';
 import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense } from '@/api/queries/suspense';
@@ -85,28 +85,20 @@ const EditInfrastructureServicePage = () => {
       }
     );
 
-  /* Search service details from all infrastructure services of the organization
-   * TODO: Edit this to fetch the details from:
-   * GET /api/v1/organizations/{organizationId}/infrastructure-services/{serviceName}
-   * when the endpoint is implemented
-   */
-  const { data: infrastructureServices } = useSuspenseQuery({
+  const { data: service } = useSuspenseQuery({
     queryKey: [
-      useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+      useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
       params.orgId,
+      params.serviceName,
     ],
     queryFn: () =>
-      OrganizationsService.getApiV1OrganizationsByOrganizationIdInfrastructureServices(
+      OrganizationsService.getApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
         {
           organizationId: Number.parseInt(params.orgId),
-          limit: ALL_ITEMS,
+          serviceName: params.serviceName,
         }
       ),
   });
-
-  const service = infrastructureServices?.data.find(
-    (service) => service.name === params.serviceName
-  );
 
   const { mutateAsync, isPending } =
     useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
@@ -359,14 +351,15 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     await context.queryClient.ensureQueryData({
       queryKey: [
-        useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
+        useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
         params.orgId,
+        params.serviceName,
       ],
       queryFn: () =>
-        OrganizationsService.getApiV1OrganizationsByOrganizationIdInfrastructureServices(
+        OrganizationsService.getApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
           {
             organizationId: Number.parseInt(params.orgId),
-            limit: ALL_ITEMS,
+            serviceName: params.serviceName,
           }
         ),
     });
