@@ -45,6 +45,7 @@ import { DependencyPaths } from '@/components/dependency-paths';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -53,6 +54,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
 import {
   convertToBackendSorting,
   updateColumnSorting,
@@ -85,12 +92,39 @@ const renderSubComponent = ({
 
   return (
     <div className='flex flex-col gap-4'>
+      {pkg.isModified && (
+        <div>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge
+                className={`border ${getIssueSeverityBackgroundColor('HINT')}`}
+              >
+                MODIFIED
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              The source code of the package has been modified compared to the
+              original source code, e.g., in case of a fork of an upstream Open
+              Source project.
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
+      <div className='flex gap-2'>
+        <div className='font-semibold'>Authors:</div>
+        <FormattedValue value={pkg.authors} />
+      </div>
       <div>
         <div className='font-semibold'>Description</div>
         <div className='ml-2 break-all'>
           <FormattedValue value={pkg.description} />
         </div>
       </div>
+      <div className='flex gap-2'>
+        <div className='font-semibold'>CPE:</div>
+        <FormattedValue value={pkg.cpe} />
+      </div>
+
       <div>
         <div className='font-semibold'>
           {getRepositoryTypeLabel(pkg.vcsProcessed.type as RepositoryType)}{' '}
@@ -111,6 +145,25 @@ const renderSubComponent = ({
           </div>
         </div>
       </div>
+
+      <div>
+        <div className='font-semibold'>Binary Artifact</div>
+        <div className='ml-2'>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>URL:</div>
+            <FormattedValue value={pkg.binaryArtifact.url} type='url' />
+          </div>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>Hash value:</div>
+            <FormattedValue value={pkg.binaryArtifact.hashValue} />
+          </div>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>Hash algorithm:</div>
+            <FormattedValue value={pkg.binaryArtifact.hashAlgorithm} />
+          </div>
+        </div>
+      </div>
+
       <div>
         <div className='font-semibold'>Source Artifact</div>
         <div className='ml-2'>
@@ -283,6 +336,19 @@ const PackagesComponent = () => {
             },
           },
         },
+      }
+    ),
+    columnHelper.accessor(
+      (row) => {
+        return row.curations
+          .map((curation) => curation.concludedLicense)
+          .join(', ');
+      },
+      {
+        header: 'Concluded License',
+        cell: ({ getValue }) => <div className='break-all'>{getValue()}</div>,
+        enableColumnFilter: false,
+        enableSorting: false,
       }
     ),
     columnHelper.accessor('homepageUrl', {
