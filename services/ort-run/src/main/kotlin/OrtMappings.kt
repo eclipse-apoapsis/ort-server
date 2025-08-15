@@ -47,7 +47,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorCapability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Defect
@@ -96,6 +98,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.SnippetFinding
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.TextLocation
 import org.eclipse.apoapsis.ortserver.model.runs.scanner.UnknownProvenance
 
+import org.ossreviewtoolkit.model.AdvisorDetails as OrtAdvisorDetails
 import org.ossreviewtoolkit.model.AdvisorResult as OrtAdvisorResult
 import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
@@ -628,4 +631,9 @@ fun OrtVulnerabilityResolution.mapToModel() = VulnerabilityResolution(
     externalId = id,
     reason = reason.name,
     comment = comment
+)
+
+fun OrtAdvisorDetails.mapToModel() = AdvisorDetails(
+    name = name,
+    capabilities = capabilities.map { AdvisorCapability.valueOf(it.name) }.toSet()
 )

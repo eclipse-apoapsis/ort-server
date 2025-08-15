@@ -21,6 +21,8 @@
 
 package org.eclipse.apoapsis.ortserver.api.v1.mapping
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorCapability as ApiAdvisorCapability
+import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorDetails as ApiAdvisorDetails
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob as ApiAdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration as ApiAdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob as ApiAnalyzerJob
@@ -147,6 +149,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
@@ -587,12 +590,18 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     submoduleFetchStrategy = submoduleFetchStrategy.mapToModel()
 )
 
+fun AdvisorDetails.mapToApi() = ApiAdvisorDetails(
+    name = name,
+    capabilities = capabilities.map { ApiAdvisorCapability.valueOf(it.name) }.toSet()
+)
+
 fun VulnerabilityWithDetails.mapToApi() =
     ApiVulnerabilityWithDetails(
         vulnerability = vulnerability.mapToApi(),
         identifier = identifier.mapToApi(),
         rating = rating.mapToApi(),
-        resolutions = resolutions.map { it.mapToApi() }
+        resolutions = resolutions.map { it.mapToApi() },
+        advisor = advisor.mapToApi()
     )
 
 fun Vulnerability.mapToApi() = ApiVulnerability(
