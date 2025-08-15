@@ -215,6 +215,21 @@ class InfrastructureServiceServiceTest : WordSpec({
         }
     }
 
+    "getForId" should {
+        "return an infrastructure service" {
+            testWithHelper {
+                val infrastructureService = mockk<InfrastructureService>()
+                every {
+                    repository.getByIdAndName(ORGANIZATION_ID, SERVICE_NAME)
+                } returns infrastructureService
+
+                val result = service.getForId(ORGANIZATION_ID, SERVICE_NAME)
+
+                result shouldBe infrastructureService
+            }
+        }
+    }
+
     "listForId" should {
         "return a list with the infrastructure services of the organization" {
             val services = listOf<InfrastructureService>(mockk(), mockk(), mockk())
