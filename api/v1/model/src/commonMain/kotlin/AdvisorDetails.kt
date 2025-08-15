@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,24 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
-/**
- * A data class to gather information and related data about a [Vulnerability].
- */
 @Serializable
-data class VulnerabilityWithDetails(
-    val vulnerability: Vulnerability,
-    val identifier: Identifier,
+data class AdvisorDetails(
+    /**
+     * The name of the used advisor.
+     */
+    val name: String,
 
-    /** An advisory rating for the [Vulnerability], derived from the individual references of the [Vulnerability]. */
-    val rating: VulnerabilityRating,
-
-    val resolutions: List<VulnerabilityResolution> = emptyList(),
-
-    /** Details of the used advisor. */
-    val advisor: AdvisorDetails
+    /**
+     * The capabilities of the used advisor. This property indicates, which kind of findings are retrieved by the
+     * advisor.
+     */
+    val capabilities: Set<AdvisorCapability>
 )
+
+enum class AdvisorCapability {
+    /** Indicates that an advisor can retrieve information about defects. */
+    DEFECTS,
+
+    /** Indicates that an advisor can retrieve information about security vulnerabilities. */
+    VULNERABILITIES
+}
