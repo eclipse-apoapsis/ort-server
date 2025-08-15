@@ -88,6 +88,47 @@ const renderSubComponent = ({ row }: { row: Row<Project> }) => {
         <div className='font-semibold'>Homepage:</div>
         <FormattedValue value={project.homepageUrl} type='url' />
       </div>
+      <div className='flex gap-2'>
+        <div className='font-semibold'>CPE:</div>
+        <FormattedValue value={project.cpe} />
+      </div>
+
+      <div>
+        <div className='font-semibold'>Processed Declared License</div>
+        <div className='ml-2'>
+          <div className='flex gap-2'>
+            <div className='font-semibold'>SPDX expression:</div>
+            <FormattedValue
+              value={project.processedDeclaredLicense.spdxExpression}
+              type='string'
+            />
+          </div>
+          <div
+            className={`flex ${
+              project.processedDeclaredLicense.mappedLicenses &&
+              Object.entries(project.processedDeclaredLicense.mappedLicenses)
+                .length > 0
+                ? 'flex-col'
+                : ''
+            }`}
+          >
+            <div className='font-semibold'>Mapped licenses:</div>
+            <FormattedValue
+              value={project.processedDeclaredLicense.mappedLicenses}
+              type='keyvalue'
+            />
+          </div>
+          <div
+            className={`flex ${project.processedDeclaredLicense.unmappedLicenses.length > 0 && 'flex-col'}`}
+          >
+            <div className='font-semibold'>Unmapped licenses:</div>
+            <FormattedValue
+              value={project.processedDeclaredLicense.unmappedLicenses}
+              type='array'
+            />
+          </div>
+        </div>
+      </div>
 
       <div>
         <div className='font-semibold'>
