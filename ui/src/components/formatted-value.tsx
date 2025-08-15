@@ -20,19 +20,20 @@
 import { valueOrNa } from '@/helpers/value-or-na'; // Adjust import path as needed
 
 type FormattedValueProps<T> = {
-  value: T | T[] | null | undefined;
-  type?: 'string' | 'array' | 'url';
+  value: T | T[] | Record<string, unknown> | null | undefined;
+  type?: 'string' | 'array' | 'url' | 'keyvalue';
 };
 
 export const FormattedValue = <T,>({
   value,
   type = 'string',
 }: FormattedValueProps<T>) => {
-  const arrayFormat = type === 'array' ? 'array' : 'string';
+  const arrayFormat =
+    type === 'array' || type === 'keyvalue' ? 'array' : 'string';
   const result = valueOrNa(value, { arrayFormat });
   const isNa = result === 'N/A';
 
-  // Render array as vertical list or "N/A" with indentation
+  // Render array
   if (type === 'array') {
     if (Array.isArray(result)) {
       return (
@@ -45,9 +46,33 @@ export const FormattedValue = <T,>({
         </div>
       );
     }
-
-    // "N/A" for empty arrays, indented like array items
     return <div className='text-muted-foreground ml-2'>{String(result)}</div>;
+  }
+
+  // Render keyvalue
+  if (type === 'keyvalue') {
+    if (
+      result !== 'N/A' &&
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value)
+    ) {
+      const entries = Object.entries(value as Record<string, unknown>);
+      if (entries.length > 0) {
+        return (
+          <div className='flex flex-col'>
+            {entries
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([key, val], idx) => (
+                <div className='text-muted-foreground ml-2' key={idx}>
+                  {`${key}: ${String(val)}`}
+                </div>
+              ))}
+          </div>
+        );
+      }
+    }
+    return <div className='text-muted-foreground ml-2'>N/A</div>;
   }
 
   // Render as link
