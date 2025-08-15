@@ -334,6 +334,38 @@ val postInfrastructureServiceForOrganization: RouteConfig.() -> Unit = {
     }
 }
 
+val getInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit = {
+    operationId = "GetInfrastructureServicesByOrganizationIdAndName"
+    summary = "Get an infrastructure service for an organization"
+    tags = listOf("Organizations")
+
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The organization's ID."
+        }
+        pathParameter<String>("serviceName") {
+            description = "The name of the infrastructure service."
+        }
+    }
+
+    response {
+        HttpStatusCode.OK to {
+            description = "Success"
+            jsonBody<InfrastructureService> {
+                example("Get an infrastructure service") {
+                    value = InfrastructureService(
+                        name = "Artifactory",
+                        url = "https://artifactory.example.org/releases",
+                        description = "Artifactory repository",
+                        usernameSecretRef = "artifactoryUsername",
+                        passwordSecretRef = "artifactoryPassword"
+                    )
+                }
+            }
+        }
+    }
+}
+
 val patchInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit = {
     operationId = "PatchInfrastructureServiceForOrganizationIdAndName"
     summary = "Update an infrastructure service for an organization"
