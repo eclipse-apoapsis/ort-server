@@ -36,7 +36,7 @@ versionsPlugin = "0.52.0"
 
 # Gradle dependencies
 aedile = "3.0.0"
-awsSdk = "1.5.14"
+awsSdk = "1.5.19"
 azureIdentity = "1.17.0"
 azureMessagingServicebus = "7.17.13"
 azureSecurityKeyvaultSecrets = "4.10.1"
