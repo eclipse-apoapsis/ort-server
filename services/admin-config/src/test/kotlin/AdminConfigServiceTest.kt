@@ -24,6 +24,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -654,6 +655,7 @@ class AdminConfigServiceTest : WordSpec({
             reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
             reporterConfig.customLicenseTextDir should beNull()
             reporterConfig shouldBe AdminConfig.DEFAULT_REPORTER_CONFIG
+            reporterConfig.reportDefinitionNames should containAll("WebApp", "PdfTemplate")
         }
 
         "use default values for unspecified properties" {
@@ -667,6 +669,7 @@ class AdminConfigServiceTest : WordSpec({
 
             reporterConfig.howToFixTextProviderFile shouldBe ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME
             reporterConfig.customLicenseTextDir should beNull()
+            reporterConfig.reportDefinitionNames should containAll("WebApp", "PdfTemplate")
         }
 
         "parse simple properties from the reporter section of the config file" {

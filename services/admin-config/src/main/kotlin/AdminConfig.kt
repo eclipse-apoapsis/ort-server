@@ -104,7 +104,7 @@ class AdminConfig(
          * reports. Typically, some reports should be configured.
          */
         val DEFAULT_REPORTER_CONFIG = ReporterConfig(
-            reportDefinitionsMap = emptyMap(),
+            reportDefinitionsMap = ReporterConfig.addDefinitionsForUnreferencedPlugins(emptyMap()),
             howToFixTextProviderFile = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
             customLicenseTextDir = null
         )
