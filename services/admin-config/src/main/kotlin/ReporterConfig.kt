@@ -19,6 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.services.config
 
+import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginInfo
+import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginType
+
 /**
  * A class defining an asset (such as a font or an image) which is required to generate a report.
  *
@@ -157,6 +160,40 @@ data class ReporterConfig(
      */
     val globalAssets: GlobalReporterAssets = emptyMap()
 ) {
+    companion object {
+        /** The type for reporter plugins. */
+        private val reporterPluginType = PluginType("org.ossreviewtoolkit.reporter.ReporterFactory")
+
+        /**
+         * A map with the IDs of all available reporter plugins. The keys of the map are the IDs in lowercase
+         * to enable case-insensitive matching. The values are the IDs in original case.
+         */
+        private val reporterPluginIds = PluginInfo.pluginsForType(reporterPluginType)
+            .map { it.id.id }
+            .associateBy { it.lowercase() }
+
+        /**
+         * Create dummy [ReportDefinition]s for all reporter plugins that are not referenced in the given
+         * [definitions]. This makes sure that there is always a definition for each existing reporter plugin.
+         */
+        internal fun addDefinitionsForUnreferencedPlugins(
+            definitions: Map<String, ReportDefinition>
+        ): Map<String, ReportDefinition> {
+            val allReporterPlugins = reporterPluginIds
+            val referencedPlugins = definitions.values.mapTo(mutableSetOf()) { it.pluginId.lowercase() }
+
+            return definitions + (allReporterPlugins.keys - referencedPlugins).associate { pluginId ->
+                val originalPluginId = allReporterPlugins.getValue(pluginId)
+                originalPluginId to ReportDefinition(
+                    pluginId = originalPluginId,
+                    assetFiles = emptyList(),
+                    assetDirectories = emptyList(),
+                    nameMapping = null
+                )
+            }
+        }
+    }
+
     /**
      * A [Map] with the existing report definitions using lowercase names as keys. This is used to simplify
      * case-insensitive lookups of report definitions by name.
@@ -177,4 +214,16 @@ data class ReporterConfig(
      */
     fun getReportDefinition(name: String): ReportDefinition? =
         lowercaseReportDefinitions[name.lowercase()]
+
+    /**
+     * Validate the report definitions contained in this configuration. Add messages for found issues to the given
+     * [issues] list.
+     */
+    internal fun validateReportDefinitions(issues: MutableList<String>) {
+        issues += reportDefinitionNames.map { it to getReportDefinition(it) }
+            .filter { it.second?.pluginId?.lowercase() !in reporterPluginIds }
+            .map {
+                "Unknown reporter plugin '${it.second?.pluginId}' referenced from report definition '${it.first}'."
+            }
+    }
 }
