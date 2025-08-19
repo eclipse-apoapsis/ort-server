@@ -17,16 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import {
-  Issue,
-  RuleViolation,
-  VulnerabilityWithIdentifier,
-} from '@/api/requests';
+import { Issue, RuleViolation, VulnerabilityWithDetails } from '@/api/requests';
 
 export type ItemWithResolutions =
   | Issue
   | RuleViolation
-  | VulnerabilityWithIdentifier;
+  | VulnerabilityWithDetails;
 
 export function getResolvedStatus(item: ItemWithResolutions) {
   return item.resolutions && item.resolutions.length > 0

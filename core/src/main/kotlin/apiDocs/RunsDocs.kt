@@ -58,7 +58,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolution
-import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
@@ -275,11 +275,11 @@ val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
     response {
         HttpStatusCode.OK to {
             description = "Success."
-            jsonBody<PagedResponse<VulnerabilityWithIdentifier>> {
+            jsonBody<PagedResponse<VulnerabilityWithDetails>> {
                 example("Get vulnerabilities for an ORT run") {
                     value = PagedResponse(
                         listOf(
-                            VulnerabilityWithIdentifier(
+                            VulnerabilityWithDetails(
                                 vulnerability = Vulnerability(
                                     externalId = "CVE-2021-1234",
                                     summary = "A vulnerability",
