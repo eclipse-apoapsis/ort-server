@@ -57,8 +57,10 @@ import {
 } from '@/components/ui/tooltip.tsx';
 import { toast } from '@/lib/toast.ts';
 
+// In both URL fields, a valid URL or an empty string is accepted
 const formSchema = z.object({
-  iconUrl: z.string().url('Invalid URL'),
+  iconUrl: z.url().or(z.literal('')),
+  iconUrlDark: z.url().or(z.literal('')),
   isEnabled: z.boolean(),
 });
 
@@ -67,59 +69,99 @@ export function HomeIconForm() {
 
   const {
     data: dbHomeIcon,
-    isFetching,
-    isError,
-    error,
+    isFetching: isHomeIconFetching,
+    isError: isHomeIconError,
+    error: homeIconError,
   } = useAdminServiceGetApiV1AdminConfigByKey({
     key: 'HOME_ICON_URL',
+  });
+
+  const {
+    data: dbHomeIconDark,
+    isFetching: isHomeIconDarkFetching,
+    isError: isHomeIconDarkError,
+    error: homeIconDarkError,
+  } = useAdminServiceGetApiV1AdminConfigByKey({
+    key: 'HOME_ICON_URL_DARK',
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       iconUrl: dbHomeIcon?.value || '',
+      iconUrlDark: dbHomeIconDark?.value || '',
       isEnabled: dbHomeIcon?.isEnabled || false,
     },
   });
 
-  const { mutateAsync, isPending } = useAdminServicePostApiV1AdminConfigByKey({
-    onSuccess() {
-      queryClient.invalidateQueries({
-        queryKey: [useAdminServiceGetApiV1AdminConfigByKeyKey],
-      });
-      toast.info('Home icon saved', {
-        description: `Home icon saved successfully.`,
-      });
-    },
-    onError(error: ApiError) {
-      toast.error(error.message, {
-        description: <ToastError error={error} />,
-        duration: Infinity,
-        cancel: {
-          label: 'Dismiss',
-          onClick: () => {},
-        },
-      });
-    },
-  });
+  const { mutateAsync: saveHomeIcon, isPending: isLightPending } =
+    useAdminServicePostApiV1AdminConfigByKey({
+      onSuccess() {
+        queryClient.invalidateQueries({
+          queryKey: [useAdminServiceGetApiV1AdminConfigByKeyKey],
+        });
+        toast.info('Home icon (light mode) saved', {
+          description: `Home icon for light mode saved successfully.`,
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
+
+  const { mutateAsync: saveHomeIconDark, isPending: isDarkPending } =
+    useAdminServicePostApiV1AdminConfigByKey({
+      onSuccess() {
+        queryClient.invalidateQueries({
+          queryKey: [useAdminServiceGetApiV1AdminConfigByKeyKey],
+        });
+        toast.info('Home icon (dark mode) saved', {
+          description: `Home icon for dark mode saved successfully.`,
+        });
+      },
+      onError(error: ApiError) {
+        toast.error(error.message, {
+          description: <ToastError error={error} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await mutateAsync({
+    await saveHomeIcon({
       requestBody: {
         isEnabled: values.isEnabled,
         value: values.iconUrl,
       },
       key: 'HOME_ICON_URL',
     });
+    await saveHomeIconDark({
+      requestBody: {
+        isEnabled: values.isEnabled,
+        value: values.iconUrlDark,
+      },
+      key: 'HOME_ICON_URL_DARK',
+    });
   }
 
-  if (isFetching) {
+  if (isHomeIconFetching || isHomeIconDarkFetching) {
     return <LoadingIndicator />;
   }
 
-  if (isError) {
+  if (isHomeIconError || isHomeIconDarkError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
+      description: <ToastError error={homeIconError || homeIconDarkError} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -132,11 +174,13 @@ export function HomeIconForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Home Icon</CardTitle>
+        <CardTitle>Home Icons</CardTitle>
         <CardDescription>
-          Customise the home icon by providing a URL to an icon image. The
-          toggle specifies whether the default ORT Server icon should be used or
-          the icon from the provided URL.
+          Customise the home icons for light/dark mode by providing URLs to icon
+          images. The toggle specifies whether the default ORT Server icon
+          should be used or the icons from the provided URLs. In case only one
+          URL is provided (in either of the fields), it will be used for both
+          light and dark modes.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -147,7 +191,20 @@ export function HomeIconForm() {
               name='iconUrl'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Icon URL</FormLabel>
+                  <FormLabel>Icon URL for light mode</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='iconUrlDark'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Icon URL for dark mode</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -166,7 +223,7 @@ export function HomeIconForm() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormLabel>Use the provided icon URL</FormLabel>
+                  <FormLabel>Use the provided icon URLs</FormLabel>
                   <FormMessage />
                 </FormItem>
               )}
@@ -187,8 +244,8 @@ export function HomeIconForm() {
                 Revert to the saved home icon and clear unsaved edits.
               </TooltipContent>
             </Tooltip>
-            <Button type='submit' disabled={isPending}>
-              {isPending ? (
+            <Button type='submit' disabled={isLightPending || isDarkPending}>
+              {isLightPending || isDarkPending ? (
                 <>
                   <span className='sr-only'>Saving ...</span>
                   <Loader2 size={16} className='mx-3 animate-spin' />
