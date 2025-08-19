@@ -26,11 +26,28 @@ import { z } from 'zod';
 
 import { useAdminServiceGetApiV1AdminConfigByKey } from '@/api/queries';
 import homeIcon from '@/assets/home-icon.svg';
+import { LoadingIndicator } from '@/components/loading-indicator';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Siblings } from '@/components/siblings';
 import { useTheme } from '@/components/theme-provider-context';
+import { ToastError } from '@/components/toast-error';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   Tooltip,
   TooltipContent,
@@ -39,23 +56,6 @@ import {
 import { extractInitials } from '@/helpers/extract-initials.ts';
 import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
-import { LoadingIndicator } from './loading-indicator';
-import { ToastError } from './toast-error';
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from './ui/breadcrumb';
-import { Button } from './ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import { Input } from './ui/input';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 
 const PRODUCT_NAME = 'ORT Server';
 
