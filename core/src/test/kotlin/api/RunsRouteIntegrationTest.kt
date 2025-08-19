@@ -83,7 +83,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Project as ApiProject
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViolation
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
-import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -653,7 +653,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
 
                 vulnerabilities.data shouldHaveSize 2
 
@@ -726,7 +726,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities?resolved=true")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
 
                 with(vulnerabilities.data) {
                     shouldHaveSize(1)
@@ -792,7 +792,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 val response = superuserClient.get("/api/v1/runs/${ortRun.id}/vulnerabilities?resolved=false")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithIdentifier>>()
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
 
                 with(vulnerabilities.data) {
                     shouldHaveSize(1)

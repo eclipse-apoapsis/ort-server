@@ -36,10 +36,7 @@ import z from 'zod';
 import { useRunsServiceGetApiV1RunsByRunIdVulnerabilities } from '@/api/queries';
 import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
 import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
-import {
-  VulnerabilityRating,
-  VulnerabilityWithIdentifier,
-} from '@/api/requests';
+import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api/requests';
 import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
@@ -99,12 +96,12 @@ import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
-const columnHelper = createColumnHelper<VulnerabilityWithIdentifier>();
+const columnHelper = createColumnHelper<VulnerabilityWithDetails>();
 
 const renderSubComponent = ({
   row,
 }: {
-  row: Row<VulnerabilityWithIdentifier>;
+  row: Row<VulnerabilityWithDetails>;
 }) => {
   const vulnerability = row.original.vulnerability;
   const hasResolutions = getResolvedStatus(row.original) === 'Resolved';

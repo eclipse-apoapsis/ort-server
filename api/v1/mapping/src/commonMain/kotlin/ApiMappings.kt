@@ -87,7 +87,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters as ApiVu
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolution as ApiVulnerabilityResolution
-import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithIdentifier as ApiVulnerabilityWithIdentifier
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails as ApiVulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
@@ -133,7 +133,7 @@ import org.eclipse.apoapsis.ortserver.model.UserGroup
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
-import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithIdentifier
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
@@ -587,8 +587,8 @@ fun ApiScannerJobConfiguration.mapToModel() = ScannerJobConfiguration(
     submoduleFetchStrategy = submoduleFetchStrategy.mapToModel()
 )
 
-fun VulnerabilityWithIdentifier.mapToApi() =
-    ApiVulnerabilityWithIdentifier(
+fun VulnerabilityWithDetails.mapToApi() =
+    ApiVulnerabilityWithDetails(
         vulnerability = vulnerability.mapToApi(),
         identifier = identifier.mapToApi(),
         rating = rating.mapToApi(),
