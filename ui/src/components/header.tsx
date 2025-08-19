@@ -54,6 +54,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { extractInitials } from '@/helpers/extract-initials.ts';
+import { setCustomFavicon } from '@/helpers/set-custom-favicon';
 import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 
@@ -93,6 +94,15 @@ export const Header = () => {
     error: productNameError,
   } = useAdminServiceGetApiV1AdminConfigByKey({
     key: 'MAIN_PRODUCT_NAME',
+  });
+
+  const {
+    data: dbFavicon,
+    isPending: isFaviconPending,
+    isError: isFaviconError,
+    error: faviconError,
+  } = useAdminServiceGetApiV1AdminConfigByKey({
+    key: 'FAVICON_URL',
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -169,15 +179,30 @@ export const Header = () => {
     runMatch,
   ]);
 
-  if (isHomeIconPending || isHomeIconDarkPending || isProductNamePending) {
+  if (
+    isHomeIconPending ||
+    isHomeIconDarkPending ||
+    isProductNamePending ||
+    isFaviconPending
+  ) {
     return <LoadingIndicator />;
   }
 
-  if (isHomeIconError || isHomeIconDarkError || isProductNameError) {
+  if (
+    isHomeIconError ||
+    isHomeIconDarkError ||
+    isProductNameError ||
+    isFaviconError
+  ) {
     toast.error('Unable to load data', {
       description: (
         <ToastError
-          error={homeIconError || homeIconDarkError || productNameError}
+          error={
+            homeIconError ||
+            homeIconDarkError ||
+            productNameError ||
+            faviconError
+          }
         />
       ),
       duration: Infinity,
@@ -206,6 +231,15 @@ export const Header = () => {
     }
   } else {
     homeIconSrc = homeIcon;
+  }
+
+  // Set the favicon based on the fetched data. Fall back to default favicon
+  // in case of errors or missing values.
+  if (dbFavicon.isEnabled) {
+    setCustomFavicon(dbFavicon.value ?? '');
+  } else {
+    // If the favicon is not enabled, fall back to the default favicon
+    setCustomFavicon();
   }
 
   return (
