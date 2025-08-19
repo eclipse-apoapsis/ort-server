@@ -28,6 +28,7 @@ import { useAdminServiceGetApiV1AdminConfigByKey } from '@/api/queries';
 import homeIcon from '@/assets/home-icon.svg';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Siblings } from '@/components/siblings';
+import { useTheme } from '@/components/theme-provider-context';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
@@ -65,14 +66,24 @@ const formSchema = z.object({
 export const Header = () => {
   const user = useUser();
   const navigate = useNavigate();
+  const activeTheme = useTheme().activeTheme;
 
   const {
     data: dbHomeIcon,
-    isPending,
-    isError,
-    error,
+    isPending: isHomeIconPending,
+    isError: isHomeIconError,
+    error: homeIconError,
   } = useAdminServiceGetApiV1AdminConfigByKey({
     key: 'HOME_ICON_URL',
+  });
+
+  const {
+    data: dbHomeIconDark,
+    isPending: isHomeIconDarkPending,
+    isError: isHomeIconDarkError,
+    error: homeIconDarkError,
+  } = useAdminServiceGetApiV1AdminConfigByKey({
+    key: 'HOME_ICON_URL_DARK',
   });
 
   const {
@@ -158,13 +169,17 @@ export const Header = () => {
     runMatch,
   ]);
 
-  if (isPending || isProductNamePending) {
+  if (isHomeIconPending || isHomeIconDarkPending || isProductNamePending) {
     return <LoadingIndicator />;
   }
 
-  if (isError || isProductNameError) {
+  if (isHomeIconError || isHomeIconDarkError || isProductNameError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={error || productNameError} />,
+      description: (
+        <ToastError
+          error={homeIconError || homeIconDarkError || productNameError}
+        />
+      ),
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -172,6 +187,25 @@ export const Header = () => {
       },
     });
     return;
+  }
+
+  // The logic for showing the home icon is as follows:
+  // - if custom icons are not enabled, fall back to using the default icon
+  // - if the active theme is light, use the light mode icon, otherwise use the dark mode icon,
+  //   using the default icon as a final fallback
+  // - if the active theme is dark, use the dark mode icon, otherwise use the light mode icon,
+  //   using the default icon as a final fallback
+  // - in the case of formally correct but invalid icon URLs being provided, fall back to showing
+  //   the configured or default product name instead
+  let homeIconSrc;
+  if (dbHomeIcon.isEnabled) {
+    if (activeTheme === 'light') {
+      homeIconSrc = dbHomeIcon.value || dbHomeIconDark.value || homeIcon;
+    } else {
+      homeIconSrc = dbHomeIconDark.value || dbHomeIcon.value || homeIcon;
+    }
+  } else {
+    homeIconSrc = homeIcon;
   }
 
   return (
@@ -185,11 +219,7 @@ export const Header = () => {
                 className='flex items-center gap-2 text-lg font-semibold md:text-base'
               >
                 <img
-                  src={
-                    dbHomeIcon.isEnabled && dbHomeIcon.value
-                      ? dbHomeIcon.value
-                      : homeIcon
-                  }
+                  src={homeIconSrc}
                   alt={
                     dbProductName.isEnabled && dbProductName.value
                       ? dbProductName.value
