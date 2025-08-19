@@ -38,6 +38,9 @@ data class Config(
  * to the table. New keys should be added by adding a new entry to this enum class, possibly with a default value.
  */
 enum class ConfigKey(val default: String) {
+    /** The URL of the favicon to be displayed in the UI. */
+    FAVICON_URL("https://example.com/favicon.png"),
+
     /** The URL of the home icon to be displayed in the UI in light mode. */
     HOME_ICON_URL("https://example.com/icon.png"),
 
