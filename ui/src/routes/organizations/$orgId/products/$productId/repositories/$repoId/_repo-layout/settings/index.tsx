@@ -18,7 +18,11 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -67,6 +71,7 @@ const formSchema = z.object({
 const RepositorySettingsPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
+  const router = useRouter();
 
   const repositoryId = Number.parseInt(params.repoId);
 
@@ -81,6 +86,7 @@ const RepositorySettingsPage = () => {
         toast.info('Edit repository', {
           description: `Repository "${data.url}" updated successfully.`,
         });
+        router.invalidate();
         navigate({
           to: '/organizations/$orgId/products/$productId/repositories/$repoId',
           params: {
@@ -88,6 +94,7 @@ const RepositorySettingsPage = () => {
             productId: params.productId,
             repoId: params.repoId,
           },
+          reloadDocument: true,
         });
       },
       onError(error: ApiError) {
