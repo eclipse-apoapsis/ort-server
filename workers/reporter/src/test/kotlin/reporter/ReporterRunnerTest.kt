@@ -975,6 +975,58 @@ class ReporterRunnerTest : WordSpec({
 
             reporterInputSlot.captured.licenseClassifications shouldBe licenseClassifications
         }
+
+        "merge plugin configurations with configurations for report definitions" {
+            val templateFormat = "specialDocument"
+            val templatePluginId = "templatePlugin"
+            val templateReporter = reporterFactoryMock(templatePluginId)
+
+            mockReporterFactoryAll(
+                templatePluginId to templateReporter
+            )
+
+            val jobConfig = ReporterJobConfiguration(
+                formats = listOf(templateFormat),
+                config = mapOf(
+                    templatePluginId to PluginConfig(
+                        mapOf(
+                            "ugly" to "false",
+                            "templateFile" to "someTemplate.ftl"
+                        ),
+                        emptyMap()
+                    ),
+                    "$templatePluginId:$templateFormat" to PluginConfig(
+                        mapOf(
+                            "templateFile" to "anotherTemplate.ftl",
+                            "specialProperty" to "specialValue"
+                        ),
+                        emptyMap()
+                    )
+                )
+            )
+
+            val context = mockContext()
+            val runner = createRunner(
+                config = createReporterConfig(
+                    reportDefinitions = arrayOf(
+                        createReportDefinition(templatePluginId, templateFormat)
+                    )
+                )
+            )
+            runner.run(OrtResult.EMPTY, jobConfig, null, context)
+
+            val slotTemplatePluginConfiguration = slot<OrtPluginConfig>()
+            verify {
+                templateReporter.create(capture(slotTemplatePluginConfiguration))
+            }
+
+            val expectedTemplateOptions = mapOf(
+                "ugly" to "false",
+                "templateFile" to "anotherTemplate.ftl",
+                "specialProperty" to "specialValue"
+            )
+            slotTemplatePluginConfiguration.captured.options shouldBe expectedTemplateOptions
+        }
     }
 
     "createLicenseTextProvider" should {

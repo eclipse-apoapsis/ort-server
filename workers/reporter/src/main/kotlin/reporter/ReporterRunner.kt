@@ -249,7 +249,10 @@ class ReporterRunner(
                         measureTimedValue {
                             val reporterFactory = fetchReporterFactory(format, adminConfig)
 
-                            val reporterConfig = transformedOptions[reporterFactory.descriptor.id]?.mapToOrt().orEmpty()
+                            val reporterConfig = adminConfig.pluginOptionsForDefinition(
+                                format,
+                                transformedOptions
+                            )?.mapToOrt().orEmpty()
 
                             val reporter = reporterFactory.create(reporterConfig)
                             val reportFileResults = reporter.generateReport(reporterInput, outputDir)
