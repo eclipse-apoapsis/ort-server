@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.services.config
 
+import org.eclipse.apoapsis.ortserver.model.Options
+import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginInfo
 import org.eclipse.apoapsis.ortserver.shared.plugininfo.PluginType
 
@@ -161,6 +163,12 @@ data class ReporterConfig(
     val globalAssets: GlobalReporterAssets = emptyMap()
 ) {
     companion object {
+        /**
+         * The separator used to separate the plugin ID from the report definition name in the reference to a reporter
+         * plugin.
+         */
+        private const val PLUGIN_REFERENCE_SEPARATOR = ':'
+
         /** The type for reporter plugins. */
         private val reporterPluginType = PluginType("org.ossreviewtoolkit.reporter.ReporterFactory")
 
@@ -192,6 +200,23 @@ data class ReporterConfig(
                 )
             }
         }
+
+        /**
+         * Merge the given [pluginConfig] with the [definitionConfig] of a report definition, so that options from
+         * the definition override options from the plugin.
+         */
+        private fun mergePluginConfigs(pluginConfig: PluginConfig, definitionConfig: PluginConfig): PluginConfig =
+            PluginConfig(
+                options = mergeOptions(pluginConfig.options, definitionConfig.options),
+                secrets = mergeOptions(pluginConfig.secrets, definitionConfig.secrets)
+            )
+
+        /**
+         * Merge the given [pluginOptions] with the [definitionOptions] of a report definition, so that options from
+         * the definition override options from the plugin.
+         */
+        private fun mergeOptions(pluginOptions: Options, definitionOptions: Options): Options =
+            pluginOptions + definitionOptions
     }
 
     /**
@@ -214,6 +239,37 @@ data class ReporterConfig(
      */
     fun getReportDefinition(name: String): ReportDefinition? =
         lowercaseReportDefinitions[name.lowercase()]
+
+    /**
+     * Search the given [optionsMap] with plugin options for options that apply to the [ReportDefinition] with the
+     * given [name].
+     *
+     * This function makes it possible to invoke single reporter plugins multiple times with different options
+     * during report generation. This is especially needed for template reporters for which the resulting reports
+     * are determined by the templates specified in the options. The algorithm is as follows:
+     * - The function tries to find a [PluginConfig] object that is stored under the name of the reporter plugin
+     *   referenced by the [ReportDefinition] with the given [name].
+     * - It also searches for a key of the form `<pluginId>:<name>`; so there can be options specific to a report
+     *   definition for a concrete plugin.
+     * - If the search yields two option objects, they are merged with the options of the report definition taking
+     *   precedence.
+     * - If only a single option object is found, it is returned as is.
+     * - If no option object is found, the function returns *null*.
+     */
+    fun pluginOptionsForDefinition(name: String, optionsMap: Map<String, PluginConfig>): PluginConfig? =
+        getReportDefinition(name)?.pluginId?.let { pluginId ->
+            val pluginConfig = optionsMap[pluginId]
+            val definitionConfig = optionsMap.entries.find {
+                val components = it.key.split(PLUGIN_REFERENCE_SEPARATOR)
+                components.size == 2 && components[0] == pluginId && components[1].equals(name, ignoreCase = true)
+            }?.value
+
+            if (pluginConfig != null && definitionConfig != null) {
+                mergePluginConfigs(pluginConfig, definitionConfig)
+            } else {
+                pluginConfig ?: definitionConfig
+            }
+        }
 
     /**
      * Validate the report definitions contained in this configuration. Add messages for found issues to the given
