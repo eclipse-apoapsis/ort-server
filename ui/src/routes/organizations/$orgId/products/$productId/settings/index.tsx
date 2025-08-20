@@ -18,7 +18,11 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -59,6 +63,7 @@ const formSchema = z.object({
 const ProductSettingsPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
+  const router = useRouter();
 
   const productId = Number.parseInt(params.productId);
 
@@ -73,9 +78,11 @@ const ProductSettingsPage = () => {
         toast.info('Edit Product', {
           description: `Product "${data.name}" updated successfully.`,
         });
+        router.invalidate();
         navigate({
           to: '/organizations/$orgId/products/$productId',
           params: { orgId: params.orgId, productId: params.productId },
+          reloadDocument: true,
         });
       },
       onError(error: ApiError) {

@@ -18,7 +18,11 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -59,6 +63,7 @@ const formSchema = z.object({
 const OrganizationSettingsPage = () => {
   const params = Route.useParams();
   const navigate = useNavigate();
+  const router = useRouter();
 
   const organizationId = Number.parseInt(params.orgId);
 
@@ -73,9 +78,11 @@ const OrganizationSettingsPage = () => {
         toast.info('Edit Organization', {
           description: `Organization "${data.name}" updated successfully.`,
         });
+        router.invalidate();
         navigate({
           to: '/organizations/$orgId',
           params: { orgId: params.orgId },
+          reloadDocument: true,
         });
       },
       onError(error: ApiError) {
