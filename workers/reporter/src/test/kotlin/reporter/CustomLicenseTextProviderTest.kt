@@ -89,6 +89,18 @@ class CustomLicenseTextProviderTest : WordSpec({
 
             reader?.invoke() shouldBe ""
         }
+
+        "handle a license text dir with a trailing slash" {
+            val configManager = createConfigManagerMock()
+            every {
+                configManager.getFileAsString(configContext, Path("${licenseDir.path}/$LICENSE_ID"))
+            } returns LICENSE_TEXT
+
+            val provider = CustomLicenseTextProvider(configManager, configContext, Path("${licenseDir.path}/"), mockk())
+            val reader = provider.getLicenseTextReader(LICENSE_ID)
+
+            reader?.invoke() shouldBe LICENSE_TEXT
+        }
     }
 
     "hasLicenseText" should {
