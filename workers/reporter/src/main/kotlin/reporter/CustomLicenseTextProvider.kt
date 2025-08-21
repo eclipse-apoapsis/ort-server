@@ -48,11 +48,14 @@ internal class CustomLicenseTextProvider(
     val configurationContext: Context?,
 
     /** The [Path] to the directory in the configuration containing custom license texts. */
-    val licenseTextDir: Path,
+    rawLicenseTextDir: Path,
 
     /** A fallback [LicenseTextProvider] to query for license texts not available in the configuration. */
     val wrappedProvider: LicenseTextProvider = DefaultLicenseTextProvider()
 ) : LicenseTextProvider {
+    /** The sanitized [Path] to the directory in the configuration containing custom license texts. */
+    val licenseTextDir = Path(rawLicenseTextDir.path.removeSuffix("/"))
+
     /** Stores the IDs of the licenses that can be resolved from the config directory. */
     private val knownLicenseTexts by lazy {
         val directoryPrefix = "${licenseTextDir.path}/"
