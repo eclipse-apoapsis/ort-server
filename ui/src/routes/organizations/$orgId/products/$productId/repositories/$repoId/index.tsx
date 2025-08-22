@@ -17,60 +17,76 @@
  * License-Filename: LICENSE
  */
 
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
-import { UseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsKeyFn } from '@/api/queries';
-import { RepositoriesService } from '@/api/requests';
+import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { ToastError } from '@/components/toast-error';
+import { toast } from '@/lib/toast';
+
+const RunRedirectComponent = () => {
+  const params = Route.useParams();
+  const navigate = useNavigate();
+
+  const {
+    data: runs,
+    isPending,
+    isError,
+    error,
+  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
+    {
+      repositoryId: Number.parseInt(params.repoId),
+      limit: 1,
+      sort: '-index',
+    },
+    undefined,
+    { staleTime: 1000 }
+  );
+
+  if (isPending) {
+    return <LoadingIndicator />;
+  }
+
+  if (isError) {
+    toast.error('Unable to load data', {
+      description: <ToastError error={error} />,
+      duration: Infinity,
+      cancel: {
+        label: 'Dismiss',
+        onClick: () => {},
+      },
+    });
+    return;
+  }
+
+  const firstRun = runs.data[0];
+
+  if (firstRun) {
+    navigate({
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
+      replace: true,
+      params: {
+        orgId: params.orgId,
+        productId: params.productId,
+        repoId: params.repoId,
+        runIndex: firstRun.index.toString(),
+      },
+    });
+  } else {
+    navigate({
+      to: '/organizations/$orgId/products/$productId/repositories/$repoId/create-run',
+      replace: true,
+      params: {
+        orgId: params.orgId,
+        productId: params.productId,
+        repoId: params.repoId,
+      },
+    });
+  }
+};
 
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/'
 )({
-  loader: async ({ params, context: { queryClient }, preload }) => {
-    const queryKey =
-      UseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsKeyFn({
-        repositoryId: Number.parseInt(params.repoId),
-        limit: 1,
-        sort: '-index',
-      });
-
-    const { data } = await queryClient.fetchQuery({
-      queryKey,
-      queryFn: () =>
-        RepositoriesService.getApiV1RepositoriesByRepositoryIdRuns({
-          repositoryId: Number.parseInt(params.repoId),
-          limit: 1,
-          sort: '-index',
-        }),
-      staleTime: 1000,
-    });
-
-    const firstRun = data[0];
-
-    if (!preload) {
-      if (firstRun) {
-        throw redirect({
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
-          replace: true,
-          params: {
-            orgId: params.orgId,
-            productId: params.productId,
-            repoId: params.repoId,
-            runIndex: firstRun.index.toString(),
-          },
-        });
-      } else {
-        throw redirect({
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/create-run',
-          replace: true,
-          params: {
-            orgId: params.orgId,
-            productId: params.productId,
-            repoId: params.repoId,
-          },
-        });
-      }
-    }
-  },
-  pendingComponent: LoadingIndicator,
+  component: RunRedirectComponent,
 });
