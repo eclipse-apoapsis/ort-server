@@ -57,6 +57,7 @@ const router = createRouter({
     auth: undefined!,
   },
   defaultPreload: 'intent',
+  defaultPreloadStaleTime: 0,
 });
 
 // Register the router instance for type safety
