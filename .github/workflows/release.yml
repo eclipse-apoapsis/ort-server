@@ -96,7 +96,7 @@ jobs:
           binName: osc
           archiveExt: tar.gz
         - name: "Windows x64"
-          os: windows-2022
+          os: windows-2025
           task: :cli:linkReleaseExecutableMingwX64
           artifact: osc-cli-windows-x64
           buildPath: cli/build/bin/mingwX64/releaseExecutable/osc.exe
