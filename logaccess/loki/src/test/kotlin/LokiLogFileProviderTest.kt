@@ -31,7 +31,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 
 import com.typesafe.config.ConfigFactory
 
-import io.kotest.assertions.fail
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.StringSpec
@@ -368,7 +368,7 @@ private fun WireMockServer.stubLogRequest(
  */
 private fun readResponseTemplate(name: String = DEFAULT_RESPONSE_TEMPLATE): String =
     LokiLogFileProviderTest::class.java.getResource("/$name")?.readText()
-        ?: fail("Could not load response template '$name'.")
+        ?: AssertionErrorBuilder.fail("Could not load response template '$name'.")
 
 /**
  * Generate a log line for the given [timestamp].

@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.advisor
 
-import io.kotest.assertions.fail
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -142,7 +142,7 @@ class AdvisorWorkerTest : StringSpec({
         mockkTransaction {
             when (val result = worker.run(ADVISOR_JOB_ID, TRACE_ID)) {
                 is RunResult.Failed -> result.error shouldBe testException
-                else -> fail("Unexpected result: $result")
+                else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
         }
     }

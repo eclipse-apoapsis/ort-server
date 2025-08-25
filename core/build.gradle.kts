@@ -140,6 +140,7 @@ dependencies {
     testImplementation(ktorLibs.utils)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestAssertionsKtor)
+    testImplementation(libs.kotestAssertionsTable)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
     testImplementation(ortLibs.utils.common)

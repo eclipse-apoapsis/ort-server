@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
-import io.kotest.assertions.fail
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -252,7 +252,8 @@ private val testAdminConfig = AdminConfig(
  * Load the script with the given [name] from resources and return it as a string.
  */
 private fun loadScript(name: String): String =
-    ConfigValidatorTest::class.java.getResource("/$name")?.readText() ?: fail("Could not load script file '$name'.")
+    ConfigValidatorTest::class.java.getResource("/$name")?.readText()
+        ?: AssertionErrorBuilder.fail("Could not load script file '$name'.")
 
 /**
  * Check whether the given [issue][actual] corresponds to the given [expected] issue. This function does not do an
