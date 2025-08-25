@@ -138,7 +138,7 @@ export function RunsFilterForm({
                       />
                     </FormControl>
                     <FormLabel htmlFor='visible-runs' className='-ml-2'>
-                      current view
+                      visible runs
                     </FormLabel>
                   </FormItem>
 
@@ -151,6 +151,7 @@ export function RunsFilterForm({
                       />
                     </FormControl>
                     <FormLabel htmlFor='custom-runs' className='-ml-2'>
+                      last
                       <FormField
                         control={form.control}
                         name='nRuns'
@@ -194,7 +195,7 @@ export function RunsFilterForm({
                           </FormItem>
                         )}
                       />
-                      last runs
+                      runs
                     </FormLabel>
                   </FormItem>
                 </RadioGroup>
