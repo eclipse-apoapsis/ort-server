@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
-import io.kotest.assertions.fail
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -140,7 +140,7 @@ class ConfigWorkerTest : StringSpec({
             val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
             when (val result = worker.testRun()) {
                 is RunResult.Failed -> result.error should beInstanceOf<IllegalArgumentException>()
-                else -> fail("Unexpected result: $result")
+                else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
 
             verify {
@@ -163,7 +163,7 @@ class ConfigWorkerTest : StringSpec({
         val worker = ConfigWorker(mockk(), mockk(), contextFactory, configManager, mockk())
         when (val result = worker.testRun()) {
             is RunResult.Failed -> result.error shouldBe configException
-            else -> fail("Unexpected result: $result")
+            else -> AssertionErrorBuilder.fail("Unexpected result: $result")
         }
     }
 

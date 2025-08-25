@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.tasks
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.should
@@ -49,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LongRunningJobsFinde
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LostJobsFinderTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
+import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 
 import org.koin.core.Koin
 import org.koin.core.context.startKoin

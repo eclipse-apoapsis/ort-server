@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.tasks.impl
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.comparables.shouldBeLessThan
 
 import io.mockk.coEvery
@@ -40,6 +39,7 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 
 class DeleteOldOrtRunsTaskTest : StringSpec({
     "Old ORT runs should be deleted according to the configured retention policy" {

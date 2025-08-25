@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.core.api
 
 import com.typesafe.config.ConfigFactory
 
-import io.kotest.assertions.fail
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.assertions.ktor.client.haveHeader
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.engine.spec.tempdir
@@ -252,7 +252,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
      */
     suspend fun checkLogFileResponse(response: HttpResponse): ByteReadChannel {
         if (!response.status.isSuccess()) {
-            fail("Request failed: ${response.status} - ${response.body<ErrorResponse>()}")
+            AssertionErrorBuilder.fail("Request failed: ${response.status} - ${response.body<ErrorResponse>()}")
         }
 
         return response.bodyAsChannel()
@@ -2305,7 +2305,7 @@ private fun checkLogArchive(archiveFile: File, sources: Set<LogSource>) {
         }
     } catch (e: IOException) {
         val content = archiveFile.readText()
-        fail("Could not unpack log archive: ${e.message}.\nFile content is:\n$content")
+        AssertionErrorBuilder.fail("Could not unpack log archive: ${e.message}.\nFile content is:\n$content")
     }
 }
 

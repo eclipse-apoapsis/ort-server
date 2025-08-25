@@ -43,7 +43,7 @@ dependencies {
     testImplementation(libs.kotestExtensionsTestContainer)
     testImplementation(libs.kotestRunnerJunit5)
 
-    testFixturesApi(libs.kotestFrameworkApi)
+    testFixturesApi(libs.kotestFrameworkEngine)
     testFixturesApi(libs.testContainersKeycloak)
 
     testFixturesImplementation(libs.kotlinxSerializationJson)

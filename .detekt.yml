@@ -22,7 +22,7 @@
 comments:
   AbsentOrWrongFileLicense:
     active: true
-    excludes: ['**/build/generated/**']
+    excludes: ['**/build/generated/**', '**/utils/test/src/jvmMain/kotlin/SystemEnvironmentExtensions.kt']
     licenseTemplateFile: '.detekt.license.template'
     licenseTemplateIsRegex: true
 

@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.workers.analyzer
 
 import com.typesafe.config.ConfigFactory
 
-import io.kotest.assertions.fail
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -354,7 +354,7 @@ class AnalyzerWorkerTest : StringSpec({
         mockkTransaction {
             when (val result = worker.testRun()) {
                 is RunResult.Failed -> result.error shouldBe testException
-                else -> fail("Unexpected result: $result")
+                else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
         }
     }
@@ -413,7 +413,7 @@ class AnalyzerWorkerTest : StringSpec({
         mockkTransaction {
             when (val result = worker.testRun()) {
                 is RunResult.Failed -> result.error shouldBe testException
-                else -> fail("Unexpected result: $result")
+                else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
         }
     }
@@ -437,7 +437,7 @@ class AnalyzerWorkerTest : StringSpec({
         mockkTransaction {
             when (val result = worker.testRun()) {
                 is RunResult.Failed -> result.error shouldBe testException
-                else -> fail("Unexpected result: $result")
+                else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
         }
     }
