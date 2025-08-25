@@ -148,7 +148,6 @@ export function FooterForm() {
               name='markdown'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Content</FormLabel>
                   <FormControl>
                     <textarea
                       placeholder='Write some Markdown...'
@@ -172,7 +171,7 @@ export function FooterForm() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormLabel>Show footer</FormLabel>
+                  <FormLabel>Enable customization</FormLabel>
                   <FormMessage />
                 </FormItem>
               )}

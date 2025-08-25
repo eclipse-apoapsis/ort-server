@@ -191,7 +191,7 @@ export function HomeIconForm() {
               name='iconUrl'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Icon URL for light mode</FormLabel>
+                  <FormLabel>Light mode</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -204,7 +204,7 @@ export function HomeIconForm() {
               name='iconUrlDark'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Icon URL for dark mode</FormLabel>
+                  <FormLabel>Dark mode</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -223,7 +223,7 @@ export function HomeIconForm() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormLabel>Use the provided icon URLs</FormLabel>
+                  <FormLabel>Enable customization</FormLabel>
                   <FormMessage />
                 </FormItem>
               )}
