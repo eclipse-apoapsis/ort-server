@@ -147,7 +147,6 @@ export function ProductNameForm() {
               name='productName'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Product Name</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -166,7 +165,7 @@ export function ProductNameForm() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormLabel>Use the provided product name</FormLabel>
+                  <FormLabel>Enable customization</FormLabel>
                   <FormMessage />
                 </FormItem>
               )}
