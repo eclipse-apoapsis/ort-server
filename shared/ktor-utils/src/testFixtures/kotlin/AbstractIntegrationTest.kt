@@ -78,7 +78,7 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
         mockkStatic(RoutingContext::hasRole)
     }
 
-    override fun afterSpec(f: suspend (Spec) -> Unit) {
+    override suspend fun afterSpec(spec: Spec) {
         unmockkAll()
     }
 

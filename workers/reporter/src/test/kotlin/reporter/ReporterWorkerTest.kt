@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.reporter
 
-import io.kotest.assertions.fail
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -228,7 +228,7 @@ class ReporterWorkerTest : StringSpec({
         mockkTransaction {
             when (val result = worker.run(REPORTER_JOB_ID, TRACE_ID)) {
                 is RunResult.Failed -> result.error shouldBe testException
-                else -> fail("Unexpected result: $result")
+                else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
         }
     }

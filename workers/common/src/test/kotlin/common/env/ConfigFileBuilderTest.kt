@@ -23,7 +23,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.OverrideMode
-import io.kotest.extensions.system.withEnvironment
 import io.kotest.extensions.system.withSystemProperties
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -32,6 +31,7 @@ import java.util.Properties
 
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedInfraSecretResolver

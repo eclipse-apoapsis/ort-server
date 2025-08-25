@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 
 import io.kubernetes.client.openapi.models.V1Job
@@ -30,7 +31,6 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 
-import kotlin.test.fail
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -230,8 +230,8 @@ private fun <T : Any> JobHandler.prepareJobsQuery(endpoint: Endpoint<T>) {
         EvaluatorEndpoint -> createKubernetesJob(RUN_ID + 4, "evaluator-plus-some-suffix")
         ReporterEndpoint -> createKubernetesJob(RUN_ID + 5, "reporter-plus-some-suffix")
         NotifierEndpoint -> createKubernetesJob(RUN_ID + 6, "notifier-plus-some-suffix")
-        ConfigEndpoint -> fail("There are no jobs for the Config endpoint.")
-        OrchestratorEndpoint -> fail("Orchestrator is not a worker.")
+        ConfigEndpoint -> AssertionErrorBuilder.fail("There are no jobs for the Config endpoint.")
+        OrchestratorEndpoint -> AssertionErrorBuilder.fail("Orchestrator is not a worker.")
     }
 
     every { findJobsForWorker(endpoint) }.returns(listOf(job))

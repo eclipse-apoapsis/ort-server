@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import io.kotest.assertions.fail
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -340,7 +340,7 @@ class ScannerWorkerTest : StringSpec({
         mockkTransaction {
             when (val result = worker.run(SCANNER_JOB_ID, TRACE_ID)) {
                 is RunResult.Failed -> result.error shouldBe textException
-                else -> fail("Unexpected result: $result")
+                else -> AssertionErrorBuilder.fail("Unexpected result: $result")
             }
         }
     }

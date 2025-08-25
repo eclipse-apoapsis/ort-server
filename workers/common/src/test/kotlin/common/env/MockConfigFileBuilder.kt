@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import io.kotest.common.runBlocking
+import io.kotest.engine.runBlocking
 
 import io.mockk.MockKAnswerScope
 import io.mockk.coEvery
