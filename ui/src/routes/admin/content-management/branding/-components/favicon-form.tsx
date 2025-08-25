@@ -149,7 +149,6 @@ export function FaviconForm() {
               name='faviconUrl'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Favicon URL</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -168,7 +167,7 @@ export function FaviconForm() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormLabel>Use the provided favicon URL</FormLabel>
+                  <FormLabel>Enable customization</FormLabel>
                   <FormMessage />
                 </FormItem>
               )}
