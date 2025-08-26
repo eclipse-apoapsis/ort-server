@@ -61,6 +61,7 @@ detekt {
 }
 
 tasks.withType<Detekt>().configureEach {
+    autoCorrect = true
     exclude {
         "/build/generated/" in it.file.absolutePath
     }
