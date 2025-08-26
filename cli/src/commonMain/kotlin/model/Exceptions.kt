@@ -36,3 +36,8 @@ class CliInputException(message: String, cause: Throwable? = null) : OrtServerCl
  */
 class AuthenticationError(message: String = "Authentication required. Please run '$COMMAND_NAME auth login'.") :
     OrtServerCliException(message, null)
+
+/**
+ * An exception thrown when a run has been completed but issues were found.
+ */
+class RunFinishedWithIssuesException(message: String) : Exception(message)
