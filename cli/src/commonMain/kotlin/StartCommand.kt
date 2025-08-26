@@ -53,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
 import org.eclipse.apoapsis.ortserver.cli.model.CliInputException
+import org.eclipse.apoapsis.ortserver.cli.model.RunFinishedWithIssuesException
 import org.eclipse.apoapsis.ortserver.cli.model.printables.toPrintable
 import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.cli.utils.echoMessage
@@ -127,6 +128,10 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
         }
 
         echoMessage(ortRun.toPrintable())
+
+        if (ortRun.status == OrtRunStatus.FAILED || ortRun.status == OrtRunStatus.FINISHED_WITH_ISSUES) {
+            throw RunFinishedWithIssuesException("The ORT run finished with status '${ortRun.status}'.")
+        }
     }
 
     private fun updateProgressBar(ortRun: OrtRun, client: OrtServerClient): OrtRun = runBlocking {
