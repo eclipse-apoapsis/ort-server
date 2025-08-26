@@ -28,7 +28,6 @@ import com.github.ajalt.clikt.parameters.groups.cooccurring
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.long
 
 import okio.Path.Companion.toPath
@@ -57,7 +56,7 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
         envvar = "OSC_DOWNLOAD_REPORTS_FILE_NAMES",
         help = "The names of the files to download, separated by commas. If not provided, all report files will be " +
                 "downloaded."
-    ).split(",")
+    ).convert { it.split(',').map(String::trim) }
 
     private val outputDir by option(
         "--output-dir",
