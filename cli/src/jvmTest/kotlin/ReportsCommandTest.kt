@@ -20,8 +20,8 @@
 import com.github.ajalt.clikt.command.test
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.should
-import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -45,6 +45,7 @@ class ReportsCommandTest : StringSpec({
             val runsMock = mockk<RunsApi> {
                 coEvery { downloadReport(any(), "example1.txt", any()) } just runs
                 coEvery { downloadReport(any(), "example2.txt", any()) } just runs
+                coEvery { downloadReport(any(), "example3.txt", any()) } just runs
             }
             val ortServerClientMock = mockk<OrtServerClient> {
                 every { runs } returns runsMock
@@ -59,7 +60,7 @@ class ReportsCommandTest : StringSpec({
                     "download",
                     "reports",
                     "--run-id", "1",
-                    "--filenames", "example1.txt,example2.txt",
+                    "--filenames", "example1.txt,example2.txt, example3.txt",
                     "--output-dir", "/tmp/output"
                 )
             )
@@ -70,8 +71,15 @@ class ReportsCommandTest : StringSpec({
             coVerify(exactly = 1) {
                 runsMock.downloadReport(1, "example2.txt", any())
             }
+            coVerify(exactly = 1) {
+                runsMock.downloadReport(1, "example3.txt", any())
+            }
 
-            result.output.trimEnd() shouldBe "/tmp/output/example1.txt\n/tmp/output/example2.txt"
+            result.output.trim().lines().shouldContainExactly(
+                "/tmp/output/example1.txt",
+                "/tmp/output/example2.txt",
+                "/tmp/output/example3.txt"
+            )
         }
     }
 })
