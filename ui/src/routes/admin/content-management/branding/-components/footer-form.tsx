@@ -75,7 +75,7 @@ export function FooterForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    values: {
       markdown: contentManagementSection?.markdown || '',
       isEnabled: contentManagementSection?.isEnabled || false,
     },

@@ -76,7 +76,7 @@ export function ProductNameForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    values: {
       productName: dbProductName?.value || '',
       isEnabled: dbProductName?.isEnabled || false,
     },
