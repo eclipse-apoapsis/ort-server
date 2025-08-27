@@ -87,7 +87,7 @@ export function HomeIconForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    values: {
       iconUrl: dbHomeIcon?.value || '',
       iconUrlDark: dbHomeIconDark?.value || '',
       isEnabled: dbHomeIcon?.isEnabled || false,

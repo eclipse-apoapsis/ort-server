@@ -77,7 +77,7 @@ export function FaviconForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    values: {
       faviconUrl: dbFavicon?.value || '',
       isEnabled: dbFavicon?.isEnabled || false,
     },
