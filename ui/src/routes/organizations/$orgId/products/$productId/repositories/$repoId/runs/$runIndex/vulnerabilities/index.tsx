@@ -124,10 +124,6 @@ const renderSubComponent = ({
         <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
         <AccordionContent>
           <div className='flex flex-col gap-4'>
-            <div>
-              This vulnerability was reported by{' '}
-              <b>{row.original.advisor.name}</b> advisor.
-            </div>
             <VulnerabilityMetrics vulnerability={vulnerability} />
             <div className='text-lg font-semibold'>Description</div>
             <MarkdownRenderer
@@ -346,6 +342,12 @@ const VulnerabilitiesComponent = () => {
           {row.getValue('externalId')}
         </Badge>
       ),
+      enableColumnFilter: false,
+    }),
+    columnHelper.accessor('advisor.name', {
+      id: 'advisorName',
+      header: 'Advisor',
+      cell: ({ row }) => <div>{row.getValue('advisorName')}</div>,
       enableColumnFilter: false,
     }),
     columnHelper.accessor(
