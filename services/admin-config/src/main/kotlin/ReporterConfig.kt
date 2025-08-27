@@ -258,10 +258,11 @@ data class ReporterConfig(
      */
     fun pluginOptionsForDefinition(name: String, optionsMap: Map<String, PluginConfig>): PluginConfig? =
         getReportDefinition(name)?.pluginId?.let { pluginId ->
-            val pluginConfig = optionsMap[pluginId]
+            val pluginConfig = optionsMap.entries.find { it.key.equals(pluginId, ignoreCase = true) }?.value
             val definitionConfig = optionsMap.entries.find {
                 val components = it.key.split(PLUGIN_REFERENCE_SEPARATOR)
-                components.size == 2 && components[0] == pluginId && components[1].equals(name, ignoreCase = true)
+                components.size == 2 && components[0].equals(pluginId, ignoreCase = true) &&
+                        components[1].equals(name, ignoreCase = true)
             }?.value
 
             if (pluginConfig != null && definitionConfig != null) {
