@@ -62,6 +62,13 @@ class ReporterConfigTest : WordSpec({
             ) shouldBe templatePluginOptions
         }
 
+        "use case-insensitive comparison for the plugin ID" {
+            reporterConfig.pluginOptionsForDefinition(
+                REPORT_DEFINITION_NAME,
+                mapOf(PLUGIN_ID.lowercase() to templatePluginOptions)
+            ) shouldBe templatePluginOptions
+        }
+
         "merge the configurations from the plugin and the report definition" {
             val definitionConfig = PluginConfig(
                 options = mapOf("mode" to "fast", "template" to "disclosure-document.ftl"),
@@ -73,6 +80,30 @@ class ReporterConfigTest : WordSpec({
                 mapOf(
                     PLUGIN_ID to templatePluginOptions,
                     "$PLUGIN_ID:$REPORT_DEFINITION_NAME" to definitionConfig
+                )
+            ) shouldNotBeNull {
+                options["style"] shouldBe "nice"
+                options["branding"] shouldBe "special"
+                options["template"] shouldBe "disclosure-document.ftl"
+                options["mode"] shouldBe "fast"
+
+                secrets["testSecret1"] shouldBe "overriddenSecretValue"
+                secrets["testSecret2"] shouldBe "testSecretValue2"
+                secrets["testSecret3"] shouldBe "testSecretValue3"
+            }
+        }
+
+        "use case-insensitive comparison when merging configurations" {
+            val definitionConfig = PluginConfig(
+                options = mapOf("mode" to "fast", "template" to "disclosure-document.ftl"),
+                secrets = mapOf("testSecret1" to "overriddenSecretValue", "testSecret3" to "testSecretValue3")
+            )
+
+            reporterConfig.pluginOptionsForDefinition(
+                REPORT_DEFINITION_NAME,
+                mapOf(
+                    PLUGIN_ID.lowercase() to templatePluginOptions,
+                    "${PLUGIN_ID.lowercase()}:${REPORT_DEFINITION_NAME.uppercase()}" to definitionConfig
                 )
             ) shouldNotBeNull {
                 options["style"] shouldBe "nice"
