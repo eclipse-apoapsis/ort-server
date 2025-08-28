@@ -308,7 +308,8 @@ val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
                                 advisor = AdvisorDetails(
                                     name = "VulnerableCode",
                                     capabilities = setOf(AdvisorCapability.VULNERABILITIES)
-                                )
+                                ),
+                                purl = "pkg:maven/org.namespace/name@1.0"
                             )
                         ),
                         PagingData(
