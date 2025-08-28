@@ -10,11 +10,6 @@ build tool and [pnpm](https://pnpm.io/) as the package manager.
 ## Development
 
 The UI expects ORT Server to be running locally.
-In addition, the following Gradle task must be executed to generate the OpenAPI specification locally:
-
-```shell
-./gradlew :core:generateOpenApiSpec
-```
 
 ## Run the UI
 
@@ -36,10 +31,11 @@ To generate it manually, for example, for testing local changes to the API, run 
 ## Docker
 
 The Docker image for the UI is built as part of the `buildAllImages` Gradle task.
-To build it manually, run the following steps from the root of the repository:
+To build it manually, run the following command from the root of the repository:
 
-- Build the OpenAPI specification: `./gradlew :core:generateOpenApiSpec`
-- Build the Docker image: `docker build -t ort-server-ui -f ui/docker/UI.Dockerfile ui`
+```shell
+docker build -t ort-server-ui -f ui/docker/UI.Dockerfile ui
+```
 
 To run the Docker image, use the following command:
 
