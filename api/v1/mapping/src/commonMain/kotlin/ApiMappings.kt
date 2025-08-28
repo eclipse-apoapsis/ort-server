@@ -602,7 +602,8 @@ fun VulnerabilityWithDetails.mapToApi() =
         identifier = identifier.mapToApi(),
         rating = rating.mapToApi(),
         resolutions = resolutions.map { it.mapToApi() },
-        advisor = advisor.mapToApi()
+        advisor = advisor.mapToApi(),
+        purl = purl
     )
 
 fun Vulnerability.mapToApi() = ApiVulnerability(
