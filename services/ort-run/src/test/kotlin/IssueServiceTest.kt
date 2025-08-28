@@ -38,12 +38,16 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -277,6 +281,102 @@ class IssueServiceTest : WordSpec() {
 
                 val unresolvedIssue = result.data.single { it.message.contains("unresolved npm issue") }
                 unresolvedIssue.resolutions.size shouldBe 0
+            }
+
+            "return purl for issues that are related to packages" {
+                val repositoryId = fixtures.createRepository().id
+
+                val pkg1 = fixtures.generatePackage(Identifier("Maven", "com.example", "example-lib", "1.0.0"))
+                val pkg2 = fixtures.generatePackage(Identifier("Maven", "com.example", "scanner-test", "2.0.0"))
+                val pkg3 = fixtures.generatePackage(Identifier("Maven", "com.example", "unresolved-lib", "3.0.0"))
+                val project = fixtures.getProject()
+
+                val issues = listOf(
+                    Issue(
+                        timestamp = Clock.System.now(),
+                        source = "Gradle Inspector",
+                        message = "could not resolve org.example:example-tool:1.0.0 from project :example",
+                        severity = Severity.ERROR,
+                        affectedPath = "example",
+                        identifier = project.identifier
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(1.seconds),
+                        source = "Maven",
+                        message = "dependency not found: example-lib",
+                        severity = Severity.ERROR,
+                        affectedPath = "build.gradle.kts",
+                        identifier = pkg1.identifier
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(2.seconds),
+                        source = "NPM",
+                        message = "timeout while scanning package",
+                        severity = Severity.WARNING,
+                        affectedPath = "src/main/kotlin",
+                        identifier = pkg2.identifier
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(3.seconds),
+                        source = "Scanner",
+                        message = "unresolved npm issue",
+                        severity = Severity.WARNING,
+                        affectedPath = "src/test/kotlin",
+                        identifier = pkg3.identifier
+                    )
+                )
+
+                val ortRun = createOrtRunWithIssues(repositoryId, issues)
+
+                val analyzerJob = fixtures.createAnalyzerJob(ortRun.id)
+
+                fixtures.createAnalyzerRun(analyzerJob.id, setOf(project), setOf(pkg1, pkg2, pkg3))
+
+                val higherPriorityCurations = ResolvedPackageCurations(
+                    provider = PackageCurationProviderConfig("provider1"),
+                    curations = listOf(
+                        PackageCuration(
+                            id = pkg2.identifier,
+                            data = PackageCurationData(purl = "curated")
+                        ),
+                        PackageCuration(
+                            id = pkg3.identifier,
+                            data = PackageCurationData(purl = "curated-higher")
+                        )
+                    )
+                )
+
+                val lowerPriorityCurations = ResolvedPackageCurations(
+                    provider = PackageCurationProviderConfig("provider2"),
+                    curations = listOf(
+                        PackageCuration(
+                            id = pkg3.identifier,
+                            data = PackageCurationData(purl = "curated-lower")
+                        )
+                    )
+                )
+
+                fixtures.resolvedConfigurationRepository.addPackageCurations(
+                    ortRun.id,
+                    listOf(higherPriorityCurations, lowerPriorityCurations)
+                )
+
+                val result = service.listForOrtRunId(ortRun.id)
+
+                result.data.size shouldBe 4
+                result.totalCount shouldBe 4
+
+                val couldNotResolveIssue = result.data.single { it.message.contains("could not resolve") }
+                couldNotResolveIssue.purl shouldBe null
+
+                val dependencyIssue = result.data.single { it.message.contains("dependency not found") }
+                dependencyIssue.purl shouldBe pkg1.purl
+
+                val timeoutIssue = result.data.single { it.message.contains("timeout while scanning") }
+                timeoutIssue.purl shouldBe "curated"
+
+                val unresolvedIssue = result.data.single { it.message.contains("unresolved npm issue") }
+                unresolvedIssue.purl shouldBe "curated-higher"
             }
         }
 

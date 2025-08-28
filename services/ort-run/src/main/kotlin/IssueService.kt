@@ -73,7 +73,12 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
                 resolutionPattern.containsMatchIn(issue.message)
             }
 
-            issue.copy(resolutions = matchingResolutions.map { it.mapToModel() })
+            issue.copy(
+                resolutions = matchingResolutions.map { it.mapToModel() },
+                purl = issue.identifier?.mapToOrt()?.let {
+                    ortResult.getPackage(it)?.metadata?.purl
+                }
+            )
         }
 
         val filteredResult = issuesWithResolutions.applyResultFilter(issuesFilter)
