@@ -282,7 +282,8 @@ fun Issue.mapToApi() =
         affectedPath = affectedPath,
         identifier = identifier?.mapToApi(),
         worker = worker,
-        resolutions = resolutions.map { it.mapToApi() }
+        resolutions = resolutions.map { it.mapToApi() },
+        purl = purl
     )
 
 fun ApiIssue.mapToModel() =

@@ -38,12 +38,18 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.IssueFilter
+import org.eclipse.apoapsis.ortserver.model.runs.Package
+import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -92,6 +98,12 @@ class IssueServiceTest : WordSpec() {
         "listForOrtRunId" should {
             "return issues for the given ORT run ID" {
                 val repositoryId = fixtures.createRepository().id
+
+                val pkg1 = fixtures.generatePackage(Identifier("Maven", "com.example", "example-lib", "1.0.0"))
+                val pkg2 = fixtures.generatePackage(Identifier("Maven", "com.example", "scanner-test", "2.0.0"))
+                val pkg3 = fixtures.generatePackage(Identifier("Maven", "com.example", "unresolved-lib", "3.0.0"))
+                val proj = fixtures.getProject()
+
                 val issues = listOf(
                     Issue(
                         timestamp = Clock.System.now(),
@@ -99,7 +111,7 @@ class IssueServiceTest : WordSpec() {
                         message = "dependency not found: example-lib",
                         severity = Severity.ERROR,
                         affectedPath = "build.gradle.kts",
-                        identifier = Identifier("Maven", "com.example", "example-lib", "1.0.0")
+                        identifier = pkg1.identifier
                     ),
                     Issue(
                         timestamp = Clock.System.now().plus(1.seconds),
@@ -107,7 +119,7 @@ class IssueServiceTest : WordSpec() {
                         message = "timeout while scanning package",
                         severity = Severity.WARNING,
                         affectedPath = "src/main/kotlin",
-                        identifier = Identifier("Maven", "com.example", "scanner-test", "2.0.0")
+                        identifier = pkg2.identifier
                     ),
                     Issue(
                         timestamp = Clock.System.now().plus(2.seconds),
@@ -115,7 +127,15 @@ class IssueServiceTest : WordSpec() {
                         message = "unresolved npm issue",
                         severity = Severity.WARNING,
                         affectedPath = "src/test/kotlin",
-                        identifier = Identifier("Maven", "com.example", "unresolved-lib", "3.0.0")
+                        identifier = pkg3.identifier
+                    ),
+                    Issue(
+                        timestamp = Clock.System.now().plus(3.seconds),
+                        source = "Gradle Inspector",
+                        message = "could not resolve org.example:example-tool:1.0.0 from project :example",
+                        severity = Severity.ERROR,
+                        affectedPath = "example",
+                        identifier = proj.identifier
                     )
                 )
 
@@ -134,23 +154,60 @@ class IssueServiceTest : WordSpec() {
                     )
                 )
 
-                val ortRun = createOrtRunWithIssueResolutions(repositoryId, issues, resolutions)
+                val packages = setOf(pkg1, pkg2, pkg3)
+
+                val ortRun = createOrtRunWithIssueResolutions(repositoryId, issues, resolutions, packages)
+
+                val higherPriorityCurs = ResolvedPackageCurations(
+                    provider = PackageCurationProviderConfig("provider1"),
+                    curations = listOf(
+                        PackageCuration(
+                            id = pkg2.identifier,
+                            data = PackageCurationData(purl = "curated")
+                        ),
+                        PackageCuration(
+                            id = pkg3.identifier,
+                            data = PackageCurationData(purl = "curated-higher")
+                        )
+                    )
+                )
+
+                val lowerPriorityCurs = ResolvedPackageCurations(
+                    provider = PackageCurationProviderConfig("provider2"),
+                    curations = listOf(
+                        PackageCuration(
+                            id = pkg3.identifier,
+                            data = PackageCurationData(purl = "curated-lower")
+                        )
+                    )
+                )
+
+                fixtures.resolvedConfigurationRepository.addPackageCurations(
+                    ortRun.id,
+                    listOf(higherPriorityCurs, lowerPriorityCurs)
+                )
 
                 val result = service.listForOrtRunId(ortRun.id)
 
-                result.data.size shouldBe 3
-                result.totalCount shouldBe 3
+                result.data.size shouldBe 4
+                result.totalCount shouldBe 4
 
                 val dependencyIssue = result.data.single { it.message.contains("dependency not found") }
                 dependencyIssue.resolutions.size shouldBe 1
                 dependencyIssue.resolutions[0].message shouldStartWith "dependency not found"
+                dependencyIssue.purl shouldBe pkg1.purl
 
                 val timeoutIssue = result.data.single { it.message.contains("timeout while scanning") }
                 timeoutIssue.resolutions.size shouldBe 1
                 timeoutIssue.resolutions[0].message shouldStartWith "timeout while scanning"
+                timeoutIssue.purl shouldBe "curated"
 
                 val unresolvedIssue = result.data.single { it.message.contains("unresolved npm issue") }
                 unresolvedIssue.resolutions.size shouldBe 0
+                unresolvedIssue.purl shouldBe "curated-higher"
+
+                val couldNotResolveIssue = result.data.single { it.message.contains("could not resolve") }
+                couldNotResolveIssue.purl shouldBe null
             }
 
             "filter resolved issues when issuesFilter.resolved is true" {
@@ -532,7 +589,9 @@ class IssueServiceTest : WordSpec() {
     private fun createOrtRunWithIssueResolutions(
         repositoryId: Long,
         issues: List<Issue>,
-        resolutions: Resolutions
+        resolutions: Resolutions,
+        packages: Set<Package> = emptySet(),
+        projects: Set<Project> = emptySet()
     ): OrtRun {
         val ortRun = fixtures.createOrtRun(repositoryId, "revision", JobConfigurations())
 
@@ -561,8 +620,8 @@ class IssueServiceTest : WordSpec() {
                 packageManagers = emptyMap(),
                 skipExcluded = false
             ),
-            projects = emptySet(),
-            packages = emptySet(),
+            projects = projects,
+            packages = packages,
             issues = issues,
             dependencyGraphs = emptyMap()
         )

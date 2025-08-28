@@ -49,5 +49,10 @@ data class Issue(
     val worker: String? = null,
 
     /** The [IssueResolution]s that have been applied to this issue. */
-    val resolutions: List<IssueResolution> = emptyList()
+    val resolutions: List<IssueResolution> = emptyList(),
+
+    /**
+     * The purl of the [Package] this issue is related to. Null if the issue originates from a [Project] or elsewhere.
+     */
+    val purl: String? = null
 )
