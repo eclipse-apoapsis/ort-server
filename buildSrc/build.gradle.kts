@@ -25,6 +25,7 @@ plugins {
 }
 
 repositories {
+    mavenCentral()
     // Allow resolving external plugins from precompiled script plugins.
     gradlePluginPortal()
 }
