@@ -620,7 +620,8 @@ fun RuleViolation.mapToApi() = ApiRuleViolation(
     severity = severity.mapToApi(),
     message = message,
     howToFix = howToFix,
-    resolutions = resolutions.map { it.mapToApi() }
+    resolutions = resolutions.map { it.mapToApi() },
+    purl = purl
 )
 
 fun Identifier.mapToApi() = ApiIdentifier(type = type, namespace = namespace, name = name, version = version)

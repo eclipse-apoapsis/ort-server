@@ -35,9 +35,13 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 
@@ -166,6 +170,77 @@ class RuleViolationServiceTest : WordSpec() {
                 resultsUnresolved shouldHaveSize 2
                 resultsUnresolved[0].rule shouldBe "Rule-2"
                 resultsUnresolved[1].rule shouldBe "Rule-3-no-id"
+            }
+
+            "return purl for rule violations that stemmed from packages" {
+                val ortRun = fixtures.createOrtRun(fixtures.createRepository().id)
+
+                val analyzerJob = fixtures.createAnalyzerJob(ortRun.id)
+
+                val pkg1 = fixtures.generatePackage(
+                    Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                )
+                val pkg2 = fixtures.generatePackage(
+                    Identifier("Maven", "com.fasterxml.jackson.core", "jackson-databind", "2.9.6")
+                )
+                val proj = fixtures.getProject()
+
+                fixtures.createAnalyzerRun(analyzerJob.id, setOf(proj), setOf(pkg1, pkg2))
+
+                val curations = ResolvedPackageCurations(
+                    provider = PackageCurationProviderConfig("test"),
+                    curations = listOf(
+                        PackageCuration(
+                            id = pkg1.identifier,
+                            data = PackageCurationData(purl = "curated")
+                        )
+                    )
+                )
+
+                fixtures.resolvedConfigurationRepository.addPackageCurations(
+                    ortRun.id,
+                    listOf(curations)
+                )
+
+                val ruleViolations = generateRuleViolations() + listOf(
+                    RuleViolation(
+                        "Rule-4-project-id",
+                        proj.identifier,
+                        "License-4",
+                        "DETECTED",
+                        Severity.WARNING,
+                        "Message-4",
+                        "How_to_fix-4"
+                    )
+                )
+
+                val evaluatorJob = fixtures.createEvaluatorJob(
+                    ortRunId = ortRun.id,
+                    configuration = EvaluatorJobConfiguration()
+                )
+
+                fixtures.evaluatorRunRepository.create(
+                    evaluatorJobId = evaluatorJob.id,
+                    startTime = Clock.System.now().toDatabasePrecision(),
+                    endTime = Clock.System.now().toDatabasePrecision(),
+                    violations = ruleViolations
+                )
+
+                val results = service.listForOrtRunId(ortRun.id).data
+
+                results shouldHaveSize 4
+
+                results[0].rule shouldBe "Rule-1"
+                results[0].purl shouldBe "curated"
+
+                results[1].rule shouldBe "Rule-2"
+                results[1].purl shouldBe pkg2.purl
+
+                results[2].rule shouldBe "Rule-3-no-id"
+                results[2].purl shouldBe null
+
+                results[3].rule shouldBe "Rule-4-project-id"
+                results[3].purl shouldBe null
             }
         }
 
