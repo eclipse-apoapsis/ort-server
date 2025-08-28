@@ -89,7 +89,12 @@ class RuleViolationService(private val db: Database, private val ortRunService: 
 
         val ruleViolationsWithResolutions = limitedResults.map { ruleViolation ->
             val matchingResolutions = resolutions.filter { it.matches(ruleViolation.mapToOrt()) }
-            ruleViolation.copy(resolutions = matchingResolutions.map { it.mapToModel() })
+            ruleViolation.copy(
+                resolutions = matchingResolutions.map { it.mapToModel() },
+                purl = ruleViolation.id?.mapToOrt()?.let {
+                    ortResult.getPackage(it)?.metadata?.purl
+                }
+            )
         }
 
         return ListQueryResult(

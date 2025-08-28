@@ -30,7 +30,12 @@ data class RuleViolation(
     val severity: Severity,
     val message: String,
     val howToFix: String,
-    val resolutions: List<RuleViolationResolution> = emptyList()
+    val resolutions: List<RuleViolationResolution> = emptyList(),
+    /**
+     * The purl of the [Package] this rule violation stems from. Null if the rule violation comes from a [Project] or
+     * elsewhere.
+     */
+    val purl: String? = null
 )
 
 /**
