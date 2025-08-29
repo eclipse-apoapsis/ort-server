@@ -17,15 +17,16 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { AudioWaveform, List, ListVideo, Loader2 } from 'lucide-react';
 
-import {
-  useOrganizationsServiceGetApiV1Organizations,
-  useRunsServiceGetApiV1Runs,
-} from '@/api/queries';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
+import {
+  getOrganizationsOptions,
+  getOrtRunsOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { runStatusSchema } from '@/schemas';
 
@@ -34,25 +35,26 @@ const OverviewContent = () => {
     data: orgs,
     isLoading: orgsIsLoading,
     error: orgIsError,
-  } = useOrganizationsServiceGetApiV1Organizations({
-    limit: 1,
+  } = useQuery({
+    ...getOrganizationsOptions({ query: { limit: 1 } }),
   });
 
   const {
     data: runs,
     isLoading: runsIsLoading,
     error: runsIsError,
-  } = useRunsServiceGetApiV1Runs({
-    limit: 1,
+  } = useQuery({
+    ...getOrtRunsOptions({ query: { limit: 1 } }),
   });
 
   const {
     data: activeRuns,
     isLoading: activeRunsIsLoading,
     error: activeRunsIsError,
-  } = useRunsServiceGetApiV1Runs({
-    limit: 1,
-    status: 'active',
+  } = useQuery({
+    ...getOrtRunsOptions({
+      query: { limit: 1, status: 'active' },
+    }),
   });
 
   if (orgIsError || runsIsError || activeRunsIsError) {
