@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   ColumnDef,
@@ -25,9 +26,6 @@ import {
 } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 
-import { useOrganizationsServiceGetApiV1Organizations } from '@/api/queries';
-import { prefetchUseOrganizationsServiceGetApiV1Organizations } from '@/api/queries/prefetch';
-import { Organization } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -44,6 +42,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Organization } from '@/hey-api';
+import { getOrganizationsOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
@@ -86,9 +86,10 @@ export const IndexPage = () => {
     isPending,
     isError,
     error,
-  } = useOrganizationsServiceGetApiV1Organizations({
-    limit: pageSize,
-    offset: pageIndex * pageSize,
+  } = useQuery({
+    ...getOrganizationsOptions({
+      query: { limit: pageSize, offset: pageIndex * pageSize },
+    }),
   });
 
   const table = useReactTable({
@@ -172,10 +173,14 @@ export const IndexPage = () => {
 export const Route = createFileRoute('/')({
   validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context, deps: { page, pageSize } }) => {
-    prefetchUseOrganizationsServiceGetApiV1Organizations(context.queryClient, {
-      limit: pageSize || defaultPageSize,
-      offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+  loader: async ({ context: { queryClient }, deps: { page, pageSize } }) => {
+    queryClient.prefetchQuery({
+      ...getOrganizationsOptions({
+        query: {
+          limit: pageSize || defaultPageSize,
+          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+        },
+      }),
     });
   },
   component: IndexPage,
