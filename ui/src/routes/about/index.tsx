@@ -17,16 +17,19 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Fragment } from 'react';
 
-import { useVersionsServiceGetApiV1VersionsSuspense } from '@/api/queries/suspense';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { getVersionsOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { GITHUB_LATEST_RELEASE_DOWNLOAD_URL } from '@/lib/constants';
 
 export const About = () => {
-  const { data: versionData } = useVersionsServiceGetApiV1VersionsSuspense();
+  const { data: versionData } = useSuspenseQuery({
+    ...getVersionsOptions(),
+  });
 
   // Check if the ORT Server version is a release candidate (RC) version
   // by looking for the '-RC.' substring in the version string.
