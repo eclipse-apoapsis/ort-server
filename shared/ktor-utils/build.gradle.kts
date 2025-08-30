@@ -46,6 +46,7 @@ dependencies {
     testFixturesApi(projects.services.authorizationService)
     testFixturesApi(projects.utils.test)
     testFixturesApi(testFixtures(projects.dao))
+    testFixturesApi(libs.kotestAssertionsCore)
 
     testFixturesImplementation(testFixtures(projects.clients.keycloak))
 
@@ -58,7 +59,7 @@ dependencies {
     testFixturesImplementation(ktorLibs.server.statusPages)
     testFixturesImplementation(ktorLibs.server.testHost)
     testFixturesImplementation(libs.kotestAssertionsKtor)
-    testFixturesImplementation(libs.kotestFrameworkApi)
+    testFixturesImplementation(libs.kotestFrameworkEngine)
     testFixturesImplementation(libs.kotlinxSerializationJson)
     testFixturesImplementation(libs.mockk)
 }

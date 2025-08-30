@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.test
 
-import io.kotest.common.runBlocking
 import io.kotest.core.test.TestCase
+import io.kotest.engine.runBlocking
 
 import org.eclipse.apoapsis.ortserver.dao.connect
 

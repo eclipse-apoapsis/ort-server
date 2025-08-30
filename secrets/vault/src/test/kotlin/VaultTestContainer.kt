@@ -21,10 +21,10 @@ package org.eclipse.apoapsis.ortserver.secrets.vault
 
 import com.typesafe.config.ConfigFactory
 
-import io.kotest.assertions.fail
-import io.kotest.common.runBlocking
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
+import io.kotest.engine.runBlocking
 import io.kotest.extensions.testcontainers.ContainerExtension
 
 import io.ktor.client.HttpClient
@@ -139,7 +139,8 @@ class VaultTestContainer {
          */
         private fun String.extractJsonField(name: String): String {
             val regExtract = Regex(""""${Pattern.quote(name)}"\s*:\s*"([^"]+)"""")
-            return regExtract.find(this)?.groupValues?.get(1) ?: fail("Cannot find field '$name' in '$this'.")
+            return regExtract.find(this)?.groupValues?.get(1)
+                ?: AssertionErrorBuilder.fail("Cannot find field '$name' in '$this'.")
         }
     }
 

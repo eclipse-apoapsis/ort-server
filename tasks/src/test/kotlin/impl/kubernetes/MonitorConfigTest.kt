@@ -22,13 +22,13 @@ package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
+import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 
 class MonitorConfigTest : StringSpec({
     "The configuration should be loaded correctly" {

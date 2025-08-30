@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
+import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.WordSpec
 
 import io.kubernetes.client.openapi.models.V1Job
@@ -36,7 +37,6 @@ import java.time.Month
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-import kotlin.test.fail
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -118,7 +118,7 @@ private fun TimeoutConfig.forEndpoint(endpoint: Endpoint<*>): Duration =
         EvaluatorEndpoint -> evaluatorTimeout
         ReporterEndpoint -> reporterTimeout
         NotifierEndpoint -> notifierTimeout
-        else -> fail("Unknown endpoint type.")
+        else -> AssertionErrorBuilder.fail("Unknown endpoint type.")
     }
 
 private suspend fun testLongRunningJobsDetectionForEndpoint(endpoint: Endpoint<*>) {

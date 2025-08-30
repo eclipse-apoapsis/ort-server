@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.shared.ktorutils
 
-import io.kotest.common.runBlocking
+import io.kotest.engine.runBlocking
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should

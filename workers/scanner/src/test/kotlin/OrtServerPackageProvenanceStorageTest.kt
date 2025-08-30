@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
-import io.kotest.common.runBlocking
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.runBlocking
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.haveSize

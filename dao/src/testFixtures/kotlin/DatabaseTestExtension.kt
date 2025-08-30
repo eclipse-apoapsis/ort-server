@@ -26,7 +26,7 @@ import io.kotest.core.listeners.BeforeEachListener
 import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
-import io.kotest.core.test.TestResult
+import io.kotest.engine.test.TestResult
 import io.kotest.extensions.testcontainers.JdbcDatabaseContainerExtension
 import io.kotest.extensions.testcontainers.toDataSource
 

@@ -88,7 +88,7 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
     // The "extension()" and "install()" functions cannot be used above because of
     // https://github.com/kotest/kotest/issues/3555.
     // TODO: Check if this is fixed once Kotest 6 is released.
-    override fun extensions(): List<Extension> = listOf(dbExtension, keycloakExtension)
+    override val extensions: List<Extension> = listOf(dbExtension, keycloakExtension)
 
     val keycloak = keycloakExtension.mount {
         setUpUser(TEST_USER, TEST_USER_PASSWORD)
