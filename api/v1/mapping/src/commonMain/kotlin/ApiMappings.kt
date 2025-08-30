@@ -282,7 +282,8 @@ fun Issue.mapToApi() =
         affectedPath = affectedPath,
         identifier = identifier?.mapToApi(),
         worker = worker,
-        resolutions = resolutions.map { it.mapToApi() }
+        resolutions = resolutions.map { it.mapToApi() },
+        purl = purl
     )
 
 fun ApiIssue.mapToModel() =
@@ -601,7 +602,8 @@ fun VulnerabilityWithDetails.mapToApi() =
         identifier = identifier.mapToApi(),
         rating = rating.mapToApi(),
         resolutions = resolutions.map { it.mapToApi() },
-        advisor = advisor.mapToApi()
+        advisor = advisor.mapToApi(),
+        purl = purl
     )
 
 fun Vulnerability.mapToApi() = ApiVulnerability(
@@ -619,7 +621,8 @@ fun RuleViolation.mapToApi() = ApiRuleViolation(
     severity = severity.mapToApi(),
     message = message,
     howToFix = howToFix,
-    resolutions = resolutions.map { it.mapToApi() }
+    resolutions = resolutions.map { it.mapToApi() },
+    purl = purl
 )
 
 fun Identifier.mapToApi() = ApiIdentifier(type = type, namespace = namespace, name = name, version = version)
