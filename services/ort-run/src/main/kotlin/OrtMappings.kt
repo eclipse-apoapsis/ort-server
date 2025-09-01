@@ -148,6 +148,7 @@ import org.ossreviewtoolkit.model.config.PackageConfiguration as OrtPackageConfi
 import org.ossreviewtoolkit.model.config.PackageLicenseChoice as OrtPackageLicenseChoice
 import org.ossreviewtoolkit.model.config.PackageManagerConfiguration as OrtPackageManagerConfiguration
 import org.ossreviewtoolkit.model.config.PathExclude as OrtPathExclude
+import org.ossreviewtoolkit.model.config.PathInclude as OrtPathInclude
 import org.ossreviewtoolkit.model.config.RepositoryAnalyzerConfiguration as OrtRepositoryAnalyzerConfiguration
 import org.ossreviewtoolkit.model.config.RepositoryConfiguration as OrtRepositoryConfiguration
 import org.ossreviewtoolkit.model.config.Resolutions as OrtResolutions
@@ -157,7 +158,6 @@ import org.ossreviewtoolkit.model.config.ScopeExclude as OrtScopeExclude
 import org.ossreviewtoolkit.model.config.SnippetChoices as OrtSnippetChoices
 import org.ossreviewtoolkit.model.config.VcsMatcher as OrtVcsMatcher
 import org.ossreviewtoolkit.model.config.VulnerabilityResolution as OrtVulnerabilityResolution
-import org.ossreviewtoolkit.model.config.config.PathInclude as OrtPathInclude
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoice as OrtSnippetChoice
 import org.ossreviewtoolkit.model.config.snippet.SnippetChoiceReason as OrtSnippetChoiceReason
 import org.ossreviewtoolkit.model.vulnerabilities.Vulnerability as OrtVulnerability
