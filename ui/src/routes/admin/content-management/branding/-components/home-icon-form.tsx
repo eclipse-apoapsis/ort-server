@@ -18,17 +18,11 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useAdminServiceGetApiV1AdminConfigByKey,
-  useAdminServiceGetApiV1AdminConfigByKeyKey,
-  useAdminServicePostApiV1AdminConfigByKey,
-} from '@/api/queries';
-import { ApiError } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -55,6 +49,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
+import {
+  getConfigByKeyOptions,
+  getConfigByKeyQueryKey,
+  setConfigByKeyMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast.ts';
 
 // In both URL fields, a valid URL or an empty string is accepted
@@ -72,8 +71,8 @@ export function HomeIconForm() {
     isFetching: isHomeIconFetching,
     isError: isHomeIconError,
     error: homeIconError,
-  } = useAdminServiceGetApiV1AdminConfigByKey({
-    key: 'HOME_ICON_URL',
+  } = useQuery({
+    ...getConfigByKeyOptions({ path: { key: 'HOME_ICON_URL' } }),
   });
 
   const {
@@ -81,8 +80,8 @@ export function HomeIconForm() {
     isFetching: isHomeIconDarkFetching,
     isError: isHomeIconDarkError,
     error: homeIconDarkError,
-  } = useAdminServiceGetApiV1AdminConfigByKey({
-    key: 'HOME_ICON_URL_DARK',
+  } = useQuery({
+    ...getConfigByKeyOptions({ path: { key: 'HOME_ICON_URL_DARK' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -94,39 +93,42 @@ export function HomeIconForm() {
     },
   });
 
-  const { mutateAsync: saveHomeIcon, isPending: isLightPending } =
-    useAdminServicePostApiV1AdminConfigByKey({
-      onSuccess() {
-        queryClient.invalidateQueries({
-          queryKey: [useAdminServiceGetApiV1AdminConfigByKeyKey],
-        });
-        toast.info('Home icon (light mode) saved', {
-          description: `Home icon for light mode saved successfully.`,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync: saveHomeIcon, isPending: isLightPending } = useMutation({
+    ...setConfigByKeyMutation(),
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: getConfigByKeyQueryKey({ path: { key: 'HOME_ICON_URL' } }),
+      });
+      toast.info('Home icon (light mode) saved', {
+        description: `Home icon for light mode saved successfully.`,
+      });
+    },
+    onError(error) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const { mutateAsync: saveHomeIconDark, isPending: isDarkPending } =
-    useAdminServicePostApiV1AdminConfigByKey({
+    useMutation({
+      ...setConfigByKeyMutation(),
       onSuccess() {
         queryClient.invalidateQueries({
-          queryKey: [useAdminServiceGetApiV1AdminConfigByKeyKey],
+          queryKey: getConfigByKeyQueryKey({
+            path: { key: 'HOME_ICON_URL_DARK' },
+          }),
         });
         toast.info('Home icon (dark mode) saved', {
           description: `Home icon for dark mode saved successfully.`,
         });
       },
-      onError(error: ApiError) {
+      onError(error) {
         toast.error(error.message, {
           description: <ToastError error={error} />,
           duration: Infinity,
@@ -140,18 +142,22 @@ export function HomeIconForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await saveHomeIcon({
-      requestBody: {
+      body: {
         isEnabled: values.isEnabled,
         value: values.iconUrl,
       },
-      key: 'HOME_ICON_URL',
+      path: {
+        key: 'HOME_ICON_URL',
+      },
     });
     await saveHomeIconDark({
-      requestBody: {
+      body: {
         isEnabled: values.isEnabled,
         value: values.iconUrlDark,
       },
-      key: 'HOME_ICON_URL_DARK',
+      path: {
+        key: 'HOME_ICON_URL_DARK',
+      },
     });
   }
 

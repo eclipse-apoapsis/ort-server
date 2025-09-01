@@ -18,17 +18,11 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useAdminServiceGetApiV1AdminConfigByKey,
-  useAdminServiceGetApiV1AdminConfigByKeyKey,
-  useAdminServicePostApiV1AdminConfigByKey,
-} from '@/api/queries';
-import { ApiError } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -55,6 +49,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
+import {
+  getConfigByKeyOptions,
+  getConfigByKeyQueryKey,
+  setConfigByKeyMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast.ts';
 
 const formSchema = z.object({
@@ -70,8 +69,8 @@ export function ProductNameForm() {
     isFetching,
     isError,
     error,
-  } = useAdminServiceGetApiV1AdminConfigByKey({
-    key: 'MAIN_PRODUCT_NAME',
+  } = useQuery({
+    ...getConfigByKeyOptions({ path: { key: 'MAIN_PRODUCT_NAME' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -82,16 +81,19 @@ export function ProductNameForm() {
     },
   });
 
-  const { mutateAsync, isPending } = useAdminServicePostApiV1AdminConfigByKey({
+  const { mutateAsync, isPending } = useMutation({
+    ...setConfigByKeyMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: [useAdminServiceGetApiV1AdminConfigByKeyKey],
+        queryKey: getConfigByKeyQueryKey({
+          path: { key: 'MAIN_PRODUCT_NAME' },
+        }),
       });
       toast.info('Product name saved', {
         description: `Product name saved successfully.`,
       });
     },
-    onError(error: ApiError) {
+    onError(error) {
       toast.error(error.message, {
         description: <ToastError error={error} />,
         duration: Infinity,
@@ -105,11 +107,13 @@ export function ProductNameForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      requestBody: {
+      body: {
         isEnabled: values.isEnabled,
         value: values.productName,
       },
-      key: 'MAIN_PRODUCT_NAME',
+      path: {
+        key: 'MAIN_PRODUCT_NAME',
+      },
     });
   }
 

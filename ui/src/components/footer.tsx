@@ -17,8 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import { useAdminServiceGetApiV1AdminContentManagementSectionsBySectionId } from '@/api/queries';
+import { useQuery } from '@tanstack/react-query';
+
 import { MarkdownRenderer } from '@/components/markdown-renderer.tsx';
+import { getSectionByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 
 function extractColumns(
   markdown: string,
@@ -41,10 +43,9 @@ function extractColumns(
 }
 
 export function Footer() {
-  const { data } =
-    useAdminServiceGetApiV1AdminContentManagementSectionsBySectionId({
-      sectionId: 'footer',
-    });
+  const { data } = useQuery({
+    ...getSectionByIdOptions({ path: { sectionId: 'footer' } }),
+  });
 
   const markdown = data?.markdown || '';
   const enabled = data?.isEnabled || false;

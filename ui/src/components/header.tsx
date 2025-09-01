@@ -18,13 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Home, Menu } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useAdminServiceGetApiV1AdminConfigByKey } from '@/api/queries';
 import homeIcon from '@/assets/home-icon.svg';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ModeToggle } from '@/components/mode-toggle';
@@ -55,6 +55,7 @@ import {
 } from '@/components/ui/tooltip';
 import { extractInitials } from '@/helpers/extract-initials.ts';
 import { setCustomFavicon } from '@/helpers/set-custom-favicon';
+import { getConfigByKeyOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 
@@ -74,8 +75,8 @@ export const Header = () => {
     isPending: isHomeIconPending,
     isError: isHomeIconError,
     error: homeIconError,
-  } = useAdminServiceGetApiV1AdminConfigByKey({
-    key: 'HOME_ICON_URL',
+  } = useQuery({
+    ...getConfigByKeyOptions({ path: { key: 'HOME_ICON_URL' } }),
   });
 
   const {
@@ -83,8 +84,8 @@ export const Header = () => {
     isPending: isHomeIconDarkPending,
     isError: isHomeIconDarkError,
     error: homeIconDarkError,
-  } = useAdminServiceGetApiV1AdminConfigByKey({
-    key: 'HOME_ICON_URL_DARK',
+  } = useQuery({
+    ...getConfigByKeyOptions({ path: { key: 'HOME_ICON_URL_DARK' } }),
   });
 
   const {
@@ -92,8 +93,8 @@ export const Header = () => {
     isPending: isProductNamePending,
     isError: isProductNameError,
     error: productNameError,
-  } = useAdminServiceGetApiV1AdminConfigByKey({
-    key: 'MAIN_PRODUCT_NAME',
+  } = useQuery({
+    ...getConfigByKeyOptions({ path: { key: 'MAIN_PRODUCT_NAME' } }),
   });
 
   const {
@@ -101,8 +102,8 @@ export const Header = () => {
     isPending: isFaviconPending,
     isError: isFaviconError,
     error: faviconError,
-  } = useAdminServiceGetApiV1AdminConfigByKey({
-    key: 'FAVICON_URL',
+  } = useQuery({
+    ...getConfigByKeyOptions({ path: { key: 'FAVICON_URL' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
