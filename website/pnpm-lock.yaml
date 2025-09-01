@@ -85,7 +85,7 @@ importers:
         version: 0.52.1(@docusaurus/theme-common@3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.1.12)(react@19.1.1))(acorn@8.14.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2))(acorn@8.14.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@mdx-js/react@3.1.1(@types/react@19.1.12)(react@19.1.1))(acorn@8.14.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       '@iconify/react':
         specifier: ^6.0.0
-        version: 6.0.0(react@19.1.1)
+        version: 6.0.1(react@19.1.1)
       '@mdx-js/react':
         specifier: ^3.0.0
         version: 3.1.1(@types/react@19.1.12)(react@19.1.1)
@@ -1336,8 +1336,8 @@ packages:
       prettier-plugin-ember-template-tag:
         optional: true
 
-  '@iconify/react@6.0.0':
-    resolution: {integrity: sha512-eqNscABVZS8eCpZLU/L5F5UokMS9mnCf56iS1nM9YYHdH8ZxqZL9zyjSwW60IOQFsXZkilbBiv+1paMXBhSQnw==}
+  '@iconify/react@6.0.1':
+    resolution: {integrity: sha512-fCocnAfiGXjrA0u7KkS3W/OQHNp9LRFICudvOtxmS3Mf7U92aDhP50wyzRbobZli51zYt9ksZ9g0J7H586XvOQ==}
     peerDependencies:
       react: '>=16'
 
@@ -8528,7 +8528,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@iconify/react@6.0.0(react@19.1.1)':
+  '@iconify/react@6.0.1(react@19.1.1)':
     dependencies:
       '@iconify/types': 2.0.0
       react: 19.1.1
