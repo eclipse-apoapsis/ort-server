@@ -18,17 +18,11 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useAdminServiceGetApiV1AdminConfigByKey,
-  useAdminServiceGetApiV1AdminConfigByKeyKey,
-  useAdminServicePostApiV1AdminConfigByKey,
-} from '@/api/queries';
-import { ApiError } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -55,6 +49,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
+import {
+  getConfigByKeyOptions,
+  getConfigByKeyQueryKey,
+  setConfigByKeyMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast.ts';
 
 // In both URL fields, a valid URL or an empty string is accepted
@@ -71,8 +70,8 @@ export function FaviconForm() {
     isFetching: isFaviconFetching,
     isError: isFaviconError,
     error: faviconError,
-  } = useAdminServiceGetApiV1AdminConfigByKey({
-    key: 'FAVICON_URL',
+  } = useQuery({
+    ...getConfigByKeyOptions({ path: { key: 'FAVICON_URL' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -83,17 +82,18 @@ export function FaviconForm() {
     },
   });
 
-  const { mutateAsync: saveFavicon, isPending: isFaviconPending } =
-    useAdminServicePostApiV1AdminConfigByKey({
+  const { mutateAsync: saveFavicon, isPending: isFaviconPending } = useMutation(
+    {
+      ...setConfigByKeyMutation(),
       onSuccess() {
         queryClient.invalidateQueries({
-          queryKey: [useAdminServiceGetApiV1AdminConfigByKeyKey],
+          queryKey: getConfigByKeyQueryKey({ path: { key: 'FAVICON_URL' } }),
         });
         toast.info('Favicon saved', {
           description: `The favicon was saved successfully.`,
         });
       },
-      onError(error: ApiError) {
+      onError(error) {
         toast.error(error.message, {
           description: <ToastError error={error} />,
           duration: Infinity,
@@ -103,15 +103,18 @@ export function FaviconForm() {
           },
         });
       },
-    });
+    }
+  );
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await saveFavicon({
-      requestBody: {
+      body: {
         isEnabled: values.isEnabled,
         value: values.faviconUrl,
       },
-      key: 'FAVICON_URL',
+      path: {
+        key: 'FAVICON_URL',
+      },
     });
   }
 

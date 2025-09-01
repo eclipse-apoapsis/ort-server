@@ -18,17 +18,11 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useAdminServiceGetApiV1AdminContentManagementSectionsBySectionId,
-  useAdminServiceGetApiV1AdminContentManagementSectionsBySectionIdKey,
-  useAdminServicePatchApiV1AdminContentManagementSectionsBySectionId,
-} from '@/api/queries';
-import { ApiError } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -54,6 +48,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
+import {
+  getSectionByIdOptions,
+  getSectionByIdQueryKey,
+  patchSectionByIdMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast.ts';
 
 const formSchema = z.object({
@@ -69,8 +68,8 @@ export function FooterForm() {
     isFetching,
     error,
     isError,
-  } = useAdminServiceGetApiV1AdminContentManagementSectionsBySectionId({
-    sectionId: 'footer',
+  } = useQuery({
+    ...getSectionByIdOptions({ path: { sectionId: 'footer' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -81,37 +80,35 @@ export function FooterForm() {
     },
   });
 
-  const { mutateAsync, isPending } =
-    useAdminServicePatchApiV1AdminContentManagementSectionsBySectionId({
-      onSuccess() {
-        queryClient.invalidateQueries({
-          queryKey: [
-            useAdminServiceGetApiV1AdminContentManagementSectionsBySectionIdKey,
-          ],
-        });
-        toast.info('Footer saved', {
-          description: `Footer saved successfully.`,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync, isPending } = useMutation({
+    ...patchSectionByIdMutation(),
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: getSectionByIdQueryKey({ path: { sectionId: 'footer' } }),
+      });
+      toast.info('Footer saved', {
+        description: `Footer saved successfully.`,
+      });
+    },
+    onError(error) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      requestBody: {
+      body: {
         isEnabled: values.isEnabled,
         markdown: values.markdown,
       },
-      sectionId: 'footer',
+      path: { sectionId: 'footer' },
     });
   }
 
