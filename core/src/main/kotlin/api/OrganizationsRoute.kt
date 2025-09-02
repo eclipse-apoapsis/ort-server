@@ -80,7 +80,6 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.ortrun.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
-import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
@@ -89,6 +88,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 import org.koin.ktor.ext.inject
 
@@ -288,10 +288,7 @@ fun Route.organizations() = route("organizations") {
                     val role = call.requireEnumParameter<OrganizationRole>("role").mapToModel()
 
                     if (organizationService.getOrganization(organizationId) == null) {
-                        call.respond(
-                            HttpStatusCode.NotFound,
-                            ErrorResponse("Organization with ID '$organizationId' not found.")
-                        )
+                        call.respondError(HttpStatusCode.NotFound, "Organization with ID '$organizationId' not found.")
                         return@put
                     }
 
@@ -307,10 +304,7 @@ fun Route.organizations() = route("organizations") {
                     val username = call.requireParameter("username")
 
                     if (organizationService.getOrganization(organizationId) == null) {
-                        call.respond(
-                            HttpStatusCode.NotFound,
-                            ErrorResponse("Organization with ID '$organizationId' not found.")
-                        )
+                        call.respondError(HttpStatusCode.NotFound, "Organization with ID '$organizationId' not found.")
                         return@delete
                     }
 
