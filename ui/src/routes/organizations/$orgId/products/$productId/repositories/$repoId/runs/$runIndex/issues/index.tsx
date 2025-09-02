@@ -85,6 +85,7 @@ import {
   severitySearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
+import { useUserSettingsStore } from '@/store/user-settings.store';
 
 const defaultPageSize = 10;
 
@@ -134,6 +135,7 @@ const IssuesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
   const columns = [
     columnHelper.display({
@@ -288,10 +290,15 @@ const IssuesComponent = () => {
     ),
     columnHelper.accessor(
       (issue) => {
-        return identifierToString(issue.identifier);
+        // Return purl only if the issue has been reported for a package
+        if (packageIdType === 'PURL' && issue.purl) {
+          return issue.purl;
+        } else {
+          return identifierToString(issue.identifier);
+        }
       },
       {
-        id: 'packageIdentifier',
+        id: `${packageIdType === 'PURL' ? 'purl' : 'identifier'}`,
         header: 'Package ID',
         cell: ({ getValue }) => {
           return (
@@ -358,6 +365,8 @@ const IssuesComponent = () => {
     [search.pkgId]
   );
 
+  const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
+
   const columnFilters = useMemo(() => {
     const filters = [];
     if (severity) {
@@ -370,10 +379,10 @@ const IssuesComponent = () => {
       filters.push({ id: 'category', value: category });
     }
     if (packageIdentifier) {
-      filters.push({ id: 'packageIdentifier', value: packageIdentifier });
+      filters.push({ id: columnId, value: packageIdentifier });
     }
     return filters;
-  }, [severity, itemStatus, category, packageIdentifier]);
+  }, [severity, itemStatus, category, packageIdentifier, columnId]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
