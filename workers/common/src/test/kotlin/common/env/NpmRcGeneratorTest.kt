@@ -26,9 +26,10 @@ import io.kotest.matchers.string.shouldContain
 
 import io.mockk.every
 
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmAuthMode
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinition
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class NpmRcGeneratorTest : WordSpec({
     "environmentDefinitionType" should {

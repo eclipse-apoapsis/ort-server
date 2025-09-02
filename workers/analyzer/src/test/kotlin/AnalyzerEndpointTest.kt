@@ -75,7 +75,6 @@ import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -86,6 +85,8 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"

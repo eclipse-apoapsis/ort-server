@@ -34,7 +34,8 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 private const val NAMESPACE = "test-namespace"
 private const val IMAGE_NAME = "busybox"

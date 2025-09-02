@@ -40,7 +40,8 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class KubernetesMessageReceiverFactoryTest : StringSpec({
     beforeAny {
