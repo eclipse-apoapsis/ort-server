@@ -29,7 +29,6 @@ import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
 
 import java.util.EnumSet
 
@@ -41,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 class DeleteSecretByProductIdAndNameIntegrationTest : SecretsIntegrationTest({
     var prodId = 0L
@@ -71,9 +71,10 @@ class DeleteSecretByProductIdAndNameIntegrationTest : SecretsIntegrationTest({
                 install(StatusPages) {
                     // TODO: This should use the same config as in core.
                     exception<ReferencedEntityException> { call, e ->
-                        call.respond(
+                        call.respondError(
                             HttpStatusCode.Conflict,
-                            ErrorResponse("The entity you tried to delete is in use.", e.message)
+                            message = "The entity you tried to delete is in use.",
+                            cause = e.message
                         )
                     }
                 }

@@ -30,7 +30,6 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
 
 import org.eclipse.apoapsis.ortserver.components.secrets.CreateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
@@ -41,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
 class PostSecretForOrganizationIntegrationTest : SecretsIntegrationTest({
@@ -75,9 +75,10 @@ class PostSecretForOrganizationIntegrationTest : SecretsIntegrationTest({
                 install(StatusPages) {
                     // TODO: This should use the same config as in core.
                     exception<UniqueConstraintException> { call, e ->
-                        call.respond(
+                        call.respondError(
                             HttpStatusCode.Conflict,
-                            ErrorResponse("The entity you tried to create already exists.", e.message)
+                            message = "The entity you tried to create already exists.",
+                            cause = e.message
                         )
                     }
                 }
@@ -99,9 +100,10 @@ class PostSecretForOrganizationIntegrationTest : SecretsIntegrationTest({
                 install(StatusPages) {
                     // TODO: This should use the same config as in core.
                     exception<RequestValidationException> { call, e ->
-                        call.respond(
+                        call.respondError(
                             HttpStatusCode.BadRequest,
-                            ErrorResponse("Request validation has failed.", e.message)
+                            message = "Request validation has failed.",
+                            cause = e.message
                         )
                     }
                 }

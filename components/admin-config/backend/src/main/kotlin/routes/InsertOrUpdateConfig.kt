@@ -30,9 +30,9 @@ import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigTable
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
-import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -77,12 +77,10 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
     val key = runCatching {
         enumValueOf<ConfigKey>(keyParameter)
     }.getOrElse {
-        call.respond(
+        call.respondError(
             HttpStatusCode.BadRequest,
-            ErrorResponse(
-                message = "Invalid config key: $keyParameter",
-                cause = "Allowed keys: ${ConfigKey.entries.joinToString(", ")}"
-            )
+            message = "Invalid config key: $keyParameter",
+            cause = "Allowed keys: ${ConfigKey.entries.joinToString(", ")}"
         )
         return@post
     }

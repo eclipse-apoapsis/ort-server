@@ -81,7 +81,6 @@ import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
-import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
@@ -89,6 +88,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 import org.koin.ktor.ext.inject
 
@@ -171,21 +171,19 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 )
 
                 if (!validationResult.isValid) {
-                    call.respond(
+                    call.respondError(
                         HttpStatusCode.BadRequest,
-                        ErrorResponse(
-                            message = "Invalid plugin configuration.",
-                            cause = validationResult.errors.joinToString(separator = "\n")
-                        )
+                        message = "Invalid plugin configuration.",
+                        cause = validationResult.errors.joinToString(separator = "\n")
                     )
                     return@post
                 }
 
                 // Restrict the `keepAliveWorker` flags to superusers only.
                 if (createOrtRun.hasKeepAliveWorkerFlag() && !hasRole(Superuser.ROLE_NAME)) {
-                    call.respond(
+                    call.respondError(
                         HttpStatusCode.Forbidden,
-                        ErrorResponse("The 'keepAliveWorker' flag is only allowed for superusers.")
+                        "The 'keepAliveWorker' flag is only allowed for superusers."
                     )
                     return@post
                 }
@@ -324,10 +322,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 val role = call.requireEnumParameter<RepositoryRole>("role").mapToModel()
 
                 if (repositoryService.getRepository(repositoryId) == null) {
-                    call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Repository with ID '$repositoryId' not found.")
-                    )
+                    call.respondError(HttpStatusCode.NotFound, "Repository with ID '$repositoryId' not found.")
                     return@put
                 }
 
@@ -343,10 +338,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 val username = call.requireParameter("username")
 
                 if (repositoryService.getRepository(repositoryId) == null) {
-                    call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Repository with ID '$repositoryId' not found.")
-                    )
+                    call.respondError(HttpStatusCode.NotFound, "Repository with ID '$repositoryId' not found.")
                     return@delete
                 }
 

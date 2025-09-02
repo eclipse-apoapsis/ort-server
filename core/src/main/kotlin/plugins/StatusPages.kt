@@ -38,7 +38,7 @@ import org.eclipse.apoapsis.ortserver.services.OrganizationNotEmptyException
 import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
-import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
 
@@ -57,75 +57,53 @@ fun Application.configureStatusPages() {
             call.respond(HttpStatusCode.Forbidden)
         }
         exception<BadRequestException> { call, e ->
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ErrorResponse(message = "Invalid request body.", e.collectMessages())
-            )
+            call.respondError(HttpStatusCode.BadRequest, "Invalid request body.", e.collectMessages())
         }
         exception<EntityNotFoundException> { call, _ ->
             call.respond(HttpStatusCode.NotFound)
         }
         exception<InvalidSecretReferenceException> { call, e ->
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ErrorResponse("Secret reference could not be resolved.", e.message)
-            )
+            call.respondError(HttpStatusCode.BadRequest, "Secret reference could not be resolved.", e.message)
         }
         exception<MissingRequestParameterException> { call, e ->
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ErrorResponse("Missing request parameter.", e.message)
-            )
+            call.respondError(HttpStatusCode.BadRequest, "Missing request parameter.", e.message)
         }
         exception<OrganizationNotEmptyException> { call, e ->
-            call.respond(
+            call.respondError(
                 HttpStatusCode.Conflict,
-                ErrorResponse(
-                    "Organization is not empty. Delete all products before deleting the organization.",
-                    e.message
-                )
+                "Organization is not empty. Delete all products before deleting the organization.",
+                e.message
             )
         }
         exception<ParameterConversionException> { call, e ->
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ErrorResponse("Parameter conversion failed.", e.message)
-            )
+            call.respondError(HttpStatusCode.BadRequest, "Parameter conversion failed.", e.message)
         }
         exception<ReferencedEntityException> { call, e ->
-            call.respond(
-                HttpStatusCode.Conflict,
-                ErrorResponse("The entity you tried to delete is in use.", e.message)
-            )
+            call.respondError(HttpStatusCode.Conflict, "The entity you tried to delete is in use.", e.message)
         }
         exception<ReportNotFoundException> { call, e ->
-            call.respond(HttpStatusCode.NotFound, ErrorResponse("Report could not be resolved.", e.message))
+            call.respondError(HttpStatusCode.NotFound, "Report could not be resolved.", e.message)
         }
         exception<ResourceNotFoundException> { call, e ->
-            call.respond(HttpStatusCode.NotFound, ErrorResponse("Resource not found.", e.message))
+            call.respondError(HttpStatusCode.NotFound, "Resource not found.", e.message)
         }
         exception<RequestValidationException> { call, e ->
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Request validation has failed.", e.message))
+            call.respondError(HttpStatusCode.BadRequest, "Request validation has failed.", e.message)
         }
         exception<UniqueConstraintException> { call, e ->
-            call.respond(
-                HttpStatusCode.Conflict,
-                ErrorResponse("The entity you tried to create already exists.", e.message)
-            )
+            call.respondError(HttpStatusCode.Conflict, "The entity you tried to create already exists.", e.message)
         }
         exception<QueryParametersException> { call, e ->
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ErrorResponse("Invalid query parameters.", e.message)
-            )
+            call.respondError(HttpStatusCode.BadRequest, "Invalid query parameters.", e.message)
         }
 
         // catch all handler
         exception<Throwable> { call, e ->
             logger.error("Internal Server Error", e)
-            call.respond(
+            call.respondError(
                 HttpStatusCode.InternalServerError,
-                ErrorResponse("Error when processing the request.", e.collectMessages())
+                "Error when processing the request.",
+                e.collectMessages()
             )
         }
     }

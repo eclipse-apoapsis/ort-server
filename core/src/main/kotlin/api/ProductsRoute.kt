@@ -81,7 +81,6 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.RuleViolationService
 import org.eclipse.apoapsis.ortserver.services.ortrun.VulnerabilityService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
-import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
@@ -89,6 +88,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 import org.koin.ktor.ext.inject
 
@@ -185,10 +185,7 @@ fun Route.products() = route("products/{productId}") {
                 val role = call.requireEnumParameter<ProductRole>("role").mapToModel()
 
                 if (productService.getProduct(productId) == null) {
-                    call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Product with ID '$productId' not found.")
-                    )
+                    call.respondError(HttpStatusCode.NotFound, "Product with ID '$productId' not found.")
                     return@put
                 }
 
@@ -204,10 +201,7 @@ fun Route.products() = route("products/{productId}") {
                 val username = call.requireParameter("username")
 
                 if (productService.getProduct(productId) == null) {
-                    call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorResponse("Product with ID '$productId' not found.")
-                    )
+                    call.respondError(HttpStatusCode.NotFound, "Product with ID '$productId' not found.")
                     return@delete
                 }
 
@@ -366,21 +360,19 @@ fun Route.products() = route("products/{productId}") {
             )
 
             if (!validationResult.isValid) {
-                call.respond(
+                call.respondError(
                     HttpStatusCode.BadRequest,
-                    ErrorResponse(
-                        message = "Invalid plugin configuration.",
-                        cause = validationResult.errors.joinToString(separator = "\n")
-                    )
+                    message = "Invalid plugin configuration.",
+                    cause = validationResult.errors.joinToString(separator = "\n")
                 )
                 return@post
             }
 
             // Restrict the `keepAliveWorker` flags to superusers only.
             if (createOrtRun.hasKeepAliveWorkerFlag() && !hasRole(Superuser.ROLE_NAME)) {
-                call.respond(
+                call.respondError(
                     HttpStatusCode.Forbidden,
-                    ErrorResponse("The 'keepAliveWorker' flag is only allowed for superusers.")
+                    "The 'keepAliveWorker' flag is only allowed for superusers."
                 )
                 return@post
             }
@@ -402,13 +394,11 @@ fun Route.products() = route("products/{productId}") {
                     val repoIdsNotInProduct = createOrtRun.repositoryFailedIds.filter { it !in productRepoIds }
 
                     if (repoIdsNotInProduct.isNotEmpty()) {
-                        call.respond(
+                        call.respondError(
                             HttpStatusCode.Conflict,
-                            ErrorResponse(
-                                message = "The repositories do not have a latest ORT run with status FAILED for " +
-                                        "product $productId.",
-                                cause = "Invalid repository IDs: ${repoIdsNotInProduct.joinToString()}"
-                            )
+                            message = "The repositories do not have a latest ORT run with status FAILED for product " +
+                                    "$productId.",
+                            cause = "Invalid repository IDs: ${repoIdsNotInProduct.joinToString()}"
                         )
                         return@post
                     }
