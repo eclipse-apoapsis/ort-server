@@ -24,11 +24,12 @@ import io.kotest.extensions.system.OverrideMode
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder
 import org.eclipse.apoapsis.ortserver.workers.common.env.YarnRcGenerator
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnAuthMode
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnDefinition
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class YarnRcGeneratorTest : WordSpec({
     "environmentDefinitionType" should {

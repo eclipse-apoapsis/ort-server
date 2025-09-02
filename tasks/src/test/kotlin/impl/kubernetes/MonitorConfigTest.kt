@@ -28,7 +28,8 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class MonitorConfigTest : StringSpec({
     "The configuration should be loaded correctly" {

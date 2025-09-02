@@ -41,7 +41,6 @@ import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageSenderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 
 import org.koin.core.context.stopKoin
@@ -49,6 +48,8 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class EndpointTest : KoinTest, StringSpec() {
     init {

@@ -29,7 +29,7 @@ import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.URI
 
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class UserInfoSecretAuthenticatorTest : StringSpec({
     "A URL with credentials defined in a 'URL' variable should be handled correctly" {

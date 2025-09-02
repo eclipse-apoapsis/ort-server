@@ -39,7 +39,8 @@ import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class DeleteOldOrtRunsTaskTest : StringSpec({
     "Old ORT runs should be deleted according to the configured retention policy" {

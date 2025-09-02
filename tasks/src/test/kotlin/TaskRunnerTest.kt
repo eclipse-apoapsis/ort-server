@@ -48,7 +48,6 @@ import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LongRunningJobsFinde
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.LostJobsFinderTask
 import org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes.ReaperTask
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
@@ -57,6 +56,8 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.test.KoinTest
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class TaskRunnerTest : KoinTest, WordSpec() {
     init {

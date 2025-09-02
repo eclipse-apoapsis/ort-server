@@ -57,7 +57,6 @@ import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.testing.MessageReceiverFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.TEST_TRANSPORT_NAME
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 
 import org.jetbrains.exposed.sql.Database
 
@@ -66,6 +65,8 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class OrchestratorEndpointTest : KoinTest, StringSpec() {
     private val msgHeader = MessageHeader(

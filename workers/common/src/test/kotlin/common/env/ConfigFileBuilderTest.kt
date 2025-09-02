@@ -31,12 +31,13 @@ import java.util.Properties
 
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
-import org.eclipse.apoapsis.ortserver.utils.test.withEnvironment
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedInfraSecretResolver
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
+
+import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class ConfigFileBuilderTest : StringSpec({
     "A PrintWriter is exposed" {

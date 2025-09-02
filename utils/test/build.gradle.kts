@@ -35,7 +35,7 @@ kotlin {
 
         jvmMain {
             dependencies {
-                api(libs.kotestExtensions)
+                api(ortLibs.utils.test)
 
                 // Transitively export this to consumers so they do not have to declare a logger implementation.
                 api(libs.logback)
