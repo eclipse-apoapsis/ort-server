@@ -18,7 +18,7 @@
  */
 
 plugins {
-    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-kotlin-component-backend-conventions")
     id("ort-server-publication-conventions")
 }
 

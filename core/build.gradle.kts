@@ -63,10 +63,23 @@ repositories {
 dependencies {
     implementation(projects.api.v1.apiV1Mapping)
     implementation(projects.clients.keycloak)
-    implementation(projects.components.adminConfig.backend)
+    implementation(projects.components.adminConfig.backend) {
+        capabilities {
+            requireCapability("$group:routes")
+        }
+    }
     implementation(projects.components.authorization.backend)
     implementation(projects.components.pluginManager.backend)
-    implementation(projects.components.secrets.backend)
+    implementation(projects.components.pluginManager.backend) {
+        capabilities {
+            requireCapability("$group:routes")
+        }
+    }
+    implementation(projects.components.secrets.backend) {
+        capabilities {
+            requireCapability("$group:routes")
+        }
+    }
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.logaccess.logaccessSpi)

@@ -18,7 +18,7 @@
  */
 
 plugins {
-    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-kotlin-component-backend-conventions")
     id("ort-server-publication-conventions")
 
     // Apply third-party plugins.
@@ -43,23 +43,25 @@ dependencies {
     api(projects.components.pluginManager.apiModel)
     api(projects.model)
 
-    implementation(projects.components.authorization.backend)
     implementation(projects.dao)
-    implementation(projects.shared.ktorUtils)
 
-    implementation(ktorLibs.server.auth)
-    implementation(ktorLibs.server.core)
     implementation(libs.exposedCore)
     implementation(libs.exposedJson)
     implementation(libs.exposedKotlinDatetime)
     implementation(libs.kotlinResult)
-    implementation(libs.ktorOpenApi)
     implementation(ortLibs.advisor)
     implementation(ortLibs.analyzer)
     implementation(ortLibs.ortPlugins.packageConfigurationProviders.api)
     implementation(ortLibs.ortPlugins.packageCurationProviders.api)
     implementation(ortLibs.reporter)
     implementation(ortLibs.scanner)
+
+    routesImplementation(projects.components.authorization.backend)
+    routesImplementation(projects.shared.ktorUtils)
+
+    routesImplementation(ktorLibs.server.auth)
+    routesImplementation(ktorLibs.server.core)
+    routesImplementation(libs.ktorOpenApi)
 
     testImplementation(testFixtures(projects.clients.keycloak))
     testImplementation(testFixtures(projects.dao))
