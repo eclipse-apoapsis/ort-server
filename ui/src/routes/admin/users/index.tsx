@@ -17,7 +17,11 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -27,13 +31,6 @@ import {
 } from '@tanstack/react-table';
 import { UserPlus } from 'lucide-react';
 
-import {
-  useAdminServiceDeleteApiV1AdminUsers,
-  useAdminServiceGetApiV1AdminUsersKey,
-} from '@/api/queries';
-import { prefetchUseAdminServiceGetApiV1AdminUsers } from '@/api/queries/prefetch';
-import { useAdminServiceGetApiV1AdminUsersSuspense } from '@/api/queries/suspense';
-import { ApiError, User } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -52,6 +49,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { User } from '@/hey-api';
+import {
+  deleteUserByUsernameMutation,
+  getUsersOptions,
+  getUsersQueryKey,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
 
@@ -83,16 +86,17 @@ const columns = [
     cell: function CellComponent({ row }) {
       const queryClient = useQueryClient();
 
-      const { mutateAsync: delUser } = useAdminServiceDeleteApiV1AdminUsers({
+      const { mutateAsync: delUser } = useMutation({
+        ...deleteUserByUsernameMutation(),
         onSuccess() {
           toast.info('Delete User', {
             description: `User "${row.original.username}" deleted successfully.`,
           });
           queryClient.invalidateQueries({
-            queryKey: [useAdminServiceGetApiV1AdminUsersKey],
+            queryKey: getUsersQueryKey(),
           });
         },
-        onError(error: ApiError) {
+        onError(error) {
           toast.error(error.message, {
             description: <ToastError error={error} />,
             duration: Infinity,
@@ -110,7 +114,9 @@ const columns = [
             thingName={'user'}
             thingId={row.original.username}
             uiComponent={<DeleteIconButton />}
-            onDelete={() => delUser({ username: row.original.username })}
+            onDelete={() =>
+              delUser({ query: { username: row.original.username } })
+            }
           />
         </div>
       );
@@ -123,7 +129,7 @@ const Users = () => {
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
 
-  const { data: users } = useAdminServiceGetApiV1AdminUsersSuspense();
+  const { data: users } = useSuspenseQuery({ ...getUsersOptions() });
 
   const table = useReactTable({
     data: users || [],
@@ -187,8 +193,10 @@ const Users = () => {
 
 export const Route = createFileRoute('/admin/users/')({
   validateSearch: paginationSearchParameterSchema,
-  loader: async ({ context }) => {
-    prefetchUseAdminServiceGetApiV1AdminUsers(context.queryClient);
+  loader: async ({ context: { queryClient } }) => {
+    queryClient.prefetchQuery({
+      ...getUsersOptions(),
+    });
   },
   component: Users,
   pendingComponent: LoadingIndicator,
