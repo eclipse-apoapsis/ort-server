@@ -18,17 +18,12 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useAdminServicePostApiV1AdminUsers,
-  useOrganizationsServiceGetApiV1Organizations,
-  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole,
-} from '@/api/queries';
-import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
 import { PasswordInput } from '@/components/form/password-input';
@@ -55,6 +50,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import MultipleSelector, { Option } from '@/components/ui/multiple-selector';
+import {
+  getOrganizationsOptions,
+  postUsersMutation,
+  putOrganizationRoleToUserMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
@@ -78,18 +78,19 @@ const CreateUser = () => {
     isPending: orgIsPending,
     isError: orgIsError,
     error: orgError,
-  } = useOrganizationsServiceGetApiV1Organizations({
-    limit: ALL_ITEMS,
+  } = useQuery({
+    ...getOrganizationsOptions({ query: { limit: ALL_ITEMS } }),
   });
 
   const { mutateAsync: createUser, isPending: isCreateUserPending } =
-    useAdminServicePostApiV1AdminUsers({
+    useMutation({
+      ...postUsersMutation(),
       onSuccess() {
         toast.info('Create User', {
           description: `User "${form.getValues().username}" created successfully.`,
         });
       },
-      onError(error: ApiError) {
+      onError(error) {
         toast.error(error.message, {
           description: <ToastError error={error} />,
           duration: Infinity,
@@ -104,20 +105,21 @@ const CreateUser = () => {
   const {
     mutateAsync: addUserToReaders,
     isPending: isAddUserToReadersPending,
-  } = useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole({
+  } = useMutation({
+    ...putOrganizationRoleToUserMutation(),
     onSuccess(_, variables) {
       const organizationName = organizations?.data.find(
-        (org) => org.id === variables.organizationId
+        (org) => org.id === variables.path.organizationId
       )?.name;
 
       toast.info('Add Access Rights', {
-        description: `The "${variables.requestBody?.username}" user was created and assigned the READER role for the "${organizationName}" organization.`,
+        description: `The "${variables.body?.username}" user was created and assigned the READER role for the "${organizationName}" organization.`,
       });
       navigate({
         to: '/admin/users',
       });
     },
-    onError(error: ApiError) {
+    onError(error) {
       toast.error(error.message, {
         description: <ToastError error={error} />,
         duration: Infinity,
@@ -140,7 +142,7 @@ const CreateUser = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await createUser({
-      requestBody: {
+      body: {
         username: values.username,
         firstName: values.firstName,
         lastName: values.lastName,
@@ -153,9 +155,8 @@ const CreateUser = () => {
     await Promise.all(
       values.organizations.map((orgId) =>
         addUserToReaders({
-          organizationId: Number.parseInt(orgId),
-          role: 'READER',
-          requestBody: {
+          path: { organizationId: Number.parseInt(orgId), role: 'READER' },
+          body: {
             username: values.username,
           },
         })
