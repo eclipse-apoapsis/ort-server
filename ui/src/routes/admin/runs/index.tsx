@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -26,14 +27,6 @@ import {
 import { View } from 'lucide-react';
 import z from 'zod';
 
-import {
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
-  useProductsServiceGetApiV1ProductsByProductId,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
-  useRunsServiceGetApiV1Runs,
-} from '@/api/queries';
-import { prefetchUseRunsServiceGetApiV1Runs } from '@/api/queries/prefetch';
-import { OrtRunStatus, OrtRunSummary } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
@@ -56,6 +49,13 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import { OrtRunStatus, OrtRunSummary } from '@/hey-api';
+import {
+  getOrganizationByIdOptions,
+  getOrtRunsOptions,
+  getProductByIdOptions,
+  getRepositoryByIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,
@@ -82,18 +82,22 @@ const RunsComponent = () => {
       id: 'repository',
       header: 'Repository',
       cell: function CellComponent({ row }) {
-        const { data: repo } =
-          useRepositoriesServiceGetApiV1RepositoriesByRepositoryId({
-            repositoryId: row.original.repositoryId,
-          });
+        const { data: repo } = useQuery({
+          ...getRepositoryByIdOptions({
+            path: { repositoryId: row.original.repositoryId },
+          }),
+        });
 
-        const { data: org } =
-          useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
-            organizationId: row.original.organizationId,
-          });
+        const { data: org } = useQuery({
+          ...getOrganizationByIdOptions({
+            path: { organizationId: row.original.organizationId },
+          }),
+        });
 
-        const { data: prod } = useProductsServiceGetApiV1ProductsByProductId({
-          productId: row.original.productId,
+        const { data: prod } = useQuery({
+          ...getProductByIdOptions({
+            path: { productId: row.original.productId },
+          }),
         });
 
         return (
@@ -243,27 +247,23 @@ const RunsComponent = () => {
     }),
   ];
 
-  const { data: runs } = useRunsServiceGetApiV1Runs(
-    {
-      limit: 1,
-    },
-    undefined,
-    {
-      refetchInterval: pollInterval,
-    }
-  );
+  const { data: runs } = useQuery({
+    ...getOrtRunsOptions({
+      query: { limit: 1 },
+    }),
+    refetchInterval: pollInterval,
+  });
 
-  const { data, error } = useRunsServiceGetApiV1Runs(
-    {
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-      status: status?.join(','),
-    },
-    undefined,
-    {
-      refetchInterval: pollInterval,
-    }
-  );
+  const { data, error } = useQuery({
+    ...getOrtRunsOptions({
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        status: status?.join(','),
+      },
+    }),
+    refetchInterval: pollInterval,
+  });
 
   const table = useReactTable({
     data: data?.data || [],
@@ -338,11 +338,18 @@ export const Route = createFileRoute('/admin/runs/')({
     pageSize,
     status,
   }),
-  loader: async ({ context, deps: { page, pageSize, status } }) => {
-    await prefetchUseRunsServiceGetApiV1Runs(context.queryClient, {
-      limit: pageSize || defaultPageSize,
-      offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-      status: status?.join(','),
+  loader: async ({
+    context: { queryClient },
+    deps: { page, pageSize, status },
+  }) => {
+    queryClient.prefetchQuery({
+      ...getOrtRunsOptions({
+        query: {
+          limit: pageSize || defaultPageSize,
+          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+          status: status?.join(','),
+        },
+      }),
     });
   },
   component: RunsComponent,
