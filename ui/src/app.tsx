@@ -21,15 +21,22 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { hasAuthParams } from 'react-oidc-context';
 
+import { OpenAPI } from '@/api/requests/index.ts';
 import { CopyToClipboard } from '@/components/copy-to-clipboard.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
 import { config } from '@/config';
-import { OpenAPI } from './api/requests/index.ts';
-import { useUser } from './hooks/use-user.ts';
-import { queryClient } from './lib/query-client.ts';
-import { routeTree } from './routeTree.gen';
+import { client } from '@/hey-api/client.gen';
+import { authRef, useUser } from '@/hooks/use-user.ts';
+import { queryClient } from '@/lib/query-client.ts';
+import { routeTree } from '@/routeTree.gen';
+
+// Configure the Hey API query client
+client.setConfig({
+  baseUrl: config.API_URL,
+  auth: () => authRef.current?.user?.access_token,
+});
 
 export interface RouterContext {
   queryClient: typeof queryClient;
@@ -66,6 +73,7 @@ declare module '@tanstack/react-router' {
     router: typeof router;
   }
 }
+
 export const App = () => {
   const auth = useUser();
   const [hasTriedSignin, setHasTriedSignin] = useState(false);
