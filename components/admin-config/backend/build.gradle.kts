@@ -18,7 +18,7 @@
  */
 
 plugins {
-    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-kotlin-component-backend-conventions")
     id("ort-server-publication-conventions")
 }
 
@@ -37,16 +37,18 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.components.authorization.backend)
     implementation(projects.components.adminConfig.apiModel)
-    implementation(projects.shared.apiModel)
-    implementation(projects.shared.ktorUtils)
 
-    implementation(ktorLibs.server.auth)
-    implementation(ktorLibs.server.core)
     implementation(libs.exposedCore)
     implementation(libs.exposedKotlinDatetime)
-    implementation(libs.ktorOpenApi)
+
+    routesImplementation(projects.components.authorization.backend)
+    routesImplementation(projects.shared.apiModel)
+    routesImplementation(projects.shared.ktorUtils)
+
+    routesImplementation(ktorLibs.server.auth)
+    routesImplementation(ktorLibs.server.core)
+    routesImplementation(libs.ktorOpenApi)
 
     testImplementation(testFixtures(projects.clients.keycloak))
     testImplementation(testFixtures(projects.dao))

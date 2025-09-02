@@ -54,6 +54,7 @@ detekt {
         fileTree(".") { include("*.gradle.kts") },
         "src/commonMain/kotlin",
         "src/commonTest/kotlin",
+        "src/routes/kotlin",
         "src/testFixtures/kotlin"
     )
 

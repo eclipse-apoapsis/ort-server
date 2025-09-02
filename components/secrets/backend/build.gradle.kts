@@ -18,27 +18,27 @@
  */
 
 plugins {
-    id("ort-server-kotlin-jvm-conventions")
+    id("ort-server-kotlin-component-backend-conventions")
     id("ort-server-publication-conventions")
 }
 
 group = "org.eclipse.apoapsis.ortserver.components.secrets"
 
 dependencies {
-    api(projects.components.secrets.apiModel)
+    routesApi(projects.components.secrets.apiModel)
 
-    api(ktorLibs.server.core)
-    api(ktorLibs.server.requestValidation)
+    routesApi(ktorLibs.server.core)
+    routesApi(ktorLibs.server.requestValidation)
 
-    implementation(projects.components.authorization.backend)
-    implementation(projects.model)
-    implementation(projects.services.hierarchyService)
-    implementation(projects.services.secretService)
-    implementation(projects.shared.apiMappings)
-    implementation(projects.shared.apiModel)
-    implementation(projects.shared.ktorUtils)
+    routesImplementation(projects.components.authorization.backend)
+    routesImplementation(projects.model)
+    routesImplementation(projects.services.hierarchyService)
+    routesImplementation(projects.services.secretService)
+    routesImplementation(projects.shared.apiMappings)
+    routesImplementation(projects.shared.apiModel)
+    routesImplementation(projects.shared.ktorUtils)
 
-    implementation(libs.ktorOpenApi)
+    routesImplementation(libs.ktorOpenApi)
 
     testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.shared.ktorUtils))
