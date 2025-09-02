@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PreconfiguredPluginOption
+import org.eclipse.apoapsis.ortserver.components.pluginmanager.mapToApi
 
 import org.ossreviewtoolkit.plugins.advisors.vulnerablecode.VulnerableCodeFactory
 

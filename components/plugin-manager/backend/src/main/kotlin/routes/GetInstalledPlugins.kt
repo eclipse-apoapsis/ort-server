@@ -33,10 +33,6 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
-import org.ossreviewtoolkit.plugins.api.PluginDescriptor as OrtPluginDescriptor
-import org.ossreviewtoolkit.plugins.api.PluginOption as OrtPluginOption
-import org.ossreviewtoolkit.plugins.api.PluginOptionType as OrtPluginOptionType
-
 internal fun Route.getInstalledPlugins(pluginService: PluginService) = get("admin/plugins", {
     operationId = "GetInstalledPlugins"
     summary = "Get installed ORT plugins"
@@ -92,31 +88,4 @@ internal fun Route.getInstalledPlugins(pluginService: PluginService) = get("admi
     requireSuperuser()
 
     call.respond(HttpStatusCode.OK, pluginService.getPlugins())
-}
-
-internal fun OrtPluginDescriptor.mapToApi(type: PluginType, enabled: Boolean) = PluginDescriptor(
-    id = id,
-    type = type,
-    displayName = displayName,
-    description = description,
-    options = options.map { it.mapToApi() },
-    enabled = enabled
-)
-
-internal fun OrtPluginOption.mapToApi() = PluginOption(
-    name = name,
-    description = description,
-    type = type.mapToApi(),
-    defaultValue = defaultValue,
-    isNullable = isNullable,
-    isRequired = isRequired
-)
-
-internal fun OrtPluginOptionType.mapToApi() = when (this) {
-    OrtPluginOptionType.BOOLEAN -> PluginOptionType.BOOLEAN
-    OrtPluginOptionType.INTEGER -> PluginOptionType.INTEGER
-    OrtPluginOptionType.LONG -> PluginOptionType.LONG
-    OrtPluginOptionType.SECRET -> PluginOptionType.SECRET
-    OrtPluginOptionType.STRING -> PluginOptionType.STRING
-    OrtPluginOptionType.STRING_LIST -> PluginOptionType.STRING_LIST
 }
