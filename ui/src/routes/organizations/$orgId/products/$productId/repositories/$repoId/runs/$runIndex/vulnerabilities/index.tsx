@@ -73,10 +73,7 @@ import {
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
-import {
-  identifierToPurl,
-  identifierToString,
-} from '@/helpers/identifier-conversion';
+import { identifierToString } from '@/helpers/identifier-conversion';
 import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ALL_ITEMS } from '@/lib/constants';
@@ -304,18 +301,14 @@ const VulnerabilitiesComponent = () => {
     ),
     columnHelper.accessor(
       (vuln) => {
-        // TODO: This is a temporary front-end only solution to support PURL
-        //       identifiers. The backend endpoints should be updated to return
-        //       PURL identifiers natively so this will need to be removed
-        //       in the future.
         if (packageIdType === 'PURL') {
-          return identifierToPurl(vuln.identifier);
+          return vuln.purl;
         } else {
           return identifierToString(vuln.identifier);
         }
       },
       {
-        id: 'packageIdentifier',
+        id: `${packageIdType === 'ORT_ID' ? 'identifier' : 'purl'}`,
         header: 'Package ID',
         cell: ({ getValue }) => {
           return (
@@ -397,19 +390,21 @@ const VulnerabilitiesComponent = () => {
     [search.rating]
   );
 
+  const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
+
   const columnFilters = useMemo(() => {
     const filters = [];
     if (itemStatus) {
       filters.push({ id: 'itemStatus', value: itemStatus });
     }
     if (packageIdentifier) {
-      filters.push({ id: 'packageIdentifier', value: packageIdentifier });
+      filters.push({ id: columnId, value: packageIdentifier });
     }
     if (rating) {
       filters.push({ id: 'rating', value: rating });
     }
     return filters;
-  }, [itemStatus, packageIdentifier, rating]);
+  }, [itemStatus, packageIdentifier, columnId, rating]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
