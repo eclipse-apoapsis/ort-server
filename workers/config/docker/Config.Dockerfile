@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.17
+# syntax=docker/dockerfile:1.18
 
 # This Dockerfile is the base image for the Config worker Docker image.
 
