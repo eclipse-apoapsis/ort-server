@@ -188,9 +188,7 @@ export const JobDurations = ({
                   setShowInfrastructure(value === true);
                 }}
               />
-              <Label htmlFor='infra'>
-                Show effect of infrastructure to run durations
-              </Label>
+              <Label htmlFor='infra'>Include infrastructure durations</Label>
             </div>
           </div>
         </CardTitle>
