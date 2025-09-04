@@ -50,6 +50,7 @@ dependencies {
 
     api(projects.config.configSpi)
     api(projects.services.ortRunService)
+    api(projects.services.secretService)
     api(projects.storage.storageSpi)
 
     api(libs.jacksonModuleKotlin)

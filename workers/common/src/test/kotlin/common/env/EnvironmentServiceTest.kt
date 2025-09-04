@@ -57,7 +57,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
@@ -567,9 +567,9 @@ class EnvironmentServiceTest : WordSpec({
                 every { listForRun(RUN_ID) } returns dynamicServices
             }
 
-            val secretRepository = mockk<SecretRepository> {
-               every { getByIdAndName(any(), "usernameSecretName") } returns usernameSecret
-               every { getByIdAndName(any(), "passwordSecretName") } returns passwordSecret
+            val secretService = mockk<SecretService> {
+               coEvery { getSecret(any(), "usernameSecretName") } returns usernameSecret
+               coEvery { getSecret(any(), "passwordSecretName") } returns passwordSecret
             }
 
             mockkObject(NetRcManager)
@@ -579,7 +579,7 @@ class EnvironmentServiceTest : WordSpec({
             val environmentService = EnvironmentService(
                 mockk(),
                 dynamicServiceRepository,
-                secretRepository,
+                secretService,
                 emptyList(),
                 mockk(),
                 createMockAdminConfigService()
@@ -678,12 +678,12 @@ class EnvironmentServiceTest : WordSpec({
 
     "resolveServiceByName" should {
         "return null if a secret with the given name does not exist in the context of the ORT run" {
-            val secretRepository = mockSecretRepository()
+            val secretService = mockSecretService()
 
             val environmentService = EnvironmentService(
                 mockk(),
                 mockk(),
-                secretRepository,
+                secretService,
                 emptyList(),
                 mockk(),
                 mockk()
@@ -701,9 +701,9 @@ class EnvironmentServiceTest : WordSpec({
                 }
             }
 
-            val secretRepository = mockSecretRepository {
-                every {
-                    getByIdAndName(RepositoryId(REPOSITORY_ID), "my-secret-name")
+            val secretRepository = mockSecretService {
+                coEvery {
+                    getSecret(RepositoryId(REPOSITORY_ID), "my-secret-name")
                 } returns mySecret
             }
 
@@ -729,9 +729,9 @@ class EnvironmentServiceTest : WordSpec({
                 }
             }
 
-            val secretRepository = mockSecretRepository {
-                every {
-                    getByIdAndName(ProductId(PRODUCT_ID), "my-secret-name")
+            val secretRepository = mockSecretService {
+                coEvery {
+                    getSecret(ProductId(PRODUCT_ID), "my-secret-name")
                 } returns mySecret
             }
 
@@ -757,9 +757,9 @@ class EnvironmentServiceTest : WordSpec({
                 }
             }
 
-            val secretRepository = mockSecretRepository {
-                every {
-                    getByIdAndName(OrganizationId(ORGANIZATION_ID), "my-secret-name")
+            val secretRepository = mockSecretService {
+                coEvery {
+                    getSecret(OrganizationId(ORGANIZATION_ID), "my-secret-name")
                 } returns mySecret
             }
 
@@ -797,17 +797,17 @@ class EnvironmentServiceTest : WordSpec({
                 }
             }
 
-            val secretRepository = mockSecretRepository {
-                every {
-                    getByIdAndName(RepositoryId(REPOSITORY_ID), "my-secret-name")
+            val secretRepository = mockSecretService {
+                coEvery {
+                    getSecret(RepositoryId(REPOSITORY_ID), "my-secret-name")
                 } returns mySecretRepositoryLevel
 
-                every {
-                    getByIdAndName(ProductId(PRODUCT_ID), "my-secret-name")
+                coEvery {
+                    getSecret(ProductId(PRODUCT_ID), "my-secret-name")
                 } returns mySecretProductLevel
 
-                every {
-                    getByIdAndName(OrganizationId(ORGANIZATION_ID), "my-secret-name")
+                coEvery {
+                    getSecret(OrganizationId(ORGANIZATION_ID), "my-secret-name")
                 } returns mySecretOrganizationLevel
             }
 
@@ -894,11 +894,9 @@ private fun mockGenerator(): EnvironmentConfigGenerator<EnvironmentServiceDefini
         coEvery { generateApplicable(any(), any()) } just runs
     }
 
-private fun mockSecretRepository(
-    extraSetup: SecretRepository.() -> Unit = {}
-): SecretRepository =
+private fun mockSecretService(extraSetup: SecretService.() -> Unit = {}): SecretService =
     mockk {
-        every { getByIdAndName(any(), any()) } returns null
+        coEvery { getSecret(any(), any()) } returns null
         extraSetup()
     }
 

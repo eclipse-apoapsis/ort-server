@@ -25,6 +25,8 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepositor
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
 
@@ -62,5 +64,10 @@ fun buildEnvironmentModule(): Module = module {
             get(),
             get()
         )
+    }
+
+    single {
+        val secretStorage = SecretStorage.createStorage(get())
+        SecretService(get(), get(), secretStorage)
     }
 }
