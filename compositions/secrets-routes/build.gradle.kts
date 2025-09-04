@@ -26,7 +26,7 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.compositions"
 
 dependencies {
-    api(projects.services.secretService)
+    api(projects.components.secrets.backend)
 
     api(ktorLibs.server.core)
 

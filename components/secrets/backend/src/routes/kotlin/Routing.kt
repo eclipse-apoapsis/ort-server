@@ -35,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getSe
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.patchSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.postSecretForRepository
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
-import org.eclipse.apoapsis.ortserver.services.SecretService
 
 fun Route.secretsRoutes(repositoryService: RepositoryService, secretService: SecretService) {
     // Organization secrets

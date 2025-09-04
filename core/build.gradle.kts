@@ -75,6 +75,7 @@ dependencies {
             requireCapability("$group:routes")
         }
     }
+    implementation(projects.components.secrets.backend)
     implementation(projects.components.secrets.backend) {
         capabilities {
             requireCapability("$group:routes")
@@ -92,7 +93,6 @@ dependencies {
     implementation(projects.services.infrastructureService)
     implementation(projects.services.ortRunService)
     implementation(projects.services.reportStorageService)
-    implementation(projects.services.secretService)
     implementation(projects.shared.apiMappings)
     implementation(projects.shared.apiModel)
     implementation(projects.shared.ktorUtils)
