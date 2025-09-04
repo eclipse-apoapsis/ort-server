@@ -82,6 +82,7 @@ dependencies {
             requireCapability("$group:routes:$version")
         }
     }
+    implementation(projects.compositions.secretsRoutes)
     implementation(projects.config.configSpi)
     implementation(projects.dao)
     implementation(projects.logaccess.logaccessSpi)
