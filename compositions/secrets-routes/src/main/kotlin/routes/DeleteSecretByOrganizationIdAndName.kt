@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.organization
+package org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes
 
 import io.github.smiley4.ktoropenapi.delete
 

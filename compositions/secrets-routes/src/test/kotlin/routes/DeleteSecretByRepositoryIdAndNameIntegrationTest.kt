@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.repository
+package org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.nulls.beNull
@@ -27,13 +27,13 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.createRepositorySecret
+import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.SecretsRoutesIntegrationTest
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 
-class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsIntegrationTest({
+class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsRoutesIntegrationTest({
     var repoId = 0L
 
     beforeEach {
@@ -42,7 +42,7 @@ class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsIntegrationTest(
 
     "DeleteSecretByRepositoryIdAndName" should {
         "delete a secret" {
-            secretsTestApplication { client ->
+            secretsRoutesTestApplication { client ->
                 val secret = secretRepository.createRepositorySecret(repoId)
 
                 client.delete("/repositories/$repoId/secrets/${secret.name}") shouldHaveStatus
@@ -56,7 +56,7 @@ class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsIntegrationTest(
         }
 
         "handle a failure from the SecretStorage" {
-            secretsTestApplication { client ->
+            secretsRoutesTestApplication { client ->
                 val secret = secretRepository.createRepositorySecret(repoId, path = secretErrorPath)
 
                 client.delete("/repositories/$repoId/secrets/${secret.name}") shouldHaveStatus
@@ -67,3 +67,10 @@ class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsIntegrationTest(
         }
     }
 })
+
+fun SecretRepository.createRepositorySecret(
+    repoId: Long,
+    path: String = "path",
+    name: String = "name",
+    description: String = "description"
+) = create(path, name, description, RepositoryId(repoId))

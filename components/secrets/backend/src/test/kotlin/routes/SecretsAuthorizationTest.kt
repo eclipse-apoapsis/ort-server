@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes
 
-import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
@@ -72,42 +71,6 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
             dbExtension.fixtures.infrastructureServiceRepository,
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
-    }
-
-    "DeleteSecretByOrganizationIdAndName" should {
-        "require OrganizationPermission.WRITE_SECRETS" {
-            requestShouldRequireRole(
-                routes = { secretsRoutes(repositoryService, secretService) },
-                role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
-                successStatus = HttpStatusCode.NotFound
-            ) {
-                delete("/organizations/$orgId/secrets/name")
-            }
-        }
-    }
-
-    "DeleteSecretByProductIdAndName" should {
-        "require ProductPermission.WRITE_SECRETS" {
-            requestShouldRequireRole(
-                routes = { secretsRoutes(repositoryService, secretService) },
-                role = ProductPermission.WRITE_SECRETS.roleName(prodId),
-                successStatus = HttpStatusCode.NotFound
-            ) {
-                delete("/products/$prodId/secrets/name")
-            }
-        }
-    }
-
-    "DeleteSecretByRepositoryIdAndName" should {
-        "require RepositoryPermission.WRITE_SECRETS" {
-            requestShouldRequireRole(
-                routes = { secretsRoutes(repositoryService, secretService) },
-                role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
-                successStatus = HttpStatusCode.NotFound
-            ) {
-                delete("/repositories/$repoId/secrets/name")
-            }
-        }
     }
 
     "GetAvailableSecretsByRepositoryId" should {

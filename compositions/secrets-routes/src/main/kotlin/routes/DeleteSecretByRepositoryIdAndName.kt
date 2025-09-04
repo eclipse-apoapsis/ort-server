@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
+package org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes
 
 import io.github.smiley4.ktoropenapi.delete
 
@@ -25,22 +25,22 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.deleteSecretByProductIdAndName(secretService: SecretService) =
-    delete("/products/{productId}/secrets/{secretName}", {
-        operationId = "DeleteSecretByProductIdAndName"
-        summary = "Delete a secret from a product"
-        tags = listOf("Products")
+internal fun Route.deleteSecretByRepositoryIdAndName(secretService: SecretService) =
+    delete("/repositories/{repositoryId}/secrets/{secretName}", {
+        operationId = "DeleteSecretByRepositoryIdAndName"
+        summary = "Delete a secret from a repository"
+        tags = listOf("Repositories")
 
         request {
-            pathParameter<Long>("productId") {
-                description = "The product's ID."
+            pathParameter<Long>("repositoryId") {
+                description = "The repository's ID."
             }
             pathParameter<String>("secretName") {
                 description = "The secret's name."
@@ -53,12 +53,12 @@ internal fun Route.deleteSecretByProductIdAndName(secretService: SecretService) 
             }
         }
     }) {
-        requirePermission(ProductPermission.WRITE_SECRETS)
+        requirePermission(RepositoryPermission.WRITE_SECRETS)
 
-        val productId = ProductId(call.requireIdParameter("productId"))
+        val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
         val secretName = call.requireParameter("secretName")
 
-        secretService.deleteSecret(productId, secretName)
+        secretService.deleteSecret(repositoryId, secretName)
 
         call.respond(HttpStatusCode.NoContent)
     }
