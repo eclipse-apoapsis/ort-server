@@ -137,7 +137,7 @@ class InfrastructureServiceService(
      * reference cannot be resolved.
      */
     private suspend fun resolveSecret(id: HierarchyId, secretName: String): Secret =
-        secretService.getSecretByIdAndName(id, secretName)
+        secretService.getSecret(id, secretName)
             ?: throw InvalidSecretReferenceException(secretName)
 
     /**

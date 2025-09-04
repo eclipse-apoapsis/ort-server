@@ -66,7 +66,7 @@ class SecretService(
     /**
      * Delete a secret by [id] and [name].
      */
-    suspend fun deleteSecretByIdAndName(id: HierarchyId, name: String) = db.dbQuery {
+    suspend fun deleteSecret(id: HierarchyId, name: String) = db.dbQuery {
         val secret = secretRepository.getByIdAndName(id, name)?.also {
             val services = infrastructureServiceRepository.listForSecret(it.id).map { service -> service.name }
 
@@ -82,7 +82,7 @@ class SecretService(
     /**
      * Get a secret by [id] and [name]. Returns null if the secret is not found.
      */
-    suspend fun getSecretByIdAndName(id: HierarchyId, name: String): Secret? = db.dbQuery {
+    suspend fun getSecret(id: HierarchyId, name: String): Secret? = db.dbQuery {
         secretRepository.getByIdAndName(id, name)
     }
 
@@ -126,7 +126,7 @@ class SecretService(
     /**
      * Update a secret by [id] and [name] with the [present][OptionalValue.Present] values.
      */
-    suspend fun updateSecretByIdAndName(
+    suspend fun updateSecret(
         id: HierarchyId,
         name: String,
         value: OptionalValue<String>,

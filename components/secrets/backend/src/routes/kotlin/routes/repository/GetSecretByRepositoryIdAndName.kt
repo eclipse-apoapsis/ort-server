@@ -66,7 +66,7 @@ internal fun Route.getSecretByRepositoryIdAndName(secretService: SecretService) 
         val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
         val secretName = call.requireParameter("secretName")
 
-        secretService.getSecretByIdAndName(repositoryId, secretName)
+        secretService.getSecret(repositoryId, secretName)
             ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
             ?: call.respond(HttpStatusCode.NotFound)
     }

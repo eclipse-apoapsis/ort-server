@@ -58,7 +58,7 @@ internal fun Route.deleteSecretByProductIdAndName(secretService: SecretService) 
         val productId = ProductId(call.requireIdParameter("productId"))
         val secretName = call.requireParameter("secretName")
 
-        secretService.deleteSecretByIdAndName(productId, secretName)
+        secretService.deleteSecret(productId, secretName)
 
         call.respond(HttpStatusCode.NoContent)
     }
