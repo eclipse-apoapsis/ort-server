@@ -48,9 +48,9 @@ dependencies {
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxSerializationJson)
 
+    api(projects.components.secrets.backend)
     api(projects.config.configSpi)
     api(projects.services.ortRunService)
-    api(projects.services.secretService)
     api(projects.storage.storageSpi)
 
     api(libs.jacksonModuleKotlin)

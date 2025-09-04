@@ -25,6 +25,13 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.components.secrets"
 
 dependencies {
+    api(projects.model)
+    api(projects.secrets.secretsSpi)
+
+    api(libs.exposedCore)
+
+    implementation(projects.dao)
+
     routesApi(projects.components.secrets.apiModel)
 
     routesApi(ktorLibs.server.core)
@@ -33,7 +40,6 @@ dependencies {
     routesImplementation(projects.components.authorization.backend)
     routesImplementation(projects.model)
     routesImplementation(projects.services.hierarchyService)
-    routesImplementation(projects.services.secretService)
     routesImplementation(projects.shared.apiMappings)
     routesImplementation(projects.shared.apiModel)
     routesImplementation(projects.shared.ktorUtils)

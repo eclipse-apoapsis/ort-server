@@ -63,7 +63,6 @@ include(":services:hierarchy")
 include(":services:infrastructure")
 include(":services:ort-run")
 include(":services:report-storage")
-include(":services:secret")
 include(":shared:api-mappings")
 include(":shared:api-model")
 include(":shared:ktor-utils")
@@ -110,7 +109,6 @@ project(":services:hierarchy").name = "hierarchy-service"
 project(":services:infrastructure").name = "infrastructure-service"
 project(":services:ort-run").name = "ort-run-service"
 project(":services:report-storage").name = "report-storage-service"
-project(":services:secret").name = "secret-service"
 project(":storage:spi").name = "storage-spi"
 project(":transport:spi").name = "transport-spi"
 project(":workers:config").name = "config-worker"

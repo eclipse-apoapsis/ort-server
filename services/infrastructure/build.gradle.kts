@@ -26,8 +26,8 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.services"
 
 dependencies {
+    api(projects.components.secrets.backend)
     api(projects.model)
-    api(projects.services.secretService)
 
     api(libs.exposedCore)
 

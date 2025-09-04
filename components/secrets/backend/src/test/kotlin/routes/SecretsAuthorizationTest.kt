@@ -29,12 +29,12 @@ import org.eclipse.apoapsis.ortserver.components.authorization.permissions.Organ
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.secrets.CreateSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.UpdateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
