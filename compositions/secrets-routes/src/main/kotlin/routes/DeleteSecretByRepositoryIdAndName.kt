@@ -28,37 +28,59 @@ import io.ktor.server.routing.Route
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
-internal fun Route.deleteSecretByRepositoryIdAndName(secretService: SecretService) =
-    delete("/repositories/{repositoryId}/secrets/{secretName}", {
-        operationId = "DeleteSecretByRepositoryIdAndName"
-        summary = "Delete a secret from a repository"
-        tags = listOf("Repositories")
+internal fun Route.deleteSecretByRepositoryIdAndName(
+    infrastructureServiceRepository: InfrastructureServiceRepository,
+    secretService: SecretService
+) = delete("/repositories/{repositoryId}/secrets/{secretName}", {
+    operationId = "DeleteSecretByRepositoryIdAndName"
+    summary = "Delete a secret from a repository"
+    tags = listOf("Repositories")
 
-        request {
-            pathParameter<Long>("repositoryId") {
-                description = "The repository's ID."
-            }
-            pathParameter<String>("secretName") {
-                description = "The secret's name."
-            }
+    request {
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
         }
-
-        response {
-            HttpStatusCode.NoContent to {
-                description = "Success"
-            }
+        pathParameter<String>("secretName") {
+            description = "The secret's name."
         }
-    }) {
-        requirePermission(RepositoryPermission.WRITE_SECRETS)
-
-        val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
-        val secretName = call.requireParameter("secretName")
-
-        secretService.deleteSecret(repositoryId, secretName)
-
-        call.respond(HttpStatusCode.NoContent)
     }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Success"
+        }
+    }
+}) {
+    requirePermission(RepositoryPermission.WRITE_SECRETS)
+
+    val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
+    val secretName = call.requireParameter("secretName")
+
+    val secret = secretService.getSecret(repositoryId, secretName)
+
+    if (secret == null) {
+        call.respond(HttpStatusCode.NotFound)
+        return@delete
+    }
+
+    val infrastructureServices = infrastructureServiceRepository.listForSecret(secret.id)
+    if (infrastructureServices.isNotEmpty()) {
+        call.respondError(
+            HttpStatusCode.Conflict,
+            "The secret is still in use.",
+            "The secret '$secretName' is still referenced by the following infrastructure services: " +
+                    infrastructureServices.joinToString { it.name }
+        )
+        return@delete
+    }
+
+    secretService.deleteSecret(repositoryId, secretName)
+
+    call.respond(HttpStatusCode.NoContent)
+}

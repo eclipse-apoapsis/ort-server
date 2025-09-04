@@ -28,7 +28,6 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.plugins.statuspages.StatusPages
 
 import java.util.EnumSet
 
@@ -38,9 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 class DeleteSecretByProductIdAndNameIntegrationTest : SecretsRoutesIntegrationTest({
     var prodId = 0L
@@ -68,17 +65,6 @@ class DeleteSecretByProductIdAndNameIntegrationTest : SecretsRoutesIntegrationTe
 
         "respond with Conflict when secret is in use" {
             secretsRoutesTestApplication { client ->
-                install(StatusPages) {
-                    // TODO: This should use the same config as in core.
-                    exception<ReferencedEntityException> { call, e ->
-                        call.respondError(
-                            HttpStatusCode.Conflict,
-                            message = "The entity you tried to delete is in use.",
-                            cause = e.message
-                        )
-                    }
-                }
-
                 val userSecret = secretRepository.createProductSecret(prodId, path = "user", name = "user")
                 val passSecret = secretRepository.createProductSecret(prodId, path = "pass", name = "pass")
 
@@ -96,7 +82,7 @@ class DeleteSecretByProductIdAndNameIntegrationTest : SecretsRoutesIntegrationTe
                 response shouldHaveStatus HttpStatusCode.Conflict
 
                 val body = response.body<ErrorResponse>()
-                body.message shouldBe "The entity you tried to delete is in use."
+                body.message shouldBe "The secret is still in use."
                 body.cause shouldContain service.name
             }
         }

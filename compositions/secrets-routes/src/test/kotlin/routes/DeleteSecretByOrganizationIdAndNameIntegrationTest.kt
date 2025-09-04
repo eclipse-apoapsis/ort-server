@@ -28,7 +28,6 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.plugins.statuspages.StatusPages
 
 import java.util.EnumSet
 
@@ -38,9 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 class DeleteSecretByOrganizationIdAndNameIntegrationTest : SecretsRoutesIntegrationTest({
     var orgId = 0L
@@ -66,17 +63,6 @@ class DeleteSecretByOrganizationIdAndNameIntegrationTest : SecretsRoutesIntegrat
 
         "respond with 'Conflict' when secret is in use" {
             secretsRoutesTestApplication { client ->
-                install(StatusPages) {
-                    // TODO: This should use the same config as in core.
-                    exception<ReferencedEntityException> { call, e ->
-                        call.respondError(
-                            HttpStatusCode.Conflict,
-                            message = "The entity you tried to delete is in use.",
-                            cause = e.message
-                        )
-                    }
-                }
-
                 val userSecret = secretRepository.createOrganizationSecret(orgId, path = "user", name = "user")
                 val passSecret = secretRepository.createOrganizationSecret(orgId, path = "pass", name = "pass")
 
@@ -94,7 +80,7 @@ class DeleteSecretByOrganizationIdAndNameIntegrationTest : SecretsRoutesIntegrat
                 response shouldHaveStatus HttpStatusCode.Conflict
 
                 val body = response.body<ErrorResponse>()
-                body.message shouldBe "The entity you tried to delete is in use."
+                body.message shouldBe "The secret is still in use."
                 body.cause shouldContain service.name
             }
         }

@@ -28,38 +28,60 @@ import io.ktor.server.routing.Route
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
-internal fun Route.deleteSecretByOrganizationIdAndName(secretService: SecretService) =
-    delete("/organizations/{organizationId}/secrets/{secretName}", {
-        operationId = "DeleteSecretByOrganizationIdAndName"
-        summary = "Delete a secret from an organization"
-        tags = listOf("Organizations")
+internal fun Route.deleteSecretByOrganizationIdAndName(
+    infrastructureServiceRepository: InfrastructureServiceRepository,
+    secretService: SecretService
+) = delete("/organizations/{organizationId}/secrets/{secretName}", {
+    operationId = "DeleteSecretByOrganizationIdAndName"
+    summary = "Delete a secret from an organization"
+    tags = listOf("Organizations")
 
-        request {
-            pathParameter<Long>("organizationId") {
-                description = "The organization's ID."
-            }
-
-            pathParameter<String>("secretName") {
-                description = "The secret's name."
-            }
+    request {
+        pathParameter<Long>("organizationId") {
+            description = "The organization's ID."
         }
 
-        response {
-            HttpStatusCode.NoContent to {
-                description = "Success"
-            }
+        pathParameter<String>("secretName") {
+            description = "The secret's name."
         }
-    }) {
-        requirePermission(OrganizationPermission.WRITE_SECRETS)
-
-        val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
-        val secretName = call.requireParameter("secretName")
-
-        secretService.deleteSecret(organizationId, secretName)
-
-        call.respond(HttpStatusCode.NoContent)
     }
+
+    response {
+        HttpStatusCode.NoContent to {
+            description = "Success"
+        }
+    }
+}) {
+    requirePermission(OrganizationPermission.WRITE_SECRETS)
+
+    val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
+    val secretName = call.requireParameter("secretName")
+
+    val secret = secretService.getSecret(organizationId, secretName)
+
+    if (secret == null) {
+        call.respond(HttpStatusCode.NotFound)
+        return@delete
+    }
+
+    val infrastructureServices = infrastructureServiceRepository.listForSecret(secret.id)
+    if (infrastructureServices.isNotEmpty()) {
+        call.respondError(
+            HttpStatusCode.Conflict,
+            "The secret is still in use.",
+            "The secret '$secretName' is still referenced by the following infrastructure services: " +
+                    infrastructureServices.joinToString { it.name }
+        )
+        return@delete
+    }
+
+    secretService.deleteSecret(organizationId, secretName)
+
+    call.respond(HttpStatusCode.NoContent)
+}
