@@ -23,15 +23,21 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
+import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
 
+import java.util.EnumSet
+
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.SecretsRoutesIntegrationTest
+import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 
 class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsRoutesIntegrationTest({
     var repoId = 0L
@@ -52,6 +58,30 @@ class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsRoutesIntegratio
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
+            }
+        }
+
+        "respond with Conflict when secret is in use" {
+            secretsRoutesTestApplication { client ->
+                val userSecret = secretRepository.createRepositorySecret(repoId, path = "user", name = "user")
+                val passSecret = secretRepository.createRepositorySecret(repoId, path = "pass", name = "pass")
+
+                val service = dbExtension.fixtures.infrastructureServiceRepository.create(
+                    name = "testService",
+                    url = "http://repo1.example.org/obsolete",
+                    description = "good bye, cruel world",
+                    usernameSecret = userSecret,
+                    passwordSecret = passSecret,
+                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE),
+                    RepositoryId(repoId)
+                )
+
+                val response = client.delete("/repositories/$repoId/secrets/${userSecret.name}")
+                response shouldHaveStatus HttpStatusCode.Conflict
+
+                val body = response.body<ErrorResponse>()
+                body.message shouldBe "The secret is still in use."
+                body.cause shouldContain service.name
             }
         }
 

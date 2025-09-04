@@ -26,7 +26,6 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -43,7 +42,6 @@ import org.jetbrains.exposed.sql.Database
 class SecretService(
     private val db: Database,
     private val secretRepository: SecretRepository,
-    private val infrastructureServiceRepository: InfrastructureServiceRepository,
     private val secretStorage: SecretStorage
 ) {
     /**
@@ -67,16 +65,8 @@ class SecretService(
      * Delete a secret by [id] and [name].
      */
     suspend fun deleteSecret(id: HierarchyId, name: String) = db.dbQuery {
-        val secret = secretRepository.getByIdAndName(id, name)?.also {
-            val services = infrastructureServiceRepository.listForSecret(it.id).map { service -> service.name }
-
-            if (services.isNotEmpty()) {
-                throw ReferencedEntityException("Could not delete secret '${it.name}' due to usage in $services.")
-            }
-        }
-
+        secretRepository.getByIdAndName(id, name)?.deleteValue()
         secretRepository.deleteForIdAndName(id, name)
-        secret?.deleteValue()
     }
 
     /**
@@ -155,5 +145,3 @@ class SecretService(
         secretStorage.removeSecret(Path(path))
     }
 }
-
-class ReferencedEntityException(message: String) : Exception(message)
