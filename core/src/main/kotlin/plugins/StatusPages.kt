@@ -35,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
 import org.eclipse.apoapsis.ortserver.services.OrganizationNotEmptyException
-import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
@@ -77,9 +76,6 @@ fun Application.configureStatusPages() {
         }
         exception<ParameterConversionException> { call, e ->
             call.respondError(HttpStatusCode.BadRequest, "Parameter conversion failed.", e.message)
-        }
-        exception<ReferencedEntityException> { call, e ->
-            call.respondError(HttpStatusCode.Conflict, "The entity you tried to delete is in use.", e.message)
         }
         exception<ReportNotFoundException> { call, e ->
             call.respondError(HttpStatusCode.NotFound, "Report could not be resolved.", e.message)

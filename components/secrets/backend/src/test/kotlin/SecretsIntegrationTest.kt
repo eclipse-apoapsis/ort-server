@@ -58,7 +58,6 @@ abstract class SecretsIntegrationTest(body: SecretsIntegrationTest.() -> Unit) :
             secretService = SecretService(
                 dbExtension.db,
                 dbExtension.fixtures.secretRepository,
-                dbExtension.fixtures.infrastructureServiceRepository,
                 SecretStorage(SecretsProviderFactoryForTesting().createProvider(secretErrorPath))
             )
         }

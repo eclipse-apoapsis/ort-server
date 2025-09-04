@@ -68,7 +68,6 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         secretService = SecretService(
             dbExtension.db,
             dbExtension.fixtures.secretRepository,
-            dbExtension.fixtures.infrastructureServiceRepository,
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
     }

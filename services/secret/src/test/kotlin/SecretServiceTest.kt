@@ -51,7 +51,6 @@ class SecretServiceTest : WordSpec({
         secretService = SecretService(
             db,
             fixtures.secretRepository,
-            fixtures.infrastructureServiceRepository,
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
     }
