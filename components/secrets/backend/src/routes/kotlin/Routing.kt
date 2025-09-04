@@ -21,17 +21,14 @@ package org.eclipse.apoapsis.ortserver.components.secrets
 
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.deleteSecretByOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.getSecretByOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.getSecretsByOrganizationId
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.patchSecretByOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.postSecretForOrganization
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.deleteSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.getSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.getSecretsByProductId
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.patchSecretByProductIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.postSecretForProduct
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.deleteSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getAvailableSecretsByRepositoryId
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getSecretByRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getSecretsByRepositoryId
@@ -42,21 +39,18 @@ import org.eclipse.apoapsis.ortserver.services.SecretService
 
 fun Route.secretsRoutes(repositoryService: RepositoryService, secretService: SecretService) {
     // Organization secrets
-    deleteSecretByOrganizationIdAndName(secretService)
     getSecretByOrganizationIdAndName(secretService)
     getSecretsByOrganizationId(secretService)
     patchSecretByOrganizationIdAndName(secretService)
     postSecretForOrganization(secretService)
 
     // Product secrets
-    deleteSecretByProductIdAndName(secretService)
     getSecretByProductIdAndName(secretService)
     getSecretsByProductId(secretService)
     patchSecretByProductIdAndName(secretService)
     postSecretForProduct(secretService)
 
     // Repository secrets
-    deleteSecretByRepositoryIdAndName(secretService)
     getAvailableSecretsByRepositoryId(repositoryService, secretService)
     getSecretByRepositoryIdAndName(secretService)
     getSecretsByRepositoryId(secretService)

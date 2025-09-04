@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.organization
+package org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.nulls.beNull
@@ -32,40 +32,42 @@ import io.ktor.server.plugins.statuspages.StatusPages
 
 import java.util.EnumSet
 
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.createOrganizationSecret
+import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.SecretsRoutesIntegrationTest
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.ReferencedEntityException
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
-class DeleteSecretByOrganizationIdAndNameIntegrationTest : SecretsIntegrationTest({
-    var orgId = 0L
+class DeleteSecretByProductIdAndNameIntegrationTest : SecretsRoutesIntegrationTest({
+    var prodId = 0L
+
+    val secretErrorPath = "error-path"
 
     beforeEach {
-        orgId = dbExtension.fixtures.organization.id
+        prodId = dbExtension.fixtures.product.id
     }
 
-    "DeleteSecretByOrganizationIdAndName" should {
+    "DeleteSecretByProductIdAndName" should {
         "delete a secret" {
-            secretsTestApplication { client ->
-                val secret = secretRepository.createOrganizationSecret(orgId)
+            secretsRoutesTestApplication { client ->
+                val secret = secretRepository.createProductSecret(prodId)
 
-                client.delete("/organizations/$orgId/secrets/${secret.name}") shouldHaveStatus
+                client.delete("/products/$prodId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForId(OrganizationId(orgId)).data shouldBe emptyList()
+                secretRepository.listForId(ProductId(prodId)).data shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
             }
         }
 
-        "respond with 'Conflict' when secret is in use" {
-            secretsTestApplication { client ->
+        "respond with Conflict when secret is in use" {
+            secretsRoutesTestApplication { client ->
                 install(StatusPages) {
                     // TODO: This should use the same config as in core.
                     exception<ReferencedEntityException> { call, e ->
@@ -77,8 +79,8 @@ class DeleteSecretByOrganizationIdAndNameIntegrationTest : SecretsIntegrationTes
                     }
                 }
 
-                val userSecret = secretRepository.createOrganizationSecret(orgId, path = "user", name = "user")
-                val passSecret = secretRepository.createOrganizationSecret(orgId, path = "pass", name = "pass")
+                val userSecret = secretRepository.createProductSecret(prodId, path = "user", name = "user")
+                val passSecret = secretRepository.createProductSecret(prodId, path = "pass", name = "pass")
 
                 val service = dbExtension.fixtures.infrastructureServiceRepository.create(
                     name = "testService",
@@ -87,10 +89,10 @@ class DeleteSecretByOrganizationIdAndNameIntegrationTest : SecretsIntegrationTes
                     usernameSecret = userSecret,
                     passwordSecret = passSecret,
                     credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE),
-                    OrganizationId(orgId)
+                    ProductId(prodId)
                 )
 
-                val response = client.delete("/organizations/$orgId/secrets/${userSecret.name}")
+                val response = client.delete("/products/$prodId/secrets/${userSecret.name}")
                 response shouldHaveStatus HttpStatusCode.Conflict
 
                 val body = response.body<ErrorResponse>()
@@ -100,14 +102,21 @@ class DeleteSecretByOrganizationIdAndNameIntegrationTest : SecretsIntegrationTes
         }
 
         "handle a failure from the SecretStorage" {
-            secretsTestApplication { client ->
-                val secret = secretRepository.createOrganizationSecret(orgId, path = secretErrorPath)
+            secretsRoutesTestApplication { client ->
+                val secret = secretRepository.createProductSecret(prodId, path = secretErrorPath)
 
-                client.delete("/organizations/$orgId/secrets/${secret.name}") shouldHaveStatus
+                client.delete("/products/$prodId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.InternalServerError
 
-                secretRepository.getByIdAndName(OrganizationId(orgId), secret.name) shouldBe secret
+                secretRepository.getByIdAndName(ProductId(prodId), secret.name) shouldBe secret
             }
         }
     }
 })
+
+fun SecretRepository.createProductSecret(
+    prodId: Long,
+    path: String = "path",
+    name: String = "name",
+    description: String = "description"
+) = create(path, name, description, ProductId(prodId))
