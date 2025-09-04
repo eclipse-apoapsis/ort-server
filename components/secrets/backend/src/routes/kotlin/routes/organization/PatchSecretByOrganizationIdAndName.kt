@@ -85,7 +85,7 @@ internal fun Route.patchSecretByOrganizationIdAndName(secretService: SecretServi
 
         call.respond(
             HttpStatusCode.OK,
-            secretService.updateSecretByIdAndName(
+            secretService.updateSecret(
                 organizationId,
                 secretName,
                 updateSecret.value.mapToModel(),

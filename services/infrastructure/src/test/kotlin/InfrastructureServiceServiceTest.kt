@@ -103,7 +103,7 @@ class InfrastructureServiceServiceTest : WordSpec({
             testWithHelper(verifyTx = false) {
                 mockOrganizationSecret(USERNAME_SECRET)
                 coEvery {
-                    secretService.getSecretByIdAndName(ORGANIZATION_ID, PASSWORD_SECRET)
+                    secretService.getSecret(ORGANIZATION_ID, PASSWORD_SECRET)
                 } returns null
 
                 val exception = shouldThrow<InvalidSecretReferenceException> {
@@ -184,7 +184,7 @@ class InfrastructureServiceServiceTest : WordSpec({
 
         "throw an exception if a secret reference cannot be resolved" {
             testWithHelper(verifyTx = false) {
-                coEvery { secretService.getSecretByIdAndName(any(), any()) } returns null
+                coEvery { secretService.getSecret(any(), any()) } returns null
 
                 shouldThrow<InvalidSecretReferenceException> {
                     service.updateForId(
@@ -282,7 +282,7 @@ private class TestHelper(
     fun mockOrganizationSecret(name: String): Secret {
         val secret = mockk<Secret>()
         coEvery {
-            secretService.getSecretByIdAndName(ORGANIZATION_ID, name)
+            secretService.getSecret(ORGANIZATION_ID, name)
         } returns secret
 
         return secret
