@@ -58,7 +58,7 @@ internal fun Route.deleteSecretByRepositoryIdAndName(secretService: SecretServic
         val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
         val secretName = call.requireParameter("secretName")
 
-        secretService.deleteSecretByIdAndName(repositoryId, secretName)
+        secretService.deleteSecret(repositoryId, secretName)
 
         call.respond(HttpStatusCode.NoContent)
     }

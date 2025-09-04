@@ -82,7 +82,7 @@ internal fun Route.patchSecretByRepositoryIdAndName(secretService: SecretService
 
         call.respond(
             HttpStatusCode.OK,
-            secretService.updateSecretByIdAndName(
+            secretService.updateSecret(
                 repositoryId,
                 secretName,
                 updateSecret.value.mapToModel(),

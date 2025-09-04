@@ -67,7 +67,7 @@ internal fun Route.getSecretByOrganizationIdAndName(secretService: SecretService
         val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
         val secretName = call.requireParameter("secretName")
 
-        secretService.getSecretByIdAndName(organizationId, secretName)
+        secretService.getSecret(organizationId, secretName)
             ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
             ?: call.respond(HttpStatusCode.NotFound)
     }
