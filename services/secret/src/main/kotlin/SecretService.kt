@@ -47,9 +47,7 @@ class SecretService(
     private val secretStorage: SecretStorage
 ) {
     /**
-     * Create a secret with the given metadata [name] and [description], and the provided [value]. As the secret can
-     * only belong to an organization, a product, or a repository, a respective [check][requireUnambiguousSecret]
-     * validates the input data.
+     * Create a secret for [id] with the given metadata [name] and [description], and the provided [value].
      */
     suspend fun createSecret(
         name: String,
