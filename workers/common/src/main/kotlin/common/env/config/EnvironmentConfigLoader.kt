@@ -24,6 +24,7 @@ import com.charleskorn.kaml.decodeFromStream
 
 import java.io.File
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
@@ -34,7 +35,6 @@ import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition

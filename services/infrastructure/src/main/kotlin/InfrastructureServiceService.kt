@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.HierarchyId

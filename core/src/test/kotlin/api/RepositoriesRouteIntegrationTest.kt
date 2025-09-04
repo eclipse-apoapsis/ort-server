@@ -95,6 +95,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryR
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -112,7 +113,6 @@ import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData

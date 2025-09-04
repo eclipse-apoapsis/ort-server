@@ -83,6 +83,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.permissions.Produ
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -109,7 +110,6 @@ import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
-import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse

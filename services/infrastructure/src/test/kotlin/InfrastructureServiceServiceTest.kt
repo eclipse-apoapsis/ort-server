@@ -37,6 +37,7 @@ import io.mockk.verify
 
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
