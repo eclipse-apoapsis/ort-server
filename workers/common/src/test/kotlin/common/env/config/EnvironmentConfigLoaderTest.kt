@@ -32,9 +32,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 
 import java.io.File
 import java.util.EnumSet
@@ -54,9 +55,9 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigException
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
@@ -180,8 +181,8 @@ class EnvironmentConfigLoaderTest : StringSpec({
         parseConfig(".ort.env.simple.yml", helper).resolve(helper)
 
         // There should be only one call for the repository hierarchy.
-        verify(exactly = 1) {
-            helper.secretRepository.listForId(any(), any())
+        coVerify(exactly = 1) {
+            helper.secretService.listForId(any(), any())
         }
     }
 
@@ -475,8 +476,8 @@ private fun EnvironmentConfig.resolve(helper: TestHelper): ResolvedEnvironmentCo
  * A test helper class managing the dependencies required by the object under test.
  */
 private class TestHelper(
-    /** Mock for the repository for secrets. */
-    val secretRepository: SecretRepository = mockk(),
+    /** Mock for the service for secrets. */
+    val secretService: SecretService = mockk(),
 
     /** Mock for the repository for infrastructure services. */
     val serviceRepository: InfrastructureServiceRepository = mockk()
@@ -497,12 +498,12 @@ private class TestHelper(
         initSecretRepository()
         initServiceRepository()
 
-        return EnvironmentConfigLoader(secretRepository, serviceRepository, EnvironmentDefinitionFactory())
+        return EnvironmentConfigLoader(secretService, serviceRepository, EnvironmentDefinitionFactory())
     }
 
     /**
      * Create a test secret with the given [name] and associate it with the given structures. The mock for the
-     * [SecretRepository] is also prepared to return this secret when asked for the corresponding structure.
+     * [SecretService] is also prepared to return this secret when asked for the corresponding structure.
      */
     fun createSecret(
         name: String,
@@ -539,23 +540,23 @@ private class TestHelper(
     }
 
     /**
-     * Prepare the mock for the [SecretRepository] to answer queries based on the secrets that have been defined.
+     * Prepare the mock for the [SecretService] to answer queries based on the secrets that have been defined.
      */
     private fun initSecretRepository() {
-        every {
-            secretRepository.listForId(RepositoryId(repository.id))
+        coEvery {
+            secretService.listForId(RepositoryId(repository.id))
         } returns mockk<ListQueryResult<Secret>> {
             every { data } returns secrets.filter { it.repository != null }
         }
 
-        every {
-            secretRepository.listForId(ProductId(product.id))
+        coEvery {
+            secretService.listForId(ProductId(product.id))
         } returns mockk<ListQueryResult<Secret>> {
             every { data } returns secrets.filter { it.product != null }
         }
 
-        every {
-            secretRepository.listForId(OrganizationId(organization.id))
+        coEvery {
+            secretService.listForId(OrganizationId(organization.id))
         } returns mockk<ListQueryResult<Secret>> {
             every { data } returns secrets.filter { it.organization != null }
         }

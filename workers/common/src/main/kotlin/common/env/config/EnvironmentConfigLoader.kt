@@ -34,7 +34,8 @@ import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.services.SecretService
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
@@ -88,8 +89,8 @@ import org.slf4j.LoggerFactory
  * ```
  */
 class EnvironmentConfigLoader(
-    /** The repository for secrets. This is used to resolve secret references. */
-    private val secretRepository: SecretRepository,
+    /** The service for secrets, used to resolve secret references. */
+    private val secretService: SecretService,
 
     /**
      * The repository for infrastructure services. This is needed to resolve references to services that are not
@@ -226,9 +227,9 @@ class EnvironmentConfigLoader(
 
         val resolvedSecrets = mutableMapOf<String, Secret>()
 
-        fun fetchSecrets(fetcher: () -> List<Secret>) {
+        fun fetchSecrets(fetcher: suspend () -> List<Secret>) {
             if (allSecretsNames.isNotEmpty()) {
-                val secrets = fetcher()
+                val secrets = runBlocking { fetcher() }
 
                 val secretsMap = secrets.associateBy(Secret::name)
                 resolvedSecrets += secretsMap
@@ -236,9 +237,9 @@ class EnvironmentConfigLoader(
             }
         }
 
-        fetchSecrets { secretRepository.listForId(RepositoryId(hierarchy.repository.id)).data }
-        fetchSecrets { secretRepository.listForId(ProductId(hierarchy.product.id)).data }
-        fetchSecrets { secretRepository.listForId(OrganizationId(hierarchy.organization.id)).data }
+        fetchSecrets { secretService.listForId(RepositoryId(hierarchy.repository.id)).data }
+        fetchSecrets { secretService.listForId(ProductId(hierarchy.product.id)).data }
+        fetchSecrets { secretService.listForId(OrganizationId(hierarchy.organization.id)).data }
 
         if (allSecretsNames.isNotEmpty()) {
             val message = "Invalid secret names. The following names cannot be resolved: $allSecretsNames"

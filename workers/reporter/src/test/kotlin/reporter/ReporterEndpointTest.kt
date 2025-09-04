@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.withMockDatabaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
@@ -165,7 +166,8 @@ class ReporterEndpointTest : KoinTest, StringSpec() {
             val environment = mapOf(
                 "REPORTER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
                 "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-                "REPORTER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME
+                "REPORTER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME,
+                "SECRETS_PROVIDER_NAME" to SecretsProviderFactoryForTesting.NAME
             )
 
             withEnvironment(environment) {

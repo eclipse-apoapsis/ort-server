@@ -91,7 +91,6 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
@@ -104,10 +103,13 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
@@ -126,9 +128,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var authorizationService: AuthorizationService
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
-
+    lateinit var secretService: SecretService
     lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
-    lateinit var secretRepository: SecretRepository
 
     beforeEach {
         authorizationService = KeycloakAuthorizationService(
@@ -155,8 +156,13 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             authorizationService
         )
 
+        secretService = SecretService(
+            dbExtension.db,
+            dbExtension.fixtures.secretRepository,
+            SecretStorage(SecretsProviderFactoryForTesting().createProvider())
+        )
+
         infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
-        secretRepository = dbExtension.fixtures.secretRepository
     }
 
     val organizationName = "name"
@@ -165,16 +171,14 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     suspend fun createOrganization(name: String = organizationName, description: String = organizationDescription) =
         organizationService.createOrganization(name, description)
 
-    val secretPath = "path"
     val secretName = "name"
     val secretDescription = "description"
 
-    fun createSecret(
+    suspend fun createSecret(
         organizationId: Long,
-        path: String = secretPath,
         name: String = secretName,
         description: String = secretDescription,
-    ) = secretRepository.create(path, name, description, OrganizationId(organizationId))
+    ) = secretService.createSecret(name, "value", description, OrganizationId(organizationId))
 
     "GET /organizations" should {
         "return all existing organizations for the superuser" {
@@ -671,8 +675,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = createSecret(orgId, path = "user", name = "user")
-                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+                val userSecret = createSecret(orgId, name = "user")
+                val passSecret = createSecret(orgId, name = "pass")
 
                 val services = (1..8).map { index ->
                     infrastructureServiceRepository.create(
@@ -717,8 +721,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = createSecret(orgId, path = "user", name = "user")
-                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+                val userSecret = createSecret(orgId, name = "user")
+                val passSecret = createSecret(orgId, name = "pass")
 
                 (1..8).shuffled().forEach { index ->
                     infrastructureServiceRepository.create(
@@ -765,8 +769,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = createSecret(orgId, path = "user", name = "user")
-                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+                val userSecret = createSecret(orgId, name = "user")
+                val passSecret = createSecret(orgId, name = "pass")
 
                 val createInfrastructureService = CreateInfrastructureService(
                     "testRepository",
@@ -831,8 +835,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.WRITE" {
             val createdOrg = createOrganization()
-            val userSecret = createSecret(createdOrg.id, path = "user", name = "user")
-            val passSecret = createSecret(createdOrg.id, path = "pass", name = "pass")
+            val userSecret = createSecret(createdOrg.id, name = "user")
+            val passSecret = createSecret(createdOrg.id, name = "pass")
 
             requestShouldRequireRole(
                 OrganizationPermission.WRITE.roleName(createdOrg.id),
@@ -856,8 +860,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = createSecret(orgId, path = "user", name = "user")
-                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+                val userSecret = createSecret(orgId, name = "user")
+                val passSecret = createSecret(orgId, name = "pass")
 
                 val createInfrastructureService = CreateInfrastructureService(
                     " testRepository 15?!",
@@ -887,8 +891,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = createSecret(orgId, path = "user", name = "user")
-                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+                val userSecret = createSecret(orgId, name = "user")
+                val passSecret = createSecret(orgId, name = "pass")
 
                 val createdInfrastructureService = infrastructureServiceRepository.create(
                     "testRepository",
@@ -923,8 +927,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = createSecret(orgId, path = "user", name = "user")
-                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+                val userSecret = createSecret(orgId, name = "user")
+                val passSecret = createSecret(orgId, name = "pass")
 
                 val service = infrastructureServiceRepository.create(
                     "testRepository",
@@ -974,8 +978,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = createSecret(orgId, path = "user", name = "user")
-                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+                val userSecret = createSecret(orgId, name = "user")
+                val passSecret = createSecret(orgId, name = "pass")
 
                 val service = infrastructureServiceRepository.create(
                     "updateService",
@@ -1022,8 +1026,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.WRITE" {
             val createdOrg = createOrganization()
-            val userSecret = createSecret(createdOrg.id, path = "user", name = "user")
-            val passSecret = createSecret(createdOrg.id, path = "pass", name = "pass")
+            val userSecret = createSecret(createdOrg.id, name = "user")
+            val passSecret = createSecret(createdOrg.id, name = "pass")
 
             val service = infrastructureServiceRepository.create(
                 "testRepository",
@@ -1053,8 +1057,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val userSecret = createSecret(orgId, path = "user", name = "user")
-                val passSecret = createSecret(orgId, path = "pass", name = "pass")
+                val userSecret = createSecret(orgId, name = "user")
+                val passSecret = createSecret(orgId, name = "pass")
 
                 val service = infrastructureServiceRepository.create(
                     "deleteService",
@@ -1076,8 +1080,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.WRITE" {
             val createdOrg = createOrganization()
-            val userSecret = createSecret(createdOrg.id, path = "user", name = "user")
-            val passSecret = createSecret(createdOrg.id, path = "pass", name = "pass")
+            val userSecret = createSecret(createdOrg.id, name = "user")
+            val passSecret = createSecret(createdOrg.id, name = "pass")
 
             val service = infrastructureServiceRepository.create(
                 "testRepository",
