@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.withMockDatabaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ReporterWorkerResult
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
@@ -156,7 +157,8 @@ class ReporterComponentTest : KoinTest, StringSpec() {
                 "REPORTER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME,
                 "REPORT_DOWNLOAD_LINK_PREFIX" to DOWNLOAD_LINK_PREFIX,
                 "REPORT_TOKEN_LENGTH" to TOKEN_LENGTH.toString(),
-                "REPORT_TOKEN_VALIDITY_DAYS" to TOKEN_VALIDITY.toString()
+                "REPORT_TOKEN_VALIDITY_DAYS" to TOKEN_VALIDITY.toString(),
+                "SECRETS_PROVIDER_NAME" to SecretsProviderFactoryForTesting.NAME
             )
 
             withEnvironment(environment) {

@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.withMockDatabaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ScannerWorkerResult
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.OrchestratorEndpoint
@@ -157,7 +158,8 @@ class ScannerEndpointTest : KoinTest, StringSpec() {
             val environment = mapOf(
                 "SCANNER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
                 "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-                "SCANNER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME
+                "SCANNER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME,
+                "SECRETS_PROVIDER_NAME" to SecretsProviderFactoryForTesting.NAME
             )
 
             withEnvironment(environment) {

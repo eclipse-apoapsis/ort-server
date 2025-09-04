@@ -105,12 +105,14 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
@@ -131,7 +133,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var productService: ProductService
     lateinit var ortRunRepository: OrtRunRepository
     lateinit var pluginService: PluginService
-    lateinit var secretRepository: SecretRepository
+    lateinit var secretService: SecretService
     lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
 
     var orgId = -1L
@@ -166,7 +168,12 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
         ortRunRepository = dbExtension.fixtures.ortRunRepository
-        secretRepository = dbExtension.fixtures.secretRepository
+
+        secretService = SecretService(
+            dbExtension.db,
+            dbExtension.fixtures.secretRepository,
+            SecretStorage(SecretsProviderFactoryForTesting().createProvider())
+        )
 
         orgId = organizationService.createOrganization(name = "name", description = "description").id
         productId =
@@ -188,16 +195,14 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
     fun createJobSummaries(ortRunId: Long) = dbExtension.fixtures.createJobs(ortRunId).mapToApiSummary()
 
-    val secretPath = "path"
     val secretName = "name"
     val secretDescription = "description"
 
-    fun createSecret(
+    suspend fun createSecret(
         repositoryId: Long,
-        path: String = secretPath,
         name: String = secretName,
         description: String = secretDescription,
-    ) = secretRepository.create(path, name, description, RepositoryId(repositoryId))
+    ) = secretService.createSecret(name, "value", description, RepositoryId(repositoryId))
 
     "GET /repositories/{repositoryId}" should {
         "return a single repository" {
@@ -979,8 +984,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                val userSecret = createSecret(repositoryId, path = "user", name = "user")
-                val passSecret = createSecret(repositoryId, path = "pass", name = "pass")
+                val userSecret = createSecret(repositoryId, name = "user")
+                val passSecret = createSecret(repositoryId, name = "pass")
 
                 val services = (1..8).map { index ->
                     infrastructureServiceRepository.create(
@@ -1025,8 +1030,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                val userSecret = createSecret(repositoryId, path = "user", name = "user")
-                val passSecret = createSecret(repositoryId, path = "pass", name = "pass")
+                val userSecret = createSecret(repositoryId, name = "user")
+                val passSecret = createSecret(repositoryId, name = "pass")
 
                 (1..8).shuffled().forEach { index ->
                     infrastructureServiceRepository.create(
@@ -1073,8 +1078,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                val userSecret = createSecret(repositoryId, path = "user", name = "user")
-                val passSecret = createSecret(repositoryId, path = "pass", name = "pass")
+                val userSecret = createSecret(repositoryId, name = "user")
+                val passSecret = createSecret(repositoryId, name = "pass")
 
                 val createInfrastructureService = CreateInfrastructureService(
                     "testRepository",
@@ -1139,8 +1144,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         "require RepositoryPermission.WRITE" {
             val createdRepository = createRepository()
-            val userSecret = createSecret(createdRepository.id, path = "user", name = "user")
-            val passSecret = createSecret(createdRepository.id, path = "pass", name = "pass")
+            val userSecret = createSecret(createdRepository.id, name = "user")
+            val passSecret = createSecret(createdRepository.id, name = "pass")
 
             requestShouldRequireRole(
                 RepositoryPermission.WRITE.roleName(createdRepository.id),
@@ -1164,8 +1169,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                val userSecret = createSecret(repositoryId, path = "user", name = "user")
-                val passSecret = createSecret(repositoryId, path = "pass", name = "pass")
+                val userSecret = createSecret(repositoryId, name = "user")
+                val passSecret = createSecret(repositoryId, name = "pass")
 
                 val createInfrastructureService = CreateInfrastructureService(
                     " testRepository 15?!",
@@ -1197,8 +1202,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                val userSecret = createSecret(repositoryId, path = "user", name = "user")
-                val passSecret = createSecret(repositoryId, path = "pass", name = "pass")
+                val userSecret = createSecret(repositoryId, name = "user")
+                val passSecret = createSecret(repositoryId, name = "pass")
 
                 val service = infrastructureServiceRepository.create(
                     "testRepository",
@@ -1248,8 +1253,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                val userSecret = createSecret(repositoryId, path = "user", name = "user")
-                val passSecret = createSecret(repositoryId, path = "pass", name = "pass")
+                val userSecret = createSecret(repositoryId, name = "user")
+                val passSecret = createSecret(repositoryId, name = "pass")
 
                 val service = infrastructureServiceRepository.create(
                     "updateService",
@@ -1298,8 +1303,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         "require RepositoryPermission.WRITE" {
             val createdRepository = createRepository()
-            val userSecret = createSecret(createdRepository.id, path = "user", name = "user")
-            val passSecret = createSecret(createdRepository.id, path = "pass", name = "pass")
+            val userSecret = createSecret(createdRepository.id, name = "user")
+            val passSecret = createSecret(createdRepository.id, name = "pass")
 
             val service = infrastructureServiceRepository.create(
                 "testRepository",
@@ -1329,8 +1334,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val repositoryId = createRepository().id
 
-                val userSecret = createSecret(repositoryId, path = "user", name = "user")
-                val passSecret = createSecret(repositoryId, path = "pass", name = "pass")
+                val userSecret = createSecret(repositoryId, name = "user")
+                val passSecret = createSecret(repositoryId, name = "pass")
 
                 val service = infrastructureServiceRepository.create(
                     "deleteService",
@@ -1352,8 +1357,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         "require RepositoryPermission.WRITE" {
             val createdRepository = createRepository()
-            val userSecret = createSecret(createdRepository.id, path = "user", name = "user")
-            val passSecret = createSecret(createdRepository.id, path = "pass", name = "pass")
+            val userSecret = createSecret(createdRepository.id, name = "user")
+            val passSecret = createSecret(createdRepository.id, name = "pass")
 
             val service = infrastructureServiceRepository.create(
                 "testRepository",

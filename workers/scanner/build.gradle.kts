@@ -71,6 +71,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.storage.storageSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
 

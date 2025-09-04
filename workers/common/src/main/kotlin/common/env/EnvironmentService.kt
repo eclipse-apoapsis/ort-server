@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.services.SecretService
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
@@ -66,7 +66,7 @@ class EnvironmentService(
     private val infrastructureServiceDeclarationRepository: InfrastructureServiceDeclarationRepository,
 
     /** The repository for secrets. This is used to resolve secret references. */
-    private val secretRepository: SecretRepository,
+    private val secretService: SecretService,
 
     /** A collection with the supported generators for configuration files. */
     private val generators: Collection<EnvironmentConfigGenerator<*>>,
@@ -248,14 +248,11 @@ class EnvironmentService(
      * is preferred, followed by the product level, and finally the organization level. In case a secret is found at
      * multiple levels, a warning is logged about this ambiguity. If no secret is found at all, return null.
      */
-    fun resolveSecretByName(secretName: String, ortRun: OrtRun, serviceName: String): Secret? {
+    suspend fun resolveSecretByName(secretName: String, ortRun: OrtRun, serviceName: String): Secret? {
         // Try to get from all 3 levels: repository, product, and organization
-        val secretRepositoryLevel =
-            secretRepository.getByIdAndName(RepositoryId(ortRun.repositoryId), secretName)
-        val secretProductLevel =
-            secretRepository.getByIdAndName(ProductId(ortRun.productId), secretName)
-        val secretOrganizationLevel =
-            secretRepository.getByIdAndName(OrganizationId(ortRun.organizationId), secretName)
+        val secretRepositoryLevel = secretService.getSecret(RepositoryId(ortRun.repositoryId), secretName)
+        val secretProductLevel = secretService.getSecret(ProductId(ortRun.productId), secretName)
+        val secretOrganizationLevel = secretService.getSecret(OrganizationId(ortRun.organizationId), secretName)
 
         return (secretRepositoryLevel ?: secretProductLevel ?: secretOrganizationLevel).also { resolvedSecret ->
             if (resolvedSecret == null) {
