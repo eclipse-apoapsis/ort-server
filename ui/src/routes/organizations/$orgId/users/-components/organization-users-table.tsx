@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -26,13 +26,7 @@ import {
 } from '@tanstack/react-table';
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
-import {
-  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdRolesByRole,
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsers,
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole,
-} from '@/api/queries';
-import { ApiError, UserWithGroups } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
@@ -44,6 +38,13 @@ import {
 } from '@/components/ui/tooltip';
 import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
 import { mapUserGroupToOrganizationRole } from '@/helpers/role-helpers.ts';
+import { UserWithGroups } from '@/hey-api';
+import {
+  deleteOrganizationRoleFromUserMutation,
+  getUsersForOrganizationOptions,
+  getUsersForOrganizationQueryKey,
+  putOrganizationRoleToUserMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast.ts';
 
@@ -105,58 +106,57 @@ const columns = [
       const organizationId = Number.parseInt(params.orgId);
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
-        useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole(
-          {
-            onSuccess(_response, parameters) {
-              queryClient.invalidateQueries({
-                queryKey: [
-                  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-                ],
-              });
-              toast.info('Join Group', {
-                description: `User "${row.original.user.username}" joined group ${parameters.role} successfully.`,
-              });
-            },
-            onError(error: ApiError) {
-              toast.error(error.message, {
-                description: <ToastError error={error} />,
-                duration: Infinity,
-                cancel: {
-                  label: 'Dismiss',
-                  onClick: () => {},
+        useMutation({
+          ...putOrganizationRoleToUserMutation(),
+          onSuccess(_response, parameters) {
+            queryClient.invalidateQueries({
+              queryKey: getUsersForOrganizationQueryKey({
+                path: {
+                  organizationId: organizationId,
                 },
-              });
-            },
-          }
-        );
+              }),
+            });
+            toast.info('Join Group', {
+              description: `User "${row.original.user.username}" joined group ${parameters.path.role} successfully.`,
+            });
+          },
+          onError(error: ApiError) {
+            toast.error(error.message, {
+              description: <ToastError error={error} />,
+              duration: Infinity,
+              cancel: {
+                label: 'Dismiss',
+                onClick: () => {},
+              },
+            });
+          },
+        });
 
       const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-        useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdRolesByRole(
-          {
-            onSuccess(_response, parameters) {
-              // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
-              toast.info('Leave Group', {
-                description: `User "${row.original.user.username}" left group ${parameters.role} successfully.`,
-              });
-            },
-            onError(error: ApiError) {
-              toast.error(error.message, {
-                description: <ToastError error={error} />,
-                duration: Infinity,
-                cancel: {
-                  label: 'Dismiss',
-                  onClick: () => {},
-                },
-              });
-            },
-          }
-        );
+        useMutation({
+          ...deleteOrganizationRoleFromUserMutation(),
+          onSuccess(_response, parameters) {
+            // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
+            toast.info('Leave Group', {
+              description: `User "${row.original.user.username}" left group ${parameters.path.role} successfully.`,
+            });
+          },
+          onError(error: ApiError) {
+            toast.error(error.message, {
+              description: <ToastError error={error} />,
+              duration: Infinity,
+              cancel: {
+                label: 'Dismiss',
+                onClick: () => {},
+              },
+            });
+          },
+        });
 
       async function joinAdminsGroup() {
         await joinGroup({
-          organizationId: organizationId,
-          role: 'ADMIN',
-          requestBody: {
+          path: { organizationId: organizationId, role: 'ADMIN' },
+          body: {
             username: row.original.user.username,
           },
         });
@@ -164,9 +164,8 @@ const columns = [
 
       async function joinWritersGroup() {
         await joinGroup({
-          organizationId: organizationId,
-          role: 'WRITER',
-          requestBody: {
+          path: { organizationId: organizationId, role: 'WRITER' },
+          body: {
             username: row.original.user.username,
           },
         });
@@ -174,9 +173,8 @@ const columns = [
 
       async function joinReadersGroup() {
         await joinGroup({
-          organizationId: organizationId,
-          role: 'READER',
-          requestBody: {
+          path: { organizationId: organizationId, role: 'READER' },
+          body: {
             username: row.original.user.username,
           },
         });
@@ -189,18 +187,24 @@ const columns = [
           await Promise.all(
             row.original.groups.map((group) =>
               leaveGroup({
-                organizationId: organizationId,
-                role: mapUserGroupToOrganizationRole(group),
-                username: row.original.user.username,
+                path: {
+                  organizationId: organizationId,
+                  role: mapUserGroupToOrganizationRole(group),
+                },
+                query: {
+                  username: row.original.user.username,
+                },
               })
             )
           );
           // Upon successful removal of the user, invalidate the users query
           // to refresh the data in the table.
           queryClient.invalidateQueries({
-            queryKey: [
-              useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-            ],
+            queryKey: getUsersForOrganizationQueryKey({
+              path: {
+                organizationId: organizationId,
+              },
+            }),
           });
           toast.info('Remove User from Organization', {
             description: `User "${row.original.user.username}" removed from the organization successfully.`,
@@ -265,13 +269,18 @@ export const OrganizationUsersTable = () => {
   const { page = 1, pageSize = 10 } = search;
   const pageIndex = page - 1;
 
-  const { data: usersWithGroups } =
-    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsers({
-      organizationId: Number.parseInt(orgId),
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-      sort: 'username',
-    });
+  const { data: usersWithGroups } = useQuery({
+    ...getUsersForOrganizationOptions({
+      path: {
+        organizationId: Number.parseInt(orgId),
+      },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: 'username',
+      },
+    }),
+  });
 
   const table = useReactTable({
     data: usersWithGroups?.data || [],
