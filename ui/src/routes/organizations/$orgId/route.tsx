@@ -27,10 +27,10 @@ import {
   User,
 } from 'lucide-react';
 
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKey } from '@/api/queries';
-import { ApiError, OrganizationsService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
+import { getOrganizationByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
 
 const Layout = () => {
@@ -123,14 +123,9 @@ export const Route = createFileRoute('/organizations/$orgId')({
   loader: async ({ context, params }) => {
     try {
       const organization = await context.queryClient.ensureQueryData({
-        queryKey: [
-          useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKey,
-          params.orgId,
-        ],
-        queryFn: () =>
-          OrganizationsService.getApiV1OrganizationsByOrganizationId({
-            organizationId: Number.parseInt(params.orgId),
-          }),
+        ...getOrganizationByIdOptions({
+          path: { organizationId: Number.parseInt(params.orgId) },
+        }),
       });
       context.breadcrumbs.organization = organization.name;
     } catch (error) {
