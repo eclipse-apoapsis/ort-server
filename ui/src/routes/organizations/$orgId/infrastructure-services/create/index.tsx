@@ -18,13 +18,12 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useOrganizationsServicePostApiV1OrganizationsByOrganizationIdInfrastructureServices } from '@/api/queries';
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { ToastError } from '@/components/toast-error';
@@ -54,6 +53,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  getSecretsByOrganizationIdOptions,
+  postInfrastructureServiceForOrganizationMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
@@ -72,38 +75,35 @@ const CreateInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { data: secrets } =
-    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense(
-      {
-        organizationId: Number.parseInt(params.orgId),
-        limit: ALL_ITEMS,
-      }
-    );
+  const { data: secrets } = useQuery({
+    ...getSecretsByOrganizationIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+      query: { limit: ALL_ITEMS },
+    }),
+  });
 
-  const { mutateAsync, isPending } =
-    useOrganizationsServicePostApiV1OrganizationsByOrganizationIdInfrastructureServices(
-      {
-        onSuccess(data) {
-          toast.info('Create Infrastructure Service', {
-            description: `New infrastructure service "${data.name}" created successfully.`,
-          });
-          navigate({
-            to: '/organizations/$orgId/infrastructure-services',
-            params: { orgId: params.orgId },
-          });
+  const { mutateAsync, isPending } = useMutation({
+    ...postInfrastructureServiceForOrganizationMutation(),
+    onSuccess(data) {
+      toast.info('Create Infrastructure Service', {
+        description: `New infrastructure service "${data.name}" created successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/infrastructure-services',
+        params: { orgId: params.orgId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+      });
+    },
+  });
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -118,8 +118,10 @@ const CreateInfrastructureServicePage = () => {
 
   const onSubmit = (values: FormSchema) => {
     mutateAsync({
-      organizationId: Number.parseInt(params.orgId),
-      requestBody: {
+      path: {
+        organizationId: Number.parseInt(params.orgId),
+      },
+      body: {
         name: values.name,
         url: values.url,
         description: values.description || undefined,

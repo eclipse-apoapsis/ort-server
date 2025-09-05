@@ -18,18 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
-  useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
-} from '@/api/queries';
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense } from '@/api/queries/suspense';
-import { ApiError, OrganizationsService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -57,6 +52,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  getInfrastructureServicesByOrganizationIdAndNameOptions,
+  getSecretsByOrganizationIdOptions,
+  patchInfrastructureServiceForOrganizationIdAndNameMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
@@ -77,53 +77,44 @@ const EditInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { data: secrets } =
-    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsSuspense(
-      {
-        organizationId: Number.parseInt(params.orgId),
-        limit: ALL_ITEMS,
-      }
-    );
-
-  const { data: service } = useSuspenseQuery({
-    queryKey: [
-      useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
-      params.orgId,
-      params.serviceName,
-    ],
-    queryFn: () =>
-      OrganizationsService.getApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
-        {
-          organizationId: Number.parseInt(params.orgId),
-          serviceName: params.serviceName,
-        }
-      ),
+  const { data: secrets } = useQuery({
+    ...getSecretsByOrganizationIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+      query: { limit: ALL_ITEMS },
+    }),
   });
 
-  const { mutateAsync, isPending } =
-    useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
-      {
-        onSuccess(data) {
-          toast.info('Edit Infrastructure Service', {
-            description: `Infrastructure service "${data.name}" has been updated successfully.`,
-          });
-          navigate({
-            to: '/organizations/$orgId/infrastructure-services',
-            params: { orgId: params.orgId },
-          });
+  const { data: service } = useSuspenseQuery({
+    ...getInfrastructureServicesByOrganizationIdAndNameOptions({
+      path: {
+        organizationId: Number.parseInt(params.orgId),
+        serviceName: params.serviceName,
+      },
+    }),
+  });
+
+  const { mutateAsync, isPending } = useMutation({
+    ...patchInfrastructureServiceForOrganizationIdAndNameMutation(),
+    onSuccess(data) {
+      toast.info('Edit Infrastructure Service', {
+        description: `Infrastructure service "${data.name}" has been updated successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/infrastructure-services',
+        params: { orgId: params.orgId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+      });
+    },
+  });
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -139,9 +130,11 @@ const EditInfrastructureServicePage = () => {
 
   const onSubmit = (values: FormSchema) => {
     mutateAsync({
-      organizationId: Number.parseInt(params.orgId),
-      serviceName: params.serviceName,
-      requestBody: {
+      path: {
+        organizationId: Number.parseInt(params.orgId),
+        serviceName: params.serviceName,
+      },
+      body: {
         url: values.url,
         description: values.description,
         usernameSecretRef: values.usernameSecretRef,
@@ -348,20 +341,14 @@ const EditInfrastructureServicePage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/infrastructure-services/$serviceName/edit/'
 )({
-  loader: async ({ context, params }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: [
-        useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
-        params.orgId,
-        params.serviceName,
-      ],
-      queryFn: () =>
-        OrganizationsService.getApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
-          {
-            organizationId: Number.parseInt(params.orgId),
-            serviceName: params.serviceName,
-          }
-        ),
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.ensureQueryData({
+      ...getInfrastructureServicesByOrganizationIdAndNameOptions({
+        path: {
+          organizationId: Number.parseInt(params.orgId),
+          serviceName: params.serviceName,
+        },
+      }),
     });
   },
   component: EditInfrastructureServicePage,
