@@ -18,17 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
-import {
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
-  useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdSecretsBySecretName,
-} from '@/api/queries';
-import { ApiError, OrganizationsService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -49,6 +45,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  getSecretByOrganizationIdAndNameOptions,
+  patchSecretByOrganizationIdAndNameMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const editSecretFormSchema = z.object({
@@ -65,18 +65,12 @@ const EditOrganizationSecretPage = () => {
   const search = Route.useSearch();
 
   const { data: secret } = useSuspenseQuery({
-    queryKey: [
-      useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
-      params.orgId,
-      params.secretName,
-    ],
-    queryFn: () =>
-      OrganizationsService.getApiV1OrganizationsByOrganizationIdSecretsBySecretName(
-        {
-          organizationId: Number.parseInt(params.orgId),
-          secretName: params.secretName,
-        }
-      ),
+    ...getSecretByOrganizationIdAndNameOptions({
+      path: {
+        organizationId: Number.parseInt(params.orgId),
+        secretName: params.secretName,
+      },
+    }),
   });
 
   const form = useForm<EditSecretFormValues>({
@@ -88,36 +82,36 @@ const EditOrganizationSecretPage = () => {
     },
   });
 
-  const { mutateAsync: editSecret, isPending } =
-    useOrganizationsServicePatchApiV1OrganizationsByOrganizationIdSecretsBySecretName(
-      {
-        onSuccess(data) {
-          toast.info('Edit organization secret', {
-            description: `Secret "${data.name}" updated successfully.`,
-          });
-          navigate({
-            to: search.returnTo || '/organizations/$orgId/secrets',
-            params: { orgId: params.orgId },
-          });
+  const { mutateAsync: editSecret, isPending } = useMutation({
+    ...patchSecretByOrganizationIdAndNameMutation(),
+    onSuccess(data) {
+      toast.info('Edit organization secret', {
+        description: `Secret "${data.name}" updated successfully.`,
+      });
+      navigate({
+        to: search.returnTo || '/organizations/$orgId/secrets',
+        params: { orgId: params.orgId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+      });
+    },
+  });
 
   const onSubmit = (values: EditSecretFormValues) => {
     editSecret({
-      organizationId: Number.parseInt(params.orgId),
-      secretName: secret.name,
-      requestBody: {
+      path: {
+        organizationId: Number.parseInt(params.orgId),
+        secretName: secret.name,
+      },
+      body: {
         value: values.value,
         description: values.description,
       },
@@ -219,20 +213,14 @@ export const Route = createFileRoute(
   '/organizations/$orgId/secrets/$secretName/edit/'
 )({
   validateSearch: searchParamsSchema,
-  loader: async ({ context, params }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: [
-        useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecretsBySecretNameKey,
-        params.orgId,
-        params.secretName,
-      ],
-      queryFn: () =>
-        OrganizationsService.getApiV1OrganizationsByOrganizationIdSecretsBySecretName(
-          {
-            organizationId: Number.parseInt(params.orgId),
-            secretName: params.secretName,
-          }
-        ),
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.ensureQueryData({
+      ...getSecretByOrganizationIdAndNameOptions({
+        path: {
+          organizationId: Number.parseInt(params.orgId),
+          secretName: params.secretName,
+        },
+      }),
     });
   },
   component: EditOrganizationSecretPage,
