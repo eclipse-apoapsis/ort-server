@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Files, PlusIcon } from 'lucide-react';
 
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdProducts } from '@/api/queries';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -31,6 +31,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { getOrganizationProductsOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 type OrganizationProductsStatisticsCardProps = {
@@ -42,11 +43,12 @@ export const OrganizationProductsStatisticsCard = ({
   orgId,
   className,
 }: OrganizationProductsStatisticsCardProps) => {
-  const { data, isPending, isError, error } =
-    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdProducts({
-      organizationId: Number.parseInt(orgId),
-      limit: 1,
-    });
+  const { data, isPending, isError, error } = useSuspenseQuery({
+    ...getOrganizationProductsOptions({
+      path: { organizationId: Number.parseInt(orgId) },
+      query: { limit: 1 },
+    }),
+  });
 
   if (isPending) {
     return (
