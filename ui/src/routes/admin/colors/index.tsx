@@ -19,12 +19,6 @@
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import {
-  JobStatus,
-  OrtRunStatus,
-  Severity,
-  VulnerabilityRating,
-} from '@/api/requests';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -42,6 +36,12 @@ import {
   getVulnerabilityRatingBackgroundColor,
   Status,
 } from '@/helpers/get-status-class';
+import {
+  JobStatus,
+  OrtRunStatus,
+  Severity,
+  VulnerabilityRating,
+} from '@/hey-api';
 
 const ColorsComponent = () => {
   // API types like string literal unions ('HINT' | 'WARNING' | 'ERROR') exist only at compile time,
