@@ -18,17 +18,16 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Eye, Loader2, Pen, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-  useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole,
-} from '@/api/queries';
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -56,6 +55,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { mapGroupSchemaToOrganizationRole } from '@/helpers/role-helpers.ts';
+import {
+  getOrganizationByIdOptions,
+  getUsersForOrganizationQueryKey,
+  putOrganizationRoleToUserMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { groupsSchema } from '@/schemas';
 import { OrganizationUsersTable } from './-components/organization-users-table';
@@ -76,42 +80,49 @@ const ManageUsers = () => {
     },
   });
 
-  const { data: organization } =
-    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense({
-      organizationId: Number.parseInt(params.orgId),
-    });
+  const { data: organization } = useSuspenseQuery({
+    ...getOrganizationByIdOptions({
+      path: {
+        organizationId: Number.parseInt(params.orgId),
+      },
+    }),
+  });
 
   const queryClient = useQueryClient();
 
-  const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useOrganizationsServicePutApiV1OrganizationsByOrganizationIdRolesByRole({
-      onSuccess() {
-        queryClient.invalidateQueries({
-          queryKey: [
-            useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersKey,
-          ],
-        });
-        toast.info('Add User', {
-          description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
+  const { mutateAsync: addUser, isPending: isAddUserPending } = useMutation({
+    ...putOrganizationRoleToUserMutation(),
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: getUsersForOrganizationQueryKey({
+          path: {
+            organizationId: Number.parseInt(params.orgId),
           },
-        });
-      },
-    });
+        }),
+      });
+      toast.info('Add User', {
+        description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   async function onAddUser(values: z.infer<typeof formSchema>) {
     await addUser({
-      organizationId: Number.parseInt(params.orgId),
-      role: mapGroupSchemaToOrganizationRole(values.groupId),
-      requestBody: {
+      path: {
+        organizationId: Number.parseInt(params.orgId),
+        role: mapGroupSchemaToOrganizationRole(values.groupId),
+      },
+      body: {
         username: values.username,
       },
     });

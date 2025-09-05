@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { ensureUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersData } from '@/api/queries/ensureQueryData.ts';
+import { getUsersForOrganizationOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute('/organizations/$orgId/users')({
@@ -31,22 +31,24 @@ export const Route = createFileRoute('/organizations/$orgId/users')({
     page,
     pageSize,
   }),
-  loader: async ({ context, deps, params }) => {
-    const { queryClient } = context;
+  loader: async ({ context: { queryClient }, deps, params }) => {
     const { page = 1, pageSize = 10 } = deps;
     const { orgId } = params;
     const pageIndex = page - 1;
 
     // Ensure the data is available in the query cache when the component is rendered.
-    await ensureUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdUsersData(
-      queryClient,
-      {
-        limit: pageSize,
-        offset: pageIndex * pageSize,
-        organizationId: Number.parseInt(orgId),
-        sort: 'username',
-      }
-    );
+    await queryClient.ensureQueryData({
+      ...getUsersForOrganizationOptions({
+        path: {
+          organizationId: Number.parseInt(orgId),
+        },
+        query: {
+          limit: pageSize,
+          offset: pageIndex * pageSize,
+          sort: 'username',
+        },
+      }),
+    });
   },
   beforeLoad: ({ context, params }) => {
     if (
