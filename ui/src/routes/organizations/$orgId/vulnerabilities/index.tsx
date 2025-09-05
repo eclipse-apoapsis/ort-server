@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -30,9 +31,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdVulnerabilities } from '@/api/queries';
-import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
-import { OrganizationVulnerability } from '@/api/requests';
 import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
@@ -67,6 +65,11 @@ import {
   identifierToString,
 } from '@/helpers/identifier-conversion';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
+import { OrganizationVulnerability } from '@/hey-api';
+import {
+  getOrganizationByIdOptions,
+  getVulnerabilitiesAcrossRepositoriesByOrganizationIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import {
   markedSearchParameterSchema,
@@ -146,14 +149,16 @@ const OrganizationVulnerabilitiesComponent = () => {
     error,
     isPending,
     isError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdVulnerabilities(
-    {
-      organizationId: Number.parseInt(params.orgId),
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-      sort: convertToBackendSorting(search.sortBy),
-    }
-  );
+  } = useQuery({
+    ...getVulnerabilitiesAcrossRepositoriesByOrganizationIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: convertToBackendSorting(search.sortBy),
+      },
+    }),
+  });
 
   // Prevent infinite rerenders by providing a stable reference to columns via memoization.
   // https://tanstack.com/table/latest/docs/faq#solution-1-stable-references-with-usememo-or-usestate
@@ -369,13 +374,12 @@ export const Route = createFileRoute('/organizations/$orgId/vulnerabilities/')({
     ...sortingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
-  loader: async ({ context, params }) => {
-    await prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
-      context.queryClient,
-      {
-        organizationId: Number.parseInt(params.orgId),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrganizationByIdOptions({
+        path: { organizationId: Number.parseInt(params.orgId) },
+      }),
+    });
   },
   component: OrganizationVulnerabilitiesComponent,
   pendingComponent: LoadingIndicator,
