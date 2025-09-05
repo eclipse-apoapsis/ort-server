@@ -431,8 +431,7 @@ class OrtRunServiceTest : WordSpec({
                     os = "Linux",
                     processors = 8,
                     maxMemory = 16.gibibytes,
-                    variables = emptyMap(),
-                    toolVersions = emptyMap()
+                    variables = emptyMap()
                 ),
                 config = ScannerConfiguration(
                     skipConcluded = true,
@@ -523,8 +522,7 @@ class OrtRunServiceTest : WordSpec({
                     os = "Linux",
                     processors = 8,
                     maxMemory = 16.gibibytes,
-                    variables = emptyMap(),
-                    toolVersions = emptyMap()
+                    variables = emptyMap()
                 ),
                 config = AdvisorConfiguration(emptyMap()),
                 results = emptyMap()
@@ -572,8 +570,7 @@ class OrtRunServiceTest : WordSpec({
                     os = "Linux",
                     processors = 8,
                     maxMemory = 16.gibibytes,
-                    variables = emptyMap(),
-                    toolVersions = emptyMap()
+                    variables = emptyMap()
                 ),
                 config = AnalyzerConfiguration(
                     allowDynamicVersions = true,
@@ -833,8 +830,7 @@ class OrtRunServiceTest : WordSpec({
                     os = "Linux",
                     processors = 8,
                     maxMemory = 16.gibibytes,
-                    variables = emptyMap(),
-                    toolVersions = emptyMap()
+                    variables = emptyMap()
                 ),
                 config = ScannerConfiguration(
                     skipConcluded = true,
@@ -973,8 +969,7 @@ class OrtRunServiceTest : WordSpec({
                     os = "Linux",
                     processors = 8,
                     maxMemory = 16.gibibytes,
-                    variables = emptyMap(),
-                    toolVersions = emptyMap()
+                    variables = emptyMap()
                 ),
                 config = AdvisorConfiguration(emptyMap()),
                 results = emptyMap()
@@ -999,8 +994,7 @@ class OrtRunServiceTest : WordSpec({
                     os = "Linux",
                     processors = 8,
                     maxMemory = 16.gibibytes,
-                    variables = emptyMap(),
-                    toolVersions = emptyMap()
+                    variables = emptyMap()
                 ),
                 config = AnalyzerConfiguration(
                     allowDynamicVersions = true,

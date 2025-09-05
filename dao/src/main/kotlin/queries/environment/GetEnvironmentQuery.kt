@@ -21,9 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.queries.environment
 
 import org.eclipse.apoapsis.ortserver.dao.Query
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsToolVersionsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.EnvironmentsVariablesTable
-import org.eclipse.apoapsis.ortserver.dao.tables.shared.ToolVersionsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VariablesTable
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 
@@ -39,13 +37,6 @@ class GetEnvironmentQuery(
 
         if (resultRow == null) return null
 
-        val toolVersions = EnvironmentsToolVersionsTable
-            .innerJoin(ToolVersionsTable)
-            .select(ToolVersionsTable.name, ToolVersionsTable.version)
-            .where { EnvironmentsToolVersionsTable.environmentId eq environmentId }.associate {
-                it[ToolVersionsTable.name] to it[ToolVersionsTable.version]
-            }
-
         val variables = EnvironmentsVariablesTable
             .innerJoin(VariablesTable)
             .select(VariablesTable.name, VariablesTable.value)
@@ -59,8 +50,7 @@ class GetEnvironmentQuery(
             os = resultRow[EnvironmentsTable.os],
             processors = resultRow[EnvironmentsTable.processors],
             maxMemory = resultRow[EnvironmentsTable.maxMemory],
-            variables = variables,
-            toolVersions = toolVersions
+            variables = variables
         )
     }
 }

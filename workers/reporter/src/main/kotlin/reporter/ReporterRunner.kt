@@ -61,12 +61,13 @@ import org.ossreviewtoolkit.model.licenses.LicenseInfoResolver
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.utils.FileArchiver
 import org.ossreviewtoolkit.plugins.api.orEmpty
+import org.ossreviewtoolkit.plugins.licensefactproviders.api.CompositeLicenseFactProvider
+import org.ossreviewtoolkit.plugins.licensefactproviders.scancode.ScanCodeLicenseFactProviderFactory
+import org.ossreviewtoolkit.plugins.licensefactproviders.spdx.SpdxLicenseFactProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.CompositePackageConfigurationProvider
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.SimplePackageConfigurationProvider
-import org.ossreviewtoolkit.reporter.DefaultLicenseTextProvider
 import org.ossreviewtoolkit.reporter.HowToFixTextProvider
-import org.ossreviewtoolkit.reporter.LicenseTextProvider
 import org.ossreviewtoolkit.reporter.ReporterFactory
 import org.ossreviewtoolkit.reporter.ReporterInput
 import org.ossreviewtoolkit.utils.common.safeMkdirs
@@ -229,7 +230,7 @@ class ReporterRunner(
                     ),
                     copyrightGarbage = copyrightGarbage,
                     licenseClassifications = licenseClassifications,
-                    licenseTextProvider = createLicenseTextProvider(context, adminConfig),
+                    licenseFactProvider = createLicenseFactProvider(context, adminConfig),
                     howToFixTextProvider = howToFixTextProvider
                 )
             }
@@ -423,17 +424,23 @@ private fun createAssetDirectory(asset: ReporterAsset, directory: File): File =
 private fun String.toTemplatePath(): Path = Path(removePrefix(ReporterComponent.TEMPLATE_REFERENCE))
 
 /**
- * Return the provider for license texts based on the given [config]. If a path to custom license texts is configured,
- * create a [CustomLicenseTextProvider] that downloads license texts from this directory on demand. Otherwise, return
- * a [DefaultLicenseTextProvider] that can only handle standard license texts.
+ * Return the provider for license facts based on the given [config]. If a path to custom license texts is configured,
+ * create a [CustomLicenseFactProvider] that downloads license texts from this directory on demand. Also add the default
+ * license fact providers from ORT.
  */
-internal fun createLicenseTextProvider(
+internal fun createLicenseFactProvider(
     context: WorkerContext,
     config: ReporterConfig
-): LicenseTextProvider =
-    config.customLicenseTextDir?.let { dir ->
-        CustomLicenseTextProvider(context.configManager, context.resolvedConfigurationContext, Path(dir))
-    } ?: DefaultLicenseTextProvider()
+): CompositeLicenseFactProvider =
+    CompositeLicenseFactProvider(
+        listOfNotNull(
+            config.customLicenseTextDir?.let { dir ->
+                CustomLicenseFactProvider(context.configManager, context.resolvedConfigurationContext, Path(dir))
+            },
+            SpdxLicenseFactProviderFactory.create(),
+            ScanCodeLicenseFactProviderFactory.create()
+        )
+    )
 
 /**
  * Create an issue for the given report [format] with information derived from the given [throwable][e] and also log it.

@@ -114,8 +114,7 @@ class OrtServerMappingsTest : WordSpec({
                 javaVersion = "17",
                 processors = 8,
                 maxMemory = 12884901888L,
-                variables = mapOf("JAVA_HOME" to "/opt/java/openjdk"),
-                toolVersions = emptyMap()
+                variables = mapOf("JAVA_HOME" to "/opt/java/openjdk")
             )
 
             val runIssue = Issue(

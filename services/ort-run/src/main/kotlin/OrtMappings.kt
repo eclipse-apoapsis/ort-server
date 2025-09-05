@@ -274,8 +274,7 @@ fun OrtEnvironment.mapToModel() =
         os = os,
         maxMemory = maxMemory,
         processors = processors,
-        variables = variables,
-        toolVersions = toolVersions
+        variables = variables
     )
 
 fun OrtEvaluatorRun.mapToModel(evaluatorJobId: Long) =

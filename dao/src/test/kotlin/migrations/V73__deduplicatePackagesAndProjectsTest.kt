@@ -343,8 +343,7 @@ private val environment = Environment(
     os = "testOS",
     processors = 2,
     maxMemory = 16384,
-    variables = emptyMap(),
-    toolVersions = emptyMap()
+    variables = emptyMap()
 )
 
 private val baseIdentifier = Identifier("test", "ns", "name", "1.0")

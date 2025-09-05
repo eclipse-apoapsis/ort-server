@@ -50,8 +50,7 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
                         (EnvironmentsTable.processors eq environment.processors) and
                         (EnvironmentsTable.maxMemory eq environment.maxMemory)
             }.firstOrNull { dao ->
-                dao.variables.associate { it.name to it.value } == environment.variables &&
-                        dao.toolVersions.associate { it.name to it.version } == environment.toolVersions
+                dao.variables.associate { it.name to it.value } == environment.variables
             }
 
         fun getOrPut(environment: Environment): EnvironmentDao =
@@ -62,15 +61,6 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
                 processors = environment.processors
                 maxMemory = environment.maxMemory
             }.also { environmentDao ->
-                environment.toolVersions.forEach { (name, version) ->
-                    val toolVersionDao = ToolVersionDao.getOrPut(name, version)
-
-                    EnvironmentsToolVersionsTable.insert {
-                        it[environmentId] = environmentDao.id
-                        it[toolVersionId] = toolVersionDao.id
-                    }
-                }
-
                 environment.variables.forEach { (name, value) ->
                     val variableDao = VariableDao.getOrPut(name, value)
 
@@ -89,7 +79,6 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
     var maxMemory by EnvironmentsTable.maxMemory
 
     val variables by VariableDao via EnvironmentsVariablesTable
-    val toolVersions by ToolVersionDao via EnvironmentsToolVersionsTable
 
     fun mapToModel() = Environment(
         ortVersion = ortVersion,
@@ -97,7 +86,6 @@ class EnvironmentDao(id: EntityID<Long>) : LongEntity(id) {
         os = os,
         processors = processors,
         maxMemory = maxMemory,
-        variables = variables.associate { it.name to it.value },
-        toolVersions = toolVersions.associate { it.name to it.version }
+        variables = variables.associate { it.name to it.value }
     )
 }
