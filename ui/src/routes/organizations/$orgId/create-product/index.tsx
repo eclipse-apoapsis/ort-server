@@ -18,12 +18,12 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useOrganizationsServicePostApiV1OrganizationsByOrganizationIdProducts } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
@@ -45,6 +45,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { postProductMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 
@@ -58,31 +59,31 @@ const CreateProductPage = () => {
   const params = Route.useParams();
   const { refreshUser } = useUser();
 
-  const { mutateAsync, isPending } =
-    useOrganizationsServicePostApiV1OrganizationsByOrganizationIdProducts({
-      onSuccess(data) {
-        // Refresh the user token and data to get the new roles after creating a new product.
-        refreshUser();
+  const { mutateAsync, isPending } = useMutation({
+    ...postProductMutation(),
+    onSuccess(data) {
+      // Refresh the user token and data to get the new roles after creating a new product.
+      refreshUser();
 
-        toast.info('Add Product', {
-          description: `Product "${data.name}" added successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId',
-          params: { orgId: params.orgId, productId: data.id.toString() },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+      toast.info('Add Product', {
+        description: `Product "${data.name}" added successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId',
+        params: { orgId: params.orgId, productId: data.id.toString() },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -93,8 +94,10 @@ const CreateProductPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      organizationId: Number.parseInt(params.orgId),
-      requestBody: {
+      path: {
+        organizationId: Number.parseInt(params.orgId),
+      },
+      body: {
         name: values.name,
         description: values.description,
       },
