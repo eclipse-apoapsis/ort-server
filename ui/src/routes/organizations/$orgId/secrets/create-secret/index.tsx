@@ -18,12 +18,12 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useOrganizationsServicePostApiV1OrganizationsByOrganizationIdSecrets } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input.tsx';
 import { ToastError } from '@/components/toast-error';
@@ -43,6 +43,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { postSecretForOrganizationMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -55,28 +56,28 @@ const CreateOrganizationSecretPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { mutateAsync, isPending } =
-    useOrganizationsServicePostApiV1OrganizationsByOrganizationIdSecrets({
-      onSuccess(data) {
-        toast.info('Create Organization Secret', {
-          description: `New organization secret "${data.name}" created successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/secrets',
-          params: { orgId: params.orgId },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync, isPending } = useMutation({
+    ...postSecretForOrganizationMutation(),
+    onSuccess(data) {
+      toast.info('Create Organization Secret', {
+        description: `New organization secret "${data.name}" created successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/secrets',
+        params: { orgId: params.orgId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -88,8 +89,10 @@ const CreateOrganizationSecretPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      organizationId: Number.parseInt(params.orgId),
-      requestBody: {
+      path: {
+        organizationId: Number.parseInt(params.orgId),
+      },
+      body: {
         name: values.name,
         value: values.value,
         description: values.description,
