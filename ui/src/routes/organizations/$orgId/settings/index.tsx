@@ -18,6 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
@@ -27,13 +28,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationId,
-  UseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKeyFn,
-  useOrganizationsServicePatchApiV1OrganizationsByOrganizationId,
-} from '@/api/queries';
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense } from '@/api/queries/suspense';
-import { ApiError, OrganizationsService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -53,6 +48,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  deleteOrganizationByIdMutation,
+  getOrganizationByIdOptions,
+  patchOrganizationByIdMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -67,35 +67,38 @@ const OrganizationSettingsPage = () => {
 
   const organizationId = Number.parseInt(params.orgId);
 
-  const { data: organization } =
-    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSuspense({
-      organizationId,
-    });
+  const { data: organization } = useSuspenseQuery({
+    ...getOrganizationByIdOptions({
+      path: {
+        organizationId,
+      },
+    }),
+  });
 
-  const { mutateAsync, isPending } =
-    useOrganizationsServicePatchApiV1OrganizationsByOrganizationId({
-      onSuccess(data) {
-        toast.info('Edit Organization', {
-          description: `Organization "${data.name}" updated successfully.`,
-        });
-        router.invalidate();
-        navigate({
-          to: '/organizations/$orgId',
-          params: { orgId: params.orgId },
-          reloadDocument: true,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync, isPending } = useMutation({
+    ...patchOrganizationByIdMutation(),
+    onSuccess(data) {
+      toast.info('Edit Organization', {
+        description: `Organization "${data.name}" updated successfully.`,
+      });
+      router.invalidate();
+      navigate({
+        to: '/organizations/$orgId',
+        params: { orgId: params.orgId },
+        reloadDocument: true,
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -107,39 +110,43 @@ const OrganizationSettingsPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      organizationId: organization.id,
-      requestBody: {
+      path: {
+        organizationId: organization.id,
+      },
+      body: {
         name: values.name,
         description: values.description,
       },
     });
   }
 
-  const { mutateAsync: deleteOrganization } =
-    useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationId({
-      onSuccess() {
-        toast.info('Delete Organization', {
-          description: `Organization "${organization.name}" deleted successfully.`,
-        });
-        navigate({
-          to: '/',
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync: deleteOrganization } = useMutation({
+    ...deleteOrganizationByIdMutation(),
+    onSuccess() {
+      toast.info('Delete Organization', {
+        description: `Organization "${organization.name}" deleted successfully.`,
+      });
+      navigate({
+        to: '/',
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   async function handleDelete() {
     await deleteOrganization({
-      organizationId: organizationId,
+      path: {
+        organizationId: organizationId,
+      },
     });
   }
 
@@ -230,17 +237,14 @@ const OrganizationSettingsPage = () => {
 };
 
 export const Route = createFileRoute('/organizations/$orgId/settings/')({
-  loader: async ({ context, params }) => {
+  loader: async ({ context: { queryClient }, params }) => {
     const organizationId = Number.parseInt(params.orgId);
-    await context.queryClient.prefetchQuery({
-      queryKey:
-        UseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdKeyFn({
+    await queryClient.prefetchQuery({
+      ...getOrganizationByIdOptions({
+        path: {
           organizationId,
-        }),
-      queryFn: () =>
-        OrganizationsService.getApiV1OrganizationsByOrganizationId({
-          organizationId,
-        }),
+        },
+      }),
     });
   },
   component: OrganizationSettingsPage,
