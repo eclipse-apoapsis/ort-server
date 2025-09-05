@@ -17,12 +17,11 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { CatchBoundary, createFileRoute, Link } from '@tanstack/react-router';
 import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries';
-import { prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId } from '@/api/queries/prefetch';
 import { ErrorComponent } from '@/components/error-component';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
@@ -34,6 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { getOrganizationByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
 import { OrganizationIssuesStatisticsCard } from './-components/organization-issues-statistics-card';
@@ -51,8 +51,10 @@ const OrganizationComponent = () => {
     error: orgError,
     isPending: orgIsPending,
     isError: orgIsError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
-    organizationId: Number.parseInt(params.orgId),
+  } = useQuery({
+    ...getOrganizationByIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+    }),
   });
 
   if (orgIsPending) {
@@ -176,13 +178,12 @@ const OrganizationComponent = () => {
 
 export const Route = createFileRoute('/organizations/$orgId/')({
   validateSearch: paginationSearchParameterSchema,
-  loader: async ({ context, params }) => {
-    await prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
-      context.queryClient,
-      {
-        organizationId: Number.parseInt(params.orgId),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrganizationByIdOptions({
+        path: { organizationId: Number.parseInt(params.orgId) },
+      }),
+    });
   },
   component: OrganizationComponent,
   pendingComponent: LoadingIndicator,
