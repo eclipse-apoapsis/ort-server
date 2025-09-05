@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
@@ -27,17 +27,7 @@ import {
 } from '@tanstack/react-table';
 import { EditIcon, PlusIcon } from 'lucide-react';
 
-import {
-  useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName,
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices,
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
-} from '@/api/queries';
-import {
-  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
-  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices,
-} from '@/api/queries/prefetch';
-import { ApiError, InfrastructureService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -57,6 +47,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { InfrastructureService } from '@/hey-api';
+import {
+  deleteInfrastructureServiceForOrganizationIdAndNameMutation,
+  getInfrastructureServicesByOrganizationIdOptions,
+  getInfrastructureServicesByOrganizationIdQueryKey,
+  getOrganizationByIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { paginationSearchParameterSchema } from '@/schemas';
@@ -67,31 +64,29 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
-  const { mutateAsync: delService } =
-    useOrganizationsServiceDeleteApiV1OrganizationsByOrganizationIdInfrastructureServicesByServiceName(
-      {
-        onSuccess() {
-          toast.info('Delete Infrastructure Service', {
-            description: `Infrastructure service "${row.original.name}" deleted successfully.`,
-          });
-          queryClient.invalidateQueries({
-            queryKey: [
-              useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServicesKey,
-            ],
-          });
+  const { mutateAsync: delService } = useMutation({
+    ...deleteInfrastructureServiceForOrganizationIdAndNameMutation(),
+    onSuccess() {
+      toast.info('Delete Infrastructure Service', {
+        description: `Infrastructure service "${row.original.name}" deleted successfully.`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getInfrastructureServicesByOrganizationIdQueryKey({
+          path: { organizationId: Number.parseInt(params.orgId) },
+        }),
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+      });
+    },
+  });
 
   return (
     <div className='flex justify-end gap-1'>
@@ -114,8 +109,10 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
         uiComponent={<DeleteIconButton />}
         onDelete={() =>
           delService({
-            organizationId: Number.parseInt(params.orgId),
-            serviceName: row.original.name,
+            path: {
+              organizationId: Number.parseInt(params.orgId),
+              serviceName: row.original.name,
+            },
           })
         }
       />
@@ -134,8 +131,10 @@ const InfrastructureServices = () => {
     error: orgError,
     isPending: orgIsPending,
     isError: orgIsError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
-    organizationId: Number.parseInt(params.orgId),
+  } = useQuery({
+    ...getOrganizationByIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+    }),
   });
 
   const {
@@ -143,13 +142,12 @@ const InfrastructureServices = () => {
     error: infraError,
     isPending: infraIsPending,
     isError: infraIsError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices(
-    {
-      organizationId: Number.parseInt(params.orgId),
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-    }
-  );
+  } = useQuery({
+    ...getInfrastructureServicesByOrganizationIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+      query: { limit: pageSize, offset: pageIndex * pageSize },
+    }),
+  });
 
   const columns: ColumnDef<InfrastructureService>[] = [
     {
@@ -290,22 +288,26 @@ export const Route = createFileRoute(
 )({
   validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context, params, deps: { page, pageSize } }) => {
+  loader: async ({
+    context: { queryClient },
+    params,
+    deps: { page, pageSize },
+  }) => {
     await Promise.allSettled([
-      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
-        context.queryClient,
-        {
-          organizationId: Number.parseInt(params.orgId),
-        }
-      ),
-      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdInfrastructureServices(
-        context.queryClient,
-        {
-          organizationId: Number.parseInt(params.orgId),
-          limit: pageSize || defaultPageSize,
-          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-        }
-      ),
+      queryClient.prefetchQuery({
+        ...getOrganizationByIdOptions({
+          path: { organizationId: Number.parseInt(params.orgId) },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getInfrastructureServicesByOrganizationIdOptions({
+          path: { organizationId: Number.parseInt(params.orgId) },
+          query: {
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+          },
+        }),
+      }),
     ]);
   },
   component: InfrastructureServices,
