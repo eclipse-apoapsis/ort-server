@@ -18,12 +18,12 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useOrganizationsServicePostApiV1Organizations } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
@@ -44,6 +44,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { postOrganizationsMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -54,28 +55,28 @@ const formSchema = z.object({
 const CreateOrganizationPage = () => {
   const navigate = useNavigate();
 
-  const { mutateAsync, isPending } =
-    useOrganizationsServicePostApiV1Organizations({
-      onSuccess(data) {
-        toast.info('Add Organization', {
-          description: `Organization "${data.name}" added successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId',
-          params: { orgId: data.id.toString() },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync, isPending } = useMutation({
+    ...postOrganizationsMutation(),
+    onSuccess(data) {
+      toast.info('Add Organization', {
+        description: `Organization "${data.name}" added successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId',
+        params: { orgId: data.id.toString() },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,7 +87,7 @@ const CreateOrganizationPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      requestBody: {
+      body: {
         name: values.name,
         description: values.description,
       },
