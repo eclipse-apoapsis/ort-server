@@ -17,12 +17,13 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { ShieldQuestion } from 'lucide-react';
 
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdStatisticsRunsSuspense } from '@/api/queries/suspense';
-import { VulnerabilityRating } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
+import { VulnerabilityRating } from '@/hey-api';
+import { getOrtRunStatisticsByOrganizationIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type OrganizationVulnerabilitiesStatisticsCardProps = {
@@ -34,12 +35,11 @@ export const OrganizationVulnerabilitiesStatisticsCard = ({
   organizationId,
   className,
 }: OrganizationVulnerabilitiesStatisticsCardProps) => {
-  const data =
-    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdStatisticsRunsSuspense(
-      {
-        organizationId: organizationId,
-      }
-    );
+  const data = useSuspenseQuery({
+    ...getOrtRunStatisticsByOrganizationIdOptions({
+      path: { organizationId: organizationId },
+    }),
+  });
 
   const total = data.data.vulnerabilitiesCount;
   const counts = data.data.vulnerabilitiesCountByRating;

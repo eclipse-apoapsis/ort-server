@@ -17,12 +17,13 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Scale } from 'lucide-react';
 
-import { useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdStatisticsRunsSuspense } from '@/api/queries/suspense';
-import { Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
+import { Severity } from '@/hey-api';
+import { getOrtRunStatisticsByOrganizationIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type OrganizationViolationsStatisticsCardProps = {
@@ -34,12 +35,11 @@ export const OrganizationViolationsStatisticsCard = ({
   organizationId,
   className,
 }: OrganizationViolationsStatisticsCardProps) => {
-  const data =
-    useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdStatisticsRunsSuspense(
-      {
-        organizationId: organizationId,
-      }
-    );
+  const data = useSuspenseQuery({
+    ...getOrtRunStatisticsByOrganizationIdOptions({
+      path: { organizationId: organizationId },
+    }),
+  });
 
   const total = data.data.ruleViolationsCount;
   const counts = data.data.ruleViolationsCountBySeverity;

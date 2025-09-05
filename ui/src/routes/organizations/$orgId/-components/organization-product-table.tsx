@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -25,14 +26,14 @@ import {
 } from '@tanstack/react-table';
 import { Loader2 } from 'lucide-react';
 
-import {
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdProducts,
-  useProductsServiceGetApiV1ProductsByProductIdRepositories,
-} from '@/api/queries';
-import { PagedResponse_Product, Product } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
+import { PagedResponseProduct, Product } from '@/hey-api';
+import {
+  getOrganizationProductsOptions,
+  getRepositoriesByProductIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { LastJobStatus } from '../products/$productId/-components/last-job-status';
@@ -74,11 +75,12 @@ const columns = [
     header: 'Runs',
     size: 60,
     cell: function CellComponent({ row }) {
-      const { data, isPending, isError } =
-        useProductsServiceGetApiV1ProductsByProductIdRepositories({
-          productId: row.original.id,
-          limit: 1,
-        });
+      const { data, isPending, isError } = useQuery({
+        ...getRepositoriesByProductIdOptions({
+          path: { productId: row.original.id },
+          query: { limit: 1 },
+        }),
+      });
 
       if (isPending)
         return (
@@ -100,11 +102,12 @@ const columns = [
     id: 'runStatus',
     header: 'Last Run Status',
     cell: function CellComponent({ row }) {
-      const { data, isPending, isError } =
-        useProductsServiceGetApiV1ProductsByProductIdRepositories({
-          productId: row.original.id,
-          limit: 1,
-        });
+      const { data, isPending, isError } = useQuery({
+        ...getRepositoriesByProductIdOptions({
+          path: { productId: row.original.id },
+          query: { limit: 1 },
+        }),
+      });
 
       if (isPending)
         return (
@@ -127,11 +130,12 @@ const columns = [
     id: 'lastRunDate',
     header: 'Last Run Date',
     cell: function CellComponent({ row }) {
-      const { data, isPending, isError } =
-        useProductsServiceGetApiV1ProductsByProductIdRepositories({
-          productId: row.original.id,
-          limit: 1,
-        });
+      const { data, isPending, isError } = useQuery({
+        ...getRepositoriesByProductIdOptions({
+          path: { productId: row.original.id },
+          query: { limit: 1 },
+        }),
+      });
 
       if (isPending)
         return (
@@ -153,11 +157,12 @@ const columns = [
     id: 'jobStatus',
     header: 'Last Job Status',
     cell: function CellComponent({ row }) {
-      const { data, isPending, isError } =
-        useProductsServiceGetApiV1ProductsByProductIdRepositories({
-          productId: row.original.id,
-          limit: 1,
-        });
+      const { data, isPending, isError } = useQuery({
+        ...getRepositoriesByProductIdOptions({
+          path: { productId: row.original.id },
+          query: { limit: 1 },
+        }),
+      });
 
       if (isPending)
         return (
@@ -191,10 +196,11 @@ export const OrganizationProductTable = () => {
     error: prodError,
     isPending: prodIsPending,
     isError: prodIsError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdProducts({
-    organizationId: Number.parseInt(params.orgId),
-    limit: pageSize,
-    offset: pageIndex * pageSize,
+  } = useQuery({
+    ...getOrganizationProductsOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+      query: { limit: pageSize, offset: pageIndex * pageSize },
+    }),
   });
 
   if (prodIsPending) {
@@ -225,7 +231,7 @@ const OrganizationProductTableInner = ({
   products,
   prodPageSize,
 }: {
-  products: PagedResponse_Product;
+  products: PagedResponseProduct;
   prodPageSize: number;
 }) => {
   const setProdPageSize = useTablePrefsStore((state) => state.setProdPageSize);
