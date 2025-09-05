@@ -23,6 +23,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { ApiError } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -90,7 +91,7 @@ export function FooterForm() {
         description: `Footer saved successfully.`,
       });
     },
-    onError(error) {
+    onError(error: ApiError) {
       toast.error(error.message, {
         description: <ToastError error={error} />,
         duration: Infinity,
