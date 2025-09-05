@@ -119,8 +119,7 @@ class ProjectServiceTest : WordSpec() {
                 os = "Linux",
                 processors = 8,
                 maxMemory = 8321499136,
-                variables = emptyMap(),
-                toolVersions = emptyMap()
+                variables = emptyMap()
             ),
             config = AnalyzerConfiguration(
                 allowDynamicVersions = true,

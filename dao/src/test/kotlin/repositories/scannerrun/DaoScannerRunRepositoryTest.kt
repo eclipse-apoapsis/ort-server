@@ -398,19 +398,13 @@ private val variables = mapOf(
     "TERM" to "xterm-256color"
 )
 
-private val toolVersions = mapOf(
-    "Conan" to "1.53.0",
-    "NPM" to "8.15.1"
-)
-
 private val environment = Environment(
     ortVersion = "1.0",
     javaVersion = "11.0.16",
     os = "Linux",
     processors = 8,
     maxMemory = 8321499136,
-    variables = variables,
-    toolVersions = toolVersions
+    variables = variables
 )
 
 private val scannerRun = ScannerRun(

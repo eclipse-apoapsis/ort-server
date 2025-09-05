@@ -57,6 +57,7 @@ dependencies {
     implementation(ortLibs.downloader)
     implementation(ortLibs.reporter)
     implementation(ortLibs.utils.config)
+    implementation(platform(ortLibs.ortPlugins.licenseFactProviders))
     implementation(platform(ortLibs.ortPlugins.packageConfigurationProviders))
     implementation(platform(ortLibs.ortPlugins.versionControlSystems))
 

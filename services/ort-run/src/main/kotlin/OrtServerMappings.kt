@@ -311,8 +311,7 @@ fun Environment.mapToOrt() =
         javaVersion = javaVersion,
         processors = processors,
         maxMemory = maxMemory,
-        variables = variables,
-        toolVersions = toolVersions
+        variables = variables
     )
 
 fun EvaluatorRun.mapToOrt() =

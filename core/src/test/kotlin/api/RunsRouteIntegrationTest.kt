@@ -894,8 +894,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         os = "Linux",
                         processors = 8,
                         maxMemory = 8321499136,
-                        variables = emptyMap(),
-                        toolVersions = emptyMap()
+                        variables = emptyMap()
                     ),
                     config = AnalyzerConfiguration(
                         allowDynamicVersions = true,
@@ -992,8 +991,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         os = "Linux",
                         processors = 8,
                         maxMemory = 8321499136,
-                        variables = emptyMap(),
-                        toolVersions = emptyMap()
+                        variables = emptyMap()
                     ),
                     config = AdvisorConfiguration(
                         config = mapOf(
@@ -1098,8 +1096,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         os = "Linux",
                         processors = 8,
                         maxMemory = 8321499136,
-                        variables = emptyMap(),
-                        toolVersions = emptyMap()
+                        variables = emptyMap()
                     ),
                     config = AnalyzerConfiguration(
                         allowDynamicVersions = true,
@@ -1412,8 +1409,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         os = "Linux",
                         processors = 8,
                         maxMemory = 8321499136,
-                        variables = emptyMap(),
-                        toolVersions = emptyMap()
+                        variables = emptyMap()
                     ),
                     config = AnalyzerConfiguration(
                         allowDynamicVersions = true,
@@ -1882,8 +1878,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         os = "Linux",
                         processors = 8,
                         maxMemory = 8321499136,
-                        variables = emptyMap(),
-                        toolVersions = emptyMap()
+                        variables = emptyMap()
                     ),
                     config = AnalyzerConfiguration(
                         allowDynamicVersions = true,
@@ -2002,8 +1997,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                         os = "Linux",
                         processors = 8,
                         maxMemory = 8321499136,
-                        variables = emptyMap(),
-                        toolVersions = emptyMap()
+                        variables = emptyMap()
                     ),
                     config = AdvisorConfiguration(
                         config = mapOf(
@@ -2320,8 +2314,7 @@ private fun generateAdvisorEnvironment() = Environment(
     os = "Linux",
     processors = 8,
     maxMemory = 8321499136,
-    variables = emptyMap(),
-    toolVersions = emptyMap()
+    variables = emptyMap()
 )
 
 private fun generateAdvisorConfiguration() = AdvisorConfiguration(

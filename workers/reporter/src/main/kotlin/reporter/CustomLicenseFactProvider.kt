@@ -23,24 +23,23 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 
-import org.ossreviewtoolkit.reporter.DefaultLicenseTextProvider
-import org.ossreviewtoolkit.reporter.LicenseTextProvider
+import org.ossreviewtoolkit.plugins.api.PluginDescriptor
+import org.ossreviewtoolkit.plugins.licensefactproviders.api.LicenseFactProvider
 
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger(CustomLicenseTextProvider::class.java)
+private val logger = LoggerFactory.getLogger(CustomLicenseFactProvider::class.java)
 
 /**
- * A specialized [LicenseTextProvider] implementation that is used by the [ReporterRunner] to support efficient access
+ * A specialized [LicenseFactProvider] implementation that is used by the [ReporterRunner] to support efficient access
  * to custom license texts stored in a configuration directory.
  *
- * The [LicenseTextProvider] implementations available in ORT expect that license texts are available in a local
+ * The [LicenseFactProvider] implementations available in ORT expect that license texts are available in a local
  * folder. For ORT Server, this is not necessarily the case, but depends on the provider for config files. This
  * implementation therefore uses the configuration manager API to check whether a requested license text is available
- * in the configuration. If it is, it obtains the license text from the configuration. Otherwise, it delegates to
- * another [LicenseTextProvider] implementation which searches the default paths used by ORT.
+ * in the configuration. If it is, it obtains the license text from the configuration.
  */
-internal class CustomLicenseTextProvider(
+internal class CustomLicenseFactProvider(
     /** The object for accessing the configuration. */
     val configManager: ConfigManager,
 
@@ -48,11 +47,14 @@ internal class CustomLicenseTextProvider(
     val configurationContext: Context?,
 
     /** The [Path] to the directory in the configuration containing custom license texts. */
-    rawLicenseTextDir: Path,
+    rawLicenseTextDir: Path
+) : LicenseFactProvider {
+    override val descriptor = PluginDescriptor(
+        id = "CustomLicenseFactProvider",
+        displayName = "Custom License Fact Provider",
+        description = "A provider that reads license facts from the ORT Server configuration directory."
+    )
 
-    /** A fallback [LicenseTextProvider] to query for license texts not available in the configuration. */
-    val wrappedProvider: LicenseTextProvider = DefaultLicenseTextProvider()
-) : LicenseTextProvider {
     /** The sanitized [Path] to the directory in the configuration containing custom license texts. */
     val licenseTextDir = Path(rawLicenseTextDir.path.removeSuffix("/"))
 
@@ -64,30 +66,16 @@ internal class CustomLicenseTextProvider(
             .also { logger.debug("Found custom license texts: {}.", it) }
     }
 
-    override fun getLicenseTextReader(licenseId: String): (() -> String)? = {
+    override fun getLicenseText(licenseId: String): String? {
         logger.debug("Request for license text of '{}'.", licenseId)
 
-        if (isKnownLicense(licenseId)) {
+        if (hasLicenseText(licenseId)) {
             logger.debug("Loading license text of '{}' from config directory.", licenseId)
-            getLicenseTextFromConfig(licenseId)
-        } else {
-            wrappedProvider.getLicenseTextReader(licenseId)?.invoke().orEmpty()
+            return configManager.getFileAsString(configurationContext, Path("${licenseTextDir.path}/$licenseId"))
         }
+
+        return null
     }
 
-    override fun hasLicenseText(licenseId: String): Boolean {
-        return isKnownLicense(licenseId) || wrappedProvider.hasLicenseText(licenseId)
-    }
-
-    /**
-     * Check whether the given [licenseId] can be resolved from the configuration.
-     */
-    private fun isKnownLicense(licenseId: String): Boolean =
-        licenseId in knownLicenseTexts
-
-    /**
-     * Return the license text for the given [licenseId] from the configuration.
-     */
-    private fun getLicenseTextFromConfig(licenseId: String): String =
-        configManager.getFileAsString(configurationContext, Path("${licenseTextDir.path}/$licenseId"))
+    override fun hasLicenseText(licenseId: String) = licenseId in knownLicenseTexts
 }

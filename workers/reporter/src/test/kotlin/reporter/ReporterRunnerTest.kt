@@ -32,8 +32,8 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.types.beInstanceOf
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -50,6 +50,9 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
+
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.jvm.isAccessible
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -91,8 +94,11 @@ import org.ossreviewtoolkit.model.licenses.LicenseClassifications
 import org.ossreviewtoolkit.model.utils.DefaultResolutionProvider
 import org.ossreviewtoolkit.model.yamlMapper
 import org.ossreviewtoolkit.plugins.api.PluginConfig as OrtPluginConfig
+import org.ossreviewtoolkit.plugins.licensefactproviders.api.CompositeLicenseFactProvider
+import org.ossreviewtoolkit.plugins.licensefactproviders.api.LicenseFactProvider
+import org.ossreviewtoolkit.plugins.licensefactproviders.scancode.ScanCodeLicenseFactProvider
+import org.ossreviewtoolkit.plugins.licensefactproviders.spdx.SpdxLicenseFactProvider
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
-import org.ossreviewtoolkit.reporter.DefaultLicenseTextProvider
 import org.ossreviewtoolkit.reporter.HowToFixTextProvider
 import org.ossreviewtoolkit.reporter.Reporter
 import org.ossreviewtoolkit.reporter.ReporterFactory
@@ -881,8 +887,9 @@ class ReporterRunnerTest : WordSpec({
 
             // Verify that a valid provider was passed to the reporter input.
             reporterInputSlot.isCaptured shouldBe true
-            with(reporterInputSlot.captured.licenseTextProvider as CustomLicenseTextProvider) {
-                licenseTextDir shouldBe Path(customLicenseTextsPath)
+            with(reporterInputSlot.captured.licenseFactProvider as CompositeLicenseFactProvider) {
+                val provider = getProviders().single { it is CustomLicenseFactProvider } as CustomLicenseFactProvider
+                provider.licenseTextDir shouldBe Path(customLicenseTextsPath)
             }
         }
 
@@ -1029,8 +1036,8 @@ class ReporterRunnerTest : WordSpec({
         }
     }
 
-    "createLicenseTextProvider" should {
-        "create a CustomLicenseTextProvider if a custom license text directory is configured" {
+    "createLicenseFactProvider" should {
+        "create a CustomLicenseTextProvider and default providers if a custom license text directory is configured" {
             val testConfigContext = "configurationContext"
             val customLicenseTextDir = "path/to/custom/licenses"
             val reporterConfig = createReporterConfig(customLicenseTextDir = customLicenseTextDir)
@@ -1062,23 +1069,26 @@ class ReporterRunnerTest : WordSpec({
                 every { this@mockk.configManager } returns configManager
             }
 
-            val provider = createLicenseTextProvider(context, reporterConfig)
+            val provider = createLicenseFactProvider(context, reporterConfig)
 
-            with(provider as CustomLicenseTextProvider) {
+            with(provider.getProviders().single { it is CustomLicenseFactProvider } as CustomLicenseFactProvider) {
                 this.configManager shouldBe configManager
                 this.configurationContext?.name shouldBe testConfigContext
                 licenseTextDir shouldBe Path(customLicenseTextDir)
-                wrappedProvider should beInstanceOf<DefaultLicenseTextProvider>()
             }
+
+            provider.getProviders().find { it is SpdxLicenseFactProvider } shouldNot beNull()
+            provider.getProviders().find { it is ScanCodeLicenseFactProvider } shouldNot beNull()
         }
 
-        "create a DefaultLicenseTextProvider if no custom license text directory is configured" {
+        "create the default providers" {
             val reporterConfig = createReporterConfig()
             val context = mockk<WorkerContext>()
 
-            val provider = createLicenseTextProvider(context, reporterConfig)
+            val provider = createLicenseFactProvider(context, reporterConfig)
 
-            provider should beInstanceOf<DefaultLicenseTextProvider>()
+            provider.getProviders().find { it is SpdxLicenseFactProvider } shouldNot beNull()
+            provider.getProviders().find { it is ScanCodeLicenseFactProvider } shouldNot beNull()
         }
     }
 })
@@ -1174,4 +1184,13 @@ private fun simulateGetConfigFile(name: String): InputStream =
 private fun <T> T.toStream(): InputStream {
     val serialized = yamlMapper.writeValueAsBytes(this)
     return ByteArrayInputStream(serialized)
+}
+
+/** Get the private providers from a [CompositeLicenseFactProvider]. */
+private fun CompositeLicenseFactProvider.getProviders(): List<LicenseFactProvider> {
+    val providersProperty =
+        CompositeLicenseFactProvider::class.declaredMemberProperties.first { it.name == "providers" }
+    providersProperty.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    return providersProperty.get(this) as List<LicenseFactProvider>
 }
