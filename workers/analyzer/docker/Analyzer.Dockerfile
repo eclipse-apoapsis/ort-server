@@ -552,4 +552,7 @@ RUN sudo chgrp -R 0 /home/ort && sudo chmod -R g+rwX /home/ort
 USER $USERNAME
 WORKDIR $HOMEDIR
 
+# Install cargo-credential-netrc late in the build to prevent an error accessing /opt/rust/cargo/registry/.
+RUN $CARGO_HOME/bin/cargo install cargo-credential-netrc
+
 ENTRYPOINT ["/bin/bash"]
