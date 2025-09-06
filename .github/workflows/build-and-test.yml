@@ -55,6 +55,7 @@ jobs:
             buildPath: 'cli/build/bin/mingwX64/releaseExecutable/osc.exe'
             binName: 'osc.exe'
 
+    name: Build ${{ matrix.target.name }} CLI
     runs-on: ${{ matrix.target.os }}
     steps:
     - name: Checkout Repository
