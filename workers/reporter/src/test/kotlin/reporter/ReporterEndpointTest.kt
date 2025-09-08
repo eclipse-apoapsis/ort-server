@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.engine.test.TestResult
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -50,8 +51,6 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
-
-import org.ossreviewtoolkit.utils.test.withEnvironment
 
 private const val REPORTER_JOB_ID = 1L
 private const val TRACE_ID = "42"

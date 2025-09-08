@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.config
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -48,8 +49,6 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
-
-import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class EndpointTest : KoinTest, StringSpec() {
     init {

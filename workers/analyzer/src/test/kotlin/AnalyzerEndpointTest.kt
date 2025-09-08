@@ -26,6 +26,7 @@ import io.kotest.core.test.TestCase
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.test.TestResult
 import io.kotest.extensions.system.OverrideMode
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.extensions.system.withSystemProperties
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
@@ -85,8 +86,6 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
-
-import org.ossreviewtoolkit.utils.test.withEnvironment
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"

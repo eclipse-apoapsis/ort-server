@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.orchestrator
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.TestCase
 import io.kotest.engine.test.TestResult
+import io.kotest.extensions.system.withEnvironment
 
 import io.mockk.every
 import io.mockk.just
@@ -65,8 +66,6 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.mock.MockProvider
 import org.koin.test.mock.declareMock
-
-import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class OrchestratorEndpointTest : KoinTest, StringSpec() {
     private val msgHeader = MessageHeader(

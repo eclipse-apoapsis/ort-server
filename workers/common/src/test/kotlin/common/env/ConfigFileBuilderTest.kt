@@ -23,6 +23,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.OverrideMode
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.extensions.system.withSystemProperties
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -36,8 +37,6 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialRes
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedInfraSecretResolver
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printLines
 import org.eclipse.apoapsis.ortserver.workers.common.env.ConfigFileBuilder.Companion.printProxySettings
-
-import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class ConfigFileBuilderTest : StringSpec({
     "A PrintWriter is exposed" {
