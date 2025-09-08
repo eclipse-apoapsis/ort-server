@@ -17,13 +17,12 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 import z from 'zod';
 
-import { useProductsServiceGetApiV1ProductsByProductId } from '@/api/queries';
-import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -34,6 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { getProductByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,
@@ -54,8 +54,10 @@ const ProductComponent = () => {
     error: prodError,
     isPending: prodIsPending,
     isError: prodIsError,
-  } = useProductsServiceGetApiV1ProductsByProductId({
-    productId: Number.parseInt(params.productId),
+  } = useQuery({
+    ...getProductByIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+    }),
   });
 
   if (prodIsPending) {
@@ -171,13 +173,12 @@ export const Route = createFileRoute(
     ...paginationSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
   }),
-  loader: async ({ context, params }) => {
-    await prefetchUseProductsServiceGetApiV1ProductsByProductId(
-      context.queryClient,
-      {
-        productId: Number.parseInt(params.productId),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getProductByIdOptions({
+        path: { productId: Number.parseInt(params.productId) },
+      }),
+    });
   },
   component: ProductComponent,
   pendingComponent: LoadingIndicator,
