@@ -20,10 +20,10 @@
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { BookLock, Eye, Settings, ShieldQuestion, User } from 'lucide-react';
 
-import { useProductsServiceGetApiV1ProductsByProductIdKey } from '@/api/queries';
-import { ApiError, ProductsService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
+import { getProductByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
 
 const Layout = () => {
@@ -109,14 +109,9 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     try {
       const product = await context.queryClient.ensureQueryData({
-        queryKey: [
-          useProductsServiceGetApiV1ProductsByProductIdKey,
-          params.productId,
-        ],
-        queryFn: () =>
-          ProductsService.getApiV1ProductsByProductId({
-            productId: Number.parseInt(params.productId),
-          }),
+        ...getProductByIdOptions({
+          path: { productId: Number.parseInt(params.productId) },
+        }),
       });
       context.breadcrumbs.product = product.name;
     } catch (error) {
