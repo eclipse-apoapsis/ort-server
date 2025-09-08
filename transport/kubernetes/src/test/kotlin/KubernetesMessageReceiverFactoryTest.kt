@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.transport.kubernetes
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -40,8 +41,6 @@ import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.RUN_ID_PROPERTY
 import org.eclipse.apoapsis.ortserver.transport.TRACE_PROPERTY
-
-import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class KubernetesMessageReceiverFactoryTest : StringSpec({
     beforeAny {

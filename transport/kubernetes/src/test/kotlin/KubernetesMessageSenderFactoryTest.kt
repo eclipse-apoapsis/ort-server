@@ -23,6 +23,7 @@ import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempfile
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.maps.shouldContainExactly
@@ -34,8 +35,6 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.AnalyzerEndpoint
 import org.eclipse.apoapsis.ortserver.transport.MessageSenderFactory
-
-import org.ossreviewtoolkit.utils.test.withEnvironment
 
 private const val NAMESPACE = "test-namespace"
 private const val IMAGE_NAME = "busybox"

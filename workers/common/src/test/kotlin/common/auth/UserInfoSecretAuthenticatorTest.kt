@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.auth
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -28,8 +29,6 @@ import io.kotest.matchers.shouldBe
 import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.net.URI
-
-import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class UserInfoSecretAuthenticatorTest : StringSpec({
     "A URL with credentials defined in a 'URL' variable should be handled correctly" {

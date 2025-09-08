@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.tasks
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.should
@@ -56,8 +57,6 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.test.KoinTest
-
-import org.ossreviewtoolkit.utils.test.withEnvironment
 
 class TaskRunnerTest : KoinTest, WordSpec() {
     init {
