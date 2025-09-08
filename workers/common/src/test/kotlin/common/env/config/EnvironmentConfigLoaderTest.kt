@@ -516,9 +516,9 @@ private class TestHelper(
             path = name,
             name = name,
             description = null,
-            organization = organization,
-            product = product,
-            repository = repository
+            organizationId = organization?.id,
+            productId = product?.id,
+            repositoryId = repository?.id
         ).also { secrets.add(it) }
 
     /**
@@ -546,19 +546,19 @@ private class TestHelper(
         coEvery {
             secretService.listForId(RepositoryId(repository.id))
         } returns mockk<ListQueryResult<Secret>> {
-            every { data } returns secrets.filter { it.repository != null }
+            every { data } returns secrets.filter { it.repositoryId != null }
         }
 
         coEvery {
             secretService.listForId(ProductId(product.id))
         } returns mockk<ListQueryResult<Secret>> {
-            every { data } returns secrets.filter { it.product != null }
+            every { data } returns secrets.filter { it.productId != null }
         }
 
         coEvery {
             secretService.listForId(OrganizationId(organization.id))
         } returns mockk<ListQueryResult<Secret>> {
-            every { data } returns secrets.filter { it.organization != null }
+            every { data } returns secrets.filter { it.organizationId != null }
         }
     }
 

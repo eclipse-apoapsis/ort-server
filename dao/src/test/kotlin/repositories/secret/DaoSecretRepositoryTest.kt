@@ -87,7 +87,7 @@ class DaoSecretRepositoryTest : StringSpec() {
                 path + name,
                 name,
                 description,
-                fixtures.organization,
+                fixtures.organization.id,
                 null,
                 null
             )
@@ -112,7 +112,7 @@ class DaoSecretRepositoryTest : StringSpec() {
                 name,
                 description,
                 null,
-                fixtures.product,
+                fixtures.product.id,
                 null
             )
         }
@@ -137,7 +137,7 @@ class DaoSecretRepositoryTest : StringSpec() {
                 description,
                 null,
                 null,
-                fixtures.repository
+                fixtures.repository.id
             )
         }
 

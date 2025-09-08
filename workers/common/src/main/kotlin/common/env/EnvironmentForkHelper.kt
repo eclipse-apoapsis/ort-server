@@ -167,9 +167,9 @@ object EnvironmentForkHelper {
             path = path,
             name = path,
             description = null,
-            organization = null,
-            product = null,
-            repository = null
+            organizationId = null,
+            productId = null,
+            repositoryId = null
         )
 }
 

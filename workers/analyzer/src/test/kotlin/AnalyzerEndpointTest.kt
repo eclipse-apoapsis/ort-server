@@ -311,8 +311,8 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
             )
             val testHierarchy = Hierarchy(repository, product, organization)
 
-            val usernameSecret = Secret(20230627040646L, "p1", "repositoryUsername", null, null, null, repository)
-            val passwordSecret = Secret(20230627070543L, "p2", "repositoryPassword", null, null, null, repository)
+            val usernameSecret = Secret(20230627040646L, "p1", "repositoryUsername", null, null, null, repository.id)
+            val passwordSecret = Secret(20230627070543L, "p2", "repositoryPassword", null, null, null, repository.id)
             declareMock<SecretService> {
                 coEvery { listForId(RepositoryId(repository.id)) } returns
                         ListQueryResult(listOf(usernameSecret, passwordSecret), ListQueryParameters.DEFAULT, 2)

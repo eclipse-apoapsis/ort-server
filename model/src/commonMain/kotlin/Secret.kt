@@ -45,17 +45,17 @@ data class Secret(
     val description: String?,
 
     /**
-     * The [Organization] to which the secret belongs.
+     * The ID of the [Organization] the secret belongs to.
      */
-    val organization: Organization?,
+    val organizationId: Long?,
 
     /**
-     * The [Product] to which the secret belongs.
+     * The ID of the [Product] the secret belongs to.
      */
-    val product: Product?,
+    val productId: Long?,
 
     /**
-     * The [Repository] to which the secret belongs.
+     * The ID of the [Repository] the secret belongs to.
      */
-    val repository: Repository?
+    val repositoryId: Long?
 )

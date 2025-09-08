@@ -696,9 +696,7 @@ class EnvironmentServiceTest : WordSpec({
 
         "return a matching secret on repository level in the context of the ORT run" {
             val mySecret = mockk<Secret> {
-                every { repository } returns mockk<Repository> {
-                    every { id } returns REPOSITORY_ID
-                }
+                every { repositoryId } returns REPOSITORY_ID
             }
 
             val secretRepository = mockSecretService {
@@ -719,14 +717,12 @@ class EnvironmentServiceTest : WordSpec({
             val result = environmentService.resolveSecretByName("my-secret-name", currentOrtRun, "my-service-name")
 
             result shouldBe mySecret
-            result?.repository?.id shouldBe REPOSITORY_ID
+            result?.repositoryId shouldBe REPOSITORY_ID
         }
 
         "return a matching secret on product level in the context of the ORT run" {
             val mySecret = mockk<Secret> {
-                every { product } returns mockk<Product> {
-                    every { id } returns PRODUCT_ID
-                }
+                every { productId } returns PRODUCT_ID
             }
 
             val secretRepository = mockSecretService {
@@ -747,14 +743,12 @@ class EnvironmentServiceTest : WordSpec({
             val result = environmentService.resolveSecretByName("my-secret-name", currentOrtRun, "my-service-name")
 
             result shouldBe mySecret
-            result?.product?.id shouldBe PRODUCT_ID
+            result?.productId shouldBe PRODUCT_ID
         }
 
         "return a matching secret on organization level in the context of the ORT run" {
             val mySecret = mockk<Secret> {
-                every { organization } returns mockk<Organization> {
-                    every { id } returns ORGANIZATION_ID
-                }
+                every { organizationId } returns ORGANIZATION_ID
             }
 
             val secretRepository = mockSecretService {
@@ -775,26 +769,20 @@ class EnvironmentServiceTest : WordSpec({
             val result = environmentService.resolveSecretByName("my-secret-name", currentOrtRun, "my-service-name")
 
             result shouldBe mySecret
-            result?.organization?.id shouldBe ORGANIZATION_ID
+            result?.organizationId shouldBe ORGANIZATION_ID
         }
 
         "return a matching secret on repository level in the context of the ORT run when multiple secrets exist" {
             val mySecretRepositoryLevel = mockk<Secret> {
-                every { repository } returns mockk<Repository> {
-                    every { id } returns REPOSITORY_ID
-                }
+                every { repositoryId } returns REPOSITORY_ID
             }
 
             val mySecretProductLevel = mockk<Secret> {
-                every { product } returns mockk<Product> {
-                    every { id } returns PRODUCT_ID
-                }
+                every { productId } returns PRODUCT_ID
             }
 
             val mySecretOrganizationLevel = mockk<Secret> {
-                every { organization } returns mockk<Organization> {
-                    every { id } returns ORGANIZATION_ID
-                }
+                every { organizationId } returns ORGANIZATION_ID
             }
 
             val secretRepository = mockSecretService {
@@ -823,7 +811,7 @@ class EnvironmentServiceTest : WordSpec({
             val result = environmentService.resolveSecretByName("my-secret-name", currentOrtRun, "my-service-name")
 
             result shouldBe mySecretRepositoryLevel
-            result?.repository?.id shouldBe REPOSITORY_ID
+            result?.repositoryId shouldBe REPOSITORY_ID
         }
     }
 })
