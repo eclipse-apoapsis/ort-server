@@ -19,12 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.secret
 
-import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
-import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
@@ -47,11 +44,8 @@ class SecretDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<SecretDao>(SecretsTable)
 
     var organizationId by SecretsTable.organizationId.transformToEntityId()
-    var organization by OrganizationDao optionalReferencedOn SecretsTable.organizationId
     var productId by SecretsTable.productId.transformToEntityId()
-    var product by ProductDao optionalReferencedOn SecretsTable.productId
     var repositoryId by SecretsTable.repositoryId.transformToEntityId()
-    var repository by RepositoryDao optionalReferencedOn SecretsTable.repositoryId
 
     var path by SecretsTable.path
     var name by SecretsTable.name
@@ -62,8 +56,8 @@ class SecretDao(id: EntityID<Long>) : LongEntity(id) {
         path = path,
         name = name,
         description = description,
-        organization = organization?.mapToModel(),
-        product = product?.mapToModel(),
-        repository = repository?.mapToModel()
+        organizationId = organizationId,
+        productId = productId,
+        repositoryId = repositoryId
     )
 }

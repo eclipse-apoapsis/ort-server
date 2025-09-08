@@ -247,9 +247,9 @@ private fun createSecret(name: String): Secret =
         path = secretPath(name),
         name = name,
         description = "description for $name",
-        organization = null,
-        product = null,
-        repository = null
+        organizationId = null,
+        productId = null,
+        repositoryId = null
     )
 
 /**

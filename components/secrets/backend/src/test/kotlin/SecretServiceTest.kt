@@ -168,27 +168,27 @@ class SecretServiceTest : WordSpec({
             val secrets = secretService.listForHierarchy(hierarchy)
 
             secrets.find { it.name == "secret1" }.shouldNotBeNull {
-                organization should beNull()
-                product should beNull()
-                repository shouldBe hierarchy.repository
+                organizationId should beNull()
+                productId should beNull()
+                repositoryId shouldBe hierarchy.repository.id
             }
 
             secrets.find { it.name == "secret2" }.shouldNotBeNull {
-                organization should beNull()
-                product shouldBe hierarchy.product
-                repository should beNull()
+                organizationId should beNull()
+                productId shouldBe hierarchy.product.id
+                repositoryId should beNull()
             }
 
             secrets.find { it.name == "secret3" }.shouldNotBeNull {
-                organization should beNull()
-                product should beNull()
-                repository shouldBe hierarchy.repository
+                organizationId should beNull()
+                productId should beNull()
+                repositoryId shouldBe hierarchy.repository.id
             }
 
             secrets.find { it.name == "secret4" }.shouldNotBeNull {
-                organization should beNull()
-                product should beNull()
-                repository shouldBe hierarchy.repository
+                organizationId should beNull()
+                productId should beNull()
+                repositoryId shouldBe hierarchy.repository.id
             }
         }
     }
