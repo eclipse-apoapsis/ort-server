@@ -17,8 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-
 import git.semver.plugin.gradle.PrintTask
 
 val dockerBaseBuildArgs: String by project
@@ -29,7 +27,6 @@ val containerEngineCommand: String by project
 plugins {
     alias(libs.plugins.gitSemver)
     alias(libs.plugins.jib) apply false
-    alias(libs.plugins.versions)
 }
 
 semver {
@@ -59,21 +56,6 @@ if (version == Project.DEFAULT_VERSION) {
 }
 
 logger.lifecycle("Building ORT Server version $version.")
-
-tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
-    gradleReleaseChannel = "current"
-    outputFormatter = "json"
-
-    val nonFinalQualifiers = listOf(
-        "alpha", "b", "beta", "cr", "dev", "ea", "eap", "m", "milestone", "pr", "preview", "rc", "\\d{14}"
-    ).joinToString("|", "(", ")")
-
-    val nonFinalQualifiersRegex = Regex(".*[.-]$nonFinalQualifiers[.\\d-+]*", RegexOption.IGNORE_CASE)
-
-    rejectVersionIf {
-        candidate.version.matches(nonFinalQualifiersRegex)
-    }
-}
 
 // Gradle's "dependencies" task selector only executes on a single / the current project [1]. However, sometimes viewing
 // all dependencies at once is beneficial, e.g., for debugging version conflict resolution.
