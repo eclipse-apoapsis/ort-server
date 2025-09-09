@@ -66,20 +66,20 @@ dependencies {
     implementation(projects.components.adminConfig.backend)
     implementation(projects.components.adminConfig.backend) {
         capabilities {
-            requireCapability("$group:routes")
+            requireCapability("$group:routes:$version")
         }
     }
     implementation(projects.components.authorization.backend)
     implementation(projects.components.pluginManager.backend)
     implementation(projects.components.pluginManager.backend) {
         capabilities {
-            requireCapability("$group:routes")
+            requireCapability("$group:routes:$version")
         }
     }
     implementation(projects.components.secrets.backend)
     implementation(projects.components.secrets.backend) {
         capabilities {
-            requireCapability("$group:routes")
+            requireCapability("$group:routes:$version")
         }
     }
     implementation(projects.config.configSpi)

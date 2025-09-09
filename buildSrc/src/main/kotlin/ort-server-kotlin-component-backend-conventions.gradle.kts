@@ -27,7 +27,7 @@ plugins {
 java {
     registerFeature("routes") {
         usingSourceSet(sourceSets.create("routes"))
-        capability(group.toString(), "routes", "")
+        capability(group.toString(), "routes", version.toString())
     }
 }
 
