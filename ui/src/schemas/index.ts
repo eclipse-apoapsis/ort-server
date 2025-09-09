@@ -54,6 +54,22 @@ export type IssueCategory = z.infer<typeof issueCategorySchema>;
 export const packageIdTypeSchema = z.enum(['PURL', 'ORT_ID']);
 export type PackageIdType = z.infer<typeof packageIdTypeSchema>;
 
+// These schemas are needed for validation now that the hey-api package doesn't
+// expose the const definitions like $RepositoryType anymore; it only exposes
+// the type.
+//
+// TODO: hey-api has a Zod plugin, but it won't live alongside the old
+// 7nohe query client, so once that's removed, the code here can probably
+// be refactored to use the exposed definitions from hey-api.
+
+// Enum schema for the possible repository types.
+export const repositoryTypeSchema = z.enum([
+  'GIT',
+  'GIT_REPO',
+  'MERCURIAL',
+  'SUBVERSION',
+]);
+
 // Search parameter validation schemas
 
 export const paginationSearchParameterSchema = z.object({
