@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Files, PlusIcon } from 'lucide-react';
 
-import { useProductsServiceGetApiV1ProductsByProductIdRepositories } from '@/api/queries';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -31,6 +31,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { getRepositoriesByProductIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 type ProductRepositoriesStatisticsCardProps = {
@@ -44,11 +45,12 @@ export const ProductRepositoriesStatisticsCard = ({
   productId,
   className,
 }: ProductRepositoriesStatisticsCardProps) => {
-  const { data, isPending, isError, error } =
-    useProductsServiceGetApiV1ProductsByProductIdRepositories({
-      productId: Number.parseInt(productId),
-      limit: 1,
-    });
+  const { data, isPending, isError, error } = useQuery({
+    ...getRepositoriesByProductIdOptions({
+      path: { productId: Number.parseInt(productId) },
+      query: { limit: 1 },
+    }),
+  });
 
   if (isPending) {
     return (

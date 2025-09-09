@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -24,11 +25,11 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import { useProductsServiceGetApiV1ProductsByProductIdRepositories } from '@/api/queries';
-import { PagedResponse_Repository, Repository } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
+import { PagedResponseRepository, Repository } from '@/hey-api';
+import { getRepositoriesByProductIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 import { LastJobStatus } from './last-job-status';
@@ -123,10 +124,11 @@ export const ProductRepositoryTable = () => {
     error: reposError,
     isPending: reposIsPending,
     isError: reposIsError,
-  } = useProductsServiceGetApiV1ProductsByProductIdRepositories({
-    productId: Number.parseInt(params.productId),
-    limit: pageSize,
-    offset: pageIndex * pageSize,
+  } = useQuery({
+    ...getRepositoriesByProductIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+      query: { limit: pageSize, offset: pageIndex * pageSize },
+    }),
   });
 
   if (reposIsPending) {
@@ -157,7 +159,7 @@ const ProductRepositoryTableInner = ({
   repositories,
   repoPageSize,
 }: {
-  repositories: PagedResponse_Repository;
+  repositories: PagedResponseRepository;
   repoPageSize: number;
 }) => {
   const setRepoPageSize = useTablePrefsStore((state) => state.setRepoPageSize);

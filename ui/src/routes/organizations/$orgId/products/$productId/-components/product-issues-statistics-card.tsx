@@ -17,12 +17,13 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Bug } from 'lucide-react';
 
-import { useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense } from '@/api/queries/suspense';
-import { Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
+import { Severity } from '@/hey-api';
+import { getOrtRunStatisticsByProductIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type ProductIssuesStatisticsCardProps = {
@@ -34,10 +35,11 @@ export const ProductIssuesStatisticsCard = ({
   productId,
   className,
 }: ProductIssuesStatisticsCardProps) => {
-  const data =
-    useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense({
-      productId: productId,
-    });
+  const data = useSuspenseQuery({
+    ...getOrtRunStatisticsByProductIdOptions({
+      path: { productId: productId },
+    }),
+  });
 
   const total = data.data.issuesCount;
   const counts = data.data.issuesCountBySeverity;
