@@ -18,12 +18,12 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useProductsServicePostApiV1ProductsByProductIdSecrets } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
@@ -43,6 +43,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { postSecretForProductMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -55,28 +56,28 @@ const CreateProductSecretPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { mutateAsync, isPending } =
-    useProductsServicePostApiV1ProductsByProductIdSecrets({
-      onSuccess(data) {
-        toast.info('Create Product Secret', {
-          description: `New product secret "${data.name}" created successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId/secrets',
-          params: { orgId: params.orgId, productId: params.productId },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync, isPending } = useMutation({
+    ...postSecretForProductMutation(),
+    onSuccess(data) {
+      toast.info('Create Product Secret', {
+        description: `New product secret "${data.name}" created successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId/secrets',
+        params: { orgId: params.orgId, productId: params.productId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -88,8 +89,10 @@ const CreateProductSecretPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      productId: Number.parseInt(params.productId),
-      requestBody: {
+      path: {
+        productId: Number.parseInt(params.productId),
+      },
+      body: {
         name: values.name,
         value: values.value,
         description: values.description,
