@@ -18,17 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
-import {
-  useProductsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
-  useProductsServicePatchApiV1ProductsByProductIdSecretsBySecretName,
-} from '@/api/queries';
-import { ApiError, ProductsService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -49,6 +45,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  getSecretByProductIdAndNameOptions,
+  patchSecretByProductIdAndNameMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const editSecretFormSchema = z.object({
@@ -64,16 +64,12 @@ const EditProductSecretPage = () => {
   const navigate = useNavigate();
 
   const { data: secret } = useSuspenseQuery({
-    queryKey: [
-      useProductsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
-      params.productId,
-      params.secretName,
-    ],
-    queryFn: () =>
-      ProductsService.getApiV1ProductsByProductIdSecretsBySecretName({
+    ...getSecretByProductIdAndNameOptions({
+      path: {
         productId: Number.parseInt(params.productId),
         secretName: params.secretName,
-      }),
+      },
+    }),
   });
 
   const form = useForm<EditSecretFormValues>({
@@ -85,34 +81,36 @@ const EditProductSecretPage = () => {
     },
   });
 
-  const { mutateAsync: editSecret, isPending } =
-    useProductsServicePatchApiV1ProductsByProductIdSecretsBySecretName({
-      onSuccess(data) {
-        toast.info('Edit Product Secret', {
-          description: `Secret "${data.name}" updated successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId/secrets',
-          params: { orgId: params.orgId, productId: params.productId },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync: editSecret, isPending } = useMutation({
+    ...patchSecretByProductIdAndNameMutation(),
+    onSuccess(data) {
+      toast.info('Edit Product Secret', {
+        description: `Secret "${data.name}" updated successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId/secrets',
+        params: { orgId: params.orgId, productId: params.productId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const onSubmit = (values: EditSecretFormValues) => {
     editSecret({
-      productId: Number.parseInt(params.productId),
-      secretName: secret.name,
-      requestBody: {
+      path: {
+        productId: Number.parseInt(params.productId),
+        secretName: secret.name,
+      },
+      body: {
         value: values.value,
         description: values.description,
       },
@@ -204,18 +202,14 @@ const EditProductSecretPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/secrets/$secretName/edit/'
 )({
-  loader: async ({ context, params }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: [
-        useProductsServiceGetApiV1ProductsByProductIdSecretsBySecretNameKey,
-        params.productId,
-        params.secretName,
-      ],
-      queryFn: () =>
-        ProductsService.getApiV1ProductsByProductIdSecretsBySecretName({
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.ensureQueryData({
+      ...getSecretByProductIdAndNameOptions({
+        path: {
           productId: Number.parseInt(params.productId),
           secretName: params.secretName,
-        }),
+        },
+      }),
     });
   },
   component: EditProductSecretPage,

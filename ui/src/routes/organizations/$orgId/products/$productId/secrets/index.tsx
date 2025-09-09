@@ -17,7 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
@@ -28,22 +33,7 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 import z from 'zod';
 
-import {
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
-  useProductsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName,
-  useProductsServiceGetApiV1ProductsByProductId,
-  useProductsServiceGetApiV1ProductsByProductIdSecrets,
-  useProductsServiceGetApiV1ProductsByProductIdSecretsKey,
-} from '@/api/queries';
-import {
-  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
-  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
-  prefetchUseProductsServiceGetApiV1ProductsByProductId,
-  prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets,
-} from '@/api/queries/prefetch';
-import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
-import { ApiError, Secret } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -63,6 +53,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Secret } from '@/hey-api';
+import {
+  deleteSecretByProductIdAndNameMutation,
+  getOrganizationByIdOptions,
+  getProductByIdOptions,
+  getSecretsByOrganizationIdOptions,
+  getSecretsByProductIdOptions,
+  getSecretsByProductIdQueryKey,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import {
@@ -76,32 +75,35 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
-  const { data: product } =
-    useProductsServiceGetApiV1ProductsByProductIdSuspense({
-      productId: Number.parseInt(params.productId),
-    });
+  const { data: product } = useSuspenseQuery({
+    ...getProductByIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+    }),
+  });
 
-  const { mutateAsync: deleteSecret } =
-    useProductsServiceDeleteApiV1ProductsByProductIdSecretsBySecretName({
-      onSuccess() {
-        toast.info('Delete Secret', {
-          description: `Secret "${row.original.name}" deleted successfully.`,
-        });
-        queryClient.invalidateQueries({
-          queryKey: [useProductsServiceGetApiV1ProductsByProductIdSecretsKey],
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync: deleteSecret } = useMutation({
+    ...deleteSecretByProductIdAndNameMutation(),
+    onSuccess() {
+      toast.info('Delete Secret', {
+        description: `Secret "${row.original.name}" deleted successfully.`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getSecretsByProductIdQueryKey({
+          path: { productId: product.id },
+        }),
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   return (
     <div className='flex items-center justify-end gap-1'>
@@ -127,8 +129,10 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         uiComponent={<DeleteIconButton />}
         onDelete={async () =>
           await deleteSecret({
-            productId: product.id,
-            secretName: row.original.name,
+            path: {
+              productId: product.id,
+              secretName: row.original.name,
+            },
           })
         }
       />
@@ -171,8 +175,10 @@ const ProductSecrets = () => {
     error: prodError,
     isPending: prodIsPending,
     isError: prodIsError,
-  } = useProductsServiceGetApiV1ProductsByProductId({
-    productId: Number.parseInt(params.productId),
+  } = useQuery({
+    ...getProductByIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+    }),
   });
 
   const {
@@ -180,8 +186,10 @@ const ProductSecrets = () => {
     error: orgError,
     isPending: orgIsPending,
     isError: orgIsError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
-    organizationId: Number.parseInt(params.orgId),
+  } = useQuery({
+    ...getOrganizationByIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+    }),
   });
 
   const {
@@ -189,10 +197,11 @@ const ProductSecrets = () => {
     error: secretsError,
     isPending: secretsIsPending,
     isError: secretsIsError,
-  } = useProductsServiceGetApiV1ProductsByProductIdSecrets({
-    productId: Number(params.productId),
-    limit: pageSize,
-    offset: pageIndex * pageSize,
+  } = useQuery({
+    ...getSecretsByProductIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+      query: { limit: pageSize, offset: pageIndex * pageSize },
+    }),
   });
 
   const {
@@ -200,10 +209,11 @@ const ProductSecrets = () => {
     error: orgSecretsError,
     isPending: orgSecretsIsPending,
     isError: orgSecretsIsError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets({
-    organizationId: Number.parseInt(params.orgId),
-    limit: orgPageSize,
-    offset: orgPageIndex * orgPageSize,
+  } = useQuery({
+    ...getSecretsByOrganizationIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+      query: { limit: orgPageSize, offset: orgPageIndex * orgPageSize },
+    }),
   });
 
   const table = useReactTable({
@@ -362,41 +372,41 @@ export const Route = createFileRoute(
     orgPageSize,
   }),
   loader: async ({
-    context,
+    context: { queryClient },
     params,
     deps: { page, pageSize, orgPage, orgPageSize },
   }) => {
     await Promise.allSettled([
-      prefetchUseProductsServiceGetApiV1ProductsByProductId(
-        context.queryClient,
-        {
-          productId: Number.parseInt(params.productId),
-        }
-      ),
-      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
-        context.queryClient,
-        {
-          organizationId: Number.parseInt(params.orgId),
-        }
-      ),
-      prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets(
-        context.queryClient,
-        {
-          productId: Number(params.productId),
-          limit: pageSize || defaultPageSize,
-          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-        }
-      ),
-      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets(
-        context.queryClient,
-        {
-          organizationId: Number.parseInt(params.orgId),
-          limit: orgPageSize || defaultPageSize,
-          offset: orgPage
-            ? (orgPage - 1) * (orgPageSize || defaultPageSize)
-            : 0,
-        }
-      ),
+      queryClient.prefetchQuery({
+        ...getProductByIdOptions({
+          path: { productId: Number.parseInt(params.productId) },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getOrganizationByIdOptions({
+          path: { organizationId: Number.parseInt(params.orgId) },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getSecretsByProductIdOptions({
+          path: { productId: Number.parseInt(params.productId) },
+          query: {
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+          },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getSecretsByOrganizationIdOptions({
+          path: { organizationId: Number.parseInt(params.orgId) },
+          query: {
+            limit: orgPageSize || defaultPageSize,
+            offset: orgPage
+              ? (orgPage - 1) * (orgPageSize || defaultPageSize)
+              : 0,
+          },
+        }),
+      }),
     ]);
   },
   component: ProductSecrets,
