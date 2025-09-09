@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -33,9 +34,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
-import { useProductsServiceGetApiV1ProductsByProductIdVulnerabilities } from '@/api/queries';
-import { prefetchUseProductsServiceGetApiV1ProductsByProductId } from '@/api/queries/prefetch';
-import { ProductVulnerability, VulnerabilityRating } from '@/api/requests';
 import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
@@ -67,6 +65,11 @@ import {
   identifierToString,
 } from '@/helpers/identifier-conversion';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
+import { ProductVulnerability, VulnerabilityRating } from '@/hey-api';
+import {
+  getProductByIdOptions,
+  getVulnerabilitiesAcrossRepositoriesByProductIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import {
@@ -145,9 +148,11 @@ const ProductVulnerabilitiesComponent = () => {
     isPending,
     isError,
     error,
-  } = useProductsServiceGetApiV1ProductsByProductIdVulnerabilities({
-    productId: Number.parseInt(params.productId),
-    limit: ALL_ITEMS,
+  } = useQuery({
+    ...getVulnerabilitiesAcrossRepositoriesByProductIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+      query: { limit: ALL_ITEMS },
+    }),
   });
 
   // Prevent infinite rerenders by providing a stable reference to columns via memoization.
@@ -436,13 +441,12 @@ export const Route = createFileRoute(
     ...vulnerabilityRatingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
-  loader: async ({ context, params }) => {
-    await prefetchUseProductsServiceGetApiV1ProductsByProductId(
-      context.queryClient,
-      {
-        productId: Number.parseInt(params.productId),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getProductByIdOptions({
+        path: { productId: Number.parseInt(params.productId) },
+      }),
+    });
   },
   component: ProductVulnerabilitiesComponent,
   pendingComponent: LoadingIndicator,
