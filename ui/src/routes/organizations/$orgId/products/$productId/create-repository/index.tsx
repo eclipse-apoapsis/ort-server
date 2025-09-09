@@ -18,13 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useProductsServicePostApiV1ProductsByProductIdRepositories } from '@/api/queries';
-import { $RepositoryType, ApiError } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field.ts';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { ToastError } from '@/components/toast-error';
@@ -52,14 +52,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { createRepositoryMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
+import { repositoryTypeSchema } from '@/schemas';
 
 const formSchema = z.object({
-  url: z.string().url(),
+  url: z.url(),
   description: asOptionalField(z.string().min(1)),
-  type: z.enum($RepositoryType.enum),
+  type: repositoryTypeSchema,
 });
 
 const CreateRepositoryPage = () => {
@@ -67,35 +69,35 @@ const CreateRepositoryPage = () => {
   const params = Route.useParams();
   const { refreshUser } = useUser();
 
-  const { mutateAsync, isPending } =
-    useProductsServicePostApiV1ProductsByProductIdRepositories({
-      onSuccess(data) {
-        // Refresh the user token and data to get the new roles after creating a new repository.
-        refreshUser();
+  const { mutateAsync, isPending } = useMutation({
+    ...createRepositoryMutation(),
+    onSuccess(data) {
+      // Refresh the user token and data to get the new roles after creating a new repository.
+      refreshUser();
 
-        toast.info('Add Repository', {
-          description: `Repository ${data.url} added successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-          params: {
-            orgId: params.orgId,
-            productId: params.productId,
-            repoId: data.id.toString(),
-          },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+      toast.info('Add Repository', {
+        description: `Repository ${data.url} added successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: data.id.toString(),
+        },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -107,8 +109,8 @@ const CreateRepositoryPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      productId: Number.parseInt(params.productId),
-      requestBody: {
+      path: { productId: Number.parseInt(params.productId) },
+      body: {
         url: values.url,
         description: values.description,
         type: values.type,
@@ -166,7 +168,7 @@ const CreateRepositoryPage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values($RepositoryType.enum).map((type) => (
+                      {Object.values(repositoryTypeSchema.enum).map((type) => (
                         <SelectItem key={type} value={type}>
                           {getRepositoryTypeLabel(type)}
                         </SelectItem>
