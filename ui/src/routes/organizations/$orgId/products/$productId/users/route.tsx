@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { ensureUseProductsServiceGetApiV1ProductsByProductIdUsersData } from '@/api/queries/ensureQueryData.ts';
+import { getUsersForProductOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute(
@@ -33,22 +33,24 @@ export const Route = createFileRoute(
     page,
     pageSize,
   }),
-  loader: async ({ context, deps, params }) => {
-    const { queryClient } = context;
+  loader: async ({ context: { queryClient }, deps, params }) => {
     const { page = 1, pageSize = 10 } = deps;
     const { productId } = params;
     const pageIndex = page - 1;
 
     // Ensure the data is available in the query cache when the component is rendered.
-    await ensureUseProductsServiceGetApiV1ProductsByProductIdUsersData(
-      queryClient,
-      {
-        limit: pageSize,
-        offset: pageIndex * pageSize,
-        productId: Number.parseInt(productId),
-        sort: 'username',
-      }
-    );
+    await queryClient.ensureQueryData({
+      ...getUsersForProductOptions({
+        path: {
+          productId: Number.parseInt(productId),
+        },
+        query: {
+          limit: pageSize,
+          offset: pageIndex * pageSize,
+          sort: 'username',
+        },
+      }),
+    });
   },
   beforeLoad: ({ context, params }) => {
     if (

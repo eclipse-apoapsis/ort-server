@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -26,13 +26,7 @@ import {
 } from '@tanstack/react-table';
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
-import {
-  useProductsServiceDeleteApiV1ProductsByProductIdRolesByRole,
-  useProductsServiceGetApiV1ProductsByProductIdUsers,
-  useProductsServiceGetApiV1ProductsByProductIdUsersKey,
-  useProductsServicePutApiV1ProductsByProductIdRolesByRole,
-} from '@/api/queries';
-import { ApiError, UserWithGroups } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
@@ -44,6 +38,13 @@ import {
 } from '@/components/ui/tooltip';
 import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
 import { mapUserGroupToProductRole } from '@/helpers/role-helpers.ts';
+import { UserWithGroups } from '@/hey-api';
+import {
+  deleteProductRoleFromUserMutation,
+  getUsersForProductOptions,
+  getUsersForProductQueryKey,
+  putProductRoleToUserMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast.ts';
 
@@ -105,13 +106,16 @@ const columns = [
       const productId = Number.parseInt(params.productId);
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
-        useProductsServicePutApiV1ProductsByProductIdRolesByRole({
+        useMutation({
+          ...putProductRoleToUserMutation(),
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
-              queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
+              queryKey: getUsersForProductQueryKey({
+                path: { productId: productId },
+              }),
             });
             toast.info('Join Group', {
-              description: `User "${row.original.user.username}" joined group ${parameters.role} successfully.`,
+              description: `User "${row.original.user.username}" joined group ${parameters.path.role} successfully.`,
             });
           },
           onError(error: ApiError) {
@@ -127,11 +131,12 @@ const columns = [
         });
 
       const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-        useProductsServiceDeleteApiV1ProductsByProductIdRolesByRole({
+        useMutation({
+          ...deleteProductRoleFromUserMutation(),
           onSuccess(_response, parameters) {
             // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
             toast.info('Leave Group', {
-              description: `User "${row.original.user.username}" left group ${parameters.role} successfully.`,
+              description: `User "${row.original.user.username}" left group ${parameters.path.role} successfully.`,
             });
           },
           onError(error: ApiError) {
@@ -148,9 +153,8 @@ const columns = [
 
       async function joinAdminsGroup() {
         await joinGroup({
-          productId: productId,
-          role: 'ADMIN',
-          requestBody: {
+          path: { productId: productId, role: 'ADMIN' },
+          body: {
             username: row.original.user.username,
           },
         });
@@ -158,9 +162,8 @@ const columns = [
 
       async function joinWritersGroup() {
         await joinGroup({
-          productId: productId,
-          role: 'WRITER',
-          requestBody: {
+          path: { productId: productId, role: 'WRITER' },
+          body: {
             username: row.original.user.username,
           },
         });
@@ -168,9 +171,8 @@ const columns = [
 
       async function joinReadersGroup() {
         await joinGroup({
-          productId: productId,
-          role: 'READER',
-          requestBody: {
+          path: { productId: productId, role: 'READER' },
+          body: {
             username: row.original.user.username,
           },
         });
@@ -183,16 +185,22 @@ const columns = [
           await Promise.all(
             row.original.groups.map((group) =>
               leaveGroup({
-                productId: productId,
-                role: mapUserGroupToProductRole(group),
-                username: row.original.user.username,
+                path: {
+                  productId: productId,
+                  role: mapUserGroupToProductRole(group),
+                },
+                query: {
+                  username: row.original.user.username,
+                },
               })
             )
           );
           // Upon successful removal of the user, invalidate the users query
           // to refresh the data in the table.
           queryClient.invalidateQueries({
-            queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
+            queryKey: getUsersForProductQueryKey({
+              path: { productId: productId },
+            }),
           });
           toast.info('Remove User from Product', {
             description: `User "${row.original.user.username}" removed from the product successfully.`,
@@ -257,13 +265,16 @@ export const ProductUsersTable = () => {
   const { page = 1, pageSize = 10 } = search;
   const pageIndex = page - 1;
 
-  const { data: usersWithGroups } =
-    useProductsServiceGetApiV1ProductsByProductIdUsers({
-      productId: Number.parseInt(productId),
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-      sort: 'username',
-    });
+  const { data: usersWithGroups } = useQuery({
+    ...getUsersForProductOptions({
+      path: { productId: Number.parseInt(productId) },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: 'username',
+      },
+    }),
+  });
 
   const table = useReactTable({
     data: usersWithGroups?.data || [],
