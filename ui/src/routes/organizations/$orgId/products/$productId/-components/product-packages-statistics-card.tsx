@@ -17,11 +17,12 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Boxes } from 'lucide-react';
 
-import { useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense } from '@/api/queries/suspense';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getEcosystemBackgroundColor } from '@/helpers/get-status-class';
+import { getOrtRunStatisticsByProductIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type ProductPackagesStatisticsCardProps = {
@@ -33,10 +34,11 @@ export const ProductPackagesStatisticsCard = ({
   productId,
   className,
 }: ProductPackagesStatisticsCardProps) => {
-  const data =
-    useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense({
-      productId: productId,
-    });
+  const data = useSuspenseQuery({
+    ...getOrtRunStatisticsByProductIdOptions({
+      path: { productId: productId },
+    }),
+  });
 
   const total = data.data.packagesCount;
   const counts = data.data.ecosystems;

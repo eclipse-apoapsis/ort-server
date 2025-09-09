@@ -17,12 +17,13 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { ShieldQuestion } from 'lucide-react';
 
-import { useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense } from '@/api/queries/suspense';
 import { VulnerabilityRating } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
+import { getOrtRunStatisticsByProductIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type ProductVulnerabilitiesStatisticsCardProps = {
@@ -34,10 +35,11 @@ export const ProductVulnerabilitiesStatisticsCard = ({
   productId,
   className,
 }: ProductVulnerabilitiesStatisticsCardProps) => {
-  const data =
-    useProductsServiceGetApiV1ProductsByProductIdStatisticsRunsSuspense({
-      productId: productId,
-    });
+  const data = useSuspenseQuery({
+    ...getOrtRunStatisticsByProductIdOptions({
+      path: { productId: productId },
+    }),
+  });
 
   const total = data.data.vulnerabilitiesCount;
   const counts = data.data.vulnerabilitiesCountByRating;

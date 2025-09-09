@@ -17,34 +17,31 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { config } from '@/config';
+import { getOrtRunsByRepositoryIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 
 export const LastJobStatus = ({ repoId }: { repoId: number }) => {
   const {
     data: runs,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
-    {
-      repositoryId: repoId,
-      limit: 1,
-      sort: '-index',
+  } = useQuery({
+    ...getOrtRunsByRepositoryIdOptions({
+      path: { repositoryId: repoId },
+      query: { limit: 1, sort: '-index' },
+    }),
+    refetchInterval: (query) => {
+      const curData = query.state.data?.data;
+      if (curData && curData[0] && curData[0].finishedAt) {
+        return undefined;
+      }
+      return config.pollInterval;
     },
-    undefined,
-    {
-      refetchInterval: (query) => {
-        const curData = query.state.data?.data;
-        if (curData && curData[0] && curData[0].finishedAt) {
-          return undefined;
-        }
-        return config.pollInterval;
-      },
-    }
-  );
+  });
 
   if (runsIsPending) {
     return (
