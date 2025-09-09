@@ -18,17 +18,16 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Eye, Loader2, Pen, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useProductsServiceGetApiV1ProductsByProductIdUsersKey,
-  useProductsServicePutApiV1ProductsByProductIdRolesByRole,
-} from '@/api/queries';
-import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -56,6 +55,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { mapGroupSchemaToProductRole } from '@/helpers/role-helpers.ts';
+import {
+  getProductByIdOptions,
+  getUsersForProductQueryKey,
+  putProductRoleToUserMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { groupsSchema } from '@/schemas';
 import { ProductUsersTable } from './-components/product-users-table';
@@ -76,40 +80,49 @@ const ManageUsers = () => {
     },
   });
 
-  const { data: product } =
-    useProductsServiceGetApiV1ProductsByProductIdSuspense({
-      productId: Number.parseInt(params.productId),
-    });
+  const { data: product } = useSuspenseQuery({
+    ...getProductByIdOptions({
+      path: {
+        productId: Number.parseInt(params.productId),
+      },
+    }),
+  });
 
   const queryClient = useQueryClient();
 
-  const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useProductsServicePutApiV1ProductsByProductIdRolesByRole({
-      onSuccess() {
-        queryClient.invalidateQueries({
-          queryKey: [useProductsServiceGetApiV1ProductsByProductIdUsersKey],
-        });
-        toast.info('Add User', {
-          description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
+  const { mutateAsync: addUser, isPending: isAddUserPending } = useMutation({
+    ...putProductRoleToUserMutation(),
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: getUsersForProductQueryKey({
+          path: {
+            productId: Number.parseInt(params.productId),
           },
-        });
-      },
-    });
+        }),
+      });
+      toast.info('Add User', {
+        description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   async function onAddUser(values: z.infer<typeof formSchema>) {
     await addUser({
-      productId: Number.parseInt(params.productId),
-      role: mapGroupSchemaToProductRole(values.groupId),
-      requestBody: {
+      path: {
+        productId: Number.parseInt(params.productId),
+        role: mapGroupSchemaToProductRole(values.groupId),
+      },
+      body: {
         username: values.username,
       },
     });
