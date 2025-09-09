@@ -18,6 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
@@ -27,13 +28,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useProductsServiceDeleteApiV1ProductsByProductId,
-  UseProductsServiceGetApiV1ProductsByProductIdKeyFn,
-  useProductsServicePatchApiV1ProductsByProductId,
-} from '@/api/queries';
-import { useProductsServiceGetApiV1ProductsByProductIdSuspense } from '@/api/queries/suspense';
-import { ApiError, ProductsService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -53,6 +48,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  deleteProductByIdMutation,
+  getProductByIdOptions,
+  patchProductByIdMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -67,35 +67,38 @@ const ProductSettingsPage = () => {
 
   const productId = Number.parseInt(params.productId);
 
-  const { data: product } =
-    useProductsServiceGetApiV1ProductsByProductIdSuspense({
-      productId,
-    });
+  const { data: product } = useSuspenseQuery({
+    ...getProductByIdOptions({
+      path: {
+        productId,
+      },
+    }),
+  });
 
-  const { mutateAsync, isPending } =
-    useProductsServicePatchApiV1ProductsByProductId({
-      onSuccess(data) {
-        toast.info('Edit Product', {
-          description: `Product "${data.name}" updated successfully.`,
-        });
-        router.invalidate();
-        navigate({
-          to: '/organizations/$orgId/products/$productId',
-          params: { orgId: params.orgId, productId: params.productId },
-          reloadDocument: true,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync, isPending } = useMutation({
+    ...patchProductByIdMutation(),
+    onSuccess(data) {
+      toast.info('Edit Product', {
+        description: `Product "${data.name}" updated successfully.`,
+      });
+      router.invalidate();
+      navigate({
+        to: '/organizations/$orgId/products/$productId',
+        params: { orgId: params.orgId, productId: params.productId },
+        reloadDocument: true,
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -107,40 +110,44 @@ const ProductSettingsPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      productId: product.id,
-      requestBody: {
+      path: {
+        productId: product.id,
+      },
+      body: {
         name: values.name,
         description: values.description,
       },
     });
   }
 
-  const { mutateAsync: deleteProduct } =
-    useProductsServiceDeleteApiV1ProductsByProductId({
-      onSuccess() {
-        toast.info('Delete Product', {
-          description: `Product "${product.name}" deleted successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId',
-          params: { orgId: params.orgId },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync: deleteProduct } = useMutation({
+    ...deleteProductByIdMutation(),
+    onSuccess() {
+      toast.info('Delete Product', {
+        description: `Product "${product.name}" deleted successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId',
+        params: { orgId: params.orgId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   async function handleDelete() {
     await deleteProduct({
-      productId: productId,
+      path: {
+        productId: productId,
+      },
     });
   }
 
@@ -233,16 +240,12 @@ const ProductSettingsPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/settings/'
 )({
-  loader: async ({ context, params }) => {
+  loader: async ({ context: { queryClient }, params }) => {
     const productId = Number.parseInt(params.productId);
-    await context.queryClient.prefetchQuery({
-      queryKey: UseProductsServiceGetApiV1ProductsByProductIdKeyFn({
-        productId,
+    await queryClient.prefetchQuery({
+      ...getProductByIdOptions({
+        path: { productId },
       }),
-      queryFn: () =>
-        ProductsService.getApiV1ProductsByProductId({
-          productId,
-        }),
     });
   },
   component: ProductSettingsPage,
