@@ -65,9 +65,10 @@ dependencies {
     testFixturesImplementation(projects.config.configSpi)
 
     testFixturesImplementation(libs.flywayCore)
+    testFixturesImplementation(libs.hikari)
     testFixturesImplementation(libs.jacksonModuleKotlin)
     testFixturesImplementation(libs.koinTest)
-    testFixturesImplementation(libs.kotestExtensionsTestContainer)
+    testFixturesImplementation(libs.kotestExtensionsTestcontainers)
     testFixturesImplementation(libs.kotestRunnerJunit5)
     testFixturesImplementation(libs.mockk)
     testFixturesImplementation(libs.testContainers)

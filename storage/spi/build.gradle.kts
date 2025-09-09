@@ -36,7 +36,7 @@ dependencies {
     implementation(libs.kotlinxCoroutinesSlf4j)
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestContainer)
+    testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 

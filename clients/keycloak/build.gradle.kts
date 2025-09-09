@@ -40,7 +40,7 @@ dependencies {
     implementation(libs.kotlinxSerializationJson)
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestContainer)
+    testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
 
     testFixturesApi(libs.kotestFrameworkEngine)

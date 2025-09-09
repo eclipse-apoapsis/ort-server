@@ -44,7 +44,7 @@ dependencies {
     testImplementation(testFixtures(projects.transport.transportSpi))
 
     testImplementation(libs.kotestAssertionsCore)
-    testImplementation(libs.kotestExtensionsTestContainer)
+    testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
     testImplementation(libs.testContainers)
