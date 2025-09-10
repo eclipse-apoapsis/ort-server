@@ -139,8 +139,8 @@ importers:
         specifier: ^1.0.0
         version: 1.6.2(commander@13.0.0)(glob@10.4.5)(ts-morph@22.0.0)(typescript@5.8.3)
       '@hey-api/openapi-ts':
-        specifier: 0.83.0
-        version: 0.83.0(typescript@5.8.3)
+        specifier: 0.83.1
+        version: 0.83.1(typescript@5.8.3)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.2.1
         version: 4.7.0(prettier@3.6.2)
@@ -619,8 +619,8 @@ packages:
     peerDependencies:
       typescript: ^5.x
 
-  '@hey-api/openapi-ts@0.83.0':
-    resolution: {integrity: sha512-Oj1/P1gmrG1KPAC49BxQU6OwXl7X7URBM0AZmuYJsN8m/MHTchumc4jUmdG+O0ffKYfREwWv07JeK7+P9fvaKQ==}
+  '@hey-api/openapi-ts@0.83.1':
+    resolution: {integrity: sha512-AJIXDsXBLXS4uzhU+yVeNmD43uN6FYPcWpcid7Q0bA4JRXpI+6livOzUUMiuszt3NlgHy1gcf6x15W2xHNSoag==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=22.10.0}
     hasBin: true
     peerDependencies:
@@ -4039,7 +4039,7 @@ snapshots:
     transitivePeerDependencies:
       - magicast
 
-  '@hey-api/openapi-ts@0.83.0(typescript@5.8.3)':
+  '@hey-api/openapi-ts@0.83.1(typescript@5.8.3)':
     dependencies:
       '@hey-api/codegen-core': 0.1.0(typescript@5.8.3)
       '@hey-api/json-schema-ref-parser': 1.1.0
