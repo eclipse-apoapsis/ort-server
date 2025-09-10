@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
  */
 
 plugins {
-    // Apply precompiled plugins.
     id("ort-server-kotlin-multiplatform-conventions")
     id("ort-server-publication-conventions")
 
@@ -26,7 +25,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
-group = "org.eclipse.apoapsis.ortserver.api.v1"
+group = "org.eclipse.apoapsis.ortserver.components.infrastructureservices"
 
 kotlin {
     linuxX64()
@@ -37,36 +36,12 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(projects.components.infrastructureServices.apiModel)
                 api(projects.shared.apiModel)
 
-                api(libs.kotlinxDatetime)
                 api(libs.konform)
 
-                implementation(ktorLibs.http)
-                implementation(libs.kotlinxSerializationJson)
+                 implementation(libs.kotlinxSerializationJson)
             }
         }
-
-        jvmTest {
-            dependencies {
-                implementation(libs.kotestAssertionsCore)
-                implementation(libs.kotestRunnerJunit5)
-            }
-        }
-    }
-}
-
-tasks.named<Test>("jvmTest") {
-    useJUnitPlatform()
-
-    testLogging {
-        events = setOf(
-            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
-            org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
-        )
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        showExceptions = true
-        showStandardStreams = true
     }
 }

@@ -32,12 +32,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
@@ -48,29 +45,22 @@ import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationRoleFromUser
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServiceForOrganizationIdAndName
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationProducts
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatisticsByOrganizationId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepositoriesByOrganizationId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchInfrastructureServiceForOrganizationIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganizationById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.postInfrastructureServiceForOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putOrganizationRoleToUser
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
-import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.UserService
@@ -96,7 +86,6 @@ import org.koin.ktor.ext.inject
 fun Route.organizations() = route("organizations") {
     val authorizationService by inject<AuthorizationService>()
     val organizationService by inject<OrganizationService>()
-    val infrastructureServiceService by inject<InfrastructureServiceService>()
     val repositoryService by inject<RepositoryService>()
     val vulnerabilityService by inject<VulnerabilityService>()
     val issueService by inject<IssueService>()
@@ -195,86 +184,6 @@ fun Route.organizations() = route("organizations") {
                     organizationService.createProduct(createProduct.name, createProduct.description, orgId)
 
                 call.respond(HttpStatusCode.Created, createdProduct.mapToApi())
-            }
-        }
-
-        route("infrastructure-services") {
-            get(getInfrastructureServicesByOrganizationId) {
-                requirePermission(OrganizationPermission.READ)
-
-                val orgId = call.requireIdParameter("organizationId")
-                val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
-
-                val infrastructureServicesForOrganization =
-                    infrastructureServiceService.listForId(OrganizationId(orgId), pagingOptions.mapToModel())
-
-                val pagedResponse = infrastructureServicesForOrganization.mapToApi(InfrastructureService::mapToApi)
-
-                call.respond(HttpStatusCode.OK, pagedResponse)
-            }
-
-            post(postInfrastructureServiceForOrganization) {
-                requirePermission(OrganizationPermission.WRITE)
-
-                val organizationId = call.requireIdParameter("organizationId")
-                val createService = call.receive<CreateInfrastructureService>()
-
-                val newService = infrastructureServiceService.createForId(
-                    OrganizationId(organizationId),
-                    createService.name,
-                    createService.url,
-                    createService.description,
-                    createService.usernameSecretRef,
-                    createService.passwordSecretRef,
-                    createService.credentialsTypes.mapToModel()
-                )
-
-                call.respond(HttpStatusCode.Created, newService.mapToApi())
-            }
-
-            route("{serviceName}") {
-                get(getInfrastructureServiceForOrganizationIdAndName) {
-                    requirePermission(OrganizationPermission.READ)
-
-                    val organizationId = call.requireIdParameter("organizationId")
-                    val serviceName = call.requireParameter("serviceName")
-
-                    infrastructureServiceService
-                        .getForId(OrganizationId(organizationId), serviceName)
-                        ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
-                        ?: call.respond(HttpStatusCode.NotFound)
-                }
-
-                patch(patchInfrastructureServiceForOrganizationIdAndName) {
-                    requirePermission(OrganizationPermission.WRITE)
-
-                    val organizationId = call.requireIdParameter("organizationId")
-                    val serviceName = call.requireParameter("serviceName")
-                    val updateService = call.receive<UpdateInfrastructureService>()
-
-                    val updatedService = infrastructureServiceService.updateForId(
-                        OrganizationId(organizationId),
-                        serviceName,
-                        updateService.url.mapToModel(),
-                        updateService.description.mapToModel(),
-                        updateService.usernameSecretRef.mapToModel(),
-                        updateService.passwordSecretRef.mapToModel(),
-                        updateService.credentialsTypes.mapToModel { type -> type.mapToModel() }
-                    )
-
-                    call.respond(HttpStatusCode.OK, updatedService.mapToApi())
-                }
-
-                delete(deleteInfrastructureServiceForOrganizationIdAndName) {
-                    requirePermission(OrganizationPermission.WRITE)
-
-                    val orgId = call.requireIdParameter("organizationId")
-                    val serviceName = call.requireParameter("serviceName")
-
-                    infrastructureServiceService.deleteForId(OrganizationId(orgId), serviceName)
-
-                    call.respond(HttpStatusCode.NoContent)
-                }
             }
         }
 

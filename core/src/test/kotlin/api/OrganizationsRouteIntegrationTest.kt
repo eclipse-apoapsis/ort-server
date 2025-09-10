@@ -23,13 +23,11 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
@@ -51,23 +49,17 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
-import java.util.EnumSet
-
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
-import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrganizationVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
@@ -83,15 +75,12 @@ import org.eclipse.apoapsis.ortserver.components.authorization.permissions.Produ
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
-import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.Package
@@ -104,8 +93,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.model.util.asPresent as asPresent2
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
-import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -128,8 +115,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var authorizationService: AuthorizationService
     lateinit var organizationService: OrganizationService
     lateinit var productService: ProductService
-    lateinit var secretService: SecretService
-    lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
 
     beforeEach {
         authorizationService = KeycloakAuthorizationService(
@@ -155,14 +140,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.fixtures.ortRunRepository,
             authorizationService
         )
-
-        secretService = SecretService(
-            dbExtension.db,
-            dbExtension.fixtures.secretRepository,
-            SecretStorage(SecretsProviderFactoryForTesting().createProvider())
-        )
-
-        infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
     }
 
     val organizationName = "name"
@@ -170,15 +147,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
     suspend fun createOrganization(name: String = organizationName, description: String = organizationDescription) =
         organizationService.createOrganization(name, description)
-
-    val secretName = "name"
-    val secretDescription = "description"
-
-    suspend fun createSecret(
-        organizationId: Long,
-        name: String = secretName,
-        description: String = secretDescription,
-    ) = secretService.createSecret(name, "value", description, OrganizationId(organizationId))
 
     "GET /organizations" should {
         "return all existing organizations for the superuser" {
@@ -666,435 +634,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             val createdOrg = createOrganization()
             requestShouldRequireRole(OrganizationPermission.READ_PRODUCTS.roleName(createdOrg.id)) {
                 get("/api/v1/organizations/${createdOrg.id}/products")
-            }
-        }
-    }
-
-    "GET /organizations/{orgId}/infrastructure-services" should {
-        "list existing infrastructure services" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val userSecret = createSecret(orgId, name = "user")
-                val passSecret = createSecret(orgId, name = "pass")
-
-                val services = (1..8).map { index ->
-                    infrastructureServiceRepository.create(
-                        "infrastructureService$index",
-                        "https://repo.example.org/test$index",
-                        "description$index",
-                        userSecret,
-                        passSecret,
-                        if (index % 2 == 0) {
-                            EnumSet.of(CredentialsType.NETRC_FILE, CredentialsType.GIT_CREDENTIALS_FILE)
-                        } else {
-                            emptySet()
-                        },
-                        OrganizationId(orgId)
-                    )
-                }
-
-                val apiServices = services.map { service ->
-                    ApiInfrastructureService(
-                        service.name,
-                        service.url,
-                        service.description,
-                        service.usernameSecret.name,
-                        service.passwordSecret.name,
-                        if (service.credentialsTypes.isEmpty()) {
-                            emptySet()
-                        } else {
-                            EnumSet.of(ApiCredentialsType.NETRC_FILE, ApiCredentialsType.GIT_CREDENTIALS_FILE)
-                        }
-                    )
-                }
-
-                val response = superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services")
-
-                response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
-                        apiServices
-            }
-        }
-
-        "support query parameters" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val userSecret = createSecret(orgId, name = "user")
-                val passSecret = createSecret(orgId, name = "pass")
-
-                (1..8).shuffled().forEach { index ->
-                    infrastructureServiceRepository.create(
-                        "infrastructureService$index",
-                        "https://repo.example.org/test$index",
-                        "description$index",
-                        userSecret,
-                        passSecret,
-                        EnumSet.of(CredentialsType.NETRC_FILE),
-                        OrganizationId(orgId)
-                    )
-                }
-
-                val apiServices = (1..4).map { index ->
-                    ApiInfrastructureService(
-                        "infrastructureService$index",
-                        "https://repo.example.org/test$index",
-                        "description$index",
-                        userSecret.name,
-                        passSecret.name,
-                        EnumSet.of(ApiCredentialsType.NETRC_FILE)
-                    )
-                }
-
-                val response =
-                    superuserClient.get("/api/v1/organizations/$orgId/infrastructure-services?sort=name&limit=4")
-
-                response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
-                        apiServices
-            }
-        }
-
-        "require OrganizationPermission.READ" {
-            val createdOrg = createOrganization()
-            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
-                get("/api/v1/organizations/${createdOrg.id}/infrastructure-services")
-            }
-        }
-    }
-
-    "POST /organizations/{orgId}/infrastructure-services" should {
-        "create an infrastructure service" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val userSecret = createSecret(orgId, name = "user")
-                val passSecret = createSecret(orgId, name = "pass")
-
-                val createInfrastructureService = CreateInfrastructureService(
-                    "testRepository",
-                    "https://repo.example.org/test",
-                    "test description",
-                    userSecret.name,
-                    passSecret.name,
-                    credentialsTypes = setOf(
-                        ApiCredentialsType.GIT_CREDENTIALS_FILE,
-                        ApiCredentialsType.NETRC_FILE,
-                        ApiCredentialsType.NO_AUTHENTICATION
-                    )
-                )
-                val response = superuserClient.post("/api/v1/organizations/$orgId/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-
-                val expectedService = ApiInfrastructureService(
-                    createInfrastructureService.name,
-                    createInfrastructureService.url,
-                    createInfrastructureService.description,
-                    userSecret.name,
-                    passSecret.name,
-                    setOf(
-                        ApiCredentialsType.GIT_CREDENTIALS_FILE,
-                        ApiCredentialsType.NETRC_FILE,
-                        ApiCredentialsType.NO_AUTHENTICATION
-                    )
-                )
-
-                response shouldHaveStatus HttpStatusCode.Created
-                response shouldHaveBody expectedService
-
-                val dbService = infrastructureServiceRepository.getByIdAndName(
-                        OrganizationId(orgId),
-                        createInfrastructureService.name
-                    )
-                dbService.shouldNotBeNull()
-                dbService.mapToApi() shouldBe expectedService
-            }
-        }
-
-        "handle an invalid secret reference" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val createInfrastructureService = CreateInfrastructureService(
-                    "testRepository",
-                    "https://repo.example.org/test",
-                    "test description",
-                    "nonExistingSecret1",
-                    "nonExistingSecret2"
-                )
-                val response = superuserClient.post("/api/v1/organizations/$orgId/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-
-                response shouldHaveStatus HttpStatusCode.BadRequest
-                response.body<ErrorResponse>().cause shouldContain "nonExistingSecret"
-            }
-        }
-
-        "require OrganizationPermission.WRITE" {
-            val createdOrg = createOrganization()
-            val userSecret = createSecret(createdOrg.id, name = "user")
-            val passSecret = createSecret(createdOrg.id, name = "pass")
-
-            requestShouldRequireRole(
-                OrganizationPermission.WRITE.roleName(createdOrg.id),
-                HttpStatusCode.Created
-            ) {
-                val createInfrastructureService = CreateInfrastructureService(
-                    "testRepository",
-                    "https://repo.example.org/test",
-                    "test description",
-                    userSecret.name,
-                    passSecret.name
-                )
-
-                post("/api/v1/organizations/${createdOrg.id}/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-            }
-        }
-
-        "respond with 'Bad Request' if the infrastructure service's name is invalid" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val userSecret = createSecret(orgId, name = "user")
-                val passSecret = createSecret(orgId, name = "pass")
-
-                val createInfrastructureService = CreateInfrastructureService(
-                    " testRepository 15?!",
-                    "https://repo.example.org/test",
-                    "test description",
-                    userSecret.name,
-                    passSecret.name
-                )
-                val response = superuserClient.post("/api/v1/organizations/$orgId/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-
-                response shouldHaveStatus HttpStatusCode.BadRequest
-
-                val body = response.body<ErrorResponse>()
-                body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for CreateInfrastructureService"
-
-                infrastructureServiceRepository.getByIdAndName(
-                    OrganizationId(orgId),
-                    createInfrastructureService.name
-                ).shouldBeNull()
-            }
-        }
-
-        "respond with 'Conflict' if service with same name and orgId already exists" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val userSecret = createSecret(orgId, name = "user")
-                val passSecret = createSecret(orgId, name = "pass")
-
-                val createdInfrastructureService = infrastructureServiceRepository.create(
-                    "testRepository",
-                    "http://repo.example.org/test",
-                    "test repo description",
-                    userSecret,
-                    passSecret,
-                    emptySet(),
-                    OrganizationId(orgId)
-                )
-
-                val createInfrastructureService = CreateInfrastructureService(
-                    createdInfrastructureService.name,
-                    createdInfrastructureService.url,
-                    "test repo description",
-                    userSecret.name,
-                    passSecret.name,
-                    credentialsTypes = emptySet()
-                )
-
-                val response = superuserClient.post("/api/v1/organizations/$orgId/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-
-                response shouldHaveStatus HttpStatusCode.Conflict
-            }
-        }
-    }
-
-    "GET /organizations/{orgId}/infrastructure-services/{name}" should {
-        "return an infrastructure service" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val userSecret = createSecret(orgId, name = "user")
-                val passSecret = createSecret(orgId, name = "pass")
-
-                val service = infrastructureServiceRepository.create(
-                    "testRepository",
-                    "http://repo.example.org/test",
-                    "test repo description",
-                    userSecret,
-                    passSecret,
-                    emptySet(),
-                    OrganizationId(orgId)
-                )
-
-                val response = superuserClient.get(
-                    "/api/v1/organizations/$orgId/infrastructure-services/${service.name}"
-                )
-
-                response shouldHaveStatus HttpStatusCode.OK
-
-                response shouldHaveBody service.mapToApi()
-            }
-        }
-
-        "respond with 'NotFound' if no infrastructure service exists" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val response = superuserClient
-                    .get("/api/v1/organizations/$orgId/infrastructure-services/not-existing-service")
-
-                response shouldHaveStatus HttpStatusCode.NotFound
-            }
-        }
-
-        "require OrganizationPermission.READ" {
-            val orgId = createOrganization().id
-
-            requestShouldRequireRole(
-                role = OrganizationPermission.READ.roleName(orgId),
-                successStatus = HttpStatusCode.NotFound
-            ) {
-                get("/api/v1/organizations/$orgId/infrastructure-services/not-found")
-            }
-        }
-    }
-
-    "PATCH /organizations/{orgId}/infrastructure-services/{name}" should {
-        "update an infrastructure service" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val userSecret = createSecret(orgId, name = "user")
-                val passSecret = createSecret(orgId, name = "pass")
-
-                val service = infrastructureServiceRepository.create(
-                    "updateService",
-                    "http://repo1.example.org/test",
-                    "test description",
-                    userSecret,
-                    passSecret,
-                    emptySet(),
-                    OrganizationId(orgId)
-                )
-
-                val newUrl = "https://repo2.example.org/test2"
-                val updateService = UpdateInfrastructureService(
-                    description = null.asPresent(),
-                    url = newUrl.asPresent(),
-                    credentialsTypes = EnumSet.of(
-                        ApiCredentialsType.NETRC_FILE,
-                        ApiCredentialsType.GIT_CREDENTIALS_FILE
-                    ).asPresent()
-                )
-                val response =
-                    superuserClient.patch("/api/v1/organizations/$orgId/infrastructure-services/${service.name}") {
-                        setBody(updateService)
-                    }
-
-                val updatedService = ApiInfrastructureService(
-                    service.name,
-                    newUrl,
-                    null,
-                    userSecret.name,
-                    passSecret.name,
-                    EnumSet.of(ApiCredentialsType.NETRC_FILE, ApiCredentialsType.GIT_CREDENTIALS_FILE)
-                )
-
-                response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody updatedService
-
-                val dbService =
-                    infrastructureServiceRepository.getByIdAndName(OrganizationId(orgId), service.name)
-                dbService.shouldNotBeNull()
-                dbService.mapToApi() shouldBe updatedService
-            }
-        }
-
-        "require OrganizationPermission.WRITE" {
-            val createdOrg = createOrganization()
-            val userSecret = createSecret(createdOrg.id, name = "user")
-            val passSecret = createSecret(createdOrg.id, name = "pass")
-
-            val service = infrastructureServiceRepository.create(
-                "testRepository",
-                "https://repo.example.org/test",
-                "test description",
-                userSecret,
-                passSecret,
-                emptySet(),
-                OrganizationId(createdOrg.id)
-            )
-
-            requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id)) {
-                val updateService = UpdateInfrastructureService(
-                    description = null.asPresent(),
-                    url = "https://repo2.example.org/test2".asPresent()
-                )
-
-                patch("/api/v1/organizations/${createdOrg.id}/infrastructure-services/${service.name}") {
-                    setBody(updateService)
-                }
-            }
-        }
-    }
-
-    "DELETE /organizations/{orgId}/infrastructure-services/{name}" should {
-        "delete an infrastructure service" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val userSecret = createSecret(orgId, name = "user")
-                val passSecret = createSecret(orgId, name = "pass")
-
-                val service = infrastructureServiceRepository.create(
-                    "deleteService",
-                    "http://repo1.example.org/obsolete",
-                    "good bye, cruel world",
-                    userSecret,
-                    passSecret,
-                    emptySet(),
-                    OrganizationId(orgId)
-                )
-
-                val response =
-                    superuserClient.delete("/api/v1/organizations/$orgId/infrastructure-services/${service.name}")
-
-                response shouldHaveStatus HttpStatusCode.NoContent
-                infrastructureServiceRepository.listForId(OrganizationId(orgId)).data should beEmpty()
-            }
-        }
-
-        "require OrganizationPermission.WRITE" {
-            val createdOrg = createOrganization()
-            val userSecret = createSecret(createdOrg.id, name = "user")
-            val passSecret = createSecret(createdOrg.id, name = "pass")
-
-            val service = infrastructureServiceRepository.create(
-                "testRepository",
-                "https://repo.example.org/test",
-                "test description",
-                userSecret,
-                passSecret,
-                emptySet(),
-                OrganizationId(createdOrg.id)
-            )
-
-            requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id), HttpStatusCode.NoContent) {
-                delete("/api/v1/organizations/${createdOrg.id}/infrastructure-services/${service.name}")
             }
         }
     }
