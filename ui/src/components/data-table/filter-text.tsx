@@ -39,13 +39,14 @@ export function FilterText({
   setFilterValue,
 }: FilterTextProps) {
   const [value, setValue] = useState(initialValue);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
 
   return (
-    <Popover>
+    <Popover open={filterOpen} onOpenChange={setFilterOpen}>
       <PopoverTrigger asChild>
         <Button variant='ghost' size='narrow'>
           <Filter
@@ -59,6 +60,7 @@ export function FilterText({
             onSubmit={(event) => {
               event.preventDefault();
               setFilterValue(value);
+              setFilterOpen(false);
             }}
           >
             <Input
@@ -72,7 +74,10 @@ export function FilterText({
           <Button
             variant='ghost'
             className='px-2'
-            onClick={() => setFilterValue(undefined)}
+            onClick={() => {
+              setFilterValue(undefined);
+              setFilterOpen(false);
+            }}
           >
             <XCircle
               className={cn(
