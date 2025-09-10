@@ -29,7 +29,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob as ApiAnalyzerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration as ApiAnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator as ApiComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection as ApiContentManagementSection
-import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats as ApiEcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig as ApiEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
@@ -37,7 +36,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob as ApiEvaluatorJ
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration as ApiEvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue as ApiFilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier as ApiIdentifier
-import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Issue as ApiIssue
 import org.eclipse.apoapsis.ortserver.api.v1.model.IssueResolution as ApiIssueResolution
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
@@ -95,14 +93,11 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ContentManagementSection
-import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
-import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.JobSummaries
@@ -159,6 +154,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 
 fun AdvisorJob.mapToApi() =
     ApiAdvisorJob(
@@ -659,36 +656,6 @@ fun VcsInfo.mapToApi() =
         path = path
     )
 
-fun InfrastructureService.mapToApi() =
-    ApiInfrastructureService(
-        name = name,
-        url = url,
-        description = description,
-        usernameSecretRef = usernameSecret.name,
-        passwordSecretRef = passwordSecret.name,
-        credentialsTypes = credentialsTypes.mapToApi()
-    )
-
-fun ApiInfrastructureService.mapToModel() =
-    InfrastructureServiceDeclaration(
-        name = name,
-        url = url,
-        description = description,
-        usernameSecret = usernameSecretRef,
-        passwordSecret = passwordSecretRef,
-        credentialsTypes = credentialsTypes.mapToModel()
-    )
-
-fun InfrastructureServiceDeclaration.mapToApi() =
-    ApiInfrastructureService(
-        name = name,
-        url = url,
-        description = description,
-        usernameSecretRef = usernameSecret,
-        passwordSecretRef = passwordSecret,
-        credentialsTypes = credentialsTypes.mapToApi()
-    )
-
 fun ApiEnvironmentVariableDeclaration.mapToModel() = EnvironmentVariableDeclaration(
     name = name,
     secretName = secretName,
@@ -716,14 +683,6 @@ fun ApiEnvironmentConfig.mapToModel() =
         environmentVariables = environmentVariables.map { it.mapToModel() },
         strict = strict
     )
-
-fun CredentialsType.mapToApi() = ApiCredentialsType.valueOf(name)
-
-fun Set<CredentialsType>.mapToApi(): Set<ApiCredentialsType> = mapTo(mutableSetOf()) { it.mapToApi() }
-
-fun ApiCredentialsType.mapToModel() = CredentialsType.valueOf(name)
-
-fun Set<ApiCredentialsType>.mapToModel(): Set<CredentialsType> = mapTo(mutableSetOf()) { it.mapToModel() }
 
 fun PackageManagerConfiguration.mapToApi() =
     ApiPackageManagerConfiguration(mustRunAfter = mustRunAfter, options = options)

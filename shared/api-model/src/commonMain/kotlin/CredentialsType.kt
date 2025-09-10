@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
+package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 /**
  * An enumeration class defining the supported credential types that are available for infrastructure services.

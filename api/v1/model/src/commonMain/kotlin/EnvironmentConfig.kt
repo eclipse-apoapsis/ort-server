@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
+
 /**
  * Type definition to describe the generic section of the environment configuration that lists the environment
  * definitions. The section contains different types of definitions with different properties and is therefore
