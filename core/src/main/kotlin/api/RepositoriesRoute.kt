@@ -34,10 +34,8 @@ import io.ktor.server.routing.route
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
@@ -53,29 +51,22 @@ import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteInfrastructureServiceForRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryRoleFromUser
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServiceForRepositoryIdAndName
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getInfrastructureServicesByRepositoryId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunByIndex
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunsByRepositoryId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForRepository
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchInfrastructureServiceForRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepositoryById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.postInfrastructureServiceForRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putRepositoryRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
-import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
@@ -100,7 +91,6 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     val pluginTemplateService by inject<PluginTemplateService>()
     val repositoryService by inject<RepositoryService>()
     val userService by inject<UserService>()
-    val infrastructureServiceService by inject<InfrastructureServiceService>()
 
     get(getRepositoryById) {
         requirePermission(RepositoryPermission.READ)
@@ -228,86 +218,6 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     ortRunService.deleteOrtRun(ortRunId)
                     call.respond(HttpStatusCode.NoContent)
                 } ?: call.respond(HttpStatusCode.NotFound)
-            }
-        }
-    }
-
-    route("infrastructure-services") {
-        get(getInfrastructureServicesByRepositoryId) {
-            requirePermission(RepositoryPermission.READ)
-
-            val repositoryId = call.requireIdParameter("repositoryId")
-            val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
-
-            val infrastructureServices =
-                infrastructureServiceService.listForId(RepositoryId(repositoryId), pagingOptions.mapToModel())
-
-            val pagedResponse = infrastructureServices.mapToApi(InfrastructureService::mapToApi)
-
-            call.respond(HttpStatusCode.OK, pagedResponse)
-        }
-
-        post(postInfrastructureServiceForRepository) {
-            requirePermission(RepositoryPermission.WRITE)
-
-            val repositoryId = call.requireIdParameter("repositoryId")
-            val createService = call.receive<CreateInfrastructureService>()
-
-            val newService = infrastructureServiceService.createForId(
-                RepositoryId(repositoryId),
-                createService.name,
-                createService.url,
-                createService.description,
-                createService.usernameSecretRef,
-                createService.passwordSecretRef,
-                createService.credentialsTypes.mapToModel()
-            )
-
-            call.respond(HttpStatusCode.Created, newService.mapToApi())
-        }
-
-        route("{serviceName}") {
-            get(getInfrastructureServiceForRepositoryIdAndName) {
-                requirePermission(RepositoryPermission.READ)
-
-                val repositoryId = call.requireIdParameter("repositoryId")
-                val serviceName = call.requireParameter("serviceName")
-
-                infrastructureServiceService
-                    .getForId(RepositoryId(repositoryId), serviceName)
-                    ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
-                    ?: call.respond(HttpStatusCode.NotFound)
-            }
-
-            patch(patchInfrastructureServiceForRepositoryIdAndName) {
-                requirePermission(RepositoryPermission.WRITE)
-
-                val repositoryId = call.requireIdParameter("repositoryId")
-                val serviceName = call.requireParameter("serviceName")
-                val updateService = call.receive<UpdateInfrastructureService>()
-
-                val updatedService = infrastructureServiceService.updateForId(
-                    RepositoryId(repositoryId),
-                    serviceName,
-                    updateService.url.mapToModel(),
-                    updateService.description.mapToModel(),
-                    updateService.usernameSecretRef.mapToModel(),
-                    updateService.passwordSecretRef.mapToModel(),
-                    updateService.credentialsTypes.mapToModel { type -> type.mapToModel() }
-                )
-
-                call.respond(HttpStatusCode.OK, updatedService.mapToApi())
-            }
-
-            delete(deleteInfrastructureServiceForRepositoryIdAndName) {
-                requirePermission(RepositoryPermission.WRITE)
-
-                val repositoryId = call.requireIdParameter("repositoryId")
-                val serviceName = call.requireParameter("serviceName")
-
-                infrastructureServiceService.deleteForId(RepositoryId(repositoryId), serviceName)
-
-                call.respond(HttpStatusCode.NoContent)
             }
         }
     }

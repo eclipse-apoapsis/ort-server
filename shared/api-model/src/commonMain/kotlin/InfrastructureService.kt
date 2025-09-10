@@ -17,15 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.api.v1.model
-
-import io.konform.validation.Validation
-import io.konform.validation.constraints.pattern
+package org.eclipse.apoapsis.ortserver.shared.apimodel
 
 import kotlinx.serialization.Serializable
-
-import org.eclipse.apoapsis.ortserver.api.v1.model.validation.ValidatorFunc
-import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 
 /**
  * The response object for the endpoint to manage infrastructure services.
@@ -55,43 +49,4 @@ data class InfrastructureService(
      * credentials of the service are listed when generating the runtime environment for a worker.
      */
     val credentialsTypes: Set<CredentialsType> = emptySet()
-)
-
-/**
- * Request object for the create infrastructure service endpoint.
- */
-@Serializable
-data class CreateInfrastructureService(
-    val name: String,
-    val url: String,
-    val description: String? = null,
-    val usernameSecretRef: String,
-    val passwordSecretRef: String,
-    val credentialsTypes: Set<CredentialsType> = setOf(CredentialsType.NETRC_FILE)
-) {
-    companion object {
-        val NAME_PATTERN_REGEX = """^(?!\s)[A-Za-z0-9- ]*(?<!\s)$""".toRegex()
-        const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
-                "spaces. Leading and trailing whitespaces are not allowed."
-
-        val validate: ValidatorFunc<CreateInfrastructureService> = { obj ->
-            Validation {
-                CreateInfrastructureService::name {
-                    pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
-                }
-            }.invoke(obj)
-        }
-    }
-}
-
-/**
- * Request object for the update infrastructure service endpoint.
- */
-@Serializable
-data class UpdateInfrastructureService(
-    val url: OptionalValue<String> = OptionalValue.Absent,
-    val description: OptionalValue<String?> = OptionalValue.Absent,
-    val usernameSecretRef: OptionalValue<String> = OptionalValue.Absent,
-    val passwordSecretRef: OptionalValue<String> = OptionalValue.Absent,
-    val credentialsTypes: OptionalValue<Set<CredentialsType>> = OptionalValue.Absent
 )
