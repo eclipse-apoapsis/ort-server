@@ -17,9 +17,8 @@
  * License-Filename: LICENSE
  */
 
-import debounce from 'debounce';
 import { Filter, XCircle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,11 +40,6 @@ export function FilterText({
 }: FilterTextProps) {
   const [value, setValue] = useState(initialValue);
 
-  const debounceSetFilterValue = useMemo(
-    () => debounce(setFilterValue, 500),
-    [setFilterValue]
-  );
-
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
@@ -61,17 +55,20 @@ export function FilterText({
       </PopoverTrigger>
       <PopoverContent>
         <div className='flex gap-2'>
-          <Input
-            value={value}
-            onChange={(event) => {
-              setValue(event.target.value);
-              if (event.target.value.length === 0) {
-                debounceSetFilterValue(undefined);
-              } else {
-                debounceSetFilterValue(event.target.value);
-              }
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              setFilterValue(value);
             }}
-          />
+          >
+            <Input
+              value={value}
+              onBlur={() => setFilterValue(value)}
+              onChange={(event) => {
+                setValue(event.target.value);
+              }}
+            />
+          </form>
           <Button
             variant='ghost'
             className='px-2'
