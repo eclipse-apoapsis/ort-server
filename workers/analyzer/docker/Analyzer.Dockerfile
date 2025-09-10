@@ -555,4 +555,7 @@ WORKDIR $HOMEDIR
 # Install cargo-credential-netrc late in the build to prevent an error accessing /opt/rust/cargo/registry/.
 RUN $CARGO_HOME/bin/cargo install cargo-credential-netrc
 
+# Make sure the user executing the container has access rights in the $CARGO_HOME directory.
+RUN sudo chgrp -R 0 $CARGO_HOME && sudo chmod -R g+rwX $CARGO_HOME
+
 ENTRYPOINT ["/bin/bash"]
