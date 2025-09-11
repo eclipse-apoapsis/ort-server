@@ -27,7 +27,7 @@ import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
@@ -35,7 +35,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 internal fun Route.deleteSecretByRepositoryIdAndName(
-    infrastructureServiceRepository: InfrastructureServiceRepository,
+    infrastructureServiceService: InfrastructureServiceService,
     secretService: SecretService
 ) = delete("/repositories/{repositoryId}/secrets/{secretName}", {
     operationId = "DeleteSecretByRepositoryIdAndName"
@@ -69,7 +69,7 @@ internal fun Route.deleteSecretByRepositoryIdAndName(
         return@delete
     }
 
-    val infrastructureServices = infrastructureServiceRepository.listForSecret(secret.id)
+    val infrastructureServices = infrastructureServiceService.listForSecret(secret.id)
     if (infrastructureServices.isNotEmpty()) {
         call.respondError(
             HttpStatusCode.Conflict,
