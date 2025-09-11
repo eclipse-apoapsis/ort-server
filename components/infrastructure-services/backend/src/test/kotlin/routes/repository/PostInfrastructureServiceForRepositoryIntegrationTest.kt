@@ -34,9 +34,9 @@ import io.ktor.server.plugins.statuspages.StatusPages
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServicesIntegrationTest
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InvalidSecretReferenceException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
-import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
