@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfra
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
@@ -50,7 +51,6 @@ fun buildEnvironmentModule(): Module = module {
         EnvironmentService(
             get(),
             get(),
-            get(),
             listOf(
                 ConanGenerator(),
                 GitConfigGenerator.create(get()),
@@ -65,6 +65,8 @@ fun buildEnvironmentModule(): Module = module {
             get()
         )
     }
+
+    singleOf(::InfrastructureServiceService)
 
     single {
         val secretStorage = SecretStorage.createStorage(get())
