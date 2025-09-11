@@ -42,7 +42,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.or
 
-class DaoInfrastructureServiceRepository(private val db: Database) : InfrastructureServiceRepository {
+internal class DaoInfrastructureServiceRepository(private val db: Database) : InfrastructureServiceRepository {
     companion object {
         /**
          * Return an expression to select an [InfrastructureService] for a specific hierarchy entity [id]

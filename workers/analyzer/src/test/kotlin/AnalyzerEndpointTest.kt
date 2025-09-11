@@ -45,7 +45,7 @@ import java.util.Properties
 
 import kotlinx.datetime.Instant
 
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
@@ -318,8 +318,8 @@ class AnalyzerEndpointTest : KoinTest, StringSpec() {
                         ListQueryResult(listOf(usernameSecret, passwordSecret), ListQueryParameters.DEFAULT, 2)
             }
 
-            declareMock<InfrastructureServiceDeclarationRepository> {
-                every { getOrCreateForRun(any(), any()) } answers { firstArg() }
+            declareMock<InfrastructureServiceService> {
+                coEvery { getOrCreateDeclarationForRun(any(), any()) } answers { firstArg() }
             }
 
             declareMock<AdminConfigService> {

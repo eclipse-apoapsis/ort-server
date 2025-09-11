@@ -33,20 +33,20 @@ class DeleteInfrastructureServiceForOrganizationIdAndNameIntegrationTest : Infra
     "DeleteInfrastructureServiceForOrganizationIdAndName" should {
         "delete an infrastructure service" {
             infrastructureServicesTestApplication { client ->
-                val service = infrastructureServiceRepository.create(
+                val service = infrastructureServiceService.createForId(
+                    OrganizationId(orgId),
                     "deleteService",
                     "http://repo1.example.org/obsolete",
                     "good bye, cruel world",
                     orgUserSecret,
                     orgPassSecret,
-                    emptySet(),
-                    OrganizationId(orgId)
+                    emptySet()
                 )
 
                 val response = client.delete("/organizations/$orgId/infrastructure-services/${service.name}")
 
                 response shouldHaveStatus HttpStatusCode.NoContent
-                infrastructureServiceRepository.listForId(OrganizationId(orgId)).data should beEmpty()
+                infrastructureServiceService.listForId(OrganizationId(orgId)).data should beEmpty()
             }
         }
     }
