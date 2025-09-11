@@ -31,6 +31,7 @@ import io.kotest.matchers.shouldBe
 
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
@@ -66,7 +67,7 @@ class DaoInfrastructureServiceRepositoryTest : WordSpec() {
 
     init {
         beforeEach {
-            infrastructureServicesRepository = dbExtension.fixtures.infrastructureServiceRepository
+            infrastructureServicesRepository = DaoInfrastructureServiceRepository(dbExtension.db)
             secretRepository = dbExtension.fixtures.secretRepository
             ortRunRepository = dbExtension.fixtures.ortRunRepository
             fixtures = dbExtension.fixtures
