@@ -1,5 +1,9 @@
 # Contributing Guide
 
+> [!NOTE]
+> The general language of the project is American English.
+> All documents, code comments, commit messages and discussion should adhere to that.
+
 ## Eclipse Contributor Agreement (ECA)
 
 Before your contributions can be accepted, you have to electronically sign the [Eclipse Contributor Agreement](https://www.eclipse.org/legal/ECA.php).
