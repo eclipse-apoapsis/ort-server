@@ -30,10 +30,10 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 
 import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationException
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InvalidSecretReferenceException
 import org.eclipse.apoapsis.ortserver.core.api.AuthenticationException
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
-import org.eclipse.apoapsis.ortserver.services.InvalidSecretReferenceException
 import org.eclipse.apoapsis.ortserver.services.OrganizationNotEmptyException
 import org.eclipse.apoapsis.ortserver.services.ReportNotFoundException
 import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
