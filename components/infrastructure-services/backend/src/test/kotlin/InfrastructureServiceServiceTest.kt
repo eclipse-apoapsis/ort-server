@@ -66,223 +66,25 @@ class InfrastructureServiceServiceTest : WordSpec({
         unmockkAll()
     }
 
-    "createForId" should {
-        "create an infrastructure service for an organization" {
-            testWithHelper {
-                val userSecret = mockOrganizationSecret(USERNAME_SECRET)
-                val passSecret = mockOrganizationSecret(PASSWORD_SECRET)
+    lateinit var db: Database
+    lateinit var repository: InfrastructureServiceRepository
+    lateinit var declarationRepository: InfrastructureServiceDeclarationRepository
+    lateinit var secretService: SecretService
+    lateinit var service: InfrastructureServiceService
 
-                val infrastructureService = mockk<InfrastructureService>()
-                every {
-                    repository.create(
-                        SERVICE_NAME,
-                        SERVICE_URL,
-                        SERVICE_DESC,
-                        userSecret,
-                        passSecret,
-                        EnumSet.of(CredentialsType.NETRC_FILE),
-                        ORGANIZATION_ID
-                    )
-                } returns infrastructureService
-
-                val createResult = service.createForId(
-                    ORGANIZATION_ID,
-                    SERVICE_NAME,
-                    SERVICE_URL,
-                    SERVICE_DESC,
-                    USERNAME_SECRET,
-                    PASSWORD_SECRET,
-                    EnumSet.of(CredentialsType.NETRC_FILE)
-                )
-
-                createResult shouldBe infrastructureService
-            }
-        }
-
-        "throw an exception if a secret reference cannot be resolved" {
-            testWithHelper(verifyTx = false) {
-                mockOrganizationSecret(USERNAME_SECRET)
-                coEvery {
-                    secretService.getSecret(ORGANIZATION_ID, PASSWORD_SECRET)
-                } returns null
-
-                val exception = shouldThrow<InvalidSecretReferenceException> {
-                    service.createForId(
-                        ORGANIZATION_ID,
-                        SERVICE_NAME,
-                        SERVICE_URL,
-                        SERVICE_DESC,
-                        USERNAME_SECRET,
-                        PASSWORD_SECRET,
-                        emptySet()
-                    )
-                }
-
-                exception.message shouldContain PASSWORD_SECRET
-            }
-        }
+    beforeEach {
+        db = createDatabaseMock()
+        repository = mockk()
+        declarationRepository = mockk()
+        secretService = mockk()
+        service = InfrastructureServiceService(
+            db,
+            repository,
+            declarationRepository,
+            secretService
+        )
     }
 
-    "updateForId" should {
-        "update the properties of a service" {
-            testWithHelper {
-                val userSecret = mockOrganizationSecret(USERNAME_SECRET)
-                val passSecret = mockOrganizationSecret(PASSWORD_SECRET)
-
-                val infrastructureService = mockk<InfrastructureService>()
-                every {
-                    repository.updateForIdAndName(
-                        ORGANIZATION_ID,
-                        SERVICE_NAME,
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any()
-                    )
-                } returns infrastructureService
-
-                val updateResult = service.updateForId(
-                    ORGANIZATION_ID,
-                    SERVICE_NAME,
-                    SERVICE_URL.asPresent(),
-                    SERVICE_DESC.asPresent(),
-                    USERNAME_SECRET.asPresent(),
-                    PASSWORD_SECRET.asPresent(),
-                    EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE).asPresent()
-                )
-
-                updateResult shouldBe infrastructureService
-
-                val slotUrl = slot<OptionalValue<String>>()
-                val slotDescription = slot<OptionalValue<String?>>()
-                val slotUsernameSecret = slot<OptionalValue<Secret>>()
-                val slotPasswordSecret = slot<OptionalValue<Secret>>()
-                val slotCredentialsType = slot<OptionalValue<Set<CredentialsType>>>()
-                verify {
-                    repository.updateForIdAndName(
-                        ORGANIZATION_ID,
-                        SERVICE_NAME,
-                        capture(slotUrl),
-                        capture(slotDescription),
-                        capture(slotUsernameSecret),
-                        capture(slotPasswordSecret),
-                        capture(slotCredentialsType)
-                    )
-                }
-
-                equalsOptionalValues(SERVICE_URL.asPresent(), slotUrl.captured) shouldBe true
-                equalsOptionalValues(SERVICE_DESC.asPresent(), slotDescription.captured) shouldBe true
-                equalsOptionalValues(userSecret.asPresent(), slotUsernameSecret.captured) shouldBe true
-                equalsOptionalValues(passSecret.asPresent(), slotPasswordSecret.captured) shouldBe true
-                equalsOptionalValues(
-                    EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE).asPresent(),
-                    slotCredentialsType.captured
-                ) shouldBe true
-            }
-        }
-
-        "throw an exception if a secret reference cannot be resolved" {
-            testWithHelper(verifyTx = false) {
-                coEvery { secretService.getSecret(any(), any()) } returns null
-
-                shouldThrow<InvalidSecretReferenceException> {
-                    service.updateForId(
-                        ORGANIZATION_ID,
-                        SERVICE_NAME,
-                        OptionalValue.Absent,
-                        SERVICE_DESC.asPresent(),
-                        "someNonExistingSecret".asPresent(),
-                        OptionalValue.Absent,
-                        OptionalValue.Absent
-                    )
-                }
-            }
-        }
-    }
-
-    "deleteForId" should {
-        "delete an infrastructure service" {
-            testWithHelper {
-                every { repository.deleteForIdAndName(ORGANIZATION_ID, SERVICE_NAME) } just runs
-
-                service.deleteForId(ORGANIZATION_ID, SERVICE_NAME)
-
-                verify {
-                    repository.deleteForIdAndName(ORGANIZATION_ID, SERVICE_NAME)
-                }
-            }
-        }
-    }
-
-    "getForId" should {
-        "return an infrastructure service" {
-            testWithHelper {
-                val infrastructureService = mockk<InfrastructureService>()
-                every {
-                    repository.getByIdAndName(ORGANIZATION_ID, SERVICE_NAME)
-                } returns infrastructureService
-
-                val result = service.getForId(ORGANIZATION_ID, SERVICE_NAME)
-
-                result shouldBe infrastructureService
-            }
-        }
-    }
-
-    "listForId" should {
-        "return a list with the infrastructure services of the organization" {
-            val services = listOf<InfrastructureService>(mockk(), mockk(), mockk())
-            val parameters = ListQueryParameters(limit = 7, offset = 11)
-            val expectedResult = ListQueryResult(services, parameters, services.size.toLong())
-
-            testWithHelper {
-                every { repository.listForId(ORGANIZATION_ID, parameters) } returns expectedResult
-
-                val result = service.listForId(ORGANIZATION_ID, parameters)
-
-                result shouldBe expectedResult
-            }
-        }
-    }
-})
-
-/**
- * Run a test defined by the given [block] which makes use of a [TestHelper] instance. [Optionally][verifyTx] verify
- * that a database transaction was used.
- */
-private suspend fun testWithHelper(verifyTx: Boolean = true, block: suspend TestHelper.() -> Unit) {
-    val helper = TestHelper()
-    helper.block()
-    if (verifyTx) {
-        helper.verifyTransaction()
-    }
-}
-
-/**
- * A test helper class managing an instance of the service under test and its dependencies.
- */
-private class TestHelper(
-    /** Mock for the database. */
-    val db: Database = createDatabaseMock(),
-
-    /** Mock for the repository for infrastructure services. */
-    val repository: InfrastructureServiceRepository = mockk(),
-
-    /** Mock for the repository for infrastructure services. */
-    val declarationRepository: InfrastructureServiceDeclarationRepository = mockk(),
-
-    /** Mock for the secret service. */
-    val secretService: SecretService = mockk(),
-
-    /** The service under test. */
-    val service: InfrastructureServiceService = InfrastructureServiceService(
-        db,
-        repository,
-        declarationRepository,
-        secretService
-    )
-) {
     /**
      * Create a mock [Secret] and prepare the mock [SecretService] to return it when asked for a secret for the
      * test organization with the given [name].
@@ -304,7 +106,183 @@ private class TestHelper(
             db.dbQuery(any(), any(), any())
         }
     }
-}
+
+    "createForId" should {
+        "create an infrastructure service for an organization" {
+            val userSecret = mockOrganizationSecret(USERNAME_SECRET)
+            val passSecret = mockOrganizationSecret(PASSWORD_SECRET)
+
+            val infrastructureService = mockk<InfrastructureService>()
+            every {
+                repository.create(
+                    SERVICE_NAME,
+                    SERVICE_URL,
+                    SERVICE_DESC,
+                    userSecret,
+                    passSecret,
+                    EnumSet.of(CredentialsType.NETRC_FILE),
+                    ORGANIZATION_ID
+                )
+            } returns infrastructureService
+
+            val createResult = service.createForId(
+                ORGANIZATION_ID,
+                SERVICE_NAME,
+                SERVICE_URL,
+                SERVICE_DESC,
+                USERNAME_SECRET,
+                PASSWORD_SECRET,
+                EnumSet.of(CredentialsType.NETRC_FILE)
+            )
+
+            createResult shouldBe infrastructureService
+
+            verifyTransaction()
+        }
+
+        "throw an exception if a secret reference cannot be resolved" {
+            mockOrganizationSecret(USERNAME_SECRET)
+            coEvery {
+                secretService.getSecret(ORGANIZATION_ID, PASSWORD_SECRET)
+            } returns null
+
+            val exception = shouldThrow<InvalidSecretReferenceException> {
+                service.createForId(
+                    ORGANIZATION_ID,
+                    SERVICE_NAME,
+                    SERVICE_URL,
+                    SERVICE_DESC,
+                    USERNAME_SECRET,
+                    PASSWORD_SECRET,
+                    emptySet()
+                )
+            }
+
+            exception.message shouldContain PASSWORD_SECRET
+        }
+    }
+
+    "updateForId" should {
+        "update the properties of a service" {
+            val userSecret = mockOrganizationSecret(USERNAME_SECRET)
+            val passSecret = mockOrganizationSecret(PASSWORD_SECRET)
+
+            val infrastructureService = mockk<InfrastructureService>()
+            every {
+                repository.updateForIdAndName(
+                    ORGANIZATION_ID,
+                    SERVICE_NAME,
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            } returns infrastructureService
+
+            val updateResult = service.updateForId(
+                ORGANIZATION_ID,
+                SERVICE_NAME,
+                SERVICE_URL.asPresent(),
+                SERVICE_DESC.asPresent(),
+                USERNAME_SECRET.asPresent(),
+                PASSWORD_SECRET.asPresent(),
+                EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE).asPresent()
+            )
+
+            updateResult shouldBe infrastructureService
+
+            val slotUrl = slot<OptionalValue<String>>()
+            val slotDescription = slot<OptionalValue<String?>>()
+            val slotUsernameSecret = slot<OptionalValue<Secret>>()
+            val slotPasswordSecret = slot<OptionalValue<Secret>>()
+            val slotCredentialsType = slot<OptionalValue<Set<CredentialsType>>>()
+            verify {
+                repository.updateForIdAndName(
+                    ORGANIZATION_ID,
+                    SERVICE_NAME,
+                    capture(slotUrl),
+                    capture(slotDescription),
+                    capture(slotUsernameSecret),
+                    capture(slotPasswordSecret),
+                    capture(slotCredentialsType)
+                )
+            }
+
+            equalsOptionalValues(SERVICE_URL.asPresent(), slotUrl.captured) shouldBe true
+            equalsOptionalValues(SERVICE_DESC.asPresent(), slotDescription.captured) shouldBe true
+            equalsOptionalValues(userSecret.asPresent(), slotUsernameSecret.captured) shouldBe true
+            equalsOptionalValues(passSecret.asPresent(), slotPasswordSecret.captured) shouldBe true
+            equalsOptionalValues(
+                EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE).asPresent(),
+                slotCredentialsType.captured
+            ) shouldBe true
+
+            verifyTransaction()
+        }
+
+        "throw an exception if a secret reference cannot be resolved" {
+            coEvery { secretService.getSecret(any(), any()) } returns null
+
+            shouldThrow<InvalidSecretReferenceException> {
+                service.updateForId(
+                    ORGANIZATION_ID,
+                    SERVICE_NAME,
+                    OptionalValue.Absent,
+                    SERVICE_DESC.asPresent(),
+                    "someNonExistingSecret".asPresent(),
+                    OptionalValue.Absent,
+                    OptionalValue.Absent
+                )
+            }
+        }
+    }
+
+    "deleteForId" should {
+        "delete an infrastructure service" {
+            every { repository.deleteForIdAndName(ORGANIZATION_ID, SERVICE_NAME) } just runs
+
+            service.deleteForId(ORGANIZATION_ID, SERVICE_NAME)
+
+            verify {
+                repository.deleteForIdAndName(ORGANIZATION_ID, SERVICE_NAME)
+            }
+
+            verifyTransaction()
+        }
+    }
+
+    "getForId" should {
+        "return an infrastructure service" {
+            val infrastructureService = mockk<InfrastructureService>()
+            every {
+                repository.getByIdAndName(ORGANIZATION_ID, SERVICE_NAME)
+            } returns infrastructureService
+
+            val result = service.getForId(ORGANIZATION_ID, SERVICE_NAME)
+
+            result shouldBe infrastructureService
+
+            verifyTransaction()
+        }
+    }
+
+    "listForId" should {
+        "return a list with the infrastructure services of the organization" {
+            val services = listOf<InfrastructureService>(mockk(), mockk(), mockk())
+            val parameters = ListQueryParameters(limit = 7, offset = 11)
+            val expectedResult = ListQueryResult(services, parameters, services.size.toLong())
+
+            every { repository.listForId(ORGANIZATION_ID, parameters) } returns expectedResult
+
+            val result = service.listForId(ORGANIZATION_ID, parameters)
+
+            result shouldBe expectedResult
+
+            verifyTransaction()
+        }
+    }
+})
 
 /**
  * Create a mock [Database]. The mock is prepared to expect invocations of the [Database.dbQuery] function. The
