@@ -33,14 +33,14 @@ class GetInfrastructureServiceForOrganizationIdAndNameIntegrationTest : Infrastr
     "GetInfrastructureServiceForOrganizationIdAndName" should {
         "return an infrastructure service" {
             infrastructureServicesTestApplication { client ->
-                val service = infrastructureServiceRepository.create(
+                val service = infrastructureServiceService.createForId(
+                    OrganizationId(orgId),
                     "testRepository",
                     "http://repo.example.org/test",
                     "test repo description",
                     orgUserSecret,
                     orgPassSecret,
-                    emptySet(),
-                    OrganizationId(orgId)
+                    emptySet()
                 )
 
                 val response = client.get(

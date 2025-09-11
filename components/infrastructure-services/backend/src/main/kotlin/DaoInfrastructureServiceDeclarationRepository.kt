@@ -26,7 +26,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 
-class DaoInfrastructureServiceDeclarationRepository(private val db: Database) :
+internal class DaoInfrastructureServiceDeclarationRepository(private val db: Database) :
     InfrastructureServiceDeclarationRepository {
     override fun getOrCreateForRun(
         service: InfrastructureServiceDeclaration,

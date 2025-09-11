@@ -33,14 +33,14 @@ class GetInfrastructureServiceForRepositoryIdAndNameIntegrationTest : Infrastruc
     "GetInfrastructureServiceForRepositoryIdAndName" should {
         "return an infrastructure service" {
             infrastructureServicesTestApplication { client ->
-                val service = infrastructureServiceRepository.create(
+                val service = infrastructureServiceService.createForId(
+                    RepositoryId(repoId),
                     "testRepository",
                     "http://repo.example.org/test",
                     "test repo description",
                     repoUserSecret,
                     repoPassSecret,
-                    emptySet(),
-                    RepositoryId(repoId)
+                    emptySet()
                 )
 
                 val response = client.get("/repositories/$repoId/infrastructure-services/${service.name}")

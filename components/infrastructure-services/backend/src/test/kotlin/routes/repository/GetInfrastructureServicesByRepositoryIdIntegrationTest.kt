@@ -40,7 +40,8 @@ class GetInfrastructureServicesByRepositoryIdIntegrationTest : InfrastructureSer
         "list existing infrastructure services" {
             infrastructureServicesTestApplication { client ->
                 val services = (1..8).map { index ->
-                    infrastructureServiceRepository.create(
+                    infrastructureServiceService.createForId(
+                        RepositoryId(repoId),
                         "infrastructureService$index",
                         "https://repo.example.org/test$index",
                         "description$index",
@@ -50,8 +51,7 @@ class GetInfrastructureServicesByRepositoryIdIntegrationTest : InfrastructureSer
                             EnumSet.of(CredentialsType.NETRC_FILE, CredentialsType.GIT_CREDENTIALS_FILE)
                         } else {
                             emptySet()
-                        },
-                        RepositoryId(repoId)
+                        }
                     )
                 }
 
@@ -80,14 +80,14 @@ class GetInfrastructureServicesByRepositoryIdIntegrationTest : InfrastructureSer
         "support query parameters" {
             infrastructureServicesTestApplication { client ->
                 (1..8).shuffled().forEach { index ->
-                    infrastructureServiceRepository.create(
+                    infrastructureServiceService.createForId(
+                        RepositoryId(repoId),
                         "infrastructureService$index",
                         "https://repo.example.org/test$index",
                         "description$index",
                         repoUserSecret,
                         repoPassSecret,
-                        EnumSet.of(CredentialsType.NETRC_FILE),
-                        RepositoryId(repoId)
+                        EnumSet.of(CredentialsType.NETRC_FILE)
                     )
                 }
 
@@ -96,8 +96,8 @@ class GetInfrastructureServicesByRepositoryIdIntegrationTest : InfrastructureSer
                         "infrastructureService$index",
                         "https://repo.example.org/test$index",
                         "description$index",
-                        repoUserSecret.name,
-                        repoPassSecret.name,
+                        repoUserSecret,
+                        repoPassSecret,
                         EnumSet.of(ApiCredentialsType.NETRC_FILE)
                     )
                 }

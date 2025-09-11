@@ -31,7 +31,6 @@ import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
 
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.SecretsRoutesIntegrationTest
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -64,20 +63,20 @@ class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsRoutesIntegratio
 
         "respond with Conflict when secret is in use" {
             secretsRoutesTestApplication { client ->
-                val userSecret = secretRepository.createRepositorySecret(repoId, path = "user", name = "user")
-                val passSecret = secretRepository.createRepositorySecret(repoId, path = "pass", name = "pass")
+                val userSecret = secretRepository.createRepositorySecret(repoId, path = "user", name = "user").name
+                val passSecret = secretRepository.createRepositorySecret(repoId, path = "pass", name = "pass").name
 
-                val service = DaoInfrastructureServiceRepository(dbExtension.db).create(
+                val service = infrastructureServiceService.createForId(
+                    RepositoryId(repoId),
                     name = "testService",
                     url = "http://repo1.example.org/obsolete",
                     description = "good bye, cruel world",
-                    usernameSecret = userSecret,
-                    passwordSecret = passSecret,
-                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE),
-                    RepositoryId(repoId)
+                    usernameSecretRef = userSecret,
+                    passwordSecretRef = passSecret,
+                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
                 )
 
-                val response = client.delete("/repositories/$repoId/secrets/${userSecret.name}")
+                val response = client.delete("/repositories/$repoId/secrets/$userSecret")
                 response shouldHaveStatus HttpStatusCode.Conflict
 
                 val body = response.body<ErrorResponse>()

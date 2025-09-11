@@ -24,7 +24,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 /**
  * Repository interface to manage [InfrastructureServiceDeclaration] entities.
  */
-interface InfrastructureServiceDeclarationRepository {
+internal interface InfrastructureServiceDeclarationRepository {
     /**
      * Return an [InfrastructureServiceDeclaration] with properties matching the ones
      * of the given [service] that is associated with the given [ORT Run][runId]. Try to find an already existing
