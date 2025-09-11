@@ -40,6 +40,7 @@ import io.mockk.mockk
 import java.io.File
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
@@ -55,7 +56,6 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigException

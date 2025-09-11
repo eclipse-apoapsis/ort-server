@@ -39,6 +39,8 @@ import io.mockk.unmockkAll
 import java.io.File
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -56,8 +58,6 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
