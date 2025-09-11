@@ -59,6 +59,7 @@ abstract class InfrastructureServicesIntegrationTest(
             infrastructureServiceService = InfrastructureServiceService(
                 dbExtension.db,
                 infrastructureServiceRepository,
+                DaoInfrastructureServiceDeclarationRepository(dbExtension.db),
                 secretService
             )
 
