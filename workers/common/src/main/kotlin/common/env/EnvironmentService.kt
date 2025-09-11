@@ -26,8 +26,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationRepository
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
@@ -60,10 +59,7 @@ private val logger = LoggerFactory.getLogger(EnvironmentService::class.java)
  */
 class EnvironmentService(
     /** The repository for accessing infrastructure services. */
-    private val infrastructureServiceRepository: InfrastructureServiceRepository,
-
-    /** The repository for accessing dynamic infrastructure services. */
-    private val infrastructureServiceDeclarationRepository: InfrastructureServiceDeclarationRepository,
+    private val infrastructureServiceService: InfrastructureServiceService,
 
     /** The repository for secrets. This is used to resolve secret references. */
     private val secretService: SecretService,
@@ -85,11 +81,11 @@ class EnvironmentService(
      * then be added to the authenticator to make sure that all credentials are available, even if the repository
      * contains submodules or other dependencies.
      */
-    fun findInfrastructureServicesForRepository(
+    suspend fun findInfrastructureServicesForRepository(
         context: WorkerContext,
         config: EnvironmentConfig?
     ): List<InfrastructureService> {
-        val hierarchyServices = infrastructureServiceRepository.listForHierarchy(context.hierarchy)
+        val hierarchyServices = infrastructureServiceService.listForHierarchy(context.hierarchy)
             .associateBy(InfrastructureService::url)
 
         val configServices = config?.let {
@@ -194,7 +190,7 @@ class EnvironmentService(
      * This function can be used by workers running after the Analyzer, which has initialized the required information.
      */
     suspend fun setupAuthenticationForCurrentRun(context: WorkerContext) {
-        val infrastructureServiceDeclarations = infrastructureServiceDeclarationRepository.listForRun(context.ortRun.id)
+        val infrastructureServiceDeclarations = infrastructureServiceService.listDeclarationsForRun(context.ortRun.id)
 
         val infrastructureServices = withContext(Dispatchers.IO) {
             infrastructureServiceDeclarations.map { service ->
@@ -233,9 +229,9 @@ class EnvironmentService(
      * Update the database to record that the given [services] have been referenced from the current ORT run as
      * obtained from the given [context].
      */
-    private fun assignServicesToOrtRun(context: WorkerContext, services: Collection<InfrastructureService>) {
+    private suspend fun assignServicesToOrtRun(context: WorkerContext, services: Collection<InfrastructureService>) {
         services.forEach { service ->
-            infrastructureServiceDeclarationRepository.getOrCreateForRun(
+            infrastructureServiceService.getOrCreateDeclarationForRun(
                 service.toInfrastructureServiceDeclaration(),
                 context.ortRun.id
             )

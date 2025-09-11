@@ -28,7 +28,9 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
@@ -155,6 +157,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
     single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
     single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
+    single<InfrastructureServiceDeclarationRepository> { DaoInfrastructureServiceDeclarationRepository(get()) }
     single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
     single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
     single<OrganizationRepository> { DaoOrganizationRepository(get()) }

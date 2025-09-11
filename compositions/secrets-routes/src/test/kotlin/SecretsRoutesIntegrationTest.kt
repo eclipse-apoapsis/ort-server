@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.compositions.secretsroutes
 import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
@@ -53,6 +54,7 @@ abstract class SecretsRoutesIntegrationTest(
             infrastructureServiceService = InfrastructureServiceService(
                 dbExtension.db,
                 DaoInfrastructureServiceRepository(dbExtension.db),
+                DaoInfrastructureServiceDeclarationRepository(dbExtension.db),
                 secretService
             )
         }

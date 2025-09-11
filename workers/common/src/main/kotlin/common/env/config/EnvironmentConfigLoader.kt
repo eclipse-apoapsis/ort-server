@@ -24,7 +24,7 @@ import com.charleskorn.kaml.decodeFromStream
 
 import java.io.File
 
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
@@ -96,7 +96,7 @@ class EnvironmentConfigLoader(
      * The repository for infrastructure services. This is needed to resolve references to services that are not
      * defined in the configuration itself, but for the current product or organization.
      */
-    private val serviceRepository: InfrastructureServiceRepository,
+    private val infrastructureServiceService: InfrastructureServiceService,
 
     /** The factory for creating environment definitions. */
     private val definitionFactory: EnvironmentDefinitionFactory
@@ -263,7 +263,7 @@ class EnvironmentConfigLoader(
         hierarchy: Hierarchy,
         configServices: List<InfrastructureService>
     ): List<EnvironmentServiceDefinition> {
-        val serviceResolver = ServiceResolver(hierarchy, serviceRepository, configServices)
+        val serviceResolver = ServiceResolver(hierarchy, infrastructureServiceService, configServices)
 
         val definitionResults = config.environmentDefinitions.entries.flatMap { entry ->
             entry.value.map { definition ->
@@ -375,7 +375,7 @@ private class ServiceResolver(
     val hierarchy: Hierarchy,
 
     /** The repository for infrastructure services. */
-    serviceRepository: InfrastructureServiceRepository,
+    infrastructureServiceService: InfrastructureServiceService,
 
     /** The list of services defined in the repository configuration file. */
     configServices: List<InfrastructureService>
@@ -385,12 +385,16 @@ private class ServiceResolver(
 
     /** A map with the services defined for the current product. */
     private val productServices by lazy {
-        serviceRepository.listForId(ProductId(hierarchy.product.id)).data.associateByName()
+        runBlocking {
+            infrastructureServiceService.listForId(ProductId(hierarchy.product.id)).data.associateByName()
+        }
     }
 
     /** A map with the services defined for the current organization. */
     private val organizationServices by lazy {
-        serviceRepository.listForId(OrganizationId(hierarchy.organization.id)).data.associateByName()
+        runBlocking {
+            infrastructureServiceService.listForId(OrganizationId(hierarchy.organization.id)).data.associateByName()
+        }
     }
 
     /**
