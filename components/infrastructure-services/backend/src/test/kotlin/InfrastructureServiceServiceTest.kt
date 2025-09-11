@@ -269,11 +269,19 @@ private class TestHelper(
     /** Mock for the repository for infrastructure services. */
     val repository: InfrastructureServiceRepository = mockk(),
 
+    /** Mock for the repository for infrastructure services. */
+    val declarationRepository: InfrastructureServiceDeclarationRepository = mockk(),
+
     /** Mock for the secret service. */
     val secretService: SecretService = mockk(),
 
     /** The service under test. */
-    val service: InfrastructureServiceService = InfrastructureServiceService(db, repository, secretService)
+    val service: InfrastructureServiceService = InfrastructureServiceService(
+        db,
+        repository,
+        declarationRepository,
+        secretService
+    )
 ) {
     /**
      * Create a mock [Secret] and prepare the mock [SecretService] to return it when asked for a secret for the

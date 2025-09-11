@@ -29,6 +29,7 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.CreateInfrastructureService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.UpdateInfrastructureService
@@ -53,6 +54,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         infrastructureServiceService = InfrastructureServiceService(
             dbExtension.db,
             DaoInfrastructureServiceRepository(dbExtension.db),
+            DaoInfrastructureServiceDeclarationRepository(dbExtension.db),
             SecretService(
                 dbExtension.db,
                 dbExtension.fixtures.secretRepository,
