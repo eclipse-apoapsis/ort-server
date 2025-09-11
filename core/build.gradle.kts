@@ -97,7 +97,6 @@ dependencies {
     implementation(projects.services.authorizationService)
     implementation(projects.services.contentManagementService)
     implementation(projects.services.hierarchyService)
-    implementation(projects.services.infrastructureService)
     implementation(projects.services.ortRunService)
     implementation(projects.services.reportStorageService)
     implementation(projects.shared.apiMappings)
