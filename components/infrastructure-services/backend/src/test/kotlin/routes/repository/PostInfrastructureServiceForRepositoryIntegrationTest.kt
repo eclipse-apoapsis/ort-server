@@ -52,8 +52,8 @@ class PostInfrastructureServiceForRepositoryIntegrationTest : InfrastructureServ
                     "testRepository",
                     "https://repo.example.org/test",
                     "test description",
-                    repoUserSecret.name,
-                    repoPassSecret.name,
+                    repoUserSecret,
+                    repoPassSecret,
                     credentialsTypes = setOf(
                         CredentialsType.GIT_CREDENTIALS_FILE,
                         CredentialsType.NETRC_FILE,
@@ -68,8 +68,8 @@ class PostInfrastructureServiceForRepositoryIntegrationTest : InfrastructureServ
                     createInfrastructureService.name,
                     createInfrastructureService.url,
                     createInfrastructureService.description,
-                    repoUserSecret.name,
-                    repoPassSecret.name,
+                    repoUserSecret,
+                    repoPassSecret,
                     setOf(
                         CredentialsType.GIT_CREDENTIALS_FILE,
                         CredentialsType.NETRC_FILE,
@@ -80,7 +80,7 @@ class PostInfrastructureServiceForRepositoryIntegrationTest : InfrastructureServ
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody expectedService
 
-                val dbService = infrastructureServiceRepository.getByIdAndName(
+                val dbService = infrastructureServiceService.getForId(
                     RepositoryId(repoId),
                     createInfrastructureService.name
                 )
@@ -135,8 +135,8 @@ class PostInfrastructureServiceForRepositoryIntegrationTest : InfrastructureServ
                     " testRepository 15?!",
                     "https://repo.example.org/test",
                     "test description",
-                    repoUserSecret.name,
-                    repoPassSecret.name
+                    repoUserSecret,
+                    repoPassSecret
                 )
                 val response = client.post("/repositories/$repoId/infrastructure-services") {
                     setBody(createInfrastructureService)
@@ -148,7 +148,7 @@ class PostInfrastructureServiceForRepositoryIntegrationTest : InfrastructureServ
                 body.message shouldBe "Request validation has failed."
                 body.cause shouldContain "Validation failed for CreateInfrastructureService"
 
-                infrastructureServiceRepository.getByIdAndName(
+                infrastructureServiceService.getForId(
                     RepositoryId(repoId),
                     createInfrastructureService.name
                 ).shouldBeNull()
@@ -168,22 +168,22 @@ class PostInfrastructureServiceForRepositoryIntegrationTest : InfrastructureServ
                     }
                 }
 
-                val createdInfrastructureService = infrastructureServiceRepository.create(
+                val createdInfrastructureService = infrastructureServiceService.createForId(
+                    RepositoryId(repoId),
                     "testRepository",
                     "https://repo.example.org/test",
                     "test repo description",
                     repoUserSecret,
                     repoPassSecret,
-                    emptySet(),
-                    RepositoryId(repoId)
+                    emptySet()
                 )
 
                 val createInfrastructureService = CreateInfrastructureService(
                     createdInfrastructureService.name,
                     createdInfrastructureService.url,
                     "test repo description",
-                    repoUserSecret.name,
-                    repoPassSecret.name,
+                    repoUserSecret,
+                    repoPassSecret,
                     credentialsTypes = emptySet()
                 )
 

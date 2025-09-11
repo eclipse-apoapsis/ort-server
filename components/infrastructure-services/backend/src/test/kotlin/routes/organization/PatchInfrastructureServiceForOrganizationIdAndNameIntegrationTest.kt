@@ -42,14 +42,14 @@ class PatchInfrastructureServiceForOrganizationIdAndNameIntegrationTest : Infras
     "PatchInfrastructureServiceForOrganizationIdAndName" should {
         "update an infrastructure service" {
             infrastructureServicesTestApplication { client ->
-                val service = infrastructureServiceRepository.create(
+                val service = infrastructureServiceService.createForId(
+                    OrganizationId(orgId),
                     "updateService",
                     "http://repo1.example.org/test",
                     "test description",
                     orgUserSecret,
                     orgPassSecret,
-                    emptySet(),
-                    OrganizationId(orgId)
+                    emptySet()
                 )
 
                 val newUrl = "https://repo2.example.org/test2"
@@ -70,15 +70,15 @@ class PatchInfrastructureServiceForOrganizationIdAndNameIntegrationTest : Infras
                     service.name,
                     newUrl,
                     null,
-                    orgUserSecret.name,
-                    orgPassSecret.name,
+                    orgUserSecret,
+                    orgPassSecret,
                     EnumSet.of(CredentialsType.NETRC_FILE, CredentialsType.GIT_CREDENTIALS_FILE)
                 )
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody updatedService
 
-                val dbService = infrastructureServiceRepository.getByIdAndName(OrganizationId(orgId), service.name)
+                val dbService = infrastructureServiceService.getForId(OrganizationId(orgId), service.name)
                 dbService.shouldNotBeNull()
                 dbService.mapToApi() shouldBe updatedService
             }

@@ -44,15 +44,17 @@ class InfrastructureServiceService(
     /** Reference to the database. */
     private val db: Database,
 
-    /** The repository for infrastructure services. */
-    private val infrastructureServiceRepository: InfrastructureServiceRepository,
-
-    /** The repository for infrastructure service declarations. */
-    private val infrastructureServiceDeclarationRepository: InfrastructureServiceDeclarationRepository,
-
     /** The service to manage secrets. */
     private val secretService: SecretService
 ) {
+    /** The repository for infrastructure services. */
+    private val infrastructureServiceRepository: InfrastructureServiceRepository =
+        DaoInfrastructureServiceRepository(db)
+
+    /** The repository for infrastructure service declarations. */
+    private val infrastructureServiceDeclarationRepository: InfrastructureServiceDeclarationRepository =
+        DaoInfrastructureServiceDeclarationRepository(db)
+
     /**
      * Create an [InfrastructureService] with the given properties for the hierarchy entity [id].
      */
