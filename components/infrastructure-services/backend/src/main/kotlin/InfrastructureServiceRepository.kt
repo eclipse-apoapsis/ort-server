@@ -32,7 +32,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
  * Repository interface to manage [InfrastructureService] entities.
  */
 @Suppress("TooManyFunctions")
-interface InfrastructureServiceRepository {
+internal interface InfrastructureServiceRepository {
     /**
      * Create a new [InfrastructureService] from the given properties for the hierarchy entity [id].
      */

@@ -59,12 +59,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
 
-        service = InfrastructureServiceService(
-            dbExtension.db,
-            DaoInfrastructureServiceRepository(dbExtension.db),
-            DaoInfrastructureServiceDeclarationRepository(dbExtension.db),
-            secretService
-        )
+        service = InfrastructureServiceService(dbExtension.db, secretService)
 
         organization = dbExtension.fixtures.organization
     }
