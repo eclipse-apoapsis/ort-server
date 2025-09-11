@@ -31,6 +31,7 @@ import io.ktor.http.HttpStatusCode
 
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.SecretsRoutesIntegrationTest
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -66,7 +67,7 @@ class DeleteSecretByOrganizationIdAndNameIntegrationTest : SecretsRoutesIntegrat
                 val userSecret = secretRepository.createOrganizationSecret(orgId, path = "user", name = "user")
                 val passSecret = secretRepository.createOrganizationSecret(orgId, path = "pass", name = "pass")
 
-                val service = dbExtension.fixtures.infrastructureServiceRepository.create(
+                val service = DaoInfrastructureServiceRepository(dbExtension.db).create(
                     name = "testService",
                     url = "http://repo1.example.org/obsolete",
                     description = "good bye, cruel world",

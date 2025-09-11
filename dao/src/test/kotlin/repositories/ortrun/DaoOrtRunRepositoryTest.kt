@@ -47,7 +47,6 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
-import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
@@ -834,14 +833,6 @@ class DaoOrtRunRepositoryTest : WordSpec({
                     "Analyzer"
                 )
                 ortRunRepository.update(ortRun.id, issues = listOf(issue).asPresent())
-
-                val serviceDeclaration = InfrastructureServiceDeclaration(
-                    name = "Test Service",
-                    url = "https://example.com",
-                    usernameSecret = "user-secret",
-                    passwordSecret = "password"
-                )
-                infrastructureServiceDeclarationRepository.getOrCreateForRun(serviceDeclaration, ortRun.id)
 
                 ortRunRepository.delete(ortRun.id)
 

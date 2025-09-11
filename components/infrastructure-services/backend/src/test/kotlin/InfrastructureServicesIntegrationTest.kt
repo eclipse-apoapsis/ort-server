@@ -49,7 +49,7 @@ abstract class InfrastructureServicesIntegrationTest(
 
     init {
         beforeEach {
-            infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
+            infrastructureServiceRepository = DaoInfrastructureServiceRepository(dbExtension.db)
 
             secretService = SecretService(
                 dbExtension.db,
