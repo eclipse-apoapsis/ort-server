@@ -19,13 +19,25 @@
 
 package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationsRunsTable.infrastructureServiceDeclarationId
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationsRunsTable.ortRunId
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
+import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
+import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
+import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.findSingle
+import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
+import org.eclipse.apoapsis.ortserver.dao.utils.apply
+import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -33,6 +45,10 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.or
+import org.jetbrains.exposed.sql.selectAll
 
 /**
  * A service providing functionality for managing [infrastructure services][InfrastructureService].
@@ -47,14 +63,6 @@ class InfrastructureServiceService(
     /** The service to manage secrets. */
     private val secretService: SecretService
 ) {
-    /** The repository for infrastructure services. */
-    private val infrastructureServiceRepository: InfrastructureServiceRepository =
-        DaoInfrastructureServiceRepository(db)
-
-    /** The repository for infrastructure service declarations. */
-    private val infrastructureServiceDeclarationRepository: InfrastructureServiceDeclarationRepository =
-        DaoInfrastructureServiceDeclarationRepository(db)
-
     /**
      * Create an [InfrastructureService] with the given properties for the hierarchy entity [id].
      */
@@ -71,15 +79,23 @@ class InfrastructureServiceService(
         val passwordSecret = resolveSecret(id, passwordSecretRef)
 
         return db.dbQuery {
-            infrastructureServiceRepository.create(
-                name,
-                url,
-                description,
-                usernameSecret,
-                passwordSecret,
-                credentialsTypes,
-                id
-            )
+            if (getDaoForId(id, name) != null) {
+                throw UniqueConstraintException(
+                    "An infrastructure service with name '$name' already exists for the given hierarchy entity."
+                )
+            }
+
+            InfrastructureServicesDao.new {
+                this.name = name
+                this.url = url
+                this.description = description
+                this.usernameSecretId = usernameSecret.id
+                this.passwordSecretId = passwordSecret.id
+                this.credentialsTypes = credentialsTypes
+                this.organizationId = (id as? OrganizationId)?.value
+                this.productId = (id as? ProductId)?.value
+                this.repositoryId = (id as? RepositoryId)?.value
+            }.mapToModel()
         }
     }
 
@@ -99,15 +115,15 @@ class InfrastructureServiceService(
         val passwordSecret = resolveSecretOptional(id, passwordSecretRef)
 
         return db.dbQuery {
-            infrastructureServiceRepository.updateForIdAndName(
-                id,
-                name,
-                url,
-                description,
-                usernameSecret,
-                passwordSecret,
-                credentialsTypes
-            )
+            val service = InfrastructureServicesDao.findSingle(selectByIdAndName(id, name))
+
+            url.ifPresent { service.url = it }
+            description.ifPresent { service.description = it }
+            usernameSecret.ifPresent { service.usernameSecret = SecretDao[it.id] }
+            passwordSecret.ifPresent { service.passwordSecret = SecretDao[it.id] }
+            credentialsTypes.ifPresent { service.credentialsTypes = it }
+
+            service.mapToModel()
         }
     }
 
@@ -116,7 +132,7 @@ class InfrastructureServiceService(
      */
     suspend fun deleteForId(id: HierarchyId, name: String) {
         db.dbQuery {
-            infrastructureServiceRepository.deleteForIdAndName(id, name)
+            InfrastructureServicesDao.findSingle(selectByIdAndName(id, name)).delete()
         }
     }
 
@@ -124,9 +140,7 @@ class InfrastructureServiceService(
      * Return the [InfrastructureService] for the given [name] and hierarchy entity [id].
      */
     suspend fun getForId(id: HierarchyId, name: String): InfrastructureService? =
-        db.dbQuery {
-            infrastructureServiceRepository.getByIdAndName(id, name)
-        }
+        db.dbQuery { getDaoForId(id, name)?.mapToModel() }
 
     /**
      * Return an [InfrastructureServiceDeclaration] with properties matching the ones
@@ -137,14 +151,44 @@ class InfrastructureServiceService(
     suspend fun getOrCreateDeclarationForRun(
         service: InfrastructureServiceDeclaration, runId: Long
     ): InfrastructureServiceDeclaration = db.dbQuery {
-        infrastructureServiceDeclarationRepository.getOrCreateForRun(service, runId)
+        service.validate()
+
+        db.blockingQuery {
+            val serviceDao = InfrastructureServiceDeclarationDao.getOrPut(service)
+            InfrastructureServiceDeclarationsRunsTable.insert {
+                it[infrastructureServiceDeclarationId] = serviceDao.id
+                it[ortRunId] = runId
+            }
+
+            serviceDao.mapToModel()
+        }
     }
 
     /**
      * Return the [InfrastructureServiceDeclaration]s associated to the given [ORT Run][runId].
      */
     suspend fun listDeclarationsForRun(runId: Long): List<InfrastructureServiceDeclaration> = db.dbQuery {
-        infrastructureServiceDeclarationRepository.listForRun(runId)
+        val subQuery = InfrastructureServiceDeclarationsRunsTable
+            .select(infrastructureServiceDeclarationId)
+            .where { ortRunId eq runId }
+
+        InfrastructureServiceDeclarationsTable
+            .selectAll()
+            .where {
+                InfrastructureServiceDeclarationsTable.id inSubQuery subQuery
+            }
+            .map { row ->
+                InfrastructureServiceDeclaration(
+                    name = row[InfrastructureServiceDeclarationsTable.name],
+                    url = row[InfrastructureServiceDeclarationsTable.url],
+                    description = row[InfrastructureServiceDeclarationsTable.description],
+                    usernameSecret = row[InfrastructureServiceDeclarationsTable.usernameSecret],
+                    passwordSecret = row[InfrastructureServiceDeclarationsTable.passwordSecret],
+                    credentialsTypes = InfrastructureServiceDeclarationDao.fromCredentialsTypeString(
+                        row[InfrastructureServiceDeclarationsTable.credentialsType]
+                    )
+                )
+            }
     }
 
     /**
@@ -155,7 +199,11 @@ class InfrastructureServiceService(
         id: HierarchyId,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<InfrastructureService> = db.dbQuery {
-        infrastructureServiceRepository.listForId(id, parameters)
+        InfrastructureServicesDao.listQuery(parameters, InfrastructureServicesDao::mapToModel) {
+            (InfrastructureServicesTable.organizationId eq (id as? OrganizationId)?.value) and
+                    (InfrastructureServicesTable.productId eq (id as? ProductId)?.value) and
+                    (InfrastructureServicesTable.repositoryId eq (id as? RepositoryId)?.value)
+        }
     }
 
     /**
@@ -164,15 +212,38 @@ class InfrastructureServiceService(
      * and others are dropped.
      */
     suspend fun listForHierarchy(hierarchy: Hierarchy): List<InfrastructureService> = db.dbQuery {
-        infrastructureServiceRepository.listForHierarchy(hierarchy)
+        list(ListQueryParameters.DEFAULT) {
+            (InfrastructureServicesTable.repositoryId eq hierarchy.repository.id) or
+                    (InfrastructureServicesTable.productId eq hierarchy.product.id) or
+                    (InfrastructureServicesTable.organizationId eq hierarchy.organization.id)
+        }.groupBy(InfrastructureService::url)
+            .flatMap { (_, services) ->
+                // For duplicates, prefer services defined for products over those for organizations
+                listOfNotNull(
+                    services.find { it.repository?.id == hierarchy.repository.id }
+                        ?: services.find { it.product?.id == hierarchy.product.id }
+                        ?: services.find { it.organization?.id == hierarchy.organization.id }
+                )
+            }
     }
 
     /**
      * Return a list with the [InfrastructureService]s that are associated with the given [Secret][secretId].
      */
     suspend fun listForSecret(secretId: Long): List<InfrastructureService> = db.dbQuery {
-        infrastructureServiceRepository.listForSecret(secretId)
+        list(ListQueryParameters.DEFAULT) {
+            InfrastructureServicesTable.usernameSecretId eq secretId or
+                    (InfrastructureServicesTable.passwordSecretId eq secretId)
+        }
     }
+
+    private fun getDaoForId(id: HierarchyId, name: String): InfrastructureServicesDao? =
+        InfrastructureServicesDao.find(selectByIdAndName(id, name)).singleOrNull()
+
+    private fun list(parameters: ListQueryParameters, op: ConditionBuilder) =
+        InfrastructureServicesDao.find(op)
+            .apply(InfrastructureServicesTable, parameters)
+            .map(InfrastructureServicesDao::mapToModel)
 
     /**
      * Resolve a secret reference for the given hierarchy entity [id] and [secretName]. Throw an exception if the
@@ -194,6 +265,23 @@ class InfrastructureServiceService(
             is OptionalValue.Present -> resolveSecret(id, secretName.value).asPresent()
             else -> OptionalValue.Absent
         }
+}
+
+/**
+ * Return an expression to select an [InfrastructureService] for a specific hierarchy entity [id]
+ * with a given [name].
+ */
+private fun selectByIdAndName(
+    id: HierarchyId,
+    name: String
+): ConditionBuilder = {
+    when (id) {
+        is OrganizationId -> InfrastructureServicesTable.organizationId eq id.value
+        is ProductId -> InfrastructureServicesTable.productId eq id.value
+        is RepositoryId -> InfrastructureServicesTable.repositoryId eq id.value
+    }.and {
+        InfrastructureServicesTable.name eq name
+    }
 }
 
 /**
