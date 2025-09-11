@@ -19,10 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceDeclarationRepository
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationRepository
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
@@ -40,8 +36,6 @@ import org.koin.dsl.module
  * module can be used by worker implementations that need to set up a build environment.
  */
 fun buildEnvironmentModule(): Module = module {
-    single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
-    single<InfrastructureServiceDeclarationRepository> { DaoInfrastructureServiceDeclarationRepository(get()) }
     single<SecretRepository> { DaoSecretRepository(get()) }
 
     singleOf(::EnvironmentDefinitionFactory)
