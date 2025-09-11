@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 
 import java.util.EnumSet
 
@@ -41,7 +41,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 /**
  * A table to store infrastructure services, such as source code or artifact repositories.
  */
-object InfrastructureServicesTable : SortableTable("infrastructure_services") {
+internal object InfrastructureServicesTable : SortableTable("infrastructure_services") {
     val name = text("name").sortable()
     val url = text("url")
     val description = text("description").nullable()
@@ -55,7 +55,7 @@ object InfrastructureServicesTable : SortableTable("infrastructure_services") {
     val repositoryId = reference("repository_id", RepositoriesTable).nullable()
 }
 
-class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
+internal class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<InfrastructureServicesDao>(InfrastructureServicesTable) {
         /**
          * Convert a set of [CredentialsType]s to a string representation.

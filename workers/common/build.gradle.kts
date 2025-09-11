@@ -36,6 +36,7 @@ repositories {
 }
 
 dependencies {
+    implementation(projects.components.infrastructureServices.backend)
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.secrets.secretsSpi)
