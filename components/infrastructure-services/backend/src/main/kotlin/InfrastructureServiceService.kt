@@ -22,8 +22,10 @@ package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
+import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -44,6 +46,9 @@ class InfrastructureServiceService(
 
     /** The repository for infrastructure services. */
     private val infrastructureServiceRepository: InfrastructureServiceRepository,
+
+    /** The repository for infrastructure service declarations. */
+    private val infrastructureServiceDeclarationRepository: InfrastructureServiceDeclarationRepository,
 
     /** The service to manage secrets. */
     private val secretService: SecretService
@@ -122,6 +127,25 @@ class InfrastructureServiceService(
         }
 
     /**
+     * Return an [InfrastructureServiceDeclaration] with properties matching the ones
+     * of the given [service] that is associated with the given [ORT Run][runId]. Try to find an already existing
+     * [service] with the given properties first and return this. If not found, create a new
+     * [InfrastructureServiceDeclaration]. In both cases, associate the [service] with the given [ORT Run][runId].
+     */
+    suspend fun getOrCreateDeclarationForRun(
+        service: InfrastructureServiceDeclaration, runId: Long
+    ): InfrastructureServiceDeclaration = db.dbQuery {
+        infrastructureServiceDeclarationRepository.getOrCreateForRun(service, runId)
+    }
+
+    /**
+     * Return the [InfrastructureServiceDeclaration]s associated to the given [ORT Run][runId].
+     */
+    suspend fun listDeclarationsForRun(runId: Long): List<InfrastructureServiceDeclaration> = db.dbQuery {
+        infrastructureServiceDeclarationRepository.listForRun(runId)
+    }
+
+    /**
      * Return a list with [InfrastructureService]s assigned to the hierarchy entity [id], applying the provided
      * [parameters].
      */
@@ -130,6 +154,15 @@ class InfrastructureServiceService(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT
     ): ListQueryResult<InfrastructureService> = db.dbQuery {
         infrastructureServiceRepository.listForId(id, parameters)
+    }
+
+    /**
+     * Return a list with [InfrastructureService]s that are associated with the given [Hierarchy].
+     * If there are multiple services with the same URL, instances on a lower level of the hierarchy are preferred,
+     * and others are dropped.
+     */
+    suspend fun listForHierarchy(hierarchy: Hierarchy): List<InfrastructureService> = db.dbQuery {
+        infrastructureServiceRepository.listForHierarchy(hierarchy)
     }
 
     /**
