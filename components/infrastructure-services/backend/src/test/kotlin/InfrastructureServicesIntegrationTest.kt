@@ -26,7 +26,6 @@ import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest

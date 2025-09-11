@@ -45,6 +45,7 @@ import java.util.Properties
 
 import kotlinx.datetime.Instant
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
@@ -64,7 +65,6 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AnalyzerWorkerResult
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
