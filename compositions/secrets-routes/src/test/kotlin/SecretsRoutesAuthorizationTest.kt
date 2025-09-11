@@ -26,7 +26,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.permissions.Organ
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
@@ -36,7 +36,7 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
     var orgId = 0L
     var prodId = 0L
     var repoId = 0L
-    lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
+    lateinit var infrastructureServiceService: InfrastructureServiceService
     lateinit var secretService: SecretService
 
     beforeEach {
@@ -46,18 +46,22 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
 
         authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
 
-        infrastructureServiceRepository = DaoInfrastructureServiceRepository(dbExtension.db)
         secretService = SecretService(
             dbExtension.db,
             dbExtension.fixtures.secretRepository,
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
+        )
+        infrastructureServiceService = InfrastructureServiceService(
+            dbExtension.db,
+            DaoInfrastructureServiceRepository(dbExtension.db),
+            secretService
         )
     }
 
     "DeleteSecretByOrganizationIdAndName" should {
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsCompositionRoutes(infrastructureServiceRepository, secretService) },
+                routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },
                 role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -69,7 +73,7 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
     "DeleteSecretByProductIdAndName" should {
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsCompositionRoutes(infrastructureServiceRepository, secretService) },
+                routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },
                 role = ProductPermission.WRITE_SECRETS.roleName(prodId),
                 successStatus = HttpStatusCode.NotFound
             ) {
@@ -81,7 +85,7 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
     "DeleteSecretByRepositoryIdAndName" should {
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
-                routes = { secretsCompositionRoutes(infrastructureServiceRepository, secretService) },
+                routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },
                 role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
                 successStatus = HttpStatusCode.NotFound
             ) {
