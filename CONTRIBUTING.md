@@ -1,9 +1,5 @@
 # Contributing Guide
 
-> [!NOTE]
-> The general language of the project is American English.
-> All documents, code comments, commit messages and discussion should adhere to that.
-
 ## Eclipse Contributor Agreement (ECA)
 
 Before your contributions can be accepted, you have to electronically sign the [Eclipse Contributor Agreement](https://www.eclipse.org/legal/ECA.php).
@@ -31,6 +27,9 @@ More examples can be found in the [wiki](https://wiki.eclipse.org/Technology) of
 ## Creating Pull Requests
 
 To create a pull request, you have to fork the repository and create a new branch as described in the [GitHub documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
+
+Generally, the general language of the project is American English.
+All contributions and commit messages should adhere to that.
 
 This project puts high value on the structure of pull requests to make the review process as efficient as possible.
 The following sections describe the guidelines for creating pull requests.
