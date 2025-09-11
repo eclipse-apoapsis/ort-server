@@ -71,7 +71,6 @@ dependencies {
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.kotlinxSerializationJson)
-    testImplementation(libs.mockk)
 }
 
 tasks.withType<KotlinCompile> {
