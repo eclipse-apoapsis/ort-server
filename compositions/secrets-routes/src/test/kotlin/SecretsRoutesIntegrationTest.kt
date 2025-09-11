@@ -23,7 +23,7 @@ import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsValidations
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
@@ -36,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 abstract class SecretsRoutesIntegrationTest(
     body: SecretsRoutesIntegrationTest.() -> Unit
 ) : AbstractIntegrationTest({}) {
-    lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
+    lateinit var infrastructureServiceService: InfrastructureServiceService
     lateinit var secretRepository: SecretRepository
     lateinit var secretService: SecretService
 
@@ -44,12 +44,16 @@ abstract class SecretsRoutesIntegrationTest(
 
     init {
         beforeEach {
-            infrastructureServiceRepository = DaoInfrastructureServiceRepository(dbExtension.db)
             secretRepository = dbExtension.fixtures.secretRepository
             secretService = SecretService(
                 dbExtension.db,
                 dbExtension.fixtures.secretRepository,
                 SecretStorage(SecretsProviderFactoryForTesting().createProvider(secretErrorPath))
+            )
+            infrastructureServiceService = InfrastructureServiceService(
+                dbExtension.db,
+                DaoInfrastructureServiceRepository(dbExtension.db),
+                secretService
             )
         }
 
@@ -59,7 +63,7 @@ abstract class SecretsRoutesIntegrationTest(
     fun secretsRoutesTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
     ) = integrationTestApplication(
-        routes = { secretsCompositionRoutes(infrastructureServiceRepository, secretService) },
+        routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },
         validations = { secretsValidations() },
         block = block
     )

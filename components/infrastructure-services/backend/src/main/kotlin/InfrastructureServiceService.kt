@@ -133,6 +133,13 @@ class InfrastructureServiceService(
     }
 
     /**
+     * Return a list with the [InfrastructureService]s that are associated with the given [Secret][secretId].
+     */
+    suspend fun listForSecret(secretId: Long): List<InfrastructureService> = db.dbQuery {
+        infrastructureServiceRepository.listForSecret(secretId)
+    }
+
+    /**
      * Resolve a secret reference for the given hierarchy entity [id] and [secretName]. Throw an exception if the
      * reference cannot be resolved.
      */
