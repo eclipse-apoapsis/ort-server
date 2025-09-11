@@ -27,6 +27,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldInclude
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceDeclarationRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -56,8 +58,8 @@ class InfrastructureServiceDeclarationRepositoryTest : WordSpec() {
 
     init {
         beforeEach {
-            infrastructureServicesRepository = dbExtension.fixtures.infrastructureServiceRepository
-            infrastructureServiceDeclarationRepository = dbExtension.fixtures.infrastructureServiceDeclarationRepository
+            infrastructureServicesRepository = DaoInfrastructureServiceRepository(dbExtension.db)
+            infrastructureServiceDeclarationRepository = DaoInfrastructureServiceDeclarationRepository(dbExtension.db)
             secretRepository = dbExtension.fixtures.secretRepository
             ortRunRepository = dbExtension.fixtures.ortRunRepository
             fixtures = dbExtension.fixtures

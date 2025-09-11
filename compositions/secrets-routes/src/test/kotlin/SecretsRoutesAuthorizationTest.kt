@@ -25,6 +25,7 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
@@ -45,7 +46,7 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
 
         authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
 
-        infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
+        infrastructureServiceRepository = DaoInfrastructureServiceRepository(dbExtension.db)
         secretService = SecretService(
             dbExtension.db,
             dbExtension.fixtures.secretRepository,

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration

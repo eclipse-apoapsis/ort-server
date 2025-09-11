@@ -19,9 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceDeclarationRepository
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
-import org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice.DaoInfrastructureServiceDeclarationRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
