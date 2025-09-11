@@ -62,7 +62,6 @@ include(":services:admin-config")
 include(":services:authorization")
 include(":services:content-management")
 include(":services:hierarchy")
-include(":services:infrastructure")
 include(":services:ort-run")
 include(":services:report-storage")
 include(":shared:api-mappings")
@@ -108,7 +107,6 @@ project(":services:admin-config").name = "admin-config-service"
 project(":services:authorization").name = "authorization-service"
 project(":services:content-management").name = "content-management-service"
 project(":services:hierarchy").name = "hierarchy-service"
-project(":services:infrastructure").name = "infrastructure-service"
 project(":services:ort-run").name = "ort-run-service"
 project(":services:report-storage").name = "report-storage-service"
 project(":storage:spi").name = "storage-spi"
