@@ -21,7 +21,6 @@ package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceDeclarationRepository
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
