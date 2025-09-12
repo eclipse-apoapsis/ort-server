@@ -80,7 +80,11 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
                 <div>
                   <div className='font-semibold'>VCS</div>
                   <div className='ml-2'>
-                    <RenderProperty label='Type' value={curation.vcs.type} />
+                    <RenderProperty
+                      label='Type'
+                      value={curation.vcs.type}
+                      showIfEmpty={false}
+                    />
                     <RenderProperty
                       label='URL'
                       value={curation.vcs.url}
