@@ -45,6 +45,7 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
           label='Comment'
           value={curation.comment}
           showIfEmpty={false}
+          type='textblock'
         />
       </CardHeader>
       {curationToDisplay &&
