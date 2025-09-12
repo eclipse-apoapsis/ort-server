@@ -73,6 +73,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.filterParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.paginate
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
@@ -95,10 +96,14 @@ fun Route.organizations() = route("organizations") {
 
     get(getOrganizations) {
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
+        val filter = call.filterParameter("filter")
 
         val filteredOrganizations = organizationService
-            .listOrganizations(pagingOptions.copy(limit = null, offset = null).mapToModel())
-            .filter { hasPermission(it.id, OrganizationPermission.READ) }
+            .listOrganizations(
+                parameters = pagingOptions.copy(limit = null, offset = null).mapToModel(),
+                filter = filter?.mapToModel()
+            )
+            .data.filter { hasPermission(it.id, OrganizationPermission.READ) }
 
         val pagedOrganizations = filteredOrganizations.paginate(pagingOptions)
             .map { it.mapToApi() }
@@ -165,9 +170,14 @@ fun Route.organizations() = route("organizations") {
 
                 val orgId = call.requireIdParameter("organizationId")
                 val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
+                val filter = call.filterParameter("filter")
 
                 val productsForOrganization =
-                    organizationService.listProductsForOrganization(orgId, pagingOptions.mapToModel())
+                    organizationService.listProductsForOrganization(
+                        orgId,
+                        pagingOptions.mapToModel(),
+                        filter?.mapToModel()
+                    )
 
                 val pagedResponse = productsForOrganization.mapToApi(Product::mapToApi)
 

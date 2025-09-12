@@ -119,3 +119,9 @@ enum class SortDirection {
     /** Constant for _descending_ sort direction. */
     DESCENDING
 }
+
+@Serializable
+data class FilterOptions(
+    /** The filter string, interpreted as a regular expression. */
+    val value: String
+)

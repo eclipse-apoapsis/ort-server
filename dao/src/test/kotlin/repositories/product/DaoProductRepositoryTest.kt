@@ -21,17 +21,15 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.product
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.containExactly
-import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -82,7 +80,11 @@ class DaoProductRepositoryTest : StringSpec({
         val prod1 = fixtures.createProduct("prod1")
         val prod2 = fixtures.createProduct("prod2", organizationId = org2.id)
 
-        productRepository.list() should containExactlyInAnyOrder(prod1, prod2)
+        productRepository.list() shouldBe ListQueryResult(
+            data = listOf(prod1, prod2),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
     }
 
     "list should apply parameters" {
@@ -96,7 +98,44 @@ class DaoProductRepositoryTest : StringSpec({
             limit = 1
         )
 
-        productRepository.list(parameters) should containExactly(prod2)
+        productRepository.list(parameters) shouldBe
+            ListQueryResult(
+                data = listOf(prod2),
+                params = parameters,
+                totalCount = 2
+            )
+    }
+
+    "list should filter with regex ending pattern" {
+        val prod1 = fixtures.createProduct("auth-product")
+        val prod2 = fixtures.createProduct("user-product")
+        fixtures.createProduct("product-gateway")
+        fixtures.createProduct("core-service")
+
+        productRepository.list(filter = FilterParameter("product$")) shouldBe ListQueryResult(
+            data = listOf(
+                Product(prod1.id, orgId, prod1.name, prod1.description),
+                Product(prod2.id, orgId, prod2.name, prod2.description)
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "list should filter with regex starting pattern" {
+        val prod1 = fixtures.createProduct("product-auth")
+        val prod2 = fixtures.createProduct("product-service")
+        fixtures.createProduct("user-product")
+        fixtures.createProduct("name")
+
+        productRepository.list(filter = FilterParameter("^product")) shouldBe ListQueryResult(
+            data = listOf(
+                Product(prod1.id, orgId, prod1.name, prod1.description),
+                Product(prod2.id, orgId, prod2.name, prod2.description)
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
     }
 
     "listForOrganization should return all products for an organization" {
@@ -143,6 +182,63 @@ class DaoProductRepositoryTest : StringSpec({
         productRepository.listForOrganization(orgId, parameters) shouldBe ListQueryResult(
             data = listOf(Product(createdProduct2.id, orgId, name2, description2)),
             params = parameters,
+            totalCount = 2
+        )
+    }
+
+    "listForOrganization should apply filter parameter" {
+        val otherOrgId = fixtures.createOrganization(name = "otherOrg").id
+
+        val name1 = "name1"
+        val description1 = "description1"
+
+        val name2 = "test"
+        val description2 = "description2"
+
+        productRepository.create(name1, description1, orgId)
+        val createdProduct2 = productRepository.create(name2, description2, orgId)
+        productRepository.create(name1, description1, otherOrgId)
+
+        productRepository.listForOrganization(orgId, filter = FilterParameter("test")) shouldBe ListQueryResult(
+            data = listOf(Product(createdProduct2.id, orgId, name2, description2)),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 1
+        )
+    }
+
+    "listForOrganization should filter with regex ending pattern" {
+        val org2 = fixtures.createOrganization(name = "org2")
+
+        fixtures.createProduct("auth-product", organizationId = org2.id)
+        val prod2 = fixtures.createProduct("user-product")
+        val prod3 = fixtures.createProduct("service-product")
+        fixtures.createProduct("product-gateway")
+        fixtures.createProduct("core-service")
+
+        productRepository.listForOrganization(orgId, filter = FilterParameter("product$")) shouldBe ListQueryResult(
+            data = listOf(
+                Product(prod2.id, orgId, prod2.name, prod2.description),
+                Product(prod3.id, orgId, prod3.name, prod3.description)
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "listForOrganization should filter with regex starting pattern" {
+        val org2 = fixtures.createOrganization(name = "org2")
+
+        val prod1 = fixtures.createProduct("product-auth")
+        val prod2 = fixtures.createProduct("product-service")
+        fixtures.createProduct("product-user", organizationId = org2.id)
+        fixtures.createProduct("name")
+
+        productRepository.listForOrganization(orgId, filter = FilterParameter("^product")) shouldBe ListQueryResult(
+            data = listOf(
+                Product(prod1.id, orgId, prod1.name, prod1.description),
+                Product(prod2.id, orgId, prod2.name, prod2.description)
+            ),
+            params = ListQueryParameters.DEFAULT,
             totalCount = 2
         )
     }

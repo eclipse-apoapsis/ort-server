@@ -26,7 +26,9 @@ import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
@@ -63,9 +65,14 @@ class DaoOrganizationRepositoryTest : StringSpec({
         val createdOrg1 = organizationRepository.create(name1, description1)
         val createdOrg2 = organizationRepository.create(name2, description2)
 
-        organizationRepository.list() shouldBe listOf(
-            Organization(createdOrg1.id, name1, description1),
-            Organization(createdOrg2.id, name2, description2)
+        organizationRepository.list() shouldBe ListQueryResult(
+            data = listOf(
+                Organization(createdOrg1.id, name1, description1),
+                Organization(createdOrg2.id, name2, description2)
+
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
         )
     }
 
@@ -84,8 +91,59 @@ class DaoOrganizationRepositoryTest : StringSpec({
             limit = 1
         )
 
-        organizationRepository.list(parameters) shouldBe listOf(
-            Organization(createdOrg2.id, name2, description2)
+        organizationRepository.list(parameters) shouldBe ListQueryResult(
+            data = listOf(Organization(createdOrg2.id, name2, description2)),
+            params = parameters,
+            totalCount = 2
+        )
+    }
+
+    "list should filter organizations using basic regex pattern" {
+        val createdOrg1 = organizationRepository.create("apple-org", "description1")
+        val createdOrg2 = organizationRepository.create("banana-org", "description2")
+        organizationRepository.create("orange-company", "description3")
+        val createdOrg3 = organizationRepository.create("org-pear", "description4")
+        val createdOrg4 = organizationRepository.create("test-organization", "description5")
+
+        val parameters = ListQueryParameters(
+            sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)),
+            limit = 10
+        )
+
+        organizationRepository.list(parameters, FilterParameter("org")) shouldBe ListQueryResult(
+            data = listOf(createdOrg1, createdOrg2, createdOrg3, createdOrg4),
+            params = parameters,
+            totalCount = 4
+        )
+    }
+
+    "list should filter with regex ending pattern" {
+        val createdOrg1 = organizationRepository.create("user-api", "API service")
+        organizationRepository.create("api-gateway", "Gateway service")
+        val createdOrg2 = organizationRepository.create("auth-api", "Authentication API")
+        organizationRepository.create("core-service", "Core service")
+
+        val parameters = ListQueryParameters(limit = 10)
+
+        organizationRepository.list(parameters, FilterParameter("api$")) shouldBe ListQueryResult(
+            data = listOf(createdOrg1, createdOrg2),
+            params = parameters,
+            totalCount = 2
+        )
+    }
+
+    "list should filter with regex starting pattern" {
+        val createdOrg1 = organizationRepository.create("core-service", "Core service")
+        val createdOrg2 = organizationRepository.create("core-auth", "Core authentication")
+        organizationRepository.create("user-core", "User core")
+        organizationRepository.create("api-service", "API service")
+
+        val parameters = ListQueryParameters(limit = 10)
+
+        organizationRepository.list(parameters, FilterParameter("^core")) shouldBe ListQueryResult(
+            data = listOf(createdOrg1, createdOrg2),
+            params = parameters,
+            totalCount = 2
         )
     }
 
@@ -127,7 +185,7 @@ class DaoOrganizationRepositoryTest : StringSpec({
 
         organizationRepository.delete(createdOrg.id)
 
-        organizationRepository.list() shouldBe emptyList()
+        organizationRepository.list().data shouldBe emptyList()
     }
 
     "get should return null" {
