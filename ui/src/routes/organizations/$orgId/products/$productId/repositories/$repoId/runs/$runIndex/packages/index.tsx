@@ -42,9 +42,9 @@ import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { DependencyPaths } from '@/components/dependency-paths';
-import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { PackageCuration } from '@/components/package-curation';
+import { RenderProperty } from '@/components/render-property';
 import { ToastError } from '@/components/toast-error';
 import {
   Accordion,
@@ -118,67 +118,63 @@ const renderSubComponent = ({
           </Tooltip>
         </div>
       )}
-      <div className='flex gap-2'>
-        <div className='font-semibold'>Authors:</div>
-        <FormattedValue value={pkg.authors} />
-      </div>
-      <div>
-        <div className='font-semibold'>Description</div>
-        <div className='ml-2 break-all'>
-          <FormattedValue value={pkg.description} />
-        </div>
-      </div>
-      <div className='flex gap-2'>
-        <div className='font-semibold'>CPE:</div>
-        <FormattedValue value={pkg.cpe} />
-      </div>
-
+      <RenderProperty label='Authors' value={pkg.authors} />
+      <RenderProperty
+        label='Description'
+        value={pkg.description}
+        type='textblock'
+      />
+      <RenderProperty label='CPE' value={pkg.cpe} />
       <div>
         <div className='font-semibold'>
           {getRepositoryTypeLabel(pkg.vcsProcessed.type as RepositoryType)}{' '}
           Repository
         </div>
         <div className='ml-2'>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>URL:</div>
-            <FormattedValue value={pkg.vcsProcessed.url} type='url' />
-          </div>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>Revision:</div>
-            <FormattedValue value={pkg.vcsProcessed.revision} />
-          </div>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>Path:</div>
-            <FormattedValue value={pkg.vcsProcessed.path} />
-          </div>
+          <RenderProperty label='URL' value={pkg.vcsProcessed.url} type='url' />
+          <RenderProperty label='Revision' value={pkg.vcsProcessed.revision} />
+          <RenderProperty label='Path' value={pkg.vcsProcessed.path} />
         </div>
       </div>
-
       <div>
         <div className='font-semibold'>Binary Artifact</div>
         <div className='ml-2'>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>URL:</div>
-            <FormattedValue value={pkg.binaryArtifact.url} type='url' />
-          </div>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>Hash value:</div>
-            <FormattedValue value={pkg.binaryArtifact.hashValue} />
-          </div>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>Hash algorithm:</div>
-            <FormattedValue value={pkg.binaryArtifact.hashAlgorithm} />
-          </div>
+          <RenderProperty
+            label='URL'
+            value={pkg.binaryArtifact.url}
+            type='url'
+          />
+          <RenderProperty
+            label='Hash value'
+            value={pkg.binaryArtifact.hashValue}
+          />
+          <RenderProperty
+            label='Hash algorithm'
+            value={pkg.binaryArtifact.hashAlgorithm}
+          />
         </div>
       </div>
-
       <div>
         <div className='font-semibold'>Source Artifact</div>
         <div className='ml-2'>
           {pkg.isMetadataOnly ? (
             <div>This is a metadata-only package.</div>
           ) : (
-            <FormattedValue value={pkg.sourceArtifact.url} type='url' />
+            <>
+              <RenderProperty
+                label='URL'
+                value={pkg.sourceArtifact.url}
+                type='url'
+              />
+              <RenderProperty
+                label='Hash value'
+                value={pkg.sourceArtifact.hashValue}
+              />
+              <RenderProperty
+                label='Hash algorithm'
+                value={pkg.sourceArtifact.hashAlgorithm}
+              />
+            </>
           )}
         </div>
       </div>

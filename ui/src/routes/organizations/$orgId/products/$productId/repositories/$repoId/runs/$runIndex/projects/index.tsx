@@ -41,8 +41,8 @@ import { Project, RepositoryType } from '@/api/requests';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
-import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { RenderProperty } from '@/components/render-property';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -76,57 +76,31 @@ const renderSubComponent = ({ row }: { row: Row<Project> }) => {
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='flex gap-2'>
-        <div className='font-semibold'>Authors:</div>
-        <FormattedValue value={project.authors} />
-      </div>
-      <div className='flex gap-2'>
-        <div className='font-semibold'>Description:</div>
-        <FormattedValue value={project.description} />
-      </div>
-      <div className='flex gap-2'>
-        <div className='font-semibold'>Homepage:</div>
-        <FormattedValue value={project.homepageUrl} type='url' />
-      </div>
-      <div className='flex gap-2'>
-        <div className='font-semibold'>CPE:</div>
-        <FormattedValue value={project.cpe} />
-      </div>
-
+      <RenderProperty label='Authors' value={project.authors} />
+      <RenderProperty
+        label='Description'
+        value={project.description}
+        type='textblock'
+      />
+      <RenderProperty label='Homepage' value={project.homepageUrl} type='url' />
+      <RenderProperty label='CPE' value={project.cpe} />
       <div>
         <div className='font-semibold'>Processed Declared License</div>
         <div className='ml-2'>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>SPDX expression:</div>
-            <FormattedValue
-              value={project.processedDeclaredLicense.spdxExpression}
-              type='string'
-            />
-          </div>
-          <div
-            className={`flex ${
-              project.processedDeclaredLicense.mappedLicenses &&
-              Object.entries(project.processedDeclaredLicense.mappedLicenses)
-                .length > 0
-                ? 'flex-col'
-                : ''
-            }`}
-          >
-            <div className='font-semibold'>Mapped licenses:</div>
-            <FormattedValue
-              value={project.processedDeclaredLicense.mappedLicenses}
-              type='keyvalue'
-            />
-          </div>
-          <div
-            className={`flex ${project.processedDeclaredLicense.unmappedLicenses.length > 0 && 'flex-col'}`}
-          >
-            <div className='font-semibold'>Unmapped licenses:</div>
-            <FormattedValue
-              value={project.processedDeclaredLicense.unmappedLicenses}
-              type='array'
-            />
-          </div>
+          <RenderProperty
+            label='SPDX expression'
+            value={project.processedDeclaredLicense.spdxExpression}
+          />
+          <RenderProperty
+            label='Mapped licenses'
+            value={project.processedDeclaredLicense.mappedLicenses}
+            type='keyvalue'
+          />
+          <RenderProperty
+            label='Unmapped licenses'
+            value={project.processedDeclaredLicense.unmappedLicenses}
+            type='array'
+          />
         </div>
       </div>
 
@@ -136,24 +110,19 @@ const renderSubComponent = ({ row }: { row: Row<Project> }) => {
           Repository
         </div>
         <div className='ml-2'>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>URL:</div>
-            <FormattedValue value={project.vcsProcessed.url} type='url' />
-          </div>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>Revision:</div>
-            <FormattedValue value={project.vcsProcessed.revision} />
-          </div>
-          <div className='flex gap-2'>
-            <div className='font-semibold'>Path:</div>
-            <FormattedValue value={project.vcsProcessed.path} />{' '}
-          </div>
+          <RenderProperty
+            label='URL'
+            value={project.vcsProcessed.url}
+            type='url'
+          />
+          <RenderProperty
+            label='Revision'
+            value={project.vcsProcessed.revision}
+          />
+          <RenderProperty label='Path' value={project.vcsProcessed.path} />
         </div>
       </div>
-      <div className='flex flex-col'>
-        <div className='font-semibold'>Scopes</div>
-        <FormattedValue value={project.scopeNames} type='array' />
-      </div>
+      <RenderProperty label='Scopes' value={project.scopeNames} type='array' />
     </div>
   );
 };
