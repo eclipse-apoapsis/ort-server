@@ -22,7 +22,7 @@ import { FormattedValue } from '@/components/formatted-value';
 type RenderPropertyProps<T> = {
   label: string;
   value: T | T[] | Record<string, unknown> | null | undefined;
-  type?: 'string' | 'array' | 'url' | 'keyvalue';
+  type?: 'string' | 'textblock' | 'array' | 'url' | 'keyvalue';
   showIfEmpty?: boolean;
 };
 
@@ -32,17 +32,55 @@ export const RenderProperty = <T,>({
   type = 'string',
   showIfEmpty = true,
 }: RenderPropertyProps<T>) => {
-  return value || showIfEmpty ? (
-    type === 'keyvalue' ? (
-      <div>
-        <div className='font-semibold'>{label}</div>
-        <FormattedValue value={value} type={type} />
-      </div>
-    ) : (
-      <div className='flex gap-2'>
-        <div className='font-semibold'>{label}:</div>
-        <FormattedValue value={value} type={type} />
-      </div>
-    )
-  ) : null;
+  if (value || showIfEmpty) {
+    switch (type) {
+      case 'keyvalue': {
+        const isEmpty =
+          value && typeof value === 'object' && Object.keys(value).length === 0;
+        return (
+          <div className={`flex ${!isEmpty && 'flex-col'}`}>
+            <div className='font-semibold'>
+              {label}
+              {isEmpty && ':'}
+            </div>
+            <FormattedValue value={value} type={type} />
+          </div>
+        );
+      }
+      case 'array': {
+        const isEmpty = Array.isArray(value) && value.length === 0;
+        return (
+          <div className={`flex ${!isEmpty && 'flex-col'}`}>
+            <div className='font-semibold'>
+              {label}
+              {isEmpty && ':'}
+            </div>
+            <FormattedValue value={value} type={type} />
+          </div>
+        );
+      }
+      case 'textblock': {
+        const isEmpty =
+          !value || (typeof value === 'string' && value.trim() === '');
+        return (
+          <div className={`flex ${!isEmpty && 'flex-col'}`}>
+            <div className='font-semibold'>
+              {label}
+              {isEmpty && ':'}
+            </div>
+            <div className='ml-2 break-words'>
+              <FormattedValue value={value} type={'string'} />
+            </div>
+          </div>
+        );
+      }
+      default:
+        return (
+          <div className='flex gap-2'>
+            <div className='font-semibold'>{label}:</div>
+            <FormattedValue value={value} type={type} />
+          </div>
+        );
+    }
+  } else return null;
 };
