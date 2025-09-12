@@ -19,14 +19,12 @@
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
-import { usePluginsServiceGetApiV1AdminPluginsKey } from '@/api/queries';
-import { PluginsService } from '@/api/requests';
+import { getInstalledPluginsOptions } from '@/hey-api/@tanstack/react-query.gen';
 
 export const Route = createFileRoute('/admin/plugins')({
-  loader: async ({ context }) => {
-    const plugins = await context.queryClient.ensureQueryData({
-      queryKey: [usePluginsServiceGetApiV1AdminPluginsKey],
-      queryFn: () => PluginsService.getApiV1AdminPlugins(),
+  loader: async ({ context: { queryClient } }) => {
+    const plugins = await queryClient.ensureQueryData({
+      ...getInstalledPluginsOptions(),
     });
     return { plugins };
   },
