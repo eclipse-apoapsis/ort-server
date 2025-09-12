@@ -26,7 +26,7 @@ import {
   Row,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, UserPen } from 'lucide-react';
 import { useState } from 'react';
 import z from 'zod';
 
@@ -44,7 +44,14 @@ import { MarkItems } from '@/components/data-table/mark-items';
 import { DependencyPaths } from '@/components/dependency-paths';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
+import { PackageCuration } from '@/components/package-curation';
 import { ToastError } from '@/components/toast-error';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -89,6 +96,7 @@ const renderSubComponent = ({
   packageIdType?: PackageIdType;
 }) => {
   const pkg = row.original;
+  const hasCurations = pkg.curations.length > 0;
 
   return (
     <div className='flex flex-col gap-4'>
@@ -184,6 +192,26 @@ const renderSubComponent = ({
           />
         </div>
       )}
+      {hasCurations && (
+        <Accordion type='multiple' className='w-full'>
+          <AccordionItem value='curations'>
+            <AccordionTrigger>
+              Curations ({pkg.curations.length})
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className='mb-4'>
+                The curations appear in the order in which they were applied to
+                the original metadata, resulting in the metadata as shown above.
+              </div>
+              {pkg.curations.map((curation, idx) => (
+                <div key={idx} className=''>
+                  <PackageCuration curation={curation} />
+                </div>
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
     </div>
   );
 };
@@ -267,6 +295,18 @@ const PackagesComponent = () => {
                 };
               }}
             />
+            {row.original.curations.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <UserPen className='size-4 text-green-600' />
+                </TooltipTrigger>
+                <TooltipContent>
+                  This package has {row.original.curations.length} metadata
+                  curation
+                  {row.original.curations.length > 1 ? 's' : ''}.
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
         ) : (
           'No info'
