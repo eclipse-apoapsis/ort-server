@@ -41,3 +41,7 @@ enum class ComparisonOperator {
     GREATER_OR_EQUAL,
     LESS_OR_EQUAL
 }
+
+data class FilterParameter(
+    val value: String,
+)

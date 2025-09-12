@@ -21,11 +21,16 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.organization
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
+import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.and
 
 /**
  * An implementation of [OrganizationRepository] that stores organizations in [OrganizationsTable].
@@ -40,8 +45,18 @@ class DaoOrganizationRepository(private val db: Database) : OrganizationReposito
 
     override fun get(id: Long) = db.entityQuery { OrganizationDao[id].mapToModel() }
 
-    override fun list(parameters: ListQueryParameters) =
-        db.blockingQuery { OrganizationDao.list(parameters).map { it.mapToModel() } }
+    override fun list(parameters: ListQueryParameters, filter: FilterParameter?) =
+        db.blockingQuery {
+            OrganizationDao.listQuery(parameters, OrganizationDao::mapToModel) {
+                var condition: Op<Boolean> = Op.TRUE
+                 filter?.let {
+                    condition = condition and OrganizationsTable.name.applyRegex(
+                       it.value
+                    )
+                }
+                condition
+            }
+        }
 
     override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = db.blockingQuery {
         val org = OrganizationDao[id]

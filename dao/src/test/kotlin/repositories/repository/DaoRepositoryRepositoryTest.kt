@@ -21,11 +21,8 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repository
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.containExactly
-import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
@@ -34,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -91,7 +89,11 @@ class DaoRepositoryRepositoryTest : StringSpec({
         val repo1 = fixtures.createRepository(url = "https://example.org/repo1.git")
         val repo2 = fixtures.createRepository(url = "https://example.org/repo2.git", productId = prod2.id)
 
-        repositoryRepository.list() should containExactlyInAnyOrder(repo1, repo2)
+        repositoryRepository.list() shouldBe ListQueryResult(
+            data = listOf(repo1, repo2),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
     }
 
     "list should apply parameters" {
@@ -105,7 +107,52 @@ class DaoRepositoryRepositoryTest : StringSpec({
             limit = 1
         )
 
-        repositoryRepository.list(parameters) should containExactly(repo2)
+        repositoryRepository.list(parameters) shouldBe ListQueryResult(
+            data = listOf(repo2),
+            params = parameters,
+            totalCount = 2
+        )
+    }
+    "list should filter with regex ending pattern" {
+        fixtures.createProduct(name = "product1")
+
+        val repo1 = fixtures.createRepository(url = "https://example.com/auth-repository.git")
+        val repo2 = fixtures.createRepository(url = "https://example.com/user-repository.git")
+        fixtures.createRepository(url = "https://example.com/repo3.git")
+        fixtures.createRepository(url = "https://example.com/repo4.git")
+
+        repositoryRepository.list(filter = FilterParameter("repository.git$")) shouldBe ListQueryResult(
+            data = listOf(
+                Repository(repo1.id, orgId, repo1.productId, repo1.type, repo1.url, repo1.description),
+                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description),
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "list should filter with example com domain pattern" {
+        fixtures.createProduct(name = "product")
+
+        val repo1 = fixtures.createRepository(url = "https://example.com/auth-repository.git")
+        val repo2 = fixtures.createRepository(url = "https://example.com/core-service.git")
+        fixtures.createRepository(url = "https://github.com/user/repo.git")
+
+        val repo4 = fixtures.createRepository(
+            url = "https://subdomain.example.com/repo.git"
+        )
+
+        val result = repositoryRepository.list(filter = FilterParameter("example\\.com"))
+
+        result shouldBe ListQueryResult(
+            data = listOf(
+                Repository(repo1.id, orgId, repo1.productId, repo1.type, repo1.url, repo1.description),
+                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description),
+                Repository(repo4.id, orgId, repo4.productId, repo4.type, repo4.url, repo4.description)
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 3
+        )
     }
 
     "listForProduct should return all repositories for a product" {
@@ -147,6 +194,32 @@ class DaoRepositoryRepositoryTest : StringSpec({
         repositoryRepository.listForProduct(productId, parameters) shouldBe
                 ListQueryResult(
                     data = listOf(Repository(createdRepository2.id, orgId, productId, type, url2, description)),
+                    params = parameters,
+                    totalCount = 2
+                )
+    }
+
+    "listForProduct should apply query parameters and filter parameter" {
+        val type = RepositoryType.GIT
+
+        val parameters = ListQueryParameters(
+            sortFields = listOf(OrderField("url", OrderDirection.DESCENDING)),
+            limit = 4
+        )
+
+        val otherProd = fixtures.createProduct(name = "otherProduct")
+
+        val repo1 = fixtures.createRepository(url = "https://example.com/auth-repository.git", productId = productId)
+        fixtures.createRepository(url = "https://example.com/user-repository.git", productId = otherProd.id)
+        val repo3 = fixtures.createRepository(url = "https://example.com/service-repository.git", productId = productId)
+        fixtures.createRepository(url = "https://example.com/repo4.git")
+
+        repositoryRepository.listForProduct(productId, parameters, FilterParameter("repository.git$")) shouldBe
+                ListQueryResult(
+                    data = listOf(
+                        repo3,
+                        repo1
+                    ),
                     params = parameters,
                     totalCount = 2
                 )

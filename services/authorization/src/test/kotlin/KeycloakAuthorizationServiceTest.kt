@@ -81,13 +81,13 @@ class KeycloakAuthorizationServiceTest : WordSpec({
 
     val organizationRepository = mockk<OrganizationRepository> {
         every { this@mockk.get(organizationId) } returns Organization(id = organizationId, name = "organization")
-        every { list(any()) } returns listOf(organization)
+        every { list(any()).data } returns listOf(organization)
     }
 
     val productRepository = mockk<ProductRepository> {
         every { this@mockk.get(productId) } returns
                 Product(id = productId, organizationId = organizationId, name = "product")
-        every { list(any()) } returns listOf(product)
+        every { list(any()).data } returns listOf(product)
     }
 
     val repositoryRepository = mockk<RepositoryRepository> {
@@ -99,7 +99,7 @@ class KeycloakAuthorizationServiceTest : WordSpec({
                     type = RepositoryType.GIT,
                     url = "https://example.com/repo.git"
                 )
-        every { list(any()) } returns listOf(repository)
+        every { list(any()).data } returns listOf(repository)
     }
 
     fun createService(keycloakClient: KeycloakClient) =

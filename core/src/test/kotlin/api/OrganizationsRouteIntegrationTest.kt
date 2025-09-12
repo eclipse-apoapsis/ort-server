@@ -274,6 +274,70 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "support filter query parameters" {
+            integrationTestApplication {
+                createOrganization(name = "name1", description = "description1")
+                val org2 = createOrganization(name = "test", description = "description2")
+
+                val response = superuserClient.get("/api/v1/organizations?filter=test&sort=-name")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(org2.mapToApi()),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 1,
+                        sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING)),
+                    )
+                )
+            }
+        }
+
+        "support regex filter ending with pattern" {
+            integrationTestApplication {
+                val org1 = createOrganization(name = "org-auth-api", description = "Authentication API")
+                val org2 = createOrganization(name = "org-user-api", description = "API service")
+                createOrganization(name = "api-gateway", description = "Gateway service") // Should not match
+                createOrganization(name = "core-service", description = "Core service") // Should not match
+
+                val response = superuserClient.get("/api/v1/organizations?filter=api$")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(org1.mapToApi(), org2.mapToApi()),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)), // default sort
+                    )
+                )
+            }
+        }
+
+        "support regex filter starting with pattern" {
+            integrationTestApplication {
+                val org1 = createOrganization(name = "core-auth", description = "Core authentication")
+                val org2 = createOrganization(name = "core-service", description = "Core service")
+                createOrganization(name = "user-core", description = "User core") // Should not match
+                createOrganization(name = "api-service", description = "API service") // Should not match
+
+                val response = superuserClient.get("/api/v1/organizations?filter=^core&sort=name")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(org1.mapToApi(), org2.mapToApi()),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)), // default sort
+                    )
+                )
+            }
+        }
+
         "require authentication" {
             requestShouldRequireAuthentication {
                 get("/api/v1/organizations")
@@ -506,7 +570,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.delete("/api/v1/organizations/${createdOrg.id}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                organizationService.listOrganizations() shouldBe emptyList()
+                organizationService.listOrganizations().data shouldBe emptyList()
             }
         }
 
@@ -656,6 +720,42 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         limit = 1,
                         offset = 0,
                         totalCount = 2,
+                        sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
+                    )
+                )
+            }
+        }
+
+        "support filter parameter" {
+            integrationTestApplication {
+                val orgId = createOrganization(name = "org1").id
+                val otherOrgId = createOrganization(name = "org2").id
+
+                val name2 = "name2"
+                val description = "description"
+
+                val product1 = organizationService.createProduct(
+                    name = "product1-testing",
+                    description = description,
+                    organizationId = orgId
+                )
+                organizationService.createProduct(name = name2, description = description, organizationId = orgId)
+                organizationService.createProduct(
+                    name = "product2-testing",
+                    description = description,
+                    organizationId = otherOrgId
+                )
+
+                val response =
+                    superuserClient.get("/api/v1/organizations/$orgId/products?sort=-name&limit=2&filter=testing$")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(Product(product1.id, orgId, product1.name, description)),
+                    PagingData(
+                        limit = 2,
+                        offset = 0,
+                        totalCount = 1,
                         sortProperties = listOf(SortProperty("name", SortDirection.DESCENDING))
                     )
                 )

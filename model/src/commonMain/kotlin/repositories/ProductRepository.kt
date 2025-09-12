@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -41,14 +42,18 @@ interface ProductRepository {
     /**
      * List all products according to the given [parameters].
      */
-    fun list(parameters: ListQueryParameters = ListQueryParameters.DEFAULT): List<Product>
+    fun list(
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
+    ): ListQueryResult<Product>
 
     /**
      * List all products for an [organization][organizationId] according to the given [parameters].
      */
     fun listForOrganization(
         organizationId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
     ): ListQueryResult<Product>
 
     /**

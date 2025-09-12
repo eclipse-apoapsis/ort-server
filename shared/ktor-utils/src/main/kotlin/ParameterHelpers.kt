@@ -23,6 +23,8 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.MissingRequestParameterException
 import io.ktor.server.plugins.ParameterConversionException
 
+import org.eclipse.apoapsis.ortserver.shared.apimodel.FilterOptions
+
 /**
  * Return the numeric value of the parameter with the given [name] or throw an exception if it cannot be converted to a
  * number.
@@ -46,6 +48,16 @@ fun ApplicationCall.requireIdParameter(name: String): Long {
     val id = requireParameter(name).toLongOrNull()
 
     return if (id != null && id > 0) id else throw ParameterConversionException(name, "ID")
+}
+
+/**
+ * Get the filter parameter from this [ApplicationCall] or return null if the parameter is null.
+ */
+fun ApplicationCall.filterParameter(name: String): FilterOptions? {
+    val filter = parameters[name]?.let { filter ->
+        FilterOptions(filter)
+    }
+    return filter
 }
 
 inline fun <reified T : Enum<T>> ApplicationCall.requireEnumParameter(name: String): T =

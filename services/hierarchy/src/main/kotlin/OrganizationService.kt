@@ -26,7 +26,9 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTa
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
@@ -103,9 +105,10 @@ class OrganizationService(
      * List all organizations according to the given [parameters].
      */
     suspend fun listOrganizations(
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
-    ): List<Organization> = db.dbQuery {
-        organizationRepository.list(parameters)
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
+    ): ListQueryResult<Organization> = db.dbQuery {
+        organizationRepository.list(parameters, filter)
     }
 
     /**
@@ -113,9 +116,10 @@ class OrganizationService(
      */
     suspend fun listProductsForOrganization(
         organizationId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
     ) = db.dbQuery {
-        productRepository.listForOrganization(organizationId, parameters)
+        productRepository.listForOrganization(organizationId, parameters, filter)
     }
 
     /**

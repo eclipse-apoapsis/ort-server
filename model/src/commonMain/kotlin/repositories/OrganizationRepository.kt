@@ -20,7 +20,9 @@
 package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 /**
@@ -40,7 +42,10 @@ interface OrganizationRepository {
     /**
      * List all organizations according to the given [parameters].
      */
-    fun list(parameters: ListQueryParameters = ListQueryParameters.DEFAULT): List<Organization>
+    fun list(
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
+    ): ListQueryResult<Organization>
 
     /**
      * Update an organization by [id] with the [present][OptionalValue.Present] values.
