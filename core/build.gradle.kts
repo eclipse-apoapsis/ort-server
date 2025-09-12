@@ -70,6 +70,12 @@ dependencies {
         }
     }
     implementation(projects.components.authorization.backend)
+    implementation(projects.components.infrastructureServices.backend)
+    implementation(projects.components.infrastructureServices.backend) {
+        capabilities {
+            requireCapability("$group:routes")
+        }
+    }
     implementation(projects.components.pluginManager.backend)
     implementation(projects.components.pluginManager.backend) {
         capabilities {

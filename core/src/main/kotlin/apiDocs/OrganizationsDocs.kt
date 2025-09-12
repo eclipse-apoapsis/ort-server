@@ -23,19 +23,15 @@ import io.github.smiley4.ktoropenapi.config.RouteConfig
 
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
-import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
-import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrganizationVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
@@ -243,191 +239,6 @@ val postProduct: RouteConfig.() -> Unit = {
                     value = Product(id = 1, organizationId = 2, name = "My product", description = "Description")
                 }
             }
-        }
-    }
-}
-
-val getInfrastructureServicesByOrganizationId: RouteConfig.() -> Unit = {
-    operationId = "GetInfrastructureServicesByOrganizationId"
-    summary = "List all infrastructure services of an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The ID of an organization."
-        }
-        standardListQueryParameters()
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<PagedResponse<InfrastructureService>> {
-                example("List all infrastructure services for an organization") {
-                    value = PagedResponse(
-                        listOf(
-                            InfrastructureService(
-                                name = "Artifactory",
-                                url = "https://artifactory.example.org/releases",
-                                description = "Artifactory repository",
-                                usernameSecretRef = "artifactoryUsername",
-                                passwordSecretRef = "artifactoryPassword"
-                            ),
-                            InfrastructureService(
-                                name = "GitHub",
-                                url = "https://github.com",
-                                description = "GitHub server",
-                                usernameSecretRef = "gitHubUsername",
-                                passwordSecretRef = "gitHubPassword"
-                            )
-                        ),
-                        PagingData(
-                            limit = 20,
-                            offset = 0,
-                            totalCount = 2,
-                            sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING)),
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-val postInfrastructureServiceForOrganization: RouteConfig.() -> Unit = {
-    operationId = "PostInfrastructureServiceForOrganization"
-    summary = "Create an infrastructure service for an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
-        }
-        jsonBody<CreateInfrastructureService> {
-            example("Create infrastructure service") {
-                value = CreateInfrastructureService(
-                    name = "Artifactory",
-                    url = "https://artifactory.example.org/releases",
-                    description = "Artifactory repository",
-                    usernameSecretRef = "artifactoryUsername",
-                    passwordSecretRef = "artifactoryPassword"
-                )
-            }
-        }
-    }
-
-    response {
-        HttpStatusCode.Created to {
-            description = "Success"
-            jsonBody<InfrastructureService> {
-                example("Create infrastructure service") {
-                    value = InfrastructureService(
-                        name = "Artifactory",
-                        url = "https://artifactory.example.org/releases",
-                        description = "Artifactory repository",
-                        usernameSecretRef = "artifactoryUsername",
-                        passwordSecretRef = "artifactoryPassword"
-                    )
-                }
-            }
-        }
-    }
-}
-
-val getInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit = {
-    operationId = "GetInfrastructureServicesByOrganizationIdAndName"
-    summary = "Get an infrastructure service for an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
-        }
-        pathParameter<String>("serviceName") {
-            description = "The name of the infrastructure service."
-        }
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<InfrastructureService> {
-                example("Get an infrastructure service") {
-                    value = InfrastructureService(
-                        name = "Artifactory",
-                        url = "https://artifactory.example.org/releases",
-                        description = "Artifactory repository",
-                        usernameSecretRef = "artifactoryUsername",
-                        passwordSecretRef = "artifactoryPassword"
-                    )
-                }
-            }
-        }
-    }
-}
-
-val patchInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit = {
-    operationId = "PatchInfrastructureServiceForOrganizationIdAndName"
-    summary = "Update an infrastructure service for an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
-        }
-        pathParameter<String>("serviceName") {
-            description = "The name of the infrastructure service."
-        }
-        jsonBody<UpdateInfrastructureService> {
-            example("Update infrastructure service") {
-                value = UpdateInfrastructureService(
-                    url = "https://github.com".asPresent(),
-                    description = "Updated description".asPresent(),
-                    usernameSecretRef = "newGitHubUser".asPresent(),
-                    passwordSecretRef = "newGitHubPassword".asPresent(),
-                    credentialsTypes = setOf(CredentialsType.NETRC_FILE).asPresent()
-                )
-            }
-            description = "Set the values that should be updated. To delete a value, set it explicitly to null."
-        }
-    }
-
-    response {
-        HttpStatusCode.OK to {
-            description = "Success"
-            jsonBody<InfrastructureService> {
-                example("Update infrastructure service") {
-                    value = InfrastructureService(
-                        name = "GitHub",
-                        url = "https://github.com",
-                        description = "Updated description",
-                        usernameSecretRef = "newGitHubUser",
-                        passwordSecretRef = "newGitHubPassword",
-                        credentialsTypes = setOf(CredentialsType.NETRC_FILE)
-                    )
-                }
-            }
-        }
-    }
-}
-
-val deleteInfrastructureServiceForOrganizationIdAndName: RouteConfig.() -> Unit = {
-    operationId = "DeleteInfrastructureServiceForOrganizationIdAndName"
-    summary = "Delete an infrastructure service from an organization"
-    tags = listOf("Organizations")
-
-    request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
-        }
-        pathParameter<String>("serviceName") {
-            description = "The name of the infrastructure service."
-        }
-    }
-
-    response {
-        HttpStatusCode.NoContent to {
-            description = "Success"
         }
     }
 }
