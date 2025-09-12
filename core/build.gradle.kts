@@ -70,6 +70,12 @@ dependencies {
         }
     }
     implementation(projects.components.authorization.backend)
+    implementation(projects.components.infrastructureServices.backend)
+    implementation(projects.components.infrastructureServices.backend) {
+        capabilities {
+            requireCapability("$group:routes")
+        }
+    }
     implementation(projects.components.pluginManager.backend)
     implementation(projects.components.pluginManager.backend) {
         capabilities {
@@ -91,7 +97,6 @@ dependencies {
     implementation(projects.services.authorizationService)
     implementation(projects.services.contentManagementService)
     implementation(projects.services.hierarchyService)
-    implementation(projects.services.infrastructureService)
     implementation(projects.services.ortRunService)
     implementation(projects.services.reportStorageService)
     implementation(projects.shared.apiMappings)

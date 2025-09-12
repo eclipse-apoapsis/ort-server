@@ -23,17 +23,13 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
@@ -61,14 +57,11 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.model.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.InfrastructureService as ApiInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations as ApiJobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
@@ -80,7 +73,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateInfrastructureService
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
@@ -95,7 +87,6 @@ import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryR
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -104,16 +95,15 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
-import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
+import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
@@ -133,8 +123,6 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var productService: ProductService
     lateinit var ortRunRepository: OrtRunRepository
     lateinit var pluginService: PluginService
-    lateinit var secretService: SecretService
-    lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
 
     var orgId = -1L
     var productId = -1L
@@ -166,14 +154,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             authorizationService
         )
 
-        infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
         ortRunRepository = dbExtension.fixtures.ortRunRepository
-
-        secretService = SecretService(
-            dbExtension.db,
-            dbExtension.fixtures.secretRepository,
-            SecretStorage(SecretsProviderFactoryForTesting().createProvider())
-        )
 
         orgId = organizationService.createOrganization(name = "name", description = "description").id
         productId =
@@ -194,15 +175,6 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     ) = productService.createRepository(type, url, prodId, description)
 
     fun createJobSummaries(ortRunId: Long) = dbExtension.fixtures.createJobs(ortRunId).mapToApiSummary()
-
-    val secretName = "name"
-    val secretDescription = "description"
-
-    suspend fun createSecret(
-        repositoryId: Long,
-        name: String = secretName,
-        description: String = secretDescription,
-    ) = secretService.createSecret(name, "value", description, RepositoryId(repositoryId))
 
     "GET /repositories/{repositoryId}" should {
         "return a single repository" {
@@ -618,7 +590,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdRepository = createRepository()
 
-                val service = ApiInfrastructureService(
+                val service = InfrastructureService(
                     name = "privateRepository",
                     url = "https://repo.example.org/test",
                     description = "a private repository used by this repository",
@@ -975,406 +947,6 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                     response shouldHaveStatus HttpStatusCode.Created
                 }
-            }
-        }
-    }
-
-    "GET /repositories/{repositoryId}/infrastructure-services" should {
-        "list existing infrastructure services" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val userSecret = createSecret(repositoryId, name = "user")
-                val passSecret = createSecret(repositoryId, name = "pass")
-
-                val services = (1..8).map { index ->
-                    infrastructureServiceRepository.create(
-                        "infrastructureService$index",
-                        "https://repo.example.org/test$index",
-                        "description$index",
-                        userSecret,
-                        passSecret,
-                        if (index % 2 == 0) {
-                            EnumSet.of(CredentialsType.NETRC_FILE, CredentialsType.GIT_CREDENTIALS_FILE)
-                        } else {
-                            emptySet()
-                        },
-                        RepositoryId(repositoryId)
-                    )
-                }
-
-                val apiServices = services.map { service ->
-                    ApiInfrastructureService(
-                        service.name,
-                        service.url,
-                        service.description,
-                        service.usernameSecret.name,
-                        service.passwordSecret.name,
-                        if (service.credentialsTypes.isEmpty()) {
-                            emptySet()
-                        } else {
-                            EnumSet.of(ApiCredentialsType.NETRC_FILE, ApiCredentialsType.GIT_CREDENTIALS_FILE)
-                        }
-                    )
-                }
-
-                val response = superuserClient.get("/api/v1/repositories/$repositoryId/infrastructure-services")
-
-                response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
-                        apiServices
-            }
-        }
-
-        "support query parameters" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val userSecret = createSecret(repositoryId, name = "user")
-                val passSecret = createSecret(repositoryId, name = "pass")
-
-                (1..8).shuffled().forEach { index ->
-                    infrastructureServiceRepository.create(
-                        "infrastructureService$index",
-                        "https://repo.example.org/test$index",
-                        "description$index",
-                        userSecret,
-                        passSecret,
-                        EnumSet.of(CredentialsType.NETRC_FILE),
-                        RepositoryId(repositoryId)
-                    )
-                }
-
-                val apiServices = (1..4).map { index ->
-                    ApiInfrastructureService(
-                        "infrastructureService$index",
-                        "https://repo.example.org/test$index",
-                        "description$index",
-                        userSecret.name,
-                        passSecret.name,
-                        EnumSet.of(ApiCredentialsType.NETRC_FILE)
-                    )
-                }
-
-                val response =
-                    superuserClient.get("/api/v1/repositories/$repositoryId/infrastructure-services?sort=name&limit=4")
-
-                response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<ApiInfrastructureService>>().data shouldContainExactlyInAnyOrder
-                        apiServices
-            }
-        }
-
-        "require RepositoryPermission.READ" {
-            val createdRepository = createRepository()
-            requestShouldRequireRole(RepositoryPermission.READ.roleName(createdRepository.id)) {
-                get("/api/v1/repositories/${createdRepository.id}/infrastructure-services")
-            }
-        }
-    }
-
-    "POST /repositories/{repositoryId}/infrastructure-services" should {
-        "create an infrastructure service" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val userSecret = createSecret(repositoryId, name = "user")
-                val passSecret = createSecret(repositoryId, name = "pass")
-
-                val createInfrastructureService = CreateInfrastructureService(
-                    "testRepository",
-                    "https://repo.example.org/test",
-                    "test description",
-                    userSecret.name,
-                    passSecret.name,
-                    credentialsTypes = setOf(
-                        ApiCredentialsType.GIT_CREDENTIALS_FILE,
-                        ApiCredentialsType.NETRC_FILE,
-                        ApiCredentialsType.NO_AUTHENTICATION
-                    )
-                )
-                val response = superuserClient.post("/api/v1/repositories/$repositoryId/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-
-                val expectedService = ApiInfrastructureService(
-                    createInfrastructureService.name,
-                    createInfrastructureService.url,
-                    createInfrastructureService.description,
-                    userSecret.name,
-                    passSecret.name,
-                    setOf(
-                        ApiCredentialsType.GIT_CREDENTIALS_FILE,
-                        ApiCredentialsType.NETRC_FILE,
-                        ApiCredentialsType.NO_AUTHENTICATION
-                    )
-                )
-
-                response shouldHaveStatus HttpStatusCode.Created
-                response shouldHaveBody expectedService
-
-                val dbService = infrastructureServiceRepository.getByIdAndName(
-                    RepositoryId(repositoryId),
-                    createInfrastructureService.name
-                )
-                dbService.shouldNotBeNull()
-                dbService.mapToApi() shouldBe expectedService
-            }
-        }
-
-        "handle an invalid secret reference" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val createInfrastructureService = CreateInfrastructureService(
-                    "testRepository",
-                    "https://repo.example.org/test",
-                    "test description",
-                    "nonExistingSecret1",
-                    "nonExistingSecret2"
-                )
-                val response = superuserClient.post("/api/v1/repositories/$repositoryId/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-
-                response shouldHaveStatus HttpStatusCode.BadRequest
-                response.body<ErrorResponse>().cause shouldContain "nonExistingSecret"
-            }
-        }
-
-        "require RepositoryPermission.WRITE" {
-            val createdRepository = createRepository()
-            val userSecret = createSecret(createdRepository.id, name = "user")
-            val passSecret = createSecret(createdRepository.id, name = "pass")
-
-            requestShouldRequireRole(
-                RepositoryPermission.WRITE.roleName(createdRepository.id),
-                HttpStatusCode.Created
-            ) {
-                val createInfrastructureService = CreateInfrastructureService(
-                    "testRepository",
-                    "https://repo.example.org/test",
-                    "test description",
-                    userSecret.name,
-                    passSecret.name
-                )
-
-                post("/api/v1/repositories/${createdRepository.id}/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-            }
-        }
-
-        "respond with 'Bad Request' if the infrastructure service's name is invalid" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val userSecret = createSecret(repositoryId, name = "user")
-                val passSecret = createSecret(repositoryId, name = "pass")
-
-                val createInfrastructureService = CreateInfrastructureService(
-                    " testRepository 15?!",
-                    "https://repo.example.org/test",
-                    "test description",
-                    userSecret.name,
-                    passSecret.name
-                )
-                val response = superuserClient.post("/api/v1/repositories/$repositoryId/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-
-                response shouldHaveStatus HttpStatusCode.BadRequest
-
-                val body = response.body<ErrorResponse>()
-                body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for CreateInfrastructureService"
-
-                infrastructureServiceRepository.getByIdAndName(
-                    RepositoryId(repositoryId),
-                    createInfrastructureService.name
-                ).shouldBeNull()
-            }
-        }
-    }
-
-    "GET /repositories/{repositoryId}/infrastructure-service/{name}" should {
-        "return an infrastructure service" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val userSecret = createSecret(repositoryId, name = "user")
-                val passSecret = createSecret(repositoryId, name = "pass")
-
-                val service = infrastructureServiceRepository.create(
-                    "testRepository",
-                    "http://repo.example.org/test",
-                    "test repo description",
-                    userSecret,
-                    passSecret,
-                    emptySet(),
-                    RepositoryId(repositoryId)
-                )
-
-                val response = superuserClient.get(
-                    "/api/v1/repositories/$repositoryId/infrastructure-services/${service.name}"
-                )
-
-                response shouldHaveStatus HttpStatusCode.OK
-
-                response shouldHaveBody service.mapToApi()
-            }
-        }
-
-        "respond with 'NotFound' if no infrastructure service exists" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val response = superuserClient
-                    .get("/api/v1/repositories/$repositoryId/infrastructure-services/not-existing-service")
-
-                response shouldHaveStatus HttpStatusCode.NotFound
-            }
-        }
-
-        "require RepositoryPermission.READ" {
-            val repositoryId = createRepository().id
-
-            requestShouldRequireRole(
-                role = RepositoryPermission.READ.roleName(repositoryId),
-                successStatus = HttpStatusCode.NotFound
-            ) {
-                get("/api/v1/repositories/$repositoryId/infrastructure-services/not-found")
-            }
-        }
-    }
-
-    "PATCH /repositories/{repositoryId}/infrastructure-services/{name}" should {
-        "update an infrastructure service" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val userSecret = createSecret(repositoryId, name = "user")
-                val passSecret = createSecret(repositoryId, name = "pass")
-
-                val service = infrastructureServiceRepository.create(
-                    "updateService",
-                    "http://repo1.example.org/test",
-                    "test description",
-                    userSecret,
-                    passSecret,
-                    emptySet(),
-                    RepositoryId(repositoryId)
-                )
-
-                val newUrl = "https://repo2.example.org/test2"
-                val updateService = UpdateInfrastructureService(
-                    description = null.asPresent(),
-                    url = newUrl.asPresent(),
-                    credentialsTypes = EnumSet.of(
-                        ApiCredentialsType.NETRC_FILE,
-                        ApiCredentialsType.GIT_CREDENTIALS_FILE
-                    ).asPresent()
-                )
-                val response =
-                    superuserClient.patch(
-                        "/api/v1/repositories/$repositoryId/infrastructure-services/${service.name}"
-                    ) {
-                        setBody(updateService)
-                    }
-
-                val updatedService = ApiInfrastructureService(
-                    service.name,
-                    newUrl,
-                    null,
-                    userSecret.name,
-                    passSecret.name,
-                    EnumSet.of(ApiCredentialsType.NETRC_FILE, ApiCredentialsType.GIT_CREDENTIALS_FILE)
-                )
-
-                response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody updatedService
-
-                val dbService =
-                    infrastructureServiceRepository.getByIdAndName(RepositoryId(repositoryId), service.name)
-                dbService.shouldNotBeNull()
-                dbService.mapToApi() shouldBe updatedService
-            }
-        }
-
-        "require RepositoryPermission.WRITE" {
-            val createdRepository = createRepository()
-            val userSecret = createSecret(createdRepository.id, name = "user")
-            val passSecret = createSecret(createdRepository.id, name = "pass")
-
-            val service = infrastructureServiceRepository.create(
-                "testRepository",
-                "https://repo.example.org/test",
-                "test description",
-                userSecret,
-                passSecret,
-                emptySet(),
-                RepositoryId(createdRepository.id)
-            )
-
-            requestShouldRequireRole(RepositoryPermission.WRITE.roleName(createdRepository.id)) {
-                val updateService = UpdateInfrastructureService(
-                    description = null.asPresent(),
-                    url = "https://repo2.example.org/test2".asPresent()
-                )
-
-                patch("/api/v1/repositories/${createdRepository.id}/infrastructure-services/${service.name}") {
-                    setBody(updateService)
-                }
-            }
-        }
-    }
-
-    "DELETE /repositories/{repositoryId}/infrastructure-services/{name}" should {
-        "delete an infrastructure service" {
-            integrationTestApplication {
-                val repositoryId = createRepository().id
-
-                val userSecret = createSecret(repositoryId, name = "user")
-                val passSecret = createSecret(repositoryId, name = "pass")
-
-                val service = infrastructureServiceRepository.create(
-                    "deleteService",
-                    "http://repo1.example.org/obsolete",
-                    "good bye, cruel world",
-                    userSecret,
-                    passSecret,
-                    emptySet(),
-                    RepositoryId(repositoryId)
-                )
-
-                val response =
-                    superuserClient.delete("/api/v1/repositories/$repositoryId/infrastructure-services/${service.name}")
-
-                response shouldHaveStatus HttpStatusCode.NoContent
-                infrastructureServiceRepository.listForId(RepositoryId(repositoryId)).data should beEmpty()
-            }
-        }
-
-        "require RepositoryPermission.WRITE" {
-            val createdRepository = createRepository()
-            val userSecret = createSecret(createdRepository.id, name = "user")
-            val passSecret = createSecret(createdRepository.id, name = "pass")
-
-            val service = infrastructureServiceRepository.create(
-                "testRepository",
-                "https://repo.example.org/test",
-                "test description",
-                userSecret,
-                passSecret,
-                emptySet(),
-                RepositoryId(createdRepository.id)
-            )
-
-            requestShouldRequireRole(
-                RepositoryPermission.WRITE.roleName(createdRepository.id),
-                HttpStatusCode.NoContent
-            ) {
-                delete("/api/v1/repositories/${createdRepository.id}/infrastructure-services/${service.name}")
             }
         }
     }

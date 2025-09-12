@@ -31,6 +31,8 @@ kotlin {
             dependencies {
                 api(projects.api.v1.apiV1Model)
                 api(projects.model)
+
+                implementation(projects.shared.apiMappings)
             }
         }
     }

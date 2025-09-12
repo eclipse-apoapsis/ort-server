@@ -31,6 +31,7 @@ dependencies {
     api(ktorLibs.server.core)
 
     implementation(projects.components.authorization.backend)
+    implementation(projects.components.infrastructureServices.backend)
     implementation(projects.components.secrets.apiModel)
     implementation(projects.components.secrets.backend) {
         capabilities { requireCapability("$group:routes") }
