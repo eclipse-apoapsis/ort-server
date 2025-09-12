@@ -19,10 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.shared.apimappings
 
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
+import org.eclipse.apoapsis.ortserver.shared.apimodel.FilterOptions
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingOptions
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
@@ -41,6 +43,8 @@ fun ListQueryParameters.mapToApi() =
         sortProperties = sortFields.map { it.mapToApi() }
     )
 
+fun FilterParameter.mapToApi() = FilterOptions(value)
+
 fun OrderField.mapToApi() = SortProperty(name, direction.mapToApi())
 
 fun OrderDirection.mapToApi() =
@@ -55,6 +59,8 @@ fun PagingOptions.mapToModel() =
         limit = limit,
         offset = offset
     )
+
+fun FilterOptions.mapToModel() = FilterParameter(value)
 
 fun SortProperty.mapToModel() = OrderField(name, direction.mapToModel())
 

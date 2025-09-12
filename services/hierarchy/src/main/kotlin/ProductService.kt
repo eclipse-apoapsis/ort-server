@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -102,9 +103,10 @@ class ProductService(
      */
     suspend fun listRepositoriesForProduct(
         productId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
     ): ListQueryResult<Repository> = db.dbQuery {
-        repositoryRepository.listForProduct(productId, parameters)
+        repositoryRepository.listForProduct(productId, parameters, filter)
     }
 
     /**

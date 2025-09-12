@@ -212,7 +212,7 @@ class KeycloakAuthorizationService(
         logger.info("Synchronizing Keycloak roles for organization permissions.")
 
         runCatching {
-            val organizationIds = db.dbQuery { organizationRepository.list() }.mapTo(mutableSetOf()) { it.id }
+            val organizationIds = db.dbQuery { organizationRepository.list().data }.mapTo(mutableSetOf()) { it.id }
 
             organizationIds.forEach { organizationId ->
                 val requiredRoles = OrganizationPermission.getRolesForOrganization(organizationId)
@@ -241,7 +241,7 @@ class KeycloakAuthorizationService(
         logger.info("Synchronizing Keycloak roles for product permissions.")
 
         runCatching {
-            val productIds = db.dbQuery { productRepository.list() }.mapTo(mutableSetOf()) { it.id }
+            val productIds = db.dbQuery { productRepository.list().data }.mapTo(mutableSetOf()) { it.id }
 
             productIds.forEach { productId ->
                 val requiredRoles = ProductPermission.getRolesForProduct(productId)
@@ -270,7 +270,7 @@ class KeycloakAuthorizationService(
         logger.info("Synchronizing Keycloak roles for repository permissions.")
 
         runCatching {
-            val repositoryIds = db.dbQuery { repositoryRepository.list() }.mapTo(mutableSetOf()) { it.id }
+            val repositoryIds = db.dbQuery { repositoryRepository.list().data }.mapTo(mutableSetOf()) { it.id }
 
             repositoryIds.forEach { repository ->
                 val requiredRoles = RepositoryPermission.getRolesForRepository(repository)
@@ -329,7 +329,7 @@ class KeycloakAuthorizationService(
         logger.info("Synchronizing Keycloak roles for organization roles.")
 
         runCatching {
-            val organizationIds = db.dbQuery { organizationRepository.list().mapTo(mutableSetOf()) { it.id } }
+            val organizationIds = db.dbQuery { organizationRepository.list().data.mapTo(mutableSetOf()) { it.id } }
 
             organizationIds.forEach { organizationId ->
                 // Make sure that all roles exist.
@@ -375,7 +375,7 @@ class KeycloakAuthorizationService(
         logger.info("Synchronizing Keycloak roles for product roles.")
 
         runCatching {
-            val products = db.dbQuery { productRepository.list() }
+            val products = db.dbQuery { productRepository.list().data }
 
             products.forEach { product ->
                 // Make sure that all roles exist.
@@ -439,7 +439,7 @@ class KeycloakAuthorizationService(
         logger.info("Synchronizing Keycloak roles for repository roles.")
 
         runCatching {
-            val repositories = db.dbQuery { repositoryRepository.list() }
+            val repositories = db.dbQuery { repositoryRepository.list().data }
 
             repositories.forEach { repository ->
                 // Make sure that all roles exist.
@@ -501,7 +501,7 @@ class KeycloakAuthorizationService(
         logger.info("Synchronizing Keycloak groups for organization roles.")
 
         runCatching {
-            val organizationIds = db.dbQuery { organizationRepository.list().mapTo(mutableSetOf()) { it.id } }
+            val organizationIds = db.dbQuery { organizationRepository.list().data.mapTo(mutableSetOf()) { it.id } }
 
             organizationIds.forEach { organizationId ->
                 // Make sure that all groups exist.
@@ -542,7 +542,7 @@ class KeycloakAuthorizationService(
         logger.info("Synchronizing Keycloak groups for product roles.")
 
         runCatching {
-            val productIds = db.dbQuery { productRepository.list().mapTo(mutableSetOf()) { it.id } }
+            val productIds = db.dbQuery { productRepository.list().data.mapTo(mutableSetOf()) { it.id } }
 
             productIds.forEach { productId ->
                 // Make sure that all groups exist.
@@ -583,7 +583,7 @@ class KeycloakAuthorizationService(
         logger.info("Synchronizing Keycloak groups for repository roles.")
 
         runCatching {
-            val repositoryIds = db.dbQuery { repositoryRepository.list().mapTo(mutableSetOf()) { it.id } }
+            val repositoryIds = db.dbQuery { repositoryRepository.list().data.mapTo(mutableSetOf()) { it.id } }
 
             repositoryIds.forEach { repositoryId ->
                 // Make sure that all groups exist.

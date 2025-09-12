@@ -21,15 +21,19 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repository
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 
 class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
@@ -52,11 +56,28 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         Hierarchy(repository.mapToModel(), product.mapToModel(), organization.mapToModel())
     }
 
-    override fun list(parameters: ListQueryParameters) =
-        db.blockingQuery { RepositoryDao.list(parameters).map { it.mapToModel() } }
+    override fun list(parameters: ListQueryParameters, filter: FilterParameter?) =
+        db.blockingQuery {
+            RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) {
+                var condition: Op<Boolean> = Op.TRUE
+                filter?.let {
+                    condition = condition and RepositoriesTable.url.applyRegex(
+                        it.value
+                    )
+                }
+                condition
+            }
+        }
 
-    override fun listForProduct(productId: Long, parameters: ListQueryParameters) = db.blockingQuery {
-        RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) { RepositoriesTable.productId eq productId }
+    override fun listForProduct(productId: Long, parameters: ListQueryParameters, filter: FilterParameter?) =
+        db.blockingQuery {
+        RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) {
+            if (filter !== null) {
+                RepositoriesTable.productId eq productId and RepositoriesTable.url.applyRegex(filter.value)
+            } else {
+                RepositoriesTable.productId eq productId
+            }
+        }
     }
 
     override fun update(

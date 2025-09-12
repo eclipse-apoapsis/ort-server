@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -49,14 +50,18 @@ interface RepositoryRepository {
     /**
      * List all repositories according to the given [parameters].
      */
-    fun list(parameters: ListQueryParameters = ListQueryParameters.DEFAULT): List<Repository>
+    fun list(
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
+    ): ListQueryResult<Repository>
 
     /**
      * List all repositories for a [product][productId] according to the given [parameters].
      */
     fun listForProduct(
         productId: Long,
-        parameters: ListQueryParameters = ListQueryParameters.DEFAULT
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
     ): ListQueryResult<Repository>
 
     /**

@@ -84,6 +84,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.filterParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireEnumParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
@@ -144,12 +145,13 @@ fun Route.products() = route("products/{productId}") {
     route("repositories") {
         get(getRepositoriesByProductId) {
             requirePermission(ProductPermission.READ_REPOSITORIES)
+            val filter = call.filterParameter("filter")
 
             val productId = call.requireIdParameter("productId")
             val pagingOptions = call.pagingOptions(SortProperty("url", SortDirection.ASCENDING))
 
             val repositoriesForProduct =
-                productService.listRepositoriesForProduct(productId, pagingOptions.mapToModel())
+                productService.listRepositoriesForProduct(productId, pagingOptions.mapToModel(), filter?.mapToModel())
 
             val pagedResponse = repositoriesForProduct.mapToApi(Repository::mapToApi)
 
