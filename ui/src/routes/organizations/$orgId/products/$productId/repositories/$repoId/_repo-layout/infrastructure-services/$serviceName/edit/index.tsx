@@ -18,15 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName } from '@/api/queries';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsSuspense } from '@/api/queries/suspense.ts';
-import { ApiError, RepositoriesService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
@@ -54,12 +52,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx';
+import {
+  getInfrastructureServicesForRepositoryIdAndNameOptions,
+  getSecretsByRepositoryIdOptions,
+  patchInfrastructureServiceForRepositoryIdAndNameMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants.ts';
 import { toast } from '@/lib/toast.ts';
 
 const formSchema = z.object({
   name: z.string().optional(),
-  url: z.string().url(),
+  url: z.url(),
   description: z.string().optional(),
   usernameSecretRef: z.string(),
   passwordSecretRef: z.string(),
@@ -74,55 +77,48 @@ const EditInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { data: secrets } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsSuspense({
-      repositoryId: Number.parseInt(params.repoId),
-      limit: ALL_ITEMS,
-    });
-
-  const { data: service } = useSuspenseQuery({
-    queryKey: [
-      useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName,
-      params.repoId,
-      params.serviceName,
-    ],
-    queryFn: () =>
-      RepositoriesService.getApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName(
-        {
-          repositoryId: Number.parseInt(params.repoId),
-          serviceName: params.serviceName,
-        }
-      ),
+  const { data: secrets } = useQuery({
+    ...getSecretsByRepositoryIdOptions({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+      query: { limit: ALL_ITEMS },
+    }),
   });
 
-  const { mutateAsync, isPending } =
-    useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName(
-      {
-        onSuccess(data) {
-          toast.info('Edit Infrastructure Service', {
-            description: `Infrastructure service "${data.name}" has been updated successfully.`,
-          });
-          navigate({
-            to: '/organizations/$orgId/products/$productId/repositories/$repoId/infrastructure-services',
-            params: {
-              orgId: params.orgId,
-              productId: params.productId,
-              repoId: params.repoId,
-            },
-          });
+  const { data: service } = useSuspenseQuery({
+    ...getInfrastructureServicesForRepositoryIdAndNameOptions({
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+        serviceName: params.serviceName,
+      },
+    }),
+  });
+
+  const { mutateAsync, isPending } = useMutation({
+    ...patchInfrastructureServiceForRepositoryIdAndNameMutation(),
+    onSuccess(data) {
+      toast.info('Edit Infrastructure Service', {
+        description: `Infrastructure service "${data.name}" has been updated successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId/infrastructure-services',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: params.repoId,
         },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-      }
-    );
+      });
+    },
+  });
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -138,9 +134,11 @@ const EditInfrastructureServicePage = () => {
 
   const onSubmit = (values: FormSchema) => {
     mutateAsync({
-      repositoryId: Number.parseInt(params.repoId),
-      serviceName: params.serviceName,
-      requestBody: {
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+        serviceName: params.serviceName,
+      },
+      body: {
         url: values.url,
         description: values.description,
         usernameSecretRef: values.usernameSecretRef,
@@ -351,20 +349,14 @@ const EditInfrastructureServicePage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/infrastructure-services/$serviceName/edit/'
 )({
-  loader: async ({ context, params }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: [
-        useRepositoriesServicePatchApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName,
-        params.repoId,
-        params.serviceName,
-      ],
-      queryFn: () =>
-        RepositoriesService.getApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName(
-          {
-            repositoryId: Number.parseInt(params.repoId),
-            serviceName: params.serviceName,
-          }
-        ),
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.ensureQueryData({
+      ...getInfrastructureServicesForRepositoryIdAndNameOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          serviceName: params.serviceName,
+        },
+      }),
     });
   },
   component: EditInfrastructureServicePage,

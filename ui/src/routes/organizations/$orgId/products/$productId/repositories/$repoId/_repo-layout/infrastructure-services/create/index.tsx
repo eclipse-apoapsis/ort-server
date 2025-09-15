@@ -18,13 +18,12 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useRepositoriesServicePostApiV1RepositoriesByRepositoryIdInfrastructureServices } from '@/api/queries';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsSuspense } from '@/api/queries/suspense.ts';
 import { ApiError } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
@@ -54,6 +53,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx';
+import {
+  getSecretsByRepositoryIdOptions,
+  postInfrastructureServiceForRepositoryMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants.ts';
 import { toast } from '@/lib/toast.ts';
 
@@ -72,40 +75,39 @@ const CreateInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { data: secrets } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsSuspense({
-      repositoryId: Number.parseInt(params.repoId),
-      limit: ALL_ITEMS,
-    });
+  const { data: secrets } = useQuery({
+    ...getSecretsByRepositoryIdOptions({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+      query: { limit: ALL_ITEMS },
+    }),
+  });
 
-  const { mutateAsync, isPending } =
-    useRepositoriesServicePostApiV1RepositoriesByRepositoryIdInfrastructureServices(
-      {
-        onSuccess(data) {
-          toast.info('Create Infrastructure Service', {
-            description: `New infrastructure service "${data.name}" created successfully.`,
-          });
-          navigate({
-            to: '/organizations/$orgId/products/$productId/repositories/$repoId/infrastructure-services',
-            params: {
-              orgId: params.orgId,
-              productId: params.productId,
-              repoId: params.repoId,
-            },
-          });
+  const { mutateAsync, isPending } = useMutation({
+    ...postInfrastructureServiceForRepositoryMutation(),
+    onSuccess(data) {
+      toast.info('Create Infrastructure Service', {
+        description: `New infrastructure service "${data.name}" created successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId/infrastructure-services',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: params.repoId,
         },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-      }
-    );
+      });
+    },
+  });
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -120,8 +122,10 @@ const CreateInfrastructureServicePage = () => {
 
   const onSubmit = (values: FormSchema) => {
     mutateAsync({
-      repositoryId: Number.parseInt(params.repoId),
-      requestBody: {
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+      },
+      body: {
         name: values.name,
         url: values.url,
         description: values.description || undefined,
