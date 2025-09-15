@@ -379,13 +379,17 @@ class OrtRunService(
      *
      * If [failIfRepoInfoMissing] is *true*, throw an [IllegalArgumentException] if the repository information
      * is missing; otherwise, return an empty [Repository] object.
+     *
+     * Setting [loadFileLists] to false allows to load the scanner run only partially. This can be useful when needing
+     * to access certain scan related items in the result, but loading the file lists is unnecessary.
      */
     fun generateOrtResult(
         ortRun: OrtRun,
         loadAdvisorRun: Boolean = true,
         loadScannerRun: Boolean = true,
         loadEvaluatorRun: Boolean = true,
-        failIfRepoInfoMissing: Boolean = true
+        failIfRepoInfoMissing: Boolean = true,
+        loadFileLists: Boolean = true
     ): OrtResult {
         val repository = getOrtRepositoryInformation(ortRun, failIfMissing = failIfRepoInfoMissing)
         val resolvedConfiguration = getResolvedConfiguration(ortRun)
@@ -396,19 +400,23 @@ class OrtRunService(
 
         val filteredOrtScanResults = filterScanResultsByVcsPath(scannerRun?.provenances, scannerRun?.scanResults)
 
-        val provenanceResolutionResults = scannerRun?.provenances?.mapTo(mutableSetOf()) { it.mapToOrt() }.orEmpty()
+        val fileLists = if (loadScannerRun && loadFileLists) {
+            val provenanceResolutionResults = scannerRun?.provenances?.mapTo(mutableSetOf()) { it.mapToOrt() }.orEmpty()
 
-        val provenancesWithoutVcsPath = provenanceResolutionResults
-            .flatMapTo(mutableSetOf()) { it.getKnownProvenancesWithoutVcsPath().values }
+            val provenancesWithoutVcsPath = provenanceResolutionResults
+                .flatMapTo(mutableSetOf()) { it.getKnownProvenancesWithoutVcsPath().values }
 
-        val vcsPathsForProvenances = getVcsPathsForProvenances(provenanceResolutionResults)
+            val vcsPathsForProvenances = getVcsPathsForProvenances(provenanceResolutionResults)
 
-        val fileLists = getFileLists(fileListResolver, provenancesWithoutVcsPath)
-            .mapNotNullTo(mutableSetOf()) { fileList ->
-                vcsPathsForProvenances[fileList.provenance]?.let {
-                    fileList.filterByVcsPaths(it)
+            getFileLists(fileListResolver, provenancesWithoutVcsPath)
+                .mapNotNullTo(mutableSetOf()) { fileList ->
+                    vcsPathsForProvenances[fileList.provenance]?.let {
+                        fileList.filterByVcsPaths(it)
+                    }
                 }
-            }
+        } else {
+            emptySet()
+        }
 
         val baseResult = ortRun.mapToOrt(
             repository = repository,
