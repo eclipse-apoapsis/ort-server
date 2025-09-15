@@ -17,15 +17,10 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { Link, useParams, useRouter } from '@tanstack/react-router';
 import { Check, ChevronDown } from 'lucide-react';
 
-import {
-  useOrganizationsServiceGetApiV1Organizations,
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdProducts,
-  useProductsServiceGetApiV1ProductsByProductIdRepositories,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns,
-} from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
 import {
@@ -34,6 +29,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  getOrganizationProductsOptions,
+  getOrganizationsOptions,
+  getOrtRunsByRepositoryIdOptions,
+  getRepositoriesByProductIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 
 type SiblingsProps = {
@@ -61,68 +62,53 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     isPending: isOrgPending,
     isError: isOrgError,
     error: orgError,
-  } = useOrganizationsServiceGetApiV1Organizations(
-    {
-      limit: ALL_ITEMS,
-    },
-    undefined,
-    {
-      staleTime: staleTime,
-      enabled: entity === 'organization',
-    }
-  );
+  } = useQuery({
+    ...getOrganizationsOptions({ query: { limit: ALL_ITEMS } }),
+    staleTime: staleTime,
+    enabled: entity === 'organization',
+  });
 
   const {
     data: products,
     isPending: isProductsPending,
     isError: isProductsError,
     error: productsError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdProducts(
-    {
-      organizationId: Number(params.orgId) ?? '',
-      limit: ALL_ITEMS,
-    },
-    undefined,
-    {
-      staleTime: staleTime,
-      enabled: entity === 'product' || !!params.orgId,
-    }
-  );
+  } = useQuery({
+    ...getOrganizationProductsOptions({
+      path: { organizationId: Number(params.orgId) ?? '' },
+      query: { limit: ALL_ITEMS },
+    }),
+    staleTime: staleTime,
+    enabled: entity === 'product' || !!params.orgId,
+  });
 
   const {
     data: repositories,
     isPending: isRepositoriesPending,
     isError: isRepositoriesError,
     error: repositoriesError,
-  } = useProductsServiceGetApiV1ProductsByProductIdRepositories(
-    {
-      productId: Number(params.productId) ?? '',
-      limit: ALL_ITEMS,
-    },
-    undefined,
-    {
-      staleTime: staleTime,
-      enabled: entity === 'repository' || !!params.productId,
-    }
-  );
+  } = useQuery({
+    ...getRepositoriesByProductIdOptions({
+      path: { productId: Number(params.productId) ?? '' },
+      query: { limit: ALL_ITEMS },
+    }),
+    staleTime: staleTime,
+    enabled: entity === 'repository' || !!params.productId,
+  });
 
   const {
     data: runs,
     isPending: isRunsPending,
     isError: isRunsError,
     error: runsError,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
-    {
-      repositoryId: Number(params.repoId) ?? '',
-      limit: ALL_ITEMS,
-      sort: '-index',
-    },
-    undefined,
-    {
-      staleTime: staleTime,
-      enabled: entity === 'run' || !!params.repoId,
-    }
-  );
+  } = useQuery({
+    ...getOrtRunsByRepositoryIdOptions({
+      path: { repositoryId: Number(params.repoId) ?? '' },
+      query: { limit: ALL_ITEMS, sort: '-index' },
+    }),
+    staleTime: staleTime,
+    enabled: entity === 'run' || !!params.repoId,
+  });
 
   const name =
     entity === 'organization'
