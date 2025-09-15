@@ -63,7 +63,7 @@ class IssueService(private val db: Database, private val ortRunService: OrtRunSe
             "ORT run with ID $ortRunId not found."
         )
 
-        val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false)
+        val ortResult = ortRunService.generateOrtResult(ortRun, failIfRepoInfoMissing = false, loadFileLists = false)
 
         val issues = collectIssues(ortRunId, ortResult)
 
