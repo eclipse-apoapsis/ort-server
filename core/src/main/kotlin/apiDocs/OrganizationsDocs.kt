@@ -342,6 +342,7 @@ val getVulnerabilitiesAcrossRepositoriesByOrganizationId: RouteConfig.() -> Unit
                                     )
                                 ),
                                 identifier = Identifier("Maven", "org.namespace", "name", "1.0"),
+                                purl = "pkg:maven/org.namespace/name@1.0",
                                 rating = VulnerabilityRating.HIGH,
                                 ortRunIds = listOf(40, 53),
                                 repositoriesCount = 2

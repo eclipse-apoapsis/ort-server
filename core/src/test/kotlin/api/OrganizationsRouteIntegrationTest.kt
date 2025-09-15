@@ -989,7 +989,13 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val identifier2 = Identifier("Maven", "org.apache.logging.log4j", "log4j-api", "2.14.0")
                 val identifier3 = Identifier("Maven", "org.apache.logging.log4j", "log4j-slf4j-impl", "2.14.0")
 
+                val pkg1 = dbExtension.fixtures.generatePackage(identifier1)
+                val pkg2 = dbExtension.fixtures.generatePackage(identifier2)
+                val pkg3 = dbExtension.fixtures.generatePackage(identifier3)
+
                 val run1Id = dbExtension.fixtures.createOrtRun(repo11Id).id
+                val analyzerJob1Id = dbExtension.fixtures.createAnalyzerJob(run1Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob1Id, packages = setOf(pkg1))
                 val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(run1Id).id
                 dbExtension.fixtures.advisorJobRepository.update(
                     advisorJob1Id,
@@ -1025,12 +1031,16 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val run2Id = dbExtension.fixtures.createOrtRun(repo11Id).id
                 val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(run2Id).id
+                val analyzerJob2Id = dbExtension.fixtures.createAnalyzerJob(run2Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob2Id, packages = setOf(pkg1, pkg2))
                 dbExtension.fixtures.advisorJobRepository.update(
                     advisorJob2Id,
                     status = JobStatus.FAILED.asPresent2()
                 )
 
                 val run3Id = dbExtension.fixtures.createOrtRun(repo12Id).id
+                val analyzerJob3Id = dbExtension.fixtures.createAnalyzerJob(run3Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob3Id, packages = setOf(pkg1, pkg2))
                 val advisorJob3Id = dbExtension.fixtures.createAdvisorJob(run3Id).id
                 dbExtension.fixtures.advisorJobRepository.update(
                     advisorJob3Id,
@@ -1045,6 +1055,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val run4Id = dbExtension.fixtures.createOrtRun(repo21Id).id
+                val analyzerJob4Id = dbExtension.fixtures.createAnalyzerJob(run4Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob4Id, packages = setOf(pkg1))
                 val advisorJob4Id = dbExtension.fixtures.createAdvisorJob(run4Id).id
                 dbExtension.fixtures.advisorJobRepository.update(
                     advisorJob4Id,
@@ -1079,6 +1091,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val run5Id = dbExtension.fixtures.createOrtRun(repo21Id).id
+                val analyzerJob5Id = dbExtension.fixtures.createAnalyzerJob(run5Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob5Id, packages = setOf(pkg1))
                 val advisorJob5Id = dbExtension.fixtures.createAdvisorJob(run5Id).id
                 dbExtension.fixtures.advisorJobRepository.update(
                     advisorJob5Id,
@@ -1086,6 +1100,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val run6Id = dbExtension.fixtures.createOrtRun(repo22Id).id
+                val analyzerJob6Id = dbExtension.fixtures.createAnalyzerJob(run6Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob6Id, packages = setOf(pkg1, pkg2, pkg3))
                 val advisorJob6Id = dbExtension.fixtures.createAdvisorJob(run6Id).id
                 dbExtension.fixtures.advisorJobRepository.update(
                     advisorJob6Id,
@@ -1111,6 +1127,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         OrganizationVulnerability(
                             vulnerability = commonVulnerability1.mapToApi(),
                             identifier = identifier1.mapToApi(),
+                            purl = pkg1.purl,
                             rating = VulnerabilityRating.MEDIUM,
                             ortRunIds = listOf(run1Id, run3Id, run4Id, run6Id),
                             repositoriesCount = 4
@@ -1118,6 +1135,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         OrganizationVulnerability(
                             vulnerability = commonVulnerability2.mapToApi(),
                             identifier = identifier2.mapToApi(),
+                            purl = pkg2.purl,
                             rating = VulnerabilityRating.MEDIUM,
                             ortRunIds = listOf(run3Id, run6Id),
                             repositoriesCount = 2
@@ -1125,6 +1143,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         OrganizationVulnerability(
                             vulnerability = commonVulnerability2.mapToApi(),
                             identifier = identifier3.mapToApi(),
+                            purl = pkg3.purl,
                             rating = VulnerabilityRating.MEDIUM,
                             ortRunIds = listOf(run6Id),
                             repositoriesCount = 1
@@ -1132,6 +1151,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         OrganizationVulnerability(
                             vulnerability = run1Vulnerability.mapToApi(),
                             identifier = identifier1.mapToApi(),
+                            purl = pkg1.purl,
                             rating = VulnerabilityRating.LOW,
                             ortRunIds = listOf(run1Id),
                             repositoriesCount = 1
@@ -1139,6 +1159,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         OrganizationVulnerability(
                             vulnerability = run4Vulnerability.mapToApi(),
                             identifier = identifier1.mapToApi(),
+                            purl = pkg1.purl,
                             rating = VulnerabilityRating.LOW,
                             ortRunIds = listOf(run4Id),
                             repositoriesCount = 1
