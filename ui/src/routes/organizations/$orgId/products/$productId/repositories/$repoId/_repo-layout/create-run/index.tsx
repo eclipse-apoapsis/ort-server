@@ -18,13 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useRepositoriesServicePostApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { ApiError, RepositoriesService } from '@/api/requests';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { ToastError } from '@/components/toast-error';
@@ -51,6 +51,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { postOrtRunMutation } from '@/hey-api/@tanstack/react-query.gen';
+import { getOrtRunByIndex } from '@/hey-api/sdk.gen';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
 import { AdvisorFields } from '../../-components/advisor-fields';
@@ -100,36 +102,36 @@ const CreateRunPage = () => {
     );
   };
 
-  const { mutateAsync, isPending } =
-    useRepositoriesServicePostApiV1RepositoriesByRepositoryIdRuns({
-      onSuccess() {
-        toast.info('Create Run', {
-          description: 'New run created successfully for this repository.',
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-          params: {
-            orgId: params.orgId,
-            productId: params.productId,
-            repoId: params.repoId,
-          },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync, isPending } = useMutation({
+    ...postOrtRunMutation(),
+    onSuccess() {
+      toast.info('Create Run', {
+        description: 'New run created successfully for this repository.',
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: params.repoId,
+        },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm({
     resolver: zodResolver(createRunFormSchema),
-    defaultValues: defaultValues(ortRun, isSuperuser),
+    defaultValues: defaultValues(ortRun?.data ?? null, isSuperuser),
   });
 
   const {
@@ -155,8 +157,10 @@ const CreateRunPage = () => {
       return;
     }
     await mutateAsync({
-      repositoryId: Number.parseInt(params.repoId),
-      requestBody: formValuesToPayload(values),
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+      },
+      body: formValuesToPayload(values),
     });
   }
 
@@ -547,12 +551,12 @@ export const Route = createFileRoute(
   loader: async ({ params, deps: { rerunIndex } }) => {
     const [ortRun, plugins] = await Promise.all([
       rerunIndex !== undefined
-        ? RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-            {
+        ? getOrtRunByIndex({
+            path: {
               repositoryId: Number.parseInt(params.repoId),
               ortRunIndex: rerunIndex,
-            }
-          )
+            },
+          })
         : Promise.resolve(null as null),
       RepositoriesService.getApiV1RepositoriesByRepositoryIdPlugins({
         repositoryId: Number.parseInt(params.repoId),
