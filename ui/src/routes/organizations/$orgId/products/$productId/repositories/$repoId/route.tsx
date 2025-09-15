@@ -19,8 +19,7 @@
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdKey } from '@/api/queries';
-import { RepositoriesService } from '@/api/requests';
+import { getRepositoryByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 
 const Layout = () => {
   return <Outlet />;
@@ -31,14 +30,11 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context, params }) => {
     const repo = await context.queryClient.ensureQueryData({
-      queryKey: [
-        useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdKey,
-        params.repoId,
-      ],
-      queryFn: () =>
-        RepositoriesService.getApiV1RepositoriesByRepositoryId({
+      ...getRepositoryByIdOptions({
+        path: {
           repositoryId: Number.parseInt(params.repoId),
-        }),
+        },
+      }),
     });
     context.breadcrumbs.repo = repo.url;
   },
