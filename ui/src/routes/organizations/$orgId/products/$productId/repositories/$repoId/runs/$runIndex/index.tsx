@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { config } from '@/config';
+import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { IssuesStatisticsCard } from './-components/issues-statistics-card';
 import { PackagesStatisticsCard } from './-components/packages-statistics-card';
 import { RuleViolationsStatisticsCard } from './-components/rule-violations-statistics-card';
@@ -32,25 +32,23 @@ const RunComponent = () => {
   const params = Route.useParams();
   const pollInterval = config.pollInterval;
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
+  const { data: ortRun } = useSuspenseQuery({
+    ...getOrtRunByIndexOptions({
+      path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
       },
-      undefined,
-      {
-        refetchInterval: (run) => {
-          if (
-            run.state.data?.status === 'FINISHED' ||
-            run.state.data?.status === 'FINISHED_WITH_ISSUES' ||
-            run.state.data?.status === 'FAILED'
-          )
-            return false;
-          return pollInterval;
-        },
-      }
-    );
+    }),
+    refetchInterval: (run) => {
+      if (
+        run.state.data?.status === 'FINISHED' ||
+        run.state.data?.status === 'FINISHED_WITH_ISSUES' ||
+        run.state.data?.status === 'FAILED'
+      )
+        return false;
+      return pollInterval;
+    },
+  });
 
   return (
     <>
@@ -137,14 +135,15 @@ const RunComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/'
 )({
-  loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-      context.queryClient,
-      {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrtRunByIndexOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
   },
   component: RunComponent,
   pendingComponent: LoadingIndicator,
