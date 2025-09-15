@@ -17,6 +17,9 @@
  * License-Filename: LICENSE
  */
 
+import { RunDuration } from '@/components/run-duration';
+import { Badge } from '@/components/ui/badge';
+import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import {
   AdvisorJob,
   AnalyzerJob,
@@ -24,10 +27,7 @@ import {
   NotifierJob,
   ReporterJob,
   ScannerJob,
-} from '@/api/requests/types.gen';
-import { RunDuration } from '@/components/run-duration';
-import { Badge } from '@/components/ui/badge';
-import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+} from '@/hey-api';
 
 type JobTitleProps = {
   title: string;
