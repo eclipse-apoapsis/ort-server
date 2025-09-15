@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfigurati
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 
 fun ConfigManager.createKeycloakClientConfiguration(): KeycloakClientConfiguration {
     val baseUrl = getString("keycloak.baseUrl")
@@ -139,3 +140,13 @@ fun CreateOrtRun.hasKeepAliveWorkerFlag() =
     jobConfigs.notifier?.keepAliveWorker == true ||
     jobConfigs.reporter?.keepAliveWorker == true ||
     jobConfigs.scanner?.keepAliveWorker == true
+
+/**
+ * Find the constant of an enum by its [name] ignoring case. Throw a meaningful exception if the name cannot be
+ * resolved.
+ */
+inline fun <reified E : Enum<E>> findByName(name: String): E =
+    runCatching { enumValueOf<E>(name.uppercase()) }.getOrNull() ?: throw QueryParametersException(
+        "Invalid parameter value: '$name'. Allowed values are: " +
+                enumValues<E>().joinToString { "'$it'" }
+    )
