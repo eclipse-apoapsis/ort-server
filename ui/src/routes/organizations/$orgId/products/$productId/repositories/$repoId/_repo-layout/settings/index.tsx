@@ -18,6 +18,7 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
@@ -27,13 +28,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryId,
-  UseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdKeyFn,
-  useRepositoriesServicePatchApiV1RepositoriesByRepositoryId,
-} from '@/api/queries';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
-import { $RepositoryType, ApiError, RepositoriesService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -60,12 +55,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  deleteRepositoryByIdMutation,
+  getRepositoryByIdOptions,
+  patchRepositoryByIdMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
+import { getRepositoryTypeLabel } from '@/lib/types';
+import { repositoryTypeSchema } from '@/schemas';
 
 const formSchema = z.object({
   url: z.string(),
   description: z.string().optional(),
-  type: z.enum($RepositoryType.enum),
+  type: repositoryTypeSchema,
 });
 
 const RepositorySettingsPage = () => {
@@ -75,39 +77,42 @@ const RepositorySettingsPage = () => {
 
   const repositoryId = Number.parseInt(params.repoId);
 
-  const { data: repository } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense({
-      repositoryId,
-    });
+  const { data: repository } = useSuspenseQuery({
+    ...getRepositoryByIdOptions({
+      path: {
+        repositoryId,
+      },
+    }),
+  });
 
-  const { mutateAsync, isPending } =
-    useRepositoriesServicePatchApiV1RepositoriesByRepositoryId({
-      onSuccess(data) {
-        toast.info('Edit repository', {
-          description: `Repository "${data.url}" updated successfully.`,
-        });
-        router.invalidate();
-        navigate({
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId',
-          params: {
-            orgId: params.orgId,
-            productId: params.productId,
-            repoId: params.repoId,
-          },
-          reloadDocument: true,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync, isPending } = useMutation({
+    ...patchRepositoryByIdMutation(),
+    onSuccess(data) {
+      toast.info('Edit repository', {
+        description: `Repository "${data.url}" updated successfully.`,
+      });
+      router.invalidate();
+      navigate({
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: params.repoId,
+        },
+        reloadDocument: true,
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -120,8 +125,10 @@ const RepositorySettingsPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      repositoryId: repository.id,
-      requestBody: {
+      path: {
+        repositoryId: repository.id,
+      },
+      body: {
         url: values.url,
         description: values.description,
         type: values.type,
@@ -129,32 +136,34 @@ const RepositorySettingsPage = () => {
     });
   }
 
-  const { mutateAsync: deleteRepository } =
-    useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryId({
-      onSuccess() {
-        toast.info('Delete Repository', {
-          description: `Repository "${repository?.url}" deleted successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId',
-          params: { orgId: params.orgId, productId: params.productId },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync: deleteRepository } = useMutation({
+    ...deleteRepositoryByIdMutation(),
+    onSuccess() {
+      toast.info('Delete Repository', {
+        description: `Repository "${repository?.url}" deleted successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId',
+        params: { orgId: params.orgId, productId: params.productId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   async function handleDelete() {
     await deleteRepository({
-      repositoryId: Number.parseInt(params.repoId),
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+      },
     });
   }
 
@@ -209,11 +218,13 @@ const RepositorySettingsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.values($RepositoryType.enum).map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
+                        {Object.values(repositoryTypeSchema.enum).map(
+                          (type) => (
+                            <SelectItem key={type} value={type}>
+                              {getRepositoryTypeLabel(type)}
+                            </SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -278,16 +289,12 @@ const RepositorySettingsPage = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/settings/'
 )({
-  loader: async ({ context, params }) => {
+  loader: async ({ context: { queryClient }, params }) => {
     const repositoryId = Number.parseInt(params.repoId);
-    await context.queryClient.prefetchQuery({
-      queryKey: UseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdKeyFn({
-        repositoryId,
+    await queryClient.prefetchQuery({
+      ...getRepositoryByIdOptions({
+        path: { repositoryId },
       }),
-      queryFn: () =>
-        RepositoriesService.getApiV1RepositoriesByRepositoryId({
-          repositoryId,
-        }),
     });
   },
   component: RepositorySettingsPage,
