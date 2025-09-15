@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -26,13 +26,7 @@ import {
 } from '@tanstack/react-table';
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
-import {
-  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdRolesByRole,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsers,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-  useRepositoriesServicePutApiV1RepositoriesByRepositoryIdRolesByRole,
-} from '@/api/queries';
-import { ApiError, UserWithGroups } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
@@ -44,6 +38,13 @@ import {
 } from '@/components/ui/tooltip';
 import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
 import { mapUserGroupToRepositoryRole } from '@/helpers/role-helpers.ts';
+import { UserWithGroups } from '@/hey-api';
+import {
+  deleteRepositoryRoleFromUserMutation,
+  getUsersForRepositoryOptions,
+  getUsersForRepositoryQueryKey,
+  putRepositoryRoleToUserMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast.ts';
 
@@ -105,15 +106,16 @@ const columns = [
       const repoId = Number.parseInt(params.repoId);
 
       const { mutateAsync: joinGroup, isPending: isJoinGroupPending } =
-        useRepositoriesServicePutApiV1RepositoriesByRepositoryIdRolesByRole({
+        useMutation({
+          ...putRepositoryRoleToUserMutation(),
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
-              queryKey: [
-                useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-              ],
+              queryKey: getUsersForRepositoryQueryKey({
+                path: { repositoryId: repoId },
+              }),
             });
             toast.info('Join Group', {
-              description: `User "${row.original.user.username}" joined group ${parameters.role} successfully.`,
+              description: `User "${row.original.user.username}" joined group ${parameters.path.role} successfully.`,
             });
           },
           onError(error: ApiError) {
@@ -129,11 +131,12 @@ const columns = [
         });
 
       const { mutateAsync: leaveGroup, isPending: isLeaveGroupPending } =
-        useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdRolesByRole({
+        useMutation({
+          ...deleteRepositoryRoleFromUserMutation(),
           onSuccess(_response, parameters) {
             // Intentionally, no queryClient.invalidateQueries() here. This is done after joining the new group.
             toast.info('Leave Group', {
-              description: `User "${row.original.user.username}" left group ${parameters.role} successfully.`,
+              description: `User "${row.original.user.username}" left group ${parameters.path.role} successfully.`,
             });
           },
           onError(error: ApiError) {
@@ -150,9 +153,11 @@ const columns = [
 
       async function joinAdminsGroup() {
         await joinGroup({
-          repositoryId: repoId,
-          role: 'ADMIN',
-          requestBody: {
+          path: {
+            repositoryId: repoId,
+            role: 'ADMIN',
+          },
+          body: {
             username: row.original.user.username,
           },
         });
@@ -160,9 +165,11 @@ const columns = [
 
       async function joinWritersGroup() {
         await joinGroup({
-          repositoryId: repoId,
-          role: 'WRITER',
-          requestBody: {
+          path: {
+            repositoryId: repoId,
+            role: 'WRITER',
+          },
+          body: {
             username: row.original.user.username,
           },
         });
@@ -170,9 +177,11 @@ const columns = [
 
       async function joinReadersGroup() {
         await joinGroup({
-          repositoryId: repoId,
-          role: 'READER',
-          requestBody: {
+          path: {
+            repositoryId: repoId,
+            role: 'READER',
+          },
+          body: {
             username: row.original.user.username,
           },
         });
@@ -185,18 +194,22 @@ const columns = [
           await Promise.all(
             row.original.groups.map((group) =>
               leaveGroup({
-                repositoryId: repoId,
-                role: mapUserGroupToRepositoryRole(group),
-                username: row.original.user.username,
+                path: {
+                  repositoryId: repoId,
+                  role: mapUserGroupToRepositoryRole(group),
+                },
+                query: {
+                  username: row.original.user.username,
+                },
               })
             )
           );
           // Upon successful removal of the user, invalidate the users query
           // to refresh the data in the table.
           queryClient.invalidateQueries({
-            queryKey: [
-              useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-            ],
+            queryKey: getUsersForRepositoryQueryKey({
+              path: { repositoryId: repoId },
+            }),
           });
           toast.info('Remove User from Repository', {
             description: `User "${row.original.user.username}" removed from the repository successfully.`,
@@ -263,13 +276,16 @@ export const RepositoryUsersTable = () => {
   const { page = 1, pageSize = 10 } = search;
   const pageIndex = page - 1;
 
-  const { data: usersWithGroups } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsers({
-      repositoryId: Number.parseInt(repoId),
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-      sort: 'username',
-    });
+  const { data: usersWithGroups } = useQuery({
+    ...getUsersForRepositoryOptions({
+      path: { repositoryId: Number.parseInt(repoId) },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: 'username',
+      },
+    }),
+  });
 
   const table = useReactTable({
     data: usersWithGroups?.data || [],

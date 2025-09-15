@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { ensureUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersData } from '@/api/queries/ensureQueryData.ts';
+import { getUsersForRepositoryOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute(
@@ -33,22 +33,24 @@ export const Route = createFileRoute(
     page,
     pageSize,
   }),
-  loader: async ({ context, deps, params }) => {
-    const { queryClient } = context;
+  loader: async ({ context: { queryClient }, deps, params }) => {
     const { page = 1, pageSize = 10 } = deps;
     const { repoId } = params;
     const pageIndex = page - 1;
 
     // Ensure the data is available in the query cache when the component is rendered.
-    await ensureUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersData(
-      queryClient,
-      {
-        limit: pageSize,
-        offset: pageIndex * pageSize,
-        repositoryId: Number.parseInt(repoId),
-        sort: 'username',
-      }
-    );
+    await queryClient.ensureQueryData({
+      ...getUsersForRepositoryOptions({
+        path: {
+          repositoryId: Number.parseInt(repoId),
+        },
+        query: {
+          limit: pageSize,
+          offset: pageIndex * pageSize,
+          sort: 'username',
+        },
+      }),
+    });
   },
   beforeLoad: ({ context, params }) => {
     if (
