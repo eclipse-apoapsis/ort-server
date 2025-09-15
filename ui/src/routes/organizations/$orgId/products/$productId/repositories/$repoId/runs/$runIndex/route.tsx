@@ -33,10 +33,9 @@ import {
 } from 'lucide-react';
 import { Suspense } from 'react';
 
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexKey } from '@/api/queries';
-import { RepositoriesService } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
+import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { RunDetailsBar } from './-components/run-details-bar';
 
 const Layout = () => {
@@ -160,18 +159,12 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context, params }) => {
     const run = await context.queryClient.ensureQueryData({
-      queryKey: [
-        useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexKey,
-        params.repoId,
-        params.runIndex,
-      ],
-      queryFn: () =>
-        RepositoriesService.getApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-          {
-            repositoryId: Number.parseInt(params.repoId),
-            ortRunIndex: Number.parseInt(params.runIndex),
-          }
-        ),
+      ...getOrtRunByIndexOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
     });
     context.breadcrumbs.run = run.index.toString();
   },
