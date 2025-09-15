@@ -735,6 +735,7 @@ fun VulnerabilityRating.mapToApi() = ApiVulnerabilityRating.valueOf(name)
 fun VulnerabilityWithAccumulatedData.mapToApi() = ApiProductVulnerability(
     vulnerability = vulnerability.mapToApi(),
     identifier = identifier.mapToApi(),
+    purl = purl,
     rating = rating.mapToApi(),
     ortRunIds = ortRunIds,
     repositoriesCount = repositoriesCount

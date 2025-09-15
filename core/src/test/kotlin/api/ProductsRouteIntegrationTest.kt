@@ -683,7 +683,14 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val identifier1 = Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
                 val identifier2 = Identifier("Maven", "org.apache.logging.log4j", "log4j-api", "2.14.0")
 
+                val pkg1 = dbExtension.fixtures.generatePackage(identifier1)
+                val pkg2 = dbExtension.fixtures.generatePackage(identifier2)
+
                 val run1Id = dbExtension.fixtures.createOrtRun(repository1Id).id
+
+                val analyzerJob1Id = dbExtension.fixtures.createAnalyzerJob(run1Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob1Id, packages = setOf(pkg1))
+
                 val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(run1Id).id
                 dbExtension.fixtures.advisorJobRepository.update(
                     advisorJob1Id,
@@ -718,6 +725,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val run2Id = dbExtension.fixtures.createOrtRun(repository1Id).id
+
+                val analyzerJob2Id = dbExtension.fixtures.createAnalyzerJob(run2Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob2Id, packages = setOf(pkg1, pkg2))
+
                 val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(run2Id).id
                 dbExtension.fixtures.advisorJobRepository.update(
                     advisorJob2Id,
@@ -725,6 +736,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val run3Id = dbExtension.fixtures.createOrtRun(repository2Id).id
+
+                val analyzerJob3Id = dbExtension.fixtures.createAnalyzerJob(run3Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob3Id, packages = setOf(pkg1, pkg2))
+
                 val advisorJob3Id = dbExtension.fixtures.createAdvisorJob(run3Id).id
                 dbExtension.fixtures.advisorJobRepository.update(
                     advisorJob3Id,
@@ -747,6 +762,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         ProductVulnerability(
                             vulnerability = commonVulnerability.mapToApi(),
                             identifier = identifier1.mapToApi(),
+                            purl = pkg1.purl,
                             rating = VulnerabilityRating.MEDIUM,
                             ortRunIds = listOf(run1Id, run3Id),
                             repositoriesCount = 2
@@ -754,6 +770,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         ProductVulnerability(
                             vulnerability = commonVulnerability.mapToApi(),
                             identifier = identifier2.mapToApi(),
+                            purl = pkg2.purl,
                             rating = VulnerabilityRating.MEDIUM,
                             ortRunIds = listOf(run3Id),
                             repositoriesCount = 1
@@ -761,6 +778,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         ProductVulnerability(
                             vulnerability = run1Vulnerability.mapToApi(),
                             identifier = identifier1.mapToApi(),
+                            purl = pkg1.purl,
                             rating = VulnerabilityRating.LOW,
                             ortRunIds = listOf(run1Id),
                             repositoriesCount = 1
