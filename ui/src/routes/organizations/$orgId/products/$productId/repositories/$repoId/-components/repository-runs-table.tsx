@@ -17,7 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -26,13 +31,7 @@ import {
 } from '@tanstack/react-table';
 import { Repeat, View } from 'lucide-react';
 
-import {
-  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsKey,
-} from '@/api/queries';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
-import { ApiError, OrtRunSummary } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -50,6 +49,13 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import { OrtRunSummary } from '@/hey-api';
+import {
+  deleteOrtRunByIndexMutation,
+  getOrtRunsByRepositoryIdOptions,
+  getOrtRunsByRepositoryIdQueryKey,
+  getRepositoryByIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
@@ -158,41 +164,46 @@ const columns = [
     cell: function Row({ row }) {
       const queryClient = useQueryClient();
 
-      const repository =
-        useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense({
-          repositoryId: row.original.repositoryId,
-        });
+      const repository = useSuspenseQuery({
+        ...getRepositoryByIdOptions({
+          path: {
+            repositoryId: row.original.repositoryId,
+          },
+        }),
+      });
 
-      const { mutateAsync: deleteRun } =
-        useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-          {
-            onSuccess() {
-              toast.info('Delete Run', {
-                description: `Run "${row.original.index}" deleted successfully.`,
-              });
-              queryClient.invalidateQueries({
-                queryKey: [
-                  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsKey,
-                ],
-              });
+      const { mutateAsync: deleteRun } = useMutation({
+        ...deleteOrtRunByIndexMutation(),
+        onSuccess() {
+          toast.info('Delete Run', {
+            description: `Run "${row.original.index}" deleted successfully.`,
+          });
+          queryClient.invalidateQueries({
+            queryKey: getOrtRunsByRepositoryIdQueryKey({
+              path: {
+                repositoryId: row.original.repositoryId,
+              },
+            }),
+          });
+        },
+        onError(error: ApiError) {
+          toast.error(error.message, {
+            description: <ToastError error={error} />,
+            duration: Infinity,
+            cancel: {
+              label: 'Dismiss',
+              onClick: () => {},
             },
-            onError(error: ApiError) {
-              toast.error(error.message, {
-                description: <ToastError error={error} />,
-                duration: Infinity,
-                cancel: {
-                  label: 'Dismiss',
-                  onClick: () => {},
-                },
-              });
-            },
-          }
-        );
+          });
+        },
+      });
 
       async function handleDelete() {
         await deleteRun({
-          ortRunIndex: row.original.index,
-          repositoryId: row.original.repositoryId,
+          path: {
+            ortRunIndex: row.original.index,
+            repositoryId: row.original.repositoryId,
+          },
         });
       }
 
@@ -264,23 +275,21 @@ export const RepositoryRunsTable = ({
   search,
 }: RepositoryTableProps) => {
   const setRunPageSize = useTablePrefsStore((state) => state.setRunPageSize);
+
   const {
     data: runs,
     error: runsError,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
-    {
-      repositoryId: Number.parseInt(repoId),
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-      sort: '-index',
-    },
-    undefined,
-    {
-      refetchInterval: pollInterval,
-    }
-  );
+  } = useQuery({
+    ...getOrtRunsByRepositoryIdOptions({
+      path: {
+        repositoryId: Number.parseInt(repoId),
+      },
+      query: { limit: pageSize, offset: pageIndex * pageSize, sort: '-index' },
+    }),
+    refetchInterval: pollInterval,
+  });
 
   const table = useReactTable({
     data: runs?.data || [],
