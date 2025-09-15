@@ -17,7 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
@@ -28,26 +33,7 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 import z from 'zod';
 
-import {
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
-  useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
-  useProductsServiceGetApiV1ProductsByProductId,
-  useProductsServiceGetApiV1ProductsByProductIdSecrets,
-  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsKey,
-} from '@/api/queries';
-import {
-  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId,
-  prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets,
-  prefetchUseProductsServiceGetApiV1ProductsByProductId,
-  prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets,
-  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
-  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets,
-} from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
-import { ApiError, Secret } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -67,6 +53,17 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Secret } from '@/hey-api';
+import {
+  deleteSecretByRepositoryIdAndNameMutation,
+  getOrganizationByIdOptions,
+  getProductByIdOptions,
+  getRepositoryByIdOptions,
+  getSecretsByOrganizationIdOptions,
+  getSecretsByProductIdOptions,
+  getSecretsByRepositoryIdOptions,
+  getSecretsByRepositoryIdQueryKey,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import {
@@ -81,36 +78,35 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
-  const { data: repo } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense({
-      repositoryId: Number.parseInt(params.repoId),
-    });
+  const { data: repo } = useSuspenseQuery({
+    ...getRepositoryByIdOptions({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+    }),
+  });
 
-  const { mutateAsync: deleteSecret } =
-    useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdSecretsBySecretName(
-      {
-        onSuccess() {
-          toast.info('Delete Secret', {
-            description: `Secret "${row.original.name}" deleted successfully.`,
-          });
-          queryClient.invalidateQueries({
-            queryKey: [
-              useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecretsKey,
-            ],
-          });
+  const { mutateAsync: deleteSecret } = useMutation({
+    ...deleteSecretByRepositoryIdAndNameMutation(),
+    onSuccess() {
+      toast.info('Delete Secret', {
+        description: `Secret "${row.original.name}" deleted successfully.`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getSecretsByRepositoryIdQueryKey({
+          path: { repositoryId: repo.id },
+        }),
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+      });
+    },
+  });
 
   return (
     <div className='flex items-center justify-end gap-1'>
@@ -132,14 +128,12 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         </TooltipTrigger>
         <TooltipContent>Edit this secret</TooltipContent>
       </Tooltip>
-
       <DeleteDialog
         thingName={'secret'}
         uiComponent={<DeleteIconButton />}
-        onDelete={async () =>
-          await deleteSecret({
-            repositoryId: repo.id,
-            secretName: row.original.name,
+        onDelete={() =>
+          deleteSecret({
+            path: { repositoryId: repo.id, secretName: row.original.name },
           })
         }
       />
@@ -186,8 +180,10 @@ const RepositorySecrets = () => {
     error: repoError,
     isPending: repoIsPending,
     isError: repoIsError,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryId({
-    repositoryId: Number.parseInt(params.repoId),
+  } = useQuery({
+    ...getRepositoryByIdOptions({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+    }),
   });
 
   const {
@@ -195,8 +191,10 @@ const RepositorySecrets = () => {
     error: productError,
     isPending: productIsPending,
     isError: productIsError,
-  } = useProductsServiceGetApiV1ProductsByProductId({
-    productId: Number.parseInt(params.productId),
+  } = useQuery({
+    ...getProductByIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+    }),
   });
 
   const {
@@ -204,8 +202,10 @@ const RepositorySecrets = () => {
     error: orgError,
     isPending: orgIsPending,
     isError: orgIsError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationId({
-    organizationId: Number.parseInt(params.orgId),
+  } = useQuery({
+    ...getOrganizationByIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+    }),
   });
 
   const {
@@ -213,10 +213,11 @@ const RepositorySecrets = () => {
     error: secretsError,
     isPending: secretsIsPending,
     isError: secretsIsError,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets({
-    repositoryId: Number.parseInt(params.repoId),
-    limit: pageSize,
-    offset: pageIndex * pageSize,
+  } = useQuery({
+    ...getSecretsByRepositoryIdOptions({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+      query: { limit: pageSize, offset: pageIndex * pageSize },
+    }),
   });
 
   const {
@@ -224,10 +225,14 @@ const RepositorySecrets = () => {
     error: productSecretsError,
     isPending: productSecretsIsPending,
     isError: productSecretsIsError,
-  } = useProductsServiceGetApiV1ProductsByProductIdSecrets({
-    productId: Number(params.productId),
-    limit: productPageSize,
-    offset: productPageIndex * productPageSize,
+  } = useQuery({
+    ...getSecretsByProductIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+      query: {
+        limit: productPageSize,
+        offset: productPageIndex * productPageSize,
+      },
+    }),
   });
 
   const {
@@ -235,10 +240,14 @@ const RepositorySecrets = () => {
     error: orgSecretsError,
     isPending: orgSecretsIsPending,
     isError: orgSecretsIsError,
-  } = useOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets({
-    organizationId: Number.parseInt(params.orgId),
-    limit: orgPageSize,
-    offset: orgPageIndex * orgPageSize,
+  } = useQuery({
+    ...getSecretsByOrganizationIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+      query: {
+        limit: orgPageSize,
+        offset: orgPageIndex * orgPageSize,
+      },
+    }),
   });
 
   const table = useReactTable({
@@ -480,7 +489,7 @@ export const Route = createFileRoute(
     orgPageSize,
   }),
   loader: async ({
-    context,
+    context: { queryClient },
     params,
     deps: {
       page,
@@ -492,52 +501,52 @@ export const Route = createFileRoute(
     },
   }) => {
     await Promise.allSettled([
-      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId(
-        context.queryClient,
-        {
-          repositoryId: Number.parseInt(params.repoId),
-        }
-      ),
-      prefetchUseProductsServiceGetApiV1ProductsByProductId(
-        context.queryClient,
-        {
-          productId: Number.parseInt(params.productId),
-        }
-      ),
-      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationId(
-        context.queryClient,
-        {
-          organizationId: Number.parseInt(params.orgId),
-        }
-      ),
-      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSecrets(
-        context.queryClient,
-        {
-          repositoryId: Number.parseInt(params.repoId),
-          limit: pageSize || defaultPageSize,
-          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-        }
-      ),
-      prefetchUseProductsServiceGetApiV1ProductsByProductIdSecrets(
-        context.queryClient,
-        {
-          productId: Number(params.productId),
-          limit: productPageSize || defaultPageSize,
-          offset: productPage
-            ? (productPage - 1) * (productPageSize || defaultPageSize)
-            : 0,
-        }
-      ),
-      prefetchUseOrganizationsServiceGetApiV1OrganizationsByOrganizationIdSecrets(
-        context.queryClient,
-        {
-          organizationId: Number.parseInt(params.orgId),
-          limit: orgPageSize || defaultPageSize,
-          offset: orgPage
-            ? (orgPage - 1) * (orgPageSize || defaultPageSize)
-            : 0,
-        }
-      ),
+      queryClient.prefetchQuery({
+        ...getRepositoryByIdOptions({
+          path: { repositoryId: Number.parseInt(params.repoId) },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getProductByIdOptions({
+          path: { productId: Number.parseInt(params.productId) },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getOrganizationByIdOptions({
+          path: { organizationId: Number.parseInt(params.orgId) },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getSecretsByRepositoryIdOptions({
+          path: { repositoryId: Number.parseInt(params.repoId) },
+          query: {
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+          },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getSecretsByProductIdOptions({
+          path: { productId: Number.parseInt(params.productId) },
+          query: {
+            limit: productPageSize || defaultPageSize,
+            offset: productPage
+              ? (productPage - 1) * (productPageSize || defaultPageSize)
+              : 0,
+          },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getSecretsByOrganizationIdOptions({
+          path: { organizationId: Number.parseInt(params.orgId) },
+          query: {
+            limit: orgPageSize || defaultPageSize,
+            offset: orgPage
+              ? (orgPage - 1) * (orgPageSize || defaultPageSize)
+              : 0,
+          },
+        }),
+      }),
     ]);
   },
   component: RepositorySecrets,
