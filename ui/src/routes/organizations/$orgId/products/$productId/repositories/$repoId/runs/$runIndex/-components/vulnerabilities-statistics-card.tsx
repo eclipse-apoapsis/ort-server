@@ -17,10 +17,9 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { ShieldQuestion } from 'lucide-react';
 
-import { useRunsServiceGetApiV1RunsByRunIdStatistics } from '@/api/queries';
-import { JobStatus, VulnerabilityRating } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -29,6 +28,8 @@ import {
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
 import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
+import { JobStatus, VulnerabilityRating } from '@/hey-api';
+import { getOrtRunStatisticsOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 type VulnerabilitiesStatisticsCardProps = {
@@ -42,16 +43,12 @@ export const VulnerabilitiesStatisticsCard = ({
   status,
   runId,
 }: VulnerabilitiesStatisticsCardProps) => {
-  const { data, isPending, isError, error } =
-    useRunsServiceGetApiV1RunsByRunIdStatistics(
-      {
-        runId: runId,
-      },
-      undefined,
-      {
-        enabled: isJobFinished(status),
-      }
-    );
+  const { data, isPending, isError, error } = useQuery({
+    ...getOrtRunStatisticsOptions({
+      path: { runId: runId },
+    }),
+    enabled: isJobFinished(status),
+  });
 
   if (isPending) {
     return (

@@ -17,10 +17,9 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { ListTree } from 'lucide-react';
 
-import { useRunsServiceGetApiV1RunsByRunIdStatistics } from '@/api/queries';
-import { JobStatus } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -29,6 +28,8 @@ import {
   getStatusFontColor,
 } from '@/helpers/get-status-class';
 import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
+import { JobStatus } from '@/hey-api';
+import { getOrtRunStatisticsOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 type PackagesStatisticsCardProps = {
@@ -42,14 +43,12 @@ export const PackagesStatisticsCard = ({
   status,
   runId,
 }: PackagesStatisticsCardProps) => {
-  const { data, isPending, isError, error } =
-    useRunsServiceGetApiV1RunsByRunIdStatistics(
-      {
-        runId: runId,
-      },
-      undefined,
-      { enabled: isJobFinished(status) }
-    );
+  const { data, isPending, isError, error } = useQuery({
+    ...getOrtRunStatisticsOptions({
+      path: { runId: runId },
+    }),
+    enabled: isJobFinished(status),
+  });
 
   if (isPending) {
     return (

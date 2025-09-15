@@ -17,10 +17,10 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { ArrowBigLeft, Repeat } from 'lucide-react';
 
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type RunDetailsBarProps = {
@@ -48,25 +49,23 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
   const params = routeApi.useParams();
   const pollInterval = config.pollInterval;
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
+  const { data: ortRun } = useSuspenseQuery({
+    ...getOrtRunByIndexOptions({
+      path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
       },
-      undefined,
-      {
-        refetchInterval: (run) => {
-          if (
-            run.state.data?.status === 'FINISHED' ||
-            run.state.data?.status === 'FINISHED_WITH_ISSUES' ||
-            run.state.data?.status === 'FAILED'
-          )
-            return false;
-          return pollInterval;
-        },
-      }
-    );
+    }),
+    refetchInterval: (run) => {
+      if (
+        run.state.data?.status === 'FINISHED' ||
+        run.state.data?.status === 'FINISHED_WITH_ISSUES' ||
+        run.state.data?.status === 'FAILED'
+      )
+        return false;
+      return pollInterval;
+    },
+  });
 
   return (
     <div
