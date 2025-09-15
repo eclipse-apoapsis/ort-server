@@ -18,17 +18,16 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Eye, Loader2, Pen, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-  useRepositoriesServicePutApiV1RepositoriesByRepositoryIdRolesByRole,
-} from '@/api/queries';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense } from '@/api/queries/suspense';
 import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -56,6 +55,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { mapGroupSchemaToRepositoryRole } from '@/helpers/role-helpers.ts';
+import {
+  getRepositoryByIdOptions,
+  getUsersForRepositoryQueryKey,
+  putRepositoryRoleToUserMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { groupsSchema } from '@/schemas';
 import { RepositoryUsersTable } from './-components/repository-users-table';
@@ -76,42 +80,49 @@ const ManageUsers = () => {
     },
   });
 
-  const { data: repository } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdSuspense({
-      repositoryId: Number.parseInt(params.repoId),
-    });
+  const { data: repository } = useSuspenseQuery({
+    ...getRepositoryByIdOptions({
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+      },
+    }),
+  });
 
   const queryClient = useQueryClient();
 
-  const { mutateAsync: addUser, isPending: isAddUserPending } =
-    useRepositoriesServicePutApiV1RepositoriesByRepositoryIdRolesByRole({
-      onSuccess() {
-        queryClient.invalidateQueries({
-          queryKey: [
-            useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdUsersKey,
-          ],
-        });
-        toast.info('Add User', {
-          description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
+  const { mutateAsync: addUser, isPending: isAddUserPending } = useMutation({
+    ...putRepositoryRoleToUserMutation(),
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: getUsersForRepositoryQueryKey({
+          path: {
+            repositoryId: Number.parseInt(params.repoId),
           },
-        });
-      },
-    });
+        }),
+      });
+      toast.info('Add User', {
+        description: `User "${form.getValues().username}" added successfully to group "${form.getValues().groupId.toUpperCase()}".`,
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   async function onAddUser(values: z.infer<typeof formSchema>) {
     await addUser({
-      repositoryId: Number.parseInt(params.repoId),
-      role: mapGroupSchemaToRepositoryRole(values.groupId),
-      requestBody: {
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+        role: mapGroupSchemaToRepositoryRole(values.groupId),
+      },
+      body: {
         username: values.username,
       },
     });
