@@ -17,11 +17,12 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
+import { getOrtRunsByRepositoryIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const RunRedirectComponent = () => {
@@ -33,15 +34,18 @@ const RunRedirectComponent = () => {
     isPending,
     isError,
     error,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
-    {
-      repositoryId: Number.parseInt(params.repoId),
-      limit: 1,
-      sort: '-index',
-    },
-    undefined,
-    { staleTime: 1000 }
-  );
+  } = useQuery({
+    ...getOrtRunsByRepositoryIdOptions({
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+      },
+      query: {
+        limit: 1,
+        sort: '-index',
+      },
+    }),
+    staleTime: 1000,
+  });
 
   if (isPending) {
     return <LoadingIndicator />;

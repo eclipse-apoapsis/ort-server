@@ -17,14 +17,10 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { PlusIcon } from 'lucide-react';
 
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryId } from '@/api/queries';
-import {
-  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
-  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns,
-} from '@/api/queries/prefetch';
 import { JobDurations } from '@/components/charts/job-durations';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -36,6 +32,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  getOrtRunsByRepositoryIdOptions,
+  getRepositoryByIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import { paginationSearchParameterSchema } from '@/schemas';
@@ -56,8 +56,10 @@ const RepositoryRunsComponent = () => {
     error: repoError,
     isPending: repoIsPending,
     isError: repoIsError,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryId({
-    repositoryId: Number.parseInt(params.repoId),
+  } = useQuery({
+    ...getRepositoryByIdOptions({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+    }),
   });
 
   if (repoIsPending) {
@@ -146,23 +148,27 @@ export const Route = createFileRoute(
 )({
   validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context, params, deps: { page, pageSize } }) => {
+  loader: async ({
+    context: { queryClient },
+    params,
+    deps: { page, pageSize },
+  }) => {
     await Promise.allSettled([
-      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId(
-        context.queryClient,
-        {
-          repositoryId: Number.parseInt(params.repoId),
-        }
-      ),
-      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
-        context.queryClient,
-        {
-          repositoryId: Number.parseInt(params.repoId),
-          limit: pageSize || defaultPageSize,
-          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-          sort: '-index',
-        }
-      ),
+      queryClient.prefetchQuery({
+        ...getRepositoryByIdOptions({
+          path: { repositoryId: Number.parseInt(params.repoId) },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getOrtRunsByRepositoryIdOptions({
+          path: { repositoryId: Number.parseInt(params.repoId) },
+          query: {
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+            sort: '-index',
+          },
+        }),
+      }),
     ]);
   },
   component: RepositoryRunsComponent,
