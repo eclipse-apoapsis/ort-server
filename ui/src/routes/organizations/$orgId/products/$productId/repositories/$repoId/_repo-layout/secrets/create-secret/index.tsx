@@ -18,12 +18,12 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { useRepositoriesServicePostApiV1RepositoriesByRepositoryIdSecrets } from '@/api/queries';
 import { ApiError } from '@/api/requests';
 import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
@@ -43,6 +43,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { postSecretForRepositoryMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -55,32 +56,32 @@ const CreateRepositorySecretPage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
 
-  const { mutateAsync, isPending } =
-    useRepositoriesServicePostApiV1RepositoriesByRepositoryIdSecrets({
-      onSuccess(data) {
-        toast.info('Create Repository Secret', {
-          description: `New repository secret "${data.name}" created successfully.`,
-        });
-        navigate({
-          to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
-          params: {
-            orgId: params.orgId,
-            productId: params.productId,
-            repoId: params.repoId,
-          },
-        });
-      },
-      onError(error: ApiError) {
-        toast.error(error.message, {
-          description: <ToastError error={error} />,
-          duration: Infinity,
-          cancel: {
-            label: 'Dismiss',
-            onClick: () => {},
-          },
-        });
-      },
-    });
+  const { mutateAsync, isPending } = useMutation({
+    ...postSecretForRepositoryMutation(),
+    onSuccess(data) {
+      toast.info('Create Repository Secret', {
+        description: `New repository secret "${data.name}" created successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
+        params: {
+          orgId: params.orgId,
+          productId: params.productId,
+          repoId: params.repoId,
+        },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -92,8 +93,10 @@ const CreateRepositorySecretPage = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await mutateAsync({
-      repositoryId: Number.parseInt(params.repoId),
-      requestBody: {
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+      },
+      body: {
         name: values.name,
         value: values.value,
         description: values.description,
