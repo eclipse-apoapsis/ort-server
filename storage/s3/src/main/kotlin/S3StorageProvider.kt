@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.storage.s3
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.deleteObject
 import aws.sdk.kotlin.services.s3.model.GetObjectRequest
+import aws.sdk.kotlin.services.s3.model.HeadObjectRequest
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
@@ -101,12 +102,12 @@ class S3StorageProvider(
      * Check if an object with the given [key] exists in the S3 bucket.
      */
     override suspend fun contains(key: Key): Boolean = runCatching {
-        s3Client.getObject(
-            GetObjectRequest {
+        s3Client.headObject(
+            HeadObjectRequest {
                 this.bucket = bucketName
                 this.key = key.key
             }
-        ) {}
+        )
     }.isSuccess
 
     /**
