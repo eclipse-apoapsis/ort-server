@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   CellContext,
@@ -27,17 +27,7 @@ import {
 } from '@tanstack/react-table';
 import { EditIcon, PlusIcon } from 'lucide-react';
 
-import {
-  useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdInfrastructureServices,
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdInfrastructureServicesKey,
-} from '@/api/queries';
-import {
-  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId,
-  prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdInfrastructureServices,
-} from '@/api/queries/prefetch';
-import { ApiError, InfrastructureService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -57,6 +47,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { InfrastructureService } from '@/hey-api';
+import {
+  deleteInfrastructureServiceForRepositoryIdAndNameMutation,
+  getInfrastructureServicesByRepositoryIdOptions,
+  getInfrastructureServicesByRepositoryIdQueryKey,
+  getRepositoryByIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { paginationSearchParameterSchema } from '@/schemas';
@@ -67,31 +64,31 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
   const params = Route.useParams();
   const queryClient = useQueryClient();
 
-  const { mutateAsync: delService } =
-    useRepositoriesServiceDeleteApiV1RepositoriesByRepositoryIdInfrastructureServicesByServiceName(
-      {
-        onSuccess() {
-          toast.info('Delete Infrastructure Service', {
-            description: `Infrastructure service "${row.original.name}" deleted successfully.`,
-          });
-          queryClient.invalidateQueries({
-            queryKey: [
-              useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdInfrastructureServicesKey,
-            ],
-          });
+  const { mutateAsync: delService } = useMutation({
+    ...deleteInfrastructureServiceForRepositoryIdAndNameMutation(),
+    onSuccess() {
+      toast.info('Delete Infrastructure Service', {
+        description: `Infrastructure service "${row.original.name}" deleted successfully.`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getInfrastructureServicesByRepositoryIdQueryKey({
+          path: {
+            repositoryId: Number.parseInt(params.repoId),
+          },
+        }),
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+      });
+    },
+  });
 
   return (
     <div className='flex justify-end gap-1'>
@@ -119,8 +116,10 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
         uiComponent={<DeleteIconButton />}
         onDelete={() =>
           delService({
-            repositoryId: Number.parseInt(params.repoId),
-            serviceName: row.original.name,
+            path: {
+              repositoryId: Number.parseInt(params.repoId),
+              serviceName: row.original.name,
+            },
           })
         }
       />
@@ -139,8 +138,12 @@ const InfrastructureServices = () => {
     error: repositoryError,
     isPending: repositoryIsPending,
     isError: repositoryIsError,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryId({
-    repositoryId: Number.parseInt(params.repoId),
+  } = useQuery({
+    ...getRepositoryByIdOptions({
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+      },
+    }),
   });
 
   const {
@@ -148,13 +151,12 @@ const InfrastructureServices = () => {
     error: infraError,
     isPending: infraIsPending,
     isError: infraIsError,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdInfrastructureServices(
-    {
-      repositoryId: Number.parseInt(params.repoId),
-      limit: pageSize,
-      offset: pageIndex * pageSize,
-    }
-  );
+  } = useQuery({
+    ...getInfrastructureServicesByRepositoryIdOptions({
+      path: { repositoryId: Number.parseInt(params.repoId) },
+      query: { limit: pageSize, offset: pageIndex * pageSize },
+    }),
+  });
 
   const columns: ColumnDef<InfrastructureService>[] = [
     {
@@ -299,22 +301,26 @@ export const Route = createFileRoute(
 )({
   validateSearch: paginationSearchParameterSchema,
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
-  loader: async ({ context, params, deps: { page, pageSize } }) => {
+  loader: async ({
+    context: { queryClient },
+    params,
+    deps: { page, pageSize },
+  }) => {
     await Promise.allSettled([
-      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryId(
-        context.queryClient,
-        {
-          repositoryId: Number.parseInt(params.repoId),
-        }
-      ),
-      prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdInfrastructureServices(
-        context.queryClient,
-        {
-          repositoryId: Number.parseInt(params.repoId),
-          limit: pageSize || defaultPageSize,
-          offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
-        }
-      ),
+      queryClient.prefetchQuery({
+        ...getRepositoryByIdOptions({
+          path: { repositoryId: Number.parseInt(params.repoId) },
+        }),
+      }),
+      queryClient.prefetchQuery({
+        ...getInfrastructureServicesByRepositoryIdOptions({
+          path: { repositoryId: Number.parseInt(params.repoId) },
+          query: {
+            limit: pageSize || defaultPageSize,
+            offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,
+          },
+        }),
+      }),
     ]);
   },
   component: InfrastructureServices,
