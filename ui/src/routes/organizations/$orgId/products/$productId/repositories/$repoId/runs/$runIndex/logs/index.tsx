@@ -17,13 +17,11 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { ChevronDownIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
-import { OpenAPI } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -40,20 +38,27 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
+import { client } from '@/hey-api/client.gen';
+import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
+
+const API_URL = client.getConfig().baseUrl;
 
 const ReportComponent = () => {
   const params = Route.useParams();
   const [level, setLevel] = useState('INFO');
   const [isPending, setIsPending] = useState(false);
+  const { user } = useUser();
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
+  const { data: ortRun } = useSuspenseQuery({
+    ...getOrtRunByIndexOptions({
+      path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+      },
+    }),
+  });
 
   const downloadLogs = async (
     runId: number,
@@ -63,10 +68,10 @@ const ReportComponent = () => {
     setIsPending(true);
     try {
       const response = await fetch(
-        `${OpenAPI.BASE}/api/v1/runs/${runId}/logs?level=${level}&steps=${steps}`,
+        `${API_URL}/api/v1/runs/${runId}/logs?level=${level}&steps=${steps}`,
         {
           headers: {
-            Authorization: `Bearer ${OpenAPI.TOKEN}`,
+            Authorization: `Bearer ${user?.access_token}`,
           },
         }
       );
@@ -188,14 +193,15 @@ const ReportComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/logs/'
 )({
-  loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-      context.queryClient,
-      {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrtRunByIndexOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
   },
   component: ReportComponent,
   pendingComponent: LoadingIndicator,
