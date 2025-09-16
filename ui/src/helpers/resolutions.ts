@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { Issue, RuleViolation, VulnerabilityWithDetails } from '@/api/requests';
+import { Issue, RuleViolation, VulnerabilityWithDetails } from '@/hey-api';
 
 export type ItemWithResolutions =
   | Issue

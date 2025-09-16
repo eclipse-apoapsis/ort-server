@@ -24,7 +24,7 @@ import {
   ProductRole,
   RepositoryRole,
   UserGroup,
-} from '@/api/requests';
+} from '@/hey-api';
 import { groupsSchema } from '@/schemas';
 
 // Temporary helper functions to help with migration from groups to roles.
