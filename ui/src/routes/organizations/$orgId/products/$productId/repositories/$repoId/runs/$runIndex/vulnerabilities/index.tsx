@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -33,10 +34,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
-import { useRunsServiceGetApiV1RunsByRunIdVulnerabilities } from '@/api/queries';
-import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
-import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api/requests';
 import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
@@ -76,6 +73,11 @@ import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
+import { VulnerabilityRating, VulnerabilityWithDetails } from '@/hey-api';
+import {
+  getOrtRunByIndexOptions,
+  getVulnerabilitiesByRunIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import {
@@ -411,22 +413,25 @@ const VulnerabilitiesComponent = () => {
     [search.sortBy]
   );
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
+  const { data: ortRun } = useSuspenseQuery({
+    ...getOrtRunByIndexOptions({
+      path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+      },
+    }),
+  });
 
   const {
     data: vulnerabilities,
     isPending,
     isError,
     error,
-  } = useRunsServiceGetApiV1RunsByRunIdVulnerabilities({
-    runId: ortRun.id,
-    limit: ALL_ITEMS,
+  } = useQuery({
+    ...getVulnerabilitiesByRunIdOptions({
+      path: { runId: ortRun.id },
+      query: { limit: ALL_ITEMS },
+    }),
   });
 
   const [expanded, setExpanded] = useState<ExpandedState>(
@@ -530,14 +535,15 @@ export const Route = createFileRoute(
     ...vulnerabilityRatingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
-  loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-      context.queryClient,
-      {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrtRunByIndexOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
   },
   component: VulnerabilitiesComponent,
   pendingComponent: LoadingIndicator,

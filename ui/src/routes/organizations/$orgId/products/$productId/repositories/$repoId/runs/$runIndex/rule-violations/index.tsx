@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -33,12 +34,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
-import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
-import {
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense,
-  useRunsServiceGetApiV1RunsByRunIdRuleViolationsSuspense,
-} from '@/api/queries/suspense';
-import { RuleViolation, Severity } from '@/api/requests';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -69,6 +64,11 @@ import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
+import { RuleViolation, Severity } from '@/hey-api';
+import {
+  getOrtRunByIndexOptions,
+  getRuleViolationsByRunIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import {
   ItemResolved,
@@ -343,19 +343,21 @@ const RuleViolationsComponent = () => {
     [search.sortBy]
   );
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
+  const { data: ortRun } = useSuspenseQuery({
+    ...getOrtRunByIndexOptions({
+      path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+      },
+    }),
+  });
 
-  const { data: ruleViolations } =
-    useRunsServiceGetApiV1RunsByRunIdRuleViolationsSuspense({
-      runId: ortRun.id,
-      limit: ALL_ITEMS,
-    });
+  const { data: ruleViolations } = useSuspenseQuery({
+    ...getRuleViolationsByRunIdOptions({
+      path: { runId: ortRun.id },
+      query: { limit: ALL_ITEMS },
+    }),
+  });
 
   const [expanded, setExpanded] = useState<ExpandedState>(
     search.marked ? { [search.marked]: true } : {}
@@ -438,14 +440,15 @@ export const Route = createFileRoute(
     ...sortingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
-  loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-      context.queryClient,
-      {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrtRunByIndexOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
   },
   component: RuleViolationsComponent,
   pendingComponent: LoadingIndicator,
