@@ -22,14 +22,11 @@ import { Log } from 'oidc-client-ts';
 import { ReactNode } from 'react';
 import { AuthProvider } from 'react-oidc-context';
 
-import { OpenAPI as OpenAPIConfig } from '@/api/requests/core/OpenAPI';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { queryClient } from '@/lib/query-client';
-
-OpenAPIConfig.BASE = config.API_URL;
 
 const oidcConfig = config.oidcConfig;
 
