@@ -19,7 +19,6 @@
 
 import { Link } from '@tanstack/react-router';
 
-import { PagedResponse_OrtRunSummary } from '@/api/requests';
 import {
   Tooltip,
   TooltipContent,
@@ -29,10 +28,11 @@ import {
   getStatusBackgroundColor,
   getStatusClass,
 } from '@/helpers/get-status-class';
+import { PagedResponseOrtRunSummary } from '@/hey-api';
 import { RunDuration } from './run-duration';
 
 type OrtRunJobStatusProps = {
-  jobs: PagedResponse_OrtRunSummary['data'][0]['jobs'];
+  jobs: PagedResponseOrtRunSummary['data'][0]['jobs'];
   orgId: string;
   productId: string;
   repoId: string;

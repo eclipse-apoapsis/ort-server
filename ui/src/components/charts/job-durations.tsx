@@ -17,11 +17,11 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns } from '@/api/queries';
 import {
   DEFAULT_RUNS,
   RunsFilterForm,
@@ -46,6 +46,7 @@ import {
   convertDurationToHms,
   getDurationChartData,
 } from '@/helpers/calculate-duration';
+import { getOrtRunsByRepositoryIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const chartConfig = {
@@ -109,18 +110,16 @@ export const JobDurations = ({
     error: runsError,
     isPending: runsIsPending,
     isError: runsIsError,
-  } = useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRuns(
-    {
-      repositoryId: Number.parseInt(repoId),
-      limit,
-      offset,
-      sort: '-index',
-    },
-    undefined,
-    {
-      refetchInterval: pollInterval,
-    }
-  );
+  } = useQuery({
+    ...getOrtRunsByRepositoryIdOptions({
+      path: {
+        repositoryId: Number.parseInt(repoId),
+      },
+      query: { limit, offset, sort: '-index' },
+    }),
+
+    refetchInterval: pollInterval,
+  });
 
   const chartData = getDurationChartData(runs, showInfrastructure);
 
