@@ -60,10 +60,7 @@ import {
 } from '@/components/ui/table';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
-import {
-  identifierToPurl,
-  identifierToString,
-} from '@/helpers/identifier-conversion';
+import { identifierToString } from '@/helpers/identifier-conversion';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ProductVulnerability, VulnerabilityRating } from '@/hey-api';
 import {
@@ -253,7 +250,7 @@ const ProductVulnerabilitiesComponent = () => {
       columnHelper.accessor(
         (vuln) => {
           if (packageIdType === 'PURL') {
-            return identifierToPurl(vuln.identifier);
+            return vuln.purl;
           } else {
             return identifierToString(vuln.identifier);
           }

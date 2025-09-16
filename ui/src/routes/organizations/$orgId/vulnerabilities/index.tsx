@@ -60,10 +60,7 @@ import {
   convertToBackendSorting,
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
-import {
-  identifierToPurl,
-  identifierToString,
-} from '@/helpers/identifier-conversion';
+import { identifierToString } from '@/helpers/identifier-conversion';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { OrganizationVulnerability } from '@/hey-api';
 import {
@@ -238,13 +235,13 @@ const OrganizationVulnerabilitiesComponent = () => {
       columnHelper.accessor(
         (vuln) => {
           if (packageIdType === 'PURL') {
-            return identifierToPurl(vuln.identifier);
+            return vuln.purl;
           } else {
             return identifierToString(vuln.identifier);
           }
         },
         {
-          id: 'identifier',
+          id: packageIdType === 'ORT_ID' ? 'identifier' : 'purl',
           header: 'Package ID',
           cell: ({ getValue }) => {
             return (
