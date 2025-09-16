@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { VulnerabilityRating } from '@/api/requests';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -33,6 +32,7 @@ import {
 } from '@/components/ui/tooltip';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import { Cvss4MacroVector } from '@/helpers/vulnerability-statistics';
+import { VulnerabilityRating } from '@/hey-api';
 
 type Cvss4VectorCardProps = { macroVector: Cvss4MacroVector };
 

@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-import { PackageCurationData } from '@/api/requests';
 import { RenderProperty } from '@/components/render-property';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { PackageCurationData } from '@/hey-api';
 
 type PackageCurationProps = {
   curation: PackageCurationData;

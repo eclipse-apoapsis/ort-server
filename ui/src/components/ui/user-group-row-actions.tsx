@@ -20,7 +20,6 @@
 import { Row } from '@tanstack/react-table';
 import { Eye, Pen, Shield } from 'lucide-react';
 
-import { UserGroup, UserWithGroups } from '@/api/requests';
 import { EllipsisIconButton } from '@/components/ellipsis-icon-button.tsx';
 import {
   DropdownMenu,
@@ -28,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
+import { UserGroup, UserWithGroups } from '@/hey-api';
 
 type UserGroupRowActionsProps = {
   row: Row<UserWithGroups>;
