@@ -20,27 +20,23 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { AlertCircle } from 'lucide-react';
 
-import { ApiError, RunsService } from '@/api/requests';
 import { NotFoundError } from '@/components/not-found-error';
 import { Card, CardContent, CardHeader } from '@/components/ui/card.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
+import { getOrtRunById } from '@/hey-api';
 
 export const Route = createFileRoute('/runs/$runId/')({
   beforeLoad: async ({ params }) => {
-    let organizationId, productId, repositoryId, index;
-    try {
-      const ortRun = await RunsService.getApiV1RunsByRunId({
-        runId: Number.parseInt(params.runId),
-      });
-      organizationId = ortRun.organizationId.toString();
-      productId = ortRun.productId.toString();
-      repositoryId = ortRun.repositoryId.toString();
-      index = ortRun.index.toString();
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw new NotFoundError(params.runId);
-      }
-    }
+    const { data: ortRun, error } = await getOrtRunById({
+      path: { runId: Number.parseInt(params.runId) },
+    });
+    if (error) throw new NotFoundError(params.runId);
+
+    const organizationId = ortRun?.organizationId.toString();
+    const productId = ortRun?.productId.toString();
+    const repositoryId = ortRun?.repositoryId.toString();
+    const index = ortRun?.index.toString();
+
     if (organizationId && productId && repositoryId && index) {
       throw redirect({
         to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
