@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { JobStatus } from '@/api/requests';
+import { JobStatus } from '@/hey-api';
 
 /**
  * Check if a job is finished, based on its status. The finished states are

@@ -19,7 +19,7 @@
 
 import { PackageURL } from 'packageurl-js';
 
-import { Identifier } from '@/api/requests';
+import { Identifier } from '@/hey-api';
 
 export function identifierToPurl(pkg: Identifier | undefined | null): string {
   if (!pkg) {

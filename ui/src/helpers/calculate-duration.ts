@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { JobSummary, PagedResponse_OrtRunSummary } from '@/api/requests';
+import { JobSummary, PagedResponseOrtRunSummary } from '@/hey-api';
 
 function divmod(a: number, b: number): [number, number] {
   const remainder = a % b;
@@ -93,7 +93,7 @@ type DurationChartData = {
 };
 
 export function getDurationChartData(
-  runs: PagedResponse_OrtRunSummary | undefined,
+  runs: PagedResponseOrtRunSummary | undefined,
   showInfra: boolean
 ): DurationChartData[] | undefined {
   return runs?.data.map((run) => {

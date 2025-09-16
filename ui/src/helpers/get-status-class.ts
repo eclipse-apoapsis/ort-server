@@ -22,7 +22,7 @@ import {
   OrtRunStatus,
   Severity,
   VulnerabilityRating,
-} from '@/api/requests';
+} from '@/hey-api';
 import { PackageManagerId } from '@/lib/types';
 import { ItemResolved } from '@/schemas';
 
