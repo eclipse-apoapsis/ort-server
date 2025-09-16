@@ -21,7 +21,6 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { hasAuthParams } from 'react-oidc-context';
 
-import { OpenAPI } from '@/api/requests/index.ts';
 import { CopyToClipboard } from '@/components/copy-to-clipboard.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button.tsx';
@@ -97,7 +96,6 @@ export const App = () => {
 
   useEffect(() => {
     if (auth.user?.access_token) {
-      OpenAPI.TOKEN = auth.user.access_token;
       setTokenIsSet(true);
     } else {
       setTokenIsSet(false);
