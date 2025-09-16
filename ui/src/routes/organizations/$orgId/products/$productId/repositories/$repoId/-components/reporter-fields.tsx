@@ -19,7 +19,6 @@
 
 import { UseFormReturn } from 'react-hook-form';
 
-import { PreconfiguredPluginDescriptor } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import {
   AccordionContent,
@@ -34,6 +33,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { PreconfiguredPluginDescriptor } from '@/hey-api';
 import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
 
 type ReporterFieldsProps = {

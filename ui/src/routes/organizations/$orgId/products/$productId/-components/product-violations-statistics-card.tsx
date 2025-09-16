@@ -20,9 +20,9 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Scale } from 'lucide-react';
 
-import { Severity } from '@/api/requests';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
+import { Severity } from '@/hey-api';
 import { getOrtRunStatisticsByProductIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
