@@ -17,12 +17,10 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Download } from 'lucide-react';
 
-import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
-import { OpenAPI } from '@/api/requests';
 import CycloneDXDark from '@/assets/cyclonedx-logo-black.svg';
 import CycloneDXLight from '@/assets/cyclonedx-logo-white.svg';
 import SPDX from '@/assets/spdx-logo-color.svg';
@@ -36,7 +34,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
+import { client } from '@/hey-api/client.gen';
+import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
+
+const API_URL = client.getConfig().baseUrl;
 
 const SBOMComponent = () => {
   const params = Route.useParams();
@@ -45,14 +48,16 @@ const SBOMComponent = () => {
   // https://cyclonedx.org/about/branding/ and the correct one is selected
   // based on the current theme.
   const { activeTheme } = useTheme();
+  const { user } = useUser();
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
+  const { data: ortRun } = useSuspenseQuery({
+    ...getOrtRunByIndexOptions({
+      path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+      },
+    }),
+  });
 
   const downloadZipFile = async ({
     runId,
@@ -63,10 +68,10 @@ const SBOMComponent = () => {
   }) => {
     try {
       const response = await fetch(
-        `${OpenAPI.BASE}/api/v1/runs/${runId}/reporter/${fileName}`,
+        `${API_URL}/api/v1/runs/${runId}/reporter/${fileName}`,
         {
           headers: {
-            Authorization: `Bearer ${OpenAPI.TOKEN}`,
+            Authorization: `Bearer ${user?.access_token}`,
           },
         }
       );
@@ -226,14 +231,15 @@ const SBOMComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/sbom/'
 )({
-  loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-      context.queryClient,
-      {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrtRunByIndexOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
   },
   component: SBOMComponent,
   pendingComponent: LoadingIndicator,

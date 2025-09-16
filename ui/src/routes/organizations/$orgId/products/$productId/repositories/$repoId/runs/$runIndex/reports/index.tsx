@@ -17,11 +17,9 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 
-import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
-import { OpenAPI } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -32,18 +30,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
+import { client } from '@/hey-api/client.gen';
+import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
+
+const API_URL = client.getConfig().baseUrl;
 
 const ReportComponent = () => {
   const params = Route.useParams();
+  const { user } = useUser();
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
+  const { data: ortRun } = useSuspenseQuery({
+    ...getOrtRunByIndexOptions({
+      path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+      },
+    }),
+  });
 
   const downloadZipFile = async ({
     runId,
@@ -54,10 +59,10 @@ const ReportComponent = () => {
   }) => {
     try {
       const response = await fetch(
-        `${OpenAPI.BASE}/api/v1/runs/${runId}/reporter/${fileName}`,
+        `${API_URL}/api/v1/runs/${runId}/reporter/${fileName}`,
         {
           headers: {
-            Authorization: `Bearer ${OpenAPI.TOKEN}`,
+            Authorization: `Bearer ${user?.access_token}`,
           },
         }
       );
@@ -133,14 +138,15 @@ const ReportComponent = () => {
 export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/reports/'
 )({
-  loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-      context.queryClient,
-      {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrtRunByIndexOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
   },
   component: ReportComponent,
   pendingComponent: LoadingIndicator,
