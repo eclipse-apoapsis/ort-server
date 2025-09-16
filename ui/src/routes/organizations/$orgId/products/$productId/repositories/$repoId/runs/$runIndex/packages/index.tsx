@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -30,14 +31,6 @@ import { ChevronDown, ChevronUp, UserPen } from 'lucide-react';
 import { useState } from 'react';
 import z from 'zod';
 
-import { useRunsServiceGetApiV1RunsByRunIdPackages } from '@/api/queries';
-import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
-import {
-  useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense,
-  useRunsServiceGetApiV1RunsByRunIdPackagesLicensesSuspense,
-  useRunsServiceGetApiV1RunsByRunIdPackagesSuspense,
-} from '@/api/queries/suspense';
-import { Package, RepositoryType } from '@/api/requests';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -72,6 +65,12 @@ import {
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import { Package, RepositoryType } from '@/hey-api';
+import {
+  getLicensesForPackagesByRunIdOptions,
+  getOrtRunByIndexOptions,
+  getPackagesByRunIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import {
@@ -222,39 +221,48 @@ const PackagesComponent = () => {
   const declaredLicense = search.declaredLicense;
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
+  const { data: ortRun } = useSuspenseQuery({
+    ...getOrtRunByIndexOptions({
+      path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+      },
+    }),
+  });
 
-  const { data: totalPackages } =
-    useRunsServiceGetApiV1RunsByRunIdPackagesSuspense({
-      runId: ortRun.id,
-      limit: 1,
-    });
+  const { data: totalPackages } = useSuspenseQuery({
+    ...getPackagesByRunIdOptions({
+      path: { runId: ortRun.id },
+      query: { limit: 1 },
+    }),
+  });
 
-  const { data: declaredLicensesOptions } =
-    useRunsServiceGetApiV1RunsByRunIdPackagesLicensesSuspense({
-      runId: ortRun.id,
-    });
+  const { data: declaredLicensesOptions } = useSuspenseQuery({
+    ...getLicensesForPackagesByRunIdOptions({
+      path: { runId: ortRun.id },
+    }),
+  });
 
   const {
     data: packages,
     isPending,
     isError,
     error,
-  } = useRunsServiceGetApiV1RunsByRunIdPackages({
-    runId: ortRun.id,
-    limit: pageSize,
-    offset: pageIndex * pageSize,
-    sort: convertToBackendSorting(search.sortBy),
-    ...(packageIdType === 'ORT_ID'
-      ? { identifier: packageId }
-      : { purl: packageId }),
-    processedDeclaredLicense: declaredLicense?.join(','),
+  } = useSuspenseQuery({
+    ...getPackagesByRunIdOptions({
+      path: {
+        runId: ortRun.id,
+      },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: convertToBackendSorting(search.sortBy),
+        ...(packageIdType === 'ORT_ID'
+          ? { identifier: packageId }
+          : { purl: packageId }),
+        processedDeclaredLicense: declaredLicense?.join(','),
+      },
+    }),
   });
 
   const columns = [
@@ -508,14 +516,15 @@ export const Route = createFileRoute(
     ...declaredLicenseSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
-  loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-      context.queryClient,
-      {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrtRunByIndexOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
   },
   component: PackagesComponent,
   pendingComponent: LoadingIndicator,

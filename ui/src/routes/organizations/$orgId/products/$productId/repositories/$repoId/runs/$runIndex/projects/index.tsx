@@ -18,6 +18,7 @@
  */
 
 import { TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   createColumnHelper,
@@ -34,10 +35,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
-import { useRunsServiceGetApiV1RunsByRunIdProjects } from '@/api/queries';
-import { prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex } from '@/api/queries/prefetch';
-import { useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense } from '@/api/queries/suspense';
-import { Project, RepositoryType } from '@/api/requests';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -55,6 +52,11 @@ import {
 import { Tooltip } from '@/components/ui/tooltip';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
+import { Project, RepositoryType } from '@/hey-api';
+import {
+  getOrtRunByIndexOptions,
+  getProjectsByRunIdOptions,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
@@ -179,22 +181,25 @@ const ProjectsComponent = () => {
     [search.sortBy]
   );
 
-  const { data: ortRun } =
-    useRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndexSuspense(
-      {
+  const { data: ortRun } = useSuspenseQuery({
+    ...getOrtRunByIndexOptions({
+      path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+      },
+    }),
+  });
 
   const {
     data: projects,
     isPending,
     isError,
     error,
-  } = useRunsServiceGetApiV1RunsByRunIdProjects({
-    runId: ortRun.id,
-    limit: ALL_ITEMS,
+  } = useQuery({
+    ...getProjectsByRunIdOptions({
+      path: { runId: ortRun.id },
+      query: { limit: ALL_ITEMS },
+    }),
   });
 
   // Use memoizing to ensure that the filter options (decuplidated SPDX expressions
@@ -454,14 +459,15 @@ export const Route = createFileRoute(
     ...sortingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
-  loader: async ({ context, params }) => {
-    await prefetchUseRepositoriesServiceGetApiV1RepositoriesByRepositoryIdRunsByOrtRunIndex(
-      context.queryClient,
-      {
-        repositoryId: Number.parseInt(params.repoId),
-        ortRunIndex: Number.parseInt(params.runIndex),
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getOrtRunByIndexOptions({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+          ortRunIndex: Number.parseInt(params.runIndex),
+        },
+      }),
+    });
   },
   component: ProjectsComponent,
   pendingComponent: LoadingIndicator,
