@@ -46,6 +46,19 @@ class DeleteTemplateIntegrationTest : PluginManagerIntegrationTest({
             }
         }
 
+        "delete a template that was previously recreated" {
+            pluginManagerTestApplication { client ->
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
+                pluginTemplateService.delete("template1", pluginType, pluginId, "test-user")
+                pluginTemplateService.create("template1", pluginType, pluginId, "test-user", emptyList())
+
+                client.delete("/admin/plugins/$pluginType/$pluginId/templates/template1") shouldHaveStatus
+                        HttpStatusCode.OK
+
+                pluginTemplateService.getTemplate("template1", pluginType, pluginId).isErr shouldBe true
+            }
+        }
+
         "return NotFound if the template does not exist" {
             pluginManagerTestApplication { client ->
                 client.delete("/admin/plugins/$pluginType/$pluginId/templates/non-existing") shouldHaveStatus
