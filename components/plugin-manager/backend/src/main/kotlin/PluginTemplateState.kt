@@ -45,7 +45,10 @@ internal class PluginTemplateState(
             is Deleted -> isDeleted = true
             is GlobalDisabled -> isGlobal = false
             is GlobalEnabled -> isGlobal = true
-            is OptionsUpdated -> options = event.payload.options
+            is OptionsUpdated -> {
+                options = event.payload.options
+                isDeleted = false
+            }
             is OrganizationAdded -> organizationIds += event.payload.organizationId
             is OrganizationRemoved -> organizationIds -= event.payload.organizationId
         }
