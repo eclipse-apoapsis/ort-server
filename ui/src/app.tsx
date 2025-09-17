@@ -33,7 +33,7 @@ import { routeTree } from '@/routeTree.gen';
 
 // Configure the Hey API query client
 client.setConfig({
-  baseUrl: config.API_URL,
+  baseURL: config.API_URL,
   auth: () => authRef.current?.user?.access_token,
 });
 
