@@ -17,6 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { ApiError } from '@/api/requests';
+import { AxiosError } from 'axios';
 
-export { ApiError };
+export type ApiError = AxiosError<Error>;

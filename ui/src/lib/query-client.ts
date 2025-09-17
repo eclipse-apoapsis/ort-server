@@ -18,14 +18,14 @@
  */
 
 import { QueryCache, QueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 
 import { authRef } from '@/hooks/use-user';
-import { ApiError } from '@/lib/api-error';
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: async (error) => {
-      if (error instanceof ApiError && error.status === 401) {
+      if (error instanceof AxiosError && error.status === 401) {
         try {
           /*
            * Attempt to refresh the user session silently.
