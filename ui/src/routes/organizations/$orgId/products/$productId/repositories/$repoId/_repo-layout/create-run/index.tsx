@@ -25,7 +25,7 @@ import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { ApiError, RepositoriesService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { ToastError } from '@/components/toast-error';
 import { InlineCode } from '@/components/typography.tsx';
@@ -52,7 +52,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { postOrtRunMutation } from '@/hey-api/@tanstack/react-query.gen';
-import { getOrtRunByIndex } from '@/hey-api/sdk.gen';
+import { getOrtRunByIndex, getPluginsForRepository } from '@/hey-api/sdk.gen';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
 import { AdvisorFields } from '../../-components/advisor-fields';
@@ -78,9 +78,9 @@ const CreateRunPage = () => {
   const isSuperuser = user.hasRole(['superuser']);
 
   const advisorPlugins =
-    plugins?.filter((plugin) => plugin.type === 'ADVISOR') || [];
+    plugins?.data?.filter((plugin) => plugin.type === 'ADVISOR') || [];
   const reporterPlugins =
-    plugins?.filter((plugin) => plugin.type === 'REPORTER') || [];
+    plugins?.data?.filter((plugin) => plugin.type === 'REPORTER') || [];
 
   type AccordionSection =
     | 'analyzer'
@@ -558,8 +558,10 @@ export const Route = createFileRoute(
             },
           })
         : Promise.resolve(null as null),
-      RepositoriesService.getApiV1RepositoriesByRepositoryIdPlugins({
-        repositoryId: Number.parseInt(params.repoId),
+      getPluginsForRepository({
+        path: {
+          repositoryId: Number.parseInt(params.repoId),
+        },
       }),
     ]);
 
