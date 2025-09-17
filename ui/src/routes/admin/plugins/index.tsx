@@ -17,15 +17,10 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-import {
-  usePluginsServiceGetApiV1AdminPluginsKey,
-  usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdDisable,
-  usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdEnable,
-} from '@/api/queries';
-import { ApiError, PluginDescriptor, PluginsService } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error.tsx';
 import {
   Card,
@@ -35,6 +30,13 @@ import {
   CardTitle,
 } from '@/components/ui/card.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
+import { PluginDescriptor } from '@/hey-api';
+import {
+  disablePluginMutation,
+  enablePluginMutation,
+  getInstalledPluginsOptions,
+  getInstalledPluginsQueryKey,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast } from '@/lib/toast.ts';
 
@@ -49,22 +51,24 @@ const PluginListCard = ({
   description,
   plugins,
 }: PluginListCardProps) => {
-  const enablePlugin =
-    usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdEnable();
-  const disablePlugin =
-    usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdDisable();
+  const { mutateAsync: enablePlugin } = useMutation({
+    ...enablePluginMutation(),
+  });
+  const { mutateAsync: disablePlugin } = useMutation({
+    ...disablePluginMutation(),
+  });
 
   const handleToggle = (plugin: PluginDescriptor) => {
     if (plugin.enabled) {
-      disablePlugin.mutate(
-        { pluginType: plugin.type, pluginId: plugin.id },
+      disablePlugin(
+        { path: { pluginType: plugin.type, pluginId: plugin.id } },
         {
           onSuccess: () => {
             toast.info('Disable Plugin', {
               description: `Plugin "${plugin.displayName}" disabled successfully.`,
             });
             queryClient.invalidateQueries({
-              queryKey: [usePluginsServiceGetApiV1AdminPluginsKey],
+              queryKey: getInstalledPluginsQueryKey(),
             });
           },
           onError(error: unknown) {
@@ -81,15 +85,15 @@ const PluginListCard = ({
         }
       );
     } else {
-      enablePlugin.mutate(
-        { pluginType: plugin.type, pluginId: plugin.id },
+      enablePlugin(
+        { path: { pluginType: plugin.type, pluginId: plugin.id } },
         {
           onSuccess: () => {
             toast.info('Enable Plugin', {
               description: `Plugin "${plugin.displayName}" enabled successfully.`,
             });
             queryClient.invalidateQueries({
-              queryKey: [usePluginsServiceGetApiV1AdminPluginsKey],
+              queryKey: getInstalledPluginsQueryKey(),
             });
           },
           onError(error: unknown) {
@@ -148,8 +152,7 @@ const PluginListCard = ({
 
 const PluginsComponent = () => {
   const { data: plugins } = useQuery({
-    queryKey: [usePluginsServiceGetApiV1AdminPluginsKey],
-    queryFn: () => PluginsService.getApiV1AdminPlugins(),
+    ...getInstalledPluginsOptions(),
   });
 
   const advisors = plugins?.filter((plugin) => plugin.type === 'ADVISOR') || [];
