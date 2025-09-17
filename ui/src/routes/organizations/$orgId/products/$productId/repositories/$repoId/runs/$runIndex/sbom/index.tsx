@@ -39,7 +39,7 @@ import { client } from '@/hey-api/client.gen';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
 
-const API_URL = client.getConfig().baseUrl;
+const API_URL = client.getConfig().baseURL;
 
 const SBOMComponent = () => {
   const params = Route.useParams();
