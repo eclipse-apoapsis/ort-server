@@ -21,6 +21,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useParams, useRouter } from '@tanstack/react-router';
 import { Check, ChevronDown } from 'lucide-react';
 
+import {
+  getOrganizationProductsOptions,
+  getOrganizationsOptions,
+  getOrtRunsByRepositoryIdOptions,
+  getRepositoriesByProductIdOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
 import {
   DropdownMenu,
@@ -28,12 +34,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  getOrganizationProductsOptions,
-  getOrganizationsOptions,
-  getOrtRunsByRepositoryIdOptions,
-  getRepositoriesByProductIdOptions,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants';
 

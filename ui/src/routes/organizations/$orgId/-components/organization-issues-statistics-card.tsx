@@ -20,10 +20,10 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Bug } from 'lucide-react';
 
+import { Severity } from '@/api';
+import { getOrtRunStatisticsByOrganizationIdOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
-import { Severity } from '@/hey-api';
-import { getOrtRunStatisticsByOrganizationIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type OrganizationIssuesStatisticsCardProps = {

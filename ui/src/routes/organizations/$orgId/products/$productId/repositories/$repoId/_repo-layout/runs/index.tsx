@@ -21,6 +21,10 @@ import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { PlusIcon } from 'lucide-react';
 
+import {
+  getOrtRunsByRepositoryIdOptions,
+  getRepositoryByIdOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { JobDurations } from '@/components/charts/job-durations';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -32,10 +36,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  getOrtRunsByRepositoryIdOptions,
-  getRepositoryByIdOptions,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import { paginationSearchParameterSchema } from '@/schemas';

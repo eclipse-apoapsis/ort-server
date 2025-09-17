@@ -21,6 +21,17 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
 import { ChevronsUpDownIcon } from 'lucide-react';
 
+import { PluginDescriptor, PluginTemplate } from '@/api';
+import {
+  addTemplateToOrganizationMutation,
+  deletePluginTemplateMutation,
+  disableGlobalPluginTemplateMutation,
+  enableGlobalPluginTemplateMutation,
+  getOrganizationsOptions,
+  getPluginTemplatesOptions,
+  getPluginTemplatesQueryKey,
+  removeTemplateFromOrganizationMutation,
+} from '@/api/@tanstack/react-query.gen';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
@@ -55,17 +66,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { PluginDescriptor, PluginTemplate } from '@/hey-api';
-import {
-  addTemplateToOrganizationMutation,
-  deletePluginTemplateMutation,
-  disableGlobalPluginTemplateMutation,
-  enableGlobalPluginTemplateMutation,
-  getOrganizationsOptions,
-  getPluginTemplatesOptions,
-  getPluginTemplatesQueryKey,
-  removeTemplateFromOrganizationMutation,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants.ts';
 import { queryClient } from '@/lib/query-client.ts';

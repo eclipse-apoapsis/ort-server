@@ -20,9 +20,9 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Boxes } from 'lucide-react';
 
+import { getOrtRunStatisticsByProductIdOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getEcosystemBackgroundColor } from '@/helpers/get-status-class';
-import { getOrtRunStatisticsByProductIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type ProductPackagesStatisticsCardProps = {

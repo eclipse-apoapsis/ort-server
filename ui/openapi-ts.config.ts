@@ -22,7 +22,7 @@ import { defineConfig } from '@hey-api/openapi-ts';
 export default defineConfig({
   input: './build/openapi.json',
   output: {
-    path: './src/hey-api',
+    path: './src/api',
   },
   plugins: ['@hey-api/client-axios', '@tanstack/react-query'],
 });

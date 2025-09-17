@@ -21,6 +21,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Files, PlusIcon } from 'lucide-react';
 
+import { getRepositoriesByProductIdOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -31,7 +32,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getRepositoriesByProductIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 type ProductRepositoriesStatisticsCardProps = {

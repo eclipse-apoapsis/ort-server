@@ -20,9 +20,9 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
+import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { config } from '@/config';
-import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { IssuesStatisticsCard } from './-components/issues-statistics-card';
 import { PackagesStatisticsCard } from './-components/packages-statistics-card';
 import { RuleViolationsStatisticsCard } from './-components/rule-violations-statistics-card';

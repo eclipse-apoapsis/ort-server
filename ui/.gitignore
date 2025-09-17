@@ -7,5 +7,4 @@ dist
 .env.local
 
 src/api/
-src/hey-api/
 src/routeTree.gen.ts

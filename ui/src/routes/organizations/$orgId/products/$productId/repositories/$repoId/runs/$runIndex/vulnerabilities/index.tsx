@@ -34,6 +34,11 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
+import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api';
+import {
+  getOrtRunByIndexOptions,
+  getVulnerabilitiesByRunIdOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
@@ -73,11 +78,6 @@ import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
-import { VulnerabilityRating, VulnerabilityWithDetails } from '@/hey-api';
-import {
-  getOrtRunByIndexOptions,
-  getVulnerabilitiesByRunIdOptions,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import {

@@ -26,6 +26,8 @@ import {
 } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 
+import { Organization } from '@/api';
+import { getOrganizationsOptions } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -42,8 +44,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Organization } from '@/hey-api';
-import { getOrganizationsOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';

@@ -24,6 +24,10 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import {
+  getSecretsByRepositoryIdOptions,
+  postInfrastructureServiceForRepositoryMutation,
+} from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -52,10 +56,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx';
-import {
-  getSecretsByRepositoryIdOptions,
-  postInfrastructureServiceForRepositoryMutation,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants.ts';
 import { toast } from '@/lib/toast.ts';

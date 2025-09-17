@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { JobSummary, PagedResponseOrtRunSummary } from '@/hey-api';
+import { JobSummary, PagedResponseOrtRunSummary } from '@/api';
 
 function divmod(a: number, b: number): [number, number] {
   const remainder = a % b;

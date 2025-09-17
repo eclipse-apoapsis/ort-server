@@ -34,6 +34,11 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
+import { RuleViolation, Severity } from '@/api';
+import {
+  getOrtRunByIndexOptions,
+  getRuleViolationsByRunIdOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -64,11 +69,6 @@ import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
-import { RuleViolation, Severity } from '@/hey-api';
-import {
-  getOrtRunByIndexOptions,
-  getRuleViolationsByRunIdOptions,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import {
   ItemResolved,

@@ -22,6 +22,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
+import { getOrtRunsByRepositoryIdOptions } from '@/api/@tanstack/react-query.gen';
 import {
   DEFAULT_RUNS,
   RunsFilterForm,
@@ -46,7 +47,6 @@ import {
   convertDurationToHms,
   getDurationChartData,
 } from '@/helpers/calculate-duration';
-import { getOrtRunsByRepositoryIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const chartConfig = {

@@ -32,6 +32,13 @@ import {
 } from '@tanstack/react-table';
 import { EditIcon, PlusIcon } from 'lucide-react';
 
+import { Secret } from '@/api';
+import {
+  deleteSecretByOrganizationIdAndNameMutation,
+  getOrganizationByIdOptions,
+  getSecretsByOrganizationIdOptions,
+  getSecretsByOrganizationIdQueryKey,
+} from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -51,13 +58,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Secret } from '@/hey-api';
-import {
-  deleteSecretByOrganizationIdAndNameMutation,
-  getOrganizationByIdOptions,
-  getSecretsByOrganizationIdOptions,
-  getSecretsByOrganizationIdQueryKey,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';

@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
-import { getRepositoryByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
+import { getRepositoryByIdOptions } from '@/api/@tanstack/react-query.gen';
 
 const Layout = () => {
   return <Outlet />;

@@ -35,6 +35,11 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
+import { Project, RepositoryType } from '@/api';
+import {
+  getOrtRunByIndexOptions,
+  getProjectsByRunIdOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -52,11 +57,6 @@ import {
 import { Tooltip } from '@/components/ui/tooltip';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { Project, RepositoryType } from '@/hey-api';
-import {
-  getOrtRunByIndexOptions,
-  getProjectsByRunIdOptions,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';

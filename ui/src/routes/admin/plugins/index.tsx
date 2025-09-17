@@ -20,6 +20,13 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
+import { PluginDescriptor } from '@/api';
+import {
+  disablePluginMutation,
+  enablePluginMutation,
+  getInstalledPluginsOptions,
+  getInstalledPluginsQueryKey,
+} from '@/api/@tanstack/react-query.gen';
 import { ToastError } from '@/components/toast-error.tsx';
 import {
   Card,
@@ -29,13 +36,6 @@ import {
   CardTitle,
 } from '@/components/ui/card.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
-import { PluginDescriptor } from '@/hey-api';
-import {
-  disablePluginMutation,
-  enablePluginMutation,
-  getInstalledPluginsOptions,
-  getInstalledPluginsQueryKey,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast } from '@/lib/toast.ts';

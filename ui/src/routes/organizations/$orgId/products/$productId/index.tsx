@@ -23,6 +23,7 @@ import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 import z from 'zod';
 
+import { getProductByIdOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -33,7 +34,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getProductByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,

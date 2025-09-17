@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
+import { OrtRun } from '@/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { OrtRun } from '@/hey-api';
 import { JobTitle } from './job-title';
 
 type AnalyzerJobDetailsProps = {

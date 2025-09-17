@@ -27,6 +27,13 @@ import {
 import { View } from 'lucide-react';
 import z from 'zod';
 
+import { OrtRunStatus, OrtRunSummary } from '@/api';
+import {
+  getOrganizationByIdOptions,
+  getOrtRunsOptions,
+  getProductByIdOptions,
+  getRepositoryByIdOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
@@ -49,13 +56,6 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
-import { OrtRunStatus, OrtRunSummary } from '@/hey-api';
-import {
-  getOrganizationByIdOptions,
-  getOrtRunsOptions,
-  getProductByIdOptions,
-  getRepositoryByIdOptions,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,

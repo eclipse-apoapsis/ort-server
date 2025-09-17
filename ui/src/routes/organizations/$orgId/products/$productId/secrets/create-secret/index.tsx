@@ -24,6 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { postSecretForProductMutation } from '@/api/@tanstack/react-query.gen';
 import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { postSecretForProductMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 

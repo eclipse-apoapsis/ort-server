@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
-import { getInstalledPluginsOptions } from '@/hey-api/@tanstack/react-query.gen';
+import { getInstalledPluginsOptions } from '@/api/@tanstack/react-query.gen';
 
 export const Route = createFileRoute('/admin/plugins')({
   loader: async ({ context: { queryClient } }) => {

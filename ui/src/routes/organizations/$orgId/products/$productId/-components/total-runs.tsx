@@ -20,8 +20,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 
+import { getOrtRunsByRepositoryIdOptions } from '@/api/@tanstack/react-query.gen';
 import { config } from '@/config';
-import { getOrtRunsByRepositoryIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 
 export const TotalRuns = ({ repoId }: { repoId: number }) => {
   const {

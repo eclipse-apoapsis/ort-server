@@ -28,6 +28,11 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import {
+  deleteRepositoryByIdMutation,
+  getRepositoryByIdOptions,
+  patchRepositoryByIdMutation,
+} from '@/api/@tanstack/react-query.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -54,11 +59,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  deleteRepositoryByIdMutation,
-  getRepositoryByIdOptions,
-  patchRepositoryByIdMutation,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';

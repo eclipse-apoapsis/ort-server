@@ -25,7 +25,7 @@ import {
   CreateOrtRun,
   OrtRun,
   ReporterJobConfiguration,
-} from '@/hey-api';
+} from '@/api';
 import { PackageManagerId, packageManagers } from '@/lib/types';
 
 const keyValueSchema = z.object({

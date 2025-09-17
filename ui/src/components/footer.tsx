@@ -19,8 +19,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 
+import { getSectionByIdOptions } from '@/api/@tanstack/react-query.gen';
 import { MarkdownRenderer } from '@/components/markdown-renderer.tsx';
-import { getSectionByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 
 function extractColumns(
   markdown: string,

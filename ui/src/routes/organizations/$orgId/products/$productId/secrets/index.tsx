@@ -33,6 +33,15 @@ import {
 import { EditIcon, PlusIcon } from 'lucide-react';
 import z from 'zod';
 
+import { Secret } from '@/api';
+import {
+  deleteSecretByProductIdAndNameMutation,
+  getOrganizationByIdOptions,
+  getProductByIdOptions,
+  getSecretsByOrganizationIdOptions,
+  getSecretsByProductIdOptions,
+  getSecretsByProductIdQueryKey,
+} from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -52,15 +61,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Secret } from '@/hey-api';
-import {
-  deleteSecretByProductIdAndNameMutation,
-  getOrganizationByIdOptions,
-  getProductByIdOptions,
-  getSecretsByOrganizationIdOptions,
-  getSecretsByProductIdOptions,
-  getSecretsByProductIdQueryKey,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';

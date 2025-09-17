@@ -21,12 +21,12 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { hasAuthParams } from 'react-oidc-context';
 
+import { client } from '@/api/client.gen';
 import { CopyToClipboard } from '@/components/copy-to-clipboard.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Button } from '@/components/ui/button.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
 import { config } from '@/config';
-import { client } from '@/hey-api/client.gen';
 import { authRef, useUser } from '@/hooks/use-user.ts';
 import { queryClient } from '@/lib/query-client.ts';
 import { routeTree } from '@/routeTree.gen';

@@ -21,9 +21,9 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Fragment } from 'react';
 
+import { getVersionsOptions } from '@/api/@tanstack/react-query.gen';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { getVersionsOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { GITHUB_LATEST_RELEASE_DOWNLOAD_URL } from '@/lib/constants';
 
 export const About = () => {

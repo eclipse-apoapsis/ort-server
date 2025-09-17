@@ -21,6 +21,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { ArrowBigLeft, Repeat } from 'lucide-react';
 
+import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
@@ -34,7 +35,6 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
-import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type RunDetailsBarProps = {

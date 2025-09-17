@@ -20,9 +20,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
+import { getOrtRunsByRepositoryIdOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
-import { getOrtRunsByRepositoryIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 const RunRedirectComponent = () => {

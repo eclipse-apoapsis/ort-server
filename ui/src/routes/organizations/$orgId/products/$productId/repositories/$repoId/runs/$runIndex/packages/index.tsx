@@ -31,6 +31,12 @@ import { ChevronDown, ChevronUp, UserPen } from 'lucide-react';
 import { useState } from 'react';
 import z from 'zod';
 
+import { Package, RepositoryType } from '@/api';
+import {
+  getLicensesForPackagesByRunIdOptions,
+  getOrtRunByIndexOptions,
+  getPackagesByRunIdOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -65,12 +71,6 @@ import {
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { Package, RepositoryType } from '@/hey-api';
-import {
-  getLicensesForPackagesByRunIdOptions,
-  getOrtRunByIndexOptions,
-  getPackagesByRunIdOptions,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import {

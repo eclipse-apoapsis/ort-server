@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { getUsersForProductOptions } from '@/hey-api/@tanstack/react-query.gen';
+import { getUsersForProductOptions } from '@/api/@tanstack/react-query.gen';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute(

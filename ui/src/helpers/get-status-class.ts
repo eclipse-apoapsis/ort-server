@@ -17,12 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import {
-  JobStatus,
-  OrtRunStatus,
-  Severity,
-  VulnerabilityRating,
-} from '@/hey-api';
+import { JobStatus, OrtRunStatus, Severity, VulnerabilityRating } from '@/api';
 import { PackageManagerId } from '@/lib/types';
 import { ItemResolved } from '@/schemas';
 
