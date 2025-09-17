@@ -28,7 +28,6 @@ import { Eye, Loader2, Pen, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,6 +59,7 @@ import {
   getUsersForRepositoryQueryKey,
   putRepositoryRoleToUserMutation,
 } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { groupsSchema } from '@/schemas';
 import { RepositoryUsersTable } from './-components/repository-users-table';

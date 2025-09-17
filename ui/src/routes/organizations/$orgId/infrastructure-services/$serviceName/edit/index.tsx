@@ -24,7 +24,6 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { ApiError } from '@/api/requests';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -57,6 +56,7 @@ import {
   getSecretsByOrganizationIdOptions,
   patchInfrastructureServiceForOrganizationIdAndNameMutation,
 } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 

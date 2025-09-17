@@ -21,7 +21,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useParams, useRouter } from '@tanstack/react-router';
 import { Check, ChevronDown } from 'lucide-react';
 
-import { ApiError } from '@/api/requests';
 import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
 import {
   DropdownMenu,
@@ -35,6 +34,7 @@ import {
   getOrtRunsByRepositoryIdOptions,
   getRepositoriesByProductIdOptions,
 } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants';
 
 type SiblingsProps = {

@@ -19,8 +19,8 @@
 
 import { QueryCache, QueryClient } from '@tanstack/react-query';
 
-import { ApiError } from '@/api/requests';
 import { authRef } from '@/hooks/use-user';
+import { ApiError } from '@/lib/api-error';
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({

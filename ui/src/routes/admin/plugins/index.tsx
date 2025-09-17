@@ -20,7 +20,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { ApiError } from '@/api/requests';
 import { ToastError } from '@/components/toast-error.tsx';
 import {
   Card,
@@ -37,6 +36,7 @@ import {
   getInstalledPluginsOptions,
   getInstalledPluginsQueryKey,
 } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast } from '@/lib/toast.ts';
 

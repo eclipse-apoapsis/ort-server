@@ -26,7 +26,6 @@ import {
 } from '@tanstack/react-table';
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
-import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table.tsx';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
@@ -46,6 +45,7 @@ import {
   putOrganizationRoleToUserMutation,
 } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user.ts';
+import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast.ts';
 
 const columnHelper = createColumnHelper<UserWithGroups>();

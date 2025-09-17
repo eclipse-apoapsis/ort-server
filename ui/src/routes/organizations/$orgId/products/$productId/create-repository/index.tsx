@@ -24,7 +24,6 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field.ts';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { ToastError } from '@/components/toast-error';
@@ -54,6 +53,7 @@ import {
 } from '@/components/ui/select';
 import { createRepositoryMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
+import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import { repositoryTypeSchema } from '@/schemas';

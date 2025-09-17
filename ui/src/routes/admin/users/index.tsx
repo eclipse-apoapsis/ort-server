@@ -31,7 +31,6 @@ import {
 } from '@tanstack/react-table';
 import { UserPlus } from 'lucide-react';
 
-import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -56,6 +55,7 @@ import {
   getUsersOptions,
   getUsersQueryKey,
 } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
 

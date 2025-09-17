@@ -25,7 +25,6 @@ import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { ApiError } from '@/api/requests';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { ToastError } from '@/components/toast-error';
 import { InlineCode } from '@/components/typography.tsx';
@@ -54,6 +53,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { postOrtRunMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { getOrtRunByIndex, getPluginsForRepository } from '@/hey-api/sdk.gen';
 import { useUser } from '@/hooks/use-user.ts';
+import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { AdvisorFields } from '../../-components/advisor-fields';
 import { AnalyzerFields } from '../../-components/analyzer-fields';

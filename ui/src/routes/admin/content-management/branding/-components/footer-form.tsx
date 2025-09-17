@@ -23,7 +23,6 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { ApiError } from '@/api/requests';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -54,6 +53,7 @@ import {
   getSectionByIdQueryKey,
   patchSectionByIdMutation,
 } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast.ts';
 
 const formSchema = z.object({

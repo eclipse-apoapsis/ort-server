@@ -27,11 +27,11 @@ import {
   User,
 } from 'lucide-react';
 
-import { ApiError } from '@/api/requests';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 import { getOrganizationByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
+import { ApiError } from '@/lib/api-error';
 
 const Layout = () => {
   const { orgId, productId, repoId, runIndex } = useParams({ strict: false });
