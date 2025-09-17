@@ -29,7 +29,6 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z, ZodType } from 'zod';
 
-import { ApiError } from '@/api/requests';
 import { OptionalInput } from '@/components/form/optional-input';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -59,6 +58,7 @@ import {
   PluginOptionType,
 } from '@/hey-api';
 import { createPluginTemplateMutation } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { Route as LayoutRoute } from '../../../route.tsx';
 

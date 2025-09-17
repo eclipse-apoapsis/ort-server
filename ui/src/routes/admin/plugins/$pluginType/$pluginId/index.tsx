@@ -21,7 +21,6 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
 import { ChevronsUpDownIcon } from 'lucide-react';
 
-import { ApiError } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
@@ -67,6 +66,7 @@ import {
   getPluginTemplatesQueryKey,
   removeTemplateFromOrganizationMutation,
 } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants.ts';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast } from '@/lib/toast';

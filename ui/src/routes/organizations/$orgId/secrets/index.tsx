@@ -32,7 +32,6 @@ import {
 } from '@tanstack/react-table';
 import { EditIcon, PlusIcon } from 'lucide-react';
 
-import { ApiError } from '@/api/requests';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -59,6 +58,7 @@ import {
   getSecretsByOrganizationIdOptions,
   getSecretsByOrganizationIdQueryKey,
 } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { paginationSearchParameterSchema } from '@/schemas';

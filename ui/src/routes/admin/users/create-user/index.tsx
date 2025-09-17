@@ -24,7 +24,6 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { ApiError } from '@/api/requests';
 import { asOptionalField } from '@/components/form/as-optional-field';
 import { OptionalInput } from '@/components/form/optional-input';
 import { PasswordInput } from '@/components/form/password-input';
@@ -56,6 +55,7 @@ import {
   postUsersMutation,
   putOrganizationRoleToUserMutation,
 } from '@/hey-api/@tanstack/react-query.gen';
+import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { ApiError } from '@/api/requests';
+import { ApiError } from '@/lib/api-error';
 
 type ToastErrorProps = {
   error: unknown;
