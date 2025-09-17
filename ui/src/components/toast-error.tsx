@@ -17,31 +17,18 @@
  * License-Filename: LICENSE
  */
 
-import { ApiError } from '@/lib/api-error';
+import { AxiosError } from 'axios';
 
 type ToastErrorProps = {
   error: unknown;
 };
 
-type ErrorBody = {
-  message?: string;
-  cause?: string;
-};
-
 export const ToastError = ({ error }: ToastErrorProps) => {
   let message;
   let cause;
-  if (error instanceof ApiError) {
-    if (error.body === undefined) {
-      message = 'Server responded with status code ' + error.status + '.';
-      cause = error.statusText;
-    } else {
-      // Casting is not generally recommended, but as both message and cause can be undefined, casting
-      // and accessing them is safe.
-      const body = error.body as ErrorBody;
-      message = body.message;
-      cause = body.cause;
-    }
+  if (error instanceof AxiosError) {
+    message = error.response?.data.message || error.message;
+    cause = error.response?.data.cause;
   } else {
     message = 'An unknown error occurred.';
     cause = 'Please try again.';

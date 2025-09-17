@@ -7,12 +7,11 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
-    "build": "pnpm generate:api && pnpm generate:heyapi && pnpm generate:routes && tsc && vite build",
+    "build": "pnpm generate:api && pnpm generate:routes && tsc && vite build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "generate:api": "rm -fr src/api && openapi-rq -i build/openapi.json -o src/api && rm -f src/api/requests/tanstack-query.gen.ts && prettier --write src/api --ignore-path .prettierignore",
-    "generate:heyapi": "rm -fr src/hey-api && openapi-ts && prettier --write src/hey-api --ignore-path .prettierignore",
+    "generate:api": "rm -fr src/hey-api && openapi-ts && prettier --write src/hey-api --ignore-path .prettierignore",
     "generate:routes": "tsr generate",
     "preview": "vite preview"
   },
@@ -62,7 +61,6 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@7nohe/openapi-react-query-codegen": "^1.0.0",
     "@hey-api/openapi-ts": "0.83.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
     "@tailwindcss/postcss": "^4.0.0",

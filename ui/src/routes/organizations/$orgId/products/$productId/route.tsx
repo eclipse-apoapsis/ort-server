@@ -18,13 +18,13 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
+import { AxiosError } from 'axios';
 import { BookLock, Eye, Settings, ShieldQuestion, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 import { getProductByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
-import { ApiError } from '@/lib/api-error';
 
 const Layout = () => {
   const { productId, repoId, runIndex } = useParams({ strict: false });
@@ -115,7 +115,7 @@ export const Route = createFileRoute(
       });
       context.breadcrumbs.product = product.name;
     } catch (error) {
-      if (error instanceof ApiError && error.status === 403) {
+      if (error instanceof AxiosError && error.status === 403) {
         context.breadcrumbs.product = undefined;
       }
     }

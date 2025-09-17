@@ -18,6 +18,7 @@
  */
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
+import { AxiosError } from 'axios';
 import {
   BookLock,
   Eye,
@@ -31,7 +32,6 @@ import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 import { getOrganizationByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
-import { ApiError } from '@/lib/api-error';
 
 const Layout = () => {
   const { orgId, productId, repoId, runIndex } = useParams({ strict: false });
@@ -129,7 +129,7 @@ export const Route = createFileRoute('/organizations/$orgId')({
       });
       context.breadcrumbs.organization = organization.name;
     } catch (error) {
-      if (error instanceof ApiError && error.status === 403) {
+      if (error instanceof AxiosError && error.status === 403) {
         context.breadcrumbs.organization = undefined;
       }
     }
