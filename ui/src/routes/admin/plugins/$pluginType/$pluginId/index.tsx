@@ -17,21 +17,11 @@
  * License-Filename: LICENSE
  */
 
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
 import { ChevronsUpDownIcon } from 'lucide-react';
 
-import {
-  useOrganizationsServiceGetApiV1Organizations,
-  usePluginsServiceDeleteApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateName,
-  usePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplates,
-  usePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplatesKey,
-  usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateNameAddToOrganization,
-  usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateNameDisableGlobal,
-  usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateNameEnableGlobal,
-  usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateNameRemoveFromOrganization,
-} from '@/api/queries';
-import { prefetchUsePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplates } from '@/api/queries/prefetch.ts';
-import { ApiError, PluginDescriptor, PluginTemplate } from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
@@ -66,6 +56,17 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { PluginDescriptor, PluginTemplate } from '@/hey-api';
+import {
+  addTemplateToOrganizationMutation,
+  deletePluginTemplateMutation,
+  disableGlobalPluginTemplateMutation,
+  enableGlobalPluginTemplateMutation,
+  getOrganizationsOptions,
+  getPluginTemplatesOptions,
+  getPluginTemplatesQueryKey,
+  removeTemplateFromOrganizationMutation,
+} from '@/hey-api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants.ts';
 import { queryClient } from '@/lib/query-client.ts';
 import { toast } from '@/lib/toast';
@@ -82,20 +83,25 @@ const PluginTemplateCard = ({
   template,
   organizationOptions,
 }: PluginTemplateCardProps) => {
-  const enableGlobal =
-    usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateNameEnableGlobal();
-  const disableGlobal =
-    usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateNameDisableGlobal();
-  const deleteTemplate =
-    usePluginsServiceDeleteApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateName();
+  const { mutateAsync: enableGlobal } = useMutation({
+    ...enableGlobalPluginTemplateMutation(),
+  });
+  const { mutateAsync: disableGlobal } = useMutation({
+    ...disableGlobalPluginTemplateMutation(),
+  });
+  const { mutateAsync: deleteTemplate } = useMutation({
+    ...deletePluginTemplateMutation(),
+  });
 
   const toggleIsGlobal = () => {
     if (template.isGlobal) {
-      disableGlobal.mutate(
+      disableGlobal(
         {
-          pluginType: template.pluginType,
-          pluginId: template.pluginId,
-          templateName: template.name,
+          path: {
+            pluginType: template.pluginType,
+            pluginId: template.pluginId,
+            templateName: template.name,
+          },
         },
         {
           onSuccess: () => {
@@ -103,13 +109,12 @@ const PluginTemplateCard = ({
               description: `Template "${template.name}" is no longer global.`,
             });
             queryClient.invalidateQueries({
-              queryKey: [
-                usePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplatesKey,
-                {
+              queryKey: getPluginTemplatesQueryKey({
+                path: {
                   pluginType: template.pluginType,
                   pluginId: template.pluginId,
                 },
-              ],
+              }),
             });
           },
           onError: (error: unknown) => {
@@ -126,11 +131,13 @@ const PluginTemplateCard = ({
         }
       );
     } else {
-      enableGlobal.mutate(
+      enableGlobal(
         {
-          pluginType: template.pluginType,
-          pluginId: template.pluginId,
-          templateName: template.name,
+          path: {
+            pluginType: template.pluginType,
+            pluginId: template.pluginId,
+            templateName: template.name,
+          },
         },
         {
           onSuccess: () => {
@@ -138,13 +145,12 @@ const PluginTemplateCard = ({
               description: `Template "${template.name}" is now global.`,
             });
             queryClient.invalidateQueries({
-              queryKey: [
-                usePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplatesKey,
-                {
+              queryKey: getPluginTemplatesQueryKey({
+                path: {
                   pluginType: template.pluginType,
                   pluginId: template.pluginId,
                 },
-              ],
+              }),
             });
           },
           onError: (error: unknown) => {
@@ -164,11 +170,13 @@ const PluginTemplateCard = ({
   };
 
   const onDelete = () => {
-    deleteTemplate.mutate(
+    deleteTemplate(
       {
-        pluginType: template.pluginType,
-        pluginId: template.pluginId,
-        templateName: template.name,
+        path: {
+          pluginType: template.pluginType,
+          pluginId: template.pluginId,
+          templateName: template.name,
+        },
       },
       {
         onSuccess: () => {
@@ -176,13 +184,12 @@ const PluginTemplateCard = ({
             description: `Template "${template.name}" deleted successfully.`,
           });
           queryClient.invalidateQueries({
-            queryKey: [
-              usePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplatesKey,
-              {
+            queryKey: getPluginTemplatesQueryKey({
+              path: {
                 pluginType: template.pluginType,
                 pluginId: template.pluginId,
               },
-            ],
+            }),
           });
         },
         onError: (error: unknown) => {
@@ -200,67 +207,61 @@ const PluginTemplateCard = ({
     );
   };
 
-  const { mutateAsync: addOrganization } =
-    usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateNameAddToOrganization(
-      {
-        onSuccess: () => {
-          toast.info('Organization added to template', {
-            description: `Organization added to template "${template.name}".`,
-          });
-          queryClient.invalidateQueries({
-            queryKey: [
-              usePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplatesKey,
-              {
-                pluginType: template.pluginType,
-                pluginId: template.pluginId,
-              },
-            ],
-          });
+  const { mutateAsync: addOrganization } = useMutation({
+    ...addTemplateToOrganizationMutation(),
+    onSuccess: () => {
+      toast.info('Organization added to template', {
+        description: `Organization added to template "${template.name}".`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getPluginTemplatesQueryKey({
+          path: {
+            pluginType: template.pluginType,
+            pluginId: template.pluginId,
+          },
+        }),
+      });
+    },
+    onError: (error) => {
+      const apiError = error as ApiError;
+      toast.error('Failed to add organization to template', {
+        description: <ToastError error={apiError} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-        onError: (error: unknown) => {
-          const apiError = error as ApiError;
-          toast.error('Failed to add organization to template', {
-            description: <ToastError error={apiError} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+      });
+    },
+  });
 
-  const { mutateAsync: removeOrganization } =
-    usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateNameRemoveFromOrganization(
-      {
-        onSuccess: () => {
-          toast.info('Organization removed from template', {
-            description: `Organization removed from template "${template.name}".`,
-          });
-          queryClient.invalidateQueries({
-            queryKey: [
-              usePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplatesKey,
-              {
-                pluginType: template.pluginType,
-                pluginId: template.pluginId,
-              },
-            ],
-          });
+  const { mutateAsync: removeOrganization } = useMutation({
+    ...removeTemplateFromOrganizationMutation(),
+    onSuccess: () => {
+      toast.info('Organization removed from template', {
+        description: `Organization removed from template "${template.name}".`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getPluginTemplatesQueryKey({
+          path: {
+            pluginType: template.pluginType,
+            pluginId: template.pluginId,
+          },
+        }),
+      });
+    },
+    onError: (error) => {
+      const apiError = error as ApiError;
+      toast.error('Failed to remove organization from template', {
+        description: <ToastError error={apiError} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
         },
-        onError: (error: unknown) => {
-          const apiError = error as ApiError;
-          toast.error('Failed to remove organization from template', {
-            description: <ToastError error={apiError} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+      });
+    },
+  });
 
   return (
     <Card key={template.name} className='mb-2'>
@@ -310,10 +311,12 @@ const PluginTemplateCard = ({
                           variant='ghost'
                           onClick={() => {
                             removeOrganization({
-                              pluginType: template.pluginType,
-                              pluginId: template.pluginId,
-                              templateName: template.name,
-                              organizationId: orgId.toString(),
+                              path: {
+                                pluginType: template.pluginType,
+                                pluginId: template.pluginId,
+                                templateName: template.name,
+                              },
+                              query: { organizationId: orgId.toString() },
                             });
                           }}
                         >
@@ -355,10 +358,12 @@ const PluginTemplateCard = ({
                         value={option.label}
                         onSelect={() => {
                           addOrganization({
-                            pluginType: template.pluginType,
-                            pluginId: template.pluginId,
-                            templateName: template.name,
-                            organizationId: option.value,
+                            path: {
+                              pluginType: template.pluginType,
+                              pluginId: template.pluginId,
+                              templateName: template.name,
+                            },
+                            query: { organizationId: option.value },
                           });
                         }}
                       >
@@ -430,8 +435,12 @@ const PluginTemplatesComponent = () => {
     isPending: orgIsPending,
     isError: orgIsError,
     error: orgError,
-  } = useOrganizationsServiceGetApiV1Organizations({
-    limit: ALL_ITEMS,
+  } = useQuery({
+    ...getOrganizationsOptions({
+      query: {
+        limit: ALL_ITEMS,
+      },
+    }),
   });
 
   const {
@@ -439,9 +448,13 @@ const PluginTemplatesComponent = () => {
     error: pluginTemplatesError,
     isPending: pluginTemplatesIsPending,
     isError: pluginTemplatesIsError,
-  } = usePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplates({
-    pluginType: pluginType,
-    pluginId: pluginId,
+  } = useQuery({
+    ...getPluginTemplatesOptions({
+      path: {
+        pluginType: pluginType,
+        pluginId: pluginId,
+      },
+    }),
   });
 
   if (!plugin) {
@@ -541,14 +554,15 @@ const PluginTemplatesComponent = () => {
 };
 
 export const Route = createFileRoute('/admin/plugins/$pluginType/$pluginId/')({
-  loader: async ({ context, params }) => {
-    await prefetchUsePluginsServiceGetApiV1AdminPluginsByPluginTypeByPluginIdTemplates(
-      context.queryClient,
-      {
-        pluginType: params.pluginType,
-        pluginId: params.pluginId,
-      }
-    );
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.prefetchQuery({
+      ...getPluginTemplatesOptions({
+        path: {
+          pluginType: params.pluginType,
+          pluginId: params.pluginId,
+        },
+      }),
+    });
   },
   component: PluginTemplatesComponent,
   pendingComponent: LoadingIndicator,

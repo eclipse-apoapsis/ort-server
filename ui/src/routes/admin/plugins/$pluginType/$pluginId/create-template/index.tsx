@@ -19,6 +19,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckedState } from '@radix-ui/react-checkbox';
+import { useMutation } from '@tanstack/react-query';
 import {
   createFileRoute,
   useLoaderData,
@@ -28,13 +29,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z, ZodType } from 'zod';
 
-import { usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateName } from '@/api/queries';
-import {
-  ApiError,
-  PluginOption,
-  PluginOptionTemplate,
-  PluginOptionType,
-} from '@/api/requests';
+import { ApiError } from '@/api/requests';
 import { OptionalInput } from '@/components/form/optional-input';
 import { ToastError } from '@/components/toast-error';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -58,6 +53,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  PluginOption,
+  PluginOptionTemplate,
+  PluginOptionType,
+} from '@/hey-api';
+import { createPluginTemplateMutation } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { Route as LayoutRoute } from '../../../route.tsx';
 
@@ -136,32 +137,32 @@ const CreateTemplate = () => {
   });
 
   const { mutateAsync: createTemplate, isPending: isCreateTemplatePending } =
-    usePluginsServicePostApiV1AdminPluginsByPluginTypeByPluginIdTemplatesByTemplateName(
-      {
-        onSuccess() {
-          toast.info('Create Template', {
-            description: `Template created successfully.`,
-          });
-          navigate({
-            to: '/admin/plugins/$pluginType/$pluginId',
-            params: {
-              pluginType: params.pluginType,
-              pluginId: params.pluginId,
-            },
-          });
-        },
-        onError(error: ApiError) {
-          toast.error(error.message, {
-            description: <ToastError error={error} />,
-            duration: Infinity,
-            cancel: {
-              label: 'Dismiss',
-              onClick: () => {},
-            },
-          });
-        },
-      }
-    );
+    useMutation({
+      ...createPluginTemplateMutation(),
+      onSuccess() {
+        toast.info('Create Template', {
+          description: `Template created successfully.`,
+        });
+        navigate({
+          to: '/admin/plugins/$pluginType/$pluginId',
+          params: {
+            pluginType: params.pluginType,
+            pluginId: params.pluginId,
+          },
+        });
+      },
+      onError(error) {
+        const apiError = error as ApiError;
+        toast.error(error.message, {
+          description: <ToastError error={apiError} />,
+          duration: Infinity,
+          cancel: {
+            label: 'Dismiss',
+            onClick: () => {},
+          },
+        });
+      },
+    });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const formValues = values as FormValues;
@@ -196,10 +197,12 @@ const CreateTemplate = () => {
         }) ?? [];
 
     await createTemplate({
-      pluginType: params.pluginType,
-      pluginId: params.pluginId,
-      templateName: formValues[templateName],
-      requestBody: requestBody,
+      path: {
+        pluginType: params.pluginType,
+        pluginId: params.pluginId,
+        templateName: formValues[templateName],
+      },
+      body: requestBody,
     });
   }
 
