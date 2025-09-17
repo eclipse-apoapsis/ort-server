@@ -21,12 +21,12 @@ import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { AudioWaveform, List, ListVideo, Loader2 } from 'lucide-react';
 
-import { StatisticsCard } from '@/components/statistics-card';
-import { ToastError } from '@/components/toast-error';
 import {
   getOrganizationsOptions,
   getOrtRunsOptions,
-} from '@/hey-api/@tanstack/react-query.gen';
+} from '@/api/@tanstack/react-query.gen';
+import { StatisticsCard } from '@/components/statistics-card';
+import { ToastError } from '@/components/toast-error';
 import { toast } from '@/lib/toast';
 import { runStatusSchema } from '@/schemas';
 

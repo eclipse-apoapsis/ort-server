@@ -26,6 +26,13 @@ import {
 } from '@tanstack/react-table';
 import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 
+import { UserWithGroups } from '@/api';
+import {
+  deleteOrganizationRoleFromUserMutation,
+  getUsersForOrganizationOptions,
+  getUsersForOrganizationQueryKey,
+  putOrganizationRoleToUserMutation,
+} from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table.tsx';
 import { DeleteDialog } from '@/components/delete-dialog.tsx';
 import { DeleteIconButton } from '@/components/delete-icon-button.tsx';
@@ -37,13 +44,6 @@ import {
 } from '@/components/ui/tooltip';
 import { UserGroupRowActions } from '@/components/ui/user-group-row-actions.tsx';
 import { mapUserGroupToOrganizationRole } from '@/helpers/role-helpers.ts';
-import { UserWithGroups } from '@/hey-api';
-import {
-  deleteOrganizationRoleFromUserMutation,
-  getUsersForOrganizationOptions,
-  getUsersForOrganizationQueryKey,
-  putOrganizationRoleToUserMutation,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast.ts';

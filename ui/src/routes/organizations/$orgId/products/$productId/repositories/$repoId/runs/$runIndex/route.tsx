@@ -33,9 +33,9 @@ import {
 } from 'lucide-react';
 import { Suspense } from 'react';
 
+import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
-import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { RunDetailsBar } from './-components/run-details-bar';
 
 const Layout = () => {

@@ -17,8 +17,8 @@
  * License-Filename: LICENSE
  */
 
+import { Severity, VulnerabilityRating } from '@/api';
 import { vulnerabilityRatings } from '@/helpers/get-status-class';
-import { Severity, VulnerabilityRating } from '@/hey-api';
 
 /**
  * Compare two severities by their severity level. The severity levels are defined as follows:

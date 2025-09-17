@@ -31,6 +31,13 @@ import {
 } from '@tanstack/react-table';
 import { Repeat, View } from 'lucide-react';
 
+import { OrtRunSummary } from '@/api';
+import {
+  deleteOrtRunByIndexMutation,
+  getOrtRunsByRepositoryIdOptions,
+  getOrtRunsByRepositoryIdQueryKey,
+  getRepositoryByIdOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { DeleteIconButton } from '@/components/delete-icon-button';
@@ -48,13 +55,6 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
-import { OrtRunSummary } from '@/hey-api';
-import {
-  deleteOrtRunByIndexMutation,
-  getOrtRunsByRepositoryIdOptions,
-  getOrtRunsByRepositoryIdQueryKey,
-  getRepositoryByIdOptions,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { useTablePrefsStore } from '@/store/table-prefs.store';

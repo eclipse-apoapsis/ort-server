@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { RepositoryType } from '@/hey-api';
+import { RepositoryType } from '@/api';
 
 /**
  * Redefine or extend some data types coming from the OpenAPI Query Client for UI purposes.

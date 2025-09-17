@@ -20,6 +20,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { Bug } from 'lucide-react';
 
+import { JobStatus, Severity } from '@/api';
+import { getOrtRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -28,8 +30,6 @@ import {
   getStatusFontColor,
 } from '@/helpers/get-status-class';
 import { isJobFinished, jobStatusTexts } from '@/helpers/job-helpers';
-import { JobStatus, Severity } from '@/hey-api';
-import { getOrtRunStatisticsOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 
 type IssuesStatisticsCardProps = {

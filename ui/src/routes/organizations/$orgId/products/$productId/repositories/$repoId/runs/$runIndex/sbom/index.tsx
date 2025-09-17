@@ -21,6 +21,8 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Download } from 'lucide-react';
 
+import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
+import { client } from '@/api/client.gen';
 import CycloneDXDark from '@/assets/cyclonedx-logo-black.svg';
 import CycloneDXLight from '@/assets/cyclonedx-logo-white.svg';
 import SPDX from '@/assets/spdx-logo-color.svg';
@@ -34,8 +36,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
-import { client } from '@/hey-api/client.gen';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
 

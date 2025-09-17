@@ -24,6 +24,10 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
+import {
+  getSecretByProductIdAndNameOptions,
+  patchSecretByProductIdAndNameMutation,
+} from '@/api/@tanstack/react-query.gen';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -44,10 +48,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  getSecretByProductIdAndNameOptions,
-  patchSecretByProductIdAndNameMutation,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 

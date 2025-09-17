@@ -25,6 +25,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { getConfigByKeyOptions } from '@/api/@tanstack/react-query.gen';
 import homeIcon from '@/assets/home-icon.svg';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ModeToggle } from '@/components/mode-toggle';
@@ -55,7 +56,6 @@ import {
 } from '@/components/ui/tooltip';
 import { extractInitials } from '@/helpers/extract-initials.ts';
 import { setCustomFavicon } from '@/helpers/set-custom-favicon';
-import { getConfigByKeyOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
 import { toast } from '@/lib/toast';
 

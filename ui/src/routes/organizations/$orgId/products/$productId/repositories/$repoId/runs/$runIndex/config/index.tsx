@@ -20,10 +20,10 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 
+import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { getOrtRunByIndexOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { AdvisorJobDetails } from './-components/advisor-job-details';
 import { AnalyzerJobDetails } from './-components/analyzer-job-details';
 import { EvaluatorJobDetails } from './-components/evaluator-job-details';

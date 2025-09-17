@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "generate:api": "rm -fr src/hey-api && openapi-ts && prettier --write src/hey-api --ignore-path .prettierignore",
+    "generate:api": "rm -fr src/api && openapi-ts && prettier --write src/api --ignore-path .prettierignore",
     "generate:routes": "tsr generate",
     "preview": "vite preview"
   },

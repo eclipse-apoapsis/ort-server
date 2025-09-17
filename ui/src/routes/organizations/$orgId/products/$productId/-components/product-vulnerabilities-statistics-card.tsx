@@ -20,10 +20,10 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { ShieldQuestion } from 'lucide-react';
 
+import { VulnerabilityRating } from '@/api';
+import { getOrtRunStatisticsByProductIdOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
-import { VulnerabilityRating } from '@/hey-api';
-import { getOrtRunStatisticsByProductIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { cn } from '@/lib/utils';
 
 type ProductVulnerabilitiesStatisticsCardProps = {

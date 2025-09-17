@@ -20,6 +20,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 
+import { getOrtRunsByRepositoryIdOptions } from '@/api/@tanstack/react-query.gen';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
 import {
   Tooltip,
@@ -27,7 +28,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
-import { getOrtRunsByRepositoryIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 
 export const LastRunDate = ({ repoId }: { repoId: number }) => {
   const {

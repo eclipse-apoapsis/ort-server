@@ -22,6 +22,7 @@ import { CatchBoundary, createFileRoute, Link } from '@tanstack/react-router';
 import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 
+import { getOrganizationByIdOptions } from '@/api/@tanstack/react-query.gen';
 import { ErrorComponent } from '@/components/error-component';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
@@ -33,7 +34,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getOrganizationByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { toast } from '@/lib/toast';
 import { paginationSearchParameterSchema } from '@/schemas';
 import { OrganizationIssuesStatisticsCard } from './-components/organization-issues-statistics-card';

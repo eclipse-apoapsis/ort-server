@@ -28,9 +28,9 @@ import {
   User,
 } from 'lucide-react';
 
+import { getOrganizationByIdOptions } from '@/api/@tanstack/react-query.gen';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
-import { getOrganizationByIdOptions } from '@/hey-api/@tanstack/react-query.gen';
 import { useUser } from '@/hooks/use-user';
 
 const Layout = () => {

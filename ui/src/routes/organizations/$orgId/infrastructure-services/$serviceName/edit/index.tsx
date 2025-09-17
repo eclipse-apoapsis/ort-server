@@ -24,6 +24,11 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import {
+  getInfrastructureServicesByOrganizationIdAndNameOptions,
+  getSecretsByOrganizationIdOptions,
+  patchInfrastructureServiceForOrganizationIdAndNameMutation,
+} from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
@@ -51,11 +56,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  getInfrastructureServicesByOrganizationIdAndNameOptions,
-  getSecretsByOrganizationIdOptions,
-  patchInfrastructureServiceForOrganizationIdAndNameMutation,
-} from '@/hey-api/@tanstack/react-query.gen';
 import { ApiError } from '@/lib/api-error';
 import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';

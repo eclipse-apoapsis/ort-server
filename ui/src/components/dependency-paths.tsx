@@ -19,11 +19,11 @@
 
 import { MoveRight } from 'lucide-react';
 
+import { Package, ShortestDependencyPath } from '@/api';
 import {
   identifierToPurl,
   identifierToString,
 } from '@/helpers/identifier-conversion.ts';
-import { Package, ShortestDependencyPath } from '@/hey-api';
 import { cn } from '@/lib/utils';
 import { PackageIdType } from '@/schemas';
 
