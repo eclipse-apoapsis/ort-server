@@ -90,9 +90,5 @@ export const FormattedValue = <T,>({
   }
 
   // Default render
-  return (
-    <span className={isNa ? 'text-muted-foreground' : undefined}>
-      {String(result)}
-    </span>
-  );
+  return <div className={'text-muted-foreground'}>{String(result)}</div>;
 };
