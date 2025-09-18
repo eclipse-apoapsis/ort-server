@@ -23,7 +23,6 @@ import { ChevronDownIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
-import { client } from '@/api/client.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -40,10 +39,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { config } from '@/config';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
 
-const API_URL = client.getConfig().baseURL;
+const API_URL = config.API_URL;
 
 const ReportComponent = () => {
   const params = Route.useParams();
