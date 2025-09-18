@@ -34,6 +34,7 @@ import {
   getProductByIdOptions,
   getRepositoryByIdOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { zOrtRunStatus } from '@/api/zod.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
@@ -59,7 +60,6 @@ import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { toast } from '@/lib/toast';
 import {
   paginationSearchParameterSchema,
-  runStatusSchema,
   statusSearchParameterSchema,
 } from '@/schemas';
 
@@ -172,7 +172,7 @@ const RunsComponent = () => {
       meta: {
         filter: {
           filterVariant: 'select',
-          selectOptions: runStatusSchema.options.map((status) => ({
+          selectOptions: zOrtRunStatus.options.map((status) => ({
             label: status,
             value: status,
           })),
