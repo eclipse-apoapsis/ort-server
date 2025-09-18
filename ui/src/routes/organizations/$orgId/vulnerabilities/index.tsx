@@ -66,7 +66,6 @@ import {
   updateColumnSorting,
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { toast } from '@/lib/toast';
 import {
   markedSearchParameterSchema,
@@ -214,12 +213,6 @@ const OrganizationVulnerabilitiesComponent = () => {
             >
               {row.getValue('rating')}
             </Badge>
-          );
-        },
-        sortingFn: (rowA, rowB) => {
-          return compareVulnerabilityRating(
-            rowA.getValue('rating'),
-            rowB.getValue('rating')
           );
         },
         enableColumnFilter: false,
