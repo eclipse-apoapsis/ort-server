@@ -136,9 +136,17 @@ const renderSubComponent = ({
 const OrganizationVulnerabilitiesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
-  const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : defaultPageSize;
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
+
+  const pageIndex = useMemo(
+    () => (search.page ? search.page - 1 : 0),
+    [search.page]
+  );
+
+  const pageSize = useMemo(
+    () => (search.pageSize ? search.pageSize : defaultPageSize),
+    [search.pageSize]
+  );
 
   const {
     data: vulnerabilities,
