@@ -24,9 +24,6 @@ import {
   ExpandedState,
   getCoreRowModel,
   getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   Row,
   useReactTable,
 } from '@tanstack/react-table';
@@ -65,10 +62,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
-import { updateColumnSorting } from '@/helpers/handle-multisort';
+import {
+  convertToBackendSorting,
+  updateColumnSorting,
+} from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
-import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import {
   markedSearchParameterSchema,
@@ -140,18 +138,6 @@ const ProductVulnerabilitiesComponent = () => {
   const navigate = Route.useNavigate();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
-  const {
-    data: vulnerabilities,
-    isPending,
-    isError,
-    error,
-  } = useQuery({
-    ...getVulnerabilitiesAcrossRepositoriesByProductIdOptions({
-      path: { productId: Number.parseInt(params.productId) },
-      query: { limit: ALL_ITEMS },
-    }),
-  });
-
   // Prevent infinite rerenders by providing a stable reference to columns via memoization.
   // https://tanstack.com/table/latest/docs/faq#solution-1-stable-references-with-usememo-or-usestate
   const columns = useMemo(
@@ -211,15 +197,6 @@ const ProductVulnerabilitiesComponent = () => {
             </Badge>
           );
         },
-        filterFn: (row, _columnId, filterValue): boolean => {
-          return filterValue.includes(row.original.rating);
-        },
-        sortingFn: (rowA, rowB) => {
-          return compareVulnerabilityRating(
-            rowA.getValue('rating'),
-            rowB.getValue('rating')
-          );
-        },
         meta: {
           filter: {
             filterVariant: 'select',
@@ -256,7 +233,7 @@ const ProductVulnerabilitiesComponent = () => {
           }
         },
         {
-          id: 'packageIdentifier',
+          id: packageIdType === 'ORT_ID' ? 'identifier' : 'purl',
           header: 'Package ID',
           cell: ({ getValue }) => {
             return (
@@ -325,18 +302,59 @@ const ProductVulnerabilitiesComponent = () => {
   const columnFilters = useMemo(() => {
     const filters = [];
     if (packageIdentifier) {
-      filters.push({ id: 'packageIdentifier', value: packageIdentifier });
+      filters.push({
+        id: packageIdType === 'ORT_ID' ? 'identifier' : 'purl',
+        value: packageIdentifier,
+      });
     }
     if (rating) {
       filters.push({ id: 'rating', value: rating });
     }
     return filters;
-  }, [packageIdentifier, rating]);
+  }, [packageIdentifier, rating, packageIdType]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
     [search.sortBy]
   );
+
+  const {
+    data: totalVulnerabilities,
+    isPending: totIsPending,
+    isError: totIsError,
+    error: totError,
+  } = useQuery({
+    ...getVulnerabilitiesAcrossRepositoriesByProductIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+      query: { limit: 1 },
+    }),
+  });
+
+  const {
+    data: vulnerabilities,
+    isPending,
+    isError,
+    error,
+  } = useQuery({
+    ...getVulnerabilitiesAcrossRepositoriesByProductIdOptions({
+      path: { productId: Number.parseInt(params.productId) },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        sort: convertToBackendSorting(
+          sortBy?.map((item) => {
+            if (item.id === 'count') {
+              return { id: 'repositoriesCount', desc: item.desc };
+            } else return item;
+          })
+        ),
+        rating: rating?.join(','),
+        ...(packageIdType === 'ORT_ID'
+          ? { identifier: packageIdentifier }
+          : { purl: packageIdentifier }),
+      },
+    }),
+  });
 
   const [expanded, setExpanded] = useState<ExpandedState>(
     search.marked ? { [search.marked]: true } : {}
@@ -345,6 +363,9 @@ const ProductVulnerabilitiesComponent = () => {
   const table = useReactTable({
     data: vulnerabilities?.data || [],
     columns,
+    pageCount: Math.ceil(
+      (vulnerabilities?.pagination.totalCount ?? 0) / pageSize
+    ),
     state: {
       pagination: {
         pageIndex,
@@ -357,19 +378,17 @@ const ProductVulnerabilitiesComponent = () => {
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getRowCanExpand: () => true,
+    manualPagination: true,
   });
 
-  if (isPending) {
+  if (isPending || totIsPending) {
     return <LoadingIndicator />;
   }
 
-  if (isError) {
+  if (isError || totIsError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
+      description: <ToastError error={error || totError} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -378,14 +397,16 @@ const ProductVulnerabilitiesComponent = () => {
     });
     return;
   }
-  const filtersInUse = table.getState().columnFilters.length > 0;
-  const matching = `, ${table.getPrePaginationRowModel().rows.length} matching filters`;
+  const filtersInUse =
+    totalVulnerabilities.pagination.totalCount !==
+    vulnerabilities.pagination.totalCount;
+  const matching = `, ${vulnerabilities.pagination.totalCount} matching filters`;
 
   return (
     <Card className='h-fit'>
       <CardHeader>
         <CardTitle>
-          Vulnerabilities ({vulnerabilities.pagination.totalCount} in total
+          Vulnerabilities ({totalVulnerabilities.pagination.totalCount} in total
           {filtersInUse && matching})
         </CardTitle>
         <CardDescription>
