@@ -69,6 +69,7 @@ import {
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { toast } from '@/lib/toast';
 import {
+  externalIdSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
@@ -260,7 +261,16 @@ const ProductVulnerabilitiesComponent = () => {
             {row.getValue('externalId')}
           </Badge>
         ),
-        enableColumnFilter: false,
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, externalId: value },
+              });
+            },
+          },
+        },
       }),
       columnHelper.accessor('vulnerability.summary', {
         id: 'summary',
@@ -299,6 +309,11 @@ const ProductVulnerabilitiesComponent = () => {
     [search.rating]
   );
 
+  const externalId = useMemo(
+    () => (search.externalId ? search.externalId : undefined),
+    [search.externalId]
+  );
+
   const columnFilters = useMemo(() => {
     const filters = [];
     if (packageIdentifier) {
@@ -310,8 +325,11 @@ const ProductVulnerabilitiesComponent = () => {
     if (rating) {
       filters.push({ id: 'rating', value: rating });
     }
+    if (externalId) {
+      filters.push({ id: 'externalId', value: externalId });
+    }
     return filters;
-  }, [packageIdentifier, rating, packageIdType]);
+  }, [packageIdentifier, rating, packageIdType, externalId]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
@@ -352,6 +370,7 @@ const ProductVulnerabilitiesComponent = () => {
         ...(packageIdType === 'ORT_ID'
           ? { identifier: packageIdentifier }
           : { purl: packageIdentifier }),
+        externalId: externalId,
       },
     }),
   });
@@ -457,6 +476,7 @@ export const Route = createFileRoute(
     ...sortingSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...vulnerabilityRatingSearchParameterSchema.shape,
+    ...externalIdSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
   loader: async ({ context: { queryClient }, params }) => {

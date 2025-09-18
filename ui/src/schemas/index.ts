@@ -110,6 +110,10 @@ export const vulnerabilityRatingSearchParameterSchema = z.object({
   rating: z.array(zVulnerabilityRating).optional(),
 });
 
+export const externalIdSearchParameterSchema = z.object({
+  externalId: z.string().optional(),
+});
+
 // This schema is used to validate the search parameter for the items marked for inspection
 // so the link can be shared.
 export const markedSearchParameterSchema = z.object({
