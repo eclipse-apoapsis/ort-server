@@ -39,6 +39,7 @@ import {
   getProductByIdOptions,
   getVulnerabilitiesAcrossRepositoriesByProductIdOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
@@ -74,7 +75,6 @@ import {
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
-  vulnerabilityRatingSchema,
   vulnerabilityRatingSearchParameterSchema,
 } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
@@ -223,7 +223,7 @@ const ProductVulnerabilitiesComponent = () => {
         meta: {
           filter: {
             filterVariant: 'select',
-            selectOptions: vulnerabilityRatingSchema.options.map((rating) => ({
+            selectOptions: zVulnerabilityRating.options.map((rating) => ({
               label: rating,
               value: rating,
             })),
