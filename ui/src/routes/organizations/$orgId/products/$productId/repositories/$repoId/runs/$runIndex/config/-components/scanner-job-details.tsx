@@ -18,6 +18,7 @@
  */
 
 import { OrtRun } from '@/api';
+import { RenderProperty } from '@/components/render-property';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { JobTitle } from './job-title';
@@ -37,64 +38,42 @@ export const ScannerJobDetails = ({ run }: ScannerJobDetailsProps) => {
           <JobTitle title='Scanner' job={job} />
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        {jobConfigs && (
-          <div className='space-y-2 text-sm'>
-            {jobConfigs?.skipConcluded && (
-              <div>
-                <Label className='font-semibold'>Skip concluded: </Label>
-                {jobConfigs.skipConcluded.toString()}
-              </div>
-            )}
-            {jobConfigs?.skipExcluded && (
-              <div>
-                <Label className='font-semibold'>Skip excluded: </Label>
-                {jobConfigs.skipExcluded.toString()}
-              </div>
-            )}
-            {jobConfigs?.scanners && (
+      {jobConfigs && (
+        <CardContent>
+          <div className='flex flex-col gap-4 text-sm'>
+            <RenderProperty
+              label='Skip concluded'
+              value={jobConfigs.skipConcluded}
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='Skip excluded'
+              value={jobConfigs.skipExcluded}
+              showIfEmpty={false}
+            />
+            {jobConfigs.scanners && (
               <div className='space-y-2'>
-                <Label className='font-semibold'>Scanners:</Label>{' '}
+                <Label className='font-semibold'>Scanners</Label>
                 {jobConfigs.scanners.map((scanner) => (
                   <div className='ml-2' key={scanner}>
                     <Label className='font-semibold'>{scanner}</Label>
                     {jobConfigs?.config?.[scanner] && (
                       <div className='ml-2'>
-                        <Label className='font-semibold'>Configuration:</Label>
-                        {jobConfigs.config?.[scanner].options && (
-                          <div className='ml-2'>
-                            <Label className='font-semibold'>Options:</Label>
-                            <div className='ml-2'>
-                              {Object.entries(
-                                jobConfigs.config[scanner].options
-                              ).map(([key, value]) => (
-                                <div key={key}>
-                                  <Label className='font-semibold'>
-                                    {key}:
-                                  </Label>{' '}
-                                  {value.toString()}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {jobConfigs.config?.[scanner].secrets && (
-                          <div className='ml-2'>
-                            <Label className='font-semibold'>Secrets:</Label>
-                            <div className='ml-2'>
-                              {Object.entries(
-                                jobConfigs.config[scanner].secrets
-                              ).map(([key, value]) => (
-                                <div key={key}>
-                                  <Label className='font-semibold'>
-                                    {key}:
-                                  </Label>{' '}
-                                  {value.toString()}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        <Label className='font-semibold'>Configuration</Label>
+                        <div className='ml-2'>
+                          <RenderProperty
+                            label='Options'
+                            value={jobConfigs.config?.[scanner].options}
+                            type='keyvalue'
+                            showIfEmpty={false}
+                          />
+                          <RenderProperty
+                            label='Secrets'
+                            value={jobConfigs.config?.[scanner].secrets}
+                            type='keyvalue'
+                            showIfEmpty={false}
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -102,8 +81,8 @@ export const ScannerJobDetails = ({ run }: ScannerJobDetailsProps) => {
               </div>
             )}
           </div>
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 };
