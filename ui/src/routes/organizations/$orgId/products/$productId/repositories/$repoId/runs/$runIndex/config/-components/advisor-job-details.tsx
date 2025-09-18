@@ -18,8 +18,8 @@
  */
 
 import { OrtRun } from '@/api';
+import { RenderProperty } from '@/components/render-property';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { JobTitle } from './job-title';
 
 type AdvisorJobDetailsProps = {
@@ -37,24 +37,23 @@ export const AdvisorJobDetails = ({ run }: AdvisorJobDetailsProps) => {
           <JobTitle title='Advisor' job={job} />
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        {jobConfigs && (
-          <div className='space-y-2 text-sm'>
-            {jobConfigs?.skipExcluded && (
-              <div>
-                <Label className='font-semibold'>Skip excluded: </Label>
-                {jobConfigs.skipExcluded.toString()}
-              </div>
-            )}
-            {jobConfigs?.advisors && (
-              <div>
-                <Label className='font-semibold'>Advisors:</Label>{' '}
-                {jobConfigs.advisors.join(', ')}
-              </div>
-            )}
+      {jobConfigs && (
+        <CardContent>
+          <div className='flex flex-col gap-4 text-sm'>
+            <RenderProperty
+              label='Skip Excluded'
+              value={jobConfigs.skipExcluded}
+              showIfEmpty={false}
+            />
+            <RenderProperty
+              label='Advisors'
+              value={jobConfigs.advisors}
+              type='array'
+              showIfEmpty={false}
+            />
           </div>
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 };

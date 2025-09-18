@@ -18,8 +18,8 @@
  */
 
 import { OrtRun } from '@/api';
+import { RenderProperty } from '@/components/render-property';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { JobTitle } from './job-title';
 
 type NotifierJobDetailsProps = {
@@ -37,24 +37,18 @@ export const NotifierJobDetails = ({ run }: NotifierJobDetailsProps) => {
           <JobTitle title='Notifier' job={job} />
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className='space-y-2 text-sm'>
-          {jobConfigs && (
-            <div className='space-y-2'>
-              <div className='ml-2 space-y-2'>
-                {jobConfigs?.recipientAddresses && (
-                  <div>
-                    <Label className='font-semibold'>
-                      Recipient addresses:
-                    </Label>{' '}
-                    {jobConfigs.recipientAddresses.join(', ')}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </CardContent>
+      {jobConfigs && (
+        <CardContent>
+          <div className='flex flex-col gap-4 text-sm'>
+            <RenderProperty
+              label='Recipient addresses'
+              value={jobConfigs.recipientAddresses}
+              type='array'
+              showIfEmpty={false}
+            />
+          </div>
+        </CardContent>
+      )}
     </Card>
   );
 };

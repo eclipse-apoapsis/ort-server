@@ -18,8 +18,8 @@
  */
 
 import { OrtRun } from '@/api';
+import { RenderProperty } from '@/components/render-property';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { JobTitle } from './job-title';
 
 type ReporterJobDetailsProps = {
@@ -37,18 +37,17 @@ export const ReporterJobDetails = ({ run }: ReporterJobDetailsProps) => {
           <JobTitle title='Reporter' job={job} />
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        {jobConfigs && (
-          <div className='space-y-2 text-sm'>
-            {jobConfigs?.formats && (
-              <div>
-                <Label className='font-semibold'>Report formats:</Label>{' '}
-                {jobConfigs.formats.join(', ')}
-              </div>
-            )}
+      {jobConfigs && (
+        <CardContent>
+          <div className='flex flex-col gap-4 text-sm'>
+            <RenderProperty
+              label='Report formats'
+              value={jobConfigs.formats}
+              showIfEmpty={false}
+            />
           </div>
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 };

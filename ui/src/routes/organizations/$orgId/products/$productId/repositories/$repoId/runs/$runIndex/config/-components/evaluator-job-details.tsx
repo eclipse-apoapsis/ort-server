@@ -18,6 +18,7 @@
  */
 
 import { OrtRun } from '@/api';
+import { RenderProperty } from '@/components/render-property';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { JobTitle } from './job-title';
@@ -37,72 +38,53 @@ export const EvaluatorJobDetails = ({ run }: EvaluatorJobDetailsProps) => {
           <JobTitle title='Evaluator' job={job} />
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        {jobConfigs && (
-          <div className='space-y-2 text-sm'>
-            {run.resolvedJobConfigs?.ruleSet && (
-              <div>
-                <Label className='font-semibold'>Ruleset:</Label>{' '}
-                {run.resolvedJobConfigs?.ruleSet}
-              </div>
-            )}
-            {jobConfigs?.packageConfigurationProviders && (
+      {jobConfigs && (
+        <CardContent>
+          <div className='flex flex-col gap-4 text-sm'>
+            <RenderProperty
+              label='Ruleset'
+              value={run.resolvedJobConfigs?.ruleSet}
+              showIfEmpty={false}
+            />
+            {jobConfigs.packageConfigurationProviders && (
               <div className='space-y-2'>
                 <Label className='font-semibold'>
-                  Package configuration providers:
-                </Label>{' '}
+                  Package configuration providers
+                </Label>
                 {jobConfigs.packageConfigurationProviders.map((provider) => (
                   <div className='ml-2' key={provider.id}>
                     <Label className='font-semibold'>{provider.type}</Label>
-                    {provider.id && (
-                      <div className='ml-2'>
-                        <Label className='font-semibold'>Id:</Label>{' '}
-                        {provider.id.toString()}
-                      </div>
-                    )}
-                    {provider.enabled && (
-                      <div className='ml-2'>
-                        <Label className='font-semibold'>Enabled:</Label>{' '}
-                        {provider.enabled.toString()}
-                      </div>
-                    )}
-                    {provider.options && (
-                      <div className='ml-2'>
-                        <Label className='font-semibold'>Options:</Label>{' '}
-                        <div className='ml-2'>
-                          {Object.entries(provider.options).map(
-                            ([key, value]) => (
-                              <div key={key}>
-                                <Label className='font-semibold'>{key}:</Label>{' '}
-                                {value.toString()}
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {provider.secrets && (
-                      <div className='ml-2'>
-                        <Label className='font-semibold'>Secrets:</Label>{' '}
-                        <div className='ml-2'>
-                          {Object.entries(provider.secrets).map(
-                            ([key, value]) => (
-                              <div key={key}>
-                                <Label className='font-semibold'>{key}:</Label>{' '}
-                                {value.toString()}
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    <div className='ml-2'>
+                      <RenderProperty
+                        label='Id'
+                        value={provider.id}
+                        showIfEmpty={false}
+                      />
+                      <RenderProperty
+                        label='Enabled'
+                        value={provider.enabled}
+                        showIfEmpty={false}
+                      />
+                      <RenderProperty
+                        label='Options'
+                        value={provider.options}
+                        type='keyvalue'
+                        showIfEmpty={false}
+                      />
+                      <RenderProperty
+                        label='Secrets'
+                        value={provider.secrets}
+                        type='keyvalue'
+                        showIfEmpty={false}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 };
