@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 
 import org.ossreviewtoolkit.plugins.api.PluginDescriptor
 import org.ossreviewtoolkit.plugins.licensefactproviders.api.LicenseFactProvider
+import org.ossreviewtoolkit.plugins.licensefactproviders.api.LicenseText
 
 import org.slf4j.LoggerFactory
 
@@ -48,7 +49,7 @@ internal class CustomLicenseFactProvider(
 
     /** The [Path] to the directory in the configuration containing custom license texts. */
     rawLicenseTextDir: Path
-) : LicenseFactProvider {
+) : LicenseFactProvider() {
     override val descriptor = PluginDescriptor(
         id = "CustomLicenseFactProvider",
         displayName = "Custom License Fact Provider",
@@ -66,12 +67,17 @@ internal class CustomLicenseFactProvider(
             .also { logger.debug("Found custom license texts: {}.", it) }
     }
 
-    override fun getLicenseText(licenseId: String): String? {
+    override fun getLicenseText(licenseId: String): LicenseText? {
         logger.debug("Request for license text of '{}'.", licenseId)
 
         if (hasLicenseText(licenseId)) {
             logger.debug("Loading license text of '{}' from config directory.", licenseId)
-            return configManager.getFileAsString(configurationContext, Path("${licenseTextDir.path}/$licenseId"))
+            return LicenseText(
+                configManager.getFileAsString(
+                    configurationContext,
+                    Path("${licenseTextDir.path}/$licenseId")
+                )
+            )
         }
 
         return null
