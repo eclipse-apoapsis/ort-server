@@ -25,9 +25,11 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
+import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
@@ -44,10 +46,12 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
@@ -289,13 +293,32 @@ val getVulnerabilitiesAcrossRepositoriesByProductId: RouteConfig.() -> Unit = {
         }
 
         standardListQueryParameters()
+
+        queryParameter<String>("rating") {
+            description = "Defines the ratings to filter the results by. This is a comma-separated string with the" +
+                    " following allowed ratings: " + VulnerabilityRating.entries.joinToString { "'$it" } + ". Add a " +
+                    "minus as the first item to exclude packages with the specified ratings, e.g. '-,HIGH'."
+        }
+
+        queryParameter<String>("identifier") {
+            description = "Defines an ORT package identifier to filter the results by. Uses a case-insensitive " +
+                    "substring match."
+        }
+
+        queryParameter<String>("purl") {
+            description = "Defines a purl to filter the results by. Uses a case-insensitive substring match."
+        }
+
+        queryParameter<String>("externalId") {
+            description = "Defines an external ID to filter the results by. Uses a case-insensitive substring match."
+        }
     }
 
     response {
         HttpStatusCode.OK to {
-            jsonBody<PagedResponse<ProductVulnerability>> {
+            jsonBody<PagedSearchResponse<ProductVulnerability, VulnerabilityForRunsFilters>> {
                 example("Get vulnerabilities for product") {
-                    value = PagedResponse(
+                    value = PagedSearchResponse(
                         listOf(
                             ProductVulnerability(
                                 vulnerability = Vulnerability(
@@ -324,6 +347,12 @@ val getVulnerabilitiesAcrossRepositoriesByProductId: RouteConfig.() -> Unit = {
                             offset = 0,
                             totalCount = 1,
                             sortProperties = listOf(SortProperty("rating", SortDirection.DESCENDING))
+                        ),
+                        VulnerabilityForRunsFilters(
+                            rating = FilterOperatorAndValue(
+                                operator = ComparisonOperator.IN,
+                                value = setOf(VulnerabilityRating.HIGH)
+                            )
                         )
                     )
                 }
