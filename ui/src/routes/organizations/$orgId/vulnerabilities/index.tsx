@@ -31,11 +31,12 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
-import { OrganizationVulnerability } from '@/api';
+import { OrganizationVulnerability, VulnerabilityRating } from '@/api';
 import {
   getOrganizationByIdOptions,
   getVulnerabilitiesAcrossRepositoriesByOrganizationIdOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
 import { DataTable } from '@/components/data-table/data-table';
@@ -71,6 +72,7 @@ import {
   markedSearchParameterSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
+  vulnerabilityRatingSearchParameterSchema,
 } from '@/schemas';
 import { useUserSettingsStore } from '@/store/user-settings.store';
 
@@ -136,6 +138,7 @@ const renderSubComponent = ({
 const OrganizationVulnerabilitiesComponent = () => {
   const params = Route.useParams();
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
 
   const pageIndex = useMemo(
@@ -147,6 +150,36 @@ const OrganizationVulnerabilitiesComponent = () => {
     () => (search.pageSize ? search.pageSize : defaultPageSize),
     [search.pageSize]
   );
+
+  const rating = useMemo(
+    () => (search.rating ? search.rating : undefined),
+    [search.rating]
+  );
+
+  const columnFilters = useMemo(() => {
+    const filters = [];
+    if (rating) {
+      filters.push({
+        id: 'rating',
+        value: rating,
+      });
+    }
+    return filters;
+  }, [rating]);
+
+  const {
+    data: totalVulnerabilities,
+    error: totIsError,
+    isPending: totPending,
+    isError: totError,
+  } = useQuery({
+    ...getVulnerabilitiesAcrossRepositoriesByOrganizationIdOptions({
+      path: { organizationId: Number.parseInt(params.orgId) },
+      query: {
+        limit: 1,
+      },
+    }),
+  });
 
   const {
     data: vulnerabilities,
@@ -160,6 +193,7 @@ const OrganizationVulnerabilitiesComponent = () => {
         limit: pageSize,
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(search.sortBy),
+        rating: rating?.join(','),
       },
     }),
   });
@@ -223,7 +257,24 @@ const OrganizationVulnerabilitiesComponent = () => {
             </Badge>
           );
         },
-        enableColumnFilter: false,
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: zVulnerabilityRating.options.map((rating) => ({
+              label: rating,
+              value: rating,
+            })),
+            setSelected: (ratings: VulnerabilityRating[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  rating: ratings.length === 0 ? undefined : ratings,
+                },
+              });
+            },
+          },
+        },
       }),
       columnHelper.accessor('repositoriesCount', {
         id: 'repositoriesCount',
@@ -276,7 +327,7 @@ const OrganizationVulnerabilitiesComponent = () => {
         enableColumnFilter: false,
       }),
     ],
-    [packageIdType, search]
+    [packageIdType, search, navigate]
   );
 
   const [expanded, setExpanded] = useState<ExpandedState>(
@@ -294,6 +345,7 @@ const OrganizationVulnerabilitiesComponent = () => {
         pageIndex,
         pageSize,
       },
+      columnFilters,
       sorting: search.sortBy,
       expanded: expanded,
     },
@@ -304,13 +356,13 @@ const OrganizationVulnerabilitiesComponent = () => {
     manualPagination: true,
   });
 
-  if (isPending) {
+  if (isPending || totPending) {
     return <LoadingIndicator />;
   }
 
-  if (isError) {
+  if (isError || totIsError) {
     toast.error('Unable to load data', {
-      description: <ToastError error={error} />,
+      description: <ToastError error={error || totError} />,
       duration: Infinity,
       cancel: {
         label: 'Dismiss',
@@ -320,12 +372,18 @@ const OrganizationVulnerabilitiesComponent = () => {
     return;
   }
 
-  const totalVulnerabilities = vulnerabilities.pagination.totalCount;
+  const filtersInUse =
+    totalVulnerabilities.pagination.totalCount !==
+    vulnerabilities.pagination.totalCount;
+  const matching = `, ${vulnerabilities.pagination.totalCount} matching filters`;
 
   return (
     <Card className='h-fit'>
       <CardHeader>
-        <CardTitle>Vulnerabilities ({totalVulnerabilities} in total)</CardTitle>
+        <CardTitle>
+          Vulnerabilities ({totalVulnerabilities.pagination.totalCount} in total
+          {filtersInUse && matching})
+        </CardTitle>
         <CardDescription>
           These are the vulnerabilities found currently from this organization.
           Please note that the vulnerability status may change over time, as
@@ -370,6 +428,7 @@ export const Route = createFileRoute('/organizations/$orgId/vulnerabilities/')({
   validateSearch: z.object({
     ...paginationSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
+    ...vulnerabilityRatingSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
   loader: async ({ context: { queryClient }, params }) => {
