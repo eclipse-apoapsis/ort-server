@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { createRepositoryMutation } from '@/api/@tanstack/react-query.gen';
+import { zRepositoryType } from '@/api/zod.gen';
 import { asOptionalField } from '@/components/form/as-optional-field.ts';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
 import { ToastError } from '@/components/toast-error';
@@ -56,12 +57,11 @@ import { useUser } from '@/hooks/use-user';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
-import { repositoryTypeSchema } from '@/schemas';
 
 const formSchema = z.object({
   url: z.url(),
   description: asOptionalField(z.string().min(1)),
-  type: repositoryTypeSchema,
+  type: zRepositoryType,
 });
 
 const CreateRepositoryPage = () => {
@@ -168,7 +168,7 @@ const CreateRepositoryPage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values(repositoryTypeSchema.enum).map((type) => (
+                      {Object.values(zRepositoryType.enum).map((type) => (
                         <SelectItem key={type} value={type}>
                           {getRepositoryTypeLabel(type)}
                         </SelectItem>

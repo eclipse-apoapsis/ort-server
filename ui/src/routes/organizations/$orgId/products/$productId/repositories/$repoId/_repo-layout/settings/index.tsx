@@ -33,6 +33,7 @@ import {
   getRepositoryByIdOptions,
   patchRepositoryByIdMutation,
 } from '@/api/@tanstack/react-query.gen';
+import { zRepositoryType } from '@/api/zod.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -62,12 +63,11 @@ import {
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
-import { repositoryTypeSchema } from '@/schemas';
 
 const formSchema = z.object({
   url: z.string(),
   description: z.string().optional(),
-  type: repositoryTypeSchema,
+  type: zRepositoryType,
 });
 
 const RepositorySettingsPage = () => {
@@ -218,13 +218,11 @@ const RepositorySettingsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Object.values(repositoryTypeSchema.enum).map(
-                          (type) => (
-                            <SelectItem key={type} value={type}>
-                              {getRepositoryTypeLabel(type)}
-                            </SelectItem>
-                          )
-                        )}
+                        {Object.values(zRepositoryType.enum).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {getRepositoryTypeLabel(type)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
