@@ -22,7 +22,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Download } from 'lucide-react';
 
 import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
-import { client } from '@/api/client.gen';
 import CycloneDXDark from '@/assets/cyclonedx-logo-black.svg';
 import CycloneDXLight from '@/assets/cyclonedx-logo-white.svg';
 import SPDX from '@/assets/spdx-logo-color.svg';
@@ -36,10 +35,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { config } from '@/config';
 import { useUser } from '@/hooks/use-user.ts';
 import { toast } from '@/lib/toast';
 
-const API_URL = client.getConfig().baseURL;
+const API_URL = config.API_URL;
 
 const SBOMComponent = () => {
   const params = Route.useParams();
