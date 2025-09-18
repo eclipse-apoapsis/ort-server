@@ -38,7 +38,7 @@ class CustomLicenseFactProviderTest : WordSpec({
             } returns LICENSE_TEXT
 
             val provider = CustomLicenseFactProvider(configManager, configContext, licenseDir)
-            val licenseText = provider.getLicenseText(LICENSE_ID)
+            val licenseText = provider.getLicenseText(LICENSE_ID)?.text
 
             licenseText shouldBe LICENSE_TEXT
         }
@@ -50,7 +50,7 @@ class CustomLicenseFactProviderTest : WordSpec({
             } returns LICENSE_TEXT
 
             val provider = CustomLicenseFactProvider(configManager, configContext, Path("${licenseDir.path}/"))
-            val licenseText = provider.getLicenseText(LICENSE_ID)
+            val licenseText = provider.getLicenseText(LICENSE_ID)?.text
 
             licenseText shouldBe LICENSE_TEXT
         }
