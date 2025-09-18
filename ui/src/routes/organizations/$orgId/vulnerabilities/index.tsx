@@ -70,6 +70,7 @@ import { identifierToString } from '@/helpers/identifier-conversion';
 import { toast } from '@/lib/toast';
 import {
   markedSearchParameterSchema,
+  packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
   sortingSearchParameterSchema,
   vulnerabilityRatingSearchParameterSchema,
@@ -156,6 +157,11 @@ const OrganizationVulnerabilitiesComponent = () => {
     [search.rating]
   );
 
+  const packageIdentifier = useMemo(
+    () => (search.pkgId ? search.pkgId : undefined),
+    [search.pkgId]
+  );
+
   const columnFilters = useMemo(() => {
     const filters = [];
     if (rating) {
@@ -164,8 +170,14 @@ const OrganizationVulnerabilitiesComponent = () => {
         value: rating,
       });
     }
+    if (packageIdentifier) {
+      filters.push({
+        id: packageIdType === 'ORT_ID' ? 'identifier' : 'purl',
+        value: packageIdentifier,
+      });
+    }
     return filters;
-  }, [rating]);
+  }, [rating, packageIdentifier, packageIdType]);
 
   const {
     data: totalVulnerabilities,
@@ -194,6 +206,9 @@ const OrganizationVulnerabilitiesComponent = () => {
         offset: pageIndex * pageSize,
         sort: convertToBackendSorting(search.sortBy),
         rating: rating?.join(','),
+        ...(packageIdType === 'ORT_ID'
+          ? { identifier: packageIdentifier }
+          : { purl: packageIdentifier }),
       },
     }),
   });
@@ -300,7 +315,16 @@ const OrganizationVulnerabilitiesComponent = () => {
               <BreakableString text={getValue()} className='font-semibold' />
             );
           },
-          enableColumnFilter: false,
+          meta: {
+            filter: {
+              filterVariant: 'text',
+              setFilterValue: (value: string | undefined) => {
+                navigate({
+                  search: { ...search, page: 1, pkgId: value },
+                });
+              },
+            },
+          },
         }
       ),
       columnHelper.accessor('vulnerability.externalId', {
@@ -429,6 +453,7 @@ export const Route = createFileRoute('/organizations/$orgId/vulnerabilities/')({
     ...paginationSearchParameterSchema.shape,
     ...sortingSearchParameterSchema.shape,
     ...vulnerabilityRatingSearchParameterSchema.shape,
+    ...packageIdentifierSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
   loader: async ({ context: { queryClient }, params }) => {
