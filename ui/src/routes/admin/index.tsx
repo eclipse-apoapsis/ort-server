@@ -25,10 +25,10 @@ import {
   getOrganizationsOptions,
   getOrtRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { zOrtRunStatus } from '@/api/zod.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
 import { toast } from '@/lib/toast';
-import { runStatusSchema } from '@/schemas';
 
 const OverviewContent = () => {
   const {
@@ -115,10 +115,7 @@ const OverviewContent = () => {
             className='h-full'
           />
         </Link>
-        <Link
-          to='/admin/runs'
-          search={{ status: [runStatusSchema.enum.ACTIVE] }}
-        >
+        <Link to='/admin/runs' search={{ status: [zOrtRunStatus.enum.ACTIVE] }}>
           <StatisticsCard
             title='Active runs'
             icon={() => <AudioWaveform className='h-4 w-4' />}
