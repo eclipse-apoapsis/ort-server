@@ -19,6 +19,8 @@
 
 import z from 'zod';
 
+import { zOrtRunStatus, zSeverity, zVulnerabilityRating } from '@/api/zod.gen';
+
 // Enum schema for the groupId parameter of the Groups endpoints
 export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
 
@@ -38,43 +40,6 @@ export type IssueCategory = z.infer<typeof issueCategorySchema>;
 // Enum schema and type for the possible package ID types.
 export const packageIdTypeSchema = z.enum(['PURL', 'ORT_ID']);
 export type PackageIdType = z.infer<typeof packageIdTypeSchema>;
-
-// These schemas are needed for validation now that the hey-api package doesn't
-// expose the const definitions like $RepositoryType anymore; it only exposes
-// the type.
-//
-// TODO: hey-api has a Zod plugin, but it won't live alongside the old
-// 7nohe query client, so once that's removed, the code here can probably
-// be refactored to use the exposed definitions from hey-api.
-
-// Enum schema for the possible repository types.
-export const repositoryTypeSchema = z.enum([
-  'GIT',
-  'GIT_REPO',
-  'MERCURIAL',
-  'SUBVERSION',
-]);
-
-// Enum schema for the possible values of the status parameter of the ORT run
-export const runStatusSchema = z.enum([
-  'CREATED',
-  'ACTIVE',
-  'FINISHED',
-  'FAILED',
-  'FINISHED_WITH_ISSUES',
-]);
-
-// Enum schema for the possible values of the severities
-export const severitySchema = z.enum(['HINT', 'WARNING', 'ERROR']);
-
-// Enum schema for the possible values of the advisory overall vulnerability ratings
-export const vulnerabilityRatingSchema = z.enum([
-  'NONE',
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-  'CRITICAL',
-]);
 
 // Search parameter validation schemas
 
@@ -106,11 +71,11 @@ export const sortingSearchParameterSchema = z.object({
 });
 
 export const statusSearchParameterSchema = z.object({
-  status: z.array(runStatusSchema).optional(),
+  status: z.array(zOrtRunStatus).optional(),
 });
 
 export const severitySearchParameterSchema = z.object({
-  severity: z.array(severitySchema).optional(),
+  severity: z.array(zSeverity).optional(),
 });
 
 export const itemStatusSearchParameterSchema = z.object({
@@ -142,7 +107,7 @@ export const issueCategorySearchParameterSchema = z.object({
 });
 
 export const vulnerabilityRatingSearchParameterSchema = z.object({
-  rating: z.array(vulnerabilityRatingSchema).optional(),
+  rating: z.array(zVulnerabilityRating).optional(),
 });
 
 // This schema is used to validate the search parameter for the items marked for inspection
