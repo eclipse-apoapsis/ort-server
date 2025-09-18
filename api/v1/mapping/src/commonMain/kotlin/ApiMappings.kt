@@ -84,6 +84,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfo as ApiVcsInfo
 import org.eclipse.apoapsis.ortserver.api.v1.model.VcsInfoCurationData as ApiVcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.Vulnerability as ApiVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters as ApiVulnerabilityFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters as ApiVulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating as ApiVulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityReference as ApiVulnerabilityReference
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityResolution as ApiVulnerabilityResolution
@@ -128,6 +129,7 @@ import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.UserGroup
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityFilters
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithDetails
@@ -848,3 +850,14 @@ fun ContentManagementSection.mapToApi() = ApiContentManagementSection(
 )
 
 fun OidcConfig.mapToApi() = ApiOidcConfig(accessTokenUrl = accessTokenUrl, clientId = clientId)
+
+fun ApiVulnerabilityRating.mapToModel() = VulnerabilityRating.valueOf(name)
+
+fun ApiVulnerabilityForRunsFilters.mapToModel() = VulnerabilityForRunsFilters(
+    rating = rating?.mapToModel { ratingSet ->
+        ratingSet.map { it.mapToModel() }.toSet()
+    },
+    identifier = identifier?.mapToModel { it },
+    purl = purl?.mapToModel { it },
+    externalId = externalId?.mapToModel { it }
+)

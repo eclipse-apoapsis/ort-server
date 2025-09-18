@@ -54,11 +54,13 @@ import kotlinx.datetime.Clock
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
@@ -77,6 +79,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
@@ -114,6 +117,7 @@ import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
@@ -757,7 +761,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     superuserClient.get("/api/v1/products/$productId/vulnerabilities?sort=-rating,-repositoriesCount")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedSearchResponse(
                     listOf(
                         ProductVulnerability(
                             vulnerability = commonVulnerability.mapToApi(),
@@ -791,6 +795,325 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         sortProperties = listOf(
                             SortProperty("rating", SortDirection.DESCENDING),
                             SortProperty("repositoriesCount", SortDirection.DESCENDING)
+                        )
+                    ),
+                    VulnerabilityForRunsFilters()
+                )
+            }
+        }
+
+        "allow filtering by identifier and rating" {
+            integrationTestApplication {
+                val prodId = createProduct().id
+
+                val repo1Id = dbExtension.fixtures.createRepository(productId = prodId).id
+                val repo2Id = dbExtension.fixtures.createRepository(
+                    productId = prodId,
+                    url = "https://example.org/repo2.git"
+                ).id
+
+                val commonVulnerability1 = Vulnerability(
+                    externalId = "CVE-2020-01232",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "High",
+                            score = 6.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                val commonVulnerability2 = Vulnerability(
+                    externalId = "CVE-2021-12346",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "Medium",
+                            score = 4.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+
+                val pkg1 = dbExtension.fixtures.generatePackage(
+                    Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                )
+                val pkg2 = dbExtension.fixtures.generatePackage(
+                    Identifier("Maven", "org.apache.logging.log4j", "log4j-api", "2.14.0")
+                )
+
+                val run1Id = dbExtension.fixtures.createOrtRun(repo1Id).id
+                val analyzerJob1Id = dbExtension.fixtures.createAnalyzerJob(run1Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob1Id, packages = setOf(pkg1, pkg2))
+                val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(run1Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob1Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run1Vulnerability = Vulnerability(
+                    externalId = "CVE-2022-23458",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "LOW",
+                            score = 1.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob1Id,
+                    mapOf(
+                        pkg1.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability1))
+                        ),
+                        pkg2.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability2, run1Vulnerability))
+                        )
+                    )
+                )
+
+                val run2Id = dbExtension.fixtures.createOrtRun(repo2Id).id
+                val analyzerJob2Id = dbExtension.fixtures.createAnalyzerJob(run2Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob2Id, packages = setOf(pkg1, pkg2))
+                val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(run2Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob2Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run2Vulnerability = Vulnerability(
+                    externalId = "CVE-2023-34560",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "CRITICAL",
+                            score = 9.9f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob2Id,
+                    mapOf(
+                        pkg1.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability1))
+                        ),
+                        pkg2.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability2, run2Vulnerability))
+                        )
+                    )
+                )
+
+                val response =
+                    superuserClient.get("/api/v1/products/$prodId/vulnerabilities?identifier=api&rating=low,medium")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedSearchResponse(
+                    listOf(
+                        ProductVulnerability(
+                            vulnerability = commonVulnerability2.mapToApi(),
+                            identifier = pkg2.identifier.mapToApi(),
+                            purl = pkg2.purl,
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run1Id, run2Id),
+                            repositoriesCount = 2
+                        ),
+                        ProductVulnerability(
+                            vulnerability = run1Vulnerability.mapToApi(),
+                            identifier = pkg2.identifier.mapToApi(),
+                            purl = pkg2.purl,
+                            rating = VulnerabilityRating.LOW,
+                            ortRunIds = listOf(run1Id),
+                            repositoriesCount = 1
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(
+                            SortProperty("rating", SortDirection.DESCENDING)
+                        )
+                    ),
+                    VulnerabilityForRunsFilters(
+                        rating = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf(VulnerabilityRating.LOW, VulnerabilityRating.MEDIUM)
+                        ),
+                        identifier = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "api"
+                        )
+                    )
+                )
+            }
+        }
+
+        "allow filtering by purl and external ID" {
+            integrationTestApplication {
+                val prodId = createProduct().id
+
+                val repo1Id = dbExtension.fixtures.createRepository(productId = prodId).id
+                val repo2Id = dbExtension.fixtures.createRepository(
+                    productId = prodId,
+                    url = "https://example.org/repo2.git"
+                ).id
+
+                val commonVulnerability1 = Vulnerability(
+                    externalId = "CVE-2020-01232",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "High",
+                            score = 6.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                val commonVulnerability2 = Vulnerability(
+                    externalId = "CVE-2021-12346",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "Medium",
+                            score = 4.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+
+                val pkg1 = dbExtension.fixtures.generatePackage(
+                    Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                )
+                val pkg2 = dbExtension.fixtures.generatePackage(
+                    Identifier("Maven", "org.apache.logging.log4j", "log4j-api", "2.14.0")
+                )
+
+                val run1Id = dbExtension.fixtures.createOrtRun(repo1Id).id
+                val analyzerJob1Id = dbExtension.fixtures.createAnalyzerJob(run1Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob1Id, packages = setOf(pkg1, pkg2))
+                val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(run1Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob1Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run1Vulnerability = Vulnerability(
+                    externalId = "CVE-2022-23458",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "LOW",
+                            score = 1.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob1Id,
+                    mapOf(
+                        pkg1.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability1))
+                        ),
+                        pkg2.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability2, run1Vulnerability))
+                        )
+                    )
+                )
+
+                val run2Id = dbExtension.fixtures.createOrtRun(repo2Id).id
+                val analyzerJob2Id = dbExtension.fixtures.createAnalyzerJob(run2Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob2Id, packages = setOf(pkg1, pkg2))
+                val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(run2Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob2Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run2Vulnerability = Vulnerability(
+                    externalId = "CVE-2023-34560",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "CRITICAL",
+                            score = 9.9f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob2Id,
+                    mapOf(
+                        pkg1.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability1))
+                        ),
+                        pkg2.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability2, run2Vulnerability))
+                        )
+                    )
+                )
+
+                val response =
+                    superuserClient.get("/api/v1/products/$prodId/vulnerabilities?purl=api&externalId=234")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedSearchResponse(
+                    listOf(
+                        ProductVulnerability(
+                            vulnerability = commonVulnerability2.mapToApi(),
+                            identifier = pkg2.identifier.mapToApi(),
+                            purl = pkg2.purl,
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run1Id, run2Id),
+                            repositoriesCount = 2
+                        ),
+                        ProductVulnerability(
+                            vulnerability = run1Vulnerability.mapToApi(),
+                            identifier = pkg2.identifier.mapToApi(),
+                            purl = pkg2.purl,
+                            rating = VulnerabilityRating.LOW,
+                            ortRunIds = listOf(run1Id),
+                            repositoriesCount = 1
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(
+                            SortProperty("rating", SortDirection.DESCENDING)
+                        )
+                    ),
+                    VulnerabilityForRunsFilters(
+                        purl = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "api"
+                        ),
+                        externalId = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "234"
                         )
                     )
                 )
