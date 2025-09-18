@@ -39,6 +39,7 @@ import {
   getOrtRunByIndexOptions,
   getRuleViolationsByRunIdOptions,
 } from '@/api/@tanstack/react-query.gen';
+import { zSeverity } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTable } from '@/components/data-table/data-table';
 import { MarkItems } from '@/components/data-table/mark-items';
@@ -77,7 +78,6 @@ import {
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
-  severitySchema,
   severitySearchParameterSchema,
   sortingSearchParameterSchema,
 } from '@/schemas';
@@ -199,7 +199,7 @@ const RuleViolationsComponent = () => {
       meta: {
         filter: {
           filterVariant: 'select',
-          selectOptions: severitySchema.options.map((severity) => ({
+          selectOptions: zSeverity.options.map((severity) => ({
             label: severity,
             value: severity,
           })),
