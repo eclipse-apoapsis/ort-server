@@ -69,6 +69,7 @@ import {
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { toast } from '@/lib/toast';
 import {
+  externalIdSearchParameterSchema,
   markedSearchParameterSchema,
   packageIdentifierSearchParameterSchema,
   paginationSearchParameterSchema,
@@ -162,6 +163,11 @@ const OrganizationVulnerabilitiesComponent = () => {
     [search.pkgId]
   );
 
+  const externalId = useMemo(
+    () => (search.externalId ? search.externalId : undefined),
+    [search.externalId]
+  );
+
   const columnFilters = useMemo(() => {
     const filters = [];
     if (rating) {
@@ -176,8 +182,11 @@ const OrganizationVulnerabilitiesComponent = () => {
         value: packageIdentifier,
       });
     }
+    if (externalId) {
+      filters.push({ id: 'externalId', value: externalId });
+    }
     return filters;
-  }, [rating, packageIdentifier, packageIdType]);
+  }, [rating, packageIdentifier, packageIdType, externalId]);
 
   const {
     data: totalVulnerabilities,
@@ -209,6 +218,7 @@ const OrganizationVulnerabilitiesComponent = () => {
         ...(packageIdType === 'ORT_ID'
           ? { identifier: packageIdentifier }
           : { purl: packageIdentifier }),
+        externalId: externalId,
       },
     }),
   });
@@ -335,7 +345,16 @@ const OrganizationVulnerabilitiesComponent = () => {
             {row.getValue('externalId')}
           </Badge>
         ),
-        enableColumnFilter: false,
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, externalId: value },
+              });
+            },
+          },
+        },
       }),
       columnHelper.accessor('vulnerability.summary', {
         id: 'summary',
@@ -454,6 +473,7 @@ export const Route = createFileRoute('/organizations/$orgId/vulnerabilities/')({
     ...sortingSearchParameterSchema.shape,
     ...vulnerabilityRatingSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
+    ...externalIdSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
   loader: async ({ context: { queryClient }, params }) => {
