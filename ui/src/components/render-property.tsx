@@ -37,7 +37,7 @@ export const RenderProperty = <T,>({
       case 'keyvalue': {
         const isEmpty =
           value && typeof value === 'object' && Object.keys(value).length === 0;
-        return (
+        return !showIfEmpty && isEmpty ? null : (
           <div className={`flex ${!isEmpty && 'flex-col'}`}>
             <div className='font-semibold'>
               {label}
