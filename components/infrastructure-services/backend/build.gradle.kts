@@ -17,12 +17,13 @@
  * License-Filename: LICENSE
  */
 
+import org.gradle.kotlin.dsl.withType
+
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("ort-server-kotlin-component-backend-conventions")
     id("ort-server-publication-conventions")
-
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "org.eclipse.apoapsis.ortserver.components.infrastructureservices"
@@ -41,13 +42,12 @@ repositories {
 
 dependencies {
     api(projects.components.infrastructureServices.apiModel)
+    api(projects.components.secrets.backend)
     api(projects.model)
 
     implementation(projects.dao)
 
     implementation(libs.exposedCore)
-
-    routesApi(projects.services.infrastructureService)
 
     routesImplementation(projects.components.authorization.backend)
     routesImplementation(projects.shared.apiMappings)
@@ -56,8 +56,6 @@ dependencies {
     routesImplementation(ktorLibs.server.auth)
     routesImplementation(ktorLibs.server.core)
     routesImplementation(libs.ktorOpenApi)
-
-    testImplementation(projects.components.secrets.backend)
 
     testImplementation(testFixtures(projects.clients.keycloak))
     testImplementation(testFixtures(projects.dao))
@@ -73,5 +71,10 @@ dependencies {
     testImplementation(libs.kotestAssertionsKtor)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.kotlinxSerializationJson)
-    testImplementation(libs.mockk)
+}
+
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
 }

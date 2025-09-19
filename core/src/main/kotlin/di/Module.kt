@@ -28,6 +28,7 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
@@ -47,7 +48,6 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.DaoAnalyzerJo
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.DaoAnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.DaoEvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorrun.DaoEvaluatorRunRepository
-import org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice.DaoInfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierjob.DaoNotifierJobRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.notifierrun.DaoNotifierRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
@@ -68,7 +68,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.AnalyzerRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.EvaluatorRunRepository
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierJobRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.NotifierRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
@@ -85,7 +84,6 @@ import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.ContentManagementService
-import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
@@ -154,7 +152,6 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     single<AnalyzerRunRepository> { DaoAnalyzerRunRepository(get()) }
     single<EvaluatorJobRepository> { DaoEvaluatorJobRepository(get()) }
     single<EvaluatorRunRepository> { DaoEvaluatorRunRepository(get()) }
-    single<InfrastructureServiceRepository> { DaoInfrastructureServiceRepository(get()) }
     single<NotifierJobRepository> { DaoNotifierJobRepository(get()) }
     single<NotifierRunRepository> { DaoNotifierRunRepository(get()) }
     single<OrganizationRepository> { DaoOrganizationRepository(get()) }

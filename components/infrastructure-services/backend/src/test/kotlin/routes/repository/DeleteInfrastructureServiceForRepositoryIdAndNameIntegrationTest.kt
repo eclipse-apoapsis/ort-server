@@ -33,20 +33,20 @@ class DeleteInfrastructureServiceForRepositoryIdAndNameIntegrationTest : Infrast
     "DeleteInfrastructureServiceForRepositoryIdAndName" should {
         "delete an infrastructure service" {
             infrastructureServicesTestApplication { client ->
-                val service = infrastructureServiceRepository.create(
+                val service = infrastructureServiceService.createForId(
+                    RepositoryId(repoId),
                     "deleteService",
                     "http://repo1.example.org/obsolete",
                     "good bye, cruel world",
                     repoUserSecret,
                     repoPassSecret,
-                    emptySet(),
-                    RepositoryId(repoId)
+                    emptySet()
                 )
 
                 val response = client.delete("/repositories/$repoId/infrastructure-services/${service.name}")
 
                 response shouldHaveStatus HttpStatusCode.NoContent
-                infrastructureServiceRepository.listForId(RepositoryId(repoId)).data should beEmpty()
+                infrastructureServiceService.listForId(RepositoryId(repoId)).data should beEmpty()
             }
         }
     }
