@@ -52,9 +52,11 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
+import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrganizationVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
@@ -65,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
@@ -100,6 +103,7 @@ import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
+import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
@@ -1122,7 +1126,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     )
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response shouldHaveBody PagedResponse(
+                response shouldHaveBody PagedSearchResponse(
                     listOf(
                         OrganizationVulnerability(
                             vulnerability = commonVulnerability1.mapToApi(),
@@ -1172,6 +1176,339 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         sortProperties = listOf(
                             SortProperty("rating", SortDirection.DESCENDING),
                             SortProperty("repositoriesCount", SortDirection.DESCENDING)
+                        )
+                    ),
+                    VulnerabilityForRunsFilters()
+                )
+            }
+        }
+
+        "allow filtering by identifier and rating" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val prod1Id = dbExtension.fixtures.createProduct(organizationId = orgId).id
+                val prod2Id = dbExtension.fixtures.createProduct("Prod2", organizationId = orgId).id
+
+                val repo1Id = dbExtension.fixtures.createRepository(productId = prod1Id).id
+                val repo2Id = dbExtension.fixtures.createRepository(productId = prod2Id).id
+
+                val commonVulnerability1 = Vulnerability(
+                    externalId = "CVE-2020-01232",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "High",
+                            score = 6.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                val commonVulnerability2 = Vulnerability(
+                    externalId = "CVE-2021-12346",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "Medium",
+                            score = 4.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+
+                val pkg1 = dbExtension.fixtures.generatePackage(
+                    Identifier("Maven", "org.apache.logging.log4j", "log4j-core", "2.14.0")
+                )
+                val pkg2 = dbExtension.fixtures.generatePackage(
+                    Identifier("Maven", "org.apache.logging.log4j", "log4j-api", "2.14.0")
+                )
+
+                val run1Id = dbExtension.fixtures.createOrtRun(repo1Id).id
+                val analyzerJob1Id = dbExtension.fixtures.createAnalyzerJob(run1Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob1Id, packages = setOf(pkg1, pkg2))
+                val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(run1Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob1Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run1Vulnerability = Vulnerability(
+                    externalId = "CVE-2022-23458",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "LOW",
+                            score = 1.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob1Id,
+                    mapOf(
+                        pkg1.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability1, run1Vulnerability))
+                        ),
+                        pkg2.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability2))
+                        )
+                    )
+                )
+
+                val run2Id = dbExtension.fixtures.createOrtRun(repo2Id).id
+                val analyzerJob2Id = dbExtension.fixtures.createAnalyzerJob(run2Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob2Id, packages = setOf(pkg1, pkg2))
+                val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(run2Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob2Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run2Vulnerability = Vulnerability(
+                    externalId = "CVE-2023-34560",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "CRITICAL",
+                            score = 9.9f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob2Id,
+                    mapOf(
+                        pkg1.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability1, run2Vulnerability))
+                        ),
+                        pkg2.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability2))
+                        )
+                    )
+                )
+
+                val response =
+                    superuserClient.get(
+                        "/api/v1/organizations/$orgId/vulnerabilities?identifier=core&rating=high,critical"
+                    )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedSearchResponse(
+                    listOf(
+                        OrganizationVulnerability(
+                            vulnerability = run2Vulnerability.mapToApi(),
+                            identifier = pkg1.identifier.mapToApi(),
+                            purl = pkg1.purl,
+                            rating = VulnerabilityRating.CRITICAL,
+                            ortRunIds = listOf(run2Id),
+                            repositoriesCount = 1
+                        ),
+                        OrganizationVulnerability(
+                            vulnerability = commonVulnerability1.mapToApi(),
+                            identifier = pkg1.identifier.mapToApi(),
+                            purl = pkg1.purl,
+                            rating = VulnerabilityRating.HIGH,
+                            ortRunIds = listOf(run1Id, run2Id),
+                            repositoriesCount = 2
+                        ),
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(
+                            SortProperty("rating", SortDirection.DESCENDING)
+                        )
+                    ),
+                    VulnerabilityForRunsFilters(
+                        rating = FilterOperatorAndValue(
+                            ComparisonOperator.IN,
+                            setOf(VulnerabilityRating.HIGH, VulnerabilityRating.CRITICAL)
+                        ),
+                        identifier = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "core"
+                        )
+                    )
+                )
+            }
+        }
+
+        "allow filtering by purl and external ID" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+
+                val prod1Id = dbExtension.fixtures.createProduct(organizationId = orgId).id
+                val prod2Id = dbExtension.fixtures.createProduct("Prod2", organizationId = orgId).id
+
+                val repo1Id = dbExtension.fixtures.createRepository(productId = prod1Id).id
+                val repo2Id = dbExtension.fixtures.createRepository(productId = prod2Id).id
+
+                val commonVulnerability1 = Vulnerability(
+                    externalId = "CVE-2020-0123",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "High",
+                            score = 6.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                val commonVulnerability2 = Vulnerability(
+                    externalId = "CVE-2021-1234",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "Medium",
+                            score = 4.2f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+
+                val pkg1 = dbExtension.fixtures.generatePackage(
+                    Identifier(
+                        "Maven",
+                        "org.apache.logging.log4j",
+                        "log4j-core",
+                        "2.14.0"
+                    )
+                )
+                val pkg2 = dbExtension.fixtures.generatePackage(
+                    Identifier(
+                        "Maven",
+                        "org.apache.logging.log4j",
+                        "log4j-api",
+                        "2.14.0"
+                    )
+                )
+
+                val run1Id = dbExtension.fixtures.createOrtRun(repo1Id).id
+                val analyzerJob1Id = dbExtension.fixtures.createAnalyzerJob(run1Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob1Id, packages = setOf(pkg1, pkg2))
+                val advisorJob1Id = dbExtension.fixtures.createAdvisorJob(run1Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob1Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run1Vulnerability = Vulnerability(
+                    externalId = "CVE-2022-2345",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "LOW",
+                            score = 1.1f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob1Id,
+                    mapOf(
+                        pkg1.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability1))
+                        ),
+                        pkg2.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability2, run1Vulnerability))
+                        )
+                    )
+                )
+
+                val run2Id = dbExtension.fixtures.createOrtRun(repo2Id).id
+                val analyzerJob2Id = dbExtension.fixtures.createAnalyzerJob(run2Id).id
+                dbExtension.fixtures.createAnalyzerRun(analyzerJob2Id, packages = setOf(pkg1, pkg2))
+                val advisorJob2Id = dbExtension.fixtures.createAdvisorJob(run2Id).id
+                dbExtension.fixtures.advisorJobRepository.update(
+                    advisorJob2Id,
+                    status = JobStatus.FINISHED.asPresent2()
+                )
+                val run2Vulnerability = Vulnerability(
+                    externalId = "CVE-2021-3456",
+                    summary = "A vulnerability",
+                    description = "A description",
+                    references = listOf(
+                        VulnerabilityReference(
+                            url = "https://example.com",
+                            scoringSystem = "CVSS",
+                            severity = "CRITICAL",
+                            score = 9.9f,
+                            vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                        )
+                    )
+                )
+                dbExtension.fixtures.createAdvisorRun(
+                    advisorJob2Id,
+                    mapOf(
+                        pkg1.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability1))
+                        ),
+                        pkg2.identifier to listOf(
+                            generateAdvisorResult(listOf(commonVulnerability2, run2Vulnerability))
+                        )
+                    )
+                )
+
+                val response =
+                    superuserClient.get(
+                        "/api/v1/organizations/$orgId/vulnerabilities?purl=api&externalId=2021"
+                    )
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedSearchResponse(
+                    listOf(
+                        OrganizationVulnerability(
+                            vulnerability = run2Vulnerability.mapToApi(),
+                            identifier = pkg2.identifier.mapToApi(),
+                            purl = pkg2.purl,
+                            rating = VulnerabilityRating.CRITICAL,
+                            ortRunIds = listOf(run2Id),
+                            repositoriesCount = 1
+                        ),
+                        OrganizationVulnerability(
+                            vulnerability = commonVulnerability2.mapToApi(),
+                            identifier = pkg2.identifier.mapToApi(),
+                            purl = pkg2.purl,
+                            rating = VulnerabilityRating.MEDIUM,
+                            ortRunIds = listOf(run1Id, run2Id),
+                            repositoriesCount = 2
+                        ),
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(
+                            SortProperty("rating", SortDirection.DESCENDING)
+                        )
+                    ),
+                    VulnerabilityForRunsFilters(
+                        purl = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "api"
+                        ),
+                        externalId = FilterOperatorAndValue(
+                            ComparisonOperator.ILIKE,
+                            "2021"
                         )
                     )
                 )

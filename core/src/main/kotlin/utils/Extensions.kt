@@ -19,14 +19,20 @@
 
 package org.eclipse.apoapsis.ortserver.core.utils
 
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.config.tryGetString
 
+import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
+import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 
 fun ConfigManager.createKeycloakClientConfiguration(): KeycloakClientConfiguration {
     val baseUrl = getString("keycloak.baseUrl")
@@ -139,3 +145,37 @@ fun CreateOrtRun.hasKeepAliveWorkerFlag() =
     jobConfigs.notifier?.keepAliveWorker == true ||
     jobConfigs.reporter?.keepAliveWorker == true ||
     jobConfigs.scanner?.keepAliveWorker == true
+
+/**
+ * Find the constant of an enum by its [name] ignoring case. Throw a meaningful exception if the name cannot be
+ * resolved.
+ */
+inline fun <reified E : Enum<E>> findByName(name: String): E =
+    runCatching { enumValueOf<E>(name.uppercase()) }.getOrNull() ?: throw QueryParametersException(
+        "Invalid parameter value: '$name'. Allowed values are: " +
+                enumValues<E>().joinToString { "'$it'" }
+    )
+
+/** Extract [VulnerabilityForRunsFilters] from the [ApplicationCall] */
+fun ApplicationCall.vulnerabilityForRunsFilters(): VulnerabilityForRunsFilters {
+    return VulnerabilityForRunsFilters(
+        rating = parameters["rating"]?.let {
+            val parts = parameters["rating"]?.split(',').orEmpty()
+
+            val ratingOperator = if (parts.first() == ("-")) ComparisonOperator.NOT_IN else ComparisonOperator.IN
+
+            val ratings = parts
+                .filter { part -> part != "-" }
+                .map { rating -> findByName<VulnerabilityRating>(rating) }
+                .toSet()
+
+            FilterOperatorAndValue(
+                ratingOperator,
+                ratings
+            )
+        },
+        identifier = parameters["identifier"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        purl = parameters["purl"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) },
+        externalId = parameters["externalId"]?.let { FilterOperatorAndValue(ComparisonOperator.ILIKE, it) }
+    )
+}

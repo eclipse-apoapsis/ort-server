@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putProductRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
+import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
@@ -219,6 +220,7 @@ fun Route.products() = route("products/{productId}") {
 
             val productId = call.requireIdParameter("productId")
             val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
+            val filters = call.vulnerabilityForRunsFilters()
 
             val repositoryIds = productService.getRepositoryIdsForProduct(productId)
 
@@ -227,11 +229,13 @@ fun Route.products() = route("products/{productId}") {
             }
 
             val vulnerabilities =
-                vulnerabilityService.listForOrtRuns(ortRunIds, pagingOptions.mapToModel())
+                vulnerabilityService.listForOrtRuns(ortRunIds, pagingOptions.mapToModel(), filters.mapToModel())
 
-            val pagedResponse = vulnerabilities.mapToApi(VulnerabilityWithAccumulatedData::mapToApi)
+            val pagedSearchResponse = vulnerabilities
+                .mapToApi(VulnerabilityWithAccumulatedData::mapToApi)
+                .toSearchResponse(filters)
 
-            call.respond(HttpStatusCode.OK, pagedResponse)
+            call.respond(HttpStatusCode.OK, pagedSearchResponse)
         }
     }
 

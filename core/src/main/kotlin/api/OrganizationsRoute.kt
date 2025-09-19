@@ -32,6 +32,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
@@ -57,6 +58,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganizationById
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putOrganizationRoleToUser
+import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
@@ -239,6 +241,7 @@ fun Route.organizations() = route("organizations") {
 
                 val organizationId = call.requireIdParameter("organizationId")
                 val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
+                val filters = call.vulnerabilityForRunsFilters()
 
                 val repositoryIds = organizationService.getRepositoryIdsForOrganization(organizationId)
 
@@ -246,12 +249,17 @@ fun Route.organizations() = route("organizations") {
                     repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
                 }
 
-                val vulnerabilities =
-                    vulnerabilityService.listForOrtRuns(ortRunIds, pagingOptions.mapToModel())
+                val vulnerabilities = vulnerabilityService.listForOrtRuns(
+                    ortRunIds,
+                    pagingOptions.mapToModel(),
+                    filters.mapToModel()
+                )
 
-                val pagedResponse = vulnerabilities.mapToApi(VulnerabilityWithAccumulatedData::mapToApi)
+                val pagedSearchResponse = vulnerabilities
+                    .mapToApi(VulnerabilityWithAccumulatedData::mapToApi)
+                    .toSearchResponse(filters)
 
-                call.respond(HttpStatusCode.OK, pagedResponse)
+                call.respond(HttpStatusCode.OK, pagedSearchResponse)
             }
         }
 

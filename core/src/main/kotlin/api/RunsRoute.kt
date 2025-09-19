@@ -65,7 +65,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.getProjectsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuleViolationsByRunId
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
-import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
+import org.eclipse.apoapsis.ortserver.core.utils.findByName
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.LogLevel
@@ -510,14 +510,4 @@ private fun ApplicationCall.issueFilters() =
 private fun ApplicationCall.vulnerabilityFilters() =
     VulnerabilityFilters(
         resolved = parameters["resolved"]?.lowercase()?.toBooleanStrictOrNull()
-    )
-
-/**
- * Find the constant of an enum by its [name] ignoring case. Throw a meaningful exception if the name cannot be
- * resolved.
- */
-private inline fun <reified E : Enum<E>> findByName(name: String): E =
-    runCatching { enumValueOf<E>(name.uppercase()) }.getOrNull() ?: throw QueryParametersException(
-        "Invalid parameter value: '$name'. Allowed values are: " +
-                enumValues<E>().joinToString { "'$it'" }
     )
