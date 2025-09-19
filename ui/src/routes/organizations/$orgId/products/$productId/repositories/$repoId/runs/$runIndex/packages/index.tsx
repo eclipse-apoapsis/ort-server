@@ -99,24 +99,47 @@ const renderSubComponent = ({
 
   return (
     <div className='flex flex-col gap-4'>
-      {pkg.isModified && (
-        <div>
-          <Tooltip>
-            <TooltipTrigger>
-              <Badge
-                className={`border ${getIssueSeverityBackgroundColor('HINT')}`}
-              >
-                MODIFIED
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              The source code of the package has been modified compared to the
-              original source code, e.g., in case of a fork of an upstream Open
-              Source project.
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      )}
+      {pkg.isModified ||
+        (pkg.isMetadataOnly && (
+          <div className='flex gap-2'>
+            <div className='font-semibold'>Flags:</div>
+            {pkg.isModified && (
+              <div>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge
+                      className={`border ${getIssueSeverityBackgroundColor('WARNING')}`}
+                    >
+                      MODIFIED
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    The package has been modified compared to the original
+                    package, e.g. in case of a fork of an upstream Open Source
+                    project.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
+            {pkg.isMetadataOnly && (
+              <div>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge
+                      className={`border ${getIssueSeverityBackgroundColor('HINT')}`}
+                    >
+                      METADATA ONLY
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    This is a metadata-only package that has no source code
+                    associated to it.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
+          </div>
+        ))}
       <RenderProperty label='Authors' value={pkg.authors} />
       <RenderProperty
         label='Description'
@@ -153,30 +176,26 @@ const renderSubComponent = ({
           />
         </div>
       </div>
-      <div>
-        <div className='font-semibold'>Source Artifact</div>
-        <div className='ml-2'>
-          {pkg.isMetadataOnly ? (
-            <div>This is a metadata-only package.</div>
-          ) : (
-            <>
-              <RenderProperty
-                label='URL'
-                value={pkg.sourceArtifact.url}
-                type='url'
-              />
-              <RenderProperty
-                label='Hash value'
-                value={pkg.sourceArtifact.hashValue}
-              />
-              <RenderProperty
-                label='Hash algorithm'
-                value={pkg.sourceArtifact.hashAlgorithm}
-              />
-            </>
-          )}
-        </div>
-      </div>
+      {!pkg.isMetadataOnly && (
+        <>
+          <div className='font-semibold'>Source Artifact</div>
+          <div className='ml-2'>
+            <RenderProperty
+              label='URL'
+              value={pkg.sourceArtifact.url}
+              type='url'
+            />
+            <RenderProperty
+              label='Hash value'
+              value={pkg.sourceArtifact.hashValue}
+            />
+            <RenderProperty
+              label='Hash algorithm'
+              value={pkg.sourceArtifact.hashAlgorithm}
+            />
+          </div>
+        </>
+      )}
       {pkg.shortestDependencyPaths.length > 0 && (
         <div>
           <div className='font-semibold'>Shortest dependency paths</div>
