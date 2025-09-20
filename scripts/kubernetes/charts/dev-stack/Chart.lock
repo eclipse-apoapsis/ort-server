@@ -1,0 +1,15 @@
+dependencies:
+- name: postgres
+  repository: oci://registry-1.docker.io/cloudpirates
+  version: 0.5.0
+- name: rabbitmq
+  repository: oci://registry-1.docker.io/cloudpirates
+  version: 0.2.11
+- name: keycloak
+  repository: oci://registry-1.docker.io/cloudpirates
+  version: 0.1.2
+- name: ort-server
+  repository: file://../ort-server
+  version: 0.1.0
+digest: sha256:a262ef73daa31e4d670b83a29f7900174e80f0a885e92a437caa4e5ffc020f7a
+generated: "2025-09-25T08:59:43.006947175+02:00"

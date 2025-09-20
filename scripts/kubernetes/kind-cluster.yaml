@@ -1,0 +1,27 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ort-server-dev
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # PostgreSQL
+      - containerPort: 31432
+        hostPort: 5432
+        protocol: TCP
+      # RabbitMQ
+      - containerPort: 31434
+        hostPort: 15672
+        protocol: TCP
+      # Keycloak
+      - containerPort: 31435
+        hostPort: 8080
+        protocol: TCP
+      # ORT Server API
+      - containerPort: 31436
+        hostPort: 8081
+        protocol: TCP
+      # ORT Server UI
+      - containerPort: 31437
+        hostPort: 8082
+        protocol: TCP
+

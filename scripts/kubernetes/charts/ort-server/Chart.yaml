@@ -1,0 +1,6 @@
+apiVersion: v2
+name: ort-server
+description: An ORT Server deployment on Azure Kubernetes Service.
+type: application
+version: 0.1.0
+appVersion: "0.29.0"

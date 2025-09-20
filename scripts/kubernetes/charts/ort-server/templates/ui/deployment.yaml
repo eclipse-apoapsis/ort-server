@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ort-server-ui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: ort-server-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ort-server-ui
+  template:
+    metadata:
+      labels:
+        app: ort-server-ui
+    spec:
+      containers:
+      - name: ort-server-ui
+        image: "{{ .Values.containerRegistry }}/ort-server-ui:{{ .Chart.AppVersion }}"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: UI_URL
+          value: {{ .Values.ui.url }}
+        - name: UI_API_URL
+          value: {{ .Values.ui.apiUrl }}
+        - name: UI_AUTHORITY
+          value: {{ .Values.ui.authority }}
+        - name: UI_CLIENT_ID
+          value: {{ .Values.ui.clientId }}

@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ort-server-core
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: ort-server-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ort-server-core
+  template:
+    metadata:
+      labels:
+        app: ort-server-core
+    spec:
+      containers:
+        - name: ort-server-core
+          image: "{{ .Values.containerRegistry }}/ort-server-core:{{ .Chart.AppVersion }}"
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            failureThreshold: 6
+            httpGet:
+              path: /api/v1/liveness
+              port: 8080
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          env:
+            # Webserver
+            - name: PORT
+              value: "8080"
+            - name: UI_HOSTS
+              value: {{ .Values.core.uiHosts }}
+
+            # Database
+            - name: DB_HOST
+              value: {{ .Values.database.host }}
+            - name: DB_PORT
+              value: "{{ .Values.database.port }}"
+            - name: DB_NAME
+              value: {{ .Values.database.name }}
+            - name: DB_SCHEMA
+              value: {{ .Values.database.schema }}
+            - name: DB_USERNAME
+              value: {{ .Values.database.username }}
+            - name: DB_PASSWORD
+              value: {{ .Values.database.password }}
+            - name: DB_SSL_MODE
+              value: {{ .Values.database.sslMode }}
+
+            # Keycloak
+            - name: JWT_URI
+              value: {{ .Values.core.keycloak.jwtUri }}
+            - name: JWT_ISSUER
+              value: {{ .Values.core.keycloak.jwtIssuer }}
+            - name: KEYCLOAK_ACCESS_TOKEN_URL
+              value: {{ .Values.core.keycloak.accessTokenUrl }}
+            - name: KEYCLOAK_API_URL
+              value: {{ .Values.core.keycloak.apiUrl }}
+            - name: KEYCLOAK_API_USER
+              value: {{ .Values.core.keycloak.apiUser }}
+            - name: KEYCLOAK_API_SECRET
+              value: {{ .Values.core.keycloak.apiSecret }}
+            - name: KEYCLOAK_CLIENT_ID
+              value: {{ .Values.core.keycloak.clientId }}
+            - name: KEYCLOAK_SUBJECT_CLIENT_ID
+              value: {{ .Values.core.keycloak.subjectClientId }}
+
+            # User secret provider
+            {{- if .Values.secrets.fileBased.enabled }}
+            - name: SECRETS_PROVIDER_NAME
+              value: fileBased
+            - name: FILE_BASED_PATH
+              value: {{ .Values.secrets.fileBased.path }}
+            {{- end }}
+
+            # Admin secret provider
+            - name: ALLOW_SECRETS_FROM_CONFIG
+              value: "true"
+            # Allow setting all typesafe config properties with environment variables. This is required because not all
+            # config properties have environment variable substitutions configured.
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Dconfig.override_with_env_vars=true"
+
+            # File list storage
+            {{- if .Values.storage.database.enabled }}
+            - name: FILE_LIST_STORAGE_NAME
+              value: database
+            - name: FILE_LIST_STORAGE_NAMESPACE
+              value: {{ .Values.storage.database.namespaces.fileLists }}
+            - name: FILE_LIST_STORAGE_IN_MEMORY_LIMIT
+              value: "{{ .Values.storage.database.inMemoryLimit }}"
+            {{- end }}
+
+            # Report storage
+            {{- if .Values.storage.database.enabled }}
+            - name: REPORT_STORAGE_NAME
+              value: database
+            - name: REPORT_STORAGE_NAMESPACE
+              value: {{ .Values.storage.database.namespaces.reports }}
+            - name: REPORT_STORAGE_IN_MEMORY_LIMIT
+              value: "{{ .Values.storage.database.inMemoryLimit }}"
+            {{- end }}
+
+            # Orchestrator sender
+            {{- if .Values.transport.rabbitmq.enabled }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
+              value: rabbitMQ
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
+              value: {{ .Values.transport.queues.orchestrator }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
+              value: {{ .Values.transport.rabbitmq.serverUri }}
+            # The RabbitMQ transport does not use the default properties for the credentials.
+            - name: CONFIG_FORCE_orchestrator_sender_rabbitMqUser
+              value: {{ .Values.transport.rabbitmq.username }}
+            - name: CONFIG_FORCE_orchestrator_sender_rabbitMqPassword
+              value: {{ .Values.transport.rabbitmq.password }}
+            # - name: ORCHESTRATOR_SENDER_TRANSPORT_USERNAME
+            #   value: {{ .Values.transport.rabbitmq.username }}
+            # - name: ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD
+            #   value: {{ .Values.transport.rabbitmq.password }}
+            {{- end }}

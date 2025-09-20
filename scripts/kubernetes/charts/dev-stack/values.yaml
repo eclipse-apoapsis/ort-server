@@ -1,0 +1,140 @@
+ort-server:
+  database:
+    host: dev-dev-postgres
+    name: myuser
+    schema: public
+    username: myuser
+    password: mypassword
+    sslMode: disable
+  transport:
+    rabbitmq:
+      enabled: true
+      serverUri: amqp://dev-dev-rabbitmq:5672
+      username: myuser
+      password: mypassword
+  core:
+    keycloak:
+      jwtUri: http://dev-dev-keycloak:8080/realms/master/protocol/openid-connect/certs
+      jwtIssuer: http://localhost:8080/realms/master
+      accessTokenUrl: http://dev-dev-keycloak:8080/realms/master/protocol/openid-connect/token
+      apiUrl: http://dev-dev-keycloak:8080/admin/realms/master
+      apiUser: myuser
+      apiSecret: mypassword
+      clientId: admin-cli
+      subjectClientId: ort-server
+  ui:
+    url: http://localhost:8082
+    apiUrl: http://localhost:8081
+    authority: http://localhost:8080/realms/master
+    clientId: ort-server
+  extraObjects:
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: ort-server-core-nodeport
+        namespace: "{{ .Release.Namespace }}"
+      spec:
+        type: NodePort
+        selector:
+          app: ort-server-core
+        ports:
+          - name: ort-server-core
+            port: 8081
+            targetPort: 8080
+            nodePort: 31436
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: ort-server-ui-nodeport
+        namespace: "{{ .Release.Namespace }}"
+      spec:
+        type: NodePort
+        selector:
+          app: ort-server-ui
+        ports:
+          - name: ort-server-ui
+            port: 8082
+            targetPort: 8080
+            nodePort: 31437
+
+dev-postgres:
+  auth:
+    username: myuser
+    password: mypassword
+  persistence:
+    enabled: false
+  customUser:
+    name: keycloak
+    password: keycloak
+    database: keycloak
+  extraObjects:
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: dev-postgres-nodeport
+        namespace: "{{ .Release.Namespace }}"
+      spec:
+        type: NodePort
+        selector:
+          app.kubernetes.io/instance: "{{ .Release.Name }}"
+          app.kubernetes.io/name: dev-postgres
+        ports:
+          - name: postgresql
+            port: 5432
+            targetPort: 5432
+            nodePort: 31432
+
+dev-rabbitmq:
+  auth:
+    username: myuser
+    password: mypassword
+  persistence:
+    enabled: false
+  extraObjects:
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: dev-rabbitmq-nodeport
+        namespace: "{{ .Release.Namespace }}"
+      spec:
+        type: NodePort
+        selector:
+          app.kubernetes.io/instance: "{{ .Release.Name }}"
+          app.kubernetes.io/name: dev-rabbitmq
+        ports:
+          - name: rabbitmq
+            port: 15672
+            targetPort: 15672
+            nodePort: 31434
+
+dev-keycloak:
+  keycloak:
+    adminUser: myuser
+    adminPassword: mypassword
+  persistence:
+    enabled: false
+  postgres:
+    enabled: false
+  database:
+    type: postgres
+    host: dev-dev-postgres.default.svc.cluster.local
+    port: "5432"
+    name: keycloak
+    user: keycloak
+    password: keycloak
+  extraObjects:
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: dev-keycloak-nodeport
+        namespace: default # "{{ .Release.Namespace }}" (templating in extraobjects is broken in Keycloak chart)
+      spec:
+        type: NodePort
+        selector:
+          app.kubernetes.io/instance: dev # "{{ .Release.Name }}" (templating in extraobjects is broken in Keycloak chart)
+          app.kubernetes.io/name: dev-keycloak
+        ports:
+          - name: keycloak
+            port: 8080
+            targetPort: 8080
+            nodePort: 31435

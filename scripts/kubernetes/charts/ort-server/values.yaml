@@ -1,0 +1,78 @@
+containerRegistry: ghcr.io/eclipse-apoapsis
+
+configFileProvider:
+  gitConfig:
+    enabled: true
+    repositoryUrl: https://github.com/mnonnenmacher/ort-server-config.git
+
+database:
+  host: ort-server-db.postgres.database.azure.com
+  port: 5432
+  name: ort-server
+  schema: ort-server
+  username: ort-server
+  password: ort-server
+  sslMode: require
+
+secrets:
+  fileBased:
+    enabled: true
+    path: /tmp/secrets.store
+
+storage:
+  database:
+    enabled: true
+    inMemoryLimit: 1048576
+    namespaces:
+      fileLists: fileLists
+      reports: reports
+
+transport:
+  queues:
+    advisor: advisor
+    analyzer: analyzer
+    core: core
+    evaluator: evaluator
+    orchestrator: orchestrator
+    reporter: reporter
+    scanner: scanner
+  kubernetes:
+    imagePullPolicy: Always
+    backoffLimit: 0
+    restartPolicy: Never
+    advisor:
+      memoryRequest: 1Gi
+      memoryLimit: 1Gi
+    analyzer:
+      memoryRequest: 4Gi
+      memoryLimit: 4Gi
+    config:
+      memoryRequest: 1Gi
+      memoryLimit: 1Gi
+  rabbitmq:
+    enabled: true
+    serverUri: ""
+    username: ""
+    password: ""
+
+core:
+  uiHosts: localhost:5173,localhost:8082
+  service:
+    port: 8081
+  keycloak:
+    jwtUri: https://keycloak.ortserver.org/realms/master/protocol/openid-connect/certs
+    jwtIssuer: https://keycloak.ortserver.org/realms/master
+    accessTokenUrl: https://keycloak.ortserver.org/realms/master/protocol/openid-connect/token
+    apiUrl: https://keycloak.ortserver.org/admin/realms/master
+    apiUser: ort-server
+    apiSecret: ort-server
+    clientId: admin-cli
+    subjectClientId: ort-server
+
+ui:
+  url: ""
+  apiUrl: ""
+  authority: ""
+  clientId: ""
+  service:
+    port: 8082

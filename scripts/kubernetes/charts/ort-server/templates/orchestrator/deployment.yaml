@@ -1,0 +1,168 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ort-server-orchestrator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: ort-server-orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ort-server-orchestrator
+  template:
+    metadata:
+      labels:
+        app: ort-server-orchestrator
+    spec:
+      serviceAccountName: ort-server-orchestrator-sa
+      containers:
+        - name: ort-server-orchestrator
+          image: "{{ .Values.containerRegistry }}/ort-server-orchestrator:{{ .Chart.AppVersion }}"
+          env:
+            # Database
+            - name: DB_HOST
+              value: {{ .Values.database.host }}
+            - name: DB_PORT
+              value: "{{ .Values.database.port }}"
+            - name: DB_NAME
+              value: {{ .Values.database.name }}
+            - name: DB_SCHEMA
+              value: {{ .Values.database.schema }}
+            - name: DB_USERNAME
+              value: {{ .Values.database.username }}
+            - name: DB_PASSWORD
+              value: {{ .Values.database.password }}
+            - name: DB_SSL_MODE
+              value: {{ .Values.database.sslMode }}
+
+            # Admin secret provider
+            - name: ALLOW_SECRETS_FROM_CONFIG
+              value: "true"
+            # Allow setting all typesafe config properties with environment variables. This is required because not all
+            # config properties have environment variable substitutions configured.
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Dconfig.override_with_env_vars=true"
+
+            # Orchestrator receiver
+            {{- if .Values.transport.rabbitmq.enabled }}
+            - name: ORCHESTRATOR_RECEIVER_TRANSPORT_TYPE
+              value: rabbitMQ
+            - name: ORCHESTRATOR_RECEIVER_TRANSPORT_QUEUE_NAME
+              value: {{ .Values.transport.queues.orchestrator }}
+            - name: ORCHESTRATOR_RECEIVER_TRANSPORT_SERVER_URI
+              value: {{ .Values.transport.rabbitmq.serverUri }}
+            # The RabbitMQ transport does not use the default properties for the credentials.
+            - name: CONFIG_FORCE_orchestrator_receiver_rabbitMqUser
+              value: {{ .Values.transport.rabbitmq.username }}
+            - name: CONFIG_FORCE_orchestrator_receiver_rabbitMqPassword
+              value: {{ .Values.transport.rabbitmq.password }}
+            # - name: ORCHESTRATOR_RECEIVER_TRANSPORT_USERNAME
+            #   value: {{ .Values.transport.rabbitmq.username }}
+            # - name: ORCHESTRATOR_RECEIVER_TRANSPORT_PASSWORD
+            #   value: {{ .Values.transport.rabbitmq.password }}
+            {{- end }}
+
+            # Orchestrator sender (used by worker jobs, not by orchestrator)
+            {{- if .Values.transport.rabbitmq.enabled }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_TYPE
+              value: rabbitMQ
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_QUEUE_NAME
+              value: {{ .Values.transport.queues.orchestrator }}
+            - name: ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI
+              value: {{ .Values.transport.rabbitmq.serverUri }}
+            # The RabbitMQ transport does not use the default properties for the credentials.
+            - name: CONFIG_FORCE_orchestrator_sender_rabbitMqUser
+              value: {{ .Values.transport.rabbitmq.username }}
+            - name: CONFIG_FORCE_orchestrator_sender_rabbitMqPassword
+              value: {{ .Values.transport.rabbitmq.password }}
+            # - name: ORCHESTRATOR_SENDER_TRANSPORT_USERNAME
+            #   value: {{ .Values.transport.rabbitmq.username }}
+            # - name: ORCHESTRATOR_SENDER_TRANSPORT_PASSWORD
+            #   value: {{ .Values.transport.rabbitmq.password }}
+            {{- end }}
+
+            # Config sender (only supports Kubernetes transport for now)
+            - name: CONFIG_SENDER_TRANSPORT_TYPE
+              value: kubernetes
+            - name: CONFIG_SENDER_TRANSPORT_NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: CONFIG_SENDER_TRANSPORT_IMAGE_NAME
+              value: "{{ .Values.containerRegistry }}/ort-server-config-worker:{{ .Chart.AppVersion }}"
+            - name: CONFIG_SENDER_TRANSPORT_IMAGE_PULL_POLICY
+              value: {{ .Values.transport.kubernetes.imagePullPolicy }}
+            - name: CONFIG_SENDER_TRANSPORT_BACKOFF_LIMIT
+              value: "{{ .Values.transport.kubernetes.backoffLimit }}"
+            - name: CONFIG_SENDER_TRANSPORT_RESTART_POLICY
+              value: {{ .Values.transport.kubernetes.restartPolicy }}
+            - name: CONFIG_SENDER_TRANSPORT_MEMORY_REQUEST
+              value: {{ .Values.transport.kubernetes.config.memoryRequest }}
+            - name: CONFIG_SENDER_TRANSPORT_MEMORY_LIMIT
+              value: {{ .Values.transport.kubernetes.config.memoryLimit }}
+            - name: CONFIG_SERVICE_ACCOUNT
+              value: ort-server-orchestrator-sa
+            # Config worker config used by sender
+            {{- if .Values.configFileProvider.gitConfig.enabled }}
+            - name: CONFIG_CONFIG_FILE_PROVIDER
+              value: git-config
+            - name: CONFIG_CONFIG_GIT_URL
+              value: {{ .Values.configFileProvider.gitConfig.repositoryUrl }}
+            {{- end }}
+            - name: CONFIG_SECRET_PROVIDER
+              value: secret-file
+            - name: CONFIG_SECRET_FILES
+              value: /tmp/placeholder
+
+            # Advisor sender (only supports Kubernetes transport for now)
+            - name: ADVISOR_SENDER_TRANSPORT_TYPE
+              value: kubernetes
+            - name: ADVISOR_SENDER_TRANSPORT_NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: ADVISOR_SENDER_TRANSPORT_IMAGE_NAME
+              value: "{{ .Values.containerRegistry }}/ort-server-advisor-worker:{{ .Chart.AppVersion }}"
+            - name: ADVISOR_SENDER_TRANSPORT_IMAGE_PULL_POLICY
+              value: {{ .Values.transport.kubernetes.imagePullPolicy }}
+            - name: ADVISOR_SENDER_TRANSPORT_BACKOFF_LIMIT
+              value: "{{ .Values.transport.kubernetes.backoffLimit }}"
+            - name: ADVISOR_SENDER_TRANSPORT_RESTART_POLICY
+              value: {{ .Values.transport.kubernetes.restartPolicy }}
+            - name: ADVISOR_SENDER_TRANSPORT_MEMORY_REQUEST
+              value: {{ .Values.transport.kubernetes.advisor.memoryRequest }}
+            - name: ADVISOR_SENDER_TRANSPORT_MEMORY_LIMIT
+              value: {{ .Values.transport.kubernetes.advisor.memoryLimit }}
+            - name: ADVISOR_SERVICE_ACCOUNT
+              value: ort-server-orchestrator-sa
+            # Advisor worker config used by sender
+            {{- if .Values.configFileProvider.gitConfig.enabled }}
+            - name: ADVISOR_CONFIG_FILE_PROVIDER
+              value: git-config
+            - name: ADVISOR_CONFIG_GIT_URL
+              value: {{ .Values.configFileProvider.gitConfig.repositoryUrl }}
+            {{- end }}
+
+            # Analyzer sender (only supports Kubernetes transport for now)
+            - name: ANALYZER_SENDER_TRANSPORT_TYPE
+              value: kubernetes
+            - name: ANALYZER_SENDER_TRANSPORT_NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: ANALYZER_SENDER_TRANSPORT_IMAGE_NAME
+              value: "{{ .Values.containerRegistry }}/ort-server-analyzer-worker:{{ .Chart.AppVersion }}"
+            - name: ANALYZER_SENDER_TRANSPORT_IMAGE_PULL_POLICY
+              value: {{ .Values.transport.kubernetes.imagePullPolicy }}
+            - name: ANALYZER_SENDER_TRANSPORT_BACKOFF_LIMIT
+              value: "{{ .Values.transport.kubernetes.backoffLimit }}"
+            - name: ANALYZER_SENDER_TRANSPORT_RESTART_POLICY
+              value: {{ .Values.transport.kubernetes.restartPolicy }}
+            - name: ANALYZER_SENDER_TRANSPORT_MEMORY_REQUEST
+              value: {{ .Values.transport.kubernetes.analyzer.memoryRequest }}
+            - name: ANALYZER_SENDER_TRANSPORT_MEMORY_LIMIT
+              value: {{ .Values.transport.kubernetes.analyzer.memoryLimit }}
+            - name: ANALYZER_SERVICE_ACCOUNT
+              value: ort-server-orchestrator-sa
+            # Analyzer worker config used by sender
+            {{- if .Values.configFileProvider.gitConfig.enabled }}
+            - name: ANALYZER_CONFIG_FILE_PROVIDER
+              value: git-config
+            - name: ANALYZER_CONFIG_GIT_URL
+              value: {{ .Values.configFileProvider.gitConfig.repositoryUrl }}
+            {{- end }}
