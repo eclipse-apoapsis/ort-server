@@ -101,6 +101,7 @@ export const IndexPage = () => {
   const columns = useMemo(
     () => [
       columnHelper.accessor('name', {
+        id: 'organization',
         header: 'Organizations',
         cell: ({ row }) => (
           <>
@@ -143,7 +144,7 @@ export const IndexPage = () => {
         pageIndex,
         pageSize,
       },
-      columnFilters: [{ id: 'name', value: nameFilter }],
+      columnFilters: [{ id: 'organization', value: nameFilter }],
     },
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
