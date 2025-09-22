@@ -21,6 +21,14 @@ excludes:
     reason: "BUILD_TOOL_OF"
     comment: >-
       The buildSrc directory contains build scripts for the Gradle build tool.
+  - pattern: "shared/ort-test-data/**"
+    reason: "TEST_OF"
+    comment: >-
+      Projects in this directory are used for testing only and are not distributed.
+  - pattern: "utils/test/**"
+    reason: "TEST_OF"
+    comment: >-
+      Projects in this directory are used for testing only and are not distributed.
   - pattern: "**/src/test/**"
     reason: "TEST_OF"
     comment: >-
