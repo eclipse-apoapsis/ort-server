@@ -36,8 +36,8 @@ import {
 } from '@/components/ui/card';
 import { toast } from '@/lib/toast';
 import {
+  filterByNameSearchParameterSchema,
   paginationSearchParameterSchema,
-  sortingSearchParameterSchema,
 } from '@/schemas';
 import { ProductIssuesStatisticsCard } from './-components/product-issues-statistics-card';
 import { ProductPackagesStatisticsCard } from './-components/product-packages-statistics-card';
@@ -171,7 +171,7 @@ export const Route = createFileRoute(
 )({
   validateSearch: z.object({
     ...paginationSearchParameterSchema.shape,
-    ...sortingSearchParameterSchema.shape,
+    ...filterByNameSearchParameterSchema.shape,
   }),
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({

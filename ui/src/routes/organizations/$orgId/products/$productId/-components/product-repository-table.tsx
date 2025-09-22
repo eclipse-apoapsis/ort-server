@@ -24,6 +24,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { useMemo } from 'react';
 
 import { Repository } from '@/api';
 import { getRepositoriesByProductIdOptions } from '@/api/@tanstack/react-query.gen';
@@ -44,10 +45,22 @@ const routeApi = getRouteApi('/organizations/$orgId/products/$productId/');
 export const ProductRepositoryTable = () => {
   const repoPageSize = useTablePrefsStore((state) => state.repoPageSize);
   const setRepoPageSize = useTablePrefsStore((state) => state.setRepoPageSize);
+  const navigate = routeApi.useNavigate();
   const params = routeApi.useParams();
   const search = routeApi.useSearch();
-  const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : repoPageSize;
+
+  const pageIndex = useMemo(
+    () => (search.page ? search.page - 1 : 0),
+    [search.page]
+  );
+  const pageSize = useMemo(
+    () => (search.pageSize ? search.pageSize : repoPageSize),
+    [search.pageSize, repoPageSize]
+  );
+  const nameFilter = useMemo(
+    () => (search.filter ? search.filter : undefined),
+    [search.filter]
+  );
 
   const {
     data: repositories,
@@ -57,80 +70,98 @@ export const ProductRepositoryTable = () => {
   } = useQuery({
     ...getRepositoriesByProductIdOptions({
       path: { productId: Number.parseInt(params.productId) },
-      query: { limit: pageSize, offset: pageIndex * pageSize },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        filter: nameFilter,
+      },
     }),
   });
 
-  const columns = [
-    columnHelper.accessor(
-      ({ url, type }) => {
-        return url + type;
-      },
-      {
-        id: 'repository',
-        header: 'Repositories',
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor(
+        ({ url, type }) => {
+          return url + type;
+        },
+        {
+          id: 'repository',
+          header: 'Repositories',
+          cell: ({ row }) => (
+            <>
+              <Link
+                className='block font-semibold text-blue-400 hover:underline'
+                to={
+                  '/organizations/$orgId/products/$productId/repositories/$repoId'
+                }
+                params={{
+                  orgId: row.original.organizationId.toString(),
+                  productId: row.original.productId.toString(),
+                  repoId: row.original.id.toString(),
+                }}
+              >
+                {row.original.url}
+              </Link>
+              <div className='text-muted-foreground text-sm md:inline'>
+                {row.original.type}
+                {row.original.description
+                  ? ` | ${row.original.description}`
+                  : ''}
+              </div>
+            </>
+          ),
+          meta: {
+            filter: {
+              filterVariant: 'text',
+              setFilterValue: (value: string | undefined) => {
+                navigate({
+                  search: { ...search, page: 1, filter: value },
+                });
+              },
+            },
+          },
+        }
+      ),
+      columnHelper.display({
+        id: 'runs',
+        header: 'Runs',
+        size: 60,
         cell: ({ row }) => (
-          <>
-            <Link
-              className='block font-semibold text-blue-400 hover:underline'
-              to={
-                '/organizations/$orgId/products/$productId/repositories/$repoId'
-              }
-              params={{
-                orgId: row.original.organizationId.toString(),
-                productId: row.original.productId.toString(),
-                repoId: row.original.id.toString(),
-              }}
-            >
-              {row.original.url}
-            </Link>
-            <div className='text-muted-foreground text-sm md:inline'>
-              {row.original.type}
-              {row.original.description ? ` | ${row.original.description}` : ''}
-            </div>
-          </>
+          <Link
+            to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
+            params={{
+              orgId: row.original.organizationId.toString(),
+              productId: row.original.productId.toString(),
+              repoId: row.original.id.toString(),
+            }}
+            className='font-semibold text-blue-400 hover:underline'
+          >
+            <TotalRuns repoId={row.original.id} />
+          </Link>
         ),
         enableColumnFilter: false,
-      }
-    ),
-    columnHelper.display({
-      id: 'runs',
-      header: 'Runs',
-      size: 60,
-      cell: ({ row }) => (
-        <Link
-          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
-          params={{
-            orgId: row.original.organizationId.toString(),
-            productId: row.original.productId.toString(),
-            repoId: row.original.id.toString(),
-          }}
-          className='font-semibold text-blue-400 hover:underline'
-        >
-          <TotalRuns repoId={row.original.id} />
-        </Link>
-      ),
-      enableColumnFilter: false,
-    }),
-    columnHelper.display({
-      id: 'runStatus',
-      header: 'Last Run Status',
-      cell: ({ row }) => <LastRunStatus repoId={row.original.id} />,
-      enableColumnFilter: false,
-    }),
-    columnHelper.display({
-      id: 'lastRunDate',
-      header: 'Last Run Date',
-      cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
-      enableColumnFilter: false,
-    }),
-    columnHelper.display({
-      id: 'jobStatus',
-      header: 'Last Job Status',
-      cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
-      enableColumnFilter: false,
-    }),
-  ];
+      }),
+      columnHelper.display({
+        id: 'runStatus',
+        header: 'Last Run Status',
+        cell: ({ row }) => <LastRunStatus repoId={row.original.id} />,
+        enableColumnFilter: false,
+      }),
+      columnHelper.display({
+        id: 'lastRunDate',
+        header: 'Last Run Date',
+        cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
+        enableColumnFilter: false,
+      }),
+      columnHelper.display({
+        id: 'jobStatus',
+        header: 'Last Job Status',
+        cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
+        enableColumnFilter: false,
+      }),
+    ],
+    [navigate, search]
+  );
 
   const table = useReactTable({
     data: repositories?.data || [],
@@ -141,6 +172,7 @@ export const ProductRepositoryTable = () => {
         pageIndex,
         pageSize,
       },
+      columnFilters: [{ id: 'repository', value: nameFilter }],
     },
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
