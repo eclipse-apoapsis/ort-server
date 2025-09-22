@@ -21,6 +21,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CatchBoundary, createFileRoute, Link } from '@tanstack/react-router';
 import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
+import z from 'zod';
 
 import { getOrganizationByIdOptions } from '@/api/@tanstack/react-query.gen';
 import { ErrorComponent } from '@/components/error-component';
@@ -35,7 +36,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { toast } from '@/lib/toast';
-import { paginationSearchParameterSchema } from '@/schemas';
+import {
+  filterByNameSearchParameterSchema,
+  paginationSearchParameterSchema,
+} from '@/schemas';
 import { OrganizationIssuesStatisticsCard } from './-components/organization-issues-statistics-card';
 import { OrganizationPackagesStatisticsCard } from './-components/organization-packages-statistics-card';
 import { OrganizationProductTable } from './-components/organization-product-table';
@@ -177,7 +181,10 @@ const OrganizationComponent = () => {
 };
 
 export const Route = createFileRoute('/organizations/$orgId/')({
-  validateSearch: paginationSearchParameterSchema,
+  validateSearch: z.object({
+    ...paginationSearchParameterSchema.shape,
+    ...filterByNameSearchParameterSchema.shape,
+  }),
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
       ...getOrganizationByIdOptions({
