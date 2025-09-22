@@ -17,14 +17,16 @@
  * License-Filename: LICENSE
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
-  ColumnDef,
+  createColumnHelper,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
+import z from 'zod';
 
 import { Organization } from '@/api';
 import { getOrganizationsOptions } from '@/api/@tanstack/react-query.gen';
@@ -45,41 +47,41 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from '@/lib/toast';
-import { paginationSearchParameterSchema } from '@/schemas';
+import {
+  filterByNameSearchParameterSchema,
+  paginationSearchParameterSchema,
+} from '@/schemas';
 import { useTablePrefsStore } from '@/store/table-prefs.store';
 
 // Fetch the default page size to loader from the store.
 const defaultPageSize = useTablePrefsStore.getState().orgPageSize;
 
-const columns: ColumnDef<Organization>[] = [
-  {
-    accessorKey: 'organization',
-    header: () => <div>Organizations</div>,
-    cell: ({ row }) => (
-      <>
-        <Link
-          className='block font-semibold text-blue-400 hover:underline'
-          to={`/organizations/$orgId`}
-          params={{ orgId: row.original.id.toString() }}
-        >
-          {row.original.name}
-        </Link>
-
-        <div className='text-muted-foreground hidden text-sm md:inline'>
-          {row.original.description}
-        </div>
-      </>
-    ),
-    enableColumnFilter: false,
-  },
-];
+const columnHelper = createColumnHelper<Organization>();
 
 export const IndexPage = () => {
   const orgPageSize = useTablePrefsStore((state) => state.orgPageSize);
   const setOrgPageSize = useTablePrefsStore((state) => state.setOrgPageSize);
   const search = Route.useSearch();
-  const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : orgPageSize;
+  const navigate = Route.useNavigate();
+
+  const pageIndex = useMemo(
+    () => (search.page ? search.page - 1 : 0),
+    [search.page]
+  );
+  const pageSize = useMemo(
+    () => (search.pageSize ? search.pageSize : orgPageSize),
+    [search.pageSize, orgPageSize]
+  );
+  const nameFilter = useMemo(
+    () => (search.filter ? search.filter : undefined),
+    [search.filter]
+  );
+
+  const { data: totalOrganizations } = useSuspenseQuery({
+    ...getOrganizationsOptions({
+      query: { limit: 1 },
+    }),
+  });
 
   const {
     data: organizations,
@@ -88,9 +90,47 @@ export const IndexPage = () => {
     error,
   } = useQuery({
     ...getOrganizationsOptions({
-      query: { limit: pageSize, offset: pageIndex * pageSize },
+      query: {
+        limit: pageSize,
+        offset: pageIndex * pageSize,
+        filter: nameFilter,
+      },
     }),
   });
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('name', {
+        header: 'Organizations',
+        cell: ({ row }) => (
+          <>
+            <Link
+              className='block font-semibold text-blue-400 hover:underline'
+              to={`/organizations/$orgId`}
+              params={{ orgId: row.original.id.toString() }}
+            >
+              {row.original.name}
+            </Link>
+
+            <div className='text-muted-foreground hidden text-sm md:inline'>
+              {row.original.description}
+            </div>
+          </>
+        ),
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, filter: value },
+              });
+            },
+          },
+        },
+      }),
+    ],
+    [navigate, search]
+  );
 
   const table = useReactTable({
     data: organizations?.data || [],
@@ -103,6 +143,7 @@ export const IndexPage = () => {
         pageIndex,
         pageSize,
       },
+      columnFilters: [{ id: 'name', value: nameFilter }],
     },
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
@@ -124,10 +165,18 @@ export const IndexPage = () => {
     return;
   }
 
+  const filtersInUse =
+    totalOrganizations.pagination.totalCount !==
+    organizations.pagination.totalCount;
+  const matching = `, ${organizations.pagination.totalCount} matching filters`;
+
   return (
     <Card className='mx-auto w-full max-w-4xl'>
       <CardHeader>
-        <CardTitle>Organizations</CardTitle>
+        <CardTitle>
+          Organizations ({totalOrganizations.pagination.totalCount} in total
+          {filtersInUse && matching})
+        </CardTitle>
         <CardDescription>
           Browse your organizations or create a new one
         </CardDescription>
@@ -171,7 +220,10 @@ export const IndexPage = () => {
 };
 
 export const Route = createFileRoute('/')({
-  validateSearch: paginationSearchParameterSchema,
+  validateSearch: z.object({
+    ...paginationSearchParameterSchema.shape,
+    ...filterByNameSearchParameterSchema.shape,
+  }),
   loaderDeps: ({ search: { page, pageSize } }) => ({ page, pageSize }),
   loader: async ({ context: { queryClient }, deps: { page, pageSize } }) => {
     queryClient.prefetchQuery({
