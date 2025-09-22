@@ -29,6 +29,7 @@ excludes:
     reason: "OTHER"
     comment: >-
       The website directory contains the ORT server's website and is not part of the server itself.
+
   scopes:
   - pattern: ".*[tT]est.*"
     reason: "TEST_DEPENDENCY_OF"
