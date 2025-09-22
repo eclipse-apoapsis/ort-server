@@ -139,8 +139,8 @@ importers:
         version: 5.0.8(@types/react@19.1.13)(immer@10.1.3)(react@19.1.1)(use-sync-external-store@1.5.0(react@19.1.1))
     devDependencies:
       '@hey-api/openapi-ts':
-        specifier: 0.84.0
-        version: 0.84.0(typescript@5.9.2)
+        specifier: 0.84.1
+        version: 0.84.1(typescript@5.9.2)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.2.1
         version: 4.7.0(prettier@3.6.2)
@@ -586,8 +586,8 @@ packages:
     resolution: {integrity: sha512-+5eg9pgAAM9oSqJQuUtfTKbLz8yieFKN91myyXiLnprqFj8ROfxUKJLr9DKq/hGKyybKT1WxFSetDqCFm80pCA==}
     engines: {node: '>= 16'}
 
-  '@hey-api/openapi-ts@0.84.0':
-    resolution: {integrity: sha512-LVt+lM+y5w5qupdNQFTd1oV5OD5vy9zDruCcJ4KyryY0QaRA/FOqrMZgZnioMCKUMoHMBCjBIb61E5+G2tS4qA==}
+  '@hey-api/openapi-ts@0.84.1':
+    resolution: {integrity: sha512-tgqP8WQtrGrg+WUYQJA4DmFTlWZq19H+8S/cuEAcPjBRkLZO6SdSnZzF0wfnk8AKcF8F/BLDZoPAiGt0mMnDdA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=22.10.0}
     hasBin: true
     peerDependencies:
@@ -3948,7 +3948,7 @@ snapshots:
       js-yaml: 4.1.0
       lodash: 4.17.21
 
-  '@hey-api/openapi-ts@0.84.0(typescript@5.9.2)':
+  '@hey-api/openapi-ts@0.84.1(typescript@5.9.2)':
     dependencies:
       '@hey-api/codegen-core': 0.2.0(typescript@5.9.2)
       '@hey-api/json-schema-ref-parser': 1.1.0
