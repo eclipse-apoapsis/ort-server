@@ -177,7 +177,7 @@ const renderSubComponent = ({
         </div>
       </div>
       {!pkg.isMetadataOnly && (
-        <>
+        <div>
           <div className='font-semibold'>Source Artifact</div>
           <div className='ml-2'>
             <RenderProperty
@@ -194,7 +194,7 @@ const renderSubComponent = ({
               value={pkg.sourceArtifact.hashAlgorithm}
             />
           </div>
-        </>
+        </div>
       )}
       {pkg.shortestDependencyPaths.length > 0 && (
         <div>
