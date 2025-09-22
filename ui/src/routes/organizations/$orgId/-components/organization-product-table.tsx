@@ -84,42 +84,37 @@ export const OrganizationProductTable = () => {
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor(
-        ({ name, description }) => {
-          return name + description;
-        },
-        {
-          id: 'product',
-          header: 'Products',
-          cell: ({ row }) => (
-            <>
-              <Link
-                className='block font-semibold text-blue-400 hover:underline'
-                to={`/organizations/$orgId/products/$productId`}
-                params={{
-                  orgId: row.original.organizationId.toString(),
-                  productId: row.original.id.toString(),
-                }}
-              >
-                {row.original.name}
-              </Link>
-              <div className='text-muted-foreground text-sm md:inline'>
-                {row.original.description}
-              </div>
-            </>
-          ),
-          meta: {
-            filter: {
-              filterVariant: 'text',
-              setFilterValue: (value: string | undefined) => {
-                navigate({
-                  search: { ...search, page: 1, filter: value },
-                });
-              },
+      columnHelper.accessor('name', {
+        id: 'product',
+        header: 'Products',
+        cell: ({ row }) => (
+          <>
+            <Link
+              className='block font-semibold text-blue-400 hover:underline'
+              to={`/organizations/$orgId/products/$productId`}
+              params={{
+                orgId: row.original.organizationId.toString(),
+                productId: row.original.id.toString(),
+              }}
+            >
+              {row.original.name}
+            </Link>
+            <div className='text-muted-foreground text-sm md:inline'>
+              {row.original.description}
+            </div>
+          </>
+        ),
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, filter: value },
+              });
             },
           },
-        }
-      ),
+        },
+      }),
       columnHelper.display({
         id: 'runs',
         header: 'Runs',
