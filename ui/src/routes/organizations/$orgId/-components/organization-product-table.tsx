@@ -26,7 +26,7 @@ import {
 } from '@tanstack/react-table';
 import { Loader2 } from 'lucide-react';
 
-import { PagedResponseProduct, Product } from '@/api';
+import { Product } from '@/api';
 import {
   getOrganizationProductsOptions,
   getRepositoriesByProductIdOptions,
@@ -43,149 +43,11 @@ import { TotalRuns } from '../products/$productId/-components/total-runs';
 
 const columnHelper = createColumnHelper<Product>();
 
-const columns = [
-  columnHelper.accessor(
-    ({ name, description }) => {
-      return name + description;
-    },
-    {
-      header: 'Products',
-      cell: ({ row }) => (
-        <>
-          <Link
-            className='block font-semibold text-blue-400 hover:underline'
-            to={`/organizations/$orgId/products/$productId`}
-            params={{
-              orgId: row.original.organizationId.toString(),
-              productId: row.original.id.toString(),
-            }}
-          >
-            {row.original.name}
-          </Link>
-          <div className='text-muted-foreground text-sm md:inline'>
-            {row.original.description}
-          </div>
-        </>
-      ),
-      enableColumnFilter: false,
-    }
-  ),
-  columnHelper.display({
-    id: 'runs',
-    header: 'Runs',
-    size: 60,
-    cell: function CellComponent({ row }) {
-      const { data, isPending, isError } = useQuery({
-        ...getRepositoriesByProductIdOptions({
-          path: { productId: row.original.id },
-          query: { limit: 1 },
-        }),
-      });
-
-      if (isPending)
-        return (
-          <>
-            <span className='sr-only'>Loading...</span>
-            <Loader2 size={16} className='mx-3 animate-spin' />
-          </>
-        );
-
-      if (isError) return <span>Error loading data.</span>;
-
-      if (data.pagination.totalCount === 1 && data.data[0])
-        return <TotalRuns repoId={data.data[0].id} />;
-      else return <span>-</span>;
-    },
-    enableColumnFilter: false,
-  }),
-  columnHelper.display({
-    id: 'runStatus',
-    header: 'Last Run Status',
-    cell: function CellComponent({ row }) {
-      const { data, isPending, isError } = useQuery({
-        ...getRepositoriesByProductIdOptions({
-          path: { productId: row.original.id },
-          query: { limit: 1 },
-        }),
-      });
-
-      if (isPending)
-        return (
-          <>
-            <span className='sr-only'>Loading...</span>
-            <Loader2 size={16} className='mx-3 animate-spin' />
-          </>
-        );
-
-      if (isError) return <span>Error loading data.</span>;
-
-      if (data.pagination.totalCount === 1 && data.data[0])
-        return <LastRunStatus repoId={data.data[0].id} />;
-      else
-        return <span>Contains {data.pagination.totalCount} repositories</span>;
-    },
-    enableColumnFilter: false,
-  }),
-  columnHelper.display({
-    id: 'lastRunDate',
-    header: 'Last Run Date',
-    cell: function CellComponent({ row }) {
-      const { data, isPending, isError } = useQuery({
-        ...getRepositoriesByProductIdOptions({
-          path: { productId: row.original.id },
-          query: { limit: 1 },
-        }),
-      });
-
-      if (isPending)
-        return (
-          <>
-            <span className='sr-only'>Loading...</span>
-            <Loader2 size={16} className='mx-3 animate-spin' />
-          </>
-        );
-
-      if (isError) return <span>Error loading data.</span>;
-
-      if (data.pagination.totalCount === 1 && data.data[0])
-        return <LastRunDate repoId={data.data[0].id} />;
-      else return null;
-    },
-    enableColumnFilter: false,
-  }),
-  columnHelper.display({
-    id: 'jobStatus',
-    header: 'Last Job Status',
-    cell: function CellComponent({ row }) {
-      const { data, isPending, isError } = useQuery({
-        ...getRepositoriesByProductIdOptions({
-          path: { productId: row.original.id },
-          query: { limit: 1 },
-        }),
-      });
-
-      if (isPending)
-        return (
-          <>
-            <span className='sr-only'>Loading...</span>
-            <Loader2 size={16} className='mx-3 animate-spin' />
-          </>
-        );
-
-      if (isError) return <span>Error loading data.</span>;
-
-      if (data.pagination.totalCount === 1 && data.data[0])
-        return <LastJobStatus repoId={data.data[0].id} />;
-      else return null;
-    },
-    enableColumnFilter: false,
-  }),
-];
-
 const routeApi = getRouteApi('/organizations/$orgId/');
 
 export const OrganizationProductTable = () => {
   const prodPageSize = useTablePrefsStore((state) => state.prodPageSize);
+  const setProdPageSize = useTablePrefsStore((state) => state.setProdPageSize);
   const params = routeApi.useParams();
   const search = routeApi.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
@@ -203,6 +65,161 @@ export const OrganizationProductTable = () => {
     }),
   });
 
+  const columns = [
+    columnHelper.accessor(
+      ({ name, description }) => {
+        return name + description;
+      },
+      {
+        header: 'Products',
+        cell: ({ row }) => (
+          <>
+            <Link
+              className='block font-semibold text-blue-400 hover:underline'
+              to={`/organizations/$orgId/products/$productId`}
+              params={{
+                orgId: row.original.organizationId.toString(),
+                productId: row.original.id.toString(),
+              }}
+            >
+              {row.original.name}
+            </Link>
+            <div className='text-muted-foreground text-sm md:inline'>
+              {row.original.description}
+            </div>
+          </>
+        ),
+        enableColumnFilter: false,
+      }
+    ),
+    columnHelper.display({
+      id: 'runs',
+      header: 'Runs',
+      size: 60,
+      cell: function CellComponent({ row }) {
+        const { data, isPending, isError } = useQuery({
+          ...getRepositoriesByProductIdOptions({
+            path: { productId: row.original.id },
+            query: { limit: 1 },
+          }),
+        });
+
+        if (isPending)
+          return (
+            <>
+              <span className='sr-only'>Loading...</span>
+              <Loader2 size={16} className='mx-3 animate-spin' />
+            </>
+          );
+
+        if (isError) return <span>Error loading data.</span>;
+
+        if (data.pagination.totalCount === 1 && data.data[0])
+          return <TotalRuns repoId={data.data[0].id} />;
+        else return <span>-</span>;
+      },
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: 'runStatus',
+      header: 'Last Run Status',
+      cell: function CellComponent({ row }) {
+        const { data, isPending, isError } = useQuery({
+          ...getRepositoriesByProductIdOptions({
+            path: { productId: row.original.id },
+            query: { limit: 1 },
+          }),
+        });
+
+        if (isPending)
+          return (
+            <>
+              <span className='sr-only'>Loading...</span>
+              <Loader2 size={16} className='mx-3 animate-spin' />
+            </>
+          );
+
+        if (isError) return <span>Error loading data.</span>;
+
+        if (data.pagination.totalCount === 1 && data.data[0])
+          return <LastRunStatus repoId={data.data[0].id} />;
+        else
+          return (
+            <span>Contains {data.pagination.totalCount} repositories</span>
+          );
+      },
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: 'lastRunDate',
+      header: 'Last Run Date',
+      cell: function CellComponent({ row }) {
+        const { data, isPending, isError } = useQuery({
+          ...getRepositoriesByProductIdOptions({
+            path: { productId: row.original.id },
+            query: { limit: 1 },
+          }),
+        });
+
+        if (isPending)
+          return (
+            <>
+              <span className='sr-only'>Loading...</span>
+              <Loader2 size={16} className='mx-3 animate-spin' />
+            </>
+          );
+
+        if (isError) return <span>Error loading data.</span>;
+
+        if (data.pagination.totalCount === 1 && data.data[0])
+          return <LastRunDate repoId={data.data[0].id} />;
+        else return null;
+      },
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: 'jobStatus',
+      header: 'Last Job Status',
+      cell: function CellComponent({ row }) {
+        const { data, isPending, isError } = useQuery({
+          ...getRepositoriesByProductIdOptions({
+            path: { productId: row.original.id },
+            query: { limit: 1 },
+          }),
+        });
+
+        if (isPending)
+          return (
+            <>
+              <span className='sr-only'>Loading...</span>
+              <Loader2 size={16} className='mx-3 animate-spin' />
+            </>
+          );
+
+        if (isError) return <span>Error loading data.</span>;
+
+        if (data.pagination.totalCount === 1 && data.data[0])
+          return <LastJobStatus repoId={data.data[0].id} />;
+        else return null;
+      },
+      enableColumnFilter: false,
+    }),
+  ];
+
+  const table = useReactTable({
+    data: products?.data || [],
+    columns,
+    pageCount: Math.ceil((products?.pagination.totalCount ?? 0) / pageSize),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
+
   if (prodIsPending) {
     return <LoadingIndicator />;
   }
@@ -218,40 +235,6 @@ export const OrganizationProductTable = () => {
     });
     return;
   }
-
-  return (
-    <OrganizationProductTableInner
-      products={products}
-      prodPageSize={prodPageSize}
-    />
-  );
-};
-
-const OrganizationProductTableInner = ({
-  products,
-  prodPageSize,
-}: {
-  products: PagedResponseProduct;
-  prodPageSize: number;
-}) => {
-  const setProdPageSize = useTablePrefsStore((state) => state.setProdPageSize);
-  const search = routeApi.useSearch();
-  const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : prodPageSize;
-
-  const table = useReactTable({
-    data: products?.data || [],
-    columns,
-    pageCount: Math.ceil((products?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
-      },
-    },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
 
   return (
     <DataTable
