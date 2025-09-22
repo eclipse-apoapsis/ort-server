@@ -25,7 +25,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import { PagedResponseRepository, Repository } from '@/api';
+import { Repository } from '@/api';
 import { getRepositoriesByProductIdOptions } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -39,81 +39,11 @@ import { TotalRuns } from './total-runs';
 
 const columnHelper = createColumnHelper<Repository>();
 
-const columns = [
-  columnHelper.accessor(
-    ({ url, type }) => {
-      return url + type;
-    },
-    {
-      id: 'repository',
-      header: 'Repositories',
-      cell: ({ row }) => (
-        <>
-          <Link
-            className='block font-semibold text-blue-400 hover:underline'
-            to={
-              '/organizations/$orgId/products/$productId/repositories/$repoId'
-            }
-            params={{
-              orgId: row.original.organizationId.toString(),
-              productId: row.original.productId.toString(),
-              repoId: row.original.id.toString(),
-            }}
-          >
-            {row.original.url}
-          </Link>
-          <div className='text-muted-foreground text-sm md:inline'>
-            {row.original.type}
-            {row.original.description ? ` | ${row.original.description}` : ''}
-          </div>
-        </>
-      ),
-      enableColumnFilter: false,
-    }
-  ),
-  columnHelper.display({
-    id: 'runs',
-    header: 'Runs',
-    size: 60,
-    cell: ({ row }) => (
-      <Link
-        to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
-        params={{
-          orgId: row.original.organizationId.toString(),
-          productId: row.original.productId.toString(),
-          repoId: row.original.id.toString(),
-        }}
-        className='font-semibold text-blue-400 hover:underline'
-      >
-        <TotalRuns repoId={row.original.id} />
-      </Link>
-    ),
-    enableColumnFilter: false,
-  }),
-  columnHelper.display({
-    id: 'runStatus',
-    header: 'Last Run Status',
-    cell: ({ row }) => <LastRunStatus repoId={row.original.id} />,
-    enableColumnFilter: false,
-  }),
-  columnHelper.display({
-    id: 'lastRunDate',
-    header: 'Last Run Date',
-    cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
-    enableColumnFilter: false,
-  }),
-  columnHelper.display({
-    id: 'jobStatus',
-    header: 'Last Job Status',
-    cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
-    enableColumnFilter: false,
-  }),
-];
-
 const routeApi = getRouteApi('/organizations/$orgId/products/$productId/');
 
 export const ProductRepositoryTable = () => {
   const repoPageSize = useTablePrefsStore((state) => state.repoPageSize);
+  const setRepoPageSize = useTablePrefsStore((state) => state.setRepoPageSize);
   const params = routeApi.useParams();
   const search = routeApi.useSearch();
   const pageIndex = search.page ? search.page - 1 : 0;
@@ -131,6 +61,91 @@ export const ProductRepositoryTable = () => {
     }),
   });
 
+  const columns = [
+    columnHelper.accessor(
+      ({ url, type }) => {
+        return url + type;
+      },
+      {
+        id: 'repository',
+        header: 'Repositories',
+        cell: ({ row }) => (
+          <>
+            <Link
+              className='block font-semibold text-blue-400 hover:underline'
+              to={
+                '/organizations/$orgId/products/$productId/repositories/$repoId'
+              }
+              params={{
+                orgId: row.original.organizationId.toString(),
+                productId: row.original.productId.toString(),
+                repoId: row.original.id.toString(),
+              }}
+            >
+              {row.original.url}
+            </Link>
+            <div className='text-muted-foreground text-sm md:inline'>
+              {row.original.type}
+              {row.original.description ? ` | ${row.original.description}` : ''}
+            </div>
+          </>
+        ),
+        enableColumnFilter: false,
+      }
+    ),
+    columnHelper.display({
+      id: 'runs',
+      header: 'Runs',
+      size: 60,
+      cell: ({ row }) => (
+        <Link
+          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
+          params={{
+            orgId: row.original.organizationId.toString(),
+            productId: row.original.productId.toString(),
+            repoId: row.original.id.toString(),
+          }}
+          className='font-semibold text-blue-400 hover:underline'
+        >
+          <TotalRuns repoId={row.original.id} />
+        </Link>
+      ),
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: 'runStatus',
+      header: 'Last Run Status',
+      cell: ({ row }) => <LastRunStatus repoId={row.original.id} />,
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: 'lastRunDate',
+      header: 'Last Run Date',
+      cell: ({ row }) => <LastRunDate repoId={row.original.id} />,
+      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: 'jobStatus',
+      header: 'Last Job Status',
+      cell: ({ row }) => <LastJobStatus repoId={row.original.id} />,
+      enableColumnFilter: false,
+    }),
+  ];
+
+  const table = useReactTable({
+    data: repositories?.data || [],
+    columns,
+    pageCount: Math.ceil((repositories?.pagination.totalCount ?? 0) / pageSize),
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+  });
+
   if (reposIsPending) {
     return <LoadingIndicator />;
   }
@@ -146,40 +161,6 @@ export const ProductRepositoryTable = () => {
     });
     return;
   }
-
-  return (
-    <ProductRepositoryTableInner
-      repositories={repositories}
-      repoPageSize={repoPageSize}
-    />
-  );
-};
-
-const ProductRepositoryTableInner = ({
-  repositories,
-  repoPageSize,
-}: {
-  repositories: PagedResponseRepository;
-  repoPageSize: number;
-}) => {
-  const setRepoPageSize = useTablePrefsStore((state) => state.setRepoPageSize);
-  const search = routeApi.useSearch();
-  const pageIndex = search.page ? search.page - 1 : 0;
-  const pageSize = search.pageSize ? search.pageSize : repoPageSize;
-
-  const table = useReactTable({
-    data: repositories?.data || [],
-    columns,
-    pageCount: Math.ceil((repositories?.pagination.totalCount ?? 0) / pageSize),
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize,
-      },
-    },
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-  });
 
   return (
     <DataTable
