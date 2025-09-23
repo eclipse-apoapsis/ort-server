@@ -61,7 +61,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "0.84.1",
+    "@hey-api/openapi-ts": "0.84.2",
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@tailwindcss/typography": "^0.5.15",
