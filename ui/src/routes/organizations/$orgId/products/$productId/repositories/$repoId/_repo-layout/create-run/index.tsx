@@ -104,16 +104,17 @@ const CreateRunPage = () => {
 
   const { mutateAsync, isPending } = useMutation({
     ...postOrtRunMutation(),
-    onSuccess() {
+    onSuccess(response) {
       toast.info('Create Run', {
         description: 'New run created successfully for this repository.',
       });
       navigate({
-        to: '/organizations/$orgId/products/$productId/repositories/$repoId',
+        to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex',
         params: {
           orgId: params.orgId,
           productId: params.productId,
           repoId: params.repoId,
+          runIndex: response.index.toString(),
         },
       });
     },
