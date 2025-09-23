@@ -89,7 +89,7 @@ class InfrastructureServiceDeclarationDao(id: EntityID<Long>) : LongEntity(id) {
          * Return a set of [CredentialsType]s from a string representation.
          */
         fun fromCredentialsTypeString(typeString: String?): Set<CredentialsType> =
-            typeString?.split(",")
+            typeString?.split(',')
                 ?.mapTo(EnumSet.noneOf(CredentialsType::class.java)) { CredentialsType.valueOf(it) }.orEmpty()
     }
 

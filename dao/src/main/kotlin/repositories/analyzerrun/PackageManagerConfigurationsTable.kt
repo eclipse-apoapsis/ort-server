@@ -40,7 +40,7 @@ class PackageManagerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var name by PackageManagerConfigurationsTable.name
     var mustRunAfter: List<String>? by PackageManagerConfigurationsTable.mustRunAfter
-        .transform({ it?.joinToString(",") }, { it?.split(",") })
+        .transform({ it?.joinToString(",") }, { it?.split(',') })
     var hasOptions by PackageManagerConfigurationsTable.hasOptions
 
     val options by PackageManagerConfigurationOptionDao referrersOn

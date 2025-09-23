@@ -362,7 +362,7 @@ class JobHandlerTest : WordSpec({
 
             val labelSelectorRegex = Regex("""ort-worker in \((.+)\)""")
             labelSelectorRegex.matchEntire(slotLabel.captured) shouldNotBeNull {
-                val workers = groupValues[1].split(",")
+                val workers = groupValues[1].split(',')
                 workers shouldContainExactlyInAnyOrder listOf(
                     "advisor",
                     "analyzer",

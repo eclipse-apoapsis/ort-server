@@ -48,7 +48,7 @@ class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {
 
     var advisorName by AdvisorResultsTable.advisorName
     var capabilities by AdvisorResultsTable.capabilities
-        .transform({ it.joinToString(",") }, { it.split(",") })
+        .transform({ it.joinToString(",") }, { it.split(',') })
     var startTime by AdvisorResultsTable.startTime.transformToDatabasePrecision()
     var endTime by AdvisorResultsTable.endTime.transformToDatabasePrecision()
 

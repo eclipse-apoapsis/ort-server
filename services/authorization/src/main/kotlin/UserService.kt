@@ -147,7 +147,7 @@ class UserService(
      * @see: [ProductRole.groupName], [OrganizationRole.groupName], [RepositoryRole.groupName].
      */
     private fun calculateUserGroupName(group: Group): UserGroup =
-        group.name.value.split("_").last().let {
+        group.name.value.split('_').last().let {
             UserGroup.valueOf(it)
         }
 }

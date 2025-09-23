@@ -54,9 +54,9 @@ class GetAnalyzerConfigurationForAnalyzerRunQuery(
         return AnalyzerConfiguration(
             allowDynamicVersions = resultRow[allowDynamicVersions],
             enabledPackageManagers = resultRow[enabledPackageManagers]
-                ?.takeIf { it.isNotEmpty() }?.split(",").orEmpty(),
+                ?.takeIf { it.isNotEmpty() }?.split(',').orEmpty(),
             disabledPackageManagers = resultRow[disabledPackageManagers]
-                ?.takeIf { it.isNotEmpty() }?.split(","),
+                ?.takeIf { it.isNotEmpty() }?.split(','),
             packageManagers = packageManagers,
             skipExcluded = resultRow[skipExcluded]
         )

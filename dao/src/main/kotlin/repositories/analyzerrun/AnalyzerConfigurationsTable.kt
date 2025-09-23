@@ -45,9 +45,9 @@ class AnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var allowDynamicVersions by AnalyzerConfigurationsTable.allowDynamicVersions
     var enabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.enabledPackageManagers
-        .transform({ managers -> managers?.takeIf { it.isNotEmpty() }?.joinToString(",") }, { it?.split(",") })
+        .transform({ managers -> managers?.takeIf { it.isNotEmpty() }?.joinToString(",") }, { it?.split(',') })
     var disabledPackageManagers: List<String>? by AnalyzerConfigurationsTable.disabledPackageManagers
-        .transform({ managers -> managers?.takeIf { it.isNotEmpty() }?.joinToString(",") }, { it?.split(",") })
+        .transform({ managers -> managers?.takeIf { it.isNotEmpty() }?.joinToString(",") }, { it?.split(',') })
     var skipExcluded by AnalyzerConfigurationsTable.skipExcluded
 
     var packageManagerConfigurations by PackageManagerConfigurationDao via

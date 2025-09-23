@@ -87,9 +87,9 @@ class RepositoryAnalyzerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
 
     var allowDynamicVersions by RepositoryAnalyzerConfigurationsTable.allowDynamicVersions
     var enabledPackageManagers: List<String>? by RepositoryAnalyzerConfigurationsTable.enabledPackageManagers
-        .transform({ it?.joinToString(",") }, { it?.split(",") })
+        .transform({ it?.joinToString(",") }, { it?.split(',') })
     var disabledPackageManagers: List<String>? by RepositoryAnalyzerConfigurationsTable.disabledPackageManagers
-        .transform({ it?.joinToString(",") }, { it?.split(",") })
+        .transform({ it?.joinToString(",") }, { it?.split(',') })
     var skipExcluded by RepositoryAnalyzerConfigurationsTable.skipExcluded
     var packageManagerConfigurations by PackageManagerConfigurationDao via
             RepositoryAnalyzerConfigurationsPackageManagerConfigurationsTable
