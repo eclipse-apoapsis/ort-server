@@ -215,7 +215,7 @@ private class DefinitionProperties(val properties: Map<String, String>) {
         val credentialsTypesString = properties[EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY]
         if (credentialsTypesString?.isEmpty() == true) return EnumSet.noneOf(CredentialsType::class.java)
 
-        return credentialsTypesString?.split(",")
+        return credentialsTypesString?.split(',')
             ?.mapTo(EnumSet.noneOf(CredentialsType::class.java)) {
                 toEnumValue(it.trim(), EnvironmentDefinitionFactory.CREDENTIALS_TYPE_PROPERTY)
             }

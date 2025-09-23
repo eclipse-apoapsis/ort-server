@@ -62,7 +62,7 @@ object PluginInfo {
         javaClass.getResourceAsStream(PLUGIN_SUMMARY_RESOURCE)?.use { inputStream ->
             inputStream.bufferedReader().use { reader ->
                 reader.readLines().mapNotNullTo(mutableSetOf()) { line ->
-                    line.split(",").takeIf { it.size == 3 }?.let { parts ->
+                    line.split(',').takeIf { it.size == 3 }?.let { parts ->
                         TypedPluginId(
                             PluginId(parts[0]),
                             PluginType(parts[1])

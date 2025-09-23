@@ -70,7 +70,7 @@ class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, Str
         }
 
         internal fun parseGitConfigUrlInsteadOf(config: String) =
-            config.split(",")
+            config.split(',')
                 .mapIndexedNotNull { index, baseInsteadOfPair ->
                     if (!baseInsteadOfPair.contains("=")) {
                         logger.warn(
@@ -82,7 +82,7 @@ class GitConfigGenerator(private val gitConfigUrlInsteadOfPairs: Map<String, Str
                         baseInsteadOfPair
                     }
                 }.associate { baseInsteadOfPair ->
-                    val (base, url) = baseInsteadOfPair.split("=")
+                    val (base, url) = baseInsteadOfPair.split('=')
                     base.trim() to url.trim()
                 }
 

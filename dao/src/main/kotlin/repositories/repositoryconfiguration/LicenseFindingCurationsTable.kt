@@ -76,7 +76,7 @@ class LicenseFindingCurationDao(id: EntityID<Long>) : LongEntity(id) {
          * an array of integers.
          */
         private fun convertStartLines(lines: String?): List<Int>? =
-            lines?.takeUnless { it.isEmpty() }?.split(",")?.mapNotNull { line ->
+            lines?.takeUnless { it.isEmpty() }?.split(',')?.mapNotNull { line ->
                 runCatching {
                     line.toInt()
                 }.onFailure { logger.error("Invalid content of 'startLines' column: '$lines'.", it) }

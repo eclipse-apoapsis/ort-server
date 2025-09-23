@@ -46,7 +46,7 @@ class ScannerConfigurationDao(id: EntityID<Long>) : LongEntity(id) {
     var skipConcluded by ScannerConfigurationsTable.skipConcluded
     var skipExcluded by ScannerConfigurationsTable.skipExcluded
     var ignorePatterns: List<String>? by ScannerConfigurationsTable.ignorePatterns
-        .transform({ it?.joinToString(",") }, { it?.split(",") })
+        .transform({ it?.joinToString(",") }, { it?.split(',') })
     var detectedLicenseMappings by DetectedLicenseMappingDao via
             ScannerConfigurationsDetectedLicenseMappingsTable
     var options by ScannerConfigurationOptionDao via ScannerConfigurationsOptionsTable
