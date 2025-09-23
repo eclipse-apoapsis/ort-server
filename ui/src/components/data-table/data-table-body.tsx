@@ -18,10 +18,8 @@
  */
 
 import { flexRender, Row } from '@tanstack/react-table';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import React, { Fragment } from 'react';
 
-import { Button } from '@/components/ui/button';
 import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 
 interface DataTableBodyProps<TData> {
@@ -51,34 +49,9 @@ export function DataTableBody<TData>({
                   key={cell.id}
                   style={{ minWidth: cell.column.columnDef.size }}
                 >
-                  {cell.getIsGrouped() ? (
-                    <Button
-                      variant='ghost'
-                      className='-ml-2 px-2'
-                      onClick={row.getToggleExpandedHandler()}
-                    >
-                      <div className='flex items-center gap-2'>
-                        {row.getIsExpanded() ? (
-                          <ChevronDown className='h-4 w-4' />
-                        ) : (
-                          <ChevronRight className='h-4 w-4' />
-                        )}
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}{' '}
-                        ({row.subRows.length})
-                      </div>
-                    </Button>
-                  ) : cell.getIsAggregated() ? (
-                    flexRender(
-                      cell.column.columnDef.aggregatedCell ??
-                        cell.column.columnDef.cell,
-                      cell.getContext()
-                    )
-                  ) : cell.getIsPlaceholder() ? null : (
-                    flexRender(cell.column.columnDef.cell, cell.getContext())
-                  )}
+                  {cell.getIsPlaceholder()
+                    ? null
+                    : flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}
             </TableRow>

@@ -18,11 +18,7 @@
  */
 
 import { LinkOptions } from '@tanstack/react-router';
-import {
-  GroupingState,
-  Row,
-  type Table as TanstackTable,
-} from '@tanstack/react-table';
+import { Row, type Table as TanstackTable } from '@tanstack/react-table';
 import React from 'react';
 
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
@@ -40,17 +36,12 @@ interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
   setCurrentPageOptions: (page: number) => LinkOptions;
   setPageSizeOptions: (pageSize: number) => LinkOptions;
   /**
-   * A function to provide `LinkOptions` for a link to set current selected groups in the URL.
-   */
-  setGroupingOptions?: (groups: GroupingState) => LinkOptions;
-  /**
    * A function to provide `LinkOptions` for a link to set current sorting in the URL.
    */
   setSortingOptions?: (sorting: {
     id: string;
     desc: boolean | undefined; // For column removal to work when multisorting, this needed to be changed
   }) => LinkOptions;
-  enableGrouping?: boolean;
 }
 
 export function DataTable<TData>({
@@ -59,15 +50,11 @@ export function DataTable<TData>({
   className,
   setCurrentPageOptions,
   setPageSizeOptions,
-  setGroupingOptions,
   setSortingOptions,
-  enableGrouping,
   ...props
 }: DataTableProps<TData>) {
   const pagination = table.getState().pagination;
   const totalPages = table.getPageCount();
-  const groups = table.getState().grouping;
-  const groupingEnabled = enableGrouping || false;
 
   return (
     <div
@@ -76,11 +63,8 @@ export function DataTable<TData>({
     >
       <Table>
         <DataTableHeader
-          headerGroups={table.getHeaderGroups()}
-          groupingEnabled={groupingEnabled}
-          setGroupingOptions={setGroupingOptions}
+          headers={table.getLeafHeaders()}
           setSortingOptions={setSortingOptions}
-          groups={groups}
         />
         <DataTableBody
           rows={table.getRowModel().rows}
