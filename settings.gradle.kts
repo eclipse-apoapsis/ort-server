@@ -115,6 +115,13 @@ project(":storage:spi").name = "storage-spi"
 project(":transport:spi").name = "transport-spi"
 project(":workers:config").name = "config-worker"
 
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 plugins {
     // Gradle cannot access the version catalog from here, so hard-code the dependency.
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
