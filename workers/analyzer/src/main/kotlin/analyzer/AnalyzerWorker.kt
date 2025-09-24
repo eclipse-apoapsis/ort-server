@@ -114,11 +114,13 @@ internal class AnalyzerWorker(
             val analyzerRun = ortResult.analyzer
                 ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
-            val issues = analyzerRun.result.getAllIssues().values.flatten()
+            val allIssues = analyzerRun.result.getAllIssues().values.flatten()
+            val unresolvedIssues = allIssues.filterNot { ortResult.isResolved(it) }
 
             logger.info(
-                "Analyzer job '${job.id}' for repository '${repository.url}' with revision ${ortRun.revision} " +
-                        "finished with '${issues.size}' issues."
+                "Analyzer job ${job.id} for repository ${repository.url} with revision ${ortRun.revision} " +
+                        "finished with ${allIssues.size} total issues " +
+                        "and ${unresolvedIssues.size} unresolved issues."
             )
 
             val shortestPathsByIdentifier = mutableMapOf<Identifier, MutableList<ShortestDependencyPath>>()
@@ -137,7 +139,7 @@ internal class AnalyzerWorker(
                 ortRunService.storeAnalyzerRun(analyzerRun.mapToModel(jobId), shortestPathsByIdentifier)
             }
 
-            if (issues.any { it.severity >= Severity.WARNING }) {
+            if (unresolvedIssues.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
             } else {
                 RunResult.Success

@@ -182,7 +182,7 @@ class EvaluatorWorkerTest : StringSpec({
         }
     }
 
-    "A 'finished with issues' result should be returned if the advisor run finished with issues" {
+    "A 'finished with issues' result should be returned if the advisor run finished with unresolved policy violations" {
         val analyzerRun = mockk<AnalyzerRun>()
         val advisorRun = mockk<AdvisorRun>()
         val scannerRun = mockk<ScannerRun>()
@@ -241,6 +241,72 @@ class EvaluatorWorkerTest : StringSpec({
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.FinishedWithIssues
+
+            coVerify(exactly = 1) {
+                ortRunService.storeEvaluatorRun(any())
+            }
+        }
+    }
+
+    "A 'Success' result should be returned if the advisor run finished with resolved policy violations" {
+        val analyzerRun = mockk<AnalyzerRun>()
+        val advisorRun = mockk<AdvisorRun>()
+        val scannerRun = mockk<ScannerRun>()
+        val hierarchy = mockk<Hierarchy>()
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { revision } returns "main"
+            every { resolvedJobConfigContext } returns null
+        }
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { analyzerRun.mapToOrt() } returns mockk()
+        every { advisorRun.mapToOrt() } returns mockk()
+        every { scannerRun.mapToOrt() } returns mockk()
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
+
+        val ortRunService = mockk<OrtRunService> {
+            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns OrtTestData.result
+            every { getAdvisorRunForOrtRun(any()) } returns advisorRun
+            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            every { getEvaluatorJob(any()) } returns evaluatorJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { getScannerRunForOrtRun(any()) } returns scannerRun
+            every { startEvaluatorJob(any()) } returns evaluatorJob
+            every { storeEvaluatorRun(any()) } returns mockk()
+            every { storeResolvedPackageConfigurations(any(), any()) } just runs
+            every { storeResolvedResolutions(any(), any()) } just runs
+        }
+
+        val configManager = mockk<ConfigManager> {
+            every { getFileAsString(any(), Path(SCRIPT_FILE)) } returns
+                    File("src/test/resources/example.rules.kts").readText()
+            every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
+            every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
+                    File("src/test/resources/license-classifications.yml").inputStream()
+            every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
+        }
+
+        val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns ortRun
+            every { this@mockk.configManager } returns configManager
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+        }
+        val contextFactory = mockContextFactory(context)
+
+        val runner = spyk(EvaluatorRunner(mockk(), mockk()))
+        coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
+            OrtTestData.evaluatorRun, emptyList(), Resolutions()
+        )
+        val worker = EvaluatorWorker(mockk(), runner, ortRunService, contextFactory)
+
+        mockkTransaction {
+            val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Success
 
             coVerify(exactly = 1) {
                 ortRunService.storeEvaluatorRun(any())

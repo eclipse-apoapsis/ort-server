@@ -26,6 +26,7 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
@@ -126,7 +127,15 @@ internal class ReporterWorker(
                 }
             }
 
-            if (reporterRunnerResult.issues.any { it.severity >= Severity.WARNING }) {
+            val allIssues = reporterRunnerResult.issues
+            val unresolvedIssues = allIssues.filterNot { ortResult.isResolved(it.mapToOrt()) }
+
+            logger.info(
+                "Reporter job ${job.id} finished with ${allIssues.size} total issues" +
+                        " and ${unresolvedIssues.size} unresolved issues."
+            )
+
+            if (unresolvedIssues.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
             } else {
                 RunResult.Success

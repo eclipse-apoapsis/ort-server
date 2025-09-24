@@ -95,8 +95,14 @@ class ScannerWorker(
             }
 
             val allIssues = issues + scannerRunResult.scannerRun.issues.values.flatten().map { it.mapToModel() }
+            val unresolvedIssues = allIssues.filterNot { ortResult.isResolved(it.mapToOrt()) }
 
-            if (allIssues.any { it.severity >= Severity.WARNING }) {
+            logger.info(
+                "Scanner job $jobId finished with ${allIssues.size} total issues " +
+                        "and ${unresolvedIssues.size} unresolved issues."
+            )
+
+            if (unresolvedIssues.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
             } else {
                 RunResult.Success

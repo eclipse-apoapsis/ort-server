@@ -62,6 +62,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 
+import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Repository
 
@@ -134,6 +135,7 @@ class ReporterWorkerTest : StringSpec({
             every { copy(any(), any(), any(), any(), any(), any(), any()) } returns this
             every { labels } returns mapOf("projectName" to "Test project")
             every { repository } returns mockk()
+            every { isResolved(ofType<OrtIssue>()) } returns true
         }
 
         every { analyzerRun.mapToOrt() } returns mockk()
@@ -233,7 +235,7 @@ class ReporterWorkerTest : StringSpec({
         }
     }
 
-    "A 'finished with issues' result should be returned if the reporter run finished with issues" {
+    "A 'success' result should be returned if the reporter run finished with resolved issues" {
         val analyzerRun = mockk<AnalyzerRun>()
         val advisorRun = mockk<AdvisorRun>()
         val evaluatorRun = mockk<EvaluatorRun>()
@@ -250,6 +252,101 @@ class ReporterWorkerTest : StringSpec({
             every { copy(any(), any(), any(), any(), any(), any(), any()) } returns this
             every { labels } returns mapOf("projectName" to "Test project")
             every { repository } returns mockk()
+            every { isResolved(ofType<OrtIssue>()) } returns true
+        }
+
+        every { analyzerRun.mapToOrt() } returns mockk()
+        every { advisorRun.mapToOrt() } returns mockk()
+        every { evaluatorRun.mapToOrt() } returns mockk()
+        every { scannerRun.mapToOrt() } returns mockk()
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val ortRunService = mockk<OrtRunService> {
+            every { getAdvisorRunForOrtRun(ORT_RUN_ID) } returns advisorRun
+            every { getAnalyzerRunForOrtRun(ORT_RUN_ID) } returns analyzerRun
+            every { getEvaluatorJobForOrtRun(ORT_RUN_ID) } returns evaluatorJob
+            every { getEvaluatorRunForOrtRun(ORT_RUN_ID) } returns evaluatorRun
+            every { getHierarchyForOrtRun(ORT_RUN_ID) } returns hierarchy
+            every { getOrtRepositoryInformation(ortRun) } returns mockk()
+            every { getOrtRun(ORT_RUN_ID) } returns ortRun
+            every { getReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            every { getResolvedConfiguration(ortRun) } returns ResolvedConfiguration()
+            every { getScannerRunForOrtRun(ORT_RUN_ID) } returns scannerRun
+            every { startReporterJob(REPORTER_JOB_ID) } returns reporterJob
+            every { storeReporterRun(any()) } just runs
+            every { storeIssues(any(), any()) } just runs
+            every { generateOrtResult(ortRun, failIfRepoInfoMissing = false) } returns ortResult
+        }
+
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockContextFactory(context)
+
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
+        }
+
+        val runnerResult = ReporterRunnerResult(
+            reports = mapOf("WebApp" to listOf("report.html")),
+            resolvedPackageConfigurations = null,
+            resolvedResolutions = null,
+            issues = listOf(Issue(Clock.System.now(), "Test issue", "Test message", Severity.ERROR))
+        )
+        val runner = mockk<ReporterRunner> {
+            coEvery {
+                run(ortResult, reporterJob.configuration, evaluatorJob.configuration, context)
+            } returns runnerResult
+        }
+
+        val link = ReportDownloadLink("https://report.example.org/ap1/$ORT_RUN_ID/someToken", Instant.DISTANT_FUTURE)
+        val linkGenerator = mockk<ReportDownloadLinkGenerator> {
+            every { generateLink(ORT_RUN_ID) } returns link
+        }
+
+        val worker = ReporterWorker(
+            contextFactory,
+            mockk(),
+            environmentService,
+            runner,
+            ortRunService,
+            linkGenerator
+        )
+
+        mockkTransaction {
+            val result = worker.run(REPORTER_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Success
+        }
+
+        val slotReporterRun = slot<ReporterRun>()
+        coVerify {
+            ortRunService.storeReporterRun(capture(slotReporterRun))
+            ortRunService.storeIssues(ORT_RUN_ID, runnerResult.issues)
+            environmentService.setupAuthenticationForCurrentRun(context)
+        }
+
+        slotReporterRun.captured.reports shouldContainExactlyInAnyOrder listOf(
+            Report("report.html", link.downloadLink, link.expirationTime)
+        )
+    }
+
+    "A 'finished with issues' result should be returned if the reporter run finished with unresolved issues" {
+        val analyzerRun = mockk<AnalyzerRun>()
+        val advisorRun = mockk<AdvisorRun>()
+        val evaluatorRun = mockk<EvaluatorRun>()
+        val scannerRun = mockk<ScannerRun>()
+        val hierarchy = mockk<Hierarchy>()
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { revision } returns "main"
+            every { labels } returns mapOf("projectName" to "Test project")
+        }
+
+        val ortResult = mockk<OrtResult> {
+            every { copy(any(), any(), any(), any(), any(), any(), any()) } returns this
+            every { labels } returns mapOf("projectName" to "Test project")
+            every { repository } returns mockk()
+            every { isResolved(ofType<OrtIssue>()) } returns false
         }
 
         every { analyzerRun.mapToOrt() } returns mockk()
@@ -325,7 +422,6 @@ class ReporterWorkerTest : StringSpec({
             Report("report.html", link.downloadLink, link.expirationTime)
         )
     }
-
     "An ignored result should be returned for an invalid job" {
         val invalidJob = reporterJob.copy(status = JobStatus.FINISHED)
         val ortRunService = mockk<OrtRunService> {

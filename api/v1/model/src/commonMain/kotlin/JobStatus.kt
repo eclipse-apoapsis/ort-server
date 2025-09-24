@@ -35,9 +35,11 @@ enum class JobStatus {
     /** The job failed during execution. */
     FAILED,
 
-    /** The job was processed successfully. */
+    /** The job was processed successfully. There are no unresolved rule violations, known vulnerabilities
+        or technical issues with severity WARNING or higher. */
     FINISHED,
 
-    /** The job has finished, but there were some issues over the threshold. */
+    /** The job has finished, but there are unresolved rule violations, known vulnerabilities or technical issues
+        with severity WARNING or higher. */
     FINISHED_WITH_ISSUES
 }

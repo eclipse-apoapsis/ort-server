@@ -66,7 +66,15 @@ internal class EvaluatorWorker(
                 ortRunService.storeResolvedResolutions(ortRun.id, evaluatorRunnerResult.resolutions)
             }
 
-            if (evaluatorRunnerResult.evaluatorRun.violations.any { it.severity >= Severity.WARNING }) {
+            val allViolations = evaluatorRunnerResult.evaluatorRun.violations
+            val unresolvedViolations = allViolations.filterNot { ortResult.isResolved(it) }
+
+            logger.info(
+                "Evaluator job ${job.id} finished with ${allViolations.size} total violations" +
+                        " and ${unresolvedViolations.size} unresolved violations."
+            )
+
+            if (unresolvedViolations.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
             } else {
                 RunResult.Success
