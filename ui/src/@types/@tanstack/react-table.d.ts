@@ -35,6 +35,11 @@ declare module '@tanstack/react-table' {
     setFilterValue: (value: string | undefined) => void;
   };
 
+  type RegexFilter = {
+    filterVariant: 'regex';
+    setFilterValue: (value: string | undefined) => void;
+  };
+
   type SelectFilter<TValue> = {
     filterVariant: 'select';
     selectOptions: {
