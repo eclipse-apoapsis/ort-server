@@ -35,7 +35,7 @@ const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
     /Scan failed for job with ID '.*'/,
     /StreamResetException: stream was reset*/,
   ],
-  'Missing Data': [/IOException: Could not resolve provenance for .*/],
+  'Missing Data': [/Could not resolve provenance for .*/],
   'Build System': [/.* failed to resolve dependencies for .*/],
   Other: [/.*/],
 };
