@@ -79,9 +79,18 @@ internal class AdvisorWorker(
                 ortRunService.storeAdvisorRun(advisorRun.mapToModel(jobId))
             }
 
-            if (advisorRun.results.values.flatten().flatMap { it.summary.issues }
-                    .any { it.severity >= Severity.WARNING }
-                ) {
+            val allIssues = advisorRun.results.values.flatten().flatMap { it.summary.issues }
+
+            // It is only about technical issues here, and NOT about vulnerabilities, because the evaluation if
+            // a vulnerability of a given severity should trigger a policy violation is done in the Evaluator stage.
+            val unresolvedIssues = allIssues.filterNot { ortResult.isResolved(it) }
+
+            logger.info(
+                "Advisor job ${job.id} finished with ${allIssues.size} total issues " +
+                        "and ${unresolvedIssues.size} unresolved issues."
+            )
+
+            if (unresolvedIssues.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
             } else {
                 RunResult.Success

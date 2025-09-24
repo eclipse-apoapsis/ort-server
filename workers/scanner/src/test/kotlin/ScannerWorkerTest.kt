@@ -52,6 +52,7 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
+import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData.issue
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -345,7 +346,7 @@ class ScannerWorkerTest : StringSpec({
         }
     }
 
-    "A 'finished with issues' result should be returned if the scanner run finished with issues" {
+    "A 'finished with issues' result should be returned if the scanner run finished with unresolved issues" {
         val analyzerRun = mockk<AnalyzerRun>()
         val hierarchy = mockk<Hierarchy>()
         val ortRun = mockk<OrtRun> {
@@ -399,6 +400,60 @@ class ScannerWorkerTest : StringSpec({
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
 
             result shouldBe RunResult.FinishedWithIssues
+        }
+    }
+
+    "A 'Success' result should be returned if the scanner run finished with resolved issues" {
+        val analyzerRun = mockk<AnalyzerRun>()
+        val hierarchy = mockk<Hierarchy>()
+        val ortRun = mockk<OrtRun> {
+            every { id } returns ORT_RUN_ID
+            every { repositoryId } returns REPOSITORY_ID
+            every { revision } returns "main"
+        }
+        val ortResult = OrtResult.EMPTY.copy(
+            resolvedConfiguration = OrtTestData.resolvedConfiguration
+        )
+
+        mockkStatic(ORT_SERVER_MAPPINGS_FILE)
+        every { analyzerRun.mapToOrt() } returns mockk()
+        every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns ortResult
+
+        val ortRunService = mockk<OrtRunService> {
+            every { createScannerRun(any()) } returns mockk {
+                every { id } returns scannerJob.id
+            }
+            every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRepositoryInformation(any()) } returns mockk()
+            every { getOrtRun(any()) } returns ortRun
+            every { getResolvedConfiguration(any()) } returns ResolvedConfiguration()
+            every { getScannerJob(any()) } returns scannerJob
+            every { finalizeScannerRun(any(), any()) } returns mockk()
+            every { startScannerJob(any()) } returns scannerJob
+        }
+
+        val context = mockk<WorkerContext>()
+        val contextFactory = mockContextFactory(context)
+
+        val provenance: Provenance =
+            OrtTestData.scannerRun.provenances.firstNotNullOf(ProvenanceResolutionResult::packageProvenance)
+
+        val issuesMap = mapOf(provenance to setOf(issue))
+        val runner = mockk<ScannerRunner> {
+            coEvery { run(context, any(), any(), any()) } returns OrtScannerResult(OrtTestData.scannerRun, issuesMap)
+        }
+
+        val environmentService = mockk<EnvironmentService> {
+            coEvery { setupAuthenticationForCurrentRun(context) } just runs
+        }
+
+        val worker = ScannerWorker(mockk(), runner, ortRunService, contextFactory, environmentService)
+
+        mockkTransaction {
+            val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
+
+            result shouldBe RunResult.Success
         }
     }
 

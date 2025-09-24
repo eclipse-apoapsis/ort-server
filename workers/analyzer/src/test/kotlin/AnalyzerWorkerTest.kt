@@ -39,6 +39,8 @@ import io.mockk.verify
 import java.io.File
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toJavaInstant
 
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -57,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
+import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData.TIME_STAMP_SECONDS
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
@@ -64,6 +67,9 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 
 import org.ossreviewtoolkit.analyzer.PackageManagerFactory
+import org.ossreviewtoolkit.model.Identifier
+import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.Severity
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"
@@ -497,7 +503,13 @@ class AnalyzerWorkerTest : StringSpec({
 
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
             coEvery { run(any(), any(), any(), any()) } answers {
-                OrtTestData.result
+                OrtTestData.result.copy(
+                    resolvedConfiguration = OrtTestData.result.resolvedConfiguration.copy(
+                        resolutions = OrtTestData.result.resolvedConfiguration.resolutions?.copy(
+                            issues = emptyList() // Remove any issue resolutions to simulate unresolved issues.
+                        )
+                    )
+                )
             }
         }
 
@@ -515,6 +527,133 @@ class AnalyzerWorkerTest : StringSpec({
             val result = worker.testRun()
 
             result shouldBe RunResult.FinishedWithIssues
+        }
+    }
+
+    "A 'success' result should be returned if the analyzer run finished with issues with severity HINT" {
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
+            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
+            // the repository is not cloned.
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
+        }
+
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+        }
+
+        val contextFactory = mockContextFactory(context)
+
+        val envService = mockk<EnvironmentService> {
+            every { findInfrastructureServicesForRepository(context, null) } returns emptyList()
+            coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns ResolvedEnvironmentConfig()
+        }
+
+        val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
+            coEvery { run(any(), any(), any(), any()) } answers {
+                OrtTestData.result.copy(
+                    resolvedConfiguration = OrtTestData.result.resolvedConfiguration.copy(
+                        resolutions = OrtTestData.result.resolvedConfiguration.resolutions?.copy(
+                            issues = emptyList() // Remove any issue resolutions to simulate unresolved issues.
+                        )
+                    ),
+
+                    analyzer = OrtTestData.result.analyzer?.copy(
+                        result = OrtTestData.result.analyzer?.result!!.copy(
+                            issues = mapOf(
+                                Identifier("Maven:com.example:package:1.0") to listOf(
+                                    Issue(
+                                        timestamp = Instant.fromEpochSeconds(TIME_STAMP_SECONDS).toJavaInstant(),
+                                        source = "tool-x",
+                                        message = "An issue occurred.",
+                                        severity = Severity.HINT
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            }
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runnerMock,
+            ortRunService,
+            contextFactory,
+            envService,
+            mockPluginService()
+        )
+
+        mockkTransaction {
+            val result = worker.testRun()
+
+            result shouldBe RunResult.Success
+        }
+    }
+
+    "A 'success' result should be returned if the analyzer run finished with resolved issues" {
+        val ortRunService = mockk<OrtRunService> {
+            every { getAnalyzerJob(any()) } returns analyzerJob
+            every { getHierarchyForOrtRun(any()) } returns hierarchy
+            every { getOrtRun(any()) } returns ortRun
+            every { startAnalyzerJob(any()) } returns analyzerJob
+            every { storeAnalyzerRun(any(), any()) } just runs
+            every { storeRepositoryInformation(any(), any()) } just runs
+            every { storeResolvedPackageCurations(any(), any()) } just runs
+            every { updateResolvedRevision(any(), any()) } just runs
+        }
+
+        val downloader = mockk<AnalyzerDownloader> {
+            // To speed up the test and to not rely on a network connection, a minimal pom file is analyzed and
+            // the repository is not cloned.
+            every { downloadRepository(any(), any()) } returns
+                    DownloadResult(projectDir, "main", "resolvedRevision")
+        }
+
+        val context = mockk<WorkerContext> {
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+        }
+
+        val contextFactory = mockContextFactory(context)
+
+        val envService = mockk<EnvironmentService> {
+            every { findInfrastructureServicesForRepository(context, null) } returns emptyList()
+            coEvery { setUpEnvironment(context, projectDir, null, emptyList()) } returns ResolvedEnvironmentConfig()
+        }
+
+        val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
+            coEvery { run(any(), any(), any(), any()) } answers {
+                OrtTestData.result
+            }
+        }
+
+        val worker = AnalyzerWorker(
+            mockk(),
+            downloader,
+            runnerMock,
+            ortRunService,
+            contextFactory,
+            envService,
+            mockPluginService()
+        )
+
+        mockkTransaction {
+            val result = worker.testRun()
+
+            result shouldBe RunResult.Success
         }
     }
 })

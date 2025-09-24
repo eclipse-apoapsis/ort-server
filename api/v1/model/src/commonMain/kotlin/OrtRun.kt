@@ -190,8 +190,21 @@ data class CreateOrtRun(
 enum class OrtRunStatus {
     CREATED,
     ACTIVE,
+
+    /**
+     * The run finished successfully.
+     */
     FINISHED,
+
+    /**
+     * The run failed.
+     */
     FAILED,
+
+    /**
+     * The run finished, but there are unresolved rule violations, known vulnerabilities or technical issues
+     * with severity WARNING or higher.
+     */
     FINISHED_WITH_ISSUES
 }
 
