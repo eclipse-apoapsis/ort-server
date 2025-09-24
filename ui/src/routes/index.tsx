@@ -120,7 +120,7 @@ export const IndexPage = () => {
         ),
         meta: {
           filter: {
-            filterVariant: 'text',
+            filterVariant: 'regex',
             setFilterValue: (value: string | undefined) => {
               navigate({
                 search: { ...search, page: 1, filter: value },
