@@ -17,9 +17,15 @@
  * License-Filename: LICENSE
  */
 
-import { Column, SelectFilter, TextFilter } from '@tanstack/react-table';
+import {
+  Column,
+  RegexFilter,
+  SelectFilter,
+  TextFilter,
+} from '@tanstack/react-table';
 
 import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
+import { FilterRegex } from '@/components/data-table/filter-regex';
 import { FilterText } from '@/components/data-table/filter-text';
 
 export function DataTableFilter<TData, TValue>({
@@ -36,6 +42,17 @@ export function DataTableFilter<TData, TValue>({
 
     return (
       <FilterText
+        filterValue={(columnFilterValue as string) || ''}
+        setFilterValue={setFilterValue}
+      />
+    );
+  }
+
+  if (filterVariant === 'regex') {
+    const { setFilterValue } = column.columnDef.meta?.filter as RegexFilter;
+
+    return (
+      <FilterRegex
         filterValue={(columnFilterValue as string) || ''}
         setFilterValue={setFilterValue}
       />

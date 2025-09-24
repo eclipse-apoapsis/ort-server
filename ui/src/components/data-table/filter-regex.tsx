@@ -1,0 +1,134 @@
+/*
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+import { Filter, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import z from 'zod';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+
+const regexSchema = z
+  .object({
+    value: z.string().superRefine((val, ctx) => {
+      try {
+        new RegExp(val);
+      } catch (error) {
+        if (error instanceof SyntaxError && error.message) {
+          ctx.addIssue({
+            code: 'custom',
+            message:
+              error.message.charAt(0).toUpperCase() + error.message.slice(1), // capitalize first letter
+          });
+        } else {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Invalid regular expression', // fallback message
+          });
+        }
+      }
+    }),
+  })
+  .optional();
+
+interface FilterRegexProps {
+  filterValue: string;
+  setFilterValue: (value: string | undefined) => void;
+}
+
+export function FilterRegex({
+  filterValue: initialValue,
+  setFilterValue,
+}: FilterRegexProps) {
+  const [value, setValue] = useState(initialValue);
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  const evaluateRegex = () => {
+    const isValid = regexSchema.safeParse({ value }).success;
+    const message = regexSchema.safeParse({ value }).error;
+
+    return { isValid, message };
+  };
+
+  return (
+    <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+      <PopoverTrigger asChild>
+        <Button variant='ghost' size='narrow'>
+          <Filter
+            className={cn(value.length > 0 && 'text-blue-500', 'h-4 w-4')}
+          />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent>
+        <div className='flex gap-2'>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (evaluateRegex().isValid) {
+                setFilterValue(value);
+                setFilterOpen(false);
+              }
+            }}
+          >
+            <Input
+              placeholder='(enter a RegEx)'
+              value={value}
+              onBlur={() => {
+                if (evaluateRegex().isValid) {
+                  setFilterValue(value);
+                }
+              }}
+              onChange={(event) => {
+                setValue(event.target.value);
+              }}
+            />
+            {!evaluateRegex().isValid && (
+              <p className='pt-1 text-xs text-red-600'>
+                {evaluateRegex().message?.issues[0]?.message}
+              </p>
+            )}
+          </form>
+          <Button
+            variant='ghost'
+            className='px-2'
+            onClick={() => {
+              setValue('');
+              setFilterValue(undefined);
+              setFilterOpen(false);
+            }}
+          >
+            <XCircle
+              className={cn(
+                'h-fit text-gray-400',
+                value.length === 0 ? 'opacity-40' : 'opacity-100'
+              )}
+            />
+            <span className='sr-only'>Clear search</span>
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
