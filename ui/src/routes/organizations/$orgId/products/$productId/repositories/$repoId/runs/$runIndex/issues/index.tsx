@@ -304,7 +304,10 @@ const IssuesComponent = () => {
         header: 'Package ID',
         cell: ({ getValue }) => {
           return (
-            <BreakableString text={getValue()} className='font-semibold' />
+            <BreakableString
+              text={getValue()}
+              className='font-semibold break-all'
+            />
           );
         },
         meta: {
