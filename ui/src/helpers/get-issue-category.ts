@@ -37,7 +37,7 @@ const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
   ],
   'Missing Data': [/IOException: Could not resolve provenance for .*/],
   'Build System': [/.* failed to resolve dependencies for .*/],
-  Other: [],
+  Other: [/.*/],
 };
 
 /**
