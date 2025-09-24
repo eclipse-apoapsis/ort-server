@@ -130,7 +130,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
                     id = identifier,
                     packageProvenanceResolutionIssue = Issue(
                         timestamp = Clock.System.now(),
-                        source = "scanner",
+                        source = "Scanner",
                         message = "Could not resolve provenance for package '$identifier': " +
                                 "${packageProvenanceDao.errorMessage}",
                         severity = Severity.ERROR
@@ -148,7 +148,7 @@ class DaoScannerRunRepository(private val db: Database) : ScannerRunRepository {
                     packageProvenance = packageProvenance,
                     nestedProvenanceResolutionIssue = Issue(
                         timestamp = Clock.System.now(),
-                        source = "scanner",
+                        source = "Scanner",
                         message = "Could not resolve nested provenance for provenance '$packageProvenance'.",
                         severity = Severity.ERROR
                     )
