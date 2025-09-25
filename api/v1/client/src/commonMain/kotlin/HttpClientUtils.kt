@@ -22,12 +22,15 @@ package org.eclipse.apoapsis.ortserver.client
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -41,9 +44,15 @@ import kotlinx.serialization.json.Json
 
 /**
  * Create a default HTTP client with the given [json] configuration and [engine]. If no engine is provided, it will
- * choose the engine automatically based on the platform.
+ * choose the engine automatically based on the platform. If [maxRetriesOnTimeout] is greater than zero, the client
+ * will retry requests that failed due to a timeout or received a 504 Gateway Timeout response up to the given
+ * number of times.
  */
-fun createDefaultHttpClient(json: Json = Json.Default, engine: HttpClientEngine? = null): HttpClient {
+fun createDefaultHttpClient(
+    json: Json = Json.Default,
+    engine: HttpClientEngine? = null,
+    maxRetriesOnTimeout: Int = 3
+): HttpClient {
     val client = engine?.let { HttpClient(it) } ?: HttpClient()
 
     return client.config {
@@ -53,6 +62,16 @@ fun createDefaultHttpClient(json: Json = Json.Default, engine: HttpClientEngine?
 
         install(ContentNegotiation) {
             json(json)
+        }
+
+        if (maxRetriesOnTimeout > 0) {
+            install(HttpRequestRetry) {
+                maxRetries = maxRetriesOnTimeout
+                retryOnException(retryOnTimeout = true, maxRetries = maxRetriesOnTimeout)
+                retryIf { request, response ->
+                    response.status == HttpStatusCode.GatewayTimeout && request.method == HttpMethod.Get
+                }
+            }
         }
     }
 }
