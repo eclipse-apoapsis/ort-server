@@ -31,7 +31,7 @@ import { ChevronDown, ChevronUp, UserPen } from 'lucide-react';
 import { useState } from 'react';
 import z from 'zod';
 
-import { Package, RepositoryType } from '@/api';
+import { Package } from '@/api';
 import {
   getLicensesForPackagesByRunIdOptions,
   getOrtRunByIndexOptions,
@@ -149,8 +149,7 @@ const renderSubComponent = ({
       <RenderProperty label='CPE' value={pkg.cpe} />
       <div>
         <div className='font-semibold'>
-          {getRepositoryTypeLabel(pkg.vcsProcessed.type as RepositoryType)}{' '}
-          Repository
+          {getRepositoryTypeLabel(pkg.vcsProcessed.type)} Repository
         </div>
         <div className='ml-2'>
           <RenderProperty label='URL' value={pkg.vcsProcessed.url} type='url' />

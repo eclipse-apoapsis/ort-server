@@ -144,6 +144,10 @@ const repositoryTypeLabels: Record<RepositoryType, string> = {
   SUBVERSION: 'Subversion',
 };
 
-export function getRepositoryTypeLabel(type: RepositoryType): string {
-  return repositoryTypeLabels[type] || 'Unset';
+export function getRepositoryTypeLabel(type: RepositoryType | string): string {
+  if (type in repositoryTypeLabels) {
+    // TS narrows `type` to RepositoryType because of the Record key check.
+    return repositoryTypeLabels[type as RepositoryType];
+  }
+  return type ? `"${type}"` : 'Unset';
 }
