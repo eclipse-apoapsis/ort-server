@@ -147,35 +147,57 @@ const renderSubComponent = ({
         type='textblock'
       />
       <RenderProperty label='CPE' value={pkg.cpe} />
-      <div>
-        <div className='font-semibold'>
-          {getRepositoryTypeLabel(pkg.vcsProcessed.type)} Repository
+      {pkg.vcsProcessed.type ||
+      pkg.vcsProcessed.url ||
+      pkg.vcsProcessed.revision ||
+      pkg.vcsProcessed.path ? (
+        <div>
+          <div className='font-semibold'>
+            {getRepositoryTypeLabel(pkg.vcsProcessed.type)} Repository
+          </div>
+          <div className='ml-2'>
+            <RenderProperty
+              label='URL'
+              value={pkg.vcsProcessed.url}
+              type='url'
+            />
+            <RenderProperty
+              label='Revision'
+              value={pkg.vcsProcessed.revision}
+            />
+            <RenderProperty label='Path' value={pkg.vcsProcessed.path} />
+          </div>
         </div>
-        <div className='ml-2'>
-          <RenderProperty label='URL' value={pkg.vcsProcessed.url} type='url' />
-          <RenderProperty label='Revision' value={pkg.vcsProcessed.revision} />
-          <RenderProperty label='Path' value={pkg.vcsProcessed.path} />
+      ) : (
+        <RenderProperty label='Repository' value={null} />
+      )}
+      {pkg.binaryArtifact.url ||
+      pkg.binaryArtifact.hashValue ||
+      pkg.binaryArtifact.hashAlgorithm ? (
+        <div>
+          <div className='font-semibold'>Binary Artifact</div>
+          <div className='ml-2'>
+            <RenderProperty
+              label='URL'
+              value={pkg.binaryArtifact.url}
+              type='url'
+            />
+            <RenderProperty
+              label='Hash value'
+              value={pkg.binaryArtifact.hashValue}
+            />
+            <RenderProperty
+              label='Hash algorithm'
+              value={pkg.binaryArtifact.hashAlgorithm}
+            />
+          </div>
         </div>
-      </div>
-      <div>
-        <div className='font-semibold'>Binary Artifact</div>
-        <div className='ml-2'>
-          <RenderProperty
-            label='URL'
-            value={pkg.binaryArtifact.url}
-            type='url'
-          />
-          <RenderProperty
-            label='Hash value'
-            value={pkg.binaryArtifact.hashValue}
-          />
-          <RenderProperty
-            label='Hash algorithm'
-            value={pkg.binaryArtifact.hashAlgorithm}
-          />
-        </div>
-      </div>
-      {!pkg.isMetadataOnly && (
+      ) : (
+        <RenderProperty label='Binary Artifact' value={null} />
+      )}
+      {pkg.isMetadataOnly ? null : pkg.sourceArtifact.url ||
+        pkg.sourceArtifact.hashValue ||
+        pkg.sourceArtifact.hashAlgorithm ? (
         <div>
           <div className='font-semibold'>Source Artifact</div>
           <div className='ml-2'>
@@ -194,6 +216,8 @@ const renderSubComponent = ({
             />
           </div>
         </div>
+      ) : (
+        <RenderProperty label='Source Artifact' value={null} />
       )}
       {pkg.shortestDependencyPaths.length > 0 && (
         <div>
