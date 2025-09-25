@@ -35,7 +35,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import z from 'zod';
 
-import { Project, RepositoryType } from '@/api';
+import { Project } from '@/api';
 import {
   getOrtRunByIndexOptions,
   getProjectsByRunIdOptions,
@@ -108,8 +108,7 @@ const renderSubComponent = ({ row }: { row: Row<Project> }) => {
 
       <div>
         <div className='font-semibold'>
-          {getRepositoryTypeLabel(project.vcsProcessed.type as RepositoryType)}{' '}
-          Repository
+          {getRepositoryTypeLabel(project.vcsProcessed.type)} Repository
         </div>
         <div className='ml-2'>
           <RenderProperty
