@@ -1,1 +1,1 @@
-The documentation of the database storage is located [here](../../website/docs/infrastructure/storage/database.md).
+The documentation of the database storage is located [here](../../website/docs/admin-guide/infrastructure/storage/database.md).
