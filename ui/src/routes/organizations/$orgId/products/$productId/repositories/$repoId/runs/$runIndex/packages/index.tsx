@@ -27,7 +27,7 @@ import {
   Row,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronDown, ChevronUp, UserPen } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import z from 'zod';
 
@@ -38,7 +38,7 @@ import {
   getPackagesByRunIdOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
-import { DataTable } from '@/components/data-table/data-table';
+import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { DependencyPaths } from '@/components/dependency-paths';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -87,6 +87,87 @@ const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<Package>();
 
+// Component to render a single package card in the list.
+const PackageCard = ({ pkg }: { pkg: Package }) => {
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
+  const id =
+    packageIdType === 'ORT_ID' ? identifierToString(pkg.identifier) : pkg.purl;
+
+  return (
+    <div className='flex flex-col gap-1'>
+      <div className='flex justify-between'>
+        <div className='font-semibold'>
+          <BreakableString text={id} />
+        </div>
+        <a
+          href={pkg.homepageUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-blue-400 hover:underline'
+        >
+          {pkg.homepageUrl}
+        </a>
+      </div>
+      <div className='text-sm'>
+        <span className='font-semibold'>Declared License: </span>
+        {pkg.processedDeclaredLicense.spdxExpression || 'N/A'}
+      </div>
+      <div className='flex gap-2'>
+        {pkg.curations.length > 0 && (
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant='small' className='bg-green-600'>
+                CURATED
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              This package has {pkg.curations.length} metadata curation
+              {pkg.curations.length > 1 ? 's' : ''}.
+            </TooltipContent>
+          </Tooltip>
+        )}
+        {pkg.isMetadataOnly && (
+          <div>
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge
+                  variant='small'
+                  className={`${getIssueSeverityBackgroundColor('HINT')}`}
+                >
+                  METADATA ONLY
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                This is a metadata-only package that has no source code
+                associated to it.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+        {pkg.isModified && (
+          <div>
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge
+                  variant='small'
+                  className={`${getIssueSeverityBackgroundColor('WARNING')}`}
+                >
+                  MODIFIED
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                The package has been modified compared to the original package,
+                e.g. in case of a fork of an upstream Open Source project.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Component to ender the expanded subrow of a package card, showing additional details.
 const renderSubComponent = ({
   row,
   packageIdType,
@@ -99,47 +180,6 @@ const renderSubComponent = ({
 
   return (
     <div className='flex flex-col gap-4'>
-      {pkg.isModified ||
-        (pkg.isMetadataOnly && (
-          <div className='flex gap-2'>
-            <div className='font-semibold'>Flags:</div>
-            {pkg.isModified && (
-              <div>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge
-                      className={`border ${getIssueSeverityBackgroundColor('WARNING')}`}
-                    >
-                      MODIFIED
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    The package has been modified compared to the original
-                    package, e.g. in case of a fork of an upstream Open Source
-                    project.
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            )}
-            {pkg.isMetadataOnly && (
-              <div>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge
-                      className={`border ${getIssueSeverityBackgroundColor('HINT')}`}
-                    >
-                      METADATA ONLY
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    This is a metadata-only package that has no source code
-                    associated to it.
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            )}
-          </div>
-        ))}
       <RenderProperty label='Authors' value={pkg.authors} />
       <RenderProperty
         label='Description'
@@ -308,8 +348,9 @@ const PackagesComponent = () => {
   });
 
   const columns = [
+    // Leftmost action column.
     columnHelper.display({
-      id: 'moreInfo',
+      id: 'details',
       header: 'Details',
       size: 50,
       cell: function CellComponent({ row }) {
@@ -334,33 +375,25 @@ const PackagesComponent = () => {
                   to: Route.to,
                   search: {
                     ...search,
-                    // If no items are marked for inspection, remove the "marked" parameter
-                    // from search parameters.
                     marked: marked === '' ? undefined : marked,
                   },
                 };
               }}
             />
-            {row.original.curations.length > 0 && (
-              <Tooltip>
-                <TooltipTrigger>
-                  <UserPen className='size-4 text-green-600' />
-                </TooltipTrigger>
-                <TooltipContent>
-                  This package has {row.original.curations.length} metadata
-                  curation
-                  {row.original.curations.length > 1 ? 's' : ''}.
-                </TooltipContent>
-              </Tooltip>
-            )}
           </div>
         ) : (
           'No info'
         );
       },
-      enableSorting: false,
-      enableColumnFilter: false,
     }),
+    // Main column that presents all data.
+    columnHelper.display({
+      id: 'card',
+      cell: ({ row }) => <PackageCard pkg={row.original} />,
+    }),
+    // All (hidden) columns that are used for filtering/sorting the main column.
+    // They don't render any data, but need to retain their accessor logic, and
+    // any special sorting and filtering logic.
     columnHelper.accessor(
       (pkg) => {
         if (packageIdType === 'ORT_ID') {
@@ -372,11 +405,6 @@ const PackagesComponent = () => {
       {
         id: `${packageIdType === 'ORT_ID' ? 'identifier' : 'purl'}`,
         header: 'Package ID',
-        cell: ({ getValue }) => {
-          return (
-            <BreakableString text={getValue()} className='font-semibold' />
-          );
-        },
         meta: {
           filter: {
             filterVariant: 'text',
@@ -396,14 +424,10 @@ const PackagesComponent = () => {
       {
         id: 'processedDeclaredLicense',
         header: 'Declared License',
-        cell: ({ row }) => (
-          <div className='break-all'>
-            {row.getValue('processedDeclaredLicense')}
-          </div>
-        ),
         meta: {
           filter: {
             filterVariant: 'select',
+            align: 'end',
             selectOptions:
               declaredLicensesOptions.processedDeclaredLicenses.map(
                 (license) => ({
@@ -424,37 +448,8 @@ const PackagesComponent = () => {
         },
       }
     ),
-    columnHelper.accessor(
-      (row) => {
-        return row.curations
-          .map((curation) => curation.concludedLicense)
-          .join(', ');
-      },
-      {
-        header: 'Concluded License',
-        cell: ({ getValue }) => <div className='break-all'>{getValue()}</div>,
-        enableColumnFilter: false,
-        enableSorting: false,
-      }
-    ),
-    columnHelper.accessor('homepageUrl', {
-      header: 'Homepage',
-      cell: ({ row }) => (
-        <a
-          href={row.getValue('homepageUrl')}
-          target='_blank'
-          rel='noopener noreferrer'
-          className='font-semibold text-blue-400 hover:underline'
-        >
-          {row.getValue('homepageUrl')}
-        </a>
-      ),
-      enableColumnFilter: false,
-      enableSorting: false,
-    }),
   ];
 
-  // Match the column id properly when ORT ID or PURL is used for the column data.
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
 
   const [expanded, setExpanded] = useState<ExpandedState>(
@@ -476,6 +471,11 @@ const PackagesComponent = () => {
         { id: columnId, value: packageId },
         { id: 'processedDeclaredLicense', value: declaredLicense },
       ],
+      // Always hide the columns that are used for filtering/sorting only.
+      columnVisibility: {
+        [columnId]: false,
+        processedDeclaredLicense: false,
+      },
     },
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
@@ -516,7 +516,7 @@ const PackagesComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
+        <DataTableCards
           table={table}
           renderSubComponent={({ row }) =>
             renderSubComponent({ row, packageIdType })
