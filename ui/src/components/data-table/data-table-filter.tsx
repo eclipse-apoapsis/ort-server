@@ -28,20 +28,27 @@ import { FilterMultiSelect } from '@/components/data-table/filter-multi-select';
 import { FilterRegex } from '@/components/data-table/filter-regex';
 import { FilterText } from '@/components/data-table/filter-text';
 
+interface DataTableFilterProps<TData, TValue> {
+  column: Column<TData, TValue>;
+  showTitle?: boolean; // Whether to show the title next to the filter icon
+}
+
 export function DataTableFilter<TData, TValue>({
   column,
-}: {
-  column: Column<TData, TValue>;
-}) {
+  showTitle,
+}: DataTableFilterProps<TData, TValue>) {
   const filterVariant = column.columnDef.meta?.filter?.filterVariant;
 
   const columnFilterValue = column.getFilterValue();
+  const title = column.columnDef.header?.toString();
 
   if (filterVariant === 'text') {
     const { setFilterValue } = column.columnDef.meta?.filter as TextFilter;
 
     return (
       <FilterText
+        title={title}
+        showTitle={showTitle}
         filterValue={(columnFilterValue as string) || ''}
         setFilterValue={setFilterValue}
       />
@@ -53,6 +60,8 @@ export function DataTableFilter<TData, TValue>({
 
     return (
       <FilterRegex
+        title={title}
+        showTitle={showTitle}
         filterValue={(columnFilterValue as string) || ''}
         setFilterValue={setFilterValue}
       />
@@ -66,7 +75,8 @@ export function DataTableFilter<TData, TValue>({
 
     return (
       <FilterMultiSelect
-        title={column.columnDef.header?.toString()}
+        title={title}
+        showTitle={showTitle}
         options={selectOptions}
         selected={(columnFilterValue as TValue[]) ?? []}
         setSelected={setSelected}

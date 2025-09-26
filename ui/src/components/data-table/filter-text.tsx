@@ -30,11 +30,15 @@ import {
 import { cn } from '@/lib/utils';
 
 interface FilterTextProps {
+  title?: string;
+  showTitle?: boolean; // Whether to show the title next to the filter icon
   filterValue: string;
   setFilterValue: (value: string | undefined) => void;
 }
 
 export function FilterText({
+  title,
+  showTitle,
   filterValue: initialValue,
   setFilterValue,
 }: FilterTextProps) {
@@ -49,8 +53,9 @@ export function FilterText({
     <Popover open={filterOpen} onOpenChange={setFilterOpen}>
       <PopoverTrigger asChild>
         <Button variant='ghost' size='narrow'>
+          {showTitle && <span className='text-sm'>{title}</span>}
           <Filter
-            className={cn(value.length > 0 && 'text-blue-500', 'h-4 w-4')}
+            className={cn('size-4', value.length > 0 && 'text-blue-500')}
           />
         </Button>
       </PopoverTrigger>
