@@ -39,6 +39,7 @@ import { cn } from '@/lib/utils';
 
 interface FilterMultiSelectProps<TValue> {
   title?: string;
+  showTitle?: boolean; // Whether to show the title next to the filter icon
   options: {
     label: string;
     value: TValue;
@@ -51,6 +52,7 @@ interface FilterMultiSelectProps<TValue> {
 
 export function FilterMultiSelect<TValue>({
   title,
+  showTitle,
   options,
   selected,
   setSelected,
@@ -59,11 +61,12 @@ export function FilterMultiSelect<TValue>({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant='ghost' size='narrow'>
+        <Button variant='ghost' size='narrow' className='font-medium'>
+          {showTitle && <span className='text-sm'>{title}</span>}
           <Filter
             className={cn(
-              selected.length > 0 ? 'text-blue-500' : undefined,
-              'h-4 w-4'
+              'size-4',
+              selected.length > 0 ? 'text-blue-500' : undefined
             )}
           />
         </Button>
