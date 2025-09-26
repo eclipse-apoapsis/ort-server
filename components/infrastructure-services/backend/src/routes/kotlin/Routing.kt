@@ -31,7 +31,6 @@ import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.r
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository.getInfrastructureServicesByRepositoryId
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository.patchInfrastructureServiceForRepositoryIdAndName
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository.postInfrastructureServiceForRepository
-import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 
 fun Route.infrastructureServicesRoutes(infrastructureServiceService: InfrastructureServiceService) {
     // Organization infrastructure services

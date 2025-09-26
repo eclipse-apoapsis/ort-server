@@ -25,11 +25,8 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
-import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.services.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 /** An [AbstractIntegrationTest] pre-configured for testing the secrets routes. */
@@ -37,39 +34,32 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 abstract class InfrastructureServicesIntegrationTest(
     body: InfrastructureServicesIntegrationTest.() -> Unit
 ) : AbstractIntegrationTest({}) {
-    lateinit var infrastructureServiceRepository: InfrastructureServiceRepository
     lateinit var infrastructureServiceService: InfrastructureServiceService
     lateinit var secretService: SecretService
 
     var orgId = 0L
     var repoId = 0L
-    lateinit var orgUserSecret: Secret
-    lateinit var orgPassSecret: Secret
-    lateinit var repoUserSecret: Secret
-    lateinit var repoPassSecret: Secret
+    lateinit var orgUserSecret: String
+    lateinit var orgPassSecret: String
+    lateinit var repoUserSecret: String
+    lateinit var repoPassSecret: String
 
     init {
         beforeEach {
-            infrastructureServiceRepository = dbExtension.fixtures.infrastructureServiceRepository
-
             secretService = SecretService(
                 dbExtension.db,
                 dbExtension.fixtures.secretRepository,
                 SecretStorage(SecretsProviderFactoryForTesting().createProvider())
             )
 
-            infrastructureServiceService = InfrastructureServiceService(
-                dbExtension.db,
-                infrastructureServiceRepository,
-                secretService
-            )
+            infrastructureServiceService = InfrastructureServiceService(dbExtension.db, secretService)
 
             orgId = dbExtension.fixtures.organization.id
             repoId = dbExtension.fixtures.repository.id
-            orgUserSecret = secretService.createSecret(name = "user", "value", null, OrganizationId(orgId))
-            orgPassSecret = secretService.createSecret(name = "pass", "value", null, OrganizationId(orgId))
-            repoUserSecret = secretService.createSecret(name = "user", "value", null, RepositoryId(repoId))
-            repoPassSecret = secretService.createSecret(name = "pass", "value", null, RepositoryId(repoId))
+            orgUserSecret = secretService.createSecret(name = "user", "value", null, OrganizationId(orgId)).name
+            orgPassSecret = secretService.createSecret(name = "pass", "value", null, OrganizationId(orgId)).name
+            repoUserSecret = secretService.createSecret(name = "user", "value", null, RepositoryId(repoId)).name
+            repoPassSecret = secretService.createSecret(name = "pass", "value", null, RepositoryId(repoId)).name
         }
 
         body()
