@@ -36,6 +36,13 @@ export const updateColumnSorting = (
     desc: boolean | undefined; // For column removal to work, the type must be extended from ColumnSort
   }
 ): SortingState | undefined => {
+  // If column id is empty, clear all sorting. This is a handy way
+  // to reset all sorting with one action, when using the card-like tables,
+  // where the sorting state is handled in one menu with multiple sorting options.
+  if (column.id === '') {
+    return undefined;
+  }
+
   // When no sorting is applied, do early return with the column
   if (!columns) {
     return [{ ...column, desc: column.desc ?? false }];
