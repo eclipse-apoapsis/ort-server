@@ -20,12 +20,14 @@
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
+import org.eclipse.apoapsis.ortserver.workers.common.loadGlobalResolutions
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.sql.Database
@@ -40,7 +42,8 @@ internal class EvaluatorWorker(
     private val db: Database,
     private val runner: EvaluatorRunner,
     private val ortRunService: OrtRunService,
-    private val workerContextFactory: WorkerContextFactory
+    private val workerContextFactory: WorkerContextFactory,
+    private val adminConfigService: AdminConfigService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidEvaluatorJob(jobId)
@@ -63,18 +66,24 @@ internal class EvaluatorWorker(
                 getValidEvaluatorJob(job.id)
                 ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(job.id))
                 ortRunService.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
-                ortRunService.storeResolvedResolutions(ortRun.id, evaluatorRunnerResult.resolutions)
             }
 
-            val allViolations = evaluatorRunnerResult.evaluatorRun.violations
-            val unresolvedViolations = allViolations.filterNot { ortResult.isResolved(it) }
+            val allRuleViolations = evaluatorRunnerResult.evaluatorRun.violations
+
+            val repositoryConfigRuleViolationResolutions = ortResult.repository.config.resolutions.ruleViolations
+            val globalRuleViolationResolutions = workerContext.loadGlobalResolutions(adminConfigService).ruleViolations
+
+            val unresolvedRuleViolations = allRuleViolations.filter { ruleViolation ->
+                repositoryConfigRuleViolationResolutions.none { it.matches(ruleViolation) } &&
+                        globalRuleViolationResolutions.none { it.matches(ruleViolation) }
+            }
 
             logger.info(
-                "Evaluator job ${job.id} finished with ${allViolations.size} total violations" +
-                        " and ${unresolvedViolations.size} unresolved violations."
+                "Evaluator job ${job.id} finished with ${allRuleViolations.size} total violations" +
+                        " and ${unresolvedRuleViolations.size} unresolved violations."
             )
 
-            if (unresolvedViolations.any { it.severity >= Severity.WARNING }) {
+            if (unresolvedRuleViolations.any { it.severity >= Severity.WARNING }) {
                 RunResult.FinishedWithIssues
             } else {
                 RunResult.Success

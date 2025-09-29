@@ -81,9 +81,13 @@ internal class AdvisorWorker(
 
             val allIssues = advisorRun.results.values.flatten().flatMap { it.summary.issues }
 
+            val repositoryConfigIssueResolutions = ortResult.repository.config.resolutions.issues
+
             // It is only about technical issues here, and NOT about vulnerabilities, because the evaluation if
             // a vulnerability of a given severity should trigger a policy violation is done in the Evaluator stage.
-            val unresolvedIssues = allIssues.filterNot { ortResult.isResolved(it) }
+            val unresolvedIssues = allIssues.filter { issue ->
+                repositoryConfigIssueResolutions.none { it.matches(issue) }
+            }
 
             logger.info(
                 "Advisor job ${job.id} finished with ${allIssues.size} total issues " +

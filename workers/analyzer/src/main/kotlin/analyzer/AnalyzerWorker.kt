@@ -24,6 +24,7 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
@@ -31,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.loadGlobalResolutions
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.sql.Database
@@ -48,7 +50,8 @@ internal class AnalyzerWorker(
     private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory,
     private val environmentService: EnvironmentService,
-    private val pluginService: PluginService
+    private val pluginService: PluginService,
+    private val adminConfigService: AdminConfigService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidAnalyzerJob(jobId)
@@ -115,7 +118,14 @@ internal class AnalyzerWorker(
                 ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
             val allIssues = analyzerRun.result.getAllIssues().values.flatten()
-            val unresolvedIssues = allIssues.filterNot { ortResult.isResolved(it) }
+
+            val repositoryConfigIssueResolutions = ortResult.repository.config.resolutions.issues
+            val globalIssueResolutions = context.loadGlobalResolutions(adminConfigService).issues
+
+            val unresolvedIssues = allIssues.filter { issue ->
+                repositoryConfigIssueResolutions.none { it.matches(issue) } &&
+                        globalIssueResolutions.none { it.matches(issue) }
+            }
 
             logger.info(
                 "Analyzer job ${job.id} for repository ${repository.url} with revision ${ortRun.revision} " +

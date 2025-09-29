@@ -45,6 +45,7 @@ import kotlinx.datetime.toJavaInstant
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
@@ -70,6 +71,7 @@ import org.ossreviewtoolkit.analyzer.PackageManagerFactory
 import org.ossreviewtoolkit.model.Identifier
 import org.ossreviewtoolkit.model.Issue
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.config.Resolutions
 
 private const val JOB_ID = 1L
 private const val TRACE_ID = "42"
@@ -148,6 +150,8 @@ class AnalyzerWorkerTest : StringSpec({
 
         val context = mockk<WorkerContext> {
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
         }
 
         val contextFactory = mockContextFactory(context)
@@ -168,7 +172,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService()
+            mockPluginService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -211,6 +216,8 @@ class AnalyzerWorkerTest : StringSpec({
 
         val context = mockk<WorkerContext> {
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
         }
 
         val contextFactory = mockContextFactory(context)
@@ -227,7 +234,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService()
+            mockPluginService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -272,6 +280,8 @@ class AnalyzerWorkerTest : StringSpec({
 
         val context = mockk<WorkerContext> {
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
         }
 
         val contextFactory = mockContextFactory(context)
@@ -290,7 +300,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService()
+            mockPluginService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -333,7 +344,11 @@ class AnalyzerWorkerTest : StringSpec({
                     DownloadResult(projectDir, "main", "resolvedRevision")
         }
 
-        val context = mockk<WorkerContext>()
+        val context = mockk<WorkerContext> {
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
+        }
+
         val contextFactory = mockContextFactory(context)
 
         val resolvedEnvConfig = mockk<ResolvedEnvironmentConfig>()
@@ -354,7 +369,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            pluginService
+            pluginService,
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -382,7 +398,11 @@ class AnalyzerWorkerTest : StringSpec({
                     DownloadResult(projectDir, "main", "resolvedRevision")
         }
 
-        val context = mockk<WorkerContext>()
+        val context = mockk<WorkerContext> {
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
+        }
+
         val contextFactory = mockContextFactory(context)
 
         val resolvedEnvConfig = mockk<ResolvedEnvironmentConfig>()
@@ -413,7 +433,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            pluginService
+            pluginService,
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -437,7 +458,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             mockk(),
             mockk(),
-            mockPluginService()
+            mockPluginService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -461,7 +483,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             mockk(),
             mockk(),
-            mockPluginService()
+            mockPluginService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -492,6 +515,8 @@ class AnalyzerWorkerTest : StringSpec({
 
         val context = mockk<WorkerContext> {
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
         }
 
         val contextFactory = mockContextFactory(context)
@@ -504,9 +529,9 @@ class AnalyzerWorkerTest : StringSpec({
         val runnerMock = spyk(AnalyzerRunner(ConfigFactory.empty())) {
             coEvery { run(any(), any(), any(), any()) } answers {
                 OrtTestData.result.copy(
-                    resolvedConfiguration = OrtTestData.result.resolvedConfiguration.copy(
-                        resolutions = OrtTestData.result.resolvedConfiguration.resolutions?.copy(
-                            issues = emptyList() // Remove any issue resolutions to simulate unresolved issues.
+                    repository = OrtTestData.result.repository.copy(
+                        config = OrtTestData.result.repository.config.copy(
+                            resolutions = Resolutions()
                         )
                     )
                 )
@@ -520,7 +545,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService()
+            mockPluginService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -551,6 +577,8 @@ class AnalyzerWorkerTest : StringSpec({
 
         val context = mockk<WorkerContext> {
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
         }
 
         val contextFactory = mockContextFactory(context)
@@ -594,7 +622,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService()
+            mockPluginService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -625,6 +654,8 @@ class AnalyzerWorkerTest : StringSpec({
 
         val context = mockk<WorkerContext> {
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns org.eclipse.apoapsis.ortserver.workers.analyzer.ortRun
         }
 
         val contextFactory = mockContextFactory(context)
@@ -647,7 +678,8 @@ class AnalyzerWorkerTest : StringSpec({
             ortRunService,
             contextFactory,
             envService,
-            mockPluginService()
+            mockPluginService(),
+            mockk(relaxed = true)
         )
 
         mockkTransaction {
@@ -682,4 +714,9 @@ private fun mockPluginService() = mockk<PluginService> {
             enabled = true
         )
     }
+}
+
+private fun mockConfigManager() = mockk<ConfigManager> {
+    every { getFile(any(), any()) } returns
+            File("src/test/resources/resolutions.yml").inputStream()
 }
