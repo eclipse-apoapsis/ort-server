@@ -60,6 +60,7 @@ dependencies {
     implementation(projects.components.pluginManager.backend)
     implementation(projects.dao)
     implementation(projects.model)
+    implementation(projects.services.adminConfigService)
     implementation(projects.shared.packageCurationProviders)
     implementation(projects.transport.transportSpi)
     implementation(projects.utils.config)

@@ -20,9 +20,9 @@
 package org.eclipse.apoapsis.ortserver.workers.scanner
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
@@ -31,11 +31,13 @@ import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.loadGlobalResolutions
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.Provenance
+import org.ossreviewtoolkit.model.Severity
 
 import org.slf4j.LoggerFactory
 
@@ -46,7 +48,8 @@ class ScannerWorker(
     private val runner: ScannerRunner,
     private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory,
-    private val environmentService: EnvironmentService
+    private val environmentService: EnvironmentService,
+    private val adminConfigService: AdminConfigService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         val (scannerJob, ortResult) = db.dbQuery {
@@ -95,7 +98,16 @@ class ScannerWorker(
             }
 
             val allIssues = issues + scannerRunResult.scannerRun.issues.values.flatten().map { it.mapToModel() }
-            val unresolvedIssues = allIssues.filterNot { ortResult.isResolved(it.mapToOrt()) }
+
+            val repositoryConfigIssueResolutions = ortResult.repository.config.resolutions.issues
+            val globalIssueResolutions = context.loadGlobalResolutions(adminConfigService).issues
+
+            val unresolvedIssues = allIssues
+                .map { issue -> issue.mapToOrt() }
+                .filter { issue ->
+                repositoryConfigIssueResolutions.none { it.matches(issue) } &&
+                        globalIssueResolutions.none { it.matches(issue) }
+            }
 
             logger.info(
                 "Scanner job $jobId finished with ${allIssues.size} total issues " +

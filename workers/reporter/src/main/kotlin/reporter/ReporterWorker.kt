@@ -22,9 +22,9 @@ package org.eclipse.apoapsis.ortserver.workers.reporter
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.ReporterRun
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
@@ -32,11 +32,13 @@ import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.loadGlobalResolutions
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.Repository
+import org.ossreviewtoolkit.model.Severity
 
 import org.slf4j.LoggerFactory
 
@@ -48,7 +50,8 @@ internal class ReporterWorker(
     private val environmentService: EnvironmentService,
     private val runner: ReporterRunner,
     private val ortRunService: OrtRunService,
-    private val linkGenerator: ReportDownloadLinkGenerator
+    private val linkGenerator: ReportDownloadLinkGenerator,
+    private val adminConfigService: AdminConfigService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidReporterJob(jobId)
@@ -128,7 +131,16 @@ internal class ReporterWorker(
             }
 
             val allIssues = reporterRunnerResult.issues
-            val unresolvedIssues = allIssues.filterNot { ortResult.isResolved(it.mapToOrt()) }
+
+            val repositoryConfigIssueResolutions = ortResult.repository.config.resolutions.issues
+            val globalIssueResolutions = context.loadGlobalResolutions(adminConfigService).issues
+
+            val unresolvedIssues = allIssues
+                .map { issue -> issue.mapToOrt() }
+                .filter { issue ->
+                repositoryConfigIssueResolutions.none { it.matches(issue) } &&
+                        globalIssueResolutions.none { it.matches(issue) }
+            }
 
             logger.info(
                 "Reporter job ${job.id} finished with ${allIssues.size} total issues" +

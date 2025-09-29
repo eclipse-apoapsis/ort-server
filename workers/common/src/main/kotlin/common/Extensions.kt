@@ -28,9 +28,12 @@ import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
+import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.model.yamlMapper
+import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -148,3 +151,21 @@ inline fun <reified T> ConfigManager.getConfigFile(
  */
 val WorkerContext.resolvedConfigurationContext: Context?
     get() = ortRun.resolvedJobConfigContext?.let(::Context)
+
+/**
+ * Return the global [Resolutions] loaded from the resolutions file.
+ */
+fun WorkerContext.loadGlobalResolutions(adminConfigService: AdminConfigService): Resolutions {
+    val adminConfig = adminConfigService.loadAdminConfig(
+        resolvedConfigurationContext,
+        ortRun.organizationId
+    )
+    val ruleSet = adminConfig.getRuleSet(ortRun.resolvedJobConfigs?.ruleSet)
+
+    return configManager.readConfigFileValueWithDefault(
+        ruleSet.resolutionsFile,
+        ORT_RESOLUTIONS_FILENAME,
+        Resolutions(),
+        resolvedConfigurationContext
+    )
+}
