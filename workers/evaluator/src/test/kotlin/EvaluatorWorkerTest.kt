@@ -66,11 +66,11 @@ import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.config.Resolutions
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_LICENSE_CLASSIFICATIONS_FILENAME
-import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
 
 private const val EVALUATOR_JOB_ID = 1L
+private const val ORGANIZATION_ID = 1L
 private const val REPOSITORY_ID = 1L
 private const val ORT_RUN_ID = 12L
 private const val TRACE_ID = "42"
@@ -96,12 +96,8 @@ class EvaluatorWorkerTest : StringSpec({
         val advisorRun = mockk<AdvisorRun>()
         val scannerRun = mockk<ScannerRun>()
         val hierarchy = mockk<Hierarchy>()
-        val ortRun = mockk<OrtRun> {
-            every { id } returns ORT_RUN_ID
-            every { repositoryId } returns REPOSITORY_ID
-            every { revision } returns "main"
-            every { resolvedJobConfigContext } returns null
-        }
+
+        val ortRun = mockOrtRun()
 
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
         every { analyzerRun.mapToOrt() } returns mockk()
@@ -110,7 +106,7 @@ class EvaluatorWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val ortRunService = mockk<OrtRunService> {
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns OrtResult.EMPTY
+            every { generateOrtResult(any(), failIfRepoInfoMissing = true) } returns OrtResult.EMPTY
             every { getAdvisorRunForOrtRun(any()) } returns advisorRun
             every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
             every { getEvaluatorJob(any()) } returns evaluatorJob
@@ -124,7 +120,10 @@ class EvaluatorWorkerTest : StringSpec({
             every { storeResolvedResolutions(any(), any()) } just runs
         }
 
-        val configManager = mockk<ConfigManager>()
+        val configManager = mockk<ConfigManager> {
+            every { getFile(any(), any()) } returns
+                    File("src/test/resources/resolutions.yml").inputStream()
+        }
 
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns ortRun
@@ -153,7 +152,13 @@ class EvaluatorWorkerTest : StringSpec({
         val runner = mockk<EvaluatorRunner>()
         coEvery { runner.run(any(), any(), any()) } returns evaluatorResult
 
-        val worker = EvaluatorWorker(mockk(), runner, ortRunService, contextFactory)
+        val worker = EvaluatorWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            mockk(relaxed = true)
+        )
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
@@ -172,7 +177,21 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } throws testException
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService, mockk())
+        val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns mockOrtRun()
+            every { this@mockk.configManager } returns mockk()
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+        }
+        val contextFactory = mockContextFactory(context)
+
+        val worker =
+            EvaluatorWorker(
+                mockk(),
+                EvaluatorRunner(mockk(), mockk()),
+                ortRunService,
+                contextFactory,
+                mockk(relaxed = true)
+            )
 
         mockkTransaction {
             when (val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)) {
@@ -187,12 +206,7 @@ class EvaluatorWorkerTest : StringSpec({
         val advisorRun = mockk<AdvisorRun>()
         val scannerRun = mockk<ScannerRun>()
         val hierarchy = mockk<Hierarchy>()
-        val ortRun = mockk<OrtRun> {
-            every { id } returns ORT_RUN_ID
-            every { repositoryId } returns REPOSITORY_ID
-            every { revision } returns "main"
-            every { resolvedJobConfigContext } returns null
-        }
+        val ortRun = mockOrtRun()
 
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
         every { analyzerRun.mapToOrt() } returns mockk()
@@ -201,7 +215,7 @@ class EvaluatorWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val ortRunService = mockk<OrtRunService> {
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns OrtResult.EMPTY
+            every { generateOrtResult(any(), failIfRepoInfoMissing = true) } returns OrtResult.EMPTY
             every { getAdvisorRunForOrtRun(any()) } returns advisorRun
             every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
             every { getEvaluatorJob(any()) } returns evaluatorJob
@@ -221,11 +235,12 @@ class EvaluatorWorkerTest : StringSpec({
             every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
             every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
                     File("src/test/resources/license-classifications.yml").inputStream()
-            every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
+            every { getFile(any(), any()) } returns
+                    File("src/test/resources/resolutions.yml").inputStream()
         }
 
         val context = mockk<WorkerContext> {
-            every { this@mockk.ortRun } returns ortRun
+            every { this@mockk.ortRun } returns mockOrtRun()
             every { this@mockk.configManager } returns configManager
             coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
         }
@@ -235,7 +250,13 @@ class EvaluatorWorkerTest : StringSpec({
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
             OrtTestData.evaluatorRun, emptyList(), Resolutions()
         )
-        val worker = EvaluatorWorker(mockk(), runner, ortRunService, contextFactory)
+        val worker = EvaluatorWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            mockk(relaxed = true)
+        )
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
@@ -253,12 +274,7 @@ class EvaluatorWorkerTest : StringSpec({
         val advisorRun = mockk<AdvisorRun>()
         val scannerRun = mockk<ScannerRun>()
         val hierarchy = mockk<Hierarchy>()
-        val ortRun = mockk<OrtRun> {
-            every { id } returns ORT_RUN_ID
-            every { repositoryId } returns REPOSITORY_ID
-            every { revision } returns "main"
-            every { resolvedJobConfigContext } returns null
-        }
+        val ortRun = mockOrtRun()
 
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
         every { analyzerRun.mapToOrt() } returns mockk()
@@ -267,7 +283,7 @@ class EvaluatorWorkerTest : StringSpec({
         every { ortRun.mapToOrt(any(), any(), any(), any(), any(), any()) } returns OrtResult.EMPTY
 
         val ortRunService = mockk<OrtRunService> {
-            every { generateOrtResult(ortRun, failIfRepoInfoMissing = true) } returns OrtTestData.result
+            every { generateOrtResult(any(), failIfRepoInfoMissing = true) } returns OrtTestData.result
             every { getAdvisorRunForOrtRun(any()) } returns advisorRun
             every { getAnalyzerRunForOrtRun(any()) } returns analyzerRun
             every { getEvaluatorJob(any()) } returns evaluatorJob
@@ -287,8 +303,9 @@ class EvaluatorWorkerTest : StringSpec({
             every { getFile(any(), Path(ORT_COPYRIGHT_GARBAGE_FILENAME)) } throws ConfigException("", null)
             every { getFile(any(), Path(ORT_LICENSE_CLASSIFICATIONS_FILENAME)) } returns
                     File("src/test/resources/license-classifications.yml").inputStream()
-            every { getFile(any(), Path(ORT_RESOLUTIONS_FILENAME)) } throws ConfigException("", null)
-        }
+            every { getFile(any(), any()) } returns
+                    File("src/test/resources/resolutions.yml").inputStream()
+            }
 
         val context = mockk<WorkerContext> {
             every { this@mockk.ortRun } returns ortRun
@@ -301,7 +318,13 @@ class EvaluatorWorkerTest : StringSpec({
         coEvery { runner.run(any(), any(), any()) } returns EvaluatorRunnerResult(
             OrtTestData.evaluatorRun, emptyList(), Resolutions()
         )
-        val worker = EvaluatorWorker(mockk(), runner, ortRunService, contextFactory)
+        val worker = EvaluatorWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            mockk(relaxed = true)
+        )
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
@@ -320,7 +343,21 @@ class EvaluatorWorkerTest : StringSpec({
             every { getEvaluatorJob(any()) } returns invalidJob
         }
 
-        val worker = EvaluatorWorker(mockk(), EvaluatorRunner(mockk(), mockk()), ortRunService, mockk())
+        val context = mockk<WorkerContext> {
+            every { this@mockk.ortRun } returns mockOrtRun()
+            every { this@mockk.configManager } returns mockk()
+            coEvery { resolveProviderPluginConfigSecrets(any()) } returns mockk(relaxed = true)
+        }
+        val contextFactory = mockContextFactory(context)
+
+        val worker =
+            EvaluatorWorker(
+                mockk(),
+                EvaluatorRunner(mockk(), mockk()),
+                ortRunService,
+                contextFactory,
+                mockk(relaxed = true)
+            )
 
         mockkTransaction {
             val result = worker.run(EVALUATOR_JOB_ID, TRACE_ID)
@@ -340,4 +377,14 @@ private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextF
             slot.captured(context)
         }
     }
+}
+
+private fun mockOrtRun() = mockk<OrtRun> {
+    every { id } returns ORT_RUN_ID
+    every { labels } returns emptyMap()
+    every { organizationId } returns ORGANIZATION_ID
+    every { repositoryId } returns REPOSITORY_ID
+    every { resolvedJobConfigContext } returns null
+    every { resolvedJobConfigs } returns null
+    every { revision } returns "main"
 }

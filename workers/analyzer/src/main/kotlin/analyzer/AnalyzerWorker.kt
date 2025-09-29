@@ -24,18 +24,25 @@ import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
+import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToModel
 import org.eclipse.apoapsis.ortserver.transport.EndpointComponent
 import org.eclipse.apoapsis.ortserver.workers.common.JobIgnoredException
 import org.eclipse.apoapsis.ortserver.workers.common.RunResult
+import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContextFactory
 import org.eclipse.apoapsis.ortserver.workers.common.env.EnvironmentService
+import org.eclipse.apoapsis.ortserver.workers.common.readConfigFileValueWithDefault
+import org.eclipse.apoapsis.ortserver.workers.common.resolvedConfigurationContext
 import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.config.IssueResolution
+import org.ossreviewtoolkit.model.config.Resolutions
+import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 import org.slf4j.LoggerFactory
 
@@ -48,7 +55,8 @@ internal class AnalyzerWorker(
     private val ortRunService: OrtRunService,
     private val contextFactory: WorkerContextFactory,
     private val environmentService: EnvironmentService,
-    private val pluginService: PluginService
+    private val pluginService: PluginService,
+    private val adminConfigService: AdminConfigService
 ) {
     suspend fun run(jobId: Long, traceId: String): RunResult = runCatching {
         var job = getValidAnalyzerJob(jobId)
@@ -115,7 +123,14 @@ internal class AnalyzerWorker(
                 ?: throw AnalyzerException("ORT Analyzer failed to create a result.")
 
             val allIssues = analyzerRun.result.getAllIssues().values.flatten()
-            val unresolvedIssues = allIssues.filterNot { ortResult.isResolved(it) }
+
+            val repositoryConfigIssueResolutions = ortResult.repository.config.resolutions.issues
+            val globalIssueResolutions = getGlobalIssueResolutions(context)
+
+            val unresolvedIssues = allIssues.filter { issue ->
+                repositoryConfigIssueResolutions.none { it.matches(issue) } &&
+                        globalIssueResolutions.none { it.matches(issue) }
+            }
 
             logger.info(
                 "Analyzer job ${job.id} for repository ${repository.url} with revision ${ortRun.revision} " +
@@ -161,6 +176,21 @@ internal class AnalyzerWorker(
 
     private fun getValidAnalyzerJob(jobId: Long) =
         ortRunService.getAnalyzerJob(jobId).validateForProcessing(jobId)
+
+    private fun getGlobalIssueResolutions(context: WorkerContext): List<IssueResolution> {
+        val adminConfig = adminConfigService.loadAdminConfig(
+            context.resolvedConfigurationContext,
+            context.ortRun.organizationId
+        )
+        val ruleSet = adminConfig.getRuleSet(context.ortRun.resolvedJobConfigs?.ruleSet)
+
+        return context.configManager.readConfigFileValueWithDefault(
+            ruleSet.resolutionsFile,
+            ORT_RESOLUTIONS_FILENAME,
+            Resolutions(),
+            context.resolvedConfigurationContext
+        ).issues
+    }
 }
 
 private class AnalyzerException(message: String) : Exception(message)
