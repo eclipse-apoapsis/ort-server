@@ -42,6 +42,7 @@ dependencies {
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestExtensionsTestcontainers)
     testImplementation(libs.kotestRunnerJunit5)
+    testImplementation(libs.wiremockStandalone)
 
     testFixturesApi(libs.kotestFrameworkEngine)
     testFixturesApi(libs.testContainersKeycloak)

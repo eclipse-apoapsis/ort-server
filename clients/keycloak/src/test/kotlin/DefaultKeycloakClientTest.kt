@@ -19,6 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.clients.keycloak
 
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.anyUrl
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+
 import dasniko.testcontainers.keycloak.KeycloakContainer
 
 import io.kotest.assertions.throwables.shouldThrow
@@ -29,8 +36,11 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
 
+import kotlin.time.Duration.Companion.milliseconds
+
 import kotlinx.serialization.json.Json
 
+import org.eclipse.apoapsis.ortserver.clients.keycloak.internal.TokenInfo
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT_SECRET
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CONFIDENTIAL_CLIENT
@@ -74,6 +84,54 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
                 val groups = confidentialClient.getGroups()
 
                 groups shouldNot beEmpty()
+            }
+
+            "correctly configure the timeout" {
+                val json = createJson()
+                val user = User(UserId("u1"), UserName("user1"))
+                val tokenInfo = TokenInfo("some-token")
+
+                val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
+                server.start()
+                try {
+                    server.stubFor(
+                        post(anyUrl())
+                            .willReturn(
+                                aResponse()
+                                    .withHeader("Content-Type", "application/json")
+                                    .withBody(json.encodeToString(tokenInfo))
+                            )
+                    )
+
+                    server.stubFor(
+                        get(anyUrl())
+                            .willReturn(
+                                aResponse()
+                                    .withBody(json.encodeToString(user))
+                                    .withHeader("Content-Type", "application/json")
+                                    .withFixedDelay(500)
+                            )
+                    )
+
+                    val config = KeycloakClientConfiguration(
+                        baseUrl = server.baseUrl(),
+                        realm = "some-realm",
+                        apiUrl = "${server.baseUrl()}/admin/realms/some-realm",
+                        clientId = "some-client",
+                        accessTokenUrl = "${server.baseUrl()}/realms/some-realm/protocol/openid-connect/token",
+                        apiUser = "some-user",
+                        apiSecret = "some-secret",
+                        subjectClientId = "some-subject-client",
+                        timeout = 50.milliseconds
+                    )
+
+                    val client = DefaultKeycloakClient.create(config, json)
+                    shouldThrow<KeycloakClientException> {
+                        client.getUser(UserId("u1"))
+                    }
+                } finally {
+                    server.stop()
+                }
             }
         }
 

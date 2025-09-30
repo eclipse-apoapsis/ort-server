@@ -26,17 +26,23 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 
+import kotlin.time.Duration
+
 import kotlinx.serialization.json.Json
 
 /**
- * Create an [HttpClient] with a default configuration for JSON requests based on [json]. The client's configuration
- * can be extended via the given [config] block.
+ * Create an [HttpClient] with a default configuration for JSON requests based on [json] and timeout settings according
+ * to the provided [timeout]. The client's configuration can be extended via the given [config] block.
  */
-fun createDefaultHttpClient(json: Json, config: HttpClientConfig<*>.() -> Unit = {}): HttpClient =
+fun createDefaultHttpClient(
+    json: Json,
+    timeout: Duration,
+    config: HttpClientConfig<*>.() -> Unit = {}
+): HttpClient =
     HttpClient(OkHttp) {
         install(HttpTimeout) {
-            requestTimeoutMillis = 60 * 1000
-            socketTimeoutMillis = 60 * 1000
+            requestTimeoutMillis = timeout.inWholeMilliseconds
+            socketTimeoutMillis = timeout.inWholeMilliseconds
         }
 
         install(ContentNegotiation) {
