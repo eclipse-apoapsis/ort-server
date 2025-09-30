@@ -42,7 +42,7 @@ import {
 import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { VulnerabilityMetrics } from '@/components/charts/vulnerability-metrics';
-import { DataTable } from '@/components/data-table/data-table';
+import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -97,6 +97,57 @@ const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<VulnerabilityWithDetails>();
 
+// Component to render a single vulnerability card in the list.
+const VulnerabilityCard = ({
+  vulnerability,
+}: {
+  vulnerability: VulnerabilityWithDetails;
+}) => {
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
+  const id =
+    packageIdType === 'PURL' && vulnerability.purl
+      ? vulnerability.purl
+      : identifierToString(vulnerability.identifier);
+
+  return (
+    <div className='flex flex-col gap-1'>
+      <div className='flex items-center justify-between'>
+        <div className='font-semibold'>
+          <BreakableString text={id} />
+        </div>
+        <Badge className='bg-blue-300 whitespace-nowrap' variant='small'>
+          {vulnerability.vulnerability.externalId}
+        </Badge>
+      </div>
+      <div className='flex items-center justify-between'>
+        <div className='text-muted-foreground break-words italic'>
+          {vulnerability.vulnerability.summary || 'No summary available'}
+        </div>
+        <div className='text-muted-foreground'>
+          {vulnerability.advisor.name}
+        </div>
+      </div>
+
+      <div className='flex gap-2'>
+        <Badge
+          className={`${getResolvedBackgroundColor(getResolvedStatus(vulnerability))}`}
+          variant='small'
+        >
+          {getResolvedStatus(vulnerability)}
+        </Badge>
+        <Badge
+          className={`${getVulnerabilityRatingBackgroundColor(
+            vulnerability.rating
+          )}`}
+          variant='small'
+        >
+          {vulnerability.rating}
+        </Badge>
+      </div>
+    </div>
+  );
+};
+
 const renderSubComponent = ({
   row,
 }: {
@@ -124,9 +175,9 @@ const renderSubComponent = ({
         <AccordionContent>
           <div className='flex flex-col gap-4'>
             <VulnerabilityMetrics vulnerability={vulnerability} />
-            <div className='text-lg font-semibold'>Description</div>
+            <div className='font-semibold'>Description</div>
             <MarkdownRenderer
-              markdown={vulnerability.description || 'No description.'}
+              markdown={vulnerability.description || 'No description available'}
             />
             <div className='mt-2 text-lg font-semibold'>
               Links to vulnerability references
@@ -180,9 +231,9 @@ const VulnerabilitiesComponent = () => {
 
   const columns = [
     columnHelper.display({
-      id: 'moreInfo',
+      id: 'details',
       header: 'Details',
-      size: 50,
+      size: 20,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
           <div className='flex items-center gap-1'>
@@ -219,20 +270,66 @@ const VulnerabilitiesComponent = () => {
           'No info'
         );
       },
-      enableSorting: false,
-      enableColumnFilter: false,
     }),
+    columnHelper.display({
+      id: 'card',
+      cell: ({ row }) => <VulnerabilityCard vulnerability={row.original} />,
+    }),
+    columnHelper.accessor(
+      (vuln) => {
+        if (packageIdType === 'PURL') {
+          return vuln.purl;
+        } else {
+          return identifierToString(vuln.identifier);
+        }
+      },
+      {
+        id: `${packageIdType === 'ORT_ID' ? 'identifier' : 'purl'}`,
+        header: 'Package ID',
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, pkgId: value },
+              });
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor(
+      (vuln) => {
+        return getResolvedStatus(vuln);
+      },
+      {
+        id: 'itemStatus',
+        header: 'Status',
+        filterFn: (row, _columnId, filterValue): boolean => {
+          return filterValue.includes(getResolvedStatus(row.original));
+        },
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
+              label: itemResolved,
+              value: itemResolved,
+            })),
+            setSelected: (statuses: ItemResolved[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  itemResolved: statuses.length === 0 ? undefined : statuses,
+                },
+              });
+            },
+          },
+        },
+      }
+    ),
     columnHelper.accessor('rating', {
       header: 'Rating',
-      cell: ({ getValue }) => {
-        return (
-          <Badge
-            className={`${getVulnerabilityRatingBackgroundColor(getValue())}`}
-          >
-            {getValue()}
-          </Badge>
-        );
-      },
       filterFn: (row, _columnId, filterValue): boolean => {
         return filterValue.includes(row.original.rating);
       },
@@ -261,88 +358,14 @@ const VulnerabilitiesComponent = () => {
         },
       },
     }),
-    columnHelper.accessor(
-      (vuln) => {
-        return getResolvedStatus(vuln);
-      },
-      {
-        id: 'itemStatus',
-        header: 'Status',
-        size: 50,
-        cell: ({ getValue }) => {
-          return (
-            <Badge
-              className={`border ${getResolvedBackgroundColor(getValue())}`}
-            >
-              {getValue()}
-            </Badge>
-          );
-        },
-        filterFn: (row, _columnId, filterValue): boolean => {
-          return filterValue.includes(getResolvedStatus(row.original));
-        },
-        meta: {
-          filter: {
-            filterVariant: 'select',
-            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
-              label: itemResolved,
-              value: itemResolved,
-            })),
-            setSelected: (statuses: ItemResolved[]) => {
-              navigate({
-                search: {
-                  ...search,
-                  page: 1,
-                  itemResolved: statuses.length === 0 ? undefined : statuses,
-                },
-              });
-            },
-          },
-        },
-      }
-    ),
-    columnHelper.accessor(
-      (vuln) => {
-        if (packageIdType === 'PURL') {
-          return vuln.purl;
-        } else {
-          return identifierToString(vuln.identifier);
-        }
-      },
-      {
-        id: `${packageIdType === 'ORT_ID' ? 'identifier' : 'purl'}`,
-        header: 'Package ID',
-        cell: ({ getValue }) => {
-          return (
-            <BreakableString text={getValue()} className='font-semibold' />
-          );
-        },
-        meta: {
-          filter: {
-            filterVariant: 'text',
-            setFilterValue: (value: string | undefined) => {
-              navigate({
-                search: { ...search, page: 1, pkgId: value },
-              });
-            },
-          },
-        },
-      }
-    ),
     columnHelper.accessor('vulnerability.externalId', {
       id: 'externalId',
       header: 'External ID',
-      cell: ({ row }) => (
-        <Badge className='bg-blue-300 whitespace-nowrap'>
-          {row.getValue('externalId')}
-        </Badge>
-      ),
       enableColumnFilter: false,
     }),
     columnHelper.accessor('advisor.name', {
       id: 'advisorName',
       header: 'Advisor',
-      cell: ({ row }) => <div>{row.getValue('advisorName')}</div>,
       enableColumnFilter: false,
     }),
     columnHelper.accessor(
@@ -352,13 +375,6 @@ const VulnerabilitiesComponent = () => {
       {
         id: 'summary',
         header: 'Summary',
-        cell: ({ row }) => {
-          return (
-            <div className='text-muted-foreground italic'>
-              {row.original.vulnerability.summary}
-            </div>
-          );
-        },
         enableSorting: false,
         enableColumnFilter: false,
       }
@@ -447,6 +463,14 @@ const VulnerabilitiesComponent = () => {
         pageSize,
       },
       columnFilters,
+      columnVisibility: {
+        [columnId]: false,
+        rating: false,
+        itemStatus: false,
+        externalId: false,
+        advisorName: false,
+        summary: false,
+      },
       sorting: sortBy,
       expanded: expanded,
     },
@@ -494,7 +518,7 @@ const VulnerabilitiesComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
+        <DataTableCards
           table={table}
           renderSubComponent={renderSubComponent}
           setCurrentPageOptions={(currentPage) => {
