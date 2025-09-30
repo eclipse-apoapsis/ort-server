@@ -87,6 +87,7 @@ export const OrganizationProductTable = () => {
       columnHelper.accessor('name', {
         id: 'product',
         header: 'Products',
+        size: 300,
         cell: ({ row }) => (
           <>
             <Link
