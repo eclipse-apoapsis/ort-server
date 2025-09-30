@@ -28,3 +28,5 @@ export const ALL_ITEMS = 100000;
 // The base download URL for the downloadable assets of the latest ORT Server release.
 export const GITHUB_LATEST_RELEASE_DOWNLOAD_URL =
   'https://github.com/eclipse-apoapsis/ort-server/releases/latest/download';
+
+export const ACTION_COLUMN_SIZE = 20;

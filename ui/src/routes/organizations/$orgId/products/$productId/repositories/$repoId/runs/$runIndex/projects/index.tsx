@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/card';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
-import { ALL_ITEMS } from '@/lib/constants';
+import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import { getRepositoryTypeLabel } from '@/lib/types';
 import {
@@ -277,7 +277,7 @@ const ProjectsComponent = () => {
     columnHelper.display({
       id: 'details',
       header: 'Details',
-      size: 20,
+      size: ACTION_COLUMN_SIZE,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
           <div className='flex items-center gap-1'>
