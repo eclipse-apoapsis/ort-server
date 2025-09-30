@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.core.utils
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.config.tryGetString
 
+import kotlin.time.Duration.Companion.seconds
+
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
@@ -49,7 +51,8 @@ fun ConfigManager.createKeycloakClientConfiguration(): KeycloakClientConfigurati
         accessTokenUrl = tryGetString("keycloak.accessTokenUrl") ?: defaultAccessTokenUrl,
         apiUser = getString("keycloak.apiUser"),
         apiSecret = getSecret(Path("keycloak.apiSecret")),
-        subjectClientId = getString("keycloak.subjectClientId")
+        subjectClientId = getString("keycloak.subjectClientId"),
+        timeout = getInt("keycloak.timeoutSeconds").seconds
     )
 }
 
