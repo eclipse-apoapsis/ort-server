@@ -91,11 +91,19 @@ const columnHelper = createColumnHelper<Package>();
 const PackageCard = ({ pkg }: { pkg: Package }) => {
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
-    packageIdType === 'ORT_ID' ? identifierToString(pkg.identifier) : pkg.purl;
+    packageIdType === 'PURL' && pkg.purl
+      ? pkg.purl
+      : identifierToString(pkg.identifier);
+  const declaredLicenses = [
+    ...(pkg.processedDeclaredLicense.spdxExpression
+      ? [pkg.processedDeclaredLicense.spdxExpression]
+      : []),
+    ...(pkg.processedDeclaredLicense.unmappedLicenses ?? []),
+  ];
 
   return (
     <div className='flex flex-col gap-1'>
-      <div className='flex justify-between'>
+      <div className='flex items-center justify-between'>
         <div className='font-semibold'>
           <BreakableString text={id} />
         </div>
@@ -108,10 +116,15 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
           {pkg.homepageUrl}
         </a>
       </div>
-      <div className='text-sm'>
-        <span className='font-semibold'>Declared License: </span>
-        {pkg.processedDeclaredLicense.spdxExpression || 'N/A'}
-      </div>
+      {declaredLicenses.length > 0 ? (
+        <div className='flex gap-2 text-sm'>
+          <div className='text-muted-foreground'>Declared License:</div>
+          <div className='break-words'>{declaredLicenses.join(',')}</div>
+        </div>
+      ) : (
+        <div className='text-muted-foreground italic'>No declared license</div>
+      )}
+
       <div className='flex gap-2'>
         {pkg.curations.length > 0 && (
           <Tooltip>
@@ -352,7 +365,7 @@ const PackagesComponent = () => {
     columnHelper.display({
       id: 'details',
       header: 'Details',
-      size: 50,
+      size: 20,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
           <div className='flex items-center gap-1'>
