@@ -78,7 +78,7 @@ class DefaultKeycloakClient(
         }
 
         private fun createHttpClient(config: KeycloakClientConfiguration, json: Json): HttpClient =
-            createDefaultHttpClient(json) {
+            createDefaultHttpClient(json, config.timeout) {
                 expectSuccess = true
             }.configureAuthentication(config, json)
 
@@ -97,7 +97,7 @@ class DefaultKeycloakClient(
                     val apiUser = config.apiUser
                     val apiSecret = config.apiSecret
 
-                    val tokenClient = createDefaultHttpClient(json) { expectSuccess = true }
+                    val tokenClient = createDefaultHttpClient(json, config.timeout) { expectSuccess = true }
 
                     bearer {
                         loadTokens {
