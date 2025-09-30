@@ -83,6 +83,7 @@ export const ProductRepositoryTable = () => {
       columnHelper.accessor('url', {
         id: 'repository',
         header: 'Repositories',
+        size: 300,
         cell: ({ row }) => (
           <>
             <Link
