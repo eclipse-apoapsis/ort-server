@@ -17,7 +17,6 @@
  * License-Filename: LICENSE
  */
 
-import { TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import {
@@ -41,7 +40,7 @@ import {
   getProjectsByRunIdOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
-import { DataTable } from '@/components/data-table/data-table';
+import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { RenderProperty } from '@/components/render-property';
@@ -54,7 +53,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Tooltip } from '@/components/ui/tooltip';
 import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { ALL_ITEMS } from '@/lib/constants';
@@ -72,6 +70,56 @@ import {
 const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<Project>();
+
+// Component to render a single project card in the list.
+const ProjectCard = ({ project }: { project: Project }) => {
+  const declaredLicenses = [
+    ...(project.processedDeclaredLicense.spdxExpression
+      ? [project.processedDeclaredLicense.spdxExpression]
+      : []),
+    ...(project.processedDeclaredLicense.unmappedLicenses ?? []),
+  ];
+
+  return (
+    <div className='flex flex-col gap-1'>
+      <div className='flex items-center justify-between'>
+        <div className='font-semibold'>
+          <BreakableString text={identifierToString(project.identifier)} />
+        </div>
+        {project.homepageUrl ? (
+          <a
+            href={project.homepageUrl}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-blue-400 hover:underline'
+          >
+            {project.homepageUrl}
+          </a>
+        ) : (
+          <div className='text-muted-foreground italic'>No homepage</div>
+        )}
+      </div>
+      {project.definitionFilePath ? (
+        <div className='flex gap-2 text-sm'>
+          <div className='text-muted-foreground'>Definition File:</div>
+          <div className='break-words'>{project.definitionFilePath}</div>
+        </div>
+      ) : (
+        <div className='text-muted-foreground italic'>No definition file</div>
+      )}
+      {declaredLicenses.length > 0 ? (
+        <div className='flex gap-2 text-sm'>
+          <div className='font-semibold'>Declared License: </div>
+          <div className='text-muted-foreground break-words'>
+            {declaredLicenses.join(', ')}
+          </div>
+        </div>
+      ) : (
+        <div className='text-muted-foreground italic'>No declared license</div>
+      )}
+    </div>
+  );
+};
 
 const renderSubComponent = ({ row }: { row: Row<Project> }) => {
   const project = row.original;
@@ -227,9 +275,9 @@ const ProjectsComponent = () => {
 
   const columns = [
     columnHelper.display({
-      id: 'moreInfo',
+      id: 'details',
       header: 'Details',
-      size: 50,
+      size: 20,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
           <div className='flex items-center gap-1'>
@@ -266,8 +314,10 @@ const ProjectsComponent = () => {
           'No info'
         );
       },
-      enableSorting: false,
-      enableColumnFilter: false,
+    }),
+    columnHelper.display({
+      id: 'card',
+      cell: ({ row }) => <ProjectCard project={row.original} />,
     }),
     columnHelper.accessor(
       (project) => {
@@ -276,11 +326,6 @@ const ProjectsComponent = () => {
       {
         id: 'projectIdentifier',
         header: 'Project ID',
-        cell: ({ getValue }) => {
-          return (
-            <BreakableString text={getValue()} className='font-semibold' />
-          );
-        },
         meta: {
           filter: {
             filterVariant: 'text',
@@ -293,44 +338,9 @@ const ProjectsComponent = () => {
         },
       }
     ),
-    columnHelper.accessor('definitionFilePath', {
-      header: 'Definition File',
-      cell: ({ getValue }) => {
-        return <div>{getValue()}</div>;
-      },
-      meta: {
-        filter: {
-          filterVariant: 'text',
-          setFilterValue: (value: string | undefined) => {
-            navigate({
-              search: { ...search, page: 1, definitionFilePath: value },
-            });
-          },
-        },
-      },
-    }),
     columnHelper.accessor('processedDeclaredLicense', {
       id: 'declaredLicense',
       header: 'Declared License',
-      cell: ({ getValue }) => {
-        return (
-          <div>
-            {getValue().spdxExpression && (
-              <div>{getValue().spdxExpression}</div>
-            )}
-            {getValue().unmappedLicenses.length > 0 && (
-              <Tooltip>
-                <TooltipTrigger>
-                  <div className='italic'>
-                    {getValue().unmappedLicenses.join(', ')}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>Unmapped licenses</TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-        );
-      },
       filterFn: (row, _columnId, filterValue): boolean => {
         return (
           filterValue.includes(
@@ -361,6 +371,20 @@ const ProjectsComponent = () => {
         },
       },
     }),
+    columnHelper.accessor('definitionFilePath', {
+      id: 'definitionFilePath',
+      header: 'Definition File',
+      meta: {
+        filter: {
+          filterVariant: 'text',
+          setFilterValue: (value: string | undefined) => {
+            navigate({
+              search: { ...search, page: 1, definitionFilePath: value },
+            });
+          },
+        },
+      },
+    }),
   ];
 
   const [expanded, setExpanded] = useState<ExpandedState>(
@@ -376,6 +400,11 @@ const ProjectsComponent = () => {
         pageSize,
       },
       columnFilters,
+      columnVisibility: {
+        projectIdentifier: false,
+        declaredLicense: false,
+        definitionFilePath: false,
+      },
       sorting: sortBy,
       expanded: expanded,
     },
@@ -417,7 +446,7 @@ const ProjectsComponent = () => {
         <CardDescription>This view shows all projects.</CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
+        <DataTableCards
           table={table}
           renderSubComponent={renderSubComponent}
           setCurrentPageOptions={(currentPage) => {
