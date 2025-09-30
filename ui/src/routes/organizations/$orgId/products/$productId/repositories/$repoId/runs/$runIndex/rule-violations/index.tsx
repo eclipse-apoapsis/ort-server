@@ -41,7 +41,7 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { zSeverity } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
-import { DataTable } from '@/components/data-table/data-table';
+import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -86,6 +86,59 @@ import { useUserSettingsStore } from '@/store/user-settings.store';
 const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<RuleViolation>();
+
+// Component to render a single rule violation card in the list.
+const RuleViolationCard = ({
+  ruleViolation,
+}: {
+  ruleViolation: RuleViolation;
+}) => {
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
+  const id =
+    packageIdType === 'PURL' && ruleViolation.purl
+      ? ruleViolation.purl
+      : identifierToString(ruleViolation.id);
+
+  return (
+    <div className='flex flex-col gap-1'>
+      <div className='flex items-center justify-between'>
+        <div className='font-semibold'>
+          <BreakableString text={id || 'No ID available'} />
+        </div>
+
+        <Badge className='bg-blue-300 whitespace-nowrap' variant='small'>
+          {ruleViolation.rule}
+        </Badge>
+      </div>
+      <div className='flex items-center justify-between'>
+        <div className='flex gap-2'>
+          <Badge
+            className={`${getResolvedBackgroundColor(
+              getResolvedStatus(ruleViolation)
+            )}`}
+            variant='small'
+          >
+            {getResolvedStatus(ruleViolation)}
+          </Badge>
+          <Badge
+            className={`${getRuleViolationSeverityBackgroundColor(
+              ruleViolation.severity
+            )}`}
+            variant='small'
+          >
+            {ruleViolation.severity}
+          </Badge>
+        </div>
+        <div className='text-muted-foreground flex gap-1 text-sm'>
+          {ruleViolation.license && <div>{ruleViolation.license}</div>}
+          {ruleViolation.licenseSource && (
+            <div>({ruleViolation.licenseSource})</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const renderSubComponent = ({ row }: { row: Row<RuleViolation> }) => {
   const ruleViolation = row.original;
@@ -137,9 +190,9 @@ const RuleViolationsComponent = () => {
 
   const columns = [
     columnHelper.display({
-      id: 'moreInfo',
+      id: 'details',
       header: 'Details',
-      size: 50,
+      size: 20,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
           <div className='flex items-center gap-1'>
@@ -176,20 +229,67 @@ const RuleViolationsComponent = () => {
           'No info'
         );
       },
-      enableSorting: false,
-      enableColumnFilter: false,
     }),
+    columnHelper.display({
+      id: 'card',
+      cell: ({ row }) => <RuleViolationCard ruleViolation={row.original} />,
+    }),
+    columnHelper.accessor(
+      (ruleViolation) => {
+        // Return purl only if the rule violation has been reported for a package
+        if (packageIdType === 'PURL' && ruleViolation.purl) {
+          return ruleViolation.purl;
+        } else {
+          return identifierToString(ruleViolation.id);
+        }
+      },
+      {
+        id: `${packageIdType === 'PURL' ? 'purl' : 'identifier'}`,
+        header: 'Package ID',
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, pkgId: value },
+              });
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor(
+      (ruleViolation) => {
+        return getResolvedStatus(ruleViolation);
+      },
+      {
+        id: 'itemStatus',
+        header: 'Status',
+        filterFn: (row, _columnId, filterValue): boolean => {
+          return filterValue.includes(getResolvedStatus(row.original));
+        },
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
+              label: itemResolved,
+              value: itemResolved,
+            })),
+            setSelected: (statuses: ItemResolved[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  itemResolved: statuses.length === 0 ? undefined : statuses,
+                },
+              });
+            },
+          },
+        },
+      }
+    ),
     columnHelper.accessor('severity', {
       header: 'Severity',
-      cell: ({ row }) => {
-        return (
-          <Badge
-            className={`${getRuleViolationSeverityBackgroundColor(row.original.severity)}`}
-          >
-            {row.original.severity}
-          </Badge>
-        );
-      },
       filterFn: (row, _columnId, filterValue): boolean => {
         return filterValue.includes(row.original.severity);
       },
@@ -215,82 +315,9 @@ const RuleViolationsComponent = () => {
         },
       },
     }),
-    columnHelper.accessor(
-      (ruleViolation) => {
-        return getResolvedStatus(ruleViolation);
-      },
-      {
-        id: 'itemStatus',
-        header: 'Status',
-        size: 50,
-        cell: ({ getValue }) => {
-          return (
-            <Badge
-              className={`border ${getResolvedBackgroundColor(getValue())}`}
-            >
-              {getValue()}
-            </Badge>
-          );
-        },
-        filterFn: (row, _columnId, filterValue): boolean => {
-          return filterValue.includes(getResolvedStatus(row.original));
-        },
-        meta: {
-          filter: {
-            filterVariant: 'select',
-            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
-              label: itemResolved,
-              value: itemResolved,
-            })),
-            setSelected: (statuses: ItemResolved[]) => {
-              navigate({
-                search: {
-                  ...search,
-                  page: 1,
-                  itemResolved: statuses.length === 0 ? undefined : statuses,
-                },
-              });
-            },
-          },
-        },
-      }
-    ),
-    columnHelper.accessor(
-      (ruleViolation) => {
-        // Return purl only if the rule violation has been reported for a package
-        if (packageIdType === 'PURL' && ruleViolation.purl) {
-          return ruleViolation.purl;
-        } else {
-          return identifierToString(ruleViolation.id);
-        }
-      },
-      {
-        id: `${packageIdType === 'PURL' ? 'purl' : 'identifier'}`,
-        header: 'Package ID',
-        cell: ({ getValue }) => {
-          return (
-            <BreakableString text={getValue()} className='font-semibold' />
-          );
-        },
-        meta: {
-          filter: {
-            filterVariant: 'text',
-            setFilterValue: (value: string | undefined) => {
-              navigate({
-                search: { ...search, page: 1, pkgId: value },
-              });
-            },
-          },
-        },
-      }
-    ),
+
     columnHelper.accessor('rule', {
       header: 'Rule',
-      cell: ({ row }) => (
-        <Badge className='bg-blue-300 whitespace-nowrap'>
-          {row.original.rule}
-        </Badge>
-      ),
       enableColumnFilter: false,
     }),
   ];
@@ -372,6 +399,12 @@ const RuleViolationsComponent = () => {
         pageSize,
       },
       columnFilters,
+      columnVisibility: {
+        [columnId]: false,
+        severity: false,
+        itemStatus: false,
+        rule: false,
+      },
       sorting: sortBy,
       expanded: expanded,
     },
@@ -399,7 +432,7 @@ const RuleViolationsComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
+        <DataTableCards
           table={table}
           renderSubComponent={renderSubComponent}
           setCurrentPageOptions={(currentPage) => {
