@@ -47,7 +47,10 @@ export function DataTableBody<TData>({
               {row.getVisibleCells().map((cell) => (
                 <TableCell
                   key={cell.id}
-                  style={{ minWidth: cell.column.columnDef.size }}
+                  style={{
+                    minWidth: cell.column.columnDef.size,
+                    maxWidth: cell.column.columnDef.size,
+                  }}
                 >
                   {cell.getIsPlaceholder()
                     ? null
