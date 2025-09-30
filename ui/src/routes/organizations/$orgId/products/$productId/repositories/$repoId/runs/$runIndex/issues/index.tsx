@@ -41,7 +41,7 @@ import {
 } from '@/api/@tanstack/react-query.gen';
 import { zSeverity } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
-import { DataTable } from '@/components/data-table/data-table';
+import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
 import { MarkItems } from '@/components/data-table/mark-items';
 import { FormattedValue } from '@/components/formatted-value';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -93,6 +93,54 @@ const defaultPageSize = 10;
 
 const columnHelper = createColumnHelper<Issue>();
 
+// Component to render a single issue card in the list.
+const IssueCard = ({ issue }: { issue: Issue }) => {
+  const packageIdType = useUserSettingsStore((state) => state.packageIdType);
+  const id =
+    packageIdType === 'PURL' && issue.purl
+      ? issue.purl
+      : identifierToString(issue.identifier);
+
+  return (
+    <div className='flex flex-col gap-1'>
+      <div className='flex items-center justify-between'>
+        <div className='font-semibold'>
+          <BreakableString text={id || 'No ID available'} />
+        </div>
+        <Badge className='bg-blue-300 whitespace-nowrap' variant='small'>
+          {getIssueCategory(issue.message)}
+        </Badge>
+      </div>
+      <div className='flex gap-1 text-sm'>
+        <div className='text-muted-foreground'>Created at</div>
+        <TimestampWithUTC timestamp={issue.timestamp} className='' />
+        <div className='text-muted-foreground'>by</div>
+        <div className=''>{issue.worker}</div>
+      </div>
+      {issue.affectedPath && (
+        <div className='flex gap-1 text-sm'>
+          <div className='font-semibold'>Affected path:</div>
+          <FormattedValue value={issue.affectedPath} />
+        </div>
+      )}
+      <div className='flex gap-2'>
+        <Badge
+          className={`border ${getResolvedBackgroundColor(getResolvedStatus(issue))}`}
+          variant='small'
+        >
+          {getResolvedStatus(issue)}
+        </Badge>
+        <Badge
+          className={`border ${getIssueSeverityBackgroundColor(issue.severity)}`}
+          variant='small'
+        >
+          {issue.severity}
+        </Badge>
+      </div>
+    </div>
+  );
+};
+
 const renderSubComponent = ({ row }: { row: Row<Issue> }) => {
   const issue = row.original;
   const hasResolutions = getResolvedStatus(issue) === 'Resolved';
@@ -114,18 +162,8 @@ const renderSubComponent = ({ row }: { row: Row<Issue> }) => {
       <AccordionItem value='details'>
         <AccordionTrigger className='font-semibold'>Details</AccordionTrigger>
         <AccordionContent>
-          <div className='flex flex-col gap-4'>
-            <div className='flex gap-1 text-sm'>
-              <div className='font-semibold'>Created at</div>
-              <TimestampWithUTC timestamp={issue.timestamp} />
-              <div>by</div>
-              <div className='font-semibold'>
-                <FormattedValue value={issue.worker} />
-              </div>
-            </div>
-            <div className='text-muted-foreground break-all whitespace-pre-line italic'>
-              {issue.message || 'No details.'}
-            </div>
+          <div className='text-muted-foreground break-all whitespace-pre-line italic'>
+            {issue.message || 'No details.'}
           </div>
         </AccordionContent>
       </AccordionItem>
@@ -141,9 +179,9 @@ const IssuesComponent = () => {
 
   const columns = [
     columnHelper.display({
-      id: 'moreInfo',
+      id: 'details',
       header: 'Details',
-      size: 50,
+      size: 20,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
           <div className='flex items-center gap-1'>
@@ -180,18 +218,68 @@ const IssuesComponent = () => {
           'No info'
         );
       },
-      enableSorting: false,
-      enableColumnFilter: false,
     }),
+    columnHelper.display({
+      id: 'card',
+      header: 'Issue',
+      cell: ({ row }) => <IssueCard issue={row.original} />,
+    }),
+    columnHelper.accessor(
+      (issue) => {
+        // Return purl only if the issue has been reported for a package
+        if (packageIdType === 'PURL' && issue.purl) {
+          return issue.purl;
+        } else {
+          return identifierToString(issue.identifier);
+        }
+      },
+      {
+        id: `${packageIdType === 'PURL' ? 'purl' : 'identifier'}`,
+        header: 'Package ID',
+        meta: {
+          filter: {
+            filterVariant: 'text',
+            setFilterValue: (value: string | undefined) => {
+              navigate({
+                search: { ...search, page: 1, pkgId: value },
+              });
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor(
+      (issue) => {
+        return getResolvedStatus(issue);
+      },
+      {
+        id: 'itemStatus',
+        header: 'Status',
+        filterFn: (row, _columnId, filterValue): boolean => {
+          return filterValue.includes(getResolvedStatus(row.original));
+        },
+        meta: {
+          filter: {
+            filterVariant: 'select',
+            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
+              label: itemResolved,
+              value: itemResolved,
+            })),
+            setSelected: (statuses: ItemResolved[]) => {
+              navigate({
+                search: {
+                  ...search,
+                  page: 1,
+                  itemResolved: statuses.length === 0 ? undefined : statuses,
+                },
+              });
+            },
+          },
+        },
+      }
+    ),
     columnHelper.accessor('severity', {
       header: 'Severity',
-      cell: ({ row }) => (
-        <Badge
-          className={`border ${getIssueSeverityBackgroundColor(row.original.severity)}`}
-        >
-          {row.original.severity}
-        </Badge>
-      ),
       filterFn: (row, _columnId, filterValue): boolean => {
         return filterValue.includes(row.original.severity);
       },
@@ -219,54 +307,11 @@ const IssuesComponent = () => {
     }),
     columnHelper.accessor(
       (issue) => {
-        return getResolvedStatus(issue);
-      },
-      {
-        id: 'itemStatus',
-        header: 'Status',
-        size: 50,
-        cell: ({ getValue }) => {
-          return (
-            <Badge
-              className={`border ${getResolvedBackgroundColor(getValue())}`}
-            >
-              {getValue()}
-            </Badge>
-          );
-        },
-        filterFn: (row, _columnId, filterValue): boolean => {
-          return filterValue.includes(getResolvedStatus(row.original));
-        },
-        meta: {
-          filter: {
-            filterVariant: 'select',
-            selectOptions: itemResolvedSchema.options.map((itemResolved) => ({
-              label: itemResolved,
-              value: itemResolved,
-            })),
-            setSelected: (statuses: ItemResolved[]) => {
-              navigate({
-                search: {
-                  ...search,
-                  page: 1,
-                  itemResolved: statuses.length === 0 ? undefined : statuses,
-                },
-              });
-            },
-          },
-        },
-      }
-    ),
-    columnHelper.accessor(
-      (issue) => {
         return getIssueCategory(issue.message);
       },
       {
         id: 'category',
         header: 'Category',
-        cell: ({ getValue }) => {
-          return <div>{getValue()}</div>;
-        },
         filterFn: (row, _columnId, filterValue): boolean => {
           return filterValue.includes(getIssueCategory(row.original.message));
         },
@@ -290,49 +335,13 @@ const IssuesComponent = () => {
         },
       }
     ),
-    columnHelper.accessor(
-      (issue) => {
-        // Return purl only if the issue has been reported for a package
-        if (packageIdType === 'PURL' && issue.purl) {
-          return issue.purl;
-        } else {
-          return identifierToString(issue.identifier);
-        }
-      },
-      {
-        id: `${packageIdType === 'PURL' ? 'purl' : 'identifier'}`,
-        header: 'Package ID',
-        cell: ({ getValue }) => {
-          return (
-            <BreakableString
-              text={getValue()}
-              className='font-semibold break-all'
-            />
-          );
-        },
-        meta: {
-          filter: {
-            filterVariant: 'text',
-            setFilterValue: (value: string | undefined) => {
-              navigate({
-                search: { ...search, page: 1, pkgId: value },
-              });
-            },
-          },
-        },
-      }
-    ),
     columnHelper.accessor('affectedPath', {
       header: 'Affected Path',
-      cell: ({ row }) => (
-        <div className='break-all'>{row.original.affectedPath}</div>
-      ),
       enableSorting: false,
       enableColumnFilter: false,
     }),
     columnHelper.accessor('source', {
       header: 'Source',
-      cell: ({ row }) => row.original.source,
       enableColumnFilter: false,
     }),
   ];
@@ -432,6 +441,14 @@ const IssuesComponent = () => {
         pageSize,
       },
       columnFilters,
+      columnVisibility: {
+        [columnId]: false,
+        severity: false,
+        itemStatus: false,
+        category: false,
+        affectedPath: false,
+        source: false,
+      },
       sorting: sortBy,
       expanded: expanded,
     },
@@ -477,7 +494,7 @@ const IssuesComponent = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
+        <DataTableCards
           table={table}
           renderSubComponent={renderSubComponent}
           setCurrentPageOptions={(currentPage) => {
