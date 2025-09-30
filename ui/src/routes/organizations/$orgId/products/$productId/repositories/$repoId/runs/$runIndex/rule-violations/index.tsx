@@ -70,7 +70,7 @@ import { updateColumnSorting } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import { getResolvedStatus } from '@/helpers/resolutions';
 import { compareSeverity } from '@/helpers/sorting-functions';
-import { ALL_ITEMS } from '@/lib/constants';
+import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
 import {
   ItemResolved,
   itemResolvedSchema,
@@ -192,7 +192,7 @@ const RuleViolationsComponent = () => {
     columnHelper.display({
       id: 'details',
       header: 'Details',
-      size: 20,
+      size: ACTION_COLUMN_SIZE,
       cell: function CellComponent({ row }) {
         return row.getCanExpand() ? (
           <div className='flex items-center gap-1'>
