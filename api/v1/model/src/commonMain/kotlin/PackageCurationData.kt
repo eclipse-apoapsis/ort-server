@@ -35,5 +35,7 @@ data class PackageCurationData(
     val vcs: VcsInfoCurationData?,
     val isMetadataOnly: Boolean?,
     val isModified: Boolean?,
-    val declaredLicenseMapping: Map<String, String>
+    val declaredLicenseMapping: Map<String, String>,
+    val sourceCodeOrigins: List<SourceCodeOrigin>?,
+    val labels: Map<String, String>,
 )

@@ -337,7 +337,7 @@ class IssueServiceTest : WordSpec() {
                     curations = listOf(
                         PackageCuration(
                             id = pkg2.identifier,
-                            data = PackageCurationData(purl = "curated")
+                            data = PackageCurationData(purl = "curated"),
                         ),
                         PackageCuration(
                             id = pkg3.identifier,

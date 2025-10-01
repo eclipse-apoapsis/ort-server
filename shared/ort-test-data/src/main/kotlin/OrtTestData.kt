@@ -59,6 +59,7 @@ import org.ossreviewtoolkit.model.ScanSummary
 import org.ossreviewtoolkit.model.ScannerDetails
 import org.ossreviewtoolkit.model.ScannerRun
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.model.SourceCodeOrigin
 import org.ossreviewtoolkit.model.TextLocation
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsInfoCurationData
@@ -188,7 +189,9 @@ object OrtTestData {
             declaredLicenseMapping = mapOf(
                 "LicenseRef-toBeMapped1" to "LicenseRef-mapped1".toSpdx(),
                 "LicenseRef-toBeMapped2" to "LicenseRef-mapped2".toSpdx()
-            )
+            ),
+            sourceCodeOrigins = listOf(SourceCodeOrigin.VCS),
+            labels = mapOf("key1" to "val1")
         )
     )
 

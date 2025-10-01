@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun.ScannerRunDao
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
@@ -131,6 +132,7 @@ import org.ossreviewtoolkit.model.ScannerRun as OrtScannerRun
 import org.ossreviewtoolkit.model.Severity as OrtSeverity
 import org.ossreviewtoolkit.model.Snippet as OrtSnippet
 import org.ossreviewtoolkit.model.SnippetFinding as OrtSnippetFinding
+import org.ossreviewtoolkit.model.SourceCodeOrigin as OrtSourceCodeOrigin
 import org.ossreviewtoolkit.model.TextLocation as OrtTextLocation
 import org.ossreviewtoolkit.model.UnknownProvenance as OrtUnknownProvenance
 import org.ossreviewtoolkit.model.VcsInfo as OrtVcsInfo
@@ -376,7 +378,9 @@ fun OrtPackageCurationData.mapToModel() = PackageCurationData(
     vcs = vcs?.mapToModel(),
     isMetadataOnly = isMetadataOnly,
     isModified = isModified,
-    declaredLicenseMapping = declaredLicenseMapping.mapValues { it.value.toString() }
+    declaredLicenseMapping = declaredLicenseMapping.mapValues { it.value.toString() },
+    sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToModel() },
+    labels = labels
 )
 
 fun OrtPackageCurationProvider.mapToModel() = PackageCurationProviderConfig(name = id)
@@ -391,6 +395,12 @@ fun OrtPackageManagerConfiguration.mapToModel() =
         mustRunAfter = mustRunAfter,
         options = options
     )
+
+fun OrtSourceCodeOrigin.mapToModel() =
+    when (this) {
+        OrtSourceCodeOrigin.ARTIFACT -> SourceCodeOrigin.ARTIFACT
+        OrtSourceCodeOrigin.VCS -> SourceCodeOrigin.VCS
+    }
 
 fun OrtPathExclude.mapToModel() = PathExclude(pattern = pattern, reason = reason.name, comment = comment)
 
