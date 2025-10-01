@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs.repository
 
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
 
 data class PackageCurationData(
@@ -34,5 +35,7 @@ data class PackageCurationData(
     val vcs: VcsInfoCurationData? = null,
     val isMetadataOnly: Boolean? = null,
     val isModified: Boolean? = null,
-    val declaredLicenseMapping: Map<String, String> = emptyMap()
-)
+    val declaredLicenseMapping: Map<String, String> = emptyMap(),
+    val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
+    val labels: Map<String, String> = emptyMap()
+    )

@@ -793,7 +793,9 @@ fun PackageCurationData.mapToApi() = ApiPackageCurationData(
     vcs = vcs?.mapToApi(),
     isMetadataOnly = isMetadataOnly,
     isModified = isModified,
-    declaredLicenseMapping = declaredLicenseMapping
+    declaredLicenseMapping = declaredLicenseMapping,
+    sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToApi() },
+    labels = labels
 )
 
 fun RuleViolationResolution.mapToApi() = ApiRuleViolationResolution(

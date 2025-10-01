@@ -445,7 +445,9 @@ fun PackageCurationData.mapToOrt() = OrtPackageCurationData(
     vcs = vcs?.mapToOrt(),
     isMetadataOnly = isMetadataOnly,
     isModified = isModified,
-    declaredLicenseMapping = declaredLicenseMapping.mapValues { it.value.toSpdx() }
+    declaredLicenseMapping = declaredLicenseMapping.mapValues { it.value.toSpdx() },
+    sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToOrt() },
+    labels = labels.entries.associate { (key, value) -> key to value }
 )
 
 fun PackageCurationProviderConfig.mapToOrt() = OrtResolvedPackageCurations.Provider(id = name)

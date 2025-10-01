@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedConfiguration
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
@@ -415,7 +416,9 @@ class OrtServerMappingsTest : WordSpec({
                     declaredLicenseMapping = mapOf(
                         "LicenseRef-toBeMapped1" to "LicenseRef-mapped1",
                         "LicenseRef-toBeMapped2" to "LicenseRef-mapped2"
-                    )
+                    ),
+                    sourceCodeOrigins = listOf(SourceCodeOrigin.VCS),
+                    labels = mapOf("key1" to "val1")
                 )
             )
 

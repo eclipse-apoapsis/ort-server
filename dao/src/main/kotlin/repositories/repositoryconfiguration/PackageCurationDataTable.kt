@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AuthorDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.RemoteArtifactsTable
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -48,6 +49,7 @@ object PackageCurationDataTable : LongIdTable("package_curation_data") {
     val isMetadataOnly = bool("is_metadata_only").nullable()
     val isModified = bool("is_modified").nullable()
     val hasAuthors = bool("has_authors")
+    val sourceCodeOrigins = text("source_code_origins").nullable()
 }
 
 class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
@@ -71,7 +73,12 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                         it.authors.takeIf { _ -> it.hasAuthors }
                             ?.mapTo(mutableSetOf()) { author -> author.name } == data.authors &&
                         it.declaredLicenseMappings
-                            .associate { pair -> pair.license to pair.spdxLicense } == data.declaredLicenseMapping
+                            .associate { pair -> pair.license to pair.spdxLicense } == data.declaredLicenseMapping &&
+                        it.sourceCodeOrigins
+                            ?.split(",")
+                            ?.filterNot { origin -> origin.isEmpty() }
+                            ?.map { origin -> SourceCodeOrigin.valueOf(origin) } == data.sourceCodeOrigins &&
+                        it.labels.associate { label -> label.key to label.value } == data.labels
             }
 
         fun getOrPut(data: PackageCurationData): PackageCurationDataDao =
@@ -91,6 +98,15 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
                 this.hasAuthors = data.authors != null
                 this.declaredLicenseMappings = mapAndDeduplicate(data.declaredLicenseMapping.entries) {
                     DeclaredLicenseMappingDao.getOrPut(it.key, it.value)
+                }
+                this.sourceCodeOrigins = data.sourceCodeOrigins?.joinToString(",") { it.name }
+            }.also {
+                data.labels.forEach { (key, value) ->
+                    PackageCurationDataLabelDao.new {
+                        this.packageCurationData = it
+                        this.key = key
+                        this.value = value
+                    }
                 }
             }
     }
@@ -112,6 +128,8 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
     var authors by AuthorDao via PackageCurationDataAuthors
     var hasAuthors by PackageCurationDataTable.hasAuthors
     var declaredLicenseMappings by DeclaredLicenseMappingDao via PackageCurationDataDeclaredLicenseMappingsTable
+    var sourceCodeOrigins by PackageCurationDataTable.sourceCodeOrigins
+    val labels by PackageCurationDataLabelDao referrersOn PackageCurationDataLabelsTable.packageCurationDataId
 
     fun mapToModel() = PackageCurationData(
         comment = comment,
@@ -126,6 +144,11 @@ class PackageCurationDataDao(id: EntityID<Long>) : LongEntity(id) {
         vcs = vcsInfoCurationData?.mapToModel(),
         isMetadataOnly = isMetadataOnly,
         isModified = isModified,
-        declaredLicenseMapping = declaredLicenseMappings.associate { it.license to it.spdxLicense }
+        declaredLicenseMapping = declaredLicenseMappings.associate { it.license to it.spdxLicense },
+        sourceCodeOrigins = sourceCodeOrigins
+            ?.split(",")
+            ?.filterNot { it.isEmpty() }
+            ?.map { SourceCodeOrigin.valueOf(it) },
+        labels = labels.associate { it.key to it.value }
     )
 }
