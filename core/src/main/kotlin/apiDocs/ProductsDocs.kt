@@ -59,8 +59,8 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
 
-val getProductById: RouteConfig.() -> Unit = {
-    operationId = "GetProductById"
+val getProduct: RouteConfig.() -> Unit = {
+    operationId = "getProduct"
     summary = "Get details of a product"
     tags = listOf("Products")
 
@@ -82,8 +82,8 @@ val getProductById: RouteConfig.() -> Unit = {
     }
 }
 
-val patchProductById: RouteConfig.() -> Unit = {
-    operationId = "PatchProductById"
+val patchProduct: RouteConfig.() -> Unit = {
+    operationId = "patchProduct"
     summary = "Update a product"
     tags = listOf("Products")
 
@@ -116,8 +116,8 @@ val patchProductById: RouteConfig.() -> Unit = {
     }
 }
 
-val deleteProductById: RouteConfig.() -> Unit = {
-    operationId = "DeleteProductById"
+val deleteProduct: RouteConfig.() -> Unit = {
+    operationId = "deleteProduct"
     summary = "Delete a product"
     tags = listOf("Products")
 
@@ -134,8 +134,8 @@ val deleteProductById: RouteConfig.() -> Unit = {
     }
 }
 
-val getRepositoriesByProductId: RouteConfig.() -> Unit = {
-    operationId = "GetRepositoriesByProductId"
+val getProductRepositories: RouteConfig.() -> Unit = {
+    operationId = "getProductRepositories"
     summary = "Get all repositories of a product"
     tags = listOf("Products")
 
@@ -187,7 +187,7 @@ val getRepositoriesByProductId: RouteConfig.() -> Unit = {
 }
 
 val postRepository: RouteConfig.() -> Unit = {
-    operationId = "CreateRepository"
+    operationId = "postRepository"
     summary = "Create a repository for a product"
     tags = listOf("Products")
 
@@ -224,7 +224,7 @@ val postRepository: RouteConfig.() -> Unit = {
 }
 
 val putProductRoleToUser: RouteConfig.() -> Unit = {
-    operationId = "PutProductRoleToUser"
+    operationId = "putProductRoleToUser"
     summary = "Assign a product role to a user"
     description = "Assign a product role to a user. If the user already has another role for the same product, it " +
             "will be replaced with the new one."
@@ -257,7 +257,7 @@ val putProductRoleToUser: RouteConfig.() -> Unit = {
 }
 
 val deleteProductRoleFromUser: RouteConfig.() -> Unit = {
-    operationId = "DeleteProductRoleFromUser"
+    operationId = "deleteProductRoleFromUser"
     summary = "Remove a product role from a user"
     tags = listOf("Products")
 
@@ -285,8 +285,8 @@ val deleteProductRoleFromUser: RouteConfig.() -> Unit = {
     }
 }
 
-val getVulnerabilitiesAcrossRepositoriesByProductId: RouteConfig.() -> Unit = {
-    operationId = "GetVulnerabilitiesAcrossRepositoriesByProductId"
+val getProductVulnerabilities: RouteConfig.() -> Unit = {
+    operationId = "getProductVulnerabilities"
     summary = "Get vulnerabilities from a product"
     description = "Get the vulnerabilities from latest successful advisor runs across the repositories in a product."
     tags = listOf("Products")
@@ -365,8 +365,8 @@ val getVulnerabilitiesAcrossRepositoriesByProductId: RouteConfig.() -> Unit = {
     }
 }
 
-val getOrtRunStatisticsByProductId: RouteConfig.() -> Unit = {
-    operationId = "GetOrtRunStatisticsByProductId"
+val getProductRunStatistics: RouteConfig.() -> Unit = {
+    operationId = "getProductRunStatistics"
     summary = "Get statistics about ORT runs across the repositories of a product"
     tags = listOf("Products")
 
@@ -414,8 +414,8 @@ val getOrtRunStatisticsByProductId: RouteConfig.() -> Unit = {
     }
 }
 
-val getUsersForProduct: RouteConfig.() -> Unit = {
-    operationId = "GetUsersForProduct"
+val getProductUsers: RouteConfig.() -> Unit = {
+    operationId = "getProductUsers"
     summary = "Get all users for a product"
     description = "Get all users that have access rights for a product, including the user privileges (groups) " +
             "the user has within the product. Fields available for sorting: 'username', 'firstName', " +
@@ -473,8 +473,8 @@ private val minimalJobConfigurations = JobConfigurations(
     )
 )
 
-val postOrtRunsForProduct: RouteConfig.() -> Unit = {
-    operationId = "postOrtRunsForProduct"
+val postProductRuns: RouteConfig.() -> Unit = {
+    operationId = "postProductRuns"
     summary = "Create ORT runs for repositories under a product"
     description = "Create ORT runs for all repositories under a product or specific repositories"
     tags = listOf("Products")
