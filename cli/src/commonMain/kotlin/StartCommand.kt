@@ -64,6 +64,11 @@ import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 
 internal val POLL_INTERVAL = getEnv("POLL_INTERVAL")?.toLongOrNull()?.seconds ?: 10.seconds
 
+/**
+ * The maximum number of failures in a sequence that cause the waiting loop for a run to finish to abort.
+ */
+private const val MAX_FAILURE_COUNT = 10
+
 class StartCommand : SuspendingCliktCommand(name = "start") {
     private val repositoryId by option(
         "--repository-id",
@@ -116,10 +121,27 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
         ContextStorage.saveLatestRunId(ortRun.id)
 
         if (wait) {
+            var failureCount = 0
+
             if (useJsonFormat) {
                 while (ortRun.isRunning()) {
                     delay(POLL_INTERVAL)
-                    ortRun = client.repositories.getOrtRun(repositoryId, ortRun.index)
+                    val update = runCatching { client.repositories.getOrtRun(repositoryId, ortRun.index) }
+                    ortRun = when {
+                        update.isSuccess -> {
+                            failureCount = 0
+                            update.getOrThrow()
+                        }
+                        update.isFailure && failureCount >= MAX_FAILURE_COUNT -> {
+                            echoMessage("Aborting after $MAX_FAILURE_COUNT consecutive errors.")
+                            update.getOrThrow()
+                        }
+                        else -> {
+                            failureCount++
+                            echoMessage("Warning: An error occurred while polling the run status. Retrying...")
+                            ortRun
+                        }
+                    }
                 }
             } else {
                 echoMessage(ortRun.toPrintable())

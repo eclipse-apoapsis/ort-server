@@ -32,6 +32,8 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 
+import java.io.IOException
+
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
@@ -197,6 +199,67 @@ class StartCommandTest : StringSpec({
 
         coVerify(exactly = 1) {
             repositoryMock.createOrtRun(repositoryId, any())
+        }
+    }
+
+    "start command should not fail the waiting loop on the first error" {
+        val repositoryId = 1L
+        val revision = "main"
+
+        val createdOrtRun = OrtRun(
+            id = 1,
+            index = 1,
+            organizationId = 1,
+            productId = 1,
+            repositoryId = 1,
+            revision = "main",
+            createdAt = Instant.parse("2024-01-01T00:00:00Z"),
+            jobConfigs = JobConfigurations(),
+            status = OrtRunStatus.CREATED,
+            jobs = Jobs(),
+            issues = emptyList(),
+            traceId = null,
+            labels = emptyMap()
+        )
+        val finishedOrtRun = createdOrtRun.copy(status = OrtRunStatus.FINISHED)
+
+        val repositoryMock = mockk<RepositoriesApi> {
+            coEvery { createOrtRun(repositoryId, any()) } returns createdOrtRun
+            coEvery { getOrtRun(repositoryId, createdOrtRun.index) } throws
+                    IOException("Test exception: status check failed.") andThen
+                    finishedOrtRun
+        }
+        val ortServerClientMock = mockk<OrtServerClient> {
+            every { repositories } returns repositoryMock
+        }
+        mockkStatic(::createAuthenticatedOrtServerClient)
+        every { createAuthenticatedOrtServerClient() } returns ortServerClientMock
+
+        System.setProperty("POLL_INTERVAL", "1")
+
+        val command = OrtServerMain()
+        val result = command.test(
+            listOf(
+                "--json",
+                "runs",
+                "start",
+                "--repository-id",
+                "$repositoryId",
+                "--parameters",
+                """{"revision": "$revision", "jobConfigs": {}}""",
+                "--wait"
+            )
+        )
+
+        result.statusCode shouldBe 0
+        result.output shouldContain json.encodeToString(finishedOrtRun)
+
+        coVerify(exactly = 1) {
+            repositoryMock.createOrtRun(repositoryId, any())
+        }
+
+        coVerify(exactly = 2) {
+            repositoryMock.getOrtRun(repositoryId, createdOrtRun.index)
         }
     }
 })
