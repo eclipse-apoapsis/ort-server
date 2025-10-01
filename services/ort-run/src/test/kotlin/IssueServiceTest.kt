@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
@@ -337,11 +338,17 @@ class IssueServiceTest : WordSpec() {
                     curations = listOf(
                         PackageCuration(
                             id = pkg2.identifier,
-                            data = PackageCurationData(purl = "curated")
+                            data = PackageCurationData(
+                                purl = "curated",
+                                sourceCodeOrigins = listOf(SourceCodeOrigin.VCS)
+                            ),
                         ),
                         PackageCuration(
                             id = pkg3.identifier,
-                            data = PackageCurationData(purl = "curated-higher")
+                            data = PackageCurationData(
+                                purl = "curated-higher",
+                                sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT)
+                            )
                         )
                     )
                 )
@@ -351,7 +358,10 @@ class IssueServiceTest : WordSpec() {
                     curations = listOf(
                         PackageCuration(
                             id = pkg3.identifier,
-                            data = PackageCurationData(purl = "curated-lower")
+                            data = PackageCurationData(
+                                purl = "curated-lower",
+                                sourceCodeOrigins = listOf(SourceCodeOrigin.VCS)
+                            )
                         )
                     )
                 )

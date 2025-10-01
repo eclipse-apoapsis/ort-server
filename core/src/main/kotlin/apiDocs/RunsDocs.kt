@@ -491,7 +491,9 @@ val getPackagesByRunId: RouteConfig.() -> Unit = {
                                         vcs = null,
                                         isMetadataOnly = null,
                                         isModified = null,
-                                        declaredLicenseMapping = emptyMap()
+                                        declaredLicenseMapping = emptyMap(),
+                                        sourceCodeOrigins = emptyList(),
+                                        labels = emptyMap()
                                     )
                                 )
                             )
