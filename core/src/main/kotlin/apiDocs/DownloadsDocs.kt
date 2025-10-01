@@ -23,8 +23,8 @@ import io.github.smiley4.ktoropenapi.config.RouteConfig
 
 import io.ktor.http.HttpStatusCode
 
-val getReportByRunIdAndToken: RouteConfig.() -> Unit = {
-    operationId = "GetReportByRunIdAndToken"
+val getRunReportByToken: RouteConfig.() -> Unit = {
+    operationId = "getRunReportByToken"
     summary = "Download a report of an ORT run using a token"
     description = "This endpoint does not require authentication."
     tags = listOf("Runs")
