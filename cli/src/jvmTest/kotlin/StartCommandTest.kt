@@ -34,6 +34,8 @@ import io.mockk.unmockkAll
 
 import java.io.IOException
 
+import kotlin.time.Duration.Companion.milliseconds
+
 import kotlinx.datetime.Instant
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
@@ -41,6 +43,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.cli.OrtServerMain
+import org.eclipse.apoapsis.ortserver.cli.StartCommand
 import org.eclipse.apoapsis.ortserver.cli.json
 import org.eclipse.apoapsis.ortserver.cli.utils.createAuthenticatedOrtServerClient
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
@@ -48,6 +51,10 @@ import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
 
 class StartCommandTest : StringSpec({
+    beforeSpec {
+        StartCommand.setPollInterval(1.milliseconds)
+    }
+
     afterEach { unmockkAll() }
 
     "start command should create an ORT run without waiting" {
@@ -139,8 +146,6 @@ class StartCommandTest : StringSpec({
         }
         mockkStatic(::createAuthenticatedOrtServerClient)
         every { createAuthenticatedOrtServerClient() } returns ortServerClientMock
-
-        System.setProperty("POLL_INTERVAL", "1")
 
         val command = OrtServerMain()
         val result = command.test(
@@ -234,8 +239,6 @@ class StartCommandTest : StringSpec({
         }
         mockkStatic(::createAuthenticatedOrtServerClient)
         every { createAuthenticatedOrtServerClient() } returns ortServerClientMock
-
-        System.setProperty("POLL_INTERVAL", "1")
 
         val command = OrtServerMain()
         val result = command.test(

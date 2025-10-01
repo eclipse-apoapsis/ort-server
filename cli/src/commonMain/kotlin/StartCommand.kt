@@ -38,6 +38,7 @@ import com.github.ajalt.mordant.widgets.progress.progressBarContextLayout
 import com.github.ajalt.mordant.widgets.progress.spinner
 import com.github.ajalt.mordant.widgets.progress.text
 
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 import kotlinx.coroutines.delay
@@ -62,14 +63,27 @@ import org.eclipse.apoapsis.ortserver.cli.utils.useJsonFormat
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 import org.eclipse.apoapsis.ortserver.client.OrtServerClient
 
-internal val POLL_INTERVAL = getEnv("POLL_INTERVAL")?.toLongOrNull()?.seconds ?: 10.seconds
-
 /**
  * The maximum number of failures in a sequence that cause the waiting loop for a run to finish to abort.
  */
 private const val MAX_FAILURE_COUNT = 10
 
 class StartCommand : SuspendingCliktCommand(name = "start") {
+    companion object {
+        /**
+         * The interval to poll the server for updates when waiting for a run to finish. This is modifiable to allow
+         * tests to run faster.
+         */
+        private var pollInterval = 10.seconds
+
+        /**
+         * Set the polling interval to use when waiting for a run to finish. This is only intended to be used in tests.
+         */
+        internal fun setPollInterval(interval: Duration) {
+            pollInterval = interval
+        }
+    }
+
     private val repositoryId by option(
         "--repository-id",
         envvar = "OSC_REPOSITORY_ID",
@@ -125,7 +139,7 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
 
             if (useJsonFormat) {
                 while (ortRun.isRunning()) {
-                    delay(POLL_INTERVAL)
+                    delay(pollInterval)
                     val update = runCatching { client.repositories.getOrtRun(repositoryId, ortRun.index) }
                     ortRun = when {
                         update.isSuccess -> {
@@ -175,7 +189,7 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
 
         var updatedOrtRun = ortRun.copy()
         while (updatedOrtRun.isRunning()) {
-            delay(POLL_INTERVAL)
+            delay(pollInterval)
             updatedOrtRun = client.repositories.getOrtRun(repositoryId, updatedOrtRun.index)
             progress.update {
                 context =
