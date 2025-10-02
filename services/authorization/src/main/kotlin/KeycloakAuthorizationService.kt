@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
@@ -771,5 +772,10 @@ class KeycloakAuthorizationService(
     ) {
         val group = keycloakGroupPrefix + role.groupName(hierarchyId)
         keycloakClient.removeUserFromGroup(UserName(username), GroupName(group))
+    }
+
+    override suspend fun getUserRoleNames(userId: String): Set<String> {
+        return keycloakClient.getUserClientRoles(UserId(userId))
+            .mapTo(mutableSetOf()) { role -> role.name.value }
     }
 }

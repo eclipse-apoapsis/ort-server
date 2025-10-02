@@ -123,4 +123,9 @@ interface AuthorizationService {
         hierarchyId: ID,
         role: Role<TYPE, ID>
     )
+
+    /**
+     * Return a [Set] with the names of all roles assigned to the user with the given [userId].
+     */
+    suspend fun getUserRoleNames(userId: String): Set<String>
 }
