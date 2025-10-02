@@ -22,6 +22,11 @@ jobs:
   build:
     name: Build ${{ matrix.docker.jibImage || matrix.docker.image }} Docker Image
     runs-on: ubuntu-24.04
+    services:
+      registry:
+        image: registry:3
+        ports:
+          - 5000:5000
     permissions:
       packages: write
     strategy:
@@ -42,6 +47,7 @@ jobs:
         #
         # Optional properties:
         # freeDiskSpace: Whether to free disk space before building the image.
+        # skipWorkerBaseImage: Whether to skip building the worker base image.
         docker:
         - jibImage: core
           task: :core:jibDockerBuild
@@ -57,20 +63,11 @@ jobs:
           jibImage: analyzer-worker
           task: :workers:analyzer:jibDockerBuild
           freeDiskSpace: true
-        - image: config-worker-base-image
-          context: workers/config/docker
-          dockerfile: Config.Dockerfile
-          jibImage: config-worker
+        - jibImage: config-worker
           task: :workers:config:jibDockerBuild
-        - image: evaluator-worker-base-image
-          context: workers/evaluator/docker
-          dockerfile: Evaluator.Dockerfile
-          jibImage: evaluator-worker
+        - jibImage: evaluator-worker
           task: :workers:evaluator:jibDockerBuild
-        - image: notifier-worker-base-image
-          context: workers/notifier/docker
-          dockerfile: Notifier.Dockerfile
-          jibImage: notifier-worker
+        - jibImage: notifier-worker
           task: :workers:notifier:jibDockerBuild
         - image: reporter-worker-base-image
           context: workers/reporter/docker
@@ -99,6 +96,8 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      with:
+        driver-opts: network=host
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
@@ -140,18 +139,32 @@ jobs:
         # Push the image to the registry if it is not a PR and no Jib build is configured.
         echo "PUSH_IMAGE=$([[ ${{ env.IS_PR }} == 'false' ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
 
+    - name: Build worker base image
+      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+      with:
+        context: docker
+        file: docker/Base.Dockerfile
+        tags: localhost:5000/ort-server-base-image:${{ env.ORT_SERVER_VERSION }}
+        labels: ${{ steps.meta-base.outputs.labels }}
+        push: true
+
     - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
       uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
       with:
         context: ${{ matrix.docker.context }}
         file: ${{ matrix.docker.context }}/${{ matrix.docker.dockerfile }}
+        build-contexts: |
+          ort-server-base-image:latest=docker-image://localhost:5000/ort-server-base-image:latest
         push: ${{ env.PUSH_IMAGE }}
         load: ${{ env.LOAD_IMAGE }}
         tags: ${{ steps.meta-base.outputs.tags }}
         labels: ${{ steps.meta-base.outputs.labels }}
         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}:cache
         cache-to: ${{ env.CACHE_TO }}
+        build-args: |
+          BASE_REGISTRY=localhost:5000/
+          BASE_IMAGE_TAG=${{ env.ORT_SERVER_VERSION }}
 
     - name: Extract Docker Metadata for ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
@@ -170,17 +183,31 @@ jobs:
         sudo mkdir -p /mnt/jib-app-cache /mnt/jib-base-cache /mnt/tmp
         sudo chown $USER /mnt/jib-app-cache /mnt/jib-base-cache /mnt/tmp
 
+    - name: Determine Jib base image
+      id: jib-base-image
+      if: ${{ matrix.docker.task != '' }}
+      run: |
+        if [[ -n "${{ matrix.docker.dockerfile }}" ]]; then
+          baseImagePrefix="docker://${{ env.REGISTRY }}/${{ github.repository_owner }}"
+        else
+          baseImagePrefix="localhost:5000"
+        fi
+        baseImageTag="${{ env.ORT_SERVER_VERSION }}"
+        echo "baseImagePrefix=$baseImagePrefix" >> $GITHUB_OUTPUT
+        echo "baseImageTag=$baseImageTag" >> $GITHUB_OUTPUT
+
     - name: Build ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
       run: |
         ./gradlew \
-          -PdockerBaseImagePrefix=docker://${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
-          -PdockerBaseImageTag=${{ env.ORT_SERVER_VERSION }} \
+          -PdockerBaseImagePrefix=${{ steps.jib-base-image.outputs.baseImagePrefix }}/ \
+          -PdockerBaseImageTag=${{ steps.jib-base-image.outputs.baseImageTag }} \
           -PdockerImagePrefix=${{ env.REGISTRY }}/${{ github.repository_owner }}/ \
           -PdockerImageTag=${{ env.ORT_SERVER_VERSION }} \
           ${{ matrix.docker.task }} \
           -Djib.applicationCache=/mnt/jib-app-cache \
           -Djib.baseImageCache=/mnt/jib-base-cache \
+          -Djib.allowInsecureRegistries=true \
           -Djava.io.tmpdir=/mnt/tmp \
           -Djib.console=plain \
           -Djib.container.labels="$(echo "${{ steps.meta.outputs.labels }}" | tr '\n' ',' | sed 's/,$//')" \

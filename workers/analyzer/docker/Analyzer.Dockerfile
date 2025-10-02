@@ -48,24 +48,20 @@ ARG RUST_VERSION=1.90.0
 ARG SBT_VERSION=1.10.0
 ARG SWIFT_VERSION=6.0.3
 
-# When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
-ARG TEMURIN_VERSION=21.0.7_6-jdk-jammy@sha256:746ad7128069fdaa77df1f06a0463ad50f4ae787648cbbcc6d6ab0e702e6c97e
+ARG BASE_REGISTRY=""
+ARG BASE_IMAGE_TAG="latest"
 
-FROM eclipse-temurin:$TEMURIN_VERSION AS ort-base-image
-
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
+FROM ${BASE_REGISTRY}ort-server-base-image:$BASE_IMAGE_TAG AS ort-base-image
 
 # Check and set apt proxy
-COPY scripts/set_apt_proxy.sh /etc/scripts/set_apt_proxy.sh
-RUN /etc/scripts/set_apt_proxy.sh
+COPY scripts/set_apt_proxy.sh /etc/analyzer_scripts/set_apt_proxy.sh
+RUN /etc/analyzer_scripts/set_apt_proxy.sh
 
 # Base package set
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    sudo apt-get update \
+    && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     ca-certificates \
     coreutils \
     curl \
@@ -97,53 +93,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     unzip \
     wget \
     xz-utils \
-    && rm -rf /var/lib/apt/lists/* \
-    && git lfs install
-
-RUN echo $LANG > /etc/locale.gen \
-    && locale-gen $LANG \
-    && update-locale LANG=$LANG
-
-ARG USERNAME=ort
-ARG USER_ID=1001
-ARG USER_GID=$USER_ID
-ARG HOMEDIR=/home/ort
-ENV HOME=$HOMEDIR
-ENV USER=$USERNAME
-
-# Non privileged user
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd \
-    --uid $USER_ID \
-    --gid $USER_GID \
-    --shell /bin/bash \
-    --home-dir $HOMEDIR \
-    --create-home $USERNAME
-
-RUN mkdir -p $HOMEDIR/.cache \
-    && chown $USER:$USER $HOMEDIR/.cache
-
-RUN chgrp $USER /opt \
-    && chmod g+wx /opt
-
-# sudo support
-RUN echo "$USERNAME ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
-
-# Copy certificates scripts only.
-COPY scripts/*_certificates.sh /etc/scripts/
-
-# Set this to a directory containing CRT-files for custom certificates that ORT and all build tools should know about.
-ARG CRT_FILES="*.crt"
-COPY "$CRT_FILES" /tmp/certificates/
-
-RUN /etc/scripts/export_proxy_certificates.sh /tmp/certificates/ \
-    &&  /etc/scripts/import_certificates.sh /tmp/certificates/
-
-USER $USER
-WORKDIR $HOME
-
-ENTRYPOINT [ "/bin/bash" ]
+    && sudo rm -rf /var/lib/apt/lists/* \
+    && sudo git lfs install
 
 #------------------------------------------------------------------------
 # PYTHON - Build Python as a separate component with pyenv
@@ -455,7 +406,7 @@ FROM ort-base-image AS components
 ARG COMPOSER_VERSION
 
 # Remove ort build scripts
-RUN sudo rm -rf /etc/scripts
+RUN sudo rm -rf /etc/analyzer_scripts
 
 # Apt install commands.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -544,16 +495,8 @@ ENV PATH=$PATH:$BAZEL_HOME/bin
 COPY --from=bazel $BAZEL_HOME $BAZEL_HOME
 COPY --from=bazel --chown=$USER:$USER /opt/go/bin/buildozer /opt/go/bin/buildozer
 
-# Make sure the user executing the container has access rights in the home directory.
-RUN sudo chgrp -R 0 /home/ort && sudo chmod -R g+rwX /home/ort
-
-USER $USERNAME
-WORKDIR $HOMEDIR
-
 # Install cargo-credential-netrc late in the build to prevent an error accessing /opt/rust/cargo/registry/.
 RUN $CARGO_HOME/bin/cargo install cargo-credential-netrc
 
 # Make sure the user executing the container has access rights in the $CARGO_HOME directory.
 RUN sudo chgrp -R 0 $CARGO_HOME && sudo chmod -R g+rwX $CARGO_HOME
-
-ENTRYPOINT ["/bin/bash"]

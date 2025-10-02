@@ -20,13 +20,15 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-# When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
-FROM --platform=linux/amd64 eclipse-temurin:21.0.7_6-jdk-jammy@sha256:746ad7128069fdaa77df1f06a0463ad50f4ae787648cbbcc6d6ab0e702e6c97e AS base-image
+ARG BASE_REGISTRY=""
+ARG BASE_IMAGE_TAG="latest"
+
+FROM ${BASE_REGISTRY}ort-server-base-image:$BASE_IMAGE_TAG AS base-image
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    sudo apt-get update \
+    && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     bzip2 \
     cmake \
     curl \
@@ -52,22 +54,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     xz-utils \
     zlib1g \
     zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-ARG USERNAME=ort
-ARG USER_ID=1000
-ARG USER_GID=$USER_ID
-ARG HOMEDIR=/home/ort
-ENV HOME=$HOMEDIR
-
-# Non privileged user
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd \
-    --uid $USER_ID \
-    --gid $USER_GID \
-    --shell /bin/bash \
-    --home-dir $HOMEDIR \
-    --create-home $USERNAME
+    && sudo rm -rf /var/lib/apt/lists/*
 
 ARG ASKALONO_VERSION=0.5.0
 ARG LICENSEE_VERSION=9.18.0
@@ -101,10 +88,4 @@ RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_
     pip install -U --constraint requirements.txt scancode-toolkit==$SCANCODE_VERSION && \
     rm requirements.txt
 
-# Make sure the user executing the container has access rights in the home directory.
-RUN sudo chgrp -R 0 /home/ort && chmod -R g+rwX /home/ort
-
-USER $USERNAME
-WORKDIR $HOMEDIR
-
-ENTRYPOINT ["/usr/bin/bash"]
+ENV PATH="/home/ort/.local/bin:${PATH}"
