@@ -30,16 +30,21 @@ import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.Role
+import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestClient
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
@@ -1030,6 +1035,28 @@ class KeycloakAuthorizationServiceTest : WordSpec({
                 keycloakClient.getGroupMembers(GroupName(groupName))
                     .map { it.username.value } should beEmpty()
             }
+        }
+    }
+
+    "getUserRoleNames" should {
+        "return all roles of the given user" {
+            val userId = UserId("user-id")
+            val expectedRoleNames = listOf("READER_1", "WRITER_2", "ADMIN_3")
+            val keycloakRoles = expectedRoleNames.mapTo(mutableSetOf()) { name ->
+                Role(
+                    id = RoleId("id_$name"),
+                    name = RoleName(name)
+                )
+            }
+
+            val keycloakClient = mockk<KeycloakClient> {
+                coEvery { getUserClientRoles(userId) } returns keycloakRoles
+            }
+            val service = createService(keycloakClient)
+
+            val roleNames = service.getUserRoleNames(userId.value)
+
+            roleNames shouldContainExactly expectedRoleNames
         }
     }
 })
