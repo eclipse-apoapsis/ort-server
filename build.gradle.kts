@@ -118,6 +118,13 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
             group = "Docker"
             description = "Builds the $name worker Docker image."
 
+            val imageName = if (name == "Base") {
+                "ort-server-worker-base-image:latest"
+            } else {
+                dependsOn("buildBaseWorkerImage")
+                "ort-server-${name.lowercase()}-worker-base-image:$dockerBaseImageTag"
+            }
+
             inputs.file(dockerfile)
             inputs.dir(context)
 
@@ -125,7 +132,7 @@ rootDir.walk().maxDepth(4).filter { it.isFile && it.extension == "Dockerfile" }.
                 containerEngineCommand, "build",
                 "-f", dockerfile.path,
                 *buildArgs.toTypedArray(),
-                "-t", "ort-server-${name.lowercase()}-worker-base-image:$dockerBaseImageTag",
+                "-t", imageName,
                 "-q",
                 context
             )
