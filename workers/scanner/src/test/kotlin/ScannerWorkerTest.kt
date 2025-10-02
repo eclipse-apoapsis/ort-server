@@ -34,11 +34,13 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
 
+import java.io.File
 import java.time.Instant
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toKotlinInstant
 
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -73,6 +75,7 @@ import org.ossreviewtoolkit.model.Severity
 private const val ORT_SERVER_MAPPINGS_FILE = "org.eclipse.apoapsis.ortserver.services.ortrun.OrtServerMappingsKt"
 
 private const val SCANNER_JOB_ID = 1L
+private const val ORGANIZATION_ID = 1L
 private const val REPOSITORY_ID = 1L
 private const val ORT_RUN_ID = 12L
 private const val TRACE_ID = "42"
@@ -94,7 +97,10 @@ class ScannerWorkerTest : StringSpec({
         val hierarchy = mockk<Hierarchy>()
         val ortRun = mockk<OrtRun> {
             every { id } returns ORT_RUN_ID
+            every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
+            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
 
@@ -116,7 +122,11 @@ class ScannerWorkerTest : StringSpec({
             every { startScannerJob(any()) } returns scannerJob
         }
 
-        val context = mockk<WorkerContext>()
+        val context = mockk<WorkerContext> {
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns ortRun
+        }
+
         val contextFactory = mockContextFactory(context)
 
         val ortIdentifier = Identifier("type", "namespace", "name", "version")
@@ -162,7 +172,14 @@ class ScannerWorkerTest : StringSpec({
             coEvery { setupAuthenticationForCurrentRun(context) } just runs
         }
 
-        val worker = ScannerWorker(mockk(), runner, ortRunService, contextFactory, environmentService)
+        val worker = ScannerWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            environmentService,
+            mockk(relaxed = true)
+        )
 
         mockkTransaction {
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
@@ -182,7 +199,10 @@ class ScannerWorkerTest : StringSpec({
         val hierarchy = mockk<Hierarchy>()
         val ortRun = mockk<OrtRun> {
             every { id } returns ORT_RUN_ID
+            every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
+            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
 
@@ -204,7 +224,11 @@ class ScannerWorkerTest : StringSpec({
             every { startScannerJob(any()) } returns scannerJob
         }
 
-        val context = mockk<WorkerContext>()
+        val context = mockk<WorkerContext> {
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns ortRun
+        }
+
         val contextFactory = mockContextFactory(context)
 
         val provenance1 = mockk<ArtifactProvenance>(relaxed = true)
@@ -292,7 +316,14 @@ class ScannerWorkerTest : StringSpec({
             coEvery { setupAuthenticationForCurrentRun(context) } just runs
         }
 
-        val worker = ScannerWorker(mockk(), runner, ortRunService, contextFactory, environmentService)
+        val worker = ScannerWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            environmentService,
+            mockk(relaxed = true)
+        )
 
         mockkTransaction {
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
@@ -336,7 +367,14 @@ class ScannerWorkerTest : StringSpec({
             every { getScannerJob(any()) } throws textException
         }
 
-        val worker = ScannerWorker(mockk(), mockk(), ortRunService, mockk(), mockk())
+        val worker = ScannerWorker(
+            mockk(),
+            mockk(),
+            ortRunService,
+            mockk(),
+            mockk(),
+            mockk(relaxed = true)
+        )
 
         mockkTransaction {
             when (val result = worker.run(SCANNER_JOB_ID, TRACE_ID)) {
@@ -351,7 +389,10 @@ class ScannerWorkerTest : StringSpec({
         val hierarchy = mockk<Hierarchy>()
         val ortRun = mockk<OrtRun> {
             every { id } returns ORT_RUN_ID
+            every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
+            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
 
@@ -373,7 +414,11 @@ class ScannerWorkerTest : StringSpec({
             every { startScannerJob(any()) } returns scannerJob
         }
 
-        val context = mockk<WorkerContext>()
+        val context = mockk<WorkerContext> {
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns ortRun
+        }
+
         val contextFactory = mockContextFactory(context)
 
         val provenance: Provenance =
@@ -394,7 +439,14 @@ class ScannerWorkerTest : StringSpec({
             coEvery { setupAuthenticationForCurrentRun(context) } just runs
         }
 
-        val worker = ScannerWorker(mockk(), runner, ortRunService, contextFactory, environmentService)
+        val worker = ScannerWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            environmentService,
+            mockk(relaxed = true)
+        )
 
         mockkTransaction {
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
@@ -408,12 +460,13 @@ class ScannerWorkerTest : StringSpec({
         val hierarchy = mockk<Hierarchy>()
         val ortRun = mockk<OrtRun> {
             every { id } returns ORT_RUN_ID
+            every { organizationId } returns ORGANIZATION_ID
             every { repositoryId } returns REPOSITORY_ID
+            every { resolvedJobConfigContext } returns null
+            every { resolvedJobConfigs } returns null
             every { revision } returns "main"
         }
-        val ortResult = OrtResult.EMPTY.copy(
-            resolvedConfiguration = OrtTestData.resolvedConfiguration
-        )
+        val ortResult = OrtTestData.result
 
         mockkStatic(ORT_SERVER_MAPPINGS_FILE)
         every { analyzerRun.mapToOrt() } returns mockk()
@@ -433,7 +486,11 @@ class ScannerWorkerTest : StringSpec({
             every { startScannerJob(any()) } returns scannerJob
         }
 
-        val context = mockk<WorkerContext>()
+        val context = mockk<WorkerContext> {
+            every { this@mockk.configManager } returns mockConfigManager()
+            every { this@mockk.ortRun } returns ortRun
+        }
+
         val contextFactory = mockContextFactory(context)
 
         val provenance: Provenance =
@@ -448,7 +505,14 @@ class ScannerWorkerTest : StringSpec({
             coEvery { setupAuthenticationForCurrentRun(context) } just runs
         }
 
-        val worker = ScannerWorker(mockk(), runner, ortRunService, contextFactory, environmentService)
+        val worker = ScannerWorker(
+            mockk(),
+            runner,
+            ortRunService,
+            contextFactory,
+            environmentService,
+            mockk(relaxed = true)
+        )
 
         mockkTransaction {
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
@@ -463,7 +527,14 @@ class ScannerWorkerTest : StringSpec({
             every { getScannerJob(any()) } returns invalidJob
         }
 
-        val worker = ScannerWorker(mockk(), mockk(), ortRunService, mockk(), mockk())
+        val worker = ScannerWorker(
+            mockk(),
+            mockk(),
+            ortRunService,
+            mockk(),
+            mockk(),
+            mockk(relaxed = true)
+        )
 
         mockkTransaction {
             val result = worker.run(SCANNER_JOB_ID, TRACE_ID)
@@ -483,4 +554,9 @@ private fun mockContextFactory(context: WorkerContext = mockk()): WorkerContextF
             slot.captured(context)
         }
     }
+}
+
+private fun mockConfigManager() = mockk<ConfigManager> {
+    every { getFile(any(), any()) } returns
+            File("src/test/resources/resolutions.yml").inputStream()
 }
