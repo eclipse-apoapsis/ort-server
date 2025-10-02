@@ -21,6 +21,8 @@ import com.google.cloud.tools.jib.gradle.JibTask
 
 val dockerImagePrefix: String by project
 val dockerImageTag: String by project
+val dockerBaseImagePrefix: String by project
+val dockerBaseImageTag: String by project
 
 plugins {
     // Apply precompiled plugins.
@@ -59,7 +61,7 @@ dependencies {
 }
 
 jib {
-    from.image = "eclipse-temurin:${libs.versions.eclipseTemurin.get()}"
+    from.image = "${dockerBaseImagePrefix}ort-server-base-image:$dockerBaseImageTag"
     to.image = "${dockerImagePrefix}ort-server-orchestrator:$dockerImageTag"
 
     container {

@@ -76,7 +76,7 @@ dependencies {
 }
 
 jib {
-    from.image = "${dockerBaseImagePrefix}ort-server-evaluator-worker-base-image:$dockerBaseImageTag"
+    from.image = "${dockerBaseImagePrefix}ort-server-base-image:$dockerBaseImageTag"
     to.image = "${dockerImagePrefix}ort-server-evaluator-worker:$dockerImageTag"
 
     container {
