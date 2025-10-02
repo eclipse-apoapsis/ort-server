@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 
@@ -26,7 +26,7 @@ import org.jetbrains.exposed.sql.Table
 /**
  * An intermediate table to store references from [InfrastructureServiceDeclarationsTable] to [OrtRunsTable].
  */
-object InfrastructureServiceDeclarationsRunsTable : Table("infrastructure_service_declarations_ort_runs") {
+internal object InfrastructureServiceDeclarationsRunsTable : Table("infrastructure_service_declarations_ort_runs") {
     val infrastructureServiceDeclarationId = reference(
         "infrastructure_service_declaration_id",
         InfrastructureServiceDeclarationsTable

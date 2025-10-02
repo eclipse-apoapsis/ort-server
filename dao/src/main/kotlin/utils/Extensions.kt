@@ -84,7 +84,7 @@ fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANO
  * Run the provided [query] with the given [parameters] to create a [ListQueryResult]. The entities are mapped to the
  * corresponding model objects using the provided [entityMapper].
  */
-internal fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
+fun <E : LongEntity, M> SortableEntityClass<E>.listQuery(
     parameters: ListQueryParameters,
     entityMapper: (E) -> M,
     query: ConditionBuilder
@@ -132,7 +132,7 @@ fun <M, T : AbstractQuery<T>> listCustomQueryCustomOrders(
 /**
  * Apply the given [parameters] to this query result using [table] to resolve the columns to be sorted by.
  */
-internal fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQueryParameters): SizedIterable<T> {
+fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQueryParameters): SizedIterable<T> {
     val orders = parameters.sortFields.map {
         val column = table.sortableColumn(it.name)
             ?: throw QueryParametersException("Unsupported field for sorting: '${it.name}'.")
@@ -146,7 +146,7 @@ internal fun <T> SizedIterable<T>.apply(table: SortableTable, parameters: ListQu
 /**
  * Apply the given [parameters] and [customOrders] to this query result.
  */
-internal fun <T> SizedIterable<T>.apply(
+fun <T> SizedIterable<T>.apply(
     parameters: ListQueryParameters,
     customOrders: List<Pair<Expression<*>, SortOrder>>
 ): SizedIterable<T> {

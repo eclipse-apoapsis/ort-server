@@ -65,20 +65,20 @@ class DeleteSecretByProductIdAndNameIntegrationTest : SecretsRoutesIntegrationTe
 
         "respond with Conflict when secret is in use" {
             secretsRoutesTestApplication { client ->
-                val userSecret = secretRepository.createProductSecret(prodId, path = "user", name = "user")
-                val passSecret = secretRepository.createProductSecret(prodId, path = "pass", name = "pass")
+                val userSecret = secretRepository.createProductSecret(prodId, path = "user", name = "user").name
+                val passSecret = secretRepository.createProductSecret(prodId, path = "pass", name = "pass").name
 
-                val service = dbExtension.fixtures.infrastructureServiceRepository.create(
+                val service = infrastructureServiceService.createForId(
+                    ProductId(prodId),
                     name = "testService",
                     url = "http://repo1.example.org/obsolete",
                     description = "good bye, cruel world",
-                    usernameSecret = userSecret,
-                    passwordSecret = passSecret,
-                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE),
-                    ProductId(prodId)
+                    usernameSecretRef = userSecret,
+                    passwordSecretRef = passSecret,
+                    credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
                 )
 
-                val response = client.delete("/products/$prodId/secrets/${userSecret.name}")
+                val response = client.delete("/products/$prodId/secrets/$userSecret")
                 response shouldHaveStatus HttpStatusCode.Conflict
 
                 val body = response.body<ErrorResponse>()

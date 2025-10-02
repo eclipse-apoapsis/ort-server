@@ -40,6 +40,7 @@ import io.mockk.mockk
 import java.io.File
 import java.util.EnumSet
 
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
@@ -55,7 +56,6 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
-import org.eclipse.apoapsis.ortserver.model.repositories.InfrastructureServiceRepository
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigException
@@ -479,8 +479,8 @@ private class TestHelper(
     /** Mock for the service for secrets. */
     val secretService: SecretService = mockk(),
 
-    /** Mock for the repository for infrastructure services. */
-    val serviceRepository: InfrastructureServiceRepository = mockk()
+    /** Mock for the service for infrastructure services. */
+    val infrastructureServiceService: InfrastructureServiceService = mockk()
 ) {
     /** Stores the secrets referenced by tests. */
     private val secrets = mutableListOf<Secret>()
@@ -496,9 +496,9 @@ private class TestHelper(
      */
     fun loader(): EnvironmentConfigLoader {
         initSecretRepository()
-        initServiceRepository()
+        initInfrastructureServiceService()
 
-        return EnvironmentConfigLoader(secretService, serviceRepository, EnvironmentDefinitionFactory())
+        return EnvironmentConfigLoader(secretService, infrastructureServiceService, EnvironmentDefinitionFactory())
     }
 
     /**
@@ -563,13 +563,13 @@ private class TestHelper(
     }
 
     /**
-     * Prepare the mock for the [InfrastructureServiceRepository] to answer queries for the product and organization
+     * Prepare the mock for the [InfrastructureServiceService] to answer queries for the product and organization
      * services based on the data that has been defined.
      */
-    private fun initServiceRepository() {
-        every { serviceRepository.listForId(ProductId(hierarchy.product.id)) } returns
+    private fun initInfrastructureServiceService() {
+        coEvery { infrastructureServiceService.listForId(ProductId(hierarchy.product.id)) } returns
                 ListQueryResult(productServices, ListQueryParameters.DEFAULT, productServices.size.toLong())
-        every { serviceRepository.listForId(OrganizationId(hierarchy.organization.id)) } returns
+        coEvery { infrastructureServiceService.listForId(OrganizationId(hierarchy.organization.id)) } returns
                 ListQueryResult(organizationServices, ListQueryParameters.DEFAULT, organizationServices.size.toLong())
     }
 }

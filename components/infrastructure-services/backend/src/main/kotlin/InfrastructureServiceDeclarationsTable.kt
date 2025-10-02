@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.dao.repositories.infrastructureservice
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 
 import java.util.EnumSet
 
@@ -34,7 +34,7 @@ import org.jetbrains.exposed.sql.and
  * A table to store dynamic infrastructure services that are defined by environment file .ort.env.yml for each new
  * ORT run on a repository.
  */
-object InfrastructureServiceDeclarationsTable : SortableTable("infrastructure_service_declarations") {
+internal object InfrastructureServiceDeclarationsTable : SortableTable("infrastructure_service_declarations") {
     val name = text("name").sortable()
     val url = text("url")
     val description = text("description").nullable()
@@ -44,7 +44,7 @@ object InfrastructureServiceDeclarationsTable : SortableTable("infrastructure_se
     val passwordSecret = text("password_secret")
 }
 
-class InfrastructureServiceDeclarationDao(id: EntityID<Long>) : LongEntity(id) {
+internal class InfrastructureServiceDeclarationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : SortableEntityClass<InfrastructureServiceDeclarationDao>(
         InfrastructureServiceDeclarationsTable
     ) {
