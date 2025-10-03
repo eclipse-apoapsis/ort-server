@@ -29,6 +29,7 @@ import io.kotest.matchers.shouldBe
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -211,7 +212,11 @@ private val packageCurations1 = ResolvedPackageCurations(
     curations = listOf(
         PackageCuration(
             id = identifier1,
-            data = PackageCurationData(comment = "comment1")
+            data = PackageCurationData(
+                comment = "comment1",
+                labels = mapOf("key1" to "value1", "key2" to "value2"),
+                sourceCodeOrigins = listOf(SourceCodeOrigin.ARTIFACT, SourceCodeOrigin.VCS)
+            ),
         ),
         PackageCuration(
             id = identifier2,

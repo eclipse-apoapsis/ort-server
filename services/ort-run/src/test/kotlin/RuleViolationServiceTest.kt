@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -192,7 +193,10 @@ class RuleViolationServiceTest : WordSpec() {
                     curations = listOf(
                         PackageCuration(
                             id = pkg1.identifier,
-                            data = PackageCurationData(purl = "curated")
+                            data = PackageCurationData(
+                                purl = "curated",
+                                sourceCodeOrigins = listOf(SourceCodeOrigin.VCS)
+                            )
                         )
                     )
                 )
