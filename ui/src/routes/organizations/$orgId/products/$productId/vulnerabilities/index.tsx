@@ -287,7 +287,7 @@ const ProductVulnerabilitiesComponent = () => {
         },
       }),
       columnHelper.accessor('repositoriesCount', {
-        id: 'count',
+        id: 'repositoriesCount',
         header: 'Repositories',
         enableColumnFilter: false,
       }),
@@ -416,7 +416,7 @@ const ProductVulnerabilitiesComponent = () => {
       columnVisibility: {
         [columnId]: false,
         rating: false,
-        count: false,
+        repositoriesCount: false,
         externalId: false,
         summary: false,
       },
