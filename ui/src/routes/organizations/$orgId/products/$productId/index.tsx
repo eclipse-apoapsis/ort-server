@@ -101,7 +101,7 @@ const ProductComponent = () => {
           search={{
             sortBy: [
               { id: 'rating', desc: true },
-              { id: 'count', desc: true },
+              { id: 'repositoriesCount', desc: true },
             ],
           }}
         >

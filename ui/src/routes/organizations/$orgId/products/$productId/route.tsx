@@ -49,7 +49,7 @@ const Layout = () => {
           search: {
             sortBy: [
               { id: 'rating', desc: true },
-              { id: 'count', desc: true },
+              { id: 'repositoriesCount', desc: true },
             ],
           },
           icon: () => <ShieldQuestion className='h-4 w-4' />,
