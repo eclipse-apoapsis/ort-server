@@ -25,7 +25,7 @@ import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndToken
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunReportByToken
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.services.ReportStorageService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
@@ -43,7 +43,7 @@ fun Route.downloads() = route("runs/{runId}/downloads") {
     route("report/{token}") {
         val reportStorageService by inject<ReportStorageService>()
 
-        get(getReportByRunIdAndToken) {
+        get(getRunReportByToken) {
             call.forRun(ortRunRepository) { ortRun ->
                 val token = call.requireParameter("token")
 
