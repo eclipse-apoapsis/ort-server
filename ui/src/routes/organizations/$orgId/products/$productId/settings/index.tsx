@@ -29,9 +29,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  deleteProductByIdMutation,
-  getProductByIdOptions,
-  patchProductByIdMutation,
+  deleteProductMutation,
+  getProductOptions,
+  patchProductMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
@@ -68,7 +68,7 @@ const ProductSettingsPage = () => {
   const productId = Number.parseInt(params.productId);
 
   const { data: product } = useSuspenseQuery({
-    ...getProductByIdOptions({
+    ...getProductOptions({
       path: {
         productId,
       },
@@ -76,7 +76,7 @@ const ProductSettingsPage = () => {
   });
 
   const { mutateAsync, isPending } = useMutation({
-    ...patchProductByIdMutation(),
+    ...patchProductMutation(),
     onSuccess(data) {
       toast.info('Edit Product', {
         description: `Product "${data.name}" updated successfully.`,
@@ -121,7 +121,7 @@ const ProductSettingsPage = () => {
   }
 
   const { mutateAsync: deleteProduct } = useMutation({
-    ...deleteProductByIdMutation(),
+    ...deleteProductMutation(),
     onSuccess() {
       toast.info('Delete Product', {
         description: `Product "${product.name}" deleted successfully.`,
@@ -243,7 +243,7 @@ export const Route = createFileRoute(
   loader: async ({ context: { queryClient }, params }) => {
     const productId = Number.parseInt(params.productId);
     await queryClient.prefetchQuery({
-      ...getProductByIdOptions({
+      ...getProductOptions({
         path: { productId },
       }),
     });

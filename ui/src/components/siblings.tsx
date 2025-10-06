@@ -25,7 +25,7 @@ import {
   getOrganizationProductsOptions,
   getOrganizationsOptions,
   getOrtRunsByRepositoryIdOptions,
-  getRepositoriesByProductIdOptions,
+  getProductRepositoriesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
 import {
@@ -88,7 +88,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     isError: isRepositoriesError,
     error: repositoriesError,
   } = useQuery({
-    ...getRepositoriesByProductIdOptions({
+    ...getProductRepositoriesOptions({
       path: { productId: Number(params.productId) ?? '' },
       query: { limit: ALL_ITEMS },
     }),

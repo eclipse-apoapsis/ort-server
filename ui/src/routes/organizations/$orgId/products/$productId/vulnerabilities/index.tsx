@@ -33,8 +33,8 @@ import z from 'zod';
 
 import { ProductVulnerability, VulnerabilityRating } from '@/api';
 import {
-  getProductByIdOptions,
-  getVulnerabilitiesAcrossRepositoriesByProductIdOptions,
+  getProductOptions,
+  getProductVulnerabilitiesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
@@ -368,7 +368,7 @@ const ProductVulnerabilitiesComponent = () => {
     isError: totIsError,
     error: totError,
   } = useQuery({
-    ...getVulnerabilitiesAcrossRepositoriesByProductIdOptions({
+    ...getProductVulnerabilitiesOptions({
       path: { productId: Number.parseInt(params.productId) },
       query: { limit: 1 },
     }),
@@ -380,7 +380,7 @@ const ProductVulnerabilitiesComponent = () => {
     isError,
     error,
   } = useQuery({
-    ...getVulnerabilitiesAcrossRepositoriesByProductIdOptions({
+    ...getProductVulnerabilitiesOptions({
       path: { productId: Number.parseInt(params.productId) },
       query: {
         limit: pageSize,
@@ -510,7 +510,7 @@ export const Route = createFileRoute(
   }),
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
-      ...getProductByIdOptions({
+      ...getProductOptions({
         path: { productId: Number.parseInt(params.productId) },
       }),
     });

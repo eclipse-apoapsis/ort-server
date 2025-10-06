@@ -53,15 +53,15 @@ import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteProductRoleFromUser
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatisticsByProductId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoriesByProductId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForProduct
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepositoriesByProductId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProductById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRunsForProduct
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getProduct
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductRepositories
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductRunStatistics
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductUsers
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getProductVulnerabilities
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchProduct
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postProductRuns
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putProductRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
@@ -107,7 +107,7 @@ fun Route.products() = route("products/{productId}") {
     val userService by inject<UserService>()
     val orchestratorService by inject<OrchestratorService>()
 
-    get(getProductById) {
+    get(getProduct) {
         requirePermission(ProductPermission.READ)
 
         val id = call.requireIdParameter("productId")
@@ -121,7 +121,7 @@ fun Route.products() = route("products/{productId}") {
         }
     }
 
-    patch(patchProductById) {
+    patch(patchProduct) {
         requirePermission(ProductPermission.WRITE)
 
         val id = call.requireIdParameter("productId")
@@ -133,7 +133,7 @@ fun Route.products() = route("products/{productId}") {
         call.respond(HttpStatusCode.OK, updatedProduct.mapToApi())
     }
 
-    delete(deleteProductById) {
+    delete(deleteProduct) {
         requirePermission(ProductPermission.DELETE)
 
         val id = call.requireIdParameter("productId")
@@ -144,7 +144,7 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("repositories") {
-        get(getRepositoriesByProductId) {
+        get(getProductRepositories) {
             requirePermission(ProductPermission.READ_REPOSITORIES)
             val filter = call.filterParameter("filter")
 
@@ -215,7 +215,7 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("vulnerabilities") {
-        get(getVulnerabilitiesAcrossRepositoriesByProductId) {
+        get(getProductVulnerabilities) {
             requirePermission(ProductPermission.READ)
 
             val productId = call.requireIdParameter("productId")
@@ -241,7 +241,7 @@ fun Route.products() = route("products/{productId}") {
 
     route("statistics") {
         route("runs") {
-            get(getOrtRunStatisticsByProductId) {
+            get(getProductRunStatistics) {
                 requirePermission(ProductPermission.READ)
 
                 val productId = call.requireIdParameter("productId")
@@ -340,7 +340,7 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("runs") {
-        post(postOrtRunsForProduct) {
+        post(postProductRuns) {
             requirePermission(ProductPermission.TRIGGER_ORT_RUN)
 
             val productId = call.requireIdParameter("productId")
@@ -432,7 +432,7 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("users") {
-        get(getUsersForProduct) {
+        get(getProductUsers) {
             requirePermission(ProductPermission.READ)
 
             val productId = call.requireIdParameter("productId")

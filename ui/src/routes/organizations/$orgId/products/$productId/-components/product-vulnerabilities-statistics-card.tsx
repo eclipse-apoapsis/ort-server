@@ -21,7 +21,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { ShieldQuestion } from 'lucide-react';
 
 import { VulnerabilityRating } from '@/api';
-import { getOrtRunStatisticsByProductIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getProductRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,7 @@ export const ProductVulnerabilitiesStatisticsCard = ({
   className,
 }: ProductVulnerabilitiesStatisticsCardProps) => {
   const data = useSuspenseQuery({
-    ...getOrtRunStatisticsByProductIdOptions({
+    ...getProductRunStatisticsOptions({
       path: { productId: productId },
     }),
   });

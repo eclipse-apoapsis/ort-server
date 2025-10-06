@@ -101,7 +101,7 @@ class UserServiceTest : WordSpec({
         }
     }
 
-    "getUsersForProduct" should {
+    "getProductUsers" should {
         "return empty list when no users are found for product" {
             // Given
             val prodId = 4L

@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { getUsersForProductOptions } from '@/api/@tanstack/react-query.gen';
+import { getProductUsersOptions } from '@/api/@tanstack/react-query.gen';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute(
@@ -40,7 +40,7 @@ export const Route = createFileRoute(
 
     // Ensure the data is available in the query cache when the component is rendered.
     await queryClient.ensureQueryData({
-      ...getUsersForProductOptions({
+      ...getProductUsersOptions({
         path: {
           productId: Number.parseInt(productId),
         },

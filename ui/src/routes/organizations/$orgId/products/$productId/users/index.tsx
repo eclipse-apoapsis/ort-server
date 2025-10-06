@@ -29,8 +29,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getProductByIdOptions,
-  getUsersForProductQueryKey,
+  getProductOptions,
+  getProductUsersQueryKey,
   putProductRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { ToastError } from '@/components/toast-error';
@@ -81,7 +81,7 @@ const ManageUsers = () => {
   });
 
   const { data: product } = useSuspenseQuery({
-    ...getProductByIdOptions({
+    ...getProductOptions({
       path: {
         productId: Number.parseInt(params.productId),
       },
@@ -94,7 +94,7 @@ const ManageUsers = () => {
     ...putProductRoleToUserMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: getUsersForProductQueryKey({
+        queryKey: getProductUsersQueryKey({
           path: {
             productId: Number.parseInt(params.productId),
           },

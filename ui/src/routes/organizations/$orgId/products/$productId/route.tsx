@@ -21,7 +21,7 @@ import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { AxiosError } from 'axios';
 import { BookLock, Eye, Settings, ShieldQuestion, User } from 'lucide-react';
 
-import { getProductByIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getProductOptions } from '@/api/@tanstack/react-query.gen';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 import { useUser } from '@/hooks/use-user';
@@ -109,7 +109,7 @@ export const Route = createFileRoute(
   loader: async ({ context, params }) => {
     try {
       const product = await context.queryClient.ensureQueryData({
-        ...getProductByIdOptions({
+        ...getProductOptions({
           path: { productId: Number.parseInt(params.productId) },
         }),
       });

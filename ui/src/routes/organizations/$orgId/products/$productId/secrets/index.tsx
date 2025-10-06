@@ -37,7 +37,7 @@ import { Secret } from '@/api';
 import {
   deleteSecretByProductIdAndNameMutation,
   getOrganizationOptions,
-  getProductByIdOptions,
+  getProductOptions,
   getSecretsByOrganizationIdOptions,
   getSecretsByProductIdOptions,
   getSecretsByProductIdQueryKey,
@@ -76,7 +76,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const queryClient = useQueryClient();
 
   const { data: product } = useSuspenseQuery({
-    ...getProductByIdOptions({
+    ...getProductOptions({
       path: { productId: Number.parseInt(params.productId) },
     }),
   });
@@ -176,7 +176,7 @@ const ProductSecrets = () => {
     isPending: prodIsPending,
     isError: prodIsError,
   } = useQuery({
-    ...getProductByIdOptions({
+    ...getProductOptions({
       path: { productId: Number.parseInt(params.productId) },
     }),
   });
@@ -378,7 +378,7 @@ export const Route = createFileRoute(
   }) => {
     await Promise.allSettled([
       queryClient.prefetchQuery({
-        ...getProductByIdOptions({
+        ...getProductOptions({
           path: { productId: Number.parseInt(params.productId) },
         }),
       }),
