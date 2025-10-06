@@ -23,7 +23,7 @@ import { Boxes, Bug, Scale, ShieldQuestion } from 'lucide-react';
 import { Suspense } from 'react';
 import z from 'zod';
 
-import { getOrganizationByIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getOrganizationOptions } from '@/api/@tanstack/react-query.gen';
 import { ErrorComponent } from '@/components/error-component';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
@@ -56,7 +56,7 @@ const OrganizationComponent = () => {
     isPending: orgIsPending,
     isError: orgIsError,
   } = useQuery({
-    ...getOrganizationByIdOptions({
+    ...getOrganizationOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
     }),
   });
@@ -187,7 +187,7 @@ export const Route = createFileRoute('/organizations/$orgId/')({
   }),
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
-      ...getOrganizationByIdOptions({
+      ...getOrganizationOptions({
         path: { organizationId: Number.parseInt(params.orgId) },
       }),
     });

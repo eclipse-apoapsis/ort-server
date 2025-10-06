@@ -68,7 +68,7 @@ class UserServiceTest : WordSpec({
         )
     }
 
-    "getUsersForOrganization" should {
+    "getOrganizationUsers" should {
         "return empty list when no users are found for organization" {
             // Given
             val orgId = 7L

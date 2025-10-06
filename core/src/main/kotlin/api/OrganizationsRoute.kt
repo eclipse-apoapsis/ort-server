@@ -46,16 +46,16 @@ import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganizationRoleFromUser
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationProducts
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationRunStatistics
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationUsers
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizationVulnerabilities
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrganizations
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatisticsByOrganizationId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForOrganization
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesAcrossRepositoriesByOrganizationId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganizationById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganizations
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchOrganization
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putOrganizationRoleToUser
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
@@ -118,7 +118,7 @@ fun Route.organizations() = route("organizations") {
         call.respond(HttpStatusCode.OK, pagedResponse)
     }
 
-    post(postOrganizations) {
+    post(postOrganization) {
         requireSuperuser()
 
         val createOrganization = call.receive<CreateOrganization>()
@@ -130,7 +130,7 @@ fun Route.organizations() = route("organizations") {
     }
 
     route("{organizationId}") {
-        get(getOrganizationById) {
+        get(getOrganization) {
             requirePermission(OrganizationPermission.READ)
 
             val id = call.requireIdParameter("organizationId")
@@ -141,7 +141,7 @@ fun Route.organizations() = route("organizations") {
                 ?: call.respond(HttpStatusCode.NotFound)
         }
 
-        patch(patchOrganizationById) {
+        patch(patchOrganization) {
             requirePermission(OrganizationPermission.WRITE)
 
             val organizationId = call.requireIdParameter("organizationId")
@@ -156,7 +156,7 @@ fun Route.organizations() = route("organizations") {
             call.respond(HttpStatusCode.OK, updatedOrg.mapToApi())
         }
 
-        delete(deleteOrganizationById) {
+        delete(deleteOrganization) {
             requirePermission(OrganizationPermission.DELETE)
 
             val id = call.requireIdParameter("organizationId")
@@ -236,7 +236,7 @@ fun Route.organizations() = route("organizations") {
         }
 
         route("vulnerabilities") {
-            get(getVulnerabilitiesAcrossRepositoriesByOrganizationId) {
+            get(getOrganizationVulnerabilities) {
                 requirePermission(OrganizationPermission.READ)
 
                 val organizationId = call.requireIdParameter("organizationId")
@@ -265,7 +265,7 @@ fun Route.organizations() = route("organizations") {
 
         route("statistics") {
             route("runs") {
-                get(getOrtRunStatisticsByOrganizationId) {
+                get(getOrganizationRunStatistics) {
                     requirePermission(OrganizationPermission.READ)
 
                     val orgId = call.requireIdParameter("organizationId")
@@ -364,7 +364,7 @@ fun Route.organizations() = route("organizations") {
         }
 
         route("users") {
-            get(getUsersForOrganization) {
+            get(getOrganizationUsers) {
                 requirePermission(OrganizationPermission.READ)
 
                 val orgId = call.requireIdParameter("organizationId")

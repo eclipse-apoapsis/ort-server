@@ -29,8 +29,8 @@ import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 import { UserWithGroups } from '@/api';
 import {
   deleteOrganizationRoleFromUserMutation,
-  getUsersForOrganizationOptions,
-  getUsersForOrganizationQueryKey,
+  getOrganizationUsersOptions,
+  getOrganizationUsersQueryKey,
   putOrganizationRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -110,7 +110,7 @@ const columns = [
           ...putOrganizationRoleToUserMutation(),
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
-              queryKey: getUsersForOrganizationQueryKey({
+              queryKey: getOrganizationUsersQueryKey({
                 path: {
                   organizationId: organizationId,
                 },
@@ -200,7 +200,7 @@ const columns = [
           // Upon successful removal of the user, invalidate the users query
           // to refresh the data in the table.
           queryClient.invalidateQueries({
-            queryKey: getUsersForOrganizationQueryKey({
+            queryKey: getOrganizationUsersQueryKey({
               path: {
                 organizationId: organizationId,
               },
@@ -270,7 +270,7 @@ export const OrganizationUsersTable = () => {
   const pageIndex = page - 1;
 
   const { data: usersWithGroups } = useQuery({
-    ...getUsersForOrganizationOptions({
+    ...getOrganizationUsersOptions({
       path: {
         organizationId: Number.parseInt(orgId),
       },

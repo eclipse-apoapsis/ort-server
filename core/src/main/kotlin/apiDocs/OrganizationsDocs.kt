@@ -53,8 +53,8 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
 
-val getOrganizationById: RouteConfig.() -> Unit = {
-    operationId = "GetOrganizationById"
+val getOrganization: RouteConfig.() -> Unit = {
+    operationId = "getOrganization"
     summary = "Get details of an organization"
     tags = listOf("Organizations")
 
@@ -77,7 +77,7 @@ val getOrganizationById: RouteConfig.() -> Unit = {
 }
 
 val getOrganizations: RouteConfig.() -> Unit = {
-    operationId = "GetOrganizations"
+    operationId = "getOrganizations"
     summary = "Get all organizations"
     tags = listOf("Organizations")
 
@@ -112,8 +112,8 @@ val getOrganizations: RouteConfig.() -> Unit = {
     }
 }
 
-val postOrganizations: RouteConfig.() -> Unit = {
-    operationId = "PostOrganizations"
+val postOrganization: RouteConfig.() -> Unit = {
+    operationId = "postOrganization"
     summary = "Create an organization"
     tags = listOf("Organizations")
 
@@ -137,8 +137,8 @@ val postOrganizations: RouteConfig.() -> Unit = {
     }
 }
 
-val patchOrganizationById: RouteConfig.() -> Unit = {
-    operationId = "PatchOrganizationById"
+val patchOrganization: RouteConfig.() -> Unit = {
+    operationId = "patchOrganization"
     summary = "Update an organization"
     tags = listOf("Organizations")
 
@@ -169,8 +169,8 @@ val patchOrganizationById: RouteConfig.() -> Unit = {
     }
 }
 
-val deleteOrganizationById: RouteConfig.() -> Unit = {
-    operationId = "DeleteOrganizationById"
+val deleteOrganization: RouteConfig.() -> Unit = {
+    operationId = "deleteOrganization"
     summary = "Delete an organization"
     tags = listOf("Organizations")
 
@@ -188,7 +188,7 @@ val deleteOrganizationById: RouteConfig.() -> Unit = {
 }
 
 val getOrganizationProducts: RouteConfig.() -> Unit = {
-    operationId = "GetOrganizationProducts"
+    operationId = "getOrganizationProducts"
     summary = "Get all products of an organization"
     tags = listOf("Organizations")
 
@@ -228,7 +228,7 @@ val getOrganizationProducts: RouteConfig.() -> Unit = {
 }
 
 val postProduct: RouteConfig.() -> Unit = {
-    operationId = "PostProduct"
+    operationId = "postProduct"
     summary = "Create a product for an organization"
     tags = listOf("Organizations")
 
@@ -256,7 +256,7 @@ val postProduct: RouteConfig.() -> Unit = {
 }
 
 val putOrganizationRoleToUser: RouteConfig.() -> Unit = {
-    operationId = "PutOrganizationRoleToUser"
+    operationId = "putOrganizationRoleToUser"
     summary = "Assign an organization role to a user"
     description = "Assign an organization role to a user. If the user already has another role for the same " +
             "organization, it will be replaced with the new one."
@@ -289,7 +289,7 @@ val putOrganizationRoleToUser: RouteConfig.() -> Unit = {
 }
 
 val deleteOrganizationRoleFromUser: RouteConfig.() -> Unit = {
-    operationId = "DeleteOrganizationRoleFromUser"
+    operationId = "deleteOrganizationRoleFromUser"
     summary = "Remove an organization role from a user"
     tags = listOf("Organizations")
 
@@ -317,8 +317,8 @@ val deleteOrganizationRoleFromUser: RouteConfig.() -> Unit = {
     }
 }
 
-val getVulnerabilitiesAcrossRepositoriesByOrganizationId: RouteConfig.() -> Unit = {
-    operationId = "GetVulnerabilitiesAcrossRepositoriesByOrganizationId"
+val getOrganizationVulnerabilities: RouteConfig.() -> Unit = {
+    operationId = "getOrganizationVulnerabilities"
     summary = "Get vulnerabilities from an organization"
     description = "Get the vulnerabilities from latest successful advisor runs across the repositories in an " +
             " organization."
@@ -398,8 +398,8 @@ val getVulnerabilitiesAcrossRepositoriesByOrganizationId: RouteConfig.() -> Unit
     }
 }
 
-val getOrtRunStatisticsByOrganizationId: RouteConfig.() -> Unit = {
-    operationId = "GetOrtRunStatisticsByOrganizationId"
+val getOrganizationRunStatistics: RouteConfig.() -> Unit = {
+    operationId = "getOrganizationRunStatistics"
     summary = "Get statistics about ORT runs across the repositories of an organization"
     tags = listOf("Organizations")
 
@@ -446,8 +446,8 @@ val getOrtRunStatisticsByOrganizationId: RouteConfig.() -> Unit = {
     }
 }
 
-val getUsersForOrganization: RouteConfig.() -> Unit = {
-    operationId = "GetUsersForOrganization"
+val getOrganizationUsers: RouteConfig.() -> Unit = {
+    operationId = "getOrganizationUsers"
     summary = "Get all users for an organization"
     description = "Get all users that have access rights for an organization, including the user privileges (groups) " +
             "the user has within the organization. Fields available for sorting: 'username', 'firstName', " +
