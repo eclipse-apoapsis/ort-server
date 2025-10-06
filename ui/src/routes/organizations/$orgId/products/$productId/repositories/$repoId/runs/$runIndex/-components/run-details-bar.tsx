@@ -77,7 +77,7 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
       >
         <Button
           variant='ghost'
-          className='flex w-full cursor-pointer items-center justify-start gap-2'
+          className='flex w-full items-center justify-start gap-2'
         >
           <ArrowBigLeft className='-ml-4 h-5 w-5' />
           <div className='text-muted-foreground'>All Runs</div>
