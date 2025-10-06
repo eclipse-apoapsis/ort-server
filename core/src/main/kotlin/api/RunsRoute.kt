@@ -53,18 +53,18 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getIssuesByRunId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getLicensesForPackagesByRunId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getLogsByRunId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunStatistics
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRuns
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getPackagesByRunId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getProjectsByRunId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getReportByRunIdAndFileName
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuleViolationsByRunId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getVulnerabilitiesByRunId
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRun
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRun
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunIssues
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunLogs
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunPackageLicenses
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunPackages
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunProjects
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunReport
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunRuleViolations
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunStatistics
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunVulnerabilities
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRuns
 import org.eclipse.apoapsis.ortserver.core.utils.findByName
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileService
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -110,7 +110,7 @@ fun Route.runs() = route("runs") {
     val projectService by inject<ProjectService>()
     val ortRunService by inject<OrtRunService>()
 
-    get(getOrtRuns) {
+    get(getRuns) {
         requireSuperuser()
 
         val pagingOptions = call.pagingOptions(SortProperty("createdAt", SortDirection.DESCENDING))
@@ -134,7 +134,7 @@ fun Route.runs() = route("runs") {
     }
 
     route("{runId}") {
-        get(getOrtRunById) {
+        get(getRun) {
             val ortRunId = call.requireIdParameter("runId")
 
             ortRunRepository.get(ortRunId)?.let { ortRun ->
@@ -146,7 +146,7 @@ fun Route.runs() = route("runs") {
             } ?: call.respond(HttpStatusCode.NotFound)
         }
 
-        delete(deleteOrtRunById) {
+        delete(deleteRun) {
             val ortRunId = call.requireIdParameter("runId")
 
             ortRunRepository.get(ortRunId)?.let { ortRun ->
@@ -160,7 +160,7 @@ fun Route.runs() = route("runs") {
         route("logs") {
             val logFileService by inject<LogFileService>()
 
-            get(getLogsByRunId) {
+            get(getRunLogs) {
                 call.forRun(ortRunRepository) { ortRun ->
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
@@ -188,7 +188,7 @@ fun Route.runs() = route("runs") {
         }
 
         route("issues") {
-            get(getIssuesByRunId) {
+            get(getRunIssues) {
                 call.forRun(ortRunRepository) { ortRun ->
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
@@ -205,7 +205,7 @@ fun Route.runs() = route("runs") {
         }
 
         route("vulnerabilities") {
-            get(getVulnerabilitiesByRunId) {
+            get(getRunVulnerabilities) {
                 call.forRun(ortRunRepository) { ortRun ->
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
@@ -227,7 +227,7 @@ fun Route.runs() = route("runs") {
         }
 
         route("rule-violations") {
-            get(getRuleViolationsByRunId) {
+            get(getRunRuleViolations) {
                 call.forRun(ortRunRepository) { ortRun ->
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
@@ -251,7 +251,7 @@ fun Route.runs() = route("runs") {
         }
 
         route("packages") {
-            get(getPackagesByRunId) {
+            get(getRunPackages) {
                 call.forRun(ortRunRepository) { ortRun ->
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
@@ -271,7 +271,7 @@ fun Route.runs() = route("runs") {
             }
 
             route("licenses") {
-                get(getLicensesForPackagesByRunId) {
+                get(getRunPackageLicenses) {
                     call.forRun(ortRunRepository) { ortRun ->
                         requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
@@ -288,7 +288,7 @@ fun Route.runs() = route("runs") {
         route("reporter/{fileName}") {
             val reportStorageService by inject<ReportStorageService>()
 
-            get(getReportByRunIdAndFileName) {
+            get(getRunReport) {
                 call.forRun(ortRunRepository) { ortRun ->
                     val fileName = call.requireParameter("fileName")
 
@@ -314,7 +314,7 @@ fun Route.runs() = route("runs") {
         }
 
         route("statistics") {
-            get(getOrtRunStatistics) {
+            get(getRunStatistics) {
                 call.forRun(ortRunRepository) { ortRun ->
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 
@@ -380,7 +380,7 @@ fun Route.runs() = route("runs") {
         }
 
         route("projects") {
-            get(getProjectsByRunId) {
+            get(getRunProjects) {
                 call.forRun(ortRunRepository) { ortRun ->
                     requirePermission(RepositoryPermission.READ_ORT_RUNS.roleName(ortRun.repositoryId))
 

@@ -67,8 +67,8 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
 
-val getOrtRunById: RouteConfig.() -> Unit = {
-    operationId = "getOrtRunById"
+val getRun: RouteConfig.() -> Unit = {
+    operationId = "getRun"
     summary = "Get details of an ORT run"
     tags = listOf("Runs")
 
@@ -110,8 +110,8 @@ val getOrtRunById: RouteConfig.() -> Unit = {
     }
 }
 
-val deleteOrtRunById: RouteConfig.() -> Unit = {
-    operationId = "deleteOrtRunById"
+val deleteRun: RouteConfig.() -> Unit = {
+    operationId = "deleteRun"
     summary = "Delete an ORT run"
     description = "This operation deletes an ORT run and all generated data, including the generated reports."
     tags = listOf("Runs")
@@ -133,8 +133,8 @@ val deleteOrtRunById: RouteConfig.() -> Unit = {
     }
 }
 
-val getReportByRunIdAndFileName: RouteConfig.() -> Unit = {
-    operationId = "GetReportByRunIdAndFileName"
+val getRunReport: RouteConfig.() -> Unit = {
+    operationId = "getRunReport"
     summary = "Download a report of an ORT run"
     tags = listOf("Runs")
 
@@ -161,8 +161,8 @@ val getReportByRunIdAndFileName: RouteConfig.() -> Unit = {
     }
 }
 
-val getLogsByRunId: RouteConfig.() -> Unit = {
-    operationId = "GetLogsByRunId"
+val getRunLogs: RouteConfig.() -> Unit = {
+    operationId = "getRunLogs"
     summary = "Download an archive with selected logs of an ORT run"
     tags = listOf("Runs")
 
@@ -199,8 +199,8 @@ val getLogsByRunId: RouteConfig.() -> Unit = {
     }
 }
 
-val getIssuesByRunId: RouteConfig.() -> Unit = {
-    operationId = "GetIssuesByRunId"
+val getRunIssues: RouteConfig.() -> Unit = {
+    operationId = "getRunIssues"
     summary = "Get the issues of an ORT run"
     tags = listOf("Runs")
 
@@ -251,8 +251,8 @@ val getIssuesByRunId: RouteConfig.() -> Unit = {
     }
 }
 
-val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
-    operationId = "GetVulnerabilitiesByRunId"
+val getRunVulnerabilities: RouteConfig.() -> Unit = {
+    operationId = "getRunVulnerabilities"
     summary = "Get the vulnerabilities found in an ORT run"
     tags = listOf("Runs")
 
@@ -327,8 +327,8 @@ val getVulnerabilitiesByRunId: RouteConfig.() -> Unit = {
     }
 }
 
-val getRuleViolationsByRunId: RouteConfig.() -> Unit = {
-    operationId = "GetRuleViolationsByRunId"
+val getRunRuleViolations: RouteConfig.() -> Unit = {
+    operationId = "getRunRuleViolations"
     summary = "Get the rule violations found in an ORT run"
     tags = listOf("Runs")
 
@@ -412,8 +412,8 @@ val getRuleViolationsByRunId: RouteConfig.() -> Unit = {
     }
 }
 
-val getPackagesByRunId: RouteConfig.() -> Unit = {
-    operationId = "GetPackagesByRunId"
+val getRunPackages: RouteConfig.() -> Unit = {
+    operationId = "getRunPackages"
     summary = "Get the packages found in an ORT run"
     tags = listOf("Runs")
 
@@ -527,8 +527,8 @@ val getPackagesByRunId: RouteConfig.() -> Unit = {
     }
 }
 
-val getProjectsByRunId: RouteConfig.() -> Unit = {
-    operationId = "GetProjectsByRunId"
+val getRunProjects: RouteConfig.() -> Unit = {
+    operationId = "getRunProjects"
     summary = "Get the projects found in an ORT run"
     tags = listOf("Runs")
 
@@ -582,8 +582,8 @@ val getProjectsByRunId: RouteConfig.() -> Unit = {
     }
 }
 
-val getOrtRuns: RouteConfig.() -> Unit = {
-    operationId = "getOrtRuns"
+val getRuns: RouteConfig.() -> Unit = {
+    operationId = "getRuns"
     summary = "Get all ORT runs"
     tags = listOf("Runs")
 
@@ -647,8 +647,8 @@ val getOrtRuns: RouteConfig.() -> Unit = {
     }
 }
 
-val getOrtRunStatistics: RouteConfig.() -> Unit = {
-    operationId = "getOrtRunStatistics"
+val getRunStatistics: RouteConfig.() -> Unit = {
+    operationId = "getRunStatistics"
     summary = "Get statistics about an ORT run"
     tags = listOf("Runs")
 
@@ -696,8 +696,8 @@ val getOrtRunStatistics: RouteConfig.() -> Unit = {
     }
 }
 
-val getLicensesForPackagesByRunId: RouteConfig.() -> Unit = {
-    operationId = "GetLicensesForPackagesByRunId"
+val getRunPackageLicenses: RouteConfig.() -> Unit = {
+    operationId = "getRunPackageLicenses"
     summary = "Get the licenses for packages found in an ORT run"
     tags = listOf("Runs")
 

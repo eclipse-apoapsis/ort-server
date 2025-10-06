@@ -37,7 +37,7 @@ import z from 'zod';
 import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api';
 import {
   getRepositoryRunOptions,
-  getVulnerabilitiesByRunIdOptions,
+  getRunVulnerabilitiesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
@@ -444,7 +444,7 @@ const VulnerabilitiesComponent = () => {
     isError,
     error,
   } = useQuery({
-    ...getVulnerabilitiesByRunIdOptions({
+    ...getRunVulnerabilitiesOptions({
       path: { runId: ortRun.id },
       query: { limit: ALL_ITEMS },
     }),

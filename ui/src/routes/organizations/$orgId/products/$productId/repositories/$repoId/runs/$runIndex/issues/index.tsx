@@ -36,8 +36,8 @@ import z from 'zod';
 
 import { Issue, Severity } from '@/api';
 import {
-  getIssuesByRunIdOptions,
   getRepositoryRunOptions,
+  getRunIssuesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zSeverity } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
@@ -418,7 +418,7 @@ const IssuesComponent = () => {
     isError,
     error,
   } = useQuery({
-    ...getIssuesByRunIdOptions({
+    ...getRunIssuesOptions({
       path: { runId: ortRun.id },
       query: { limit: ALL_ITEMS },
     }),

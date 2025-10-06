@@ -30,9 +30,9 @@ import z from 'zod';
 import { OrtRunStatus, OrtRunSummary } from '@/api';
 import {
   getOrganizationOptions,
-  getOrtRunsOptions,
   getProductOptions,
   getRepositoryOptions,
+  getRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zOrtRunStatus } from '@/api/zod.gen';
 import { DataTable } from '@/components/data-table/data-table';
@@ -248,14 +248,14 @@ const RunsComponent = () => {
   ];
 
   const { data: runs } = useQuery({
-    ...getOrtRunsOptions({
+    ...getRunsOptions({
       query: { limit: 1 },
     }),
     refetchInterval: pollInterval,
   });
 
   const { data, error } = useQuery({
-    ...getOrtRunsOptions({
+    ...getRunsOptions({
       query: {
         limit: pageSize,
         offset: pageIndex * pageSize,
@@ -343,7 +343,7 @@ export const Route = createFileRoute('/admin/runs/')({
     deps: { page, pageSize, status },
   }) => {
     queryClient.prefetchQuery({
-      ...getOrtRunsOptions({
+      ...getRunsOptions({
         query: {
           limit: pageSize || defaultPageSize,
           offset: page ? (page - 1) * (pageSize || defaultPageSize) : 0,

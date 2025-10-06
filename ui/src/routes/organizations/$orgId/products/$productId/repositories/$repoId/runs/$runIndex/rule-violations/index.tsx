@@ -37,7 +37,7 @@ import z from 'zod';
 import { RuleViolation, Severity } from '@/api';
 import {
   getRepositoryRunOptions,
-  getRuleViolationsByRunIdOptions,
+  getRunRuleViolationsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zSeverity } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
@@ -380,7 +380,7 @@ const RuleViolationsComponent = () => {
   });
 
   const { data: ruleViolations } = useSuspenseQuery({
-    ...getRuleViolationsByRunIdOptions({
+    ...getRunRuleViolationsOptions({
       path: { runId: ortRun.id },
       query: { limit: ALL_ITEMS },
     }),
