@@ -115,8 +115,8 @@ val postUsers: RouteConfig.() -> Unit = {
     }
 }
 
-val deleteUserByUsername: RouteConfig.() -> Unit = {
-    operationId = "deleteUserByUsername"
+val deleteUser: RouteConfig.() -> Unit = {
+    operationId = "deleteUser"
     summary = "Delete a user from the server"
     tags = listOf("Admin")
 
@@ -137,8 +137,8 @@ val deleteUserByUsername: RouteConfig.() -> Unit = {
     }
 }
 
-val getSectionById: RouteConfig.() -> Unit = {
-    operationId = "GetSectionById"
+val getSection: RouteConfig.() -> Unit = {
+    operationId = "getSection"
     summary = "Get a dynamic UI text section by ID."
     tags = listOf("Admin")
 
@@ -165,8 +165,8 @@ val getSectionById: RouteConfig.() -> Unit = {
     }
 }
 
-val patchSectionById: RouteConfig.() -> Unit = {
-    operationId = "PatchSectionById"
+val patchSection: RouteConfig.() -> Unit = {
+    operationId = "patchSection"
     summary = "Update a dynamic UI text section by ID."
     tags = listOf("Admin")
 

@@ -39,10 +39,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateContentManagementSection
 import org.eclipse.apoapsis.ortserver.components.authorization.requireAuthenticated
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUserByUsername
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getSectionById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUser
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSectionById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.runPermissionsSync
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
@@ -97,7 +97,7 @@ fun Route.admin() = route("admin") {
             call.respond(HttpStatusCode.Created)
         }
 
-        delete(deleteUserByUsername) {
+        delete(deleteUser) {
             requireSuperuser()
 
             val username = call.requireParameter("username")
@@ -114,7 +114,7 @@ fun Route.admin() = route("admin") {
         val contentManagementService by inject<ContentManagementService>()
 
         route("sections/{sectionId}") {
-            get(getSectionById) {
+            get(getSection) {
                 requireAuthenticated()
 
                 val id = call.requireParameter("sectionId")
@@ -125,7 +125,7 @@ fun Route.admin() = route("admin") {
                 call.respond(HttpStatusCode.OK, section.mapToApi())
             }
 
-            patch(patchSectionById) {
+            patch(patchSection) {
                 requireSuperuser()
 
                 val id = call.requireParameter("sectionId")
