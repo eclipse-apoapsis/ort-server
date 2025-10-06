@@ -32,7 +32,7 @@ import {
   deleteInfrastructureServiceForOrganizationIdAndNameMutation,
   getInfrastructureServicesByOrganizationIdOptions,
   getInfrastructureServicesByOrganizationIdQueryKey,
-  getOrganizationByIdOptions,
+  getOrganizationOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -132,7 +132,7 @@ const InfrastructureServices = () => {
     isPending: orgIsPending,
     isError: orgIsError,
   } = useQuery({
-    ...getOrganizationByIdOptions({
+    ...getOrganizationOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
     }),
   });
@@ -295,7 +295,7 @@ export const Route = createFileRoute(
   }) => {
     await Promise.allSettled([
       queryClient.prefetchQuery({
-        ...getOrganizationByIdOptions({
+        ...getOrganizationOptions({
           path: { organizationId: Number.parseInt(params.orgId) },
         }),
       }),

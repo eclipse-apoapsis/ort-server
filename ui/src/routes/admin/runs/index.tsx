@@ -29,7 +29,7 @@ import z from 'zod';
 
 import { OrtRunStatus, OrtRunSummary } from '@/api';
 import {
-  getOrganizationByIdOptions,
+  getOrganizationOptions,
   getOrtRunsOptions,
   getProductByIdOptions,
   getRepositoryByIdOptions,
@@ -89,7 +89,7 @@ const RunsComponent = () => {
         });
 
         const { data: org } = useQuery({
-          ...getOrganizationByIdOptions({
+          ...getOrganizationOptions({
             path: { organizationId: row.original.organizationId },
           }),
         });

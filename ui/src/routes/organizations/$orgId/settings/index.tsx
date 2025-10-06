@@ -29,9 +29,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  deleteOrganizationByIdMutation,
-  getOrganizationByIdOptions,
-  patchOrganizationByIdMutation,
+  deleteOrganizationMutation,
+  getOrganizationOptions,
+  patchOrganizationMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
 import { ToastError } from '@/components/toast-error';
@@ -68,7 +68,7 @@ const OrganizationSettingsPage = () => {
   const organizationId = Number.parseInt(params.orgId);
 
   const { data: organization } = useSuspenseQuery({
-    ...getOrganizationByIdOptions({
+    ...getOrganizationOptions({
       path: {
         organizationId,
       },
@@ -76,7 +76,7 @@ const OrganizationSettingsPage = () => {
   });
 
   const { mutateAsync, isPending } = useMutation({
-    ...patchOrganizationByIdMutation(),
+    ...patchOrganizationMutation(),
     onSuccess(data) {
       toast.info('Edit Organization', {
         description: `Organization "${data.name}" updated successfully.`,
@@ -121,7 +121,7 @@ const OrganizationSettingsPage = () => {
   }
 
   const { mutateAsync: deleteOrganization } = useMutation({
-    ...deleteOrganizationByIdMutation(),
+    ...deleteOrganizationMutation(),
     onSuccess() {
       toast.info('Delete Organization', {
         description: `Organization "${organization.name}" deleted successfully.`,
@@ -240,7 +240,7 @@ export const Route = createFileRoute('/organizations/$orgId/settings/')({
   loader: async ({ context: { queryClient }, params }) => {
     const organizationId = Number.parseInt(params.orgId);
     await queryClient.prefetchQuery({
-      ...getOrganizationByIdOptions({
+      ...getOrganizationOptions({
         path: {
           organizationId,
         },

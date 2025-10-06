@@ -28,7 +28,7 @@ import {
   User,
 } from 'lucide-react';
 
-import { getOrganizationByIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getOrganizationOptions } from '@/api/@tanstack/react-query.gen';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 import { useUser } from '@/hooks/use-user';
@@ -123,7 +123,7 @@ export const Route = createFileRoute('/organizations/$orgId')({
   loader: async ({ context, params }) => {
     try {
       const organization = await context.queryClient.ensureQueryData({
-        ...getOrganizationByIdOptions({
+        ...getOrganizationOptions({
           path: { organizationId: Number.parseInt(params.orgId) },
         }),
       });

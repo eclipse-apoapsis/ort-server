@@ -33,8 +33,8 @@ import z from 'zod';
 
 import { OrganizationVulnerability, VulnerabilityRating } from '@/api';
 import {
-  getOrganizationByIdOptions,
-  getVulnerabilitiesAcrossRepositoriesByOrganizationIdOptions,
+  getOrganizationOptions,
+  getOrganizationVulnerabilitiesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zVulnerabilityRating } from '@/api/zod.gen';
 import { BreakableString } from '@/components/breakable-string';
@@ -245,7 +245,7 @@ const OrganizationVulnerabilitiesComponent = () => {
     isPending: totPending,
     isError: totError,
   } = useQuery({
-    ...getVulnerabilitiesAcrossRepositoriesByOrganizationIdOptions({
+    ...getOrganizationVulnerabilitiesOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
       query: {
         limit: 1,
@@ -259,7 +259,7 @@ const OrganizationVulnerabilitiesComponent = () => {
     isPending,
     isError,
   } = useQuery({
-    ...getVulnerabilitiesAcrossRepositoriesByOrganizationIdOptions({
+    ...getOrganizationVulnerabilitiesOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
       query: {
         limit: pageSize,
@@ -513,7 +513,7 @@ export const Route = createFileRoute('/organizations/$orgId/vulnerabilities/')({
   }),
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
-      ...getOrganizationByIdOptions({
+      ...getOrganizationOptions({
         path: { organizationId: Number.parseInt(params.orgId) },
       }),
     });

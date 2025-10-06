@@ -29,8 +29,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getOrganizationByIdOptions,
-  getUsersForOrganizationQueryKey,
+  getOrganizationOptions,
+  getOrganizationUsersQueryKey,
   putOrganizationRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { ToastError } from '@/components/toast-error';
@@ -81,7 +81,7 @@ const ManageUsers = () => {
   });
 
   const { data: organization } = useSuspenseQuery({
-    ...getOrganizationByIdOptions({
+    ...getOrganizationOptions({
       path: {
         organizationId: Number.parseInt(params.orgId),
       },
@@ -94,7 +94,7 @@ const ManageUsers = () => {
     ...putOrganizationRoleToUserMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: getUsersForOrganizationQueryKey({
+        queryKey: getOrganizationUsersQueryKey({
           path: {
             organizationId: Number.parseInt(params.orgId),
           },

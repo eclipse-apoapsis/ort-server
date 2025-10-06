@@ -35,7 +35,7 @@ import { EditIcon, PlusIcon } from 'lucide-react';
 import { Secret } from '@/api';
 import {
   deleteSecretByOrganizationIdAndNameMutation,
-  getOrganizationByIdOptions,
+  getOrganizationOptions,
   getSecretsByOrganizationIdOptions,
   getSecretsByOrganizationIdQueryKey,
 } from '@/api/@tanstack/react-query.gen';
@@ -70,7 +70,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const queryClient = useQueryClient();
 
   const { data: organization } = useSuspenseQuery({
-    ...getOrganizationByIdOptions({
+    ...getOrganizationOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
     }),
   });
@@ -160,7 +160,7 @@ const OrganizationSecrets = () => {
     isPending: orgIsPending,
     isError: orgIsError,
   } = useQuery({
-    ...getOrganizationByIdOptions({
+    ...getOrganizationOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
     }),
   });
@@ -264,7 +264,7 @@ export const Route = createFileRoute('/organizations/$orgId/secrets/')({
   }) => {
     await Promise.allSettled([
       queryClient.prefetchQuery({
-        ...getOrganizationByIdOptions({
+        ...getOrganizationOptions({
           path: { organizationId: Number.parseInt(params.orgId) },
         }),
       }),

@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-import { getUsersForOrganizationOptions } from '@/api/@tanstack/react-query.gen';
+import { getOrganizationUsersOptions } from '@/api/@tanstack/react-query.gen';
 import { paginationSearchParameterSchema } from '@/schemas';
 
 export const Route = createFileRoute('/organizations/$orgId/users')({
@@ -38,7 +38,7 @@ export const Route = createFileRoute('/organizations/$orgId/users')({
 
     // Ensure the data is available in the query cache when the component is rendered.
     await queryClient.ensureQueryData({
-      ...getUsersForOrganizationOptions({
+      ...getOrganizationUsersOptions({
         path: {
           organizationId: Number.parseInt(orgId),
         },

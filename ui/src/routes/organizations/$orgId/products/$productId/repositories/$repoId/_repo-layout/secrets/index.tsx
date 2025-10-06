@@ -36,7 +36,7 @@ import z from 'zod';
 import { Secret } from '@/api';
 import {
   deleteSecretByRepositoryIdAndNameMutation,
-  getOrganizationByIdOptions,
+  getOrganizationOptions,
   getProductByIdOptions,
   getRepositoryByIdOptions,
   getSecretsByOrganizationIdOptions,
@@ -203,7 +203,7 @@ const RepositorySecrets = () => {
     isPending: orgIsPending,
     isError: orgIsError,
   } = useQuery({
-    ...getOrganizationByIdOptions({
+    ...getOrganizationOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
     }),
   });
@@ -512,7 +512,7 @@ export const Route = createFileRoute(
         }),
       }),
       queryClient.prefetchQuery({
-        ...getOrganizationByIdOptions({
+        ...getOrganizationOptions({
           path: { organizationId: Number.parseInt(params.orgId) },
         }),
       }),
