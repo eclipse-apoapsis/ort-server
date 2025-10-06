@@ -112,7 +112,7 @@ const OverviewContent = () => {
                 runs?.pagination.totalCount
               )
             }
-            className='h-full'
+            className='hover:bg-muted/50 h-full'
           />
         </Link>
         <Link to='/admin/runs' search={{ status: [zOrtRunStatus.enum.ACTIVE] }}>
@@ -133,7 +133,7 @@ const OverviewContent = () => {
                 activeRuns?.pagination.totalCount
               )
             }
-            className='h-full'
+            className='hover:bg-muted/50 h-full'
           />
         </Link>
       </div>
