@@ -23,7 +23,7 @@ import { AudioWaveform, List, ListVideo, Loader2 } from 'lucide-react';
 
 import {
   getOrganizationsOptions,
-  getOrtRunsOptions,
+  getRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zOrtRunStatus } from '@/api/zod.gen';
 import { StatisticsCard } from '@/components/statistics-card';
@@ -44,7 +44,7 @@ const OverviewContent = () => {
     isLoading: runsIsLoading,
     error: runsIsError,
   } = useQuery({
-    ...getOrtRunsOptions({ query: { limit: 1 } }),
+    ...getRunsOptions({ query: { limit: 1 } }),
   });
 
   const {
@@ -52,7 +52,7 @@ const OverviewContent = () => {
     isLoading: activeRunsIsLoading,
     error: activeRunsIsError,
   } = useQuery({
-    ...getOrtRunsOptions({
+    ...getRunsOptions({
       query: { limit: 1, status: 'active' },
     }),
   });

@@ -21,7 +21,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Bug } from 'lucide-react';
 
 import { JobStatus, Severity } from '@/api';
-import { getOrtRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
+import { getRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -44,7 +44,7 @@ export const IssuesStatisticsCard = ({
   runId,
 }: IssuesStatisticsCardProps) => {
   const { data, isPending, isError, error } = useQuery({
-    ...getOrtRunStatisticsOptions({
+    ...getRunStatisticsOptions({
       path: { runId: runId },
     }),
     enabled: isJobFinished(status),

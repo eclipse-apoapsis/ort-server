@@ -36,8 +36,8 @@ import z from 'zod';
 
 import { Project } from '@/api';
 import {
-  getProjectsByRunIdOptions,
   getRepositoryRunOptions,
+  getRunProjectsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
@@ -243,7 +243,7 @@ const ProjectsComponent = () => {
     isError,
     error,
   } = useQuery({
-    ...getProjectsByRunIdOptions({
+    ...getRunProjectsOptions({
       path: { runId: ortRun.id },
       query: { limit: ALL_ITEMS },
     }),

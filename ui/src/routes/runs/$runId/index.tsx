@@ -20,14 +20,14 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { AlertCircle } from 'lucide-react';
 
-import { getOrtRunById } from '@/api';
+import { getRun } from '@/api';
 import { NotFoundError } from '@/components/not-found-error';
 import { Card, CardContent, CardHeader } from '@/components/ui/card.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 
 export const Route = createFileRoute('/runs/$runId/')({
   beforeLoad: async ({ params }) => {
-    const { data: ortRun, error } = await getOrtRunById({
+    const { data: ortRun, error } = await getRun({
       path: { runId: Number.parseInt(params.runId) },
     });
     if (error) throw new NotFoundError(params.runId);

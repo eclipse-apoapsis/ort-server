@@ -33,9 +33,9 @@ import z from 'zod';
 
 import { Package } from '@/api';
 import {
-  getLicensesForPackagesByRunIdOptions,
-  getPackagesByRunIdOptions,
   getRepositoryRunOptions,
+  getRunPackageLicensesOptions,
+  getRunPackagesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
@@ -327,14 +327,14 @@ const PackagesComponent = () => {
   });
 
   const { data: totalPackages } = useSuspenseQuery({
-    ...getPackagesByRunIdOptions({
+    ...getRunPackagesOptions({
       path: { runId: ortRun.id },
       query: { limit: 1 },
     }),
   });
 
   const { data: declaredLicensesOptions } = useSuspenseQuery({
-    ...getLicensesForPackagesByRunIdOptions({
+    ...getRunPackageLicensesOptions({
       path: { runId: ortRun.id },
     }),
   });
@@ -345,7 +345,7 @@ const PackagesComponent = () => {
     isError,
     error,
   } = useSuspenseQuery({
-    ...getPackagesByRunIdOptions({
+    ...getRunPackagesOptions({
       path: {
         runId: ortRun.id,
       },
