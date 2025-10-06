@@ -31,7 +31,7 @@ import { OrtRunStatus, OrtRunSummary } from '@/api';
 import {
   getOrganizationOptions,
   getOrtRunsOptions,
-  getProductByIdOptions,
+  getProductOptions,
   getRepositoryByIdOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zOrtRunStatus } from '@/api/zod.gen';
@@ -95,7 +95,7 @@ const RunsComponent = () => {
         });
 
         const { data: prod } = useQuery({
-          ...getProductByIdOptions({
+          ...getProductOptions({
             path: { productId: row.original.productId },
           }),
         });

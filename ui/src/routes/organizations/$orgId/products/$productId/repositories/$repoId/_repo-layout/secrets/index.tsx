@@ -37,7 +37,7 @@ import { Secret } from '@/api';
 import {
   deleteSecretByRepositoryIdAndNameMutation,
   getOrganizationOptions,
-  getProductByIdOptions,
+  getProductOptions,
   getRepositoryByIdOptions,
   getSecretsByOrganizationIdOptions,
   getSecretsByProductIdOptions,
@@ -192,7 +192,7 @@ const RepositorySecrets = () => {
     isPending: productIsPending,
     isError: productIsError,
   } = useQuery({
-    ...getProductByIdOptions({
+    ...getProductOptions({
       path: { productId: Number.parseInt(params.productId) },
     }),
   });
@@ -507,7 +507,7 @@ export const Route = createFileRoute(
         }),
       }),
       queryClient.prefetchQuery({
-        ...getProductByIdOptions({
+        ...getProductOptions({
           path: { productId: Number.parseInt(params.productId) },
         }),
       }),

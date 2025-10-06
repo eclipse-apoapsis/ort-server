@@ -20,7 +20,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Boxes } from 'lucide-react';
 
-import { getOrtRunStatisticsByProductIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getProductRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getEcosystemBackgroundColor } from '@/helpers/get-status-class';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,7 @@ export const ProductPackagesStatisticsCard = ({
   className,
 }: ProductPackagesStatisticsCardProps) => {
   const data = useSuspenseQuery({
-    ...getOrtRunStatisticsByProductIdOptions({
+    ...getProductRunStatisticsOptions({
       path: { productId: productId },
     }),
   });

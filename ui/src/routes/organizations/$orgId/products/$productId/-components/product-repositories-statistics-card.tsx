@@ -21,7 +21,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Files, PlusIcon } from 'lucide-react';
 
-import { getRepositoriesByProductIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getProductRepositoriesOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { StatisticsCard } from '@/components/statistics-card';
 import { ToastError } from '@/components/toast-error';
@@ -46,7 +46,7 @@ export const ProductRepositoriesStatisticsCard = ({
   className,
 }: ProductRepositoriesStatisticsCardProps) => {
   const { data, isPending, isError, error } = useQuery({
-    ...getRepositoriesByProductIdOptions({
+    ...getProductRepositoriesOptions({
       path: { productId: Number.parseInt(productId) },
       query: { limit: 1 },
     }),

@@ -24,7 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { createRepositoryMutation } from '@/api/@tanstack/react-query.gen';
+import { postRepositoryMutation } from '@/api/@tanstack/react-query.gen';
 import { zRepositoryType } from '@/api/zod.gen';
 import { asOptionalField } from '@/components/form/as-optional-field.ts';
 import { OptionalInput } from '@/components/form/optional-input.tsx';
@@ -70,7 +70,7 @@ const CreateRepositoryPage = () => {
   const { refreshUser } = useUser();
 
   const { mutateAsync, isPending } = useMutation({
-    ...createRepositoryMutation(),
+    ...postRepositoryMutation(),
     onSuccess(data) {
       // Refresh the user token and data to get the new roles after creating a new repository.
       refreshUser();

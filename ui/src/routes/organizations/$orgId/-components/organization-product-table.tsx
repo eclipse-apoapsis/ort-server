@@ -30,7 +30,7 @@ import { useMemo } from 'react';
 import { Product } from '@/api';
 import {
   getOrganizationProductsOptions,
-  getRepositoriesByProductIdOptions,
+  getProductRepositoriesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -122,7 +122,7 @@ export const OrganizationProductTable = () => {
         size: 60,
         cell: function CellComponent({ row }) {
           const { data, isPending, isError } = useQuery({
-            ...getRepositoriesByProductIdOptions({
+            ...getProductRepositoriesOptions({
               path: { productId: row.original.id },
               query: { limit: 1 },
             }),
@@ -149,7 +149,7 @@ export const OrganizationProductTable = () => {
         header: 'Last Run Status',
         cell: function CellComponent({ row }) {
           const { data, isPending, isError } = useQuery({
-            ...getRepositoriesByProductIdOptions({
+            ...getProductRepositoriesOptions({
               path: { productId: row.original.id },
               query: { limit: 1 },
             }),
@@ -179,7 +179,7 @@ export const OrganizationProductTable = () => {
         header: 'Last Run Date',
         cell: function CellComponent({ row }) {
           const { data, isPending, isError } = useQuery({
-            ...getRepositoriesByProductIdOptions({
+            ...getProductRepositoriesOptions({
               path: { productId: row.original.id },
               query: { limit: 1 },
             }),
@@ -206,7 +206,7 @@ export const OrganizationProductTable = () => {
         header: 'Last Job Status',
         cell: function CellComponent({ row }) {
           const { data, isPending, isError } = useQuery({
-            ...getRepositoriesByProductIdOptions({
+            ...getProductRepositoriesOptions({
               path: { productId: row.original.id },
               query: { limit: 1 },
             }),

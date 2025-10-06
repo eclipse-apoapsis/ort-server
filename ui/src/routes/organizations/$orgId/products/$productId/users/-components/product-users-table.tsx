@@ -29,8 +29,8 @@ import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 import { UserWithGroups } from '@/api';
 import {
   deleteProductRoleFromUserMutation,
-  getUsersForProductOptions,
-  getUsersForProductQueryKey,
+  getProductUsersOptions,
+  getProductUsersQueryKey,
   putProductRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -110,7 +110,7 @@ const columns = [
           ...putProductRoleToUserMutation(),
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
-              queryKey: getUsersForProductQueryKey({
+              queryKey: getProductUsersQueryKey({
                 path: { productId: productId },
               }),
             });
@@ -198,7 +198,7 @@ const columns = [
           // Upon successful removal of the user, invalidate the users query
           // to refresh the data in the table.
           queryClient.invalidateQueries({
-            queryKey: getUsersForProductQueryKey({
+            queryKey: getProductUsersQueryKey({
               path: { productId: productId },
             }),
           });
@@ -266,7 +266,7 @@ export const ProductUsersTable = () => {
   const pageIndex = page - 1;
 
   const { data: usersWithGroups } = useQuery({
-    ...getUsersForProductOptions({
+    ...getProductUsersOptions({
       path: { productId: Number.parseInt(productId) },
       query: {
         limit: pageSize,
