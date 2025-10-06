@@ -22,8 +22,8 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { PlusIcon } from 'lucide-react';
 
 import {
-  getOrtRunsByRepositoryIdOptions,
-  getRepositoryByIdOptions,
+  getRepositoryOptions,
+  getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { JobDurations } from '@/components/charts/job-durations';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -57,7 +57,7 @@ const RepositoryRunsComponent = () => {
     isPending: repoIsPending,
     isError: repoIsError,
   } = useQuery({
-    ...getRepositoryByIdOptions({
+    ...getRepositoryOptions({
       path: { repositoryId: Number.parseInt(params.repoId) },
     }),
   });
@@ -155,12 +155,12 @@ export const Route = createFileRoute(
   }) => {
     await Promise.allSettled([
       queryClient.prefetchQuery({
-        ...getRepositoryByIdOptions({
+        ...getRepositoryOptions({
           path: { repositoryId: Number.parseInt(params.repoId) },
         }),
       }),
       queryClient.prefetchQuery({
-        ...getOrtRunsByRepositoryIdOptions({
+        ...getRepositoryRunsOptions({
           path: { repositoryId: Number.parseInt(params.repoId) },
           query: {
             limit: pageSize || defaultPageSize,

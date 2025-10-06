@@ -36,7 +36,7 @@ import z from 'zod';
 
 import { VulnerabilityRating, VulnerabilityWithDetails } from '@/api';
 import {
-  getOrtRunByIndexOptions,
+  getRepositoryRunOptions,
   getVulnerabilitiesByRunIdOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zVulnerabilityRating } from '@/api/zod.gen';
@@ -430,7 +430,7 @@ const VulnerabilitiesComponent = () => {
   );
 
   const { data: ortRun } = useSuspenseQuery({
-    ...getOrtRunByIndexOptions({
+    ...getRepositoryRunOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
@@ -561,7 +561,7 @@ export const Route = createFileRoute(
   }),
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
-      ...getOrtRunByIndexOptions({
+      ...getRepositoryRunOptions({
         path: {
           repositoryId: Number.parseInt(params.repoId),
           ortRunIndex: Number.parseInt(params.runIndex),

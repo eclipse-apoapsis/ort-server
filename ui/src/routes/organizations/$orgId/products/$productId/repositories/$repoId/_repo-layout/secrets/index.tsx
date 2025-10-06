@@ -38,7 +38,7 @@ import {
   deleteSecretByRepositoryIdAndNameMutation,
   getOrganizationOptions,
   getProductOptions,
-  getRepositoryByIdOptions,
+  getRepositoryOptions,
   getSecretsByOrganizationIdOptions,
   getSecretsByProductIdOptions,
   getSecretsByRepositoryIdOptions,
@@ -79,7 +79,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   const queryClient = useQueryClient();
 
   const { data: repo } = useSuspenseQuery({
-    ...getRepositoryByIdOptions({
+    ...getRepositoryOptions({
       path: { repositoryId: Number.parseInt(params.repoId) },
     }),
   });
@@ -181,7 +181,7 @@ const RepositorySecrets = () => {
     isPending: repoIsPending,
     isError: repoIsError,
   } = useQuery({
-    ...getRepositoryByIdOptions({
+    ...getRepositoryOptions({
       path: { repositoryId: Number.parseInt(params.repoId) },
     }),
   });
@@ -502,7 +502,7 @@ export const Route = createFileRoute(
   }) => {
     await Promise.allSettled([
       queryClient.prefetchQuery({
-        ...getRepositoryByIdOptions({
+        ...getRepositoryOptions({
           path: { repositoryId: Number.parseInt(params.repoId) },
         }),
       }),

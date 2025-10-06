@@ -19,7 +19,7 @@
 
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
-import { getRepositoryByIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getRepositoryOptions } from '@/api/@tanstack/react-query.gen';
 
 const Layout = () => {
   return <Outlet />;
@@ -30,7 +30,7 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context, params }) => {
     const repo = await context.queryClient.ensureQueryData({
-      ...getRepositoryByIdOptions({
+      ...getRepositoryOptions({
         path: {
           repositoryId: Number.parseInt(params.repoId),
         },

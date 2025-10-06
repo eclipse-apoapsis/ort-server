@@ -33,10 +33,10 @@ import { Repeat, View } from 'lucide-react';
 
 import { OrtRunSummary } from '@/api';
 import {
-  deleteOrtRunByIndexMutation,
-  getOrtRunsByRepositoryIdOptions,
-  getOrtRunsByRepositoryIdQueryKey,
-  getRepositoryByIdOptions,
+  deleteRepositoryRunMutation,
+  getRepositoryOptions,
+  getRepositoryRunsOptions,
+  getRepositoryRunsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -165,7 +165,7 @@ const columns = [
       const queryClient = useQueryClient();
 
       const repository = useSuspenseQuery({
-        ...getRepositoryByIdOptions({
+        ...getRepositoryOptions({
           path: {
             repositoryId: row.original.repositoryId,
           },
@@ -173,13 +173,13 @@ const columns = [
       });
 
       const { mutateAsync: deleteRun } = useMutation({
-        ...deleteOrtRunByIndexMutation(),
+        ...deleteRepositoryRunMutation(),
         onSuccess() {
           toast.info('Delete Run', {
             description: `Run "${row.original.index}" deleted successfully.`,
           });
           queryClient.invalidateQueries({
-            queryKey: getOrtRunsByRepositoryIdQueryKey({
+            queryKey: getRepositoryRunsQueryKey({
               path: {
                 repositoryId: row.original.repositoryId,
               },
@@ -282,7 +282,7 @@ export const RepositoryRunsTable = ({
     isPending: runsIsPending,
     isError: runsIsError,
   } = useQuery({
-    ...getOrtRunsByRepositoryIdOptions({
+    ...getRepositoryRunsOptions({
       path: {
         repositoryId: Number.parseInt(repoId),
       },

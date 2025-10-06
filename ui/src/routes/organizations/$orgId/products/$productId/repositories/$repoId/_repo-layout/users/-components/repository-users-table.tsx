@@ -29,8 +29,8 @@ import { Eye, FileOutput, Pen, Shield } from 'lucide-react';
 import { UserWithGroups } from '@/api';
 import {
   deleteRepositoryRoleFromUserMutation,
-  getUsersForRepositoryOptions,
-  getUsersForRepositoryQueryKey,
+  getRepositoryUsersOptions,
+  getRepositoryUsersQueryKey,
   putRepositoryRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table.tsx';
@@ -110,7 +110,7 @@ const columns = [
           ...putRepositoryRoleToUserMutation(),
           onSuccess(_response, parameters) {
             queryClient.invalidateQueries({
-              queryKey: getUsersForRepositoryQueryKey({
+              queryKey: getRepositoryUsersQueryKey({
                 path: { repositoryId: repoId },
               }),
             });
@@ -207,7 +207,7 @@ const columns = [
           // Upon successful removal of the user, invalidate the users query
           // to refresh the data in the table.
           queryClient.invalidateQueries({
-            queryKey: getUsersForRepositoryQueryKey({
+            queryKey: getRepositoryUsersQueryKey({
               path: { repositoryId: repoId },
             }),
           });
@@ -277,7 +277,7 @@ export const RepositoryUsersTable = () => {
   const pageIndex = page - 1;
 
   const { data: usersWithGroups } = useQuery({
-    ...getUsersForRepositoryOptions({
+    ...getRepositoryUsersOptions({
       path: { repositoryId: Number.parseInt(repoId) },
       query: {
         limit: pageSize,

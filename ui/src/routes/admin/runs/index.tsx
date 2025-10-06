@@ -32,7 +32,7 @@ import {
   getOrganizationOptions,
   getOrtRunsOptions,
   getProductOptions,
-  getRepositoryByIdOptions,
+  getRepositoryOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zOrtRunStatus } from '@/api/zod.gen';
 import { DataTable } from '@/components/data-table/data-table';
@@ -83,7 +83,7 @@ const RunsComponent = () => {
       header: 'Repository',
       cell: function CellComponent({ row }) {
         const { data: repo } = useQuery({
-          ...getRepositoryByIdOptions({
+          ...getRepositoryOptions({
             path: { repositoryId: row.original.repositoryId },
           }),
         });

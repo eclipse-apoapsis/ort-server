@@ -51,15 +51,15 @@ import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrtRunByIndex
-import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryById
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepository
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryRoleFromUser
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunByIndex
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getOrtRunsByRepositoryId
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsersForRepository
-import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepositoryById
-import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrtRun
+import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRepositoryRun
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepository
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryRun
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryRuns
+import org.eclipse.apoapsis.ortserver.core.apiDocs.getRepositoryUsers
+import org.eclipse.apoapsis.ortserver.core.apiDocs.patchRepository
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postRepositoryRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putRepositoryRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
@@ -92,7 +92,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     val repositoryService by inject<RepositoryService>()
     val userService by inject<UserService>()
 
-    get(getRepositoryById) {
+    get(getRepository) {
         requirePermission(RepositoryPermission.READ)
 
         val id = call.requireIdParameter("repositoryId")
@@ -101,7 +101,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             ?: call.respond(HttpStatusCode.NotFound)
     }
 
-    patch(patchRepositoryById) {
+    patch(patchRepository) {
         requirePermission(RepositoryPermission.WRITE)
 
         val id = call.requireIdParameter("repositoryId")
@@ -117,7 +117,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         call.respond(HttpStatusCode.OK, updatedRepository.mapToApi())
     }
 
-    delete(deleteRepositoryById) {
+    delete(deleteRepository) {
         requirePermission(RepositoryPermission.DELETE)
 
         val id = call.requireIdParameter("repositoryId")
@@ -128,7 +128,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("runs") {
-        get(getOrtRunsByRepositoryId) {
+        get(getRepositoryRuns) {
             requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
             val repositoryId = call.requireIdParameter("repositoryId")
@@ -139,7 +139,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
-        post(postOrtRun) {
+        post(postRepositoryRun) {
             requirePermission(RepositoryPermission.TRIGGER_ORT_RUN)
 
             val repositoryId = call.requireIdParameter("repositoryId")
@@ -195,7 +195,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         route("{ortRunIndex}") {
-            get(getOrtRunByIndex) {
+            get(getRepositoryRun) {
                 requirePermission(RepositoryPermission.READ_ORT_RUNS)
 
                 val repositoryId = call.requireIdParameter("repositoryId")
@@ -208,7 +208,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 } ?: call.respond(HttpStatusCode.NotFound)
             }
 
-            delete(deleteOrtRunByIndex) {
+            delete(deleteRepositoryRun) {
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val ortRunIndex = call.requireIdParameter("ortRunIndex")
 
@@ -259,7 +259,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("users") {
-        get(getUsersForRepository) {
+        get(getRepositoryUsers) {
             requirePermission(RepositoryPermission.READ)
 
             val repositoryId = call.requireIdParameter("repositoryId")

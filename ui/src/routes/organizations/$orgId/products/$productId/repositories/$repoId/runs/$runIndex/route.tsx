@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import { Suspense } from 'react';
 
-import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
+import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
 import { RunDetailsBar } from './-components/run-details-bar';
@@ -159,7 +159,7 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context, params }) => {
     const run = await context.queryClient.ensureQueryData({
-      ...getOrtRunByIndexOptions({
+      ...getRepositoryRunOptions({
         path: {
           repositoryId: Number.parseInt(params.repoId),
           ortRunIndex: Number.parseInt(params.runIndex),

@@ -20,7 +20,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 
-import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
+import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -35,7 +35,7 @@ const ConfigComponent = () => {
   const params = Route.useParams();
 
   const { data: ortRun } = useSuspenseQuery({
-    ...getOrtRunByIndexOptions({
+    ...getRepositoryRunOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
@@ -122,7 +122,7 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
-      ...getOrtRunByIndexOptions({
+      ...getRepositoryRunOptions({
         path: {
           repositoryId: Number.parseInt(params.repoId),
           ortRunIndex: Number.parseInt(params.runIndex),

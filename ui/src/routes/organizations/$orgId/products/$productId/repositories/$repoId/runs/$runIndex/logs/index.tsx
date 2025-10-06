@@ -22,7 +22,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ChevronDownIcon, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
+import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,7 @@ const ReportComponent = () => {
   const { user } = useUser();
 
   const { data: ortRun } = useSuspenseQuery({
-    ...getOrtRunByIndexOptions({
+    ...getRepositoryRunOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
@@ -195,7 +195,7 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
-      ...getOrtRunByIndexOptions({
+      ...getRepositoryRunOptions({
         path: {
           repositoryId: Number.parseInt(params.repoId),
           ortRunIndex: Number.parseInt(params.runIndex),

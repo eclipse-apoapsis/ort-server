@@ -36,7 +36,7 @@ import z from 'zod';
 
 import { RuleViolation, Severity } from '@/api';
 import {
-  getOrtRunByIndexOptions,
+  getRepositoryRunOptions,
   getRuleViolationsByRunIdOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { zSeverity } from '@/api/zod.gen';
@@ -371,7 +371,7 @@ const RuleViolationsComponent = () => {
   );
 
   const { data: ortRun } = useSuspenseQuery({
-    ...getOrtRunByIndexOptions({
+    ...getRepositoryRunOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
@@ -475,7 +475,7 @@ export const Route = createFileRoute(
   }),
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
-      ...getOrtRunByIndexOptions({
+      ...getRepositoryRunOptions({
         path: {
           repositoryId: Number.parseInt(params.repoId),
           ortRunIndex: Number.parseInt(params.runIndex),

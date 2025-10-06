@@ -24,8 +24,8 @@ import { Check, ChevronDown } from 'lucide-react';
 import {
   getOrganizationProductsOptions,
   getOrganizationsOptions,
-  getOrtRunsByRepositoryIdOptions,
   getProductRepositoriesOptions,
+  getRepositoryRunsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreadcrumbItem, BreadcrumbLink } from '@/components/ui/breadcrumb';
 import {
@@ -102,7 +102,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     isError: isRunsError,
     error: runsError,
   } = useQuery({
-    ...getOrtRunsByRepositoryIdOptions({
+    ...getRepositoryRunsOptions({
       path: { repositoryId: Number(params.repoId) ?? '' },
       query: { limit: ALL_ITEMS, sort: '-index' },
     }),

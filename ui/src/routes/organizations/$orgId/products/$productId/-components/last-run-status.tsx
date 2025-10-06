@@ -20,7 +20,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 
-import { getOrtRunsByRepositoryIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getRepositoryRunsOptions } from '@/api/@tanstack/react-query.gen';
 import { Badge } from '@/components/ui/badge';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
@@ -31,7 +31,7 @@ export const LastRunStatus = ({ repoId }: { repoId: number }) => {
     isPending: runsIsPending,
     isError: runsIsError,
   } = useQuery({
-    ...getOrtRunsByRepositoryIdOptions({
+    ...getRepositoryRunsOptions({
       path: { repositoryId: repoId },
       query: { limit: 1, sort: '-index' },
     }),

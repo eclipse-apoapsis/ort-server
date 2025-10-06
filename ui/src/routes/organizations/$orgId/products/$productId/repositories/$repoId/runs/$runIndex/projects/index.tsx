@@ -36,8 +36,8 @@ import z from 'zod';
 
 import { Project } from '@/api';
 import {
-  getOrtRunByIndexOptions,
   getProjectsByRunIdOptions,
+  getRepositoryRunOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { BreakableString } from '@/components/breakable-string';
 import { DataTableCards } from '@/components/data-table-cards/data-table-cards';
@@ -229,7 +229,7 @@ const ProjectsComponent = () => {
   );
 
   const { data: ortRun } = useSuspenseQuery({
-    ...getOrtRunByIndexOptions({
+    ...getRepositoryRunOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),
@@ -489,7 +489,7 @@ export const Route = createFileRoute(
   }),
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.prefetchQuery({
-      ...getOrtRunByIndexOptions({
+      ...getRepositoryRunOptions({
         path: {
           repositoryId: Number.parseInt(params.repoId),
           ortRunIndex: Number.parseInt(params.runIndex),

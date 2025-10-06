@@ -20,7 +20,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 
-import { getOrtRunsByRepositoryIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getRepositoryRunsOptions } from '@/api/@tanstack/react-query.gen';
 import { config } from '@/config';
 
 export const TotalRuns = ({ repoId }: { repoId: number }) => {
@@ -29,7 +29,7 @@ export const TotalRuns = ({ repoId }: { repoId: number }) => {
     isPending: runsIsPending,
     isError: runsIsError,
   } = useQuery({
-    ...getOrtRunsByRepositoryIdOptions({
+    ...getRepositoryRunsOptions({
       path: { repositoryId: repoId },
       query: { limit: 1, sort: '-index' },
     }),
