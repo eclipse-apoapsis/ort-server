@@ -131,6 +131,9 @@
   * {
     @apply border-border;
   }
+  button {
+    cursor: pointer;
+  }
   body {
     @apply bg-background text-foreground;
   }
