@@ -32,7 +32,7 @@ import {
   deleteInfrastructureServiceForRepositoryIdAndNameMutation,
   getInfrastructureServicesByRepositoryIdOptions,
   getInfrastructureServicesByRepositoryIdQueryKey,
-  getRepositoryByIdOptions,
+  getRepositoryOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -139,7 +139,7 @@ const InfrastructureServices = () => {
     isPending: repositoryIsPending,
     isError: repositoryIsError,
   } = useQuery({
-    ...getRepositoryByIdOptions({
+    ...getRepositoryOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
       },
@@ -308,7 +308,7 @@ export const Route = createFileRoute(
   }) => {
     await Promise.allSettled([
       queryClient.prefetchQuery({
-        ...getRepositoryByIdOptions({
+        ...getRepositoryOptions({
           path: { repositoryId: Number.parseInt(params.repoId) },
         }),
       }),

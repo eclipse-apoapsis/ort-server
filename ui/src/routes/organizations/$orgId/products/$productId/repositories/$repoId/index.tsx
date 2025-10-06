@@ -20,7 +20,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
-import { getOrtRunsByRepositoryIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getRepositoryRunsOptions } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ToastError } from '@/components/toast-error';
 import { toast } from '@/lib/toast';
@@ -35,7 +35,7 @@ const RunRedirectComponent = () => {
     isError,
     error,
   } = useQuery({
-    ...getOrtRunsByRepositoryIdOptions({
+    ...getRepositoryRunsOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
       },

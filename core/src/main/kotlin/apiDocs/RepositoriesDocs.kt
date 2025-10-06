@@ -210,8 +210,8 @@ fun createJobSummary(offset: Duration, status: JobStatus = JobStatus.FINISHED): 
     )
 }
 
-val getRepositoryById: RouteConfig.() -> Unit = {
-    operationId = "GetRepositoryById"
+val getRepository: RouteConfig.() -> Unit = {
+    operationId = "getRepository"
     summary = "Get details of a repository"
     tags = listOf("Repositories")
 
@@ -239,8 +239,8 @@ val getRepositoryById: RouteConfig.() -> Unit = {
     }
 }
 
-val patchRepositoryById: RouteConfig.() -> Unit = {
-    operationId = "PatchRepositoryById"
+val patchRepository: RouteConfig.() -> Unit = {
+    operationId = "patchRepository"
     summary = "Update a repository"
     tags = listOf("Repositories")
 
@@ -279,8 +279,8 @@ val patchRepositoryById: RouteConfig.() -> Unit = {
     }
 }
 
-val deleteRepositoryById: RouteConfig.() -> Unit = {
-    operationId = "DeleteRepositoryById"
+val deleteRepository: RouteConfig.() -> Unit = {
+    operationId = "deleteRepository"
     summary = "Delete a repository"
     tags = listOf("Repositories")
 
@@ -297,8 +297,8 @@ val deleteRepositoryById: RouteConfig.() -> Unit = {
     }
 }
 
-val getOrtRunsByRepositoryId: RouteConfig.() -> Unit = {
-    operationId = "getOrtRunsByRepositoryId"
+val getRepositoryRuns: RouteConfig.() -> Unit = {
+    operationId = "getRepositoryRuns"
     summary = "Get all ORT runs of a repository"
     tags = listOf("Repositories")
 
@@ -375,8 +375,8 @@ val getOrtRunsByRepositoryId: RouteConfig.() -> Unit = {
     }
 }
 
-val postOrtRun: RouteConfig.() -> Unit = {
-    operationId = "postOrtRun"
+val postRepositoryRun: RouteConfig.() -> Unit = {
+    operationId = "postRepositoryRun"
     summary = "Create an ORT run for a repository"
     tags = listOf("Repositories")
 
@@ -435,8 +435,8 @@ val postOrtRun: RouteConfig.() -> Unit = {
     }
 }
 
-val getOrtRunByIndex: RouteConfig.() -> Unit = {
-    operationId = "getOrtRunByIndex"
+val getRepositoryRun: RouteConfig.() -> Unit = {
+    operationId = "getRepositoryRun"
     summary = "Get details of an ORT run of a repository"
     tags = listOf("Repositories")
 
@@ -481,8 +481,8 @@ val getOrtRunByIndex: RouteConfig.() -> Unit = {
     }
 }
 
-val deleteOrtRunByIndex: RouteConfig.() -> Unit = {
-    operationId = "deleteOrtRunByIndex"
+val deleteRepositoryRun: RouteConfig.() -> Unit = {
+    operationId = "deleteRepositoryRun"
     summary = "Delete an ORT run of a repository"
     description = "This operation deletes an ORT run and all generated data, including the generated reports."
     tags = listOf("Repositories")
@@ -509,7 +509,7 @@ val deleteOrtRunByIndex: RouteConfig.() -> Unit = {
 }
 
 val putRepositoryRoleToUser: RouteConfig.() -> Unit = {
-    operationId = "PutRepositoryRoleToUser"
+    operationId = "putRepositoryRoleToUser"
     summary = "Assign a repository role to a user"
     description = "Assign a repository role to a user. If the user already has another role for the same repository, " +
             "it will be replaced with the new one."
@@ -542,7 +542,7 @@ val putRepositoryRoleToUser: RouteConfig.() -> Unit = {
 }
 
 val deleteRepositoryRoleFromUser: RouteConfig.() -> Unit = {
-    operationId = "DeleteRepositoryRoleFromUser"
+    operationId = "deleteRepositoryRoleFromUser"
     summary = "Remove a repository role from a user"
     tags = listOf("Repositories")
 
@@ -570,8 +570,8 @@ val deleteRepositoryRoleFromUser: RouteConfig.() -> Unit = {
     }
 }
 
-val getUsersForRepository: RouteConfig.() -> Unit = {
-    operationId = "GetUsersForRepository"
+val getRepositoryUsers: RouteConfig.() -> Unit = {
+    operationId = "getRepositoryUsers"
     summary = "Get all users for a repository"
     description = "Get all users that have access rights for a repository, including the user privileges (groups) " +
             "the user has within the repository. Fields available for sorting: 'username', 'firstName', " +

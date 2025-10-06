@@ -22,7 +22,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
-import { getOrtRunsByRepositoryIdOptions } from '@/api/@tanstack/react-query.gen';
+import { getRepositoryRunsOptions } from '@/api/@tanstack/react-query.gen';
 import {
   DEFAULT_RUNS,
   RunsFilterForm,
@@ -111,7 +111,7 @@ export const JobDurations = ({
     isPending: runsIsPending,
     isError: runsIsError,
   } = useQuery({
-    ...getOrtRunsByRepositoryIdOptions({
+    ...getRepositoryRunsOptions({
       path: {
         repositoryId: Number.parseInt(repoId),
       },

@@ -25,8 +25,8 @@ import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { postOrtRunMutation } from '@/api/@tanstack/react-query.gen';
-import { getOrtRunByIndex, getPluginsForRepository } from '@/api/sdk.gen';
+import { postRepositoryRunMutation } from '@/api/@tanstack/react-query.gen';
+import { getPluginsForRepository, getRepositoryRun } from '@/api/sdk.gen';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { ToastError } from '@/components/toast-error';
 import { InlineCode } from '@/components/typography.tsx';
@@ -103,7 +103,7 @@ const CreateRunPage = () => {
   };
 
   const { mutateAsync, isPending } = useMutation({
-    ...postOrtRunMutation(),
+    ...postRepositoryRunMutation(),
     onSuccess(response) {
       toast.info('Create Run', {
         description: 'New run created successfully for this repository.',
@@ -552,7 +552,7 @@ export const Route = createFileRoute(
   loader: async ({ params, deps: { rerunIndex } }) => {
     const [ortRun, plugins] = await Promise.all([
       rerunIndex !== undefined
-        ? getOrtRunByIndex({
+        ? getRepositoryRun({
             path: {
               repositoryId: Number.parseInt(params.repoId),
               ortRunIndex: rerunIndex,

@@ -134,7 +134,7 @@ class UserServiceTest : WordSpec({
         }
     }
 
-    "getUsersForRepository" should {
+    "getRepositoryUsers" should {
         "return empty list when no users are found for repository" {
             // Given
             val repoId = 2L

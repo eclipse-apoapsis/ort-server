@@ -21,7 +21,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { ArrowBigLeft, Repeat } from 'lucide-react';
 
-import { getOrtRunByIndexOptions } from '@/api/@tanstack/react-query.gen';
+import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
@@ -50,7 +50,7 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
   const pollInterval = config.pollInterval;
 
   const { data: ortRun } = useSuspenseQuery({
-    ...getOrtRunByIndexOptions({
+    ...getRepositoryRunOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
         ortRunIndex: Number.parseInt(params.runIndex),

@@ -29,8 +29,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getRepositoryByIdOptions,
-  getUsersForRepositoryQueryKey,
+  getRepositoryOptions,
+  getRepositoryUsersQueryKey,
   putRepositoryRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { ToastError } from '@/components/toast-error';
@@ -81,7 +81,7 @@ const ManageUsers = () => {
   });
 
   const { data: repository } = useSuspenseQuery({
-    ...getRepositoryByIdOptions({
+    ...getRepositoryOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
       },
@@ -94,7 +94,7 @@ const ManageUsers = () => {
     ...putRepositoryRoleToUserMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: getUsersForRepositoryQueryKey({
+        queryKey: getRepositoryUsersQueryKey({
           path: {
             repositoryId: Number.parseInt(params.repoId),
           },

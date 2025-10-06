@@ -29,9 +29,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  deleteRepositoryByIdMutation,
-  getRepositoryByIdOptions,
-  patchRepositoryByIdMutation,
+  deleteRepositoryMutation,
+  getRepositoryOptions,
+  patchRepositoryMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { zRepositoryType } from '@/api/zod.gen';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -78,7 +78,7 @@ const RepositorySettingsPage = () => {
   const repositoryId = Number.parseInt(params.repoId);
 
   const { data: repository } = useSuspenseQuery({
-    ...getRepositoryByIdOptions({
+    ...getRepositoryOptions({
       path: {
         repositoryId,
       },
@@ -86,7 +86,7 @@ const RepositorySettingsPage = () => {
   });
 
   const { mutateAsync, isPending } = useMutation({
-    ...patchRepositoryByIdMutation(),
+    ...patchRepositoryMutation(),
     onSuccess(data) {
       toast.info('Edit repository', {
         description: `Repository "${data.url}" updated successfully.`,
@@ -137,7 +137,7 @@ const RepositorySettingsPage = () => {
   }
 
   const { mutateAsync: deleteRepository } = useMutation({
-    ...deleteRepositoryByIdMutation(),
+    ...deleteRepositoryMutation(),
     onSuccess() {
       toast.info('Delete Repository', {
         description: `Repository "${repository?.url}" deleted successfully.`,
@@ -290,7 +290,7 @@ export const Route = createFileRoute(
   loader: async ({ context: { queryClient }, params }) => {
     const repositoryId = Number.parseInt(params.repoId);
     await queryClient.prefetchQuery({
-      ...getRepositoryByIdOptions({
+      ...getRepositoryOptions({
         path: { repositoryId },
       }),
     });
