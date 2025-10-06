@@ -33,7 +33,7 @@ import { UserPlus } from 'lucide-react';
 
 import { User } from '@/api';
 import {
-  deleteUserByUsernameMutation,
+  deleteUserMutation,
   getUsersOptions,
   getUsersQueryKey,
 } from '@/api/@tanstack/react-query.gen';
@@ -88,7 +88,7 @@ const columns = [
       const queryClient = useQueryClient();
 
       const { mutateAsync: delUser } = useMutation({
-        ...deleteUserByUsernameMutation(),
+        ...deleteUserMutation(),
         onSuccess() {
           toast.info('Delete User', {
             description: `User "${row.original.username}" deleted successfully.`,

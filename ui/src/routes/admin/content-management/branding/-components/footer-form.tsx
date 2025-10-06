@@ -24,9 +24,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getSectionByIdOptions,
-  getSectionByIdQueryKey,
-  patchSectionByIdMutation,
+  getSectionOptions,
+  getSectionQueryKey,
+  patchSectionMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
@@ -70,7 +70,7 @@ export function FooterForm() {
     error,
     isError,
   } = useQuery({
-    ...getSectionByIdOptions({ path: { sectionId: 'footer' } }),
+    ...getSectionOptions({ path: { sectionId: 'footer' } }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -82,10 +82,10 @@ export function FooterForm() {
   });
 
   const { mutateAsync, isPending } = useMutation({
-    ...patchSectionByIdMutation(),
+    ...patchSectionMutation(),
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: getSectionByIdQueryKey({ path: { sectionId: 'footer' } }),
+        queryKey: getSectionQueryKey({ path: { sectionId: 'footer' } }),
       });
       toast.info('Footer saved', {
         description: `Footer saved successfully.`,
