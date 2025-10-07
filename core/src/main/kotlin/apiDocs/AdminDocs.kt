@@ -81,8 +81,8 @@ val getUsers: RouteConfig.() -> Unit = {
     }
 }
 
-val postUsers: RouteConfig.() -> Unit = {
-    operationId = "postUsers"
+val postUser: RouteConfig.() -> Unit = {
+    operationId = "postUser"
     summary = "Create a user, possibly with a password"
     tags = listOf("Admin")
 
