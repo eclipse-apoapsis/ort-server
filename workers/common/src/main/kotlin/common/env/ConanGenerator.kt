@@ -28,33 +28,35 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinit
  */
 class ConanGenerator : EnvironmentConfigGenerator<ConanDefinition> {
     companion object {
-        /** The name of the configuration file created by this generator. */
-        private const val TARGET = ".conan/remotes.json"
+        /** The names of the configuration files created by this generator. */
+        private val TARGETS = listOf(".conan/remotes.json", ".conan2/remotes.json")
     }
 
     override val environmentDefinitionType: Class<ConanDefinition> = ConanDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<ConanDefinition>) {
-        builder.buildInUserHome(TARGET) {
-            println("{")
-            println("\"remotes\": [".prependIndent(INDENT_2_SPACES))
-            definitions.forEachIndexed { index, definition ->
-                if (index > 0) {
-                    // Print a comma and a line break before each definition for multi-definition remote.json files
-                    println(",")
+        TARGETS.forEach { target ->
+            builder.buildInUserHome(target) {
+                println("{")
+                println("\"remotes\": [".prependIndent(INDENT_2_SPACES))
+                definitions.forEachIndexed { index, definition ->
+                    if (index > 0) {
+                        // Print a comma and a line break before each definition for multi-definition remote.json files
+                        println(",")
+                    }
+
+                    println("{".prependIndent(INDENT_4_SPACES))
+
+                    println("\"name\": \"${definition.name}\",".prependIndent(INDENT_6_SPACES))
+                    println("\"url\": \"${definition.remoteUrl}\",".prependIndent(INDENT_6_SPACES))
+                    println("\"verify_ssl\": ${definition.verifySsl}".prependIndent(INDENT_6_SPACES))
+
+                    print("}".prependIndent(INDENT_4_SPACES))
                 }
-
-                println("{".prependIndent(INDENT_4_SPACES))
-
-                println("\"name\": \"${definition.name}\",".prependIndent(INDENT_6_SPACES))
-                println("\"url\": \"${definition.remoteUrl}\",".prependIndent(INDENT_6_SPACES))
-                println("\"verify_ssl\": ${definition.verifySsl}".prependIndent(INDENT_6_SPACES))
-
-                print("}".prependIndent(INDENT_4_SPACES))
+                println()
+                println("]".prependIndent(INDENT_2_SPACES))
+                println("}")
             }
-            println()
-            println("]".prependIndent(INDENT_2_SPACES))
-            println("}")
         }
     }
 }
