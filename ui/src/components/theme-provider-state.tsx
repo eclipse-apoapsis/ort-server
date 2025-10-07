@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
-import { Theme } from '@/components/theme-provider';
+import { Mode } from '@/components/theme-provider';
 
 export type ThemeProviderState = {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  mode: Mode;
+  setMode: (mode: Mode) => void;
 };
 
 export const initialState: ThemeProviderState = {
-  theme: 'light',
-  setTheme: () => null,
+  mode: 'light',
+  setMode: () => null,
 };
