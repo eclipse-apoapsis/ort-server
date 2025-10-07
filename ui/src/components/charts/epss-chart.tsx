@@ -46,11 +46,11 @@ export const EpssChart = ({ epssData }: EpssChartProps) => {
   const chartConfig = {
     score: {
       label: 'Score',
-      color: 'hsl(var(--chart-1))',
+      color: 'var(--chart-1)',
     },
     percentile: {
       label: 'Percentile',
-      color: 'hsl(var(--chart-1))',
+      color: 'var(--chart-1)',
     },
   } satisfies ChartConfig;
 

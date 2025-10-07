@@ -79,7 +79,7 @@ export const Cvss4RadarChart = ({ cvssScore }: Cvss4RadarChartProps) => {
   const chartConfig = {
     score: {
       label: 'Score',
-      color: 'hsl(var(--chart-1))',
+      color: 'var(--chart-1)',
     },
   } satisfies ChartConfig;
 
@@ -141,9 +141,9 @@ export const Cvss4RadarChart = ({ cvssScore }: Cvss4RadarChartProps) => {
             <PolarGrid radialLines={false} />
             <Radar
               dataKey='score'
-              fill='hsl(var(--chart-1))'
+              fill='var(--chart-1)'
               fillOpacity={0.2}
-              stroke='hsl(var(--chart-1))'
+              stroke='var(--chart-1)'
               strokeWidth={2}
               dot={(props) => {
                 const { payload } = props;
@@ -154,7 +154,7 @@ export const Cvss4RadarChart = ({ cvssScore }: Cvss4RadarChartProps) => {
                     cx={payload.x}
                     cy={payload.y}
                     r='4'
-                    fill='hsl(var(--chart-1))'
+                    fill='var(--chart-1)'
                   />
                 );
               }}
