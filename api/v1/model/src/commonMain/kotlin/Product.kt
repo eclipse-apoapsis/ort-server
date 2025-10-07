@@ -55,14 +55,14 @@ data class Product(
  * Request object for the create product endpoint.
  */
 @Serializable
-data class CreateProduct(
+data class PostProduct(
     val name: String,
     val description: String? = null
 ) {
     companion object {
-        val validate: ValidatorFunc<CreateProduct> = { obj ->
+        val validate: ValidatorFunc<PostProduct> = { obj ->
             Validation {
-                CreateProduct::name {
+                PostProduct::name {
                     pattern(Product.NAME_PATTERN_REGEX) hint Product.NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)

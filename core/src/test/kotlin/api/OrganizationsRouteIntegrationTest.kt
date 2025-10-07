@@ -53,16 +53,16 @@ import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrganizationVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
@@ -346,7 +346,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     "POST /organizations" should {
         "create an organization in the database" {
             integrationTestApplication {
-                val org = CreateOrganization(name = "name", description = "description")
+                val org = PostOrganization(name = "name", description = "description")
 
                 val response = superuserClient.post("/api/v1/organizations") {
                     setBody(org)
@@ -363,7 +363,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "respond with 'Bad Request' if the organization's name is invalid" {
             integrationTestApplication {
-                val org = CreateOrganization(name = " org_name!", description = "description")
+                val org = PostOrganization(name = " org_name!", description = "description")
 
                 val response = superuserClient.post("/api/v1/organizations") {
                     setBody(org)
@@ -373,7 +373,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for CreateOrganization"
+                body.cause shouldContain "Validation failed for PostOrganization"
 
                 organizationService.getOrganization(1)?.mapToApi().shouldBeNull()
             }
@@ -397,7 +397,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Invalid request body."
                 body.cause shouldStartWith "BadRequestException: Failed to convert request body to class " +
-                        "org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization"
+                        "org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization"
                 body.cause shouldContain "Caused by: JsonDecodingException: Unexpected JSON token at offset 53"
 
                 organizationService.getOrganization(1)?.mapToApi().shouldBeNull()
@@ -406,7 +406,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "create Keycloak roles and groups" {
             integrationTestApplication {
-                val org = CreateOrganization(name = "name", description = "description")
+                val org = PostOrganization(name = "name", description = "description")
 
                 val createdOrg = superuserClient.post("/api/v1/organizations") {
                     setBody(org)
@@ -427,7 +427,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 createOrganization()
 
-                val org = CreateOrganization(name = organizationName, description = organizationDescription)
+                val org = PostOrganization(name = organizationName, description = organizationDescription)
 
                 superuserClient.post("/api/v1/organizations") {
                     setBody(org)
@@ -437,7 +437,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require the superuser role" {
             requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Created) {
-                val org = CreateOrganization(name = "name", description = "description")
+                val org = PostOrganization(name = "name", description = "description")
                 post("/api/v1/organizations") { setBody(org) }
             }
         }
@@ -448,7 +448,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdOrg = createOrganization()
 
-                val updatedOrganization = UpdateOrganization(
+                val updatedOrganization = PatchOrganization(
                     "updated".asPresent(),
                     "updated description of testOrg".asPresent()
                 )
@@ -475,7 +475,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdOrg = createOrganization()
 
-                val updatedOrganization = UpdateOrganization(
+                val updatedOrganization = PatchOrganization(
                     " !!updated @382 ".asPresent(),
                     "updated description of testOrg".asPresent()
                 )
@@ -487,7 +487,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for UpdateOrganization"
+                body.cause shouldContain "Validation failed for PatchOrganization"
 
                 organizationService.getOrganization(createdOrg.id)?.mapToApi() shouldBe Organization(
                     createdOrg.id,
@@ -501,7 +501,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdOrg = createOrganization()
 
-                val organizationUpdateRequest = UpdateOrganization(
+                val organizationUpdateRequest = PatchOrganization(
                     name = OptionalValue.Absent,
                     description = null.asPresent()
                 )
@@ -528,7 +528,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         "require OrganizationPermission.WRITE" {
             val createdOrg = createOrganization()
             requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id)) {
-                val updateOrg = UpdateOrganization("updated".asPresent(), "updated".asPresent())
+                val updateOrg = PatchOrganization("updated".asPresent(), "updated".asPresent())
                 patch("/api/v1/organizations/${createdOrg.id}") { setBody(updateOrg) }
             }
         }
@@ -576,7 +576,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val product = CreateProduct("product", "description")
+                val product = PostProduct("product", "description")
                 val response = superuserClient.post("/api/v1/organizations/$orgId/products") {
                     setBody(product)
                 }
@@ -592,7 +592,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val product = CreateProduct(" product!", "description")
+                val product = PostProduct(" product!", "description")
                 val response = superuserClient.post("/api/v1/organizations/$orgId/products") {
                     setBody(product)
                 }
@@ -601,7 +601,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for CreateProduct"
+                body.cause shouldContain "Validation failed for PostProduct"
 
                 productService.getProduct(1)?.mapToApi().shouldBeNull()
             }
@@ -611,7 +611,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val orgId = createOrganization().id
 
-                val product = CreateProduct(name = "product", description = "description")
+                val product = PostProduct(name = "product", description = "description")
                 val createdProduct = superuserClient.post("/api/v1/organizations/$orgId/products") {
                     setBody(product)
                 }.body<Product>()
@@ -633,7 +633,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 OrganizationPermission.CREATE_PRODUCT.roleName(createdOrg.id),
                 HttpStatusCode.Created
             ) {
-                val createProduct = CreateProduct(name = "product", description = "description")
+                val createProduct = PostProduct(name = "product", description = "description")
                 post("/api/v1/organizations/${createdOrg.id}/products") { setBody(createProduct) }
             }
         }
@@ -837,7 +837,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             "respond with 'BadRequest' if the request body is invalid for method '${method.value}'" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
-                    val org = CreateOrganization(name = "name", description = "description") // Wrong request body
+                    val org = PostOrganization(name = "name", description = "description") // Wrong request body
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(

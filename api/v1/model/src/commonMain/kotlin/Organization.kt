@@ -52,14 +52,14 @@ data class Organization(
  * Request object for the create organization endpoint.
  */
 @Serializable
-data class CreateOrganization(
+data class PostOrganization(
     val name: String,
     val description: String? = null
 ) {
     companion object {
-        val validate: ValidatorFunc<CreateOrganization> = { obj ->
+        val validate: ValidatorFunc<PostOrganization> = { obj ->
             Validation {
-                CreateOrganization::name {
+                PostOrganization::name {
                     pattern(Organization.NAME_PATTERN_REGEX) hint Organization.NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)
@@ -71,14 +71,14 @@ data class CreateOrganization(
  * Request object for the update organization endpoint.
  */
 @Serializable
-data class UpdateOrganization(
+data class PatchOrganization(
     val name: OptionalValue<String> = OptionalValue.Absent,
     val description: OptionalValue<String?> = OptionalValue.Absent
 ) {
     companion object {
-        val validate: ValidatorFunc<UpdateOrganization> = { obj ->
+        val validate: ValidatorFunc<PatchOrganization> = { obj ->
             Validation {
-                UpdateOrganization::name {
+                PatchOrganization::name {
                     optionalPattern(Organization.NAME_PATTERN_REGEX) hint Organization.NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)
