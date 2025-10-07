@@ -26,7 +26,6 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
@@ -36,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
@@ -484,16 +484,16 @@ val postProductRuns: RouteConfig.() -> Unit = {
             description = "The product's ID."
         }
 
-        jsonBody<CreateOrtRun> {
+        jsonBody<PostRepositoryRun> {
             example("Create ORT runs for all repositories using minimal job configurations") {
-                value = CreateOrtRun(
+                value = PostRepositoryRun(
                     revision = "main",
                     jobConfigs = minimalJobConfigurations
                 )
             }
 
             example("Create ORT runs for specific repositories using minimal job configurations") {
-                value = CreateOrtRun(
+                value = PostRepositoryRun(
                     revision = "main",
                     jobConfigs = minimalJobConfigurations,
                     repositoryIds = listOf(1, 2)

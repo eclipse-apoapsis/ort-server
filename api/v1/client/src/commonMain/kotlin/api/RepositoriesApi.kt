@@ -25,8 +25,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 
 /**
  * A client for the repositories API.
@@ -40,7 +40,7 @@ class RepositoriesApi(
     /**
      * Create a new [ORT run][ortRun] for the given [repository][repositoryId].
      */
-    suspend fun createOrtRun(repositoryId: Long, ortRun: CreateOrtRun): OrtRun =
+    suspend fun createOrtRun(repositoryId: Long, ortRun: PostRepositoryRun): OrtRun =
         client.post("api/v1/repositories/$repositoryId/runs") {
             setBody(ortRun)
         }.body()

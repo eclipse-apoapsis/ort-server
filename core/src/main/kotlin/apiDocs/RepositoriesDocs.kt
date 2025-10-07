@@ -30,7 +30,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
@@ -45,6 +44,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
@@ -53,7 +54,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.SubmoduleFetchStrategy.FULLY_RECURSIVE
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
@@ -248,10 +248,10 @@ val patchRepository: RouteConfig.() -> Unit = {
         pathParameter<Long>("repositoryId") {
             description = "The repository's ID."
         }
-        jsonBody<UpdateRepository> {
+        jsonBody<PatchRepository> {
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
             example("Update Repository") {
-                value = UpdateRepository(
+                value = PatchRepository(
                     type = RepositoryType.GIT_REPO.asPresent(),
                     url = "https://example.com/org/updated-repo.git".asPresent(),
                     description = "Updated repository description.".asPresent()
@@ -385,16 +385,16 @@ val postRepositoryRun: RouteConfig.() -> Unit = {
             description = "The repository's ID."
         }
 
-        jsonBody<CreateOrtRun> {
+        jsonBody<PostRepositoryRun> {
             example("Create ORT run using minimal job configurations (defaults)") {
-                value = CreateOrtRun(
+                value = PostRepositoryRun(
                     revision = "main",
                     jobConfigs = minimalJobConfigurations
                 )
             }
 
             example("Create ORT run using full job configurations") {
-                value = CreateOrtRun(
+                value = PostRepositoryRun(
                     revision = "main",
                     jobConfigs = fullJobConfigurations,
                     labels = mapOf("label key" to "label value"),

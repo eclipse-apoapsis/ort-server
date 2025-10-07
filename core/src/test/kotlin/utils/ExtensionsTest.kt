@@ -31,11 +31,11 @@ import kotlin.time.Duration.Companion.seconds
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
@@ -43,9 +43,9 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 
 class ExtensionsTest : WordSpec({
-    "CreateOrtRun.getPluginConfigs()" should {
+    "PostRepositoryRun.getPluginConfigs()" should {
         "return an empty result when no plugins are configured" {
-            val createOrtRun = CreateOrtRun(
+            val createOrtRun = PostRepositoryRun(
                 revision = "revision",
                 jobConfigs = JobConfigurations()
             )
@@ -54,7 +54,7 @@ class ExtensionsTest : WordSpec({
         }
 
         "return all plugin configurations" {
-            val createOrtRun = CreateOrtRun(
+            val createOrtRun = PostRepositoryRun(
                 revision = "revision",
                 jobConfigs = JobConfigurations(
                     analyzer = AnalyzerJobConfiguration(
@@ -148,7 +148,7 @@ class ExtensionsTest : WordSpec({
         }
 
         "return empty configuration for plugins which are enabled but have no plugin config" {
-            val createOrtRun = CreateOrtRun(
+            val createOrtRun = PostRepositoryRun(
                 revision = "revision",
                 jobConfigs = JobConfigurations(
                     analyzer = AnalyzerJobConfiguration(
@@ -186,7 +186,7 @@ class ExtensionsTest : WordSpec({
         }
 
         "ignore package configuration providers from reporter job if evaluator job is configured" {
-            val createOrtRun = CreateOrtRun(
+            val createOrtRun = PostRepositoryRun(
                 revision = "revision",
                 jobConfigs = JobConfigurations(
                     evaluator = EvaluatorJobConfiguration(
@@ -221,7 +221,7 @@ class ExtensionsTest : WordSpec({
         }
 
         "return package configuration providers from reporter job if evaluator job is not configured" {
-            val createOrtRun = CreateOrtRun(
+            val createOrtRun = PostRepositoryRun(
                 revision = "revision",
                 jobConfigs = JobConfigurations(
                     reporter = ReporterJobConfiguration(

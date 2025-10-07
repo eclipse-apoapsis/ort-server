@@ -34,11 +34,11 @@ import io.ktor.server.routing.route
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
@@ -352,7 +352,7 @@ fun Route.products() = route("products/{productId}") {
                 return@post
             }
 
-            val createOrtRun = call.receive<CreateOrtRun>()
+            val createOrtRun = call.receive<PostRepositoryRun>()
             val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
                 UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
             }

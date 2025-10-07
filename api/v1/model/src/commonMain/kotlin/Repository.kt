@@ -96,15 +96,15 @@ data class PostRepository(
  * Request object for the update repository endpoint.
  */
 @Serializable
-data class UpdateRepository(
+data class PatchRepository(
     val type: OptionalValue<RepositoryType> = OptionalValue.Absent,
     val url: OptionalValue<String> = OptionalValue.Absent,
     val description: OptionalValue<String?> = OptionalValue.Absent
 ) {
     companion object {
-        val validate: ValidatorFunc<UpdateRepository> = { obj ->
+        val validate: ValidatorFunc<PatchRepository> = { obj ->
             Validation {
-                UpdateRepository::url {
+                PatchRepository::url {
                     constrain("malformed URL") {
                         when (it) {
                             is OptionalValue.Present -> Repository.isValidUrl(it.value)

@@ -34,9 +34,9 @@ import io.ktor.server.routing.route
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
@@ -105,7 +105,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         requirePermission(RepositoryPermission.WRITE)
 
         val id = call.requireIdParameter("repositoryId")
-        val updateRepository = call.receive<UpdateRepository>()
+        val updateRepository = call.receive<PatchRepository>()
 
         val updatedRepository = repositoryService.updateRepository(
             id,
@@ -145,7 +145,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             val repositoryId = call.requireIdParameter("repositoryId")
 
             repositoryService.getRepository(repositoryId)?.let {
-                val createOrtRun = call.receive<CreateOrtRun>()
+                val createOrtRun = call.receive<PostRepositoryRun>()
 
                 // Extract the user information from the principal.
                 val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
