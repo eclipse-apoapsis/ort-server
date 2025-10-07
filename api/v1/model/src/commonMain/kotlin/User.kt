@@ -68,7 +68,7 @@ data class UserWithGroups(
 )
 
 @Serializable
-data class CreateUser(
+data class PostUser(
     val username: String,
     val firstName: String? = null,
     val lastName: String? = null,
