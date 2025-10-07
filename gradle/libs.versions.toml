@@ -21,7 +21,7 @@
 eclipseTemurin = "21.0.7_6-jdk-jammy@sha256:746ad7128069fdaa77df1f06a0463ad50f4ae787648cbbcc6d6ab0e702e6c97e"
 
 # Gradle plugins
-buildConfigPlugin = "5.6.8"
+buildConfigPlugin = "5.7.0"
 dependencyAnalysisPlugin = "3.0.4"
 detektPlugin = "1.23.8"
 gitSemverPlugin = "0.16.1"
