@@ -17,16 +17,14 @@
  * License-Filename: LICENSE
  */
 
-import { SelectedTheme, Theme } from '@/components/theme-provider';
+import { Theme } from '@/components/theme-provider';
 
 export type ThemeProviderState = {
-  activeTheme: Theme;
-  selectedTheme: SelectedTheme;
-  setTheme: (theme: SelectedTheme) => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
 };
 
 export const initialState: ThemeProviderState = {
-  activeTheme: 'light',
-  selectedTheme: 'light',
+  theme: 'light',
   setTheme: () => null,
 };

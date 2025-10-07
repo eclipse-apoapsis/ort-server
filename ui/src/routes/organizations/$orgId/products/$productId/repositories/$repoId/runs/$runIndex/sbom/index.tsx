@@ -47,7 +47,7 @@ const SBOMComponent = () => {
   // theme automatically. Two different logos are provided instead in
   // https://cyclonedx.org/about/branding/ and the correct one is selected
   // based on the current theme.
-  const { activeTheme } = useTheme();
+  const { theme } = useTheme();
   const { user } = useUser();
 
   const { data: ortRun } = useSuspenseQuery({
@@ -134,9 +134,7 @@ const SBOMComponent = () => {
                 <TooltipTrigger>
                   <img
                     alt='CycloneDX'
-                    src={
-                      activeTheme === 'dark' ? CycloneDXLight : CycloneDXDark
-                    }
+                    src={theme === 'dark' ? CycloneDXLight : CycloneDXDark}
                     width={230}
                   />
                 </TooltipTrigger>
