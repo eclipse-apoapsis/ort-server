@@ -41,7 +41,7 @@ docker compose up
 
 Once the services are up and running, you can access the ORT Server UI at [http://localhost:8082](http://localhost:8082).
 
-See the [documentation](https://eclipse-apoapsis.github.io/ort-server/docs/getting-started/docker-compose) for detailed instructions, for example, to run Docker Compose with local images.
+See the [documentation](https://eclipse-apoapsis.github.io/ort-server/docs/admin-guide/getting-started/docker-compose) for detailed instructions, for example, to run Docker Compose with local images.
 
 ## Publish Docker Images
 
