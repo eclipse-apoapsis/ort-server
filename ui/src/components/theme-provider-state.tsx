@@ -18,13 +18,18 @@
  */
 
 import { Mode } from '@/components/theme-provider';
+import { ColorTheme } from '@/lib/types';
 
 export type ThemeProviderState = {
   mode: Mode;
+  colorTheme: ColorTheme;
   setMode: (mode: Mode) => void;
+  setColorTheme: (theme: ColorTheme) => void;
 };
 
 export const initialState: ThemeProviderState = {
   mode: 'light',
+  colorTheme: 'default',
   setMode: () => null,
+  setColorTheme: () => null,
 };
