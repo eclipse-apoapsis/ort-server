@@ -46,8 +46,8 @@ const SBOMComponent = () => {
   // For CycloneDX, no SVG logo was found which would adapt to the color
   // theme automatically. Two different logos are provided instead in
   // https://cyclonedx.org/about/branding/ and the correct one is selected
-  // based on the current theme.
-  const { theme } = useTheme();
+  // based on the current mode.
+  const { mode } = useTheme();
   const { user } = useUser();
 
   const { data: ortRun } = useSuspenseQuery({
@@ -134,7 +134,7 @@ const SBOMComponent = () => {
                 <TooltipTrigger>
                   <img
                     alt='CycloneDX'
-                    src={theme === 'dark' ? CycloneDXLight : CycloneDXDark}
+                    src={mode === 'dark' ? CycloneDXLight : CycloneDXDark}
                     width={230}
                   />
                 </TooltipTrigger>

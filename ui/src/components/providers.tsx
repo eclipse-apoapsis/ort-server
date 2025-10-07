@@ -39,7 +39,7 @@ export const Providers = ({ children }: { children: ReactNode }) => {
   return (
     <AuthProvider {...oidcConfig}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme='light' storageKey='vite-ui-theme'>
+        <ThemeProvider defaultMode='light' storageKey='vite-ui-theme'>
           <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

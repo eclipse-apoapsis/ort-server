@@ -68,7 +68,7 @@ const formSchema = z.object({
 export const Header = () => {
   const user = useUser();
   const navigate = useNavigate();
-  const theme = useTheme().theme;
+  const mode = useTheme().mode;
 
   const {
     data: dbHomeIcon,
@@ -225,7 +225,7 @@ export const Header = () => {
   //   the configured or default product name instead
   let homeIconSrc;
   if (dbHomeIcon.isEnabled) {
-    if (theme === 'light') {
+    if (mode === 'light') {
       homeIconSrc = dbHomeIcon.value || dbHomeIconDark.value || homeIcon;
     } else {
       homeIconSrc = dbHomeIconDark.value || dbHomeIcon.value || homeIcon;
