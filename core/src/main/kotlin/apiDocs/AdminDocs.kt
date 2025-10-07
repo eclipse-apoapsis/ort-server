@@ -24,8 +24,8 @@ import io.github.smiley4.ktoropenapi.config.RouteConfig
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateContentManagementSection
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 
@@ -87,9 +87,9 @@ val postUser: RouteConfig.() -> Unit = {
     tags = listOf("Admin")
 
     request {
-        jsonBody<CreateUser> {
+        jsonBody<PostUser> {
             example("Create User") {
-                value = CreateUser(
+                value = PostUser(
                     username = "newUser",
                     firstName = "First",
                     lastName = "Last",
@@ -175,9 +175,9 @@ val patchSection: RouteConfig.() -> Unit = {
             description = "The section's ID."
         }
 
-        jsonBody<UpdateContentManagementSection> {
+        jsonBody<PatchSection> {
             example("Update Section") {
-                value = UpdateContentManagementSection(
+                value = PatchSection(
                     isEnabled = true,
                     markdown = "# This is a new footer"
                 )

@@ -37,7 +37,7 @@ data class ContentManagementSection(
  * Request object for the update of a section.
  */
 @Serializable
-data class UpdateContentManagementSection(
+data class PatchSection(
     val isEnabled: Boolean,
     val markdown: String
 )

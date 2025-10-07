@@ -35,8 +35,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateContentManagementSection
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.components.authorization.requireAuthenticated
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUser
@@ -84,7 +84,7 @@ fun Route.admin() = route("admin") {
         post(postUser) {
             requireSuperuser()
 
-            val createUser = call.receive<CreateUser>()
+            val createUser = call.receive<PostUser>()
             userService.createUser(
                 username = createUser.username,
                 firstName = createUser.firstName,
@@ -129,7 +129,7 @@ fun Route.admin() = route("admin") {
                 requireSuperuser()
 
                 val id = call.requireParameter("sectionId")
-                val updateSection = call.receive<UpdateContentManagementSection>()
+                val updateSection = call.receive<PatchSection>()
 
                 val section = contentManagementService.updateSectionById(
                     id = id,

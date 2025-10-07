@@ -38,8 +38,8 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateUser
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateContentManagementSection
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
@@ -98,7 +98,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
     "POST /admin/users" should {
         "create a new user" {
             integrationTestApplication {
-                val user = CreateUser(
+                val user = PostUser(
                     username = testUsername,
                     firstName = testFirstName,
                     lastName = testLastName,
@@ -117,7 +117,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
 
         "respond with an internal error if the user already exists" {
             integrationTestApplication {
-                val user = CreateUser(
+                val user = PostUser(
                     username = testUsername,
                     firstName = testFirstName,
                     lastName = testLastName,
@@ -141,7 +141,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
             requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Created) {
                 post("/api/v1/admin/users") {
                     setBody(
-                        CreateUser(
+                        PostUser(
                             username = testUsername,
                             firstName = testFirstName,
                             lastName = testLastName,
@@ -224,7 +224,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
     "PATCH /admin/content-management/sections/footer" should {
         "return 403 Forbidden for non-superuser" {
             integrationTestApplication {
-                val updateSectionRequest = UpdateContentManagementSection(
+                val updateSectionRequest = PatchSection(
                     isEnabled = true,
                     markdown = "This is a changed footer."
                 )
@@ -239,7 +239,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
 
         "update the footer section" {
             integrationTestApplication {
-                val updateSectionRequest = UpdateContentManagementSection(
+                val updateSectionRequest = PatchSection(
                     isEnabled = true,
                     markdown = "empty"
                 )
@@ -261,7 +261,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
 
         "return 404 NotFound for non-existing section" {
             integrationTestApplication {
-                val updateSectionRequest = UpdateContentManagementSection(
+                val updateSectionRequest = PatchSection(
                     isEnabled = true,
                     markdown = "empty"
                 )
