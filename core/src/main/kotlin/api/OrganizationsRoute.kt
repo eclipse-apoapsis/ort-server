@@ -33,10 +33,10 @@ import io.ktor.server.routing.route
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.hasPermission
@@ -121,7 +121,7 @@ fun Route.organizations() = route("organizations") {
     post(postOrganization) {
         requireSuperuser()
 
-        val createOrganization = call.receive<CreateOrganization>()
+        val createOrganization = call.receive<PostOrganization>()
 
         val createdOrganization =
             organizationService.createOrganization(createOrganization.name, createOrganization.description)
@@ -145,7 +145,7 @@ fun Route.organizations() = route("organizations") {
             requirePermission(OrganizationPermission.WRITE)
 
             val organizationId = call.requireIdParameter("organizationId")
-            val org = call.receive<UpdateOrganization>()
+            val org = call.receive<PatchOrganization>()
 
             val updatedOrg = organizationService.updateOrganization(
                 organizationId,
@@ -189,7 +189,7 @@ fun Route.organizations() = route("organizations") {
             post(postProduct) {
                 requirePermission(OrganizationPermission.CREATE_PRODUCT)
 
-                val createProduct = call.receive<CreateProduct>()
+                val createProduct = call.receive<PostProduct>()
                 val orgId = call.requireIdParameter("organizationId")
 
                 val createdProduct =

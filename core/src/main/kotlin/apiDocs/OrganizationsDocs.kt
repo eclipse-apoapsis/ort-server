@@ -24,17 +24,17 @@ import io.github.smiley4.ktoropenapi.config.RouteConfig
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
 import org.eclipse.apoapsis.ortserver.api.v1.model.Organization
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrganizationVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
@@ -118,9 +118,9 @@ val postOrganization: RouteConfig.() -> Unit = {
     tags = listOf("Organizations")
 
     request {
-        jsonBody<CreateOrganization> {
+        jsonBody<PostOrganization> {
             example("Create Organization") {
-                value = CreateOrganization(name = "My Organization", description = "This is my organization.")
+                value = PostOrganization(name = "My Organization", description = "This is my organization.")
             }
         }
     }
@@ -146,10 +146,10 @@ val patchOrganization: RouteConfig.() -> Unit = {
         pathParameter<Long>("organizationId") {
             description = "The organization's ID."
         }
-        jsonBody<UpdateOrganization> {
+        jsonBody<PatchOrganization> {
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
             example("Update Organization") {
-                value = UpdateOrganization(
+                value = PatchOrganization(
                     name = "My updated Organization".asPresent(),
                     description = "Updated description".asPresent()
                 )
@@ -236,9 +236,9 @@ val postProduct: RouteConfig.() -> Unit = {
         pathParameter<Long>("organizationId") {
             description = "The organization's ID."
         }
-        jsonBody<CreateProduct> {
+        jsonBody<PostProduct> {
             example("Create product") {
-                value = CreateProduct(name = "My product", description = "Description")
+                value = PostProduct(name = "My product", description = "Description")
             }
         }
     }

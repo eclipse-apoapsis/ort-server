@@ -55,7 +55,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
@@ -66,6 +65,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
@@ -550,7 +550,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             "respond with 'BadRequest' if the request body is invalid for method '${method.value}'" {
                 integrationTestApplication {
                     val createdProd = createProduct()
-                    val org = CreateOrganization(name = "name", description = "description") // Wrong request body
+                    val org = PostOrganization(name = "name", description = "description") // Wrong request body
 
                     val response = when (method) {
                         HttpMethod.Put -> superuserClient.put(

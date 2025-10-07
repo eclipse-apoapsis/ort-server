@@ -23,10 +23,10 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrganization
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesValidations
@@ -35,16 +35,16 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.mapValidationResult
 
 fun Application.configureValidation() {
     install(RequestValidation) {
-        validate<CreateOrganization> { create ->
-            mapValidationResult(CreateOrganization.validate(create))
+        validate<PostOrganization> { create ->
+            mapValidationResult(PostOrganization.validate(create))
         }
 
-        validate<UpdateOrganization> { update ->
-            mapValidationResult(UpdateOrganization.validate(update))
+        validate<PatchOrganization> { update ->
+            mapValidationResult(PatchOrganization.validate(update))
         }
 
-        validate<CreateProduct> { create ->
-            mapValidationResult(CreateProduct.validate(create))
+        validate<PostProduct> { create ->
+            mapValidationResult(PostProduct.validate(create))
         }
 
         validate<UpdateProduct> { update ->
