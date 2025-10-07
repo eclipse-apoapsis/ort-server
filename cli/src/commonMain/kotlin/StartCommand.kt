@@ -47,11 +47,11 @@ import kotlinx.coroutines.runBlocking
 
 import okio.Path.Companion.toPath
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.cli.model.AuthenticationError
 import org.eclipse.apoapsis.ortserver.cli.model.CliInputException
 import org.eclipse.apoapsis.ortserver.cli.model.RunFinishedWithIssuesException
@@ -116,7 +116,7 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
 
     override suspend fun run() {
         val createOrtRun = runCatching {
-            json.decodeFromString(CreateOrtRun.serializer(), parameters)
+            json.decodeFromString(PostRepositoryRun.serializer(), parameters)
         }.getOrElse {
             throw CliInputException(
                 "Invalid run parameters: '$parameters'.",

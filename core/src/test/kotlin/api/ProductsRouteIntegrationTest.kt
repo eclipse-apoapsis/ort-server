@@ -55,7 +55,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
@@ -67,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
@@ -1531,7 +1531,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     description = description
                 ).id
 
-                val createOrtRunAll = CreateOrtRun(
+                val createOrtRunAll = PostRepositoryRun(
                     revision = "main",
                     path = "",
                     jobConfigs = JobConfigurations(),
@@ -1555,7 +1555,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 }
                 repositoryIdsAll shouldContainExactlyInAnyOrder listOf(repository1Id, repository2Id)
 
-                val createOrtRunSpecific = CreateOrtRun(
+                val createOrtRunSpecific = PostRepositoryRun(
                     revision = "main",
                     path = "",
                     jobConfigs = JobConfigurations(),
@@ -1593,7 +1593,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val scannerPluginId = "notInstalledScanner"
 
                 // Create a run with not installed plugins.
-                val createRun = CreateOrtRun(
+                val createRun = PostRepositoryRun(
                     revision = "main",
                     jobConfigs = JobConfigurations(
                         analyzer = AnalyzerJobConfiguration(
@@ -1657,7 +1657,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 disablePlugin(PluginType.SCANNER, scannerPluginId)
 
                 // Create a run with disabled plugins.
-                val createRun = CreateOrtRun(
+                val createRun = PostRepositoryRun(
                     revision = "main",
                     jobConfigs = JobConfigurations(
                         analyzer = AnalyzerJobConfiguration(
@@ -1724,7 +1724,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test/enableGlobal")
 
                 // Create a run trying to overwrite the final option.
-                val createRun = CreateOrtRun(
+                val createRun = PostRepositoryRun(
                     "main",
                     null,
                     JobConfigurations(
@@ -1771,7 +1771,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 keepAliveJobConfigs.forAll {
                     val response = testUserClient.post("/api/v1/products/$productId/runs") {
-                        setBody(CreateOrtRun(revision = "main", jobConfigs = it))
+                        setBody(PostRepositoryRun(revision = "main", jobConfigs = it))
                     }
 
                     response shouldHaveStatus HttpStatusCode.Forbidden
@@ -1786,7 +1786,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 keepAliveJobConfigs.forAll {
                     val response = superuserClient.post("/api/v1/products/$productId/runs") {
-                        setBody(CreateOrtRun(revision = "main", jobConfigs = it))
+                        setBody(PostRepositoryRun(revision = "main", jobConfigs = it))
                     }
 
                     response shouldHaveStatus HttpStatusCode.Created
@@ -1834,7 +1834,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     status = OrtRunStatus.FAILED.asPresent2()
                 )
 
-                val createOrtRunFailed = CreateOrtRun(
+                val createOrtRunFailed = PostRepositoryRun(
                     revision = "main",
                     path = "",
                     jobConfigs = JobConfigurations(),
@@ -1905,7 +1905,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     status = OrtRunStatus.ACTIVE.asPresent2()
                 )
 
-                val createOrtRunFailed = CreateOrtRun(
+                val createOrtRunFailed = PostRepositoryRun(
                     revision = "main",
                     path = "",
                     jobConfigs = JobConfigurations(),
@@ -1935,7 +1935,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 ProductPermission.TRIGGER_ORT_RUN.roleName(createdProduct.id),
                 HttpStatusCode.Created
             ) {
-                val createOrtRun = CreateOrtRun(
+                val createOrtRun = PostRepositoryRun(
                     revision = "main",
                     path = "",
                     jobConfigs = JobConfigurations(),

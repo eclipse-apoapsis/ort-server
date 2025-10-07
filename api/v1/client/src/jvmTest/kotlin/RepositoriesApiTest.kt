@@ -27,11 +27,11 @@ import io.ktor.http.HttpStatusCode
 
 import kotlinx.datetime.Instant
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.client.NotFoundException
 import org.eclipse.apoapsis.ortserver.client.api.RepositoriesApi
 import org.eclipse.apoapsis.ortserver.client.createOrtHttpClient
@@ -62,7 +62,7 @@ class RepositoriesApiTest : StringSpec({
 
             val actualOrtRun = repositoriesApi.createOrtRun(
                 repositoryId = 1,
-                ortRun = CreateOrtRun(revision = "main", jobConfigs = JobConfigurations())
+                ortRun = PostRepositoryRun(revision = "main", jobConfigs = JobConfigurations())
             )
 
             actualOrtRun shouldBe respondOrtRun
@@ -77,7 +77,7 @@ class RepositoriesApiTest : StringSpec({
             shouldThrow<NotFoundException> {
                 repositoriesApi.createOrtRun(
                     repositoryId = 1,
-                    ortRun = CreateOrtRun(revision = "main", jobConfigs = JobConfigurations())
+                    ortRun = PostRepositoryRun(revision = "main", jobConfigs = JobConfigurations())
                 )
             }
         }

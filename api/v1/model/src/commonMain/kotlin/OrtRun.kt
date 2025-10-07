@@ -143,7 +143,7 @@ data class OrtRun(
  * Request object for the create ort run endpoint.
  */
 @Serializable
-data class CreateOrtRun(
+data class PostRepositoryRun(
     /**
      * The repository revision used by this run.
      */

@@ -57,7 +57,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApiSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.EnvironmentVariableDeclaration as ApiEnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
@@ -66,14 +65,15 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobSummaries
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
@@ -209,7 +209,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdRepository = createRepository()
 
-                val updateRepository = UpdateRepository(
+                val updateRepository = PatchRepository(
                     ApiRepositoryType.SUBVERSION.asPresent(),
                     "https://svn.example.com/repos/org/repo/trunk".asPresent(),
                     "updateDescription".asPresent()
@@ -235,7 +235,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createRepository = createRepository()
 
-                val repository = UpdateRepository(
+                val repository = PatchRepository(
                     ApiRepositoryType.SUBVERSION.asPresent(),
                     "ht tps://github.com/org/repo.git".asPresent()
                 )
@@ -248,7 +248,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for UpdateRepository"
+                body.cause shouldContain "Validation failed for PatchRepository"
             }
         }
 
@@ -256,7 +256,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createRepository = createRepository()
 
-                val repository = UpdateRepository(
+                val repository = PatchRepository(
                     ApiRepositoryType.SUBVERSION.asPresent(),
                     "https://user:password@github.com".asPresent()
                 )
@@ -269,14 +269,14 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for UpdateRepository"
+                body.cause shouldContain "Validation failed for PatchRepository"
             }
         }
 
         "require RepositoryPermission.WRITE" {
             val createdRepository = createRepository()
             requestShouldRequireRole(RepositoryPermission.WRITE.roleName(createdRepository.id)) {
-                val updateRepository = UpdateRepository(
+                val updateRepository = PatchRepository(
                     ApiRepositoryType.SUBVERSION.asPresent(),
                     "https://svn.example.com/repos/org/repo/trunk".asPresent()
                 )
@@ -621,7 +621,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 )
                 val parameters = mapOf("p1" to "v1", "p2" to "v2")
                 val ruleSet = "test"
-                val createRun = CreateOrtRun(
+                val createRun = PostRepositoryRun(
                     "main",
                     null,
                     ApiJobConfigurations(
@@ -685,7 +685,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 RepositoryPermission.TRIGGER_ORT_RUN.roleName(createdRepository.id),
                 HttpStatusCode.Created
             ) {
-                val createRun = CreateOrtRun("main", null, ApiJobConfigurations(), labelsMap)
+                val createRun = PostRepositoryRun("main", null, ApiJobConfigurations(), labelsMap)
                 post("/api/v1/repositories/${createdRepository.id}/runs") { setBody(createRun) }
             }
         }
@@ -701,7 +701,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val responses = withContext(Dispatchers.IO) {
                     (1..runCount).map { idx ->
                         async {
-                            val createRun = CreateOrtRun(
+                            val createRun = PostRepositoryRun(
                                 "branch-$idx",
                                 null,
                                 ApiJobConfigurations(analyzerJob)
@@ -720,7 +720,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         "respond with \"Not Found\" if repository doesn't exist" {
             integrationTestApplication {
                 val nonExistingRepositoryId = 999
-                val createRun = CreateOrtRun(
+                val createRun = PostRepositoryRun(
                     "main",
                     null,
                     ApiJobConfigurations(),
@@ -747,7 +747,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val scannerPluginId = "notInstalledScanner"
 
                 // Create a run with not installed plugins.
-                val createRun = CreateOrtRun(
+                val createRun = PostRepositoryRun(
                     "main",
                     null,
                     ApiJobConfigurations(
@@ -812,7 +812,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 disablePlugin(PluginType.SCANNER, scannerPluginId)
 
                 // Create a run with disabled plugins.
-                val createRun = CreateOrtRun(
+                val createRun = PostRepositoryRun(
                     "main",
                     null,
                     ApiJobConfigurations(
@@ -880,7 +880,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 superuserClient.post("/api/v1/admin/plugins/$pluginType/$pluginId/templates/test/enableGlobal")
 
                 // Create a run trying to overwrite the final option.
-                val createRun = CreateOrtRun(
+                val createRun = PostRepositoryRun(
                     "main",
                     null,
                     ApiJobConfigurations(
@@ -927,7 +927,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 keepAliveJobConfigs.forAll {
                     val response = testUserClient.post("/api/v1/repositories/$repositoryId/runs") {
-                        setBody(CreateOrtRun(revision = "main", jobConfigs = it))
+                        setBody(PostRepositoryRun(revision = "main", jobConfigs = it))
                     }
 
                     response shouldHaveStatus HttpStatusCode.Forbidden
@@ -942,7 +942,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                 keepAliveJobConfigs.forAll {
                     val response = superuserClient.post("/api/v1/repositories/$repositoryId/runs") {
-                        setBody(CreateOrtRun(revision = "main", jobConfigs = it))
+                        setBody(PostRepositoryRun(revision = "main", jobConfigs = it))
                     }
 
                     response shouldHaveStatus HttpStatusCode.Created

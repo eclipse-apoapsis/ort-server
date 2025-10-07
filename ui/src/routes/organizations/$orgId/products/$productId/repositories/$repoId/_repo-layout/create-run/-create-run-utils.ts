@@ -22,8 +22,8 @@ import { z } from 'zod';
 
 import {
   AnalyzerJobConfiguration,
-  CreateOrtRun,
   OrtRun,
+  PostRepositoryRun,
   ReporterJobConfiguration,
 } from '@/api';
 import { PackageManagerId, packageManagers } from '@/lib/types';
@@ -462,7 +462,7 @@ export function defaultValues(
  */
 export function formValuesToPayload(
   values: z.infer<typeof createRunFormSchema>
-): CreateOrtRun {
+): PostRepositoryRun {
   /**
    * A helper function to get the enabled package managers from the form values.
    *

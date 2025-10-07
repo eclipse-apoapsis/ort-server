@@ -25,9 +25,9 @@ import io.ktor.server.config.tryGetString
 import kotlin.time.Duration.Companion.seconds
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientConfiguration
@@ -59,11 +59,11 @@ fun ConfigManager.createKeycloakClientConfiguration(): KeycloakClientConfigurati
 private val emptyPluginConfig = PluginConfig(options = emptyMap(), secrets = emptyMap())
 
 /**
- * Get all [PluginConfig]s from a [CreateOrtRun] object. The result is a map from [PluginType]s to maps of plugin IDs to
- * [PluginConfig]s. Some job configs allow to enable plugins without additional configuration, in this case an empty
- * [PluginConfig] is used as the value for the plugin ID in the map.
+ * Get all [PluginConfig]s from a [PostRepositoryRun] object. The result is a map from [PluginType]s to maps of plugin
+ * IDs to [PluginConfig]s. Some job configs allow to enable plugins without additional configuration, in this case an
+ * empty [PluginConfig] is used as the value for the plugin ID in the map.
  */
-fun CreateOrtRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConfig>> =
+fun PostRepositoryRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConfig>> =
     buildMap {
         jobConfigs.advisor?.let { jobConfig ->
             val allAdvisors = jobConfig.advisors + jobConfig.config?.keys.orEmpty()
@@ -141,7 +141,7 @@ fun CreateOrtRun.getPluginConfigs(): Map<PluginType, Map<String, PluginConfig>> 
     }.filterValues { it.isNotEmpty() }
 
 /** Return true if the `keepAliveWorker` flag is enabled in any job config. */
-fun CreateOrtRun.hasKeepAliveWorkerFlag() =
+fun PostRepositoryRun.hasKeepAliveWorkerFlag() =
     jobConfigs.advisor?.keepAliveWorker == true ||
     jobConfigs.analyzer.keepAliveWorker ||
     jobConfigs.evaluator?.keepAliveWorker == true ||
