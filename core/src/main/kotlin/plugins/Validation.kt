@@ -23,11 +23,11 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateRepository
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesValidations
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsValidations
@@ -47,12 +47,12 @@ fun Application.configureValidation() {
             mapValidationResult(PostProduct.validate(create))
         }
 
-        validate<UpdateProduct> { update ->
-            mapValidationResult(UpdateProduct.validate(update))
+        validate<PatchProduct> { update ->
+            mapValidationResult(PatchProduct.validate(update))
         }
 
-        validate<CreateRepository> { create ->
-            mapValidationResult(CreateRepository.validate(create))
+        validate<PostRepository> { create ->
+            mapValidationResult(PostRepository.validate(create))
         }
 
         validate<UpdateRepository> { update ->

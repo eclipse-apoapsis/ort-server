@@ -35,10 +35,10 @@ import io.ktor.server.routing.route
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
@@ -125,7 +125,7 @@ fun Route.products() = route("products/{productId}") {
         requirePermission(ProductPermission.WRITE)
 
         val id = call.requireIdParameter("productId")
-        val updateProduct = call.receive<UpdateProduct>()
+        val updateProduct = call.receive<PatchProduct>()
 
         val updatedProduct =
             productService.updateProduct(id, updateProduct.name.mapToModel(), updateProduct.description.mapToModel())
@@ -163,7 +163,7 @@ fun Route.products() = route("products/{productId}") {
             requirePermission(ProductPermission.CREATE_REPOSITORY)
 
             val id = call.requireIdParameter("productId")
-            val createRepository = call.receive<CreateRepository>()
+            val createRepository = call.receive<PostRepository>()
             val repository = productService.createRepository(
                 createRepository.type.mapToModel(),
                 createRepository.url,

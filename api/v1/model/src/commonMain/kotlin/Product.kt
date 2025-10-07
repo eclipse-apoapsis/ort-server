@@ -74,14 +74,14 @@ data class PostProduct(
  * Request object for the update product endpoint.
  */
 @Serializable
-data class UpdateProduct(
+data class PatchProduct(
     val name: OptionalValue<String> = OptionalValue.Absent,
     val description: OptionalValue<String?> = OptionalValue.Absent
 ) {
     companion object {
-        val validate: ValidatorFunc<UpdateProduct> = { obj ->
+        val validate: ValidatorFunc<PatchProduct> = { obj ->
             Validation {
-                UpdateProduct::name {
+                PatchProduct::name {
                     optionalPattern(Product.NAME_PATTERN_REGEX) hint Product.NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)

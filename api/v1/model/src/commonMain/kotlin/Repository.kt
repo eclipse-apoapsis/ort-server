@@ -70,15 +70,15 @@ private fun String.isValidHost() = all { it.isLetterOrDigit() || it == '.' || it
  * Request object for the create repository endpoint.
  */
 @Serializable
-data class CreateRepository(
+data class PostRepository(
     val type: RepositoryType,
     val url: String,
     val description: String? = null
 ) {
     companion object {
-        val validate: ValidatorFunc<CreateRepository> = { obj ->
+        val validate: ValidatorFunc<PostRepository> = { obj ->
             Validation {
-                CreateRepository::url {
+                PostRepository::url {
                     constrain("malformed URL") {
                         Repository.isValidUrl(it)
                     } hint Repository.INVALID_URL_MESSAGE

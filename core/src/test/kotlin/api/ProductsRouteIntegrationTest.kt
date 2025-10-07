@@ -56,7 +56,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
@@ -64,8 +63,10 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.NotifierJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProviderPluginConfiguration
@@ -74,7 +75,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType as ApiRepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
@@ -201,7 +201,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val updatedProduct = UpdateProduct(
+                val updatedProduct = PatchProduct(
                     "updatedProduct".asPresent(),
                     "updateDescription".asPresent()
                 )
@@ -222,7 +222,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "require ProductPermission.WRITE" {
             val createdProduct = createProduct()
             requestShouldRequireRole(ProductPermission.WRITE.roleName(createdProduct.id)) {
-                val updatedProduct = UpdateProduct("updatedName".asPresent(), "updatedDescription".asPresent())
+                val updatedProduct = PatchProduct("updatedName".asPresent(), "updatedDescription".asPresent())
                 patch("/api/v1/products/${createdProduct.id}") { setBody(updatedProduct) }
             }
         }
@@ -231,7 +231,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val updatedProduct = UpdateProduct(
+                val updatedProduct = PatchProduct(
                     " updatedProduct! ".asPresent(),
                     "updateDescription".asPresent()
                 )
@@ -243,7 +243,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for UpdateProduct"
+                body.cause shouldContain "Validation failed for PatchProduct"
             }
         }
     }
@@ -386,7 +386,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git", "description")
+                val repository = PostRepository(ApiRepositoryType.GIT, "https://example.com/repo.git", "description")
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
@@ -401,7 +401,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = CreateRepository(ApiRepositoryType.GIT, "https://git hub.com/org/repo.git")
+                val repository = PostRepository(ApiRepositoryType.GIT, "https://git hub.com/org/repo.git")
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
@@ -410,7 +410,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for CreateRepository"
+                body.cause shouldContain "Validation failed for PostRepository"
             }
         }
 
@@ -418,7 +418,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = CreateRepository(ApiRepositoryType.GIT, "https://user:password@github.com")
+                val repository = PostRepository(ApiRepositoryType.GIT, "https://user:password@github.com")
                 val response = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }
@@ -427,7 +427,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for CreateRepository"
+                body.cause shouldContain "Validation failed for PostRepository"
             }
         }
 
@@ -435,7 +435,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             integrationTestApplication {
                 val createdProduct = createProduct()
 
-                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
+                val repository = PostRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
                 val createdRepository = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
                     setBody(repository)
                 }.body<Repository>()
@@ -457,7 +457,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 ProductPermission.CREATE_REPOSITORY.roleName(createdProduct.id),
                 HttpStatusCode.Created
             ) {
-                val repository = CreateRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
+                val repository = PostRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
                 post("/api/v1/products/${createdProduct.id}/repositories") { setBody(repository) }
             }
         }

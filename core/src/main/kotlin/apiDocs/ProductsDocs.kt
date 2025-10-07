@@ -27,7 +27,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.api.v1.model.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.api.v1.model.CreateOrtRun
-import org.eclipse.apoapsis.ortserver.api.v1.model.CreateRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.api.v1.model.FilterOperatorAndValue
 import org.eclipse.apoapsis.ortserver.api.v1.model.Identifier
@@ -35,12 +34,13 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
+import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
+import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.Product
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProductVulnerability
 import org.eclipse.apoapsis.ortserver.api.v1.model.Repository
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity
-import org.eclipse.apoapsis.ortserver.api.v1.model.UpdateProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
@@ -91,10 +91,10 @@ val patchProduct: RouteConfig.() -> Unit = {
         pathParameter<Long>("productId") {
             description = "The product's ID."
         }
-        jsonBody<UpdateProduct> {
+        jsonBody<PatchProduct> {
             description = "Set the values that should be updated. To delete a value, set it explicitly to null."
             example("Update Product") {
-                value = UpdateProduct(name = "Update Product".asPresent(), description = "Updated product".asPresent())
+                value = PatchProduct(name = "Update Product".asPresent(), description = "Updated product".asPresent())
             }
         }
     }
@@ -195,9 +195,9 @@ val postRepository: RouteConfig.() -> Unit = {
         pathParameter<Long>("productId") {
             description = "The product's ID."
         }
-        jsonBody<CreateRepository> {
+        jsonBody<PostRepository> {
             example("Create repository") {
-                value = CreateRepository(
+                value = PostRepository(
                     type = RepositoryType.GIT,
                     url = "https://example.com/namspace/repo.git",
                 )
