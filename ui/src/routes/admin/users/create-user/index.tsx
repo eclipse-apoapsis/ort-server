@@ -26,7 +26,7 @@ import { z } from 'zod';
 
 import {
   getOrganizationsOptions,
-  postUsersMutation,
+  postUserMutation,
   putOrganizationRoleToUserMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { asOptionalField } from '@/components/form/as-optional-field';
@@ -85,7 +85,7 @@ const CreateUser = () => {
 
   const { mutateAsync: createUser, isPending: isCreateUserPending } =
     useMutation({
-      ...postUsersMutation(),
+      ...postUserMutation(),
       onSuccess() {
         toast.info('Create User', {
           description: `User "${form.getValues().username}" created successfully.`,

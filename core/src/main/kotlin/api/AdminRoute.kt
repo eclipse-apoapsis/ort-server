@@ -43,7 +43,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSection
-import org.eclipse.apoapsis.ortserver.core.apiDocs.postUsers
+import org.eclipse.apoapsis.ortserver.core.apiDocs.postUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.runPermissionsSync
 import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.ContentManagementService
@@ -81,7 +81,7 @@ fun Route.admin() = route("admin") {
             call.respond(users)
         }
 
-        post(postUsers) {
+        post(postUser) {
             requireSuperuser()
 
             val createUser = call.receive<CreateUser>()
