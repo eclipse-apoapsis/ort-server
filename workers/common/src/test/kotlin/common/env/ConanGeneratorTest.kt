@@ -37,7 +37,7 @@ class ConanGeneratorTest : WordSpec({
     }
 
     "generate" should {
-        "generate the file at the correct location" {
+        "generate the files at the correct location" {
             val definition = ConanDefinition(
                 MockConfigFileBuilder.createInfrastructureService(REMOTE_URL),
                 emptySet(),
@@ -50,7 +50,26 @@ class ConanGeneratorTest : WordSpec({
 
             ConanGenerator().generate(mockBuilder.builder, listOf(definition))
 
-            mockBuilder.homeFileName shouldBe ".conan/remotes.json"
+            mockBuilder.homeFileNames shouldBe listOf(".conan/remotes.json", ".conan2/remotes.json")
+        }
+
+        "generate the same file for both versions" {
+            val definition = ConanDefinition(
+                MockConfigFileBuilder.createInfrastructureService(REMOTE_URL),
+                emptySet(),
+                REMOTE_NAME,
+                REMOTE_URL,
+                true
+            )
+
+            val mockBuilder = MockConfigFileBuilder()
+
+            ConanGenerator().generate(mockBuilder.builder, listOf(definition))
+
+            val conan1Lines = mockBuilder.generatedLinesFor(homeFileName = ".conan/remotes.json")
+            val conan2Lines = mockBuilder.generatedLinesFor(homeFileName = ".conan2/remotes.json")
+
+            conan2Lines shouldBe conan1Lines
         }
 
         "generate a file with a single remote" {
@@ -77,7 +96,7 @@ class ConanGeneratorTest : WordSpec({
                   ]
                 }
             """.trimIndent().lines()
-            val lines = mockBuilder.generatedLines()
+            val lines = mockBuilder.generatedLinesFor(homeFileName = ".conan/remotes.json")
             lines shouldContainExactly expectedLines
         }
 
@@ -119,7 +138,7 @@ class ConanGeneratorTest : WordSpec({
                   ]
                 }
             """.trimIndent().lines()
-            val lines = mockBuilder.generatedLines()
+            val lines = mockBuilder.generatedLinesFor(homeFileName = ".conan/remotes.json")
             lines shouldContainExactly expectedLines
         }
 
@@ -147,7 +166,7 @@ class ConanGeneratorTest : WordSpec({
                   ]
                 }
             """.trimIndent().lines()
-            val lines = mockBuilder.generatedLines()
+            val lines = mockBuilder.generatedLinesFor(homeFileName = ".conan/remotes.json")
             lines shouldContainExactly expectedLines
         }
 
@@ -175,7 +194,7 @@ class ConanGeneratorTest : WordSpec({
                   ]
                 }
             """.trimIndent().lines()
-            val lines = mockBuilder.generatedLines()
+            val lines = mockBuilder.generatedLinesFor(homeFileName = ".conan/remotes.json")
             lines shouldContainExactly expectedLines
         }
     }
