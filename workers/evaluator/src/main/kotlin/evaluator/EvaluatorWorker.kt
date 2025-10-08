@@ -66,6 +66,7 @@ internal class EvaluatorWorker(
                 getValidEvaluatorJob(job.id)
                 ortRunService.storeEvaluatorRun(evaluatorRunnerResult.evaluatorRun.mapToModel(job.id))
                 ortRunService.storeResolvedPackageConfigurations(ortRun.id, evaluatorRunnerResult.packageConfigurations)
+                ortRunService.storeResolvedResolutions(ortRun.id, evaluatorRunnerResult.resolutions)
             }
 
             val allRuleViolations = evaluatorRunnerResult.evaluatorRun.violations
