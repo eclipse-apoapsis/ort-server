@@ -13,26 +13,26 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         path: ort-server
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
     - name: Setup Java
-      uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5
+      uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
       with:
         distribution: temurin
         java-version: 21
 
     - name: Setup pnpm
-      uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+      uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       with:
         version: 10
 
     - name: Setup Node
-      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
       with:
         node-version: 22
         cache: pnpm
@@ -45,7 +45,7 @@ jobs:
         echo "ort/bin" >> $GITHUB_PATH
 
     - name: Cache ORT Cache Directory
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: ~/.ort/cache
         key: ort-cache-${{ runner.os }}
@@ -81,7 +81,7 @@ jobs:
         fi
 
     - name: Upload Evaluator Result
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: evaluation-result
         path: ort-results/evaluation-result.yml
@@ -97,7 +97,7 @@ jobs:
         fi
 
     - name: Upload ORT Reports
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: reports
         path: ort-reports

@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
     - name: Build all classes
       run: ./gradlew --stacktrace classes
@@ -59,17 +59,17 @@ jobs:
     runs-on: ${{ matrix.target.os }}
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
     - name: Setup Java
       if: runner.os == 'Windows'
-      uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5
+      uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
       with:
         distribution: temurin
         java-version: 21
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
     - name: Get the Kotlin version
       id: get-kotlin-plugin-info
@@ -77,7 +77,7 @@ jobs:
       run: echo "info=$(./gradlew -q :cli:properties | grep kotlin.plugin.loaded.in.projects)" >> $GITHUB_OUTPUT
 
     - name: Cache the .konan directory
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: ~/.konan
         key: ${{ steps.get-kotlin-plugin-info.outputs.info }}
@@ -95,7 +95,7 @@ jobs:
       run: ./${{ matrix.target.artifact }}/${{ matrix.target.binName }} --version
 
     - name: Upload CLI binary
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: ${{ matrix.target.artifact }}
         path: ${{ matrix.target.artifact }}/${{ matrix.target.binName }}
@@ -105,21 +105,21 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
     - name: Generate OpenAPI spec
       run: ./gradlew --stacktrace :core:generateOpenApiSpec
 
     - name: Install pnpm
-      uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+      uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       with:
         version: 10
 
     - name: Install Node
-      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
       with:
         node-version: 22
         cache: pnpm
@@ -139,22 +139,22 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
     - name: Run tests
       run: ./gradlew test allTests -Dkotest.tags='!Authorization & !Integration'
 
     - name: Create Test Summary
-      uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2
+      uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2.4
       with:
         paths: "**/test-results/**/TEST-*.xml"
       if: success() || failure()
 
     - name: Upload test results
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       if: success() || failure()
       with:
         name: test-results
@@ -166,22 +166,22 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
       - name: Run authorization tests
         run: ./gradlew test allTests -Dkotest.tags='Authorization'
 
       - name: Create Test Summary
-        uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2
+        uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2.4
         with:
           paths: "**/test-results/**/TEST-*.xml"
         if: success() || failure()
 
       - name: Upload test results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: success() || failure()
         with:
           name: authorization-test-results
@@ -193,22 +193,22 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
     - name: Run integration tests
       run: ./gradlew test allTests -Dkotest.tags='Integration'
 
     - name: Create Test Summary
-      uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2
+      uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2.4
       with:
         paths: "**/test-results/**/TEST-*.xml"
       if: success() || failure()
 
     - name: Upload test results
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       if: success() || failure()
       with:
         name: integration-test-results
