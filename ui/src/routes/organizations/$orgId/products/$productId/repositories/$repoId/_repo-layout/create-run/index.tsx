@@ -135,6 +135,8 @@ const CreateRunPage = () => {
     defaultValues: defaultValues(ortRun?.data ?? null, isSuperuser),
   });
 
+  const watchedValues = form.watch();
+
   const {
     fields: parametersFields,
     append: parametersAppend,
@@ -509,17 +511,16 @@ const CreateRunPage = () => {
                     id='payload'
                     className='h-96 pr-12 font-mono'
                     readOnly
-                  >
-                    {JSON.stringify(
-                      formValuesToPayload(form.getValues()),
+                    value={JSON.stringify(
+                      formValuesToPayload(watchedValues),
                       null,
                       2
                     )}
-                  </Textarea>
+                  />
                   <div className='absolute top-2 right-2 z-10'>
                     <CopyToClipboard
                       copyText={JSON.stringify(
-                        formValuesToPayload(form.getValues()),
+                        formValuesToPayload(watchedValues),
                         null,
                         2
                       )}
