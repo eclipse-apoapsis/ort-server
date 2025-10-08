@@ -59,9 +59,9 @@ import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationExce
 import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
 import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
-import org.eclipse.apoapsis.ortserver.services.AuthorizationService
-import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.utils.test.Authorization
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException

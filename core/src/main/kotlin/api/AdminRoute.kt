@@ -39,15 +39,15 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.components.authorization.requireAuthenticated
 import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.runPermissionsSync
-import org.eclipse.apoapsis.ortserver.services.AuthorizationService
 import org.eclipse.apoapsis.ortserver.services.ContentManagementService
-import org.eclipse.apoapsis.ortserver.services.UserService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.koin.ktor.ext.inject

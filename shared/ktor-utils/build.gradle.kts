@@ -43,7 +43,6 @@ dependencies {
     testImplementation(libs.kotestAssertionsKtor)
 
     testFixturesApi(projects.components.authorization.backend)
-    testFixturesApi(projects.services.authorizationService)
     testFixturesApi(projects.utils.test)
     testFixturesApi(testFixtures(projects.dao))
     testFixturesApi(libs.kotestAssertionsCore)

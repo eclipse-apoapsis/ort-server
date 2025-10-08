@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services
+package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
