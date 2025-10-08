@@ -84,7 +84,7 @@ export const ReporterFields = ({
             }
             options={reporterOptions}
           />
-          {form.getValues('jobConfigs.reporter.formats').includes('WebApp') && (
+          {form.watch('jobConfigs.reporter.formats').includes('WebApp') && (
             <FormField
               control={form.control}
               name='jobConfigs.reporter.deduplicateDependencyTree'
