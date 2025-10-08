@@ -117,7 +117,10 @@ const ProductComponent = () => {
               />
             }
           >
-            <ProductVulnerabilitiesStatisticsCard productId={product.id} />
+            <ProductVulnerabilitiesStatisticsCard
+              productId={product.id}
+              className='hover:bg-muted/50'
+            />
           </Suspense>
         </Link>
         <Suspense
@@ -130,10 +133,7 @@ const ProductComponent = () => {
             />
           }
         >
-          <ProductIssuesStatisticsCard
-            productId={product.id}
-            className='hover:bg-muted/0'
-          />
+          <ProductIssuesStatisticsCard productId={product.id} />
         </Suspense>
         <Suspense
           fallback={
@@ -145,10 +145,7 @@ const ProductComponent = () => {
             />
           }
         >
-          <ProductViolationsStatisticsCard
-            productId={product.id}
-            className='hover:bg-muted/0'
-          />
+          <ProductViolationsStatisticsCard productId={product.id} />
         </Suspense>
         <Suspense
           fallback={
@@ -160,10 +157,7 @@ const ProductComponent = () => {
             />
           }
         >
-          <ProductPackagesStatisticsCard
-            productId={product.id}
-            className='hover:bg-muted/0'
-          />
+          <ProductPackagesStatisticsCard productId={product.id} />
         </Suspense>
       </div>
       <Card>

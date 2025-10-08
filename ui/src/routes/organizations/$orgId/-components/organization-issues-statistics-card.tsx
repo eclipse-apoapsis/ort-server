@@ -24,7 +24,6 @@ import { Severity } from '@/api';
 import { getOrganizationRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
-import { cn } from '@/lib/utils';
 
 type OrganizationIssuesStatisticsCardProps = {
   organizationId: number;
@@ -58,7 +57,7 @@ export const OrganizationIssuesStatisticsCard = ({
             }))
           : []
       }
-      className={cn('hover:bg-muted/50 h-full', className)}
+      className={className}
     />
   );
 };
