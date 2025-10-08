@@ -42,8 +42,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTimedValue
 
-import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
-import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 
 import org.slf4j.LoggerFactory
 
@@ -52,7 +51,7 @@ private val logger = LoggerFactory.getLogger(OrtPrincipal::class.java)
 /**
  * Configure the authentication for this server application.
  */
-fun Application.configureAuthentication(config: ApplicationConfig, keycloakClient: KeycloakClient) {
+fun Application.configureAuthentication(config: ApplicationConfig, authorizationService: AuthorizationService) {
     val issuer = config.property("jwt.issuer").getString()
     val jwksUri = URI.create(config.property("jwt.jwksUri").getString()).toURL()
     val configuredRealm = config.property("jwt.realm").getString()
@@ -78,7 +77,7 @@ fun Application.configureAuthentication(config: ApplicationConfig, keycloakClien
 
             validate { credential ->
                 credential.payload.takeIf(this@configureAuthentication::validateJwtPayload)?.let { payload ->
-                    val roles = getRoles(payload.subject, keycloakClient, roleCache)
+                    val roles = getRoles(payload.subject, authorizationService, roleCache)
 
                     // Clear the cache for the user after a write operation as it could have changed the roles.
                     @Suppress("ComplexCondition")
@@ -99,15 +98,14 @@ fun Application.configureAuthentication(config: ApplicationConfig, keycloakClien
 
 internal suspend fun getRoles(
     subject: String,
-    keycloakClient: KeycloakClient,
+    authorizationService: AuthorizationService,
     roleCache: Cache<String, Set<String>>
 ): Set<String> =
     // TODO: Make cache configurable to be able to disable it for testing.
     roleCache.get(subject) {
         val (result, duration) = measureTimedValue {
             runCatching {
-                keycloakClient.getUserClientRoles(UserId(subject))
-                    .mapTo(mutableSetOf()) { role -> role.name.value }
+                authorizationService.getUserRoleNames(subject)
             }
         }
 

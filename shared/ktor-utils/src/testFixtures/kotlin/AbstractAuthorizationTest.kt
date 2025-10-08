@@ -149,7 +149,7 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
                     }
                 }
 
-                configureAuthentication(config, keycloakClient)
+                configureAuthentication(config, authorizationService)
 
                 routing {
                     authenticate(SecurityConfigurations.TOKEN) {

@@ -37,58 +37,49 @@ import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.coroutines.delay
 
-import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
-import org.eclipse.apoapsis.ortserver.clients.keycloak.Role
-import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleId
-import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
-import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 
 class AuthenticationTest : WordSpec({
     val subject = "subject"
-    val keyCloakRoles = setOf(
-        Role(RoleId("1"), RoleName("role1")),
-        Role(RoleId("2"), RoleName("role2")),
-        Role(RoleId("3"), RoleName("role3"))
-    )
-    val roles = keyCloakRoles.mapTo(mutableSetOf()) { it.name.value }
+    val userRoles = setOf("role1", "role2", "role3")
 
     "getRoles" should {
         "return the roles from Keycloak" {
             val cache = Caffeine.newBuilder().expireAfterWrite(1.minutes).asCache<String, Set<String>>()
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { getUserClientRoles(UserId(subject)) } returns keyCloakRoles
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { getUserRoleNames(subject) } returns userRoles
             }
 
-            getRoles(subject, keycloakClient, cache) should containExactlyInAnyOrder(roles)
+            getRoles(subject, authorizationService, cache) should containExactlyInAnyOrder(userRoles)
         }
 
         "use the cache for subsequent requests" {
             val cache = Caffeine.newBuilder().expireAfterWrite(1.minutes).asCache<String, Set<String>>()
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { getUserClientRoles(UserId(subject)) } returns keyCloakRoles
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { getUserRoleNames(subject) } returns userRoles
             }
 
-            getRoles(subject, keycloakClient, cache) should containExactlyInAnyOrder(roles)
-            getRoles(subject, keycloakClient, cache) should containExactlyInAnyOrder(roles)
-            getRoles(subject, keycloakClient, cache) should containExactlyInAnyOrder(roles)
+            getRoles(subject, authorizationService, cache) should containExactlyInAnyOrder(userRoles)
+            getRoles(subject, authorizationService, cache) should containExactlyInAnyOrder(userRoles)
+            getRoles(subject, authorizationService, cache) should containExactlyInAnyOrder(userRoles)
 
             coVerify(exactly = 1) {
-                keycloakClient.getUserClientRoles(UserId(subject))
+                authorizationService.getUserRoleNames(subject)
             }
         }
 
         "request the roles from Keycloak when the cache has expired" {
             val cache = Caffeine.newBuilder().expireAfterWrite(1.milliseconds).asCache<String, Set<String>>()
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { getUserClientRoles(UserId(subject)) } returns keyCloakRoles
+            val authorizationService = mockk<AuthorizationService> {
+                coEvery { getUserRoleNames(subject) } returns userRoles
             }
 
-            getRoles(subject, keycloakClient, cache) should containExactlyInAnyOrder(roles)
+            getRoles(subject, authorizationService, cache) should containExactlyInAnyOrder(userRoles)
             delay(10)
-            getRoles(subject, keycloakClient, cache) should containExactlyInAnyOrder(roles)
+            getRoles(subject, authorizationService, cache) should containExactlyInAnyOrder(userRoles)
 
             coVerify(exactly = 2) {
-                keycloakClient.getUserClientRoles(UserId(subject))
+                authorizationService.getUserRoleNames(subject)
             }
         }
     }
