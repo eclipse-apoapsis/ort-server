@@ -34,11 +34,11 @@ import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.components.authorization.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
-import org.eclipse.apoapsis.ortserver.services.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
 import org.eclipse.apoapsis.ortserver.services.ProductService
 import org.eclipse.apoapsis.ortserver.storage.Key

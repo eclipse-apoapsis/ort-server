@@ -32,6 +32,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.JobStatus

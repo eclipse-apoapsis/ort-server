@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services
+package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName

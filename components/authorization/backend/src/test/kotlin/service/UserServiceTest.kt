@@ -17,13 +17,15 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.services
+package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
 import io.mockk.mockk
+
+import kotlin.collections.get
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupId

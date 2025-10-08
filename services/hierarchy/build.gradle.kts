@@ -27,7 +27,6 @@ group = "org.eclipse.apoapsis.ortserver.services"
 
 dependencies {
     api(projects.model)
-    api(projects.services.authorizationService)
 
     api(libs.exposedCore)
 
