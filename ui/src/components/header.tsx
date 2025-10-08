@@ -27,6 +27,7 @@ import { z } from 'zod';
 
 import { getConfigByKeyOptions } from '@/api/@tanstack/react-query.gen';
 import homeIcon from '@/assets/home-icon.svg';
+import { ColorThemeToggle } from '@/components/color-theme-toggle';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Siblings } from '@/components/siblings';
@@ -356,6 +357,7 @@ export const Header = () => {
           </form>
         </Form>
         <ModeToggle />
+        <ColorThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
