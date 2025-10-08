@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { Moon, Sun } from 'lucide-react';
+import { Check, Moon, Sun } from 'lucide-react';
 
 import { useTheme } from '@/components/theme-provider-context';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function ModeToggle() {
-  const { setMode } = useTheme();
+  const { mode, setMode } = useTheme();
 
   return (
     <DropdownMenu>
@@ -41,14 +41,38 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
-        <DropdownMenuItem onClick={() => setMode('light')}>
+        <DropdownMenuItem
+          onClick={() => setMode('light')}
+          className='flex items-center justify-between gap-3'
+        >
           Light
+          {mode === 'light' ? (
+            <Check className='size-4' />
+          ) : (
+            <div className='size-4' />
+          )}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setMode('dark')}>
+        <DropdownMenuItem
+          onClick={() => setMode('dark')}
+          className='flex items-center justify-between gap-3'
+        >
           Dark
+          {mode === 'dark' ? (
+            <Check className='size-4' />
+          ) : (
+            <div className='size-4' />
+          )}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setMode('system')}>
+        <DropdownMenuItem
+          onClick={() => setMode('system')}
+          className='flex items-center justify-between gap-3'
+        >
           System
+          {mode === 'system' ? (
+            <Check className='size-4' />
+          ) : (
+            <div className='size-4' />
+          )}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
