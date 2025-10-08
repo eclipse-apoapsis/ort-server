@@ -89,7 +89,7 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         fetch-depth: 0
 
@@ -98,17 +98,17 @@ jobs:
       uses: ./.github/actions/free-disk-space
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+      uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
     - name: Login to GitHub Container Registry
-      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
+      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
     - name: Get ORT-Server Version
       run: |
@@ -122,7 +122,7 @@ jobs:
     - name: Extract Docker Metadata for ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
       id: meta-base
-      uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5
+      uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
         images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}
         tags: |
@@ -142,7 +142,7 @@ jobs:
 
     - name: Build ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
-      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
       with:
         context: ${{ matrix.docker.context }}
         file: ${{ matrix.docker.context }}/${{ matrix.docker.dockerfile }}
@@ -156,7 +156,7 @@ jobs:
     - name: Extract Docker Metadata for ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
       id: meta
-      uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5
+      uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
         tags: |
           type=raw,value=${{ env.ORT_SERVER_VERSION }}
