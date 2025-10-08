@@ -190,3 +190,11 @@ When upgrading the PostgreSQL version in the Docker Compose setup, the database 
    ```shell
    docker compose up -d
    ```
+
+### Using Podman instead of Docker
+
+By default, the Compose setup uses a logging driver that is not supported by Podman. To disable central logging, set the `LOG_DRIVER` environment variable to `none`:
+
+```shell
+LOG_DRIVER=none podman compose up
+```

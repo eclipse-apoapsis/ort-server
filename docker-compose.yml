@@ -34,7 +34,7 @@ services:
     volumes:
     - db:/var/lib/postgresql/data
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -64,7 +64,7 @@ services:
         limits:
           cpus: '1'
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -98,7 +98,7 @@ services:
       source: ./scripts/docker/keycloak/
       target: /opt/keycloak_init/
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -137,7 +137,7 @@ services:
       source: ./scripts/compose/graphite/conf/storage-aggregation.conf
       target: /opt/graphite/conf/storage-aggregation.conf
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -197,7 +197,7 @@ services:
         source: ./scripts/compose/secrets-provider
         target: /mnt/secrets-provider
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -262,7 +262,7 @@ services:
         source: ./scripts/compose/secrets.properties
         target: /mnt/secrets.properties
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -307,7 +307,7 @@ services:
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -357,7 +357,7 @@ services:
       source: ./scripts/compose/secrets-provider
       target: /mnt/secrets-provider
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -401,7 +401,7 @@ services:
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -446,7 +446,7 @@ services:
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -496,7 +496,7 @@ services:
       source: ./scripts/compose/secrets-provider
       target: /mnt/secrets-provider
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -546,7 +546,7 @@ services:
       source: ./scripts/compose/secrets-provider
       target: /mnt/secrets-provider
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -567,7 +567,7 @@ services:
     environment:
       UI_API_URL: "http://localhost:${ORT_SERVER_CORE_PORT:-8080}"
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -597,7 +597,7 @@ services:
     depends_on:
       - loki
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
@@ -610,7 +610,7 @@ services:
     volumes:
       - loki:/loki
     logging:
-      driver: gelf
+      driver: ${LOG_DRIVER:-gelf}
       options:
         # This is relative to the host, not the container.
         gelf-address: "udp://127.0.0.1:12201"
