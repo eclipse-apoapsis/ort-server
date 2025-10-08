@@ -24,7 +24,6 @@ import { Severity } from '@/api';
 import { getProductRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getRuleViolationSeverityBackgroundColor } from '@/helpers/get-status-class';
-import { cn } from '@/lib/utils';
 
 type ProductViolationsStatisticsCardProps = {
   productId: number;
@@ -60,7 +59,7 @@ export const ProductViolationsStatisticsCard = ({
             }))
           : []
       }
-      className={cn('hover:bg-muted/50 h-full', className)}
+      className={className}
     />
   );
 };

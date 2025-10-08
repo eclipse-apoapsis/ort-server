@@ -24,7 +24,6 @@ import { VulnerabilityRating } from '@/api';
 import { getOrganizationRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getVulnerabilityRatingBackgroundColor } from '@/helpers/get-status-class';
-import { cn } from '@/lib/utils';
 
 type OrganizationVulnerabilitiesStatisticsCardProps = {
   organizationId: number;
@@ -60,7 +59,7 @@ export const OrganizationVulnerabilitiesStatisticsCard = ({
             }))
           : []
       }
-      className={cn('hover:bg-muted/50 h-full', className)}
+      className={className}
     />
   );
 };

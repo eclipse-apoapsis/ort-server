@@ -23,7 +23,6 @@ import { Boxes } from 'lucide-react';
 import { getOrganizationRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getEcosystemBackgroundColor } from '@/helpers/get-status-class';
-import { cn } from '@/lib/utils';
 
 type OrganizationPackagesStatisticsCardProps = {
   organizationId: number;
@@ -53,7 +52,7 @@ export const OrganizationPackagesStatisticsCard = ({
         count: count,
         color: getEcosystemBackgroundColor(name),
       }))}
-      className={cn('hover:bg-muted/50 h-full', className)}
+      className={className}
     />
   );
 };

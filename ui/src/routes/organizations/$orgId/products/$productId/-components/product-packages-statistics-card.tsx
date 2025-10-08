@@ -23,7 +23,6 @@ import { Boxes } from 'lucide-react';
 import { getProductRunStatisticsOptions } from '@/api/@tanstack/react-query.gen';
 import { StatisticsCard } from '@/components/statistics-card';
 import { getEcosystemBackgroundColor } from '@/helpers/get-status-class';
-import { cn } from '@/lib/utils';
 
 type ProductPackagesStatisticsCardProps = {
   productId: number;
@@ -53,7 +52,7 @@ export const ProductPackagesStatisticsCard = ({
         count: count,
         color: getEcosystemBackgroundColor(name),
       }))}
-      className={cn('hover:bg-muted/50 h-full', className)}
+      className={className}
     />
   );
 };

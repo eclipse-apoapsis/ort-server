@@ -124,6 +124,7 @@ const OrganizationComponent = () => {
             >
               <OrganizationVulnerabilitiesStatisticsCard
                 organizationId={organization.id}
+                className='hover:bg-muted/50'
               />
             </Suspense>
           </Link>
@@ -139,7 +140,6 @@ const OrganizationComponent = () => {
           >
             <OrganizationIssuesStatisticsCard
               organizationId={organization.id}
-              className='hover:bg-muted/0'
             />
           </Suspense>
           <Suspense
@@ -154,7 +154,6 @@ const OrganizationComponent = () => {
           >
             <OrganizationViolationsStatisticsCard
               organizationId={organization.id}
-              className='hover:bg-muted/0'
             />
           </Suspense>
           <Suspense
@@ -169,7 +168,6 @@ const OrganizationComponent = () => {
           >
             <OrganizationPackagesStatisticsCard
               organizationId={organization.id}
-              className='hover:bg-muted/0'
             />
           </Suspense>
         </div>
