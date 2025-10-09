@@ -36,8 +36,8 @@ import { Secret } from '@/api';
 import {
   deleteSecretByOrganizationIdAndNameMutation,
   getOrganizationOptions,
-  getSecretsByOrganizationIdOptions,
-  getSecretsByOrganizationIdQueryKey,
+  getOrganizationSecretsOptions,
+  getOrganizationSecretsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -82,7 +82,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         description: `Secret "${row.original.name}" deleted successfully.`,
       });
       queryClient.invalidateQueries({
-        queryKey: getSecretsByOrganizationIdQueryKey({
+        queryKey: getOrganizationSecretsQueryKey({
           path: { organizationId: organization.id },
         }),
       });
@@ -171,7 +171,7 @@ const OrganizationSecrets = () => {
     isPending: secretsIsPending,
     isError: secretsIsError,
   } = useQuery({
-    ...getSecretsByOrganizationIdOptions({
+    ...getOrganizationSecretsOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
       query: { limit: pageSize, offset: pageIndex * pageSize },
     }),
@@ -269,7 +269,7 @@ export const Route = createFileRoute('/organizations/$orgId/secrets/')({
         }),
       }),
       queryClient.prefetchQuery({
-        ...getSecretsByOrganizationIdOptions({
+        ...getOrganizationSecretsOptions({
           path: { organizationId: Number.parseInt(params.orgId) },
           query: {
             limit: pageSize || defaultPageSize,

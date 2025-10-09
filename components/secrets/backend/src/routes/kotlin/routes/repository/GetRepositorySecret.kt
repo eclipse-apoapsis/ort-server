@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.organization
+package org.eclipse.apoapsis.ortserver.components.secrets.routes.repository
 
 import io.github.smiley4.ktoropenapi.get
 
@@ -25,27 +25,26 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.getSecretByOrganizationIdAndName(secretService: SecretService) =
-    get("/organizations/{organizationId}/secrets/{secretName}", {
-        operationId = "GetSecretByOrganizationIdAndName"
-        summary = "Get details of a secret of an organization"
-        tags = listOf("Organizations")
+internal fun Route.getRepositorySecret(secretService: SecretService) =
+    get("/repositories/{repositoryId}/secrets/{secretName}", {
+        operationId = "getRepositorySecret"
+        summary = "Get details of a secret of a repository"
+        tags = listOf("Repositories")
 
         request {
-            pathParameter<Long>("organizationId") {
-                description = "The organization's ID."
+            pathParameter<Long>("repositoryId") {
+                description = "The repository's ID."
             }
-
             pathParameter<String>("secretName") {
                 description = "The secret's name."
             }
@@ -62,12 +61,12 @@ internal fun Route.getSecretByOrganizationIdAndName(secretService: SecretService
             }
         }
     }) {
-        requirePermission(OrganizationPermission.READ)
+        requirePermission(RepositoryPermission.READ)
 
-        val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
+        val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
         val secretName = call.requireParameter("secretName")
 
-        secretService.getSecret(organizationId, secretName)
+        secretService.getSecret(repositoryId, secretName)
             ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
             ?: call.respond(HttpStatusCode.NotFound)
     }

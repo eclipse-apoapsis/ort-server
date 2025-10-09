@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
+package org.eclipse.apoapsis.ortserver.components.secrets.routes.organization
 
 import io.github.smiley4.ktoropenapi.post
 
@@ -26,31 +26,32 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.components.secrets.CreateSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.PostSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
-import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
-internal fun Route.postSecretForProduct(secretService: SecretService) =
-    post("/products/{productId}/secrets", {
-        operationId = "PostSecretForProduct"
-        summary = "Create a secret for a product"
-        tags = listOf("Products")
+internal fun Route.postOrganizationSecret(secretService: SecretService) =
+    post("/organizations/{organizationId}/secrets", {
+        operationId = "postOrganizationSecret"
+        summary = "Create a secret for an organization"
+        tags = listOf("Organizations")
 
         request {
-            pathParameter<Long>("productId") {
-                description = "The product's ID."
+            pathParameter<Long>("organizationId") {
+                description = "The organization's ID."
             }
-            jsonBody<CreateSecret> {
+
+            jsonBody<PostSecret> {
                 example("Create Secret") {
-                    value = CreateSecret(
+                    value = PostSecret(
                         name = "token_maven_repo_1",
-                        value = "pr0d-s3cr3t-08_15",
+                        value = "0rg-s3cr3t-08_15",
                         description = "Access token for Maven Repo 1"
                     )
                 }
@@ -60,6 +61,7 @@ internal fun Route.postSecretForProduct(secretService: SecretService) =
         response {
             HttpStatusCode.Created to {
                 description = "Success"
+
                 jsonBody<Secret> {
                     example("Create Secret") {
                         value = Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
@@ -68,10 +70,10 @@ internal fun Route.postSecretForProduct(secretService: SecretService) =
             }
         }
     }) {
-        requirePermission(ProductPermission.WRITE_SECRETS)
+        requirePermission(OrganizationPermission.WRITE_SECRETS)
 
-        val productId = call.requireIdParameter("productId")
-        val createSecret = call.receive<CreateSecret>()
+        val organizationId = call.requireIdParameter("organizationId")
+        val createSecret = call.receive<PostSecret>()
 
         call.respond(
             HttpStatusCode.Created,
@@ -79,7 +81,7 @@ internal fun Route.postSecretForProduct(secretService: SecretService) =
                 createSecret.name,
                 createSecret.value,
                 createSecret.description,
-                ProductId(productId)
+                OrganizationId(organizationId)
             ).mapToApi()
         )
     }

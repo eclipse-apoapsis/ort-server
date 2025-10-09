@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getSecretsByOrganizationIdOptions,
+  getOrganizationSecretsOptions,
   postOrganizationInfrastructureServiceMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field';
@@ -76,7 +76,7 @@ const CreateInfrastructureServicePage = () => {
   const params = Route.useParams();
 
   const { data: secrets } = useQuery({
-    ...getSecretsByOrganizationIdOptions({
+    ...getOrganizationSecretsOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
       query: { limit: ALL_ITEMS },
     }),

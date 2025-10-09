@@ -24,7 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { postSecretForRepositoryMutation } from '@/api/@tanstack/react-query.gen';
+import { postRepositorySecretMutation } from '@/api/@tanstack/react-query.gen';
 import { PasswordInput } from '@/components/form/password-input';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -57,7 +57,7 @@ const CreateRepositorySecretPage = () => {
   const params = Route.useParams();
 
   const { mutateAsync, isPending } = useMutation({
-    ...postSecretForRepositoryMutation(),
+    ...postRepositorySecretMutation(),
     onSuccess(data) {
       toast.info('Create Repository Secret', {
         description: `New repository secret "${data.name}" created successfully.`,

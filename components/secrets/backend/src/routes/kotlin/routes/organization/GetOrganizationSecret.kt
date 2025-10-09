@@ -19,27 +19,26 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes.organization
 
-import io.github.smiley4.ktoropenapi.post
+import io.github.smiley4.ktoropenapi.get
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.components.secrets.CreateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.postSecretForOrganization(secretService: SecretService) =
-    post("/organizations/{organizationId}/secrets", {
-        operationId = "PostSecretForOrganization"
-        summary = "Create a secret for an organization"
+internal fun Route.getOrganizationSecret(secretService: SecretService) =
+    get("/organizations/{organizationId}/secrets/{secretName}", {
+        operationId = "getOrganizationSecret"
+        summary = "Get details of a secret of an organization"
         tags = listOf("Organizations")
 
         request {
@@ -47,41 +46,28 @@ internal fun Route.postSecretForOrganization(secretService: SecretService) =
                 description = "The organization's ID."
             }
 
-            jsonBody<CreateSecret> {
-                example("Create Secret") {
-                    value = CreateSecret(
-                        name = "token_maven_repo_1",
-                        value = "0rg-s3cr3t-08_15",
-                        description = "Access token for Maven Repo 1"
-                    )
-                }
+            pathParameter<String>("secretName") {
+                description = "The secret's name."
             }
         }
 
         response {
-            HttpStatusCode.Created to {
+            HttpStatusCode.OK to {
                 description = "Success"
-
                 jsonBody<Secret> {
-                    example("Create Secret") {
-                        value = Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
+                    example("Get Secret") {
+                        value = Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1")
                     }
                 }
             }
         }
     }) {
-        requirePermission(OrganizationPermission.WRITE_SECRETS)
+        requirePermission(OrganizationPermission.READ)
 
-        val organizationId = call.requireIdParameter("organizationId")
-        val createSecret = call.receive<CreateSecret>()
+        val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
+        val secretName = call.requireParameter("secretName")
 
-        call.respond(
-            HttpStatusCode.Created,
-            secretService.createSecret(
-                createSecret.name,
-                createSecret.value,
-                createSecret.description,
-                OrganizationId(organizationId)
-            ).mapToApi()
-        )
+        secretService.getSecret(organizationId, secretName)
+            ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+            ?: call.respond(HttpStatusCode.NotFound)
     }

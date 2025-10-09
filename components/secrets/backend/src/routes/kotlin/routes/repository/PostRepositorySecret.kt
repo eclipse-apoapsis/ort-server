@@ -28,7 +28,7 @@ import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.components.secrets.CreateSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.PostSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
@@ -36,9 +36,9 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
-internal fun Route.postSecretForRepository(secretService: SecretService) =
+internal fun Route.postRepositorySecret(secretService: SecretService) =
     post("/repositories/{repositoryId}/secrets", {
-        operationId = "PostSecretForRepository"
+        operationId = "postRepositorySecret"
         summary = "Create a secret for a repository"
         tags = listOf("Repositories")
 
@@ -46,9 +46,9 @@ internal fun Route.postSecretForRepository(secretService: SecretService) =
             pathParameter<Long>("repositoryId") {
                 description = "The repository's ID."
             }
-            jsonBody<CreateSecret> {
+            jsonBody<PostSecret> {
                 example("Create Secret") {
-                    value = CreateSecret(
+                    value = PostSecret(
                         name = "token_maven_repo_1",
                         value = "r3p0-s3cr3t-08_15",
                         description = "Access token for Maven Repo 1"
@@ -71,7 +71,7 @@ internal fun Route.postSecretForRepository(secretService: SecretService) =
         requirePermission(RepositoryPermission.WRITE_SECRETS)
 
         val repositoryId = call.requireIdParameter("repositoryId")
-        val createSecret = call.receive<CreateSecret>()
+        val createSecret = call.receive<PostSecret>()
 
         call.respond(
             HttpStatusCode.Created,

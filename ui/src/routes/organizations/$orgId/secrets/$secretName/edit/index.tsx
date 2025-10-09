@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  getSecretByOrganizationIdAndNameOptions,
-  patchSecretByOrganizationIdAndNameMutation,
+  getOrganizationSecretOptions,
+  patchOrganizationSecretMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -65,7 +65,7 @@ const EditOrganizationSecretPage = () => {
   const search = Route.useSearch();
 
   const { data: secret } = useSuspenseQuery({
-    ...getSecretByOrganizationIdAndNameOptions({
+    ...getOrganizationSecretOptions({
       path: {
         organizationId: Number.parseInt(params.orgId),
         secretName: params.secretName,
@@ -83,7 +83,7 @@ const EditOrganizationSecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } = useMutation({
-    ...patchSecretByOrganizationIdAndNameMutation(),
+    ...patchOrganizationSecretMutation(),
     onSuccess(data) {
       toast.info('Edit organization secret', {
         description: `Secret "${data.name}" updated successfully.`,
@@ -215,7 +215,7 @@ export const Route = createFileRoute(
   validateSearch: searchParamsSchema,
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.ensureQueryData({
-      ...getSecretByOrganizationIdAndNameOptions({
+      ...getOrganizationSecretOptions({
         path: {
           organizationId: Number.parseInt(params.orgId),
           secretName: params.secretName,

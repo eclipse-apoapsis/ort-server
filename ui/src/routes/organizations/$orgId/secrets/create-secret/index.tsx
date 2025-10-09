@@ -24,7 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { postSecretForOrganizationMutation } from '@/api/@tanstack/react-query.gen';
+import { postOrganizationSecretMutation } from '@/api/@tanstack/react-query.gen';
 import { PasswordInput } from '@/components/form/password-input.tsx';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -57,7 +57,7 @@ const CreateOrganizationSecretPage = () => {
   const params = Route.useParams();
 
   const { mutateAsync, isPending } = useMutation({
-    ...postSecretForOrganizationMutation(),
+    ...postOrganizationSecretMutation(),
     onSuccess(data) {
       toast.info('Create Organization Secret', {
         description: `New organization secret "${data.name}" created successfully.`,

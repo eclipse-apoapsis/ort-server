@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.repository
+package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
 
 import io.github.smiley4.ktoropenapi.patch
 
@@ -26,36 +26,36 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.secrets.PatchSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
-import org.eclipse.apoapsis.ortserver.components.secrets.UpdateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.patchSecretByRepositoryIdAndName(secretService: SecretService) =
-    patch("/repositories/{repositoryId}/secrets/{secretName}", {
-        operationId = "PatchSecretByRepositoryIdAndName"
-        summary = "Update a secret of a repository"
-        tags = listOf("Repositories")
+internal fun Route.patchProductSecret(secretService: SecretService) =
+    patch("/products/{productId}/secrets/{secretName}", {
+        operationId = "patchProductSecret"
+        summary = "Update a secret of a product"
+        tags = listOf("Products")
 
         request {
-            pathParameter<Long>("repositoryId") {
-                description = "The repository's ID."
+            pathParameter<Long>("productId") {
+                description = "The product's ID."
             }
             pathParameter<String>("secretName") {
                 description = "The secret's name."
             }
-            jsonBody<UpdateSecret> {
+            jsonBody<PatchSecret> {
                 example("Update Secret") {
-                    value = UpdateSecret(
-                        value = "r3p0-s3cr3t-08_15".asPresent(),
+                    value = PatchSecret(
+                        value = "pr0d-s3cr3t-08_15".asPresent(),
                         description = "New access token for Maven Repo 1".asPresent()
                     )
                 }
@@ -74,16 +74,16 @@ internal fun Route.patchSecretByRepositoryIdAndName(secretService: SecretService
             }
         }
     }) {
-        requirePermission(RepositoryPermission.WRITE_SECRETS)
+        requirePermission(ProductPermission.WRITE_SECRETS)
 
-        val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
+        val productId = ProductId(call.requireIdParameter("productId"))
         val secretName = call.requireParameter("secretName")
-        val updateSecret = call.receive<UpdateSecret>()
+        val updateSecret = call.receive<PatchSecret>()
 
         call.respond(
             HttpStatusCode.OK,
             secretService.updateSecret(
-                repositoryId,
+                productId,
                 secretName,
                 updateSecret.value.mapToModel(),
                 updateSecret.description.mapToModel()

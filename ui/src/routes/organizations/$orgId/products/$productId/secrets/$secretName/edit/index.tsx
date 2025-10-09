@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  getSecretByProductIdAndNameOptions,
-  patchSecretByProductIdAndNameMutation,
+  getProductSecretOptions,
+  patchProductSecretMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -64,7 +64,7 @@ const EditProductSecretPage = () => {
   const navigate = useNavigate();
 
   const { data: secret } = useSuspenseQuery({
-    ...getSecretByProductIdAndNameOptions({
+    ...getProductSecretOptions({
       path: {
         productId: Number.parseInt(params.productId),
         secretName: params.secretName,
@@ -82,7 +82,7 @@ const EditProductSecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } = useMutation({
-    ...patchSecretByProductIdAndNameMutation(),
+    ...patchProductSecretMutation(),
     onSuccess(data) {
       toast.info('Edit Product Secret', {
         description: `Secret "${data.name}" updated successfully.`,
@@ -204,7 +204,7 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.ensureQueryData({
-      ...getSecretByProductIdAndNameOptions({
+      ...getProductSecretOptions({
         path: {
           productId: Number.parseInt(params.productId),
           secretName: params.secretName,

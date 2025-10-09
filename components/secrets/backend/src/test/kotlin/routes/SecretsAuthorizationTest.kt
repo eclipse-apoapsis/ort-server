@@ -28,9 +28,9 @@ import io.ktor.http.HttpStatusCode
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.secrets.CreateSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.PatchSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.PostSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
-import org.eclipse.apoapsis.ortserver.components.secrets.UpdateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
@@ -160,7 +160,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
                 role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
                 successStatus = HttpStatusCode.NotFound
             ) {
-                val updateSecret = UpdateSecret("value".asPresent(), "description".asPresent())
+                val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
                 patch("/organizations/$orgId/secrets/name") { setBody(updateSecret) }
             }
         }
@@ -173,7 +173,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
                 role = ProductPermission.WRITE_SECRETS.roleName(prodId),
                 successStatus = HttpStatusCode.NotFound
             ) {
-                val updateSecret = UpdateSecret("value".asPresent(), "description".asPresent())
+                val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
                 patch("/products/$prodId/secrets/name") { setBody(updateSecret) }
             }
         }
@@ -186,7 +186,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
                 role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
                 successStatus = HttpStatusCode.NotFound
             ) {
-                val updateSecret = UpdateSecret("value".asPresent(), "description".asPresent())
+                val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
                 patch("/repositories/$repoId/secrets/name") { setBody(updateSecret) }
             }
         }
@@ -199,7 +199,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
                 role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
                 successStatus = HttpStatusCode.Created
             ) {
-                val createSecret = CreateSecret("name", "value", "description")
+                val createSecret = PostSecret("name", "value", "description")
                 post("/organizations/$orgId/secrets") { setBody(createSecret) }
             }
         }
@@ -212,7 +212,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
                 role = ProductPermission.WRITE_SECRETS.roleName(prodId),
                 successStatus = HttpStatusCode.Created
             ) {
-                val createSecret = CreateSecret("name", "value", "description")
+                val createSecret = PostSecret("name", "value", "description")
                 post("/products/$prodId/secrets") { setBody(createSecret) }
             }
         }
@@ -225,7 +225,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
                 role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
                 successStatus = HttpStatusCode.Created
             ) {
-                val createSecret = CreateSecret("name", "value", "description")
+                val createSecret = PostSecret("name", "value", "description")
                 post("/repositories/$repoId/secrets") { setBody(createSecret) }
             }
         }

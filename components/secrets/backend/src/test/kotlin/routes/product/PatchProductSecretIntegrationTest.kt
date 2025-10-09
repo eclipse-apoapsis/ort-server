@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.repository
+package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.shouldBe
@@ -26,50 +26,52 @@ import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
+import org.eclipse.apoapsis.ortserver.components.secrets.PatchSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
-import org.eclipse.apoapsis.ortserver.components.secrets.UpdateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.createRepositorySecret
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.createProductSecret
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class PatchSecretByRepositoryIdAndNameIntegrationTest : SecretsIntegrationTest({
-    var repoId = 0L
+class PatchProductSecretIntegrationTest : SecretsIntegrationTest({
+    var prodId = 0L
+
+    val secretErrorPath = "error-path"
 
     beforeEach {
-        repoId = dbExtension.fixtures.repository.id
+        prodId = dbExtension.fixtures.product.id
     }
 
-    "PatchSecretByRepositoryIdAndName" should {
+    "PatchProductSecret" should {
         "update a secret's metadata" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createRepositorySecret(repoId)
+                val secret = secretRepository.createProductSecret(prodId)
 
                 val updatedDescription = "updated description"
-                val updateSecret = UpdateSecret("value".asPresent(), description = updatedDescription.asPresent())
+                val updateSecret = PatchSecret("value".asPresent(), description = updatedDescription.asPresent())
 
-                val response = client.patch("/repositories/$repoId/secrets/${secret.name}") {
+                val response = client.patch("/products/$prodId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody Secret(secret.name, updatedDescription)
 
-                secretRepository.getByIdAndName(RepositoryId(repoId), secret.name)
-                    ?.mapToApi() shouldBe Secret(secret.name, updatedDescription)
+                secretRepository.getByIdAndName(ProductId(prodId), secret.name)?.mapToApi() shouldBe
+                        Secret(secret.name, updatedDescription)
             }
         }
 
         "update a secret's value" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createRepositorySecret(repoId)
+                val secret = secretRepository.createProductSecret(prodId)
 
-                val updateSecret = UpdateSecret("value".asPresent(), "description".asPresent())
-                val response = client.patch("/repositories/$repoId/secrets/${secret.name}") {
+                val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
+                val response = client.patch("/products/$prodId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 }
 
@@ -81,16 +83,16 @@ class PatchSecretByRepositoryIdAndNameIntegrationTest : SecretsIntegrationTest({
             }
         }
 
-        "handle a failure from the SecretsStorage" {
+        "handle a failure from the SecretStorage" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createRepositorySecret(repoId, path = secretErrorPath)
+                val secret = secretRepository.createProductSecret(prodId, path = secretErrorPath)
 
-                val updateSecret = UpdateSecret("value".asPresent(), "newDesc".asPresent())
-                client.patch("/repositories/$repoId/secrets/${secret.name}") {
+                val updateSecret = PatchSecret("value".asPresent(), "newDesc".asPresent())
+                client.patch("/products/$prodId/secrets/${secret.name}") {
                     setBody(updateSecret)
                 } shouldHaveStatus HttpStatusCode.InternalServerError
 
-                secretRepository.getByIdAndName(RepositoryId(repoId), secret.name) shouldBe secret
+                secretRepository.getByIdAndName(ProductId(prodId), secret.name) shouldBe secret
             }
         }
     }

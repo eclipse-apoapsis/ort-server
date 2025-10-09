@@ -46,7 +46,7 @@ data class Secret(
  * Request object for the create secret endpoint.
  */
 @Serializable
-data class CreateSecret(
+data class PostSecret(
     val name: String,
     val value: String,
     val description: String?
@@ -59,7 +59,7 @@ data class CreateSecret(
 
     fun validate() =
         Validation {
-            CreateSecret::name {
+            PostSecret::name {
                 pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
             }
         }.invoke(this)
@@ -70,7 +70,7 @@ data class CreateSecret(
  * This holds only the secret value and the description. The secret name is a path variable.
  */
 @Serializable
-data class UpdateSecret(
+data class PatchSecret(
     val value: OptionalValue<String> = OptionalValue.Absent,
     val description: OptionalValue<String> = OptionalValue.Absent,
 )

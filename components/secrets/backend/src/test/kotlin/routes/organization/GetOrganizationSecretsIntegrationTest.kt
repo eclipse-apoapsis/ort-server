@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
+package org.eclipse.apoapsis.ortserver.components.secrets.routes.organization
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 
@@ -26,33 +26,34 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.createProductSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.createOrganizationSecret
+import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class GetSecretsByProductIdIntegrationTest : SecretsIntegrationTest({
-    var prodId = 0L
+class GetOrganizationSecretsIntegrationTest : SecretsIntegrationTest({
+    var orgId = 0L
 
     beforeEach {
-        prodId = dbExtension.fixtures.product.id
+        orgId = dbExtension.fixtures.organization.id
     }
 
-    "GetSecretsByProductId" should {
-        "return all secrets for this product" {
+    "GetOrganizationSecrets" should {
+        "return all secrets for this organization" {
             secretsTestApplication { client ->
-                val secret1 = secretRepository.createProductSecret(prodId, "path1", "name1", "description1")
-                val secret2 = secretRepository.createProductSecret(prodId, "path2", "name2", "description2")
+                val secret1 = secretRepository.createOrganizationSecret(orgId, "path1", "name1", "description1")
+                val secret2 = secretRepository.createOrganizationSecret(orgId, "path2", "name2", "description2")
 
-                val response = client.get("/products/$prodId/secrets")
+                val response = client.get("/organizations/$orgId/secrets")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
                     listOf(secret1.mapToApi(), secret2.mapToApi()),
                     PagingData(
-                        limit = 20,
+                        limit = DEFAULT_LIMIT,
                         offset = 0,
                         totalCount = 2,
                         sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
@@ -63,10 +64,10 @@ class GetSecretsByProductIdIntegrationTest : SecretsIntegrationTest({
 
         "support query parameters" {
             secretsTestApplication { client ->
-                secretRepository.createProductSecret(prodId, "path1", "name1", "description1")
-                val secret = secretRepository.createProductSecret(prodId, "path2", "name2", "description2")
+                secretRepository.createOrganizationSecret(orgId, "path1", "name1", "description1")
+                val secret = secretRepository.createOrganizationSecret(orgId, "path2", "name2", "description2")
 
-                val response = client.get("/products/$prodId/secrets?sort=-name&limit=1")
+                val response = client.get("/organizations/$orgId/secrets?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(

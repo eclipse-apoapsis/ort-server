@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getSecretsByRepositoryIdOptions,
+  getRepositorySecretsOptions,
   postRepositoryInfrastructureServiceMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
@@ -76,7 +76,7 @@ const CreateInfrastructureServicePage = () => {
   const params = Route.useParams();
 
   const { data: secrets } = useQuery({
-    ...getSecretsByRepositoryIdOptions({
+    ...getRepositorySecretsOptions({
       path: { repositoryId: Number.parseInt(params.repoId) },
       query: { limit: ALL_ITEMS },
     }),

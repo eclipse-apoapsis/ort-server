@@ -37,10 +37,10 @@ import { Secret } from '@/api';
 import {
   deleteSecretByProductIdAndNameMutation,
   getOrganizationOptions,
+  getOrganizationSecretsOptions,
   getProductOptions,
-  getSecretsByOrganizationIdOptions,
-  getSecretsByProductIdOptions,
-  getSecretsByProductIdQueryKey,
+  getProductSecretsOptions,
+  getProductSecretsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
 import { DeleteDialog } from '@/components/delete-dialog';
@@ -88,7 +88,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
         description: `Secret "${row.original.name}" deleted successfully.`,
       });
       queryClient.invalidateQueries({
-        queryKey: getSecretsByProductIdQueryKey({
+        queryKey: getProductSecretsQueryKey({
           path: { productId: product.id },
         }),
       });
@@ -198,7 +198,7 @@ const ProductSecrets = () => {
     isPending: secretsIsPending,
     isError: secretsIsError,
   } = useQuery({
-    ...getSecretsByProductIdOptions({
+    ...getProductSecretsOptions({
       path: { productId: Number.parseInt(params.productId) },
       query: { limit: pageSize, offset: pageIndex * pageSize },
     }),
@@ -210,7 +210,7 @@ const ProductSecrets = () => {
     isPending: orgSecretsIsPending,
     isError: orgSecretsIsError,
   } = useQuery({
-    ...getSecretsByOrganizationIdOptions({
+    ...getOrganizationSecretsOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
       query: { limit: orgPageSize, offset: orgPageIndex * orgPageSize },
     }),
@@ -388,7 +388,7 @@ export const Route = createFileRoute(
         }),
       }),
       queryClient.prefetchQuery({
-        ...getSecretsByProductIdOptions({
+        ...getProductSecretsOptions({
           path: { productId: Number.parseInt(params.productId) },
           query: {
             limit: pageSize || defaultPageSize,
@@ -397,7 +397,7 @@ export const Route = createFileRoute(
         }),
       }),
       queryClient.prefetchQuery({
-        ...getSecretsByOrganizationIdOptions({
+        ...getOrganizationSecretsOptions({
           path: { organizationId: Number.parseInt(params.orgId) },
           query: {
             limit: orgPageSize || defaultPageSize,

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.repository
+package org.eclipse.apoapsis.ortserver.components.secrets.routes.organization
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.nulls.shouldBeNull
@@ -31,46 +31,46 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 
-import org.eclipse.apoapsis.ortserver.components.secrets.CreateSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.PostSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class PostSecretForRepositoryIntegrationTest : SecretsIntegrationTest({
-    var repoId = 0L
+class PostOrganizationSecretIntegrationTest : SecretsIntegrationTest({
+    var orgId = 0L
 
     beforeEach {
-        repoId = dbExtension.fixtures.repository.id
+        orgId = dbExtension.fixtures.organization.id
     }
 
-    "PostSecretForRepository" should {
+    "PostOrganizationSecret" should {
         "create a secret in the database" {
             secretsTestApplication { client ->
-                val secret = CreateSecret("name", "value", "description")
+                val secret = PostSecret("name", "value", "description")
 
-                val response = client.post("/repositories/$repoId/secrets") {
+                val response = client.post("/organizations/$orgId/secrets") {
                     setBody(secret)
                 }
 
                 response shouldHaveStatus HttpStatusCode.Created
                 response shouldHaveBody Secret(secret.name, secret.description)
 
-                secretRepository.getByIdAndName(RepositoryId(repoId), secret.name)?.mapToApi() shouldBe
+                secretRepository.getByIdAndName(OrganizationId(orgId), secret.name)?.mapToApi() shouldBe
                         Secret(secret.name, secret.description)
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path("repository_${repoId}_${secret.name}"))?.value shouldBe "value"
+                provider.readSecret(Path("organization_${orgId}_${secret.name}"))?.value shouldBe "value"
             }
         }
 
-        "respond with CONFLICT if the secret already exists" {
+        "respond with 'Conflict' if the secret already exists" {
             secretsTestApplication { client ->
                 install(StatusPages) {
                     // TODO: This should use the same config as in core.
@@ -83,13 +83,13 @@ class PostSecretForRepositoryIntegrationTest : SecretsIntegrationTest({
                     }
                 }
 
-                val secret = CreateSecret("name", "value", "description")
+                val secret = PostSecret("name", "value", "description")
 
-                client.post("/repositories/$repoId/secrets") {
+                client.post("/organizations/$orgId/secrets") {
                     setBody(secret)
                 } shouldHaveStatus HttpStatusCode.Created
 
-                client.post("/repositories/$repoId/secrets") {
+                client.post("/organizations/$orgId/secrets") {
                     setBody(secret)
                 } shouldHaveStatus HttpStatusCode.Conflict
             }
@@ -108,9 +108,9 @@ class PostSecretForRepositoryIntegrationTest : SecretsIntegrationTest({
                     }
                 }
 
-                val secret = CreateSecret(" secret_28! ", "value", "description")
+                val secret = PostSecret(" New secret 6!", "value", "description")
 
-                val response = client.post("/repositories/$repoId/secrets") {
+                val response = client.post("/organizations/$orgId/secrets") {
                     setBody(secret)
                 }
 
@@ -118,12 +118,12 @@ class PostSecretForRepositoryIntegrationTest : SecretsIntegrationTest({
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for CreateSecret"
+                body.cause shouldContain "Validation failed for PostSecret"
 
-                secretRepository.getByIdAndName(RepositoryId(repoId), secret.name)?.mapToApi().shouldBeNull()
+                secretRepository.getByIdAndName(OrganizationId(orgId), secret.name)?.mapToApi().shouldBeNull()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
-                provider.readSecret(Path("repository_${repoId}_${secret.name}"))?.value.shouldBeNull()
+                provider.readSecret(Path("organization_${orgId}_${secret.name}"))?.value.shouldBeNull()
             }
         }
     }

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.organization
+package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
 
 import io.github.smiley4.ktoropenapi.get
 
@@ -25,12 +25,12 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Secret as ModelSecret
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
@@ -43,26 +43,24 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
 
-internal fun Route.getSecretsByOrganizationId(secretService: SecretService) =
-    get("/organizations/{organizationId}/secrets", {
-        operationId = "GetSecretsByOrganizationId"
-        summary = "Get all secrets of an organization"
-        tags = listOf("Organizations")
+internal fun Route.getProductSecrets(secretService: SecretService) =
+    get("/products/{productId}/secrets", {
+        operationId = "getProductSecrets"
+        summary = "Get all secrets of a specific product"
+        tags = listOf("Products")
 
         request {
-            pathParameter<Long>("organizationId") {
-                description = "The ID of an organization."
+            pathParameter<Long>("productId") {
+                description = "The ID of a product."
             }
-
             standardListQueryParameters()
         }
 
         response {
             HttpStatusCode.OK to {
                 description = "Success"
-
                 jsonBody<PagedResponse<Secret>> {
-                    example("Get all secrets of an organization") {
+                    example("List all secrets of a product") {
                         value = PagedResponse(
                             listOf(
                                 Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1"),
@@ -80,14 +78,14 @@ internal fun Route.getSecretsByOrganizationId(secretService: SecretService) =
             }
         }
     }) {
-        requirePermission(OrganizationPermission.READ)
+        requirePermission(ProductPermission.READ)
 
-        val orgId = call.requireIdParameter("organizationId")
+        val productId = ProductId(call.requireIdParameter("productId"))
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 
-        val secretsForOrganization = secretService.listForId(OrganizationId(orgId), pagingOptions.mapToModel())
+        val secretsForProduct = secretService.listForId(productId, pagingOptions.mapToModel())
 
-        val pagedResponse = secretsForOrganization.mapToApi(ModelSecret::mapToApi)
+        val pagedResponse = secretsForProduct.mapToApi(ModelSecret::mapToApi)
 
         call.respond(HttpStatusCode.OK, pagedResponse)
     }

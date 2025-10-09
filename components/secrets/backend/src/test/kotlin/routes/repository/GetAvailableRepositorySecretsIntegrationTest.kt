@@ -34,7 +34,7 @@ import org.eclipse.apoapsis.ortserver.components.secrets.routes.createOrganizati
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.createProductSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.createRepositorySecret
 
-class GetAvailableSecretsByRepositoryIdIntegrationTest : SecretsIntegrationTest({
+class GetAvailableRepositorySecretsIntegrationTest : SecretsIntegrationTest({
     var organizationId = 0L
     var productId = 0L
     var repoId = 0L
@@ -45,7 +45,7 @@ class GetAvailableSecretsByRepositoryIdIntegrationTest : SecretsIntegrationTest(
         repoId = dbExtension.fixtures.repository.id
     }
 
-    "GetAvailableSecretsByRepositoryId" should {
+    "GetAvailableRepositorySecrets" should {
         "return all secrets from the hierarchy" {
             secretsTestApplication { client ->
                 val secret1 =
