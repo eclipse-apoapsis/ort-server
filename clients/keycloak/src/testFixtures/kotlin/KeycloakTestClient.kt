@@ -43,7 +43,6 @@ class KeycloakTestClient(
     private val roles: MutableSet<Role> = mutableSetOf(),
     private val roleComposites: MutableMap<RoleId, Set<RoleId>> = mutableMapOf(),
     private val users: MutableSet<User> = mutableSetOf(),
-    private val userClientRoles: MutableMap<UserId, Set<RoleId>> = mutableMapOf(),
     private val userGroups: MutableMap<UserId, Set<GroupId>> = mutableMapOf()
 
 ) : KeycloakClient {
@@ -161,7 +160,6 @@ class KeycloakTestClient(
         if (users.any { it.username == username }) throw KeycloakClientException("")
         val id = getNextUserId()
         users += User(id, username, firstName, lastName, email)
-        userClientRoles[id] = emptySet()
         if (password != null) credentials.getOrPut(id) { mutableListOf() } += UserCredentials("", "", 0, "")
     }
 
@@ -188,11 +186,10 @@ class KeycloakTestClient(
     override suspend fun deleteUser(id: UserId) {
         val user = getUser(id)
         users -= user
-        userClientRoles -= id
     }
 
     override suspend fun getUserClientRoles(id: UserId) =
-        userClientRoles[id]?.flatMapTo(mutableSetOf()) { getCompositeRolesRecursive(it) + getRole(it) }
+        userGroups[id]?.flatMapTo(mutableSetOf()) { group -> getGroupClientRoles(group) }
             ?: throw KeycloakClientException("")
 
     override suspend fun addUserToGroup(username: UserName, groupName: GroupName) {
