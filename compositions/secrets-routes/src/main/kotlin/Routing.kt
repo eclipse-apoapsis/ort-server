@@ -23,15 +23,15 @@ import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
-import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes.deleteSecretByOrganizationIdAndName
-import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes.deleteSecretByProductIdAndName
-import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes.deleteSecretByRepositoryIdAndName
+import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes.deleteOrganizationSecret
+import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes.deleteProductSecret
+import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes.deleteRepositorySecret
 
 fun Route.secretsCompositionRoutes(
     infrastructureServiceService: InfrastructureServiceService,
     secretService: SecretService
 ) {
-    deleteSecretByOrganizationIdAndName(infrastructureServiceService, secretService)
-    deleteSecretByProductIdAndName(infrastructureServiceService, secretService)
-    deleteSecretByRepositoryIdAndName(infrastructureServiceService, secretService)
+    deleteOrganizationSecret(infrastructureServiceService, secretService)
+    deleteProductSecret(infrastructureServiceService, secretService)
+    deleteRepositorySecret(infrastructureServiceService, secretService)
 }

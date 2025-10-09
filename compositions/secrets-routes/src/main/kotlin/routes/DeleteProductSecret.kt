@@ -34,11 +34,11 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
-internal fun Route.deleteSecretByProductIdAndName(
+internal fun Route.deleteProductSecret(
     infrastructureServiceService: InfrastructureServiceService,
     secretService: SecretService
 ) = delete("/products/{productId}/secrets/{secretName}", {
-    operationId = "DeleteSecretByProductIdAndName"
+    operationId = "deleteProductSecret"
     summary = "Delete a secret from a product"
     tags = listOf("Products")
 

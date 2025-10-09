@@ -56,7 +56,7 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
         )
     }
 
-    "DeleteSecretByOrganizationIdAndName" should {
+    "DeleteOrganizationSecret" should {
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },
@@ -68,7 +68,7 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "DeleteSecretByProductIdAndName" should {
+    "DeleteProductSecret" should {
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },
@@ -80,7 +80,7 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "DeleteSecretByRepositoryIdAndName" should {
+    "DeleteRepositorySecret" should {
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },

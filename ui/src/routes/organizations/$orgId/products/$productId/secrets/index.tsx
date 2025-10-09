@@ -35,7 +35,7 @@ import z from 'zod';
 
 import { Secret } from '@/api';
 import {
-  deleteSecretByProductIdAndNameMutation,
+  deleteProductSecretMutation,
   getOrganizationOptions,
   getOrganizationSecretsOptions,
   getProductOptions,
@@ -82,7 +82,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   });
 
   const { mutateAsync: deleteSecret } = useMutation({
-    ...deleteSecretByProductIdAndNameMutation(),
+    ...deleteProductSecretMutation(),
     onSuccess() {
       toast.info('Delete Secret', {
         description: `Secret "${row.original.name}" deleted successfully.`,

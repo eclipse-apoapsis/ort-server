@@ -25,27 +25,28 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
-internal fun Route.deleteSecretByRepositoryIdAndName(
+internal fun Route.deleteOrganizationSecret(
     infrastructureServiceService: InfrastructureServiceService,
     secretService: SecretService
-) = delete("/repositories/{repositoryId}/secrets/{secretName}", {
-    operationId = "DeleteSecretByRepositoryIdAndName"
-    summary = "Delete a secret from a repository"
-    tags = listOf("Repositories")
+) = delete("/organizations/{organizationId}/secrets/{secretName}", {
+    operationId = "deleteOrganizationSecret"
+    summary = "Delete a secret from an organization"
+    tags = listOf("Organizations")
 
     request {
-        pathParameter<Long>("repositoryId") {
-            description = "The repository's ID."
+        pathParameter<Long>("organizationId") {
+            description = "The organization's ID."
         }
+
         pathParameter<String>("secretName") {
             description = "The secret's name."
         }
@@ -57,12 +58,12 @@ internal fun Route.deleteSecretByRepositoryIdAndName(
         }
     }
 }) {
-    requirePermission(RepositoryPermission.WRITE_SECRETS)
+    requirePermission(OrganizationPermission.WRITE_SECRETS)
 
-    val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
+    val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
     val secretName = call.requireParameter("secretName")
 
-    val secret = secretService.getSecret(repositoryId, secretName)
+    val secret = secretService.getSecret(organizationId, secretName)
 
     if (secret == null) {
         call.respond(HttpStatusCode.NotFound)
@@ -80,7 +81,7 @@ internal fun Route.deleteSecretByRepositoryIdAndName(
         return@delete
     }
 
-    secretService.deleteSecret(repositoryId, secretName)
+    secretService.deleteSecret(organizationId, secretName)
 
     call.respond(HttpStatusCode.NoContent)
 }
