@@ -67,6 +67,7 @@ class LogsCommand : SuspendingCliktCommand() {
         envvar = "OSC_DOWNLOAD_LOGS_LEVEL",
         help = "The log level of the logs to download, one of ${LogLevel.entries.joinToString(", ")}."
     ).enum<LogLevel>()
+        .default(LogLevel.INFO)
 
     private val steps by option(
         "--steps",
@@ -94,11 +95,10 @@ class LogsCommand : SuspendingCliktCommand() {
         } ?: throw ProgramResult(1)
 
         outputDir.mkdirs()
-        val resolvedLogLevel = level ?: LogLevel.INFO
-        val outputFile = outputDir.resolve("run-$resolvedOrtRunId-$resolvedLogLevel.logs.zip")
+        val outputFile = outputDir.resolve("run-$resolvedOrtRunId-$level.logs.zip")
 
         try {
-            client.runs.downloadLogs(resolvedOrtRunId, resolvedLogLevel, steps) { outputFile.writeFromChannel(it) }
+            client.runs.downloadLogs(resolvedOrtRunId, level, steps) { outputFile.writeFromChannel(it) }
 
             echoMessage(outputFile.toString())
         } catch (e: NotFoundException) {
