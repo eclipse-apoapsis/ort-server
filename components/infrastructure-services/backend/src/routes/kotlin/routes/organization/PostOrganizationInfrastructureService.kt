@@ -28,8 +28,8 @@ import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PostInfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
@@ -37,10 +37,10 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
-internal fun Route.postInfrastructureServiceForOrganization(
+internal fun Route.postOrganizationInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
 ) = post("/organizations/{organizationId}/infrastructure-services", {
-    operationId = "PostInfrastructureServiceForOrganization"
+    operationId = "postOrganizationInfrastructureService"
     summary = "Create an infrastructure service for an organization"
     tags = listOf("Organizations")
 
@@ -48,9 +48,9 @@ internal fun Route.postInfrastructureServiceForOrganization(
         pathParameter<Long>("organizationId") {
             description = "The organization's ID."
         }
-        jsonBody<CreateInfrastructureService> {
+        jsonBody<PostInfrastructureService> {
             example("Create infrastructure service") {
-                value = CreateInfrastructureService(
+                value = PostInfrastructureService(
                     name = "Artifactory",
                     url = "https://artifactory.example.org/releases",
                     description = "Artifactory repository",
@@ -81,7 +81,7 @@ internal fun Route.postInfrastructureServiceForOrganization(
     requirePermission(OrganizationPermission.WRITE)
 
     val organizationId = call.requireIdParameter("organizationId")
-    val createService = call.receive<CreateInfrastructureService>()
+    val createService = call.receive<PostInfrastructureService>()
 
     val newService = infrastructureServiceService.createForId(
         OrganizationId(organizationId),

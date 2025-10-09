@@ -29,9 +29,9 @@ import { EditIcon, PlusIcon } from 'lucide-react';
 
 import { InfrastructureService } from '@/api';
 import {
-  deleteInfrastructureServiceForOrganizationIdAndNameMutation,
-  getInfrastructureServicesByOrganizationIdOptions,
-  getInfrastructureServicesByOrganizationIdQueryKey,
+  deleteOrganizationInfrastructureServiceMutation,
+  getOrganizationInfrastructureServicesOptions,
+  getOrganizationInfrastructureServicesQueryKey,
   getOrganizationOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { DataTable } from '@/components/data-table/data-table';
@@ -65,13 +65,13 @@ const ActionCell = ({ row }: CellContext<InfrastructureService, unknown>) => {
   const queryClient = useQueryClient();
 
   const { mutateAsync: delService } = useMutation({
-    ...deleteInfrastructureServiceForOrganizationIdAndNameMutation(),
+    ...deleteOrganizationInfrastructureServiceMutation(),
     onSuccess() {
       toast.info('Delete Infrastructure Service', {
         description: `Infrastructure service "${row.original.name}" deleted successfully.`,
       });
       queryClient.invalidateQueries({
-        queryKey: getInfrastructureServicesByOrganizationIdQueryKey({
+        queryKey: getOrganizationInfrastructureServicesQueryKey({
           path: { organizationId: Number.parseInt(params.orgId) },
         }),
       });
@@ -143,7 +143,7 @@ const InfrastructureServices = () => {
     isPending: infraIsPending,
     isError: infraIsError,
   } = useQuery({
-    ...getInfrastructureServicesByOrganizationIdOptions({
+    ...getOrganizationInfrastructureServicesOptions({
       path: { organizationId: Number.parseInt(params.orgId) },
       query: { limit: pageSize, offset: pageIndex * pageSize },
     }),
@@ -300,7 +300,7 @@ export const Route = createFileRoute(
         }),
       }),
       queryClient.prefetchQuery({
-        ...getInfrastructureServicesByOrganizationIdOptions({
+        ...getOrganizationInfrastructureServicesOptions({
           path: { organizationId: Number.parseInt(params.orgId) },
           query: {
             limit: pageSize || defaultPageSize,

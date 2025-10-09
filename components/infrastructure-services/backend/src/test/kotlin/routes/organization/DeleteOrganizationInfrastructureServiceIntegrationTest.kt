@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.beEmpty
@@ -27,26 +27,26 @@ import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServicesIntegrationTest
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 
-class DeleteInfrastructureServiceForRepositoryIdAndNameIntegrationTest : InfrastructureServicesIntegrationTest({
-    "DeleteInfrastructureServiceForRepositoryIdAndName" should {
+class DeleteOrganizationInfrastructureServiceIntegrationTest : InfrastructureServicesIntegrationTest({
+    "DeleteOrganizationInfrastructureService" should {
         "delete an infrastructure service" {
             infrastructureServicesTestApplication { client ->
                 val service = infrastructureServiceService.createForId(
-                    RepositoryId(repoId),
+                    OrganizationId(orgId),
                     "deleteService",
                     "http://repo1.example.org/obsolete",
                     "good bye, cruel world",
-                    repoUserSecret,
-                    repoPassSecret,
+                    orgUserSecret,
+                    orgPassSecret,
                     emptySet()
                 )
 
-                val response = client.delete("/repositories/$repoId/infrastructure-services/${service.name}")
+                val response = client.delete("/organizations/$orgId/infrastructure-services/${service.name}")
 
                 response shouldHaveStatus HttpStatusCode.NoContent
-                infrastructureServiceService.listForId(RepositoryId(repoId)).data should beEmpty()
+                infrastructureServiceService.listForId(OrganizationId(orgId)).data should beEmpty()
             }
         }
     }

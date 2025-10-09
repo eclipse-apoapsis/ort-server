@@ -24,7 +24,7 @@ import io.ktor.server.plugins.requestvalidation.RequestValidationConfig
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.mapValidationResult
 
 fun RequestValidationConfig.infrastructureServicesValidations() {
-    validate<CreateInfrastructureService> { create ->
-        mapValidationResult(CreateInfrastructureService.validate(create))
+    validate<PostInfrastructureService> { create ->
+        mapValidationResult(PostInfrastructureService.validate(create))
     }
 }

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 
@@ -25,37 +25,34 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServicesIntegrationTest
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class GetInfrastructureServiceForOrganizationIdAndNameIntegrationTest : InfrastructureServicesIntegrationTest({
-    "GetInfrastructureServiceForOrganizationIdAndName" should {
+class GetRepositoryInfrastructureServiceIntegrationTest : InfrastructureServicesIntegrationTest({
+    "GetRepositoryInfrastructureService" should {
         "return an infrastructure service" {
             infrastructureServicesTestApplication { client ->
                 val service = infrastructureServiceService.createForId(
-                    OrganizationId(orgId),
+                    RepositoryId(repoId),
                     "testRepository",
                     "http://repo.example.org/test",
                     "test repo description",
-                    orgUserSecret,
-                    orgPassSecret,
+                    repoUserSecret,
+                    repoPassSecret,
                     emptySet()
                 )
 
-                val response = client.get(
-                    "/organizations/$orgId/infrastructure-services/${service.name}"
-                )
+                val response = client.get("/repositories/$repoId/infrastructure-services/${service.name}")
 
                 response shouldHaveStatus HttpStatusCode.OK
-
                 response shouldHaveBody service.mapToApi()
             }
         }
 
         "respond with 'NotFound' if no infrastructure service exists" {
             infrastructureServicesTestApplication { client ->
-                val response = client.get("/organizations/$orgId/infrastructure-services/not-existing-service")
+                val response = client.get("/repositories/$repoId/infrastructure-services/not-existing-service")
 
                 response shouldHaveStatus HttpStatusCode.NotFound
             }

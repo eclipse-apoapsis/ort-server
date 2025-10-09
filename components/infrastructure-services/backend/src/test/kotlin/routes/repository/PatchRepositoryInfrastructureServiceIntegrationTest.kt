@@ -30,7 +30,7 @@ import io.ktor.http.HttpStatusCode
 import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServicesIntegrationTest
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.UpdateInfrastructureService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PatchInfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType
@@ -38,8 +38,8 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class PatchInfrastructureServiceForRepositoryIdAndNameIntegrationTest : InfrastructureServicesIntegrationTest({
-    "PatchInfrastructureServiceForRepositoryIdAndName" should {
+class PatchRepositoryInfrastructureServiceIntegrationTest : InfrastructureServicesIntegrationTest({
+    "PatchRepositoryInfrastructureService" should {
         "update an infrastructure service" {
             infrastructureServicesTestApplication { client ->
                 val service = infrastructureServiceService.createForId(
@@ -53,7 +53,7 @@ class PatchInfrastructureServiceForRepositoryIdAndNameIntegrationTest : Infrastr
                 )
 
                 val newUrl = "https://repo2.example.org/test2"
-                val updateService = UpdateInfrastructureService(
+                val updateService = PatchInfrastructureService(
                     description = null.asPresent(),
                     url = newUrl.asPresent(),
                     credentialsTypes = EnumSet.of(

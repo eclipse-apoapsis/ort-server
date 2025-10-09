@@ -28,9 +28,9 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.UpdateInfrastructureService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PatchInfrastructureService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PostInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesRoutes
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
@@ -59,7 +59,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         )
     }
 
-    "DeleteInfrastructureServiceForOrganizationIdAndName" should {
+    "DeleteOrganizationInfrastructureService" should {
         "require OrganizationPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -71,7 +71,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "GetInfrastructuresServiceForOrganizationIdAndName" should {
+    "GetOrganizationInfrastructureService" should {
         "require OrganizationPermission.READ" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -83,7 +83,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "GetInfrastructureServicesByOrganizationId" should {
+    "GetOrganizationInfrastructureServices" should {
         "require OrganizationPermission.READ" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -94,7 +94,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "PatchInfrastructureServiceForOrganizationIdAndName" should {
+    "PatchOrganizationInfrastructureService" should {
         "require OrganizationPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -103,7 +103,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
             ) {
                 patch("/organizations/$orgId/infrastructure-services/name") {
                     setBody(
-                        UpdateInfrastructureService(
+                        PatchInfrastructureService(
                             description = null.asPresent(),
                             url = "https://repo2.example.org/test2".asPresent()
                         )
@@ -113,7 +113,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "PostInfrastructureServiceForOrganization" should {
+    "PostOrganizationInfrastructureService" should {
         "require OrganizationPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -122,7 +122,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
             ) {
                 post("/organizations/$orgId/infrastructure-services") {
                     setBody(
-                        CreateInfrastructureService(
+                        PostInfrastructureService(
                             "testRepository",
                             "https://repo.example.org/test",
                             "test description",
@@ -135,7 +135,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "DeleteInfrastructureServiceForRepositoryIdAndName" should {
+    "DeleteRepositoryInfrastructureService" should {
         "require RepositoryPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -147,7 +147,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "GetInfrastructureServiceForRepositoryIdAndName" should {
+    "GetRepositoryInfrastructureService" should {
         "require RepositoryPermission.READ" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -159,7 +159,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "GetInfrastructureServicesByRepositoryId" should {
+    "GetRepositoryInfrastructureServices" should {
         "require RepositoryPermission.READ" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -170,7 +170,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "PatchInfrastructureServiceForRepositoryIdAndName" should {
+    "PatchRepositoryInfrastructureService" should {
         "require RepositoryPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -179,7 +179,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
             ) {
                 patch("/repositories/$repoId/infrastructure-services/name") {
                     setBody(
-                        UpdateInfrastructureService(
+                        PatchInfrastructureService(
                             description = null.asPresent(),
                             url = "https://repo2.example.org/test2".asPresent()
                         )
@@ -189,7 +189,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         }
     }
 
-    "PostInfrastructureServiceForRepository" should {
+    "PostRepositoryInfrastructureService" should {
         "require RepositoryPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
@@ -198,7 +198,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
             ) {
                 post("/repositories/$repoId/infrastructure-services") {
                     setBody(
-                        CreateInfrastructureService(
+                        PostInfrastructureService(
                             "testRepository",
                             "https://repo.example.org/test",
                             "test description",

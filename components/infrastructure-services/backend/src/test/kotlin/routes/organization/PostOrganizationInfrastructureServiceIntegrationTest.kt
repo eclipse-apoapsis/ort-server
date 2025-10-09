@@ -32,9 +32,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.CreateInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServicesIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InvalidSecretReferenceException
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PostInfrastructureService
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
@@ -44,11 +44,11 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class PostInfrastructureServiceForOrganizationIntegrationTest : InfrastructureServicesIntegrationTest({
-    "PostInfrastructureServiceForOrganization" should {
+class PostOrganizationInfrastructureServiceIntegrationTest : InfrastructureServicesIntegrationTest({
+    "PostOrganizationInfrastructureService" should {
         "create an infrastructure service" {
             infrastructureServicesTestApplication { client ->
-                val createInfrastructureService = CreateInfrastructureService(
+                val createInfrastructureService = PostInfrastructureService(
                     "testRepository",
                     "https://repo.example.org/test",
                     "test description",
@@ -103,7 +103,7 @@ class PostInfrastructureServiceForOrganizationIntegrationTest : InfrastructureSe
                     }
                 }
 
-                val createInfrastructureService = CreateInfrastructureService(
+                val createInfrastructureService = PostInfrastructureService(
                     "testRepository",
                     "https://repo.example.org/test",
                     "test description",
@@ -133,7 +133,7 @@ class PostInfrastructureServiceForOrganizationIntegrationTest : InfrastructureSe
                     }
                 }
 
-                val createInfrastructureService = CreateInfrastructureService(
+                val createInfrastructureService = PostInfrastructureService(
                     " testRepository 15?!",
                     "https://repo.example.org/test",
                     "test description",
@@ -149,7 +149,7 @@ class PostInfrastructureServiceForOrganizationIntegrationTest : InfrastructureSe
 
                 val body = response.body<ErrorResponse>()
                 body.message shouldBe "Request validation has failed."
-                body.cause shouldContain "Validation failed for CreateInfrastructureService"
+                body.cause shouldContain "Validation failed for PostInfrastructureService"
 
                 infrastructureServiceService.getForId(
                     OrganizationId(orgId),
@@ -181,7 +181,7 @@ class PostInfrastructureServiceForOrganizationIntegrationTest : InfrastructureSe
                     emptySet()
                 )
 
-                val createInfrastructureService = CreateInfrastructureService(
+                val createInfrastructureService = PostInfrastructureService(
                     createdInfrastructureService.name,
                     createdInfrastructureService.url,
                     "test repo description",

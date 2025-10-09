@@ -25,9 +25,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getInfrastructureServicesByOrganizationIdAndNameOptions,
+  getOrganizationInfrastructureServiceOptions,
   getSecretsByOrganizationIdOptions,
-  patchInfrastructureServiceForOrganizationIdAndNameMutation,
+  patchOrganizationInfrastructureServiceMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -85,7 +85,7 @@ const EditInfrastructureServicePage = () => {
   });
 
   const { data: service } = useSuspenseQuery({
-    ...getInfrastructureServicesByOrganizationIdAndNameOptions({
+    ...getOrganizationInfrastructureServiceOptions({
       path: {
         organizationId: Number.parseInt(params.orgId),
         serviceName: params.serviceName,
@@ -94,7 +94,7 @@ const EditInfrastructureServicePage = () => {
   });
 
   const { mutateAsync, isPending } = useMutation({
-    ...patchInfrastructureServiceForOrganizationIdAndNameMutation(),
+    ...patchOrganizationInfrastructureServiceMutation(),
     onSuccess(data) {
       toast.info('Edit Infrastructure Service', {
         description: `Infrastructure service "${data.name}" has been updated successfully.`,
@@ -343,7 +343,7 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.ensureQueryData({
-      ...getInfrastructureServicesByOrganizationIdAndNameOptions({
+      ...getOrganizationInfrastructureServiceOptions({
         path: {
           organizationId: Number.parseInt(params.orgId),
           serviceName: params.serviceName,

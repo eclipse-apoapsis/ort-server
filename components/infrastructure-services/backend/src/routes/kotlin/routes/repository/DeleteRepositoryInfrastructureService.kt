@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
 
 import io.github.smiley4.ktoropenapi.delete
 
@@ -25,23 +25,23 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.deleteInfrastructureServiceForOrganizationIdAndName(
+internal fun Route.deleteRepositoryInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
-) = delete("/organizations/{organizationId}/infrastructure-services/{serviceName}", {
-    operationId = "DeleteInfrastructureServiceForOrganizationIdAndName"
-    summary = "Delete an infrastructure service from an organization"
-    tags = listOf("Organizations")
+) = delete("/repositories/{repositoryId}/infrastructure-services/{serviceName}", {
+    operationId = "deleteRepositoryInfrastructureService"
+    summary = "Delete an infrastructure service from a repository"
+    tags = listOf("Repositories")
 
     request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
         }
         pathParameter<String>("serviceName") {
             description = "The name of the infrastructure service."
@@ -54,12 +54,12 @@ internal fun Route.deleteInfrastructureServiceForOrganizationIdAndName(
         }
     }
 }) {
-    requirePermission(OrganizationPermission.WRITE)
+    requirePermission(RepositoryPermission.WRITE)
 
-    val orgId = call.requireIdParameter("organizationId")
+    val repositoryId = call.requireIdParameter("repositoryId")
     val serviceName = call.requireParameter("serviceName")
 
-    infrastructureServiceService.deleteForId(OrganizationId(orgId), serviceName)
+    infrastructureServiceService.deleteForId(RepositoryId(repositoryId), serviceName)
 
     call.respond(HttpStatusCode.NoContent)
 }
