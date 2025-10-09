@@ -237,13 +237,14 @@ class KeycloakTestClient(
 
     private fun getRole(id: RoleId) = roles.find { it.id == id } ?: throw KeycloakClientException("")
 
-    private fun getCompositeRolesRecursive(id: RoleId, visited: Set<RoleId> = emptySet()): Set<Role> {
+    private fun getCompositeRolesRecursive(id: RoleId, visited: MutableSet<RoleId> = mutableSetOf()): Set<Role> {
         if (id in visited) return emptySet()
+        visited += id
         val compositeRoles = roleComposites[id] ?: throw KeycloakClientException("")
         return buildSet {
             addAll(compositeRoles.map { getRole(it) })
             compositeRoles.forEach {
-                addAll(getCompositeRolesRecursive(it, visited + it))
+                addAll(getCompositeRolesRecursive(it, visited))
             }
         }
     }
