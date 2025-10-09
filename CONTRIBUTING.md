@@ -100,10 +100,6 @@ feat(api): Change the API to use a different format
 BREAKING CHANGE: The API now uses a different format.
 ```
 
-> [!CAUTION]
-> Before the 1.0.0 release, breaking changes can occur at any time and should not be marked as such in the commit message.
-> Otherwise, they would change the major version from 0 to 1 which is not intended before the 1.0.0 release (see [Semantic versioning](#semantic-versioning)).
-
 #### Body
 
 The body of the commit message should contain a more detailed description of the change.
