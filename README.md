@@ -46,7 +46,7 @@ See the [documentation](https://eclipse-apoapsis.github.io/ort-server/docs/admin
 ## Publish Docker Images
 
 To publish the Docker images to a registry, first build the worker base images as described in the
-[documentation](http://eclipse-apoapsis.github.io/ort-server/docs/getting-started/docker-compose#running-with-local-images).
+[documentation](https://eclipse-apoapsis.github.io/ort-server/docs/admin-guide/getting-started/docker-compose/#run-with-local-images).
 Then you can use the `jib` task to publish the images by setting the correct prefix for the registry.
 You can also configure the tag which defaults to `latest`.
 
