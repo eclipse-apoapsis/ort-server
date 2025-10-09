@@ -418,7 +418,9 @@ fun Package.mapToOrt() =
         vcs = vcs.mapToOrt(),
         vcsProcessed = vcsProcessed.mapToOrt(),
         isMetadataOnly = isMetadataOnly,
-        isModified = isModified
+        isModified = isModified,
+        sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToOrt() },
+        labels = labels,
     )
 
 fun PackageConfiguration.mapToOrt() =

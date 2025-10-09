@@ -38,7 +38,9 @@ data class Package(
     val isMetadataOnly: Boolean = false,
     val isModified: Boolean = false,
     val shortestDependencyPaths: List<ShortestDependencyPath>,
-    val curations: List<PackageCurationData>
+    val curations: List<PackageCurationData>,
+    val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
+    val labels: Map<String, String> = emptyMap()
 )
 
 /**

@@ -395,7 +395,9 @@ object OrtTestData {
             path = ""
         ),
         isMetadataOnly = true,
-        isModified = true
+        isModified = true,
+        sourceCodeOrigins = listOf(SourceCodeOrigin.VCS),
+        labels = mapOf("key1" to "val1", "key2" to "val2")
     )
 
     val dependencyGraph = DependencyGraph(

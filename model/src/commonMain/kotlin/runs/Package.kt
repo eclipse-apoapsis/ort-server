@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs
 
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.util.FilterOperatorAndValue
 
 data class Package(
@@ -35,7 +36,9 @@ data class Package(
     val vcs: VcsInfo,
     val vcsProcessed: VcsInfo,
     val isMetadataOnly: Boolean = false,
-    val isModified: Boolean = false
+    val isModified: Boolean = false,
+    val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
+    val labels: Map<String, String> = emptyMap()
 )
 
 /**

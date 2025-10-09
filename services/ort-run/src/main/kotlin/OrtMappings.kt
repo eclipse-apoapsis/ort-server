@@ -349,7 +349,8 @@ fun OrtPackage.mapToModel() =
         vcs = vcs.mapToModel(),
         vcsProcessed = vcsProcessed.mapToModel(),
         isMetadataOnly = isMetadataOnly,
-        isModified = isModified
+        isModified = isModified,
+        sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToModel() }
     )
 
 fun OrtPackageConfiguration.mapToModel() = PackageConfiguration(

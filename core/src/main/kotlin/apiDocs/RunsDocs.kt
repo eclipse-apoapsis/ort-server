@@ -467,6 +467,8 @@ val getRunPackages: RouteConfig.() -> Unit = {
                                 vcsProcessed = VcsInfo(RepositoryType.GIT.name, "url", "revision", "path"),
                                 isMetadataOnly = false,
                                 isModified = false,
+                                sourceCodeOrigins = null,
+                                labels = emptyMap(),
                                 shortestDependencyPaths = listOf(
                                     ShortestDependencyPath(
                                         scope = "productionRuntimeClasspath",
