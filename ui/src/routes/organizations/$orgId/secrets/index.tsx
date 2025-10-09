@@ -34,7 +34,7 @@ import { EditIcon, PlusIcon } from 'lucide-react';
 
 import { Secret } from '@/api';
 import {
-  deleteSecretByOrganizationIdAndNameMutation,
+  deleteOrganizationSecretMutation,
   getOrganizationOptions,
   getOrganizationSecretsOptions,
   getOrganizationSecretsQueryKey,
@@ -76,7 +76,7 @@ const ActionCell = ({ row }: CellContext<Secret, unknown>) => {
   });
 
   const { mutateAsync: delSecret } = useMutation({
-    ...deleteSecretByOrganizationIdAndNameMutation(),
+    ...deleteOrganizationSecretMutation(),
     onSuccess() {
       toast.info('Delete Secret', {
         description: `Secret "${row.original.name}" deleted successfully.`,

@@ -39,14 +39,14 @@ import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 
-class DeleteSecretByRepositoryIdAndNameIntegrationTest : SecretsRoutesIntegrationTest({
+class DeleteRepositorySecretIntegrationTest : SecretsRoutesIntegrationTest({
     var repoId = 0L
 
     beforeEach {
         repoId = dbExtension.fixtures.repository.id
     }
 
-    "DeleteSecretByRepositoryIdAndName" should {
+    "DeleteRepositorySecret" should {
         "delete a secret" {
             secretsRoutesTestApplication { client ->
                 val secret = secretRepository.createRepositorySecret(repoId)

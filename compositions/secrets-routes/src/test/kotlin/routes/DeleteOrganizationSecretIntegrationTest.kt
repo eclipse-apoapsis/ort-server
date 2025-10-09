@@ -33,43 +33,41 @@ import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.SecretsRoutesIntegrationTest
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.apimodel.ErrorResponse
 
-class DeleteSecretByProductIdAndNameIntegrationTest : SecretsRoutesIntegrationTest({
-    var prodId = 0L
-
-    val secretErrorPath = "error-path"
+class DeleteOrganizationSecretIntegrationTest : SecretsRoutesIntegrationTest({
+    var orgId = 0L
 
     beforeEach {
-        prodId = dbExtension.fixtures.product.id
+        orgId = dbExtension.fixtures.organization.id
     }
 
-    "DeleteSecretByProductIdAndName" should {
+    "DeleteOrganizationSecret" should {
         "delete a secret" {
             secretsRoutesTestApplication { client ->
-                val secret = secretRepository.createProductSecret(prodId)
+                val secret = secretRepository.createOrganizationSecret(orgId)
 
-                client.delete("/products/$prodId/secrets/${secret.name}") shouldHaveStatus
+                client.delete("/organizations/$orgId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.NoContent
 
-                secretRepository.listForId(ProductId(prodId)).data shouldBe emptyList()
+                secretRepository.listForId(OrganizationId(orgId)).data shouldBe emptyList()
 
                 val provider = SecretsProviderFactoryForTesting.instance()
                 provider.readSecret(Path(secret.path)) should beNull()
             }
         }
 
-        "respond with Conflict when secret is in use" {
+        "respond with 'Conflict' when secret is in use" {
             secretsRoutesTestApplication { client ->
-                val userSecret = secretRepository.createProductSecret(prodId, path = "user", name = "user").name
-                val passSecret = secretRepository.createProductSecret(prodId, path = "pass", name = "pass").name
+                val userSecret = secretRepository.createOrganizationSecret(orgId, path = "user", name = "user").name
+                val passSecret = secretRepository.createOrganizationSecret(orgId, path = "pass", name = "pass").name
 
                 val service = infrastructureServiceService.createForId(
-                    ProductId(prodId),
+                    OrganizationId(orgId),
                     name = "testService",
                     url = "http://repo1.example.org/obsolete",
                     description = "good bye, cruel world",
@@ -78,7 +76,7 @@ class DeleteSecretByProductIdAndNameIntegrationTest : SecretsRoutesIntegrationTe
                     credentialsTypes = EnumSet.of(CredentialsType.NETRC_FILE)
                 )
 
-                val response = client.delete("/products/$prodId/secrets/$userSecret")
+                val response = client.delete("/organizations/$orgId/secrets/$userSecret")
                 response shouldHaveStatus HttpStatusCode.Conflict
 
                 val body = response.body<ErrorResponse>()
@@ -89,20 +87,20 @@ class DeleteSecretByProductIdAndNameIntegrationTest : SecretsRoutesIntegrationTe
 
         "handle a failure from the SecretStorage" {
             secretsRoutesTestApplication { client ->
-                val secret = secretRepository.createProductSecret(prodId, path = secretErrorPath)
+                val secret = secretRepository.createOrganizationSecret(orgId, path = secretErrorPath)
 
-                client.delete("/products/$prodId/secrets/${secret.name}") shouldHaveStatus
+                client.delete("/organizations/$orgId/secrets/${secret.name}") shouldHaveStatus
                         HttpStatusCode.InternalServerError
 
-                secretRepository.getByIdAndName(ProductId(prodId), secret.name) shouldBe secret
+                secretRepository.getByIdAndName(OrganizationId(orgId), secret.name) shouldBe secret
             }
         }
     }
 })
 
-fun SecretRepository.createProductSecret(
-    prodId: Long,
+fun SecretRepository.createOrganizationSecret(
+    orgId: Long,
     path: String = "path",
     name: String = "name",
     description: String = "description"
-) = create(path, name, description, ProductId(prodId))
+) = create(path, name, description, OrganizationId(orgId))
