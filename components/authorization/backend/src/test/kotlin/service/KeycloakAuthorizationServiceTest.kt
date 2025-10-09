@@ -30,21 +30,16 @@ import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainAll
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
-import org.eclipse.apoapsis.ortserver.clients.keycloak.Role
-import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
-import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestClient
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
@@ -1040,23 +1035,33 @@ class KeycloakAuthorizationServiceTest : WordSpec({
 
     "getUserRoleNames" should {
         "return all roles of the given user" {
-            val userId = UserId("user-id")
-            val expectedRoleNames = listOf("READER_1", "WRITER_2", "ADMIN_3")
-            val keycloakRoles = expectedRoleNames.mapTo(mutableSetOf()) { name ->
-                Role(
-                    id = RoleId("id_$name"),
-                    name = RoleName(name)
-                )
-            }
-
-            val keycloakClient = mockk<KeycloakClient> {
-                coEvery { getUserClientRoles(userId) } returns keycloakRoles
-            }
+            val keycloakClient = KeycloakTestClient()
             val service = createService(keycloakClient)
+            service.createOrganizationPermissions(organizationId)
+            service.createOrganizationRoles(organizationId)
+            service.createProductPermissions(productId)
+            service.createProductRoles(productId)
+            service.createRepositoryPermissions(repositoryId)
+            service.createRepositoryRoles(repositoryId)
 
-            val roleNames = service.getUserRoleNames(userId.value)
+            keycloakClient.createUser(UserName("user"))
+            val user = keycloakClient.getUser(UserName("user"))
 
-            roleNames shouldContainExactly expectedRoleNames
+            service.addUserRole("user", OrganizationId(organizationId), OrganizationRole.READER)
+            service.addUserRole("user", ProductId(productId), ProductRole.WRITER)
+            service.addUserRole("user", RepositoryId(repositoryId), RepositoryRole.ADMIN)
+
+            service.getUserRoleNames(user.id.value) should containExactlyInAnyOrder(
+                OrganizationRole.READER.roleName(organizationId),
+                OrganizationRole.READER.includedProductRole.roleName(productId),
+                OrganizationRole.READER.includedProductRole.includedRepositoryRole.roleName(repositoryId),
+                *OrganizationRole.READER.permissions.map { it.roleName(organizationId) }.toTypedArray(),
+                ProductRole.WRITER.roleName(productId),
+                ProductRole.WRITER.includedRepositoryRole.roleName(repositoryId),
+                *ProductRole.WRITER.permissions.map { it.roleName(productId) }.toTypedArray(),
+                RepositoryRole.ADMIN.roleName(repositoryId),
+                *RepositoryRole.ADMIN.permissions.map { it.roleName(repositoryId) }.toTypedArray()
+            )
         }
     }
 })
