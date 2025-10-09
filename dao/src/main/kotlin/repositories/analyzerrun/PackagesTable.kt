@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun
 
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageLabelDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageLabelsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicenseDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.DeclaredLicensesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
@@ -31,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggColumnEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.ArrayAggTwoColumnsEquals
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.runs.Package
 
 import org.jetbrains.exposed.dao.LongEntity
@@ -56,6 +59,7 @@ object PackagesTable : SortableTable("packages") {
     val homepageUrl = text("homepage_url")
     val isMetadataOnly = bool("is_metadata_only").default(false)
     val isModified = bool("is_modified").default(false)
+    val sourceCodeOrigins = text("source_code_origins").nullable()
 }
 
 class PackageDao(id: EntityID<Long>) : LongEntity(id) {
@@ -89,6 +93,7 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
                 .leftJoin(MappedDeclaredLicensesTable)
                 .leftJoin(ProcessedDeclaredLicensesUnmappedDeclaredLicensesTable)
                 .leftJoin(UnmappedDeclaredLicensesTable)
+                .leftJoin(PackageLabelsTable)
                 .select(PackagesTable.id)
                 .where { PackagesTable.purl eq pkg.purl }
                 .andWhere { PackagesTable.cpe eq pkg.cpe }
@@ -117,6 +122,9 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
                 .andWhere {
                     ProcessedDeclaredLicensesTable.spdxExpression eq pkg.processedDeclaredLicense.spdxExpression
                 }
+                .andWhere {
+                    PackagesTable.sourceCodeOrigins eq pkg.sourceCodeOrigins?.joinToString(",") { it.toString() }
+                }
                 .groupBy(
                     PackagesTable.id,
                     IdentifiersTable.id,
@@ -138,6 +146,13 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
                         MappedDeclaredLicensesTable.declaredLicense,
                         MappedDeclaredLicensesTable.mappedLicense,
                         pkg.processedDeclaredLicense.mappedLicenses
+                    )
+                }
+                .andHaving {
+                    ArrayAggTwoColumnsEquals(
+                        PackageLabelsTable.key,
+                        PackageLabelsTable.value,
+                        pkg.labels
                     )
                 }
 
@@ -167,6 +182,9 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
     val processedDeclaredLicense by ProcessedDeclaredLicenseDao backReferencedOn
             ProcessedDeclaredLicensesTable.packageId
 
+    var sourceCodeOrigins by PackagesTable.sourceCodeOrigins
+    val labels by PackageLabelDao referrersOn PackageLabelsTable.packageId
+
     fun mapToModel() = Package(
         identifier = identifier.mapToModel(),
         purl = purl,
@@ -181,6 +199,11 @@ class PackageDao(id: EntityID<Long>) : LongEntity(id) {
         vcs = vcs.mapToModel(),
         vcsProcessed = vcsProcessed.mapToModel(),
         isMetadataOnly = isMetadataOnly,
-        isModified = isModified
+        isModified = isModified,
+        sourceCodeOrigins = sourceCodeOrigins
+            ?.split(",")
+            ?.filterNot { it.isEmpty() }
+            ?.map { SourceCodeOrigin.valueOf(it) },
+        labels = labels.associate { it.key to it.value }
     )
 }
