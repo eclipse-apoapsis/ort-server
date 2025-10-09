@@ -102,7 +102,11 @@ class KeycloakAuthorizationServiceTest : WordSpec({
         every { list(any()).data } returns listOf(repository)
     }
 
-    fun createService(keycloakClient: KeycloakClient) =
+    /**
+     * Create an instance of [KeycloakAuthorizationService] with the provided [keycloakClient] and
+     * [optionally][createRolesForHierarchy] create the roles for the test hierarchy.
+     */
+    suspend fun createService(keycloakClient: KeycloakClient, createRolesForHierarchy: Boolean = false) =
         KeycloakAuthorizationService(
             keycloakClient,
             mockk(),
@@ -110,7 +114,16 @@ class KeycloakAuthorizationServiceTest : WordSpec({
             productRepository,
             repositoryRepository,
             keycloakGroupPrefix
-        )
+        ).apply {
+            if (createRolesForHierarchy) {
+                createOrganizationPermissions(organizationId)
+                createOrganizationRoles(organizationId)
+                createProductPermissions(productId)
+                createProductRoles(productId)
+                createRepositoryPermissions(repositoryId)
+                createRepositoryRoles(repositoryId)
+            }
+        }
 
     "createOrganizationPermissions" should {
         "create the correct Keycloak roles" {
@@ -335,13 +348,7 @@ class KeycloakAuthorizationServiceTest : WordSpec({
 
     "deleteRepositoryRoles" should {
         val keycloakClient = KeycloakTestClient()
-        val service = createService(keycloakClient)
-        service.createOrganizationPermissions(organizationId)
-        service.createOrganizationRoles(organizationId)
-        service.createProductPermissions(productId)
-        service.createProductRoles(productId)
-        service.createRepositoryPermissions(repositoryId)
-        service.createRepositoryRoles(repositoryId)
+        val service = createService(keycloakClient, createRolesForHierarchy = true)
 
         service.deleteRepositoryRoles(repositoryId)
 
@@ -936,13 +943,7 @@ class KeycloakAuthorizationServiceTest : WordSpec({
         val keycloakClient = KeycloakTestClient()
         keycloakClient.createUser(UserName("user"))
 
-        val service = createService(keycloakClient)
-        service.createOrganizationPermissions(organizationId)
-        service.createOrganizationRoles(organizationId)
-        service.createProductPermissions(productId)
-        service.createProductRoles(productId)
-        service.createRepositoryPermissions(repositoryId)
-        service.createRepositoryRoles(repositoryId)
+        val service = createService(keycloakClient, createRolesForHierarchy = true)
 
         "add the user to the correct group" {
             OrganizationRole.entries.forAll { role ->
@@ -995,13 +996,7 @@ class KeycloakAuthorizationServiceTest : WordSpec({
         val keycloakClient = KeycloakTestClient()
         keycloakClient.createUser(UserName("user"))
 
-        val service = createService(keycloakClient)
-        service.createOrganizationPermissions(organizationId)
-        service.createOrganizationRoles(organizationId)
-        service.createProductPermissions(productId)
-        service.createProductRoles(productId)
-        service.createRepositoryPermissions(repositoryId)
-        service.createRepositoryRoles(repositoryId)
+        val service = createService(keycloakClient, createRolesForHierarchy = true)
 
         "remove the user from the correct group" {
             OrganizationRole.entries.forAll { role ->
@@ -1036,13 +1031,7 @@ class KeycloakAuthorizationServiceTest : WordSpec({
     "getUserRoleNames" should {
         "return all roles of the given user" {
             val keycloakClient = KeycloakTestClient()
-            val service = createService(keycloakClient)
-            service.createOrganizationPermissions(organizationId)
-            service.createOrganizationRoles(organizationId)
-            service.createProductPermissions(productId)
-            service.createProductRoles(productId)
-            service.createRepositoryPermissions(repositoryId)
-            service.createRepositoryRoles(repositoryId)
+            val service = createService(keycloakClient, createRolesForHierarchy = true)
 
             keycloakClient.createUser(UserName("user"))
             val user = keycloakClient.getUser(UserName("user"))
