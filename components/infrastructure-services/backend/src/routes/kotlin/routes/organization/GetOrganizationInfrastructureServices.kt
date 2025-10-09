@@ -42,10 +42,10 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.pagingOptions
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.standardListQueryParameters
 
-internal fun Route.getInfrastructureServicesByOrganizationId(
+internal fun Route.getOrganizationInfrastructureServices(
     infrastructureServiceService: InfrastructureServiceService
 ) = get("/organizations/{organizationId}/infrastructure-services", {
-    operationId = "GetInfrastructureServicesByOrganizationId"
+    operationId = "getOrganizationInfrastructureServices"
     summary = "List all infrastructure services of an organization"
     tags = listOf("Organizations")
 

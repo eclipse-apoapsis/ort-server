@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
 
 import io.github.smiley4.ktoropenapi.get
 
@@ -25,26 +25,26 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.getInfrastructureServiceForOrganizationIdAndName(
+internal fun Route.getRepositoryInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
-) = get("/organizations/{organizationId}/infrastructure-services/{serviceName}", {
-    operationId = "GetInfrastructureServicesByOrganizationIdAndName"
-    summary = "Get an infrastructure service for an organization"
-    tags = listOf("Organizations")
+) = get("/repositories/{repositoryId}/infrastructure-services/{serviceName}", {
+    operationId = "getRepositoryInfrastructureService"
+    summary = "Get an infrastructure service for a repository"
+    tags = listOf("Repositories")
 
     request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
         }
         pathParameter<String>("serviceName") {
             description = "The name of the infrastructure service."
@@ -68,13 +68,13 @@ internal fun Route.getInfrastructureServiceForOrganizationIdAndName(
         }
     }
 }) {
-    requirePermission(OrganizationPermission.READ)
+    requirePermission(RepositoryPermission.READ)
 
-    val organizationId = call.requireIdParameter("organizationId")
+    val repositoryId = call.requireIdParameter("repositoryId")
     val serviceName = call.requireParameter("serviceName")
 
     infrastructureServiceService
-        .getForId(OrganizationId(organizationId), serviceName)
+        .getForId(RepositoryId(repositoryId), serviceName)
         ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
         ?: call.respond(HttpStatusCode.NotFound)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2023 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,43 +19,53 @@
 
 package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
 
-import io.github.smiley4.ktoropenapi.get
+import io.github.smiley4.ktoropenapi.post
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PostInfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.getInfrastructureServiceForRepositoryIdAndName(
+internal fun Route.postRepositoryInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
-) = get("/repositories/{repositoryId}/infrastructure-services/{serviceName}", {
-    operationId = "GetInfrastructureServicesForRepositoryIdAndName"
-    summary = "Get an infrastructure service for a repository"
+) = post("/repositories/{repositoryId}/infrastructure-services", {
+    operationId = "postRepositoryInfrastructureService"
+    summary = "Create an infrastructure service for a repository"
     tags = listOf("Repositories")
 
     request {
         pathParameter<Long>("repositoryId") {
             description = "The repository's ID."
         }
-        pathParameter<String>("serviceName") {
-            description = "The name of the infrastructure service."
+        jsonBody<PostInfrastructureService> {
+            example("Create infrastructure service") {
+                value = PostInfrastructureService(
+                    name = "Artifactory",
+                    url = "https://artifactory.example.org/releases",
+                    description = "Artifactory repository",
+                    usernameSecretRef = "artifactoryUsername",
+                    passwordSecretRef = "artifactoryPassword"
+                )
+            }
         }
     }
 
     response {
-        HttpStatusCode.OK to {
+        HttpStatusCode.Created to {
             description = "Success"
             jsonBody<InfrastructureService> {
-                example("Get an infrastructure service") {
+                example("Create infrastructure service") {
                     value = InfrastructureService(
                         name = "Artifactory",
                         url = "https://artifactory.example.org/releases",
@@ -68,13 +78,20 @@ internal fun Route.getInfrastructureServiceForRepositoryIdAndName(
         }
     }
 }) {
-    requirePermission(RepositoryPermission.READ)
+    requirePermission(RepositoryPermission.WRITE)
 
     val repositoryId = call.requireIdParameter("repositoryId")
-    val serviceName = call.requireParameter("serviceName")
+    val createService = call.receive<PostInfrastructureService>()
 
-    infrastructureServiceService
-        .getForId(RepositoryId(repositoryId), serviceName)
-        ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
-        ?: call.respond(HttpStatusCode.NotFound)
+    val newService = infrastructureServiceService.createForId(
+        RepositoryId(repositoryId),
+        createService.name,
+        createService.url,
+        createService.description,
+        createService.usernameSecretRef,
+        createService.passwordSecretRef,
+        createService.credentialsTypes.mapToModel()
+    )
+
+    call.respond(HttpStatusCode.Created, newService.mapToApi())
 }

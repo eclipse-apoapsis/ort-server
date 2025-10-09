@@ -28,7 +28,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
  * Request object for the update infrastructure service endpoint.
  */
 @Serializable
-data class UpdateInfrastructureService(
+data class PatchInfrastructureService(
     val url: OptionalValue<String> = OptionalValue.Absent,
     val description: OptionalValue<String?> = OptionalValue.Absent,
     val usernameSecretRef: OptionalValue<String> = OptionalValue.Absent,

@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType
  * Request object for the create infrastructure service endpoint.
  */
 @Serializable
-data class CreateInfrastructureService(
+data class PostInfrastructureService(
     val name: String,
     val url: String,
     val description: String? = null,
@@ -44,9 +44,9 @@ data class CreateInfrastructureService(
         const val NAME_PATTERN_MESSAGE = "The entity name may only contain letters, numbers, hyphen marks and " +
                 "spaces. Leading and trailing whitespaces are not allowed."
 
-        val validate: (CreateInfrastructureService) -> ValidationResult<CreateInfrastructureService> = { obj ->
+        val validate: (PostInfrastructureService) -> ValidationResult<PostInfrastructureService> = { obj ->
             Validation {
-                CreateInfrastructureService::name {
+                PostInfrastructureService::name {
                     pattern(NAME_PATTERN_REGEX) hint NAME_PATTERN_MESSAGE
                 }
             }.invoke(obj)

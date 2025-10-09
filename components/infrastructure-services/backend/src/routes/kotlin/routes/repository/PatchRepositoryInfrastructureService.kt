@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
 
 import io.github.smiley4.ktoropenapi.patch
 
@@ -26,11 +26,11 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.UpdateInfrastructureService
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PatchInfrastructureService
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType
@@ -40,23 +40,23 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.patchInfrastructureServiceForOrganizationIdAndName(
+internal fun Route.patchRepositoryInfrastructureService(
     infrastructureServiceService: InfrastructureServiceService
-) = patch("/organizations/{organizationId}/infrastructure-services/{serviceName}", {
-    operationId = "PatchInfrastructureServiceForOrganizationIdAndName"
-    summary = "Update an infrastructure service for an organization"
-    tags = listOf("Organizations")
+) = patch("/repositories/{repositoryId}/infrastructure-services/{serviceName}", {
+    operationId = "patchRepositoryInfrastructureService"
+    summary = "Update an infrastructure service for a repository"
+    tags = listOf("Repositories")
 
     request {
-        pathParameter<Long>("organizationId") {
-            description = "The organization's ID."
+        pathParameter<Long>("repositoryId") {
+            description = "The repository's ID."
         }
         pathParameter<String>("serviceName") {
             description = "The name of the infrastructure service."
         }
-        jsonBody<UpdateInfrastructureService> {
+        jsonBody<PatchInfrastructureService> {
             example("Update infrastructure service") {
-                value = UpdateInfrastructureService(
+                value = PatchInfrastructureService(
                     url = "https://github.com".asPresent(),
                     description = "Updated description".asPresent(),
                     usernameSecretRef = "newGitHubUser".asPresent(),
@@ -86,14 +86,14 @@ internal fun Route.patchInfrastructureServiceForOrganizationIdAndName(
         }
     }
 }) {
-    requirePermission(OrganizationPermission.WRITE)
+    requirePermission(RepositoryPermission.WRITE)
 
-    val organizationId = call.requireIdParameter("organizationId")
+    val repositoryId = call.requireIdParameter("repositoryId")
     val serviceName = call.requireParameter("serviceName")
-    val updateService = call.receive<UpdateInfrastructureService>()
+    val updateService = call.receive<PatchInfrastructureService>()
 
     val updatedService = infrastructureServiceService.updateForId(
-        OrganizationId(organizationId),
+        RepositoryId(repositoryId),
         serviceName,
         updateService.url.mapToModel(),
         updateService.description.mapToModel(),

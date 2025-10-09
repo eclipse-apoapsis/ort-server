@@ -25,9 +25,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
-  getInfrastructureServicesForRepositoryIdAndNameOptions,
+  getRepositoryInfrastructureServiceOptions,
   getSecretsByRepositoryIdOptions,
-  patchInfrastructureServiceForRepositoryIdAndNameMutation,
+  patchRepositoryInfrastructureServiceMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { LoadingIndicator } from '@/components/loading-indicator.tsx';
@@ -85,7 +85,7 @@ const EditInfrastructureServicePage = () => {
   });
 
   const { data: service } = useSuspenseQuery({
-    ...getInfrastructureServicesForRepositoryIdAndNameOptions({
+    ...getRepositoryInfrastructureServiceOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
         serviceName: params.serviceName,
@@ -94,7 +94,7 @@ const EditInfrastructureServicePage = () => {
   });
 
   const { mutateAsync, isPending } = useMutation({
-    ...patchInfrastructureServiceForRepositoryIdAndNameMutation(),
+    ...patchRepositoryInfrastructureServiceMutation(),
     onSuccess(data) {
       toast.info('Edit Infrastructure Service', {
         description: `Infrastructure service "${data.name}" has been updated successfully.`,
@@ -351,7 +351,7 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.ensureQueryData({
-      ...getInfrastructureServicesForRepositoryIdAndNameOptions({
+      ...getRepositoryInfrastructureServiceOptions({
         path: {
           repositoryId: Number.parseInt(params.repoId),
           serviceName: params.serviceName,

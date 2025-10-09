@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization
+package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -30,23 +30,23 @@ import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServicesIntegrationTest
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType as ApiCredentialsType
 import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 
-class GetInfrastructureServicesByOrganizationIdIntegrationTest : InfrastructureServicesIntegrationTest({
-    "GetInfrastructureServicesByOrganizationId" should {
+class GetRepositoryInfrastructureServicesIntegrationTest : InfrastructureServicesIntegrationTest({
+    "GetRepositoryInfrastructureServices" should {
         "list existing infrastructure services" {
             infrastructureServicesTestApplication { client ->
                 val services = (1..8).map { index ->
                     infrastructureServiceService.createForId(
-                        OrganizationId(orgId),
+                        RepositoryId(repoId),
                         "infrastructureService$index",
                         "https://repo.example.org/test$index",
                         "description$index",
-                        orgUserSecret,
-                        orgPassSecret,
+                        repoUserSecret,
+                        repoPassSecret,
                         if (index % 2 == 0) {
                             EnumSet.of(CredentialsType.NETRC_FILE, CredentialsType.GIT_CREDENTIALS_FILE)
                         } else {
@@ -70,11 +70,10 @@ class GetInfrastructureServicesByOrganizationIdIntegrationTest : InfrastructureS
                     )
                 }
 
-                val response = client.get("/organizations/$orgId/infrastructure-services")
+                val response = client.get("/repositories/$repoId/infrastructure-services")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<InfrastructureService>>().data shouldContainExactlyInAnyOrder
-                        apiServices
+                response.body<PagedResponse<InfrastructureService>>().data shouldContainExactlyInAnyOrder apiServices
             }
         }
 
@@ -82,14 +81,13 @@ class GetInfrastructureServicesByOrganizationIdIntegrationTest : InfrastructureS
             infrastructureServicesTestApplication { client ->
                 (1..8).shuffled().forEach { index ->
                     infrastructureServiceService.createForId(
-                        OrganizationId(orgId),
+                        RepositoryId(repoId),
                         "infrastructureService$index",
                         "https://repo.example.org/test$index",
                         "description$index",
-                        orgUserSecret,
-                        orgPassSecret,
+                        repoUserSecret,
+                        repoPassSecret,
                         EnumSet.of(CredentialsType.NETRC_FILE)
-
                     )
                 }
 
@@ -98,17 +96,16 @@ class GetInfrastructureServicesByOrganizationIdIntegrationTest : InfrastructureS
                         "infrastructureService$index",
                         "https://repo.example.org/test$index",
                         "description$index",
-                        orgUserSecret,
-                        orgPassSecret,
+                        repoUserSecret,
+                        repoPassSecret,
                         EnumSet.of(ApiCredentialsType.NETRC_FILE)
                     )
                 }
 
-                val response = client.get("/organizations/$orgId/infrastructure-services?sort=name&limit=4")
+                val response = client.get("/repositories/$repoId/infrastructure-services?sort=name&limit=4")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<InfrastructureService>>().data shouldContainExactlyInAnyOrder
-                        apiServices
+                response.body<PagedResponse<InfrastructureService>>().data shouldContainExactlyInAnyOrder apiServices
             }
         }
     }

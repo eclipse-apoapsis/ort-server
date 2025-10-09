@@ -26,7 +26,7 @@ import { z } from 'zod';
 
 import {
   getSecretsByRepositoryIdOptions,
-  postInfrastructureServiceForRepositoryMutation,
+  postRepositoryInfrastructureServiceMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
@@ -83,7 +83,7 @@ const CreateInfrastructureServicePage = () => {
   });
 
   const { mutateAsync, isPending } = useMutation({
-    ...postInfrastructureServiceForRepositoryMutation(),
+    ...postRepositoryInfrastructureServiceMutation(),
     onSuccess(data) {
       toast.info('Create Infrastructure Service', {
         description: `New infrastructure service "${data.name}" created successfully.`,
