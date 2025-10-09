@@ -36,10 +36,9 @@ class KeycloakTestClientTest : AbstractKeycloakClientTest() {
             compositeRole.id to emptySet()
         ),
         users = mutableSetOf(testRealmAdmin, adminUser, visitorUser),
-        userClientRoles = mutableMapOf(
-            testRealmAdmin.id to emptySet(),
+        userGroups = mutableMapOf(
             adminUser.id to emptySet(),
-            visitorUser.id to setOf(visitorRole.id)
+            visitorUser.id to setOf(groupOrgB.id)
         )
     )
 }
