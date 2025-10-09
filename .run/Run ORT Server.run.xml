@@ -9,6 +9,7 @@
       <env name="DB_SSL_MODE" value="disable" />
       <env name="DB_URL" value="jdbc:postgresql://127.0.0.1:5433" />
       <env name="DB_USERNAME" value="postgres" />
+      <env name="FILE_BASED_PATH" value="scripts/compose/secrets-provider" />
       <env name="JWT_AUDIENCE" value="ort-server" />
       <env name="JWT_ISSUER" value="http://localhost:8081/realms/master" />
       <env name="JWT_REALM" value="master" />
@@ -20,6 +21,7 @@
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_SERVER_URI" value="amqp://rabbitmq:5672" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_TYPE" value="rabbitMQ" />
       <env name="ORCHESTRATOR_SENDER_TRANSPORT_USERNAME" value="admin" />
+      <env name="SECRETS_PROVIDER_NAME" value="fileBased" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.eclipse.apoapsis.ortserver.core.ApplicationKt" />
     <module name="ort-server.core.main" />
