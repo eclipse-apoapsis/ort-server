@@ -25,8 +25,8 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import {
-  getSecretByRepositoryIdAndNameOptions,
-  patchSecretByRepositoryIdAndNameMutation,
+  getRepositorySecretOptions,
+  patchRepositorySecretMutation,
 } from '@/api/@tanstack/react-query.gen';
 import { PasswordInput } from '@/components/form/password-input';
 import { LoadingIndicator } from '@/components/loading-indicator';
@@ -64,7 +64,7 @@ const EditRepositorySecretPage = () => {
   const navigate = useNavigate();
 
   const { data: secret } = useSuspenseQuery({
-    ...getSecretByRepositoryIdAndNameOptions({
+    ...getRepositorySecretOptions({
       path: {
         repositoryId: Number.parseInt(params.repoId),
         secretName: params.secretName,
@@ -82,7 +82,7 @@ const EditRepositorySecretPage = () => {
   });
 
   const { mutateAsync: editSecret, isPending } = useMutation({
-    ...patchSecretByRepositoryIdAndNameMutation(),
+    ...patchRepositorySecretMutation(),
     onSuccess(data) {
       toast.info('Edit Repository Secret', {
         description: `Secret "${data.name}" updated successfully.`,
@@ -212,7 +212,7 @@ export const Route = createFileRoute(
 )({
   loader: async ({ context: { queryClient }, params }) => {
     await queryClient.ensureQueryData({
-      ...getSecretByRepositoryIdAndNameOptions({
+      ...getRepositorySecretOptions({
         path: {
           repositoryId: Number.parseInt(params.repoId),
           secretName: params.secretName,

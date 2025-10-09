@@ -28,9 +28,9 @@ import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.secrets.PatchSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
-import org.eclipse.apoapsis.ortserver.components.secrets.UpdateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
@@ -39,9 +39,9 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.patchSecretByOrganizationIdAndName(secretService: SecretService) =
+internal fun Route.patchOrganizationSecret(secretService: SecretService) =
     patch("/organizations/{organizationId}/secrets/{secretName}", {
-        operationId = "PatchSecretByOrganizationIdAndName"
+        operationId = "patchOrganizationSecret"
         summary = "Update a secret of an organization"
         tags = listOf("Organizations")
 
@@ -54,9 +54,9 @@ internal fun Route.patchSecretByOrganizationIdAndName(secretService: SecretServi
                 description = "The secret's name."
             }
 
-            jsonBody<UpdateSecret> {
+            jsonBody<PatchSecret> {
                 example("Update Secret") {
-                    value = UpdateSecret(
+                    value = PatchSecret(
                         value = "0rg-s3cr3t-08_15".asPresent(),
                         description = "New access token for Maven Repo 1".asPresent()
                     )
@@ -81,7 +81,7 @@ internal fun Route.patchSecretByOrganizationIdAndName(secretService: SecretServi
 
         val organizationId = OrganizationId(call.requireIdParameter("organizationId"))
         val secretName = call.requireParameter("secretName")
-        val updateSecret = call.receive<UpdateSecret>()
+        val updateSecret = call.receive<PatchSecret>()
 
         call.respond(
             HttpStatusCode.OK,

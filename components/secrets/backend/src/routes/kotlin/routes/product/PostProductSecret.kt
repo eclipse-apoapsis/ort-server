@@ -19,54 +19,67 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
 
-import io.github.smiley4.ktoropenapi.get
+import io.github.smiley4.ktoropenapi.post
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
+import org.eclipse.apoapsis.ortserver.components.secrets.PostSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.getSecretByProductIdAndName(secretService: SecretService) =
-    get("/products/{productId}/secrets/{secretName}", {
-        operationId = "GetSecretByProductIdAndName"
-        summary = "Get details of a secret of a product"
+internal fun Route.postProductSecret(secretService: SecretService) =
+    post("/products/{productId}/secrets", {
+        operationId = "postProductSecret"
+        summary = "Create a secret for a product"
         tags = listOf("Products")
 
         request {
             pathParameter<Long>("productId") {
                 description = "The product's ID."
             }
-            pathParameter<String>("secretName") {
-                description = "The secret's name."
+            jsonBody<PostSecret> {
+                example("Create Secret") {
+                    value = PostSecret(
+                        name = "token_maven_repo_1",
+                        value = "pr0d-s3cr3t-08_15",
+                        description = "Access token for Maven Repo 1"
+                    )
+                }
             }
         }
 
         response {
-            HttpStatusCode.OK to {
+            HttpStatusCode.Created to {
                 description = "Success"
                 jsonBody<Secret> {
-                    example("Get Secret") {
-                        value = Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1")
+                    example("Create Secret") {
+                        value = Secret(name = "token_maven_repo_1", description = "Access token for Maven Repo 1")
                     }
                 }
             }
         }
     }) {
-        requirePermission(ProductPermission.READ)
+        requirePermission(ProductPermission.WRITE_SECRETS)
 
-        val productId = ProductId(call.requireIdParameter("productId"))
-        val secretName = call.requireParameter("secretName")
+        val productId = call.requireIdParameter("productId")
+        val createSecret = call.receive<PostSecret>()
 
-        secretService.getSecret(productId, secretName)
-            ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
-            ?: call.respond(HttpStatusCode.NotFound)
+        call.respond(
+            HttpStatusCode.Created,
+            secretService.createSecret(
+                createSecret.name,
+                createSecret.value,
+                createSecret.description,
+                ProductId(productId)
+            ).mapToApi()
+        )
     }

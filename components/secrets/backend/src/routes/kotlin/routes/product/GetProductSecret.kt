@@ -19,10 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
 
-import io.github.smiley4.ktoropenapi.patch
+import io.github.smiley4.ktoropenapi.get
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
@@ -30,19 +29,16 @@ import org.eclipse.apoapsis.ortserver.components.authorization.permissions.Produ
 import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
-import org.eclipse.apoapsis.ortserver.components.secrets.UpdateSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.model.ProductId
-import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
-import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
-internal fun Route.patchSecretByProductIdAndName(secretService: SecretService) =
-    patch("/products/{productId}/secrets/{secretName}", {
-        operationId = "PatchSecretByProductIdAndName"
-        summary = "Update a secret of a product"
+internal fun Route.getProductSecret(secretService: SecretService) =
+    get("/products/{productId}/secrets/{secretName}", {
+        operationId = "getProductSecret"
+        summary = "Get details of a secret of a product"
         tags = listOf("Products")
 
         request {
@@ -52,41 +48,25 @@ internal fun Route.patchSecretByProductIdAndName(secretService: SecretService) =
             pathParameter<String>("secretName") {
                 description = "The secret's name."
             }
-            jsonBody<UpdateSecret> {
-                example("Update Secret") {
-                    value = UpdateSecret(
-                        value = "pr0d-s3cr3t-08_15".asPresent(),
-                        description = "New access token for Maven Repo 1".asPresent()
-                    )
-                }
-                description = "Set the values that should be updated. To delete a value, set it explicitly to null."
-            }
         }
 
         response {
             HttpStatusCode.OK to {
                 description = "Success"
                 jsonBody<Secret> {
-                    example("Update Secret") {
-                        value = Secret(name = "token_maven_repo_1", description = "New access token for Maven Repo 1")
+                    example("Get Secret") {
+                        value = Secret(name = "token_npm_repo_1", description = "Access token for NPM Repo 1")
                     }
                 }
             }
         }
     }) {
-        requirePermission(ProductPermission.WRITE_SECRETS)
+        requirePermission(ProductPermission.READ)
 
         val productId = ProductId(call.requireIdParameter("productId"))
         val secretName = call.requireParameter("secretName")
-        val updateSecret = call.receive<UpdateSecret>()
 
-        call.respond(
-            HttpStatusCode.OK,
-            secretService.updateSecret(
-                productId,
-                secretName,
-                updateSecret.value.mapToModel(),
-                updateSecret.description.mapToModel()
-            ).mapToApi()
-        )
+        secretService.getSecret(productId, secretName)
+            ?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
+            ?: call.respond(HttpStatusCode.NotFound)
     }

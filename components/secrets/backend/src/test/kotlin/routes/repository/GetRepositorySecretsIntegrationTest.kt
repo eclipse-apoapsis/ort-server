@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.organization
+package org.eclipse.apoapsis.ortserver.components.secrets.routes.repository
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 
@@ -26,7 +26,7 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.createOrganizationSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.createRepositorySecret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters.Companion.DEFAULT_LIMIT
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
@@ -34,20 +34,20 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class GetSecretsByOrganizationIdIntegrationTest : SecretsIntegrationTest({
-    var orgId = 0L
+class GetRepositorySecretsIntegrationTest : SecretsIntegrationTest({
+    var repoId = 0L
 
     beforeEach {
-        orgId = dbExtension.fixtures.organization.id
+        repoId = dbExtension.fixtures.repository.id
     }
 
-    "GetSecretsByOrganizationId" should {
-        "return all secrets for this organization" {
+    "GetRepositorySecrets" should {
+        "return all secrets for this repository" {
             secretsTestApplication { client ->
-                val secret1 = secretRepository.createOrganizationSecret(orgId, "path1", "name1", "description1")
-                val secret2 = secretRepository.createOrganizationSecret(orgId, "path2", "name2", "description2")
+                val secret1 = secretRepository.createRepositorySecret(repoId, "path1", "name1", "description1")
+                val secret2 = secretRepository.createRepositorySecret(repoId, "path2", "name2", "description2")
 
-                val response = client.get("/organizations/$orgId/secrets")
+                val response = client.get("/repositories/$repoId/secrets")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
@@ -64,10 +64,10 @@ class GetSecretsByOrganizationIdIntegrationTest : SecretsIntegrationTest({
 
         "support query parameters" {
             secretsTestApplication { client ->
-                secretRepository.createOrganizationSecret(orgId, "path1", "name1", "description1")
-                val secret = secretRepository.createOrganizationSecret(orgId, "path2", "name2", "description2")
+                secretRepository.createRepositorySecret(repoId, "path1", "name1", "description1")
+                val secret = secretRepository.createRepositorySecret(repoId, "path2", "name2", "description2")
 
-                val response = client.get("/organizations/$orgId/secrets?sort=-name&limit=1")
+                val response = client.get("/repositories/$repoId/secrets?sort=-name&limit=1")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(

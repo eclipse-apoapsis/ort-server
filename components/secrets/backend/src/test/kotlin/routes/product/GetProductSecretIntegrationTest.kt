@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.components.secrets.routes.repository
+package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 
@@ -26,22 +26,22 @@ import io.ktor.http.HttpStatusCode
 
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretsIntegrationTest
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.createRepositorySecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.createProductSecret
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class GetSecretByRepositoryIdAndNameIntegrationTest : SecretsIntegrationTest({
-    var repoId = 0L
+class GetProductSecretIntegrationTest : SecretsIntegrationTest({
+    var prodId = 0L
 
     beforeEach {
-        repoId = dbExtension.fixtures.repository.id
+        prodId = dbExtension.fixtures.product.id
     }
 
-    "GetSecretByRepositoryIdAndName" should {
+    "GetProductSecret" should {
         "return a single secret" {
             secretsTestApplication { client ->
-                val secret = secretRepository.createRepositorySecret(repoId)
+                val secret = secretRepository.createProductSecret(prodId)
 
-                val response = client.get("/repositories/$repoId/secrets/${secret.name}")
+                val response = client.get("/products/$prodId/secrets/${secret.name}")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody secret.mapToApi()
@@ -50,7 +50,7 @@ class GetSecretByRepositoryIdAndNameIntegrationTest : SecretsIntegrationTest({
 
         "respond with NotFound if no secret exists" {
             secretsTestApplication { client ->
-                client.get("/repositories/$repoId/secrets/999999") shouldHaveStatus
+                client.get("/products/$prodId/secrets/999999") shouldHaveStatus
                         HttpStatusCode.NotFound
             }
         }

@@ -29,14 +29,14 @@ import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
 import org.eclipse.apoapsis.ortserver.components.secrets.routes.createOrganizationSecret
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 
-class GetSecretByOrganizationIdAndNameIntegrationTest : SecretsIntegrationTest({
+class GetOrganizationSecretIntegrationTest : SecretsIntegrationTest({
     var orgId = 0L
 
     beforeEach {
         orgId = dbExtension.fixtures.organization.id
     }
 
-    "GetSecretByOrganizationIdAndName" should {
+    "GetOrganizationSecret" should {
         "return a single secret" {
             secretsTestApplication { client ->
                 val secret = secretRepository.createOrganizationSecret(orgId)

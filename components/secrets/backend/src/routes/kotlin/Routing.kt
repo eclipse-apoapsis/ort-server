@@ -21,38 +21,38 @@ package org.eclipse.apoapsis.ortserver.components.secrets
 
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.getSecretByOrganizationIdAndName
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.getSecretsByOrganizationId
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.patchSecretByOrganizationIdAndName
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.postSecretForOrganization
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.getSecretByProductIdAndName
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.getSecretsByProductId
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.patchSecretByProductIdAndName
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.postSecretForProduct
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getAvailableSecretsByRepositoryId
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getSecretByRepositoryIdAndName
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getSecretsByRepositoryId
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.patchSecretByRepositoryIdAndName
-import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.postSecretForRepository
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.getOrganizationSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.getOrganizationSecrets
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.patchOrganizationSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.organization.postOrganizationSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.getProductSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.getProductSecrets
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.patchProductSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.product.postProductSecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getAvailableRepositorySecrets
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getRepositorySecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.getRepositorySecrets
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.patchRepositorySecret
+import org.eclipse.apoapsis.ortserver.components.secrets.routes.repository.postRepositorySecret
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 
 fun Route.secretsRoutes(repositoryService: RepositoryService, secretService: SecretService) {
     // Organization secrets
-    getSecretByOrganizationIdAndName(secretService)
-    getSecretsByOrganizationId(secretService)
-    patchSecretByOrganizationIdAndName(secretService)
-    postSecretForOrganization(secretService)
+    getOrganizationSecret(secretService)
+    getOrganizationSecrets(secretService)
+    patchOrganizationSecret(secretService)
+    postOrganizationSecret(secretService)
 
     // Product secrets
-    getSecretByProductIdAndName(secretService)
-    getSecretsByProductId(secretService)
-    patchSecretByProductIdAndName(secretService)
-    postSecretForProduct(secretService)
+    getProductSecret(secretService)
+    getProductSecrets(secretService)
+    patchProductSecret(secretService)
+    postProductSecret(secretService)
 
     // Repository secrets
-    getAvailableSecretsByRepositoryId(repositoryService, secretService)
-    getSecretByRepositoryIdAndName(secretService)
-    getSecretsByRepositoryId(secretService)
-    patchSecretByRepositoryIdAndName(secretService)
-    postSecretForRepository(secretService)
+    getAvailableRepositorySecrets(repositoryService, secretService)
+    getRepositorySecret(secretService)
+    getRepositorySecrets(secretService)
+    patchRepositorySecret(secretService)
+    postRepositorySecret(secretService)
 }

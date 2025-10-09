@@ -24,7 +24,7 @@ import io.ktor.server.plugins.requestvalidation.RequestValidationConfig
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.mapValidationResult
 
 fun RequestValidationConfig.secretsValidations() {
-    validate<CreateSecret> { create ->
+    validate<PostSecret> { create ->
         mapValidationResult(create.validate())
     }
 }
