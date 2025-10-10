@@ -42,7 +42,7 @@ export default defineConfig([
   ...compat.extends(
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:react-hooks/recommended-legacy'
+    'plugin:react-hooks/recommended'
   ),
   {
     files: ['**/*.ts', '**/*.tsx'],
