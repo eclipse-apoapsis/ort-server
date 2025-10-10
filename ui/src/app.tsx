@@ -90,16 +90,16 @@ export const App = () => {
       auth.signinRedirect({
         redirect_uri: window.location.href,
       });
-      setHasTriedSignin(true);
+      // Avoid direct setState in effect: schedule with setTimeout
+      setTimeout(() => setHasTriedSignin(true), 0);
     }
   }, [auth, hasTriedSignin]);
 
   useEffect(() => {
-    if (auth.user?.access_token) {
-      setTokenIsSet(true);
-    } else {
-      setTokenIsSet(false);
-    }
+    // Avoid direct setState in effect: schedule with setTimeout
+    setTimeout(() => {
+      setTokenIsSet(!!auth.user?.access_token);
+    }, 0);
   }, [auth.user]);
 
   // Handle errors for the silent renew process
