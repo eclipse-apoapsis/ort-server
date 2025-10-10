@@ -37,40 +37,15 @@ RUN scancode-license-data --path /opt/scancode-license-data \
     && find /opt/scancode-license-data -type f -not -name "*.LICENSE" -exec rm -f {} + \
     && rm -rf /opt/scancode-license-data/static
 
-# When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
-FROM eclipse-temurin:21.0.7_6-jdk-jammy@sha256:746ad7128069fdaa77df1f06a0463ad50f4ae787648cbbcc6d6ab0e702e6c97e
+FROM ort-server-worker-base-image:latest
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    sudo apt-get update \
+    && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends \
     git \
     mercurial \
     repo \
-    && rm -rf /var/lib/apt/lists/*
-
-ARG USERNAME=ort
-ARG USER_ID=1000
-ARG USER_GID=$USER_ID
-ARG HOMEDIR=/home/ort
-ENV HOME=$HOMEDIR
-ENV USER=$USERNAME
-
-# Non privileged user
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd \
-    --uid $USER_ID \
-    --gid $USER_GID \
-    --shell /bin/bash \
-    --home-dir $HOMEDIR \
-    --create-home $USERNAME
-
-# Make sure the user executing the container has access rights in the home directory.
-RUN chgrp -R 0 /home/ort && chmod -R g+rwX /home/ort
-
-USER $USERNAME
-WORKDIR $HOMEDIR
+    && sudo rm -rf /var/lib/apt/lists/*
 
 COPY --from=scancode-license-data-build --chown=$USER:$USER /opt/scancode-license-data /opt/scancode-license-data
-
-ENTRYPOINT ["/bin/bash"]
