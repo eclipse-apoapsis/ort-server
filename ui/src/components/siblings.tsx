@@ -75,7 +75,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     error: productsError,
   } = useQuery({
     ...getOrganizationProductsOptions({
-      path: { organizationId: Number(params.orgId) ?? '' },
+      path: { organizationId: Number(params.orgId) },
       query: { limit: ALL_ITEMS },
     }),
     staleTime: staleTime,
@@ -89,7 +89,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     error: repositoriesError,
   } = useQuery({
     ...getProductRepositoriesOptions({
-      path: { productId: Number(params.productId) ?? '' },
+      path: { productId: Number(params.productId) },
       query: { limit: ALL_ITEMS },
     }),
     staleTime: staleTime,
@@ -103,7 +103,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
     error: runsError,
   } = useQuery({
     ...getRepositoryRunsOptions({
-      path: { repositoryId: Number(params.repoId) ?? '' },
+      path: { repositoryId: Number(params.repoId) },
       query: { limit: ALL_ITEMS, sort: '-index' },
     }),
     staleTime: staleTime,
