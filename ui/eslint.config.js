@@ -63,6 +63,9 @@ export default defineConfig([
         },
       ],
       'no-console': ['warn'],
+      // Silence the warnings about useReactTable() hook, because React Compiler
+      // is not used in this project.
+      'react-hooks/incompatible-library': 'off',
     },
   },
 ]);
