@@ -201,6 +201,10 @@ const renderSubComponent = ({
         type='textblock'
       />
       <RenderProperty label='CPE' value={pkg.cpe} />
+      <RenderProperty
+        label='Source Code Origins'
+        value={pkg.sourceCodeOrigins}
+      />
       {pkg.vcsProcessed.type ||
       pkg.vcsProcessed.url ||
       pkg.vcsProcessed.revision ||
@@ -283,6 +287,7 @@ const renderSubComponent = ({
           />
         </div>
       )}
+      <RenderProperty label='Labels' value={pkg.labels} type='keyvalue' />
       {hasCurations && (
         <Accordion type='multiple' className='w-full'>
           <AccordionItem value='curations'>
