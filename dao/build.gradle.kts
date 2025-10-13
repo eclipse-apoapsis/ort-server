@@ -66,7 +66,6 @@ dependencies {
 
     testFixturesImplementation(libs.flywayCore)
     testFixturesImplementation(libs.hikari)
-    testFixturesImplementation(libs.jacksonModuleKotlin)
     testFixturesImplementation(libs.koinTest)
     testFixturesImplementation(libs.kotestExtensionsTestcontainers)
     testFixturesImplementation(libs.kotestRunnerJunit5)
