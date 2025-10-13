@@ -75,7 +75,6 @@ dependencies {
     testImplementation(testFixtures(projects.storage.storageSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
 
-    testImplementation(libs.jacksonModuleKotlin)
     testImplementation(libs.koinTest)
     testImplementation(libs.kotestAssertionsCore)
     testImplementation(libs.kotestRunnerJunit5)
