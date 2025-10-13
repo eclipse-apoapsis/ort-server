@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
-import com.fasterxml.jackson.module.kotlin.readValue
-
 import java.io.InputStream
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
@@ -32,7 +30,7 @@ import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.ossreviewtoolkit.model.config.Resolutions
-import org.ossreviewtoolkit.model.yamlMapper
+import org.ossreviewtoolkit.model.fromYaml
 import org.ossreviewtoolkit.utils.ort.ORT_RESOLUTIONS_FILENAME
 
 import org.slf4j.Logger
@@ -117,7 +115,12 @@ inline fun <reified T> ConfigManager.readConfigFileValue(
     path: String,
     context: Context?,
     exceptionHandler: (ConfigException) -> T = { throw it }
-): T = getConfigFile(path, context, { yamlMapper.readValue<T>(it) }, exceptionHandler)
+): T = getConfigFile(
+    path,
+    context,
+    { inputStream -> inputStream.use { String(it.readAllBytes()).fromYaml<T>() } },
+    exceptionHandler
+)
 
 /**
  * Read the configuration file at [path] using the provided [context]. If a [ConfigException] occurs while reading the

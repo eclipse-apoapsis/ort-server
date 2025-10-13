@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
-import com.fasterxml.jackson.module.kotlin.readValue
-
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.WordSpec
@@ -40,8 +38,8 @@ import org.ossreviewtoolkit.model.KnownProvenance
 import org.ossreviewtoolkit.model.RepositoryProvenance
 import org.ossreviewtoolkit.model.VcsInfo
 import org.ossreviewtoolkit.model.VcsType
+import org.ossreviewtoolkit.model.fromYaml
 import org.ossreviewtoolkit.model.toYaml
-import org.ossreviewtoolkit.model.yamlMapper
 
 class OrtServerFileListStorageTest : WordSpec({
     lateinit var fileListStorage: OrtServerFileListStorage
@@ -77,7 +75,7 @@ class OrtServerFileListStorageTest : WordSpec({
             val data = fileListStorage.getData(provenance)
 
             data.shouldNotBeNull()
-            data.use { yamlMapper.readValue<FileList>(it) shouldBe fileList }
+            data.use { String(it.readAllBytes()).fromYaml<FileList>() shouldBe fileList }
         }
 
         "return null if the file list does not exist" {
@@ -104,7 +102,7 @@ class OrtServerFileListStorageTest : WordSpec({
             val data = fileListStorage.getData(provenance)
 
             data.shouldNotBeNull()
-            data.use { yamlMapper.readValue<FileList>(it) shouldBe fileList }
+            data.use { String(it.readAllBytes()).fromYaml<FileList>() shouldBe fileList }
         }
 
         "overwrite previously stored data for the same key" {
@@ -114,7 +112,7 @@ class OrtServerFileListStorageTest : WordSpec({
             val data = fileListStorage.getData(provenance)
 
             data.shouldNotBeNull()
-            data.use { yamlMapper.readValue<FileList>(it) shouldBe fileList }
+            data.use { String(it.readAllBytes()).fromYaml<FileList>() shouldBe fileList }
         }
     }
 })

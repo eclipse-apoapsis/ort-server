@@ -41,7 +41,6 @@ dependencies {
 
     testImplementation(projects.shared.ortTestData)
 
-    testImplementation(libs.jacksonModuleKotlin)
     testImplementation(libs.kotestRunnerJunit5)
     testImplementation(libs.mockk)
 }

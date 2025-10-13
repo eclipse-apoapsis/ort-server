@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.evaluator
 
-import com.fasterxml.jackson.module.kotlin.readValue
-
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactly
@@ -57,7 +55,7 @@ import org.ossreviewtoolkit.model.Severity
 import org.ossreviewtoolkit.model.config.LicenseFindingCuration
 import org.ossreviewtoolkit.model.config.LicenseFindingCurationReason
 import org.ossreviewtoolkit.model.config.PackageConfiguration
-import org.ossreviewtoolkit.model.yamlMapper
+import org.ossreviewtoolkit.model.fromYaml
 import org.ossreviewtoolkit.plugins.packageconfigurationproviders.api.PackageConfigurationProviderFactory
 import org.ossreviewtoolkit.utils.ort.ORT_COPYRIGHT_GARBAGE_FILENAME
 import org.ossreviewtoolkit.utils.ort.ORT_EVALUATOR_RULES_FILENAME
@@ -273,9 +271,8 @@ class EvaluatorRunnerTest : WordSpec({
                 createWorkerContext()
             )
 
-            val expectedResolutions = OrtTestData.result.repository.config.resolutions.merge(
-                yamlMapper.readValue(File("src/test/resources/resolutions.yml"))
-            )
+            val resolutions = checkNotNull(javaClass.getResource(RESOLUTIONS_FILE)).readText()
+            val expectedResolutions = OrtTestData.result.repository.config.resolutions.merge(resolutions.fromYaml())
 
             result.resolutions shouldBe expectedResolutions
         }
