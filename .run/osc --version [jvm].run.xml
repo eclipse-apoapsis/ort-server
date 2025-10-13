@@ -1,25 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="osc --version [jvm]" type="GradleRunConfiguration" factoryName="Gradle">
-    <ExternalSystemSettings>
-      <option name="executionName" />
-      <option name="externalProjectPath" value="$PROJECT_DIR$/cli" />
-      <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="-DmainClass=org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt --quiet" />
-      <option name="taskDescriptions">
-        <list />
-      </option>
-      <option name="taskNames">
-        <list>
-          <option value="jvmRun" />
-          <option value="--args='--version'" />
-        </list>
-      </option>
-      <option name="vmOptions" />
-    </ExternalSystemSettings>
-    <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-    <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-    <DebugAllEnabled>false</DebugAllEnabled>
-    <RunAsTest>false</RunAsTest>
-    <method v="2" />
+  <configuration default="false" name="osc --version [jvm]" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="org.eclipse.apoapsis.ortserver.cli.OrtServerMainKt" />
+    <module name="ort-server.cli.jvmMain" />
+    <option name="PROGRAM_PARAMETERS" value="--version" />
+    <shortenClasspath name="NONE" />
   </configuration>
 </component>
