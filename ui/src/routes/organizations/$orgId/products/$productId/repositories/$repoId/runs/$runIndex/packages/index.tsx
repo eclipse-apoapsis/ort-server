@@ -130,7 +130,10 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
         {pkg.curations.length > 0 && (
           <Tooltip>
             <TooltipTrigger>
-              <Badge variant='small' className='bg-green-600'>
+              <Badge
+                variant='small'
+                className={`${getIssueSeverityBackgroundColor('HINT')}`}
+              >
                 CURATED
               </Badge>
             </TooltipTrigger>
