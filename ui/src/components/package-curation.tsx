@@ -77,6 +77,11 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
                 value={curation.cpe}
                 showIfEmpty={false}
               />
+              <RenderProperty
+                label='Source Code Origins'
+                value={curation.sourceCodeOrigins}
+                showIfEmpty={false}
+              />
               {curation.vcs && (
                 <div>
                   <div className='font-semibold'>VCS</div>
@@ -177,6 +182,12 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
               <RenderProperty
                 label='PURL'
                 value={curation.purl}
+                showIfEmpty={false}
+              />
+              <RenderProperty
+                label='Labels'
+                value={curation.labels}
+                type='keyvalue'
                 showIfEmpty={false}
               />
             </div>
