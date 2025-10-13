@@ -28,20 +28,29 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     bzip2 \
+    cmake \
     curl \
+    gcc \
     git \
+    libffi-dev \
     libgcrypt20 \
+    libgmp-dev \
     libgomp1 \
     libpopt0 \
     libsqlite3-0 \
+    libssl-dev \
     libxml2-dev \
     libxslt1-dev \
+    libyaml-dev \
     libzstd1 \
+    make \
+    pkg-config \
     python3 \
     python3-pip \
     sudo \
     xz-utils \
     zlib1g \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ARG USERNAME=ort
@@ -59,7 +68,24 @@ RUN groupadd --gid $USER_GID $USERNAME \
     --home-dir $HOMEDIR \
     --create-home $USERNAME
 
+ARG LICENSEE_VERSION=9.18.0
+ARG RUBY_VERSION=3.4.4
 ARG SCANCODE_VERSION=32.4.1
+
+# Use rbenv to install Licensee
+ENV RBENV_ROOT=/opt/rbenv
+ENV PATH=$RBENV_ROOT/bin:$RBENV_ROOT/shims/:$RBENV_ROOT/plugins/ruby-build/bin:$PATH
+
+RUN git clone --depth 1 https://github.com/rbenv/rbenv.git $RBENV_ROOT
+RUN git clone --depth 1 https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build
+WORKDIR $RBENV_ROOT
+
+RUN src/configure \
+    && make -C src
+
+RUN rbenv install $RUBY_VERSION -v \
+    && rbenv global $RUBY_VERSION \
+    && gem install licensee:$LICENSEE_VERSION
 
 # Use pip to install ScanCode
 RUN curl -Os https://raw.githubusercontent.com/nexB/scancode-toolkit/v$SCANCODE_VERSION/requirements.txt && \
