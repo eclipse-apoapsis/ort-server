@@ -455,7 +455,7 @@ FROM ort-base-image AS components
 ARG COMPOSER_VERSION
 
 # Remove ort build scripts
-RUN [ -d /etc/scripts ] && sudo rm -rf /etc/scripts
+RUN sudo rm -rf /etc/scripts
 
 # Apt install commands.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
