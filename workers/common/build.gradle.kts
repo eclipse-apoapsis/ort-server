@@ -54,7 +54,6 @@ dependencies {
     api(projects.services.ortRunService)
     api(projects.storage.storageSpi)
 
-    api(libs.jacksonModuleKotlin)
     api(libs.koinCore)
     api(ortLibs.downloader)
     api(ortLibs.model)
