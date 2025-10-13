@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common
 
-import com.fasterxml.jackson.databind.exc.MismatchedInputException
-
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.maps.containExactly
@@ -30,6 +28,8 @@ import io.kotest.matchers.shouldBe
 
 import io.mockk.every
 import io.mockk.mockk
+
+import java.io.IOException
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -126,7 +126,7 @@ class ExtensionsTest : WordSpec({
                 every { getFile(any(), Path(path)) } returns invalidConfigFileYaml.byteInputStream()
             }
 
-            shouldThrow<MismatchedInputException> {
+            shouldThrow<IOException> {
                 configManager.readConfigFileValueWithDefault(path, defaultPath, fallbackValue, null)
             }
         }
@@ -155,7 +155,7 @@ class ExtensionsTest : WordSpec({
                 every { getFile(any(), Path(defaultPath)) } returns invalidConfigFileYaml.byteInputStream()
             }
 
-            shouldThrow<MismatchedInputException> {
+            shouldThrow<IOException> {
                 configManager.readConfigFileValueWithDefault(null, defaultPath, fallbackValue, null) shouldBe
                         fallbackValue
             }
@@ -189,7 +189,7 @@ class ExtensionsTest : WordSpec({
                 every { getFile(any(), Path(path)) } returns invalidConfigFileYaml.byteInputStream()
             }
 
-            shouldThrow<MismatchedInputException> {
+            shouldThrow<IOException> {
                 configManager.readConfigFileValue<ConfigClass>("path", null) shouldBe configFile
             }
         }
