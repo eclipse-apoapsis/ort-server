@@ -244,11 +244,11 @@ const renderSubComponent = ({
               type='url'
             />
             <RenderProperty
-              label='Hash value'
+              label='Hash Value'
               value={pkg.binaryArtifact.hashValue}
             />
             <RenderProperty
-              label='Hash algorithm'
+              label='Hash Algorithm'
               value={pkg.binaryArtifact.hashAlgorithm}
             />
           </div>
@@ -268,11 +268,11 @@ const renderSubComponent = ({
               type='url'
             />
             <RenderProperty
-              label='Hash value'
+              label='Hash Value'
               value={pkg.sourceArtifact.hashValue}
             />
             <RenderProperty
-              label='Hash algorithm'
+              label='Hash Algorithm'
               value={pkg.sourceArtifact.hashAlgorithm}
             />
           </div>
@@ -282,7 +282,7 @@ const renderSubComponent = ({
       )}
       {pkg.shortestDependencyPaths.length > 0 && (
         <div>
-          <div className='font-semibold'>Shortest dependency paths</div>
+          <div className='font-semibold'>Shortest Dependency Paths</div>
           <DependencyPaths
             pkg={pkg}
             pkgIdType={packageIdType}

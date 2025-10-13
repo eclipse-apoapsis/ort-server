@@ -121,12 +121,12 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
                       showIfEmpty={false}
                     />
                     <RenderProperty
-                      label='Hash value'
+                      label='Hash Value'
                       value={curation.binaryArtifact.hashValue}
                       showIfEmpty={false}
                     />
                     <RenderProperty
-                      label='Hash algorithm'
+                      label='Hash Algorithm'
                       value={curation.binaryArtifact.hashAlgorithm}
                       showIfEmpty={false}
                     />
@@ -144,12 +144,12 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
                       showIfEmpty={false}
                     />
                     <RenderProperty
-                      label='Hash value'
+                      label='Hash Value'
                       value={curation.sourceArtifact.hashValue}
                       showIfEmpty={false}
                     />
                     <RenderProperty
-                      label='Hash algorithm'
+                      label='Hash Algorithm'
                       value={curation.sourceArtifact.hashAlgorithm}
                       showIfEmpty={false}
                     />
@@ -158,19 +158,19 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
               )}
               {Object.keys(curation.declaredLicenseMapping).length > 0 && (
                 <RenderProperty
-                  label='Declared license mapping'
+                  label='Declared License Mapping'
                   value={curation.declaredLicenseMapping}
                   type='keyvalue'
                   showIfEmpty={false}
                 />
               )}
               <RenderProperty
-                label='Concluded license'
+                label='Concluded License'
                 value={curation.concludedLicense}
                 showIfEmpty={false}
               />
               <RenderProperty
-                label='Metadata only'
+                label='Metadata Only'
                 value={curation.isMetadataOnly}
                 showIfEmpty={false}
               />
