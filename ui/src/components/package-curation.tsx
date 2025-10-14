@@ -33,6 +33,7 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
     ...curation,
     comment: undefined,
     declaredLicenseMapping:
+      curation.declaredLicenseMapping &&
       Object.keys(curation.declaredLicenseMapping).length > 0
         ? curation.declaredLicenseMapping
         : undefined,
@@ -156,14 +157,15 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
                   </div>
                 </div>
               )}
-              {Object.keys(curation.declaredLicenseMapping).length > 0 && (
-                <RenderProperty
-                  label='Declared License Mapping'
-                  value={curation.declaredLicenseMapping}
-                  type='keyvalue'
-                  showIfEmpty={false}
-                />
-              )}
+              {curation.declaredLicenseMapping &&
+                Object.keys(curation.declaredLicenseMapping).length > 0 && (
+                  <RenderProperty
+                    label='Declared License Mapping'
+                    value={curation.declaredLicenseMapping}
+                    type='keyvalue'
+                    showIfEmpty={false}
+                  />
+                )}
               <RenderProperty
                 label='Concluded License'
                 value={curation.concludedLicense}
