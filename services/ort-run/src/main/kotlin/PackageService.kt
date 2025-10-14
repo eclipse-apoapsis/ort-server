@@ -32,6 +32,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageRunData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -108,13 +109,25 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
         )
         val packages = ortResult.getPackages()
 
+        // Collect all curations with their provider name for each package identifier
+        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
+        val curationsById: Map<String, List<PackageCurationData>> =
+            resolvedConfiguration.packageCurations
+                .flatMap { providerCurations ->
+                    providerCurations.curations.map { curation ->
+                        curation.id to curation.data.copy(providerName = providerCurations.provider.name)
+                    }
+                }
+                .groupBy({ it.first.toString() }, { it.second })
+
         val result = packages.map { pkg ->
+            val curations = curationsById[pkg.metadata.id.toString()].orEmpty()
             PackageRunData(
                 pkg = pkg.metadata.mapToModel(),
                 pkgId = 0L,
                 shortestDependencyPaths = emptyList(),
                 concludedLicense = pkg.metadata.concludedLicense?.toString(),
-                curations = pkg.curations.map { it.mapToModel() }
+                curations = curations
             )
         }
 
