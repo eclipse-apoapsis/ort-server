@@ -37,10 +37,10 @@ import kotlinx.coroutines.withContext
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
-import org.eclipse.apoapsis.ortserver.components.authorization.requireAuthenticated
-import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
-import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireAuthenticated
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.UserService
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers

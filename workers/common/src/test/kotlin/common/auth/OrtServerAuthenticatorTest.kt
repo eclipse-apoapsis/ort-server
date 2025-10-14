@@ -115,7 +115,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
             "return an authentication for a matching host name" {
                 val authenticator = OrtServerAuthenticator.install()
                 val services = listOf(
-                    createService("service", "https://example.com", usernameSecret, passwordSecret)
+                    createService("keycloak/service", "https://example.com", usernameSecret, passwordSecret)
                 )
                 authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
@@ -131,7 +131,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
                 val authenticator = OrtServerAuthenticator.install()
                 val services = listOf(
-                    createService("service", url, usernameSecret, passwordSecret)
+                    createService("keycloak/service", url, usernameSecret, passwordSecret)
                 )
                 authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
@@ -187,7 +187,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
                 val authenticator = OrtServerAuthenticator.install()
                 val services = listOf(
-                    createService("service", url, usernameSecret, passwordSecret)
+                    createService("keycloak/service", url, usernameSecret, passwordSecret)
                 )
                 authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
@@ -357,7 +357,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
                 val authenticator = OrtServerAuthenticator.install()
                 val services = listOf(
-                    createService("service", url)
+                    createService("keycloak/service", url)
                 )
                 authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
@@ -416,7 +416,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
                 val authenticator = OrtServerAuthenticator.install()
                 val services = listOf(
-                    createService("service", authUrl.toString())
+                    createService("keycloak/service", authUrl.toString())
                 )
                 authenticator.updateAuthenticationInfo(createAuthInfo(services))
 
@@ -441,7 +441,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 val authenticator = OrtServerAuthenticator.install()
                 val services = listOf(
                     createService(
-                        "service",
+                        "keycloak/service",
                         url,
                         usernameSecret,
                         passwordSecret,
@@ -547,7 +547,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
 
             "return the current authentication information" {
                 val services = listOf(
-                    createService("service", "https://repo.example.com")
+                    createService("keycloak/service", "https://repo.example.com")
                 )
                 val info = createAuthInfo(services)
 

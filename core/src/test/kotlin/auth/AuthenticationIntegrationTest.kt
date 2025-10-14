@@ -48,6 +48,8 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfig
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUserRoles
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
 import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig

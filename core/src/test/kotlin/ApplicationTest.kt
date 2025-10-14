@@ -23,7 +23,7 @@ import io.ktor.server.application.Application
 
 import io.mockk.mockk
 
-import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.configureAuthentication
 import org.eclipse.apoapsis.ortserver.core.plugins.*
 import org.eclipse.apoapsis.ortserver.core.testutils.configureTestAuthentication
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension

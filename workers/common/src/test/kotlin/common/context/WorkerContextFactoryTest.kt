@@ -576,7 +576,7 @@ class WorkerContextFactoryTest : WordSpec({
             secretsProvider.writeSecret(SecretPath(secPass.path), password)
 
             val service = InfrastructureService(
-                name = "service",
+                name = "keycloak/service",
                 url = "https://example.com/service",
                 usernameSecret = secUser,
                 passwordSecret = secPass,
@@ -610,7 +610,7 @@ class WorkerContextFactoryTest : WordSpec({
             secretsProvider.writeSecret(SecretPath(secPass.path), password)
 
             val service = InfrastructureService(
-                name = "service",
+                name = "keycloak/service",
                 url = "https://example.com/service",
                 usernameSecret = secUser,
                 passwordSecret = secPass,

@@ -83,14 +83,14 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
-import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole as ApiProductRole
-import org.eclipse.apoapsis.ortserver.components.authorization.mapToModel
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
-import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.service.KeycloakAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.api.ProductRole as ApiProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.mapToModel
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType

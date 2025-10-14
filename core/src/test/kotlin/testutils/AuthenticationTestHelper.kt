@@ -26,7 +26,7 @@ import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.UserPasswordCredential
 import io.ktor.server.auth.basic
 
-import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.SecurityConfigurations
 
 /** Credentials of a test user. */
 const val TEST_USER = "user"
