@@ -69,7 +69,7 @@ qpidJmsClient = "2.9.0"
 rabbitMq = "5.26.0"
 schemaKenerator = "2.4.0"
 slf4j = "2.0.17"
-testContainers = "1.21.3"
+testContainers = "2.0.0"
 typesafeConfig = "1.4.5"
 wiremock = "3.0.1"
 
@@ -144,10 +144,10 @@ slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqs = { module = "aws.sdk.kotlin:sqs", version.ref = "awsSdk" }
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testContainersKeycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloakTestcontainerVersion" }
-testContainersLocalStack = { module = "org.testcontainers:localstack", version.ref = "testContainers" }
-testContainersPostgresql = { module = "org.testcontainers:postgresql", version.ref = "testContainers" }
-testContainersRabbitMq = { module = "org.testcontainers:rabbitmq", version.ref = "testContainers" }
-testContainersVault = { module = "org.testcontainers:vault", version.ref = "testContainers" }
+testContainersLocalStack = { module = "org.testcontainers:testcontainers-localstack", version.ref = "testContainers" }
+testContainersPostgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testContainers" }
+testContainersRabbitMq = { module = "org.testcontainers:testcontainers-rabbitmq", version.ref = "testContainers" }
+testContainersVault = { module = "org.testcontainers:testcontainers-vault", version.ref = "testContainers" }
 typesafeConfig = { module = "com.typesafe:config", version.ref = "typesafeConfig" }
 wiremockStandalone = { module = "com.github.tomakehurst:wiremock-standalone", version.ref = "wiremock" }
 
