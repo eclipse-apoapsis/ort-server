@@ -516,6 +516,7 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(setOf(pkg1, pkg2)).id
 
+                val providerName = "test"
                 val curation1 = PackageCuration(
                     id = pkg1.identifier,
                     data = PackageCurationData(
@@ -535,7 +536,7 @@ class PackageServiceTest : WordSpec() {
                 )
 
                 val resolvedPackageCurations = ResolvedPackageCurations(
-                    provider = PackageCurationProviderConfig("test"),
+                    provider = PackageCurationProviderConfig(providerName),
                     curations = listOf(curation1, curation2)
                 )
 
@@ -548,7 +549,8 @@ class PackageServiceTest : WordSpec() {
                     pkg.authors should containExactly(*curation1.data.authors.orEmpty().toTypedArray())
                     concludedLicense shouldBe curation1.data.concludedLicense
                     curations.shouldBeSingleton {
-                        it shouldBe curation1.data
+                        it.comment shouldBe curation1.data.comment
+                        it.providerName shouldBe providerName
                     }
                 }
 
@@ -558,7 +560,8 @@ class PackageServiceTest : WordSpec() {
                             containExactlyEntries("invalid-license" to "LicenseRef-mapped")
                     concludedLicense shouldBe curation2.data.concludedLicense
                     curations.shouldBeSingleton {
-                        it shouldBe curation2.data
+                        it.comment shouldBe curation2.data.comment
+                        it.providerName shouldBe providerName
                     }
                 }
             }
