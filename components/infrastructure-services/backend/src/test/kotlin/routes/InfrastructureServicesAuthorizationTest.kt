@@ -26,8 +26,8 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PatchInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PostInfrastructureService

@@ -59,7 +59,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
-import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.api.RepositoryRole
 import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagingData
@@ -87,7 +87,7 @@ internal val fullJobConfigurations = JobConfigurations(
             environmentDefinitions = mapOf(
                 "maven" to listOf(
                     mapOf(
-                        "service" to "Artifactory",
+                        "keycloak/service" to "Artifactory",
                         "id" to "repo"
                     )
                 )

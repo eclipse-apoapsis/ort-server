@@ -51,9 +51,9 @@ import io.mockk.unmockkAll
 
 import kotlinx.serialization.json.Json
 
-import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
-import org.eclipse.apoapsis.ortserver.components.authorization.hasRole
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUserId
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.hasRole
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 

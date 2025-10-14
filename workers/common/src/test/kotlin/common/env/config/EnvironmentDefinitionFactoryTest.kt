@@ -107,7 +107,9 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
             }
 
             "not fail for the standard service property" {
-                val properties = mapOf("id" to "someId", EnvironmentDefinitionFactory.SERVICE_PROPERTY to "service")
+                val properties = mapOf(
+                    "id" to "someId", EnvironmentDefinitionFactory.SERVICE_PROPERTY to "keycloak/service"
+                )
 
                 createSuccessful(EnvironmentDefinitionFactory.MAVEN_TYPE, properties)
             }

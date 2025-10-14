@@ -47,7 +47,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.api.v1.model.RepositoryType
-import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.SecurityConfigurations
 import org.eclipse.apoapsis.ortserver.shared.apimodel.CredentialsType
 import org.eclipse.apoapsis.ortserver.shared.apimodel.OptionalValue
 import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION

@@ -56,7 +56,7 @@ dependencies {
     implementation(ortLibs.reporter)
     implementation(ortLibs.scanner)
 
-    routesImplementation(projects.components.authorization.backend)
+    routesImplementation(projects.components.authorizationKeycloak.backend)
     routesImplementation(projects.shared.ktorUtils)
 
     routesImplementation(ktorLibs.server.auth)

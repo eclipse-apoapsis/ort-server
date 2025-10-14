@@ -30,9 +30,9 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.getUserId
-import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUserId
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService

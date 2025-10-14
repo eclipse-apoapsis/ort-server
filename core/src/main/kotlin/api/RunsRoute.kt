@@ -50,9 +50,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityFilters
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.requirePermission
-import org.eclipse.apoapsis.ortserver.components.authorization.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRun
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getRunIssues

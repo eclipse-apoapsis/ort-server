@@ -42,7 +42,7 @@ dependencies {
     implementation(libs.exposedCore)
     implementation(libs.exposedKotlinDatetime)
 
-    routesImplementation(projects.components.authorization.backend)
+    routesImplementation(projects.components.authorizationKeycloak.backend)
     routesImplementation(projects.shared.apiModel)
     routesImplementation(projects.shared.ktorUtils)
 

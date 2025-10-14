@@ -577,7 +577,7 @@ class EnvironmentServiceTest : WordSpec({
     "merge" should {
         "return the first configuration if the second one is null" {
             val config = EnvironmentConfig(
-                infrastructureServices = listOf(createInfrastructureServiceDeclaration("service")),
+                infrastructureServices = listOf(createInfrastructureServiceDeclaration("keycloak/service")),
                 environmentDefinitions = mapOf("key" to listOf(mapOf("key" to "value"))),
                 environmentVariables = listOf(EnvironmentVariableDeclaration("env"))
             )
@@ -600,8 +600,8 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "override overlapping services" {
-            val service1 = createInfrastructureServiceDeclaration("service")
-            val service2 = createInfrastructureServiceDeclaration("service")
+            val service1 = createInfrastructureServiceDeclaration("keycloak/service")
+            val service2 = createInfrastructureServiceDeclaration("keycloak/service")
 
             val config1 = EnvironmentConfig(infrastructureServices = listOf(service1))
             val config2 = EnvironmentConfig(infrastructureServices = listOf(service2))

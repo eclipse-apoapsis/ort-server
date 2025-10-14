@@ -41,7 +41,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfig
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUserRoles
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER_PASSWORD
 import org.eclipse.apoapsis.ortserver.core.TEST_USER

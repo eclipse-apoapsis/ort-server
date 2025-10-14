@@ -84,9 +84,9 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViola
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.authorization.service.KeycloakAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileCriteria

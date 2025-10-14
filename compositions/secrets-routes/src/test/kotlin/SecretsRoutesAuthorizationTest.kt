@@ -22,9 +22,9 @@ package org.eclipse.apoapsis.ortserver.compositions.secretsroutes
 import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage

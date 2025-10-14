@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.core.plugins
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 
-import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.core.di.ortServerModule
 
 import org.jetbrains.exposed.sql.Database

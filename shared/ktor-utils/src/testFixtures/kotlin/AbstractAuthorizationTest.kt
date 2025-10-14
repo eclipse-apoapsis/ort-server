@@ -55,12 +55,12 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
-import org.eclipse.apoapsis.ortserver.components.authorization.AuthorizationException
-import org.eclipse.apoapsis.ortserver.components.authorization.SecurityConfigurations
-import org.eclipse.apoapsis.ortserver.components.authorization.configureAuthentication
-import org.eclipse.apoapsis.ortserver.components.authorization.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.service.KeycloakAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.AuthorizationException
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.SecurityConfigurations
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.configureAuthentication
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Authorization
 

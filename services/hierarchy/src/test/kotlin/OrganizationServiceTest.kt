@@ -28,7 +28,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 
-import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
