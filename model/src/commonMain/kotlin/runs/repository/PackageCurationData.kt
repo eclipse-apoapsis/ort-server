@@ -37,5 +37,7 @@ data class PackageCurationData(
     val isModified: Boolean? = null,
     val declaredLicenseMapping: Map<String, String> = emptyMap(),
     val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
-    val labels: Map<String, String> = emptyMap()
-    )
+    val labels: Map<String, String> = emptyMap(),
+    /** The name of the curation provider this curation came from. */
+    val providerName: String = "",
+)
