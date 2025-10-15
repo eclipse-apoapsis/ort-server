@@ -85,6 +85,27 @@ class UserServiceTest : WordSpec({
                 ModelUser(user3.username.value) to setOf(UserGroup.READERS)
             )
         }
+
+        "not include users from other organizations" {
+            val org2Id = 11L
+            val org3Id = 111L
+
+            val org1AdminGroupName = GroupName("${keycloakGroupPrefix}${OrganizationRole.ADMIN.groupName(orgId)}")
+            val org2AdminGroupName = GroupName("${keycloakGroupPrefix}${OrganizationRole.ADMIN.groupName(org2Id)}")
+            val org3AdminGroupName = GroupName("${keycloakGroupPrefix}${OrganizationRole.ADMIN.groupName(org3Id)}")
+
+            keycloakClient.createGroup(org1AdminGroupName)
+            keycloakClient.createGroup(org2AdminGroupName)
+            keycloakClient.createGroup(org3AdminGroupName)
+
+            keycloakClient.addUserToGroup(user1.username, org1AdminGroupName)
+            keycloakClient.addUserToGroup(user2.username, org2AdminGroupName)
+            keycloakClient.addUserToGroup(user3.username, org3AdminGroupName)
+
+            service.getUsersHavingRightsForOrganization(orgId) shouldContainExactly mapOf(
+                ModelUser(user1.username.value) to setOf(UserGroup.ADMINS)
+            )
+        }
     }
 
     "getProductUsers" should {
@@ -114,6 +135,27 @@ class UserServiceTest : WordSpec({
                 ModelUser(user3.username.value) to setOf(UserGroup.READERS)
             )
         }
+
+        "not include users from other products" {
+            val prod2Id = 11L
+            val prod3Id = 111L
+
+            val prod1AdminGroupName = GroupName("${keycloakGroupPrefix}${ProductRole.ADMIN.groupName(prodId)}")
+            val prod2AdminGroupName = GroupName("${keycloakGroupPrefix}${ProductRole.ADMIN.groupName(prod2Id)}")
+            val prod3AdminGroupName = GroupName("${keycloakGroupPrefix}${ProductRole.ADMIN.groupName(prod3Id)}")
+
+            keycloakClient.createGroup(prod1AdminGroupName)
+            keycloakClient.createGroup(prod2AdminGroupName)
+            keycloakClient.createGroup(prod3AdminGroupName)
+
+            keycloakClient.addUserToGroup(user1.username, prod1AdminGroupName)
+            keycloakClient.addUserToGroup(user2.username, prod2AdminGroupName)
+            keycloakClient.addUserToGroup(user3.username, prod3AdminGroupName)
+
+            service.getUsersHavingRightForProduct(prodId) shouldContainExactly mapOf(
+                ModelUser(user1.username.value) to setOf(UserGroup.ADMINS)
+            )
+        }
     }
 
     "getRepositoryUsers" should {
@@ -141,6 +183,27 @@ class UserServiceTest : WordSpec({
                 ModelUser(user1.username.value) to setOf(UserGroup.ADMINS, UserGroup.READERS),
                 ModelUser(user2.username.value) to setOf(UserGroup.WRITERS),
                 ModelUser(user3.username.value) to setOf(UserGroup.READERS)
+            )
+        }
+
+        "not include users from other repositories" {
+            val repo2Id = 11L
+            val repo3Id = 111L
+
+            val repo1AdminGroupName = GroupName("${keycloakGroupPrefix}${RepositoryRole.ADMIN.groupName(repoId)}")
+            val repo2AdminGroupName = GroupName("${keycloakGroupPrefix}${RepositoryRole.ADMIN.groupName(repo2Id)}")
+            val repo3AdminGroupName = GroupName("${keycloakGroupPrefix}${RepositoryRole.ADMIN.groupName(repo3Id)}")
+
+            keycloakClient.createGroup(repo1AdminGroupName)
+            keycloakClient.createGroup(repo2AdminGroupName)
+            keycloakClient.createGroup(repo3AdminGroupName)
+
+            keycloakClient.addUserToGroup(user1.username, repo1AdminGroupName)
+            keycloakClient.addUserToGroup(user2.username, repo2AdminGroupName)
+            keycloakClient.addUserToGroup(user3.username, repo3AdminGroupName)
+
+            service.getUsersHavingRightsForRepository(repoId) shouldContainExactly mapOf(
+                ModelUser(user1.username.value) to setOf(UserGroup.ADMINS)
             )
         }
     }

@@ -90,34 +90,37 @@ class UserService(
      * Get [User]s with all the [UserGroup]s assigned to them (ADMINS, WRITERS, READERS), that have access to the
      * organization with this [organizationId].
      */
-    suspend fun getUsersHavingRightsForOrganization(organizationId: Long): Map<User, Set<UserGroup>> =
-        getUsersForGroups(
-            keycloakClient.searchGroups(
-                GroupName(keycloakGroupPrefix + OrganizationRole.groupPrefix(organizationId))
-            )
-        )
+    suspend fun getUsersHavingRightsForOrganization(organizationId: Long): Map<User, Set<UserGroup>> {
+        val groupPrefix = keycloakGroupPrefix + OrganizationRole.groupPrefix(organizationId)
+        val groups = keycloakClient.searchGroups(GroupName(groupPrefix))
+            // Keycloak does a fuzzy search, so filter the results to only include groups with the exact prefix.
+            .filterTo(mutableSetOf()) { it.name.value.startsWith(groupPrefix) }
+        return getUsersForGroups(groups)
+    }
 
     /**
      * Get [User]s with all the [UserGroup]s assigned to them (ADMINS, WRITERS, READERS), that have access to the
      * product with this [productId].
      */
-    suspend fun getUsersHavingRightForProduct(productId: Long): Map<User, Set<UserGroup>> =
-        getUsersForGroups(
-            keycloakClient.searchGroups(
-                GroupName(keycloakGroupPrefix + ProductRole.groupPrefix(productId))
-            )
-        )
+    suspend fun getUsersHavingRightForProduct(productId: Long): Map<User, Set<UserGroup>> {
+        val groupPrefix = keycloakGroupPrefix + ProductRole.groupPrefix(productId)
+        val groups = keycloakClient.searchGroups(GroupName(groupPrefix))
+            // Keycloak does a fuzzy search, so filter the results to only include groups with the exact prefix.
+            .filterTo(mutableSetOf()) { it.name.value.startsWith(groupPrefix) }
+        return getUsersForGroups(groups)
+    }
 
     /**
      * Get [User]s with all  the [UserGroup]s assigned to them (ADMINS, WRITERS, READERS), that have rights to the
      * repository with this [repositoryId].
      */
-    suspend fun getUsersHavingRightsForRepository(repositoryId: Long): Map<User, Set<UserGroup>> =
-        getUsersForGroups(
-            keycloakClient.searchGroups(
-                GroupName(keycloakGroupPrefix + RepositoryRole.groupPrefix(repositoryId))
-            )
-        )
+    suspend fun getUsersHavingRightsForRepository(repositoryId: Long): Map<User, Set<UserGroup>> {
+        val groupPrefix = keycloakGroupPrefix + RepositoryRole.groupPrefix(repositoryId)
+        val groups = keycloakClient.searchGroups(GroupName(groupPrefix))
+            // Keycloak does a fuzzy search, so filter the results to only include groups with the exact prefix.
+            .filterTo(mutableSetOf()) { it.name.value.startsWith(groupPrefix) }
+        return getUsersForGroups(groups)
+    }
 
     private suspend fun getUsersForGroups(groups: Set<Group>): Map<User, Set<UserGroup>> {
         val users = mutableMapOf<User, Set<UserGroup>>()
