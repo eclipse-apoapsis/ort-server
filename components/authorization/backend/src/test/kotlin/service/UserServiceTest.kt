@@ -20,152 +20,128 @@
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.maps.beEmpty
+import io.kotest.matchers.maps.containExactly
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.should
 
-import io.mockk.coEvery
-import io.mockk.mockk
-
-import kotlin.collections.get
-
-import org.eclipse.apoapsis.ortserver.clients.keycloak.Group
-import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.User
-import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestClient
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.roles.RepositoryRole
+import org.eclipse.apoapsis.ortserver.model.User as ModelUser
 import org.eclipse.apoapsis.ortserver.model.UserGroup
 
 class UserServiceTest : WordSpec({
-    val keycloakClient = mockk<KeycloakClient>()
+    lateinit var keycloakClient: KeycloakClient
+    lateinit var service: UserService
+    lateinit var user1: User
+    lateinit var user2: User
+    lateinit var user3: User
 
-    val keycloakGroupPrefix = "my_prefix_"
-    val service = UserService(keycloakClient, keycloakGroupPrefix)
+    val keycloakGroupPrefix = "PREFIX_"
 
-    fun mockGroupsListForEntity(entityName: String, entityId: Long) {
-        coEvery {
-            keycloakClient.getGroupMembers(GroupId("gr1-wri"))
-        } returns setOf(
-            User(UserId("usr-1"), UserName("user1"), "Boo", "Zoo", "boo.zoo@example.com"),
-            User(UserId("usr-2"), UserName("user2"), "Woo", "Goo", "woo.goo@example.com"),
-            User(UserId("usr-3"), UserName("user3"), "Wee", "Moo", "wee.moo@example.com")
-        )
+    beforeEach {
+        keycloakClient = KeycloakTestClient()
+        service = UserService(keycloakClient, keycloakGroupPrefix)
 
-        coEvery {
-            keycloakClient.getGroupMembers(GroupId("gr2-adm"))
-        } returns setOf(
-            User(UserId("usr-1"), UserName("user1"), "Boo", "Zoo", "boo.zoo@example.com")
-        )
+        keycloakClient.createUser(UserName("user1"))
+        keycloakClient.createUser(UserName("user2"))
+        keycloakClient.createUser(UserName("user3"))
 
-        coEvery {
-            keycloakClient.getGroupMembers(GroupId("gr3-rea"))
-        } returns emptySet()
-
-        coEvery {
-            keycloakClient.searchGroups(GroupName("${keycloakGroupPrefix}${entityName}_${entityId}_"))
-        } returns setOf(
-            Group(GroupId("gr1-wri"), GroupName("${entityName}_${entityId}_WRITERS")),
-            Group(GroupId("gr2-adm"), GroupName("${entityName}_${entityId}_ADMINS")),
-            Group(GroupId("gr3-rea"), GroupName("${entityName}_${entityId}_READERS"))
-        )
+        user1 = keycloakClient.getUser(UserName("user1"))
+        user2 = keycloakClient.getUser(UserName("user2"))
+        user3 = keycloakClient.getUser(UserName("user3"))
     }
 
     "getOrganizationUsers" should {
+        val orgId = 1L
+
         "return empty list when no users are found for organization" {
-            // Given
-            val orgId = 7L
-
-            coEvery {
-                keycloakClient.searchGroups(GroupName("${keycloakGroupPrefix}ORGANIZATION_${orgId}_"))
-            } returns emptySet()
-
-            // When
-            val result = service.getUsersHavingRightsForOrganization(orgId)
-
-            // Then
-            result shouldBe emptyMap()
+            service.getUsersHavingRightsForOrganization(orgId) should beEmpty()
         }
 
         "return map of users with corresponding set of roles within organization" {
-            // Given
-            val orgId = 7L
-            mockGroupsListForEntity("ORGANIZATION", orgId)
+            val adminGroupName = GroupName("${keycloakGroupPrefix}${OrganizationRole.ADMIN.groupName(orgId)}")
+            val writerGroupName = GroupName("${keycloakGroupPrefix}${OrganizationRole.WRITER.groupName(orgId)}")
+            val readerGroupName = GroupName("${keycloakGroupPrefix}${OrganizationRole.READER.groupName(orgId)}")
 
-            // When
-            val result = service.getUsersHavingRightsForOrganization(orgId)
+            keycloakClient.createGroup(adminGroupName)
+            keycloakClient.createGroup(writerGroupName)
+            keycloakClient.createGroup(readerGroupName)
 
-            // Then
-            result.size shouldBe 3
-            result.keys.map { it.username } shouldBe listOf("user1", "user2", "user3")
-            result[result.keys.find { it.username == "user1" }] shouldBe setOf(UserGroup.WRITERS, UserGroup.ADMINS)
-            result[result.keys.find { it.username == "user2" }] shouldBe setOf(UserGroup.WRITERS)
-            result[result.keys.find { it.username == "user3" }] shouldBe setOf(UserGroup.WRITERS)
+            keycloakClient.addUserToGroup(user1.username, adminGroupName)
+            keycloakClient.addUserToGroup(user1.username, readerGroupName)
+            keycloakClient.addUserToGroup(user2.username, writerGroupName)
+            keycloakClient.addUserToGroup(user3.username, readerGroupName)
+
+            service.getUsersHavingRightsForOrganization(orgId) should containExactly(
+                ModelUser(user1.username.value) to setOf(UserGroup.ADMINS, UserGroup.READERS),
+                ModelUser(user2.username.value) to setOf(UserGroup.WRITERS),
+                ModelUser(user3.username.value) to setOf(UserGroup.READERS)
+            )
         }
     }
 
     "getProductUsers" should {
+        val prodId = 1L
+
         "return empty list when no users are found for product" {
-            // Given
-            val prodId = 4L
-
-            coEvery {
-                keycloakClient.searchGroups(GroupName("${keycloakGroupPrefix}PRODUCT_${prodId}_"))
-            } returns emptySet()
-
-            // When
-            val result = service.getUsersHavingRightForProduct(prodId)
-
-            // Then
-            result shouldBe emptyMap()
+            service.getUsersHavingRightForProduct(prodId) should beEmpty()
         }
 
         "return map of users with corresponding set of roles within product" {
-            // Given
-            val prodId = 4L
-            mockGroupsListForEntity("PRODUCT", prodId)
+            val adminGroupName = GroupName("${keycloakGroupPrefix}${ProductRole.ADMIN.groupName(prodId)}")
+            val writerGroupName = GroupName("${keycloakGroupPrefix}${ProductRole.WRITER.groupName(prodId)}")
+            val readerGroupName = GroupName("${keycloakGroupPrefix}${ProductRole.READER.groupName(prodId)}")
 
-            // When
-            val result = service.getUsersHavingRightForProduct(prodId)
+            keycloakClient.createGroup(adminGroupName)
+            keycloakClient.createGroup(writerGroupName)
+            keycloakClient.createGroup(readerGroupName)
 
-            // Then
-            result.size shouldBe 3
-            result.keys.map { it.username } shouldBe listOf("user1", "user2", "user3")
-            result[result.keys.find { it.username == "user1" }] shouldBe setOf(UserGroup.WRITERS, UserGroup.ADMINS)
-            result[result.keys.find { it.username == "user2" }] shouldBe setOf(UserGroup.WRITERS)
-            result[result.keys.find { it.username == "user3" }] shouldBe setOf(UserGroup.WRITERS)
+            keycloakClient.addUserToGroup(user1.username, adminGroupName)
+            keycloakClient.addUserToGroup(user1.username, readerGroupName)
+            keycloakClient.addUserToGroup(user2.username, writerGroupName)
+            keycloakClient.addUserToGroup(user3.username, readerGroupName)
+
+            service.getUsersHavingRightForProduct(prodId) shouldContainExactly mapOf(
+                ModelUser(user1.username.value) to setOf(UserGroup.ADMINS, UserGroup.READERS),
+                ModelUser(user2.username.value) to setOf(UserGroup.WRITERS),
+                ModelUser(user3.username.value) to setOf(UserGroup.READERS)
+            )
         }
     }
 
     "getRepositoryUsers" should {
+        val repoId = 1L
+
         "return empty list when no users are found for repository" {
-            // Given
-            val repoId = 2L
-
-            coEvery {
-                keycloakClient.searchGroups(GroupName("${keycloakGroupPrefix}REPOSITORY_${repoId}_"))
-            } returns emptySet()
-
-            // When
-            val result = service.getUsersHavingRightsForRepository(repoId)
-
-            // Then
-            result shouldBe emptyMap()
+            service.getUsersHavingRightsForRepository(repoId) should beEmpty()
         }
 
         "return map of users with corresponding set of roles within repository" {
-            // Given
-            val prodId = 4L
-            mockGroupsListForEntity("REPOSITORY", prodId)
+            val adminGroupName = GroupName("${keycloakGroupPrefix}${RepositoryRole.ADMIN.groupName(repoId)}")
+            val writerGroupName = GroupName("${keycloakGroupPrefix}${RepositoryRole.WRITER.groupName(repoId)}")
+            val readerGroupName = GroupName("${keycloakGroupPrefix}${RepositoryRole.READER.groupName(repoId)}")
 
-            // When
-            val result = service.getUsersHavingRightsForRepository(prodId)
+            keycloakClient.createGroup(adminGroupName)
+            keycloakClient.createGroup(writerGroupName)
+            keycloakClient.createGroup(readerGroupName)
 
-            // Then
-            result.size shouldBe 3
-            result.keys.map { it.username } shouldBe listOf("user1", "user2", "user3")
-            result[result.keys.find { it.username == "user1" }] shouldBe setOf(UserGroup.ADMINS, UserGroup.WRITERS)
-            result[result.keys.find { it.username == "user2" }] shouldBe setOf(UserGroup.WRITERS)
-            result[result.keys.find { it.username == "user3" }] shouldBe setOf(UserGroup.WRITERS)
+            keycloakClient.addUserToGroup(user1.username, adminGroupName)
+            keycloakClient.addUserToGroup(user1.username, readerGroupName)
+            keycloakClient.addUserToGroup(user2.username, writerGroupName)
+            keycloakClient.addUserToGroup(user3.username, readerGroupName)
+
+            service.getUsersHavingRightsForRepository(repoId) shouldContainExactly mapOf(
+                ModelUser(user1.username.value) to setOf(UserGroup.ADMINS, UserGroup.READERS),
+                ModelUser(user2.username.value) to setOf(UserGroup.WRITERS),
+                ModelUser(user3.username.value) to setOf(UserGroup.READERS)
+            )
         }
     }
 })
