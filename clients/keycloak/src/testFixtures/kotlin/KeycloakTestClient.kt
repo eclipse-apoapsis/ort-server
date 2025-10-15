@@ -63,7 +63,7 @@ class KeycloakTestClient(
         groups.find { it.name == name } ?: throw KeycloakClientException("")
 
     override suspend fun searchGroups(partialName: GroupName) =
-        groups.filter { it.name.value.contains(partialName.value) }.toSet()
+        groups.filter { it.name.value.contains(partialName.value.trimEnd('_')) }.toSet()
 
     override suspend fun createGroup(name: GroupName) {
         if (groups.any { it.name == name }) throw KeycloakClientException("")

@@ -68,6 +68,29 @@ abstract class AbstractKeycloakClientTest : WordSpec() {
             }
         }
 
+        "searchGroups" should {
+            // The Keycloak docs do not describe how exactly the non-exact search works, so test observed scenarios.
+            // See: https://www.keycloak.org/docs-api/latest/rest-api/index.html#_get_adminrealmsrealmgroups
+            "ignore a trailing underscore" {
+                client.createGroup(GroupName("ORGANIZATION_1_READERS"))
+                client.createGroup(GroupName("ORGANIZATION_2_READERS"))
+                client.createGroup(GroupName("ORGANIZATION_11_READERS"))
+                client.createGroup(GroupName("ORGANIZATION_111_READERS"))
+
+                client.searchGroups(GroupName("ORGANIZATION_1_")).map { it.name.value } shouldContainExactlyInAnyOrder
+                        setOf(
+                            "ORGANIZATION_1_READERS",
+                            "ORGANIZATION_11_READERS",
+                            "ORGANIZATION_111_READERS"
+                        )
+
+                client.deleteGroup(client.getGroup(GroupName("ORGANIZATION_1_READERS")).id)
+                client.deleteGroup(client.getGroup(GroupName("ORGANIZATION_2_READERS")).id)
+                client.deleteGroup(client.getGroup(GroupName("ORGANIZATION_11_READERS")).id)
+                client.deleteGroup(client.getGroup(GroupName("ORGANIZATION_111_READERS")).id)
+            }
+        }
+
         "createGroup" should {
             "successfully add a new realm group" {
                 client.createGroup(GroupName("TEST_GROUP"))
