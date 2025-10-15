@@ -25,7 +25,7 @@ import com.azure.storage.blob.BlobServiceClientBuilder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.extensions.testcontainers.ContainerExtension
+import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.storage.Key
@@ -45,7 +45,7 @@ private const val ACCOUNT_KEY =
 private const val CONTAINER = "test"
 
 class AzureBlobStorageProviderTest : WordSpec({
-    val azuriteContainer = install(ContainerExtension(GenericContainer(AZURITE_IMAGE).withExposedPorts(10000)))
+    val azuriteContainer = install(TestContainerSpecExtension(GenericContainer(AZURITE_IMAGE).withExposedPorts(10000)))
 
     lateinit var containerClient: BlobContainerClient
 

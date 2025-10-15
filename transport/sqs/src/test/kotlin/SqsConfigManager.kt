@@ -21,13 +21,13 @@ package org.eclipse.apoapsis.ortserver.transport.sqs
 
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
-import io.kotest.extensions.testcontainers.ContainerExtension
+import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
 
-import org.testcontainers.containers.localstack.LocalStackContainer
+import org.testcontainers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
 
 /**
@@ -35,9 +35,8 @@ import org.testcontainers.utility.DockerImageName
  */
 fun Spec.createSqsConfigManager(consumerName: String, transportType: String): ConfigManager {
     val localStack = install(
-        ContainerExtension(
-            LocalStackContainer(DockerImageName.parse("localstack/localstack:3.4.0"))
-                .withServices(LocalStackContainer.Service.SQS)
+        TestContainerSpecExtension(
+            LocalStackContainer(DockerImageName.parse("localstack/localstack:3.4.0")).withServices("sqs")
         )
     )
 
@@ -55,7 +54,7 @@ fun Spec.createSqsConfigManager(consumerName: String, transportType: String): Co
         consumerName = consumerName,
         transportType = transportType,
         transportName = SqsConfig.TRANSPORT_NAME,
-        serverUri = localStack.getEndpointOverride(LocalStackContainer.Service.SQS).toString(),
+        serverUri = localStack.endpoint.toString(),
         configProvidersMap = configProvidersMap
     )
 }

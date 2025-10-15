@@ -21,13 +21,13 @@ package org.eclipse.apoapsis.ortserver.transport.rabbitmq
 
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
-import io.kotest.extensions.testcontainers.ContainerExtension
+import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
 
-import org.testcontainers.containers.RabbitMQContainer
+import org.testcontainers.rabbitmq.RabbitMQContainer
 
 /**
  * Extension function to start an RabbitMq broker in a test container for testing a factory of the given [consumerName]
@@ -35,7 +35,7 @@ import org.testcontainers.containers.RabbitMQContainer
  */
 fun Spec.startRabbitMqContainer(consumerName: String, transportType: String): ConfigManager {
     val rabbitMq = install(
-        ContainerExtension(
+        TestContainerSpecExtension(
             RabbitMQContainer("rabbitmq")
         )
     )

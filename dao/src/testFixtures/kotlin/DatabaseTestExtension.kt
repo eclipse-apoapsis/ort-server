@@ -27,7 +27,7 @@ import io.kotest.core.listeners.BeforeSpecListener
 import io.kotest.core.spec.Spec
 import io.kotest.core.test.TestCase
 import io.kotest.engine.test.TestResult
-import io.kotest.extensions.testcontainers.JdbcDatabaseContainerExtension
+import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 import io.kotest.extensions.testcontainers.toDataSource
 
 import javax.sql.DataSource
@@ -43,7 +43,7 @@ import org.flywaydb.core.api.configuration.FluentConfiguration
 
 import org.jetbrains.exposed.sql.Database
 
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 /**
  * A test extension for integration tests that need database access. The extension sets up a test container with a
@@ -56,7 +56,7 @@ import org.testcontainers.containers.PostgreSQLContainer
  * see [this Kotest issue](https://github.com/kotest/kotest/issues/3555).
  */
 open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, BeforeEachListener, AfterEachListener {
-    private val postgres = PostgreSQLContainer<Nothing>("postgres:14").apply {
+    private val postgres = PostgreSQLContainer("postgres:14").apply {
         startupAttempts = 1
     }
 
@@ -66,7 +66,7 @@ open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, Before
     lateinit var fixtures: Fixtures
 
     override suspend fun beforeSpec(spec: Spec) {
-        spec.install(JdbcDatabaseContainerExtension(postgres))
+        spec.install(TestContainerSpecExtension(postgres))
         dataSource = postgres.toDataSource {
             poolName = "integrationTestsConnectionPool"
             maximumPoolSize = 5
