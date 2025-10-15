@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.transport.artemis
 
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.Spec
-import io.kotest.extensions.testcontainers.ContainerExtension
+import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.transport.testing.createConfigManager
@@ -41,7 +41,7 @@ private const val ARTEMIS_PORT = 61616
 fun Spec.startArtemisContainer(consumerName: String, transportType: String): ConfigManager {
     val containerEnv = mapOf("AMQ_USER" to "admin", "AMQ_PASSWORD" to "admin")
     val artemisContainer = install(
-        ContainerExtension(
+        TestContainerSpecExtension(
             GenericContainer(ARTEMIS_CONTAINER).apply {
                 startupAttempts = 1
                 withExposedPorts(ARTEMIS_PORT)

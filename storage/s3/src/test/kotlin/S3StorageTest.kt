@@ -36,7 +36,7 @@ import com.typesafe.config.ConfigFactory
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.extensions.testcontainers.ContainerExtension
+import io.kotest.extensions.testcontainers.TestContainerSpecExtension
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -46,21 +46,20 @@ import org.eclipse.apoapsis.ortserver.storage.Storage
 import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataString
 import org.eclipse.apoapsis.ortserver.storage.StorageException
 
-import org.testcontainers.containers.localstack.LocalStackContainer
+import org.testcontainers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
 
 class S3StorageTest : WordSpec({
     val localStackContainer = install(
-        ContainerExtension(
-            LocalStackContainer(DockerImageName.parse(LOCALSTACK_IMAGE)).withServices(LocalStackContainer.Service.S3)
+        TestContainerSpecExtension(
+            LocalStackContainer(DockerImageName.parse(LOCALSTACK_IMAGE)).withServices("s3")
         )
     )
 
     val s3Client: S3Client by lazy {
         S3Client {
             region = localStackContainer.region
-            this.endpointUrl =
-                Url.parse(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3).toString())
+            this.endpointUrl = Url.parse(localStackContainer.endpoint.toString())
             credentialsProvider = StaticCredentialsProvider {
                 accessKeyId = localStackContainer.accessKey
                 secretAccessKey = localStackContainer.secretKey
