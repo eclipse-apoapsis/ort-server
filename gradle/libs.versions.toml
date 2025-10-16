@@ -69,7 +69,7 @@ qpidJmsClient = "2.9.0"
 rabbitMq = "5.26.0"
 schemaKenerator = "2.4.0"
 slf4j = "2.0.17"
-testContainers = "2.0.0"
+testContainers = "2.0.1"
 typesafeConfig = "1.4.5"
 wiremock = "3.0.1"
 
