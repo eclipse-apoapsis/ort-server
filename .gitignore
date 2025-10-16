@@ -26,3 +26,9 @@ http-client.private.env.json
 
 # VS Code
 .vscode/
+
+# Agent files.
+.bmad-core/
+.gemini/
+.github/chatmodes/
+docs/
