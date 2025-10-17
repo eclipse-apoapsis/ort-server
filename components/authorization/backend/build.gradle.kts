@@ -27,6 +27,7 @@ group = "org.eclipse.apoapsis.ortserver.components.authorization"
 dependencies {
     api(projects.components.authorization.apiModel)
     api(projects.model)
+    api(projects.clients.keycloak)
 
     api(ktorLibs.server.auth)
     api(ktorLibs.server.auth.jwt)
