@@ -495,7 +495,8 @@ val getRunPackages: RouteConfig.() -> Unit = {
                                         isModified = null,
                                         declaredLicenseMapping = emptyMap(),
                                         sourceCodeOrigins = null,
-                                        labels = emptyMap()
+                                        labels = emptyMap(),
+                                        providerName = "ort-config"
                                     )
                                 )
                             )
