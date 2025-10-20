@@ -278,7 +278,26 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId)
 
-                checkPermissions(effectiveRole, OrganizationRole.ADMIN)
+                checkPermissions(effectiveRole, OrganizationRole.ADMIN, expectedSuperuser = true)
+            }
+
+            "allow querying super users only" {
+                val normalUser = "normal-user"
+                createAssignment(
+                    organizationRole = OrganizationRole.ADMIN
+                )
+                createAssignment(
+                    userId = normalUser,
+                    organizationId = dbExtension.fixtures.organization.id,
+                    organizationRole = OrganizationRole.READER
+                )
+                val service = createService()
+
+                val effectiveRoleNormal = service.getEffectiveRole(normalUser, CompoundHierarchyId.WILDCARD)
+                val effectiveRoleSuper = service.getEffectiveRole(USER_ID, CompoundHierarchyId.WILDCARD)
+
+                checkPermissions(effectiveRoleNormal)
+                checkPermissions(effectiveRoleSuper, OrganizationRole.ADMIN, expectedSuperuser = true)
             }
 
             "not fail for invalid role names" {
@@ -332,7 +351,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 checkPermissions(effectiveRole, ProductRole.WRITER)
 
                 val effectiveRoleOrg = service.getEffectiveRole(USER_ID, productCompoundId.parent!!)
-                checkPermissions(effectiveRoleOrg, ProductRole.WRITER)
+                checkPermissions(effectiveRoleOrg)
             }
 
             "create a new role assignment on organization level" {
@@ -354,7 +373,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 checkPermissions(effectiveRoleRepo, OrganizationRole.WRITER)
             }
 
-            "create a new role assignment for the WILDCARD ID" {
+            "create a new superuser role assignment" {
                 val service = createService()
 
                 service.assignRole(
@@ -364,7 +383,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
 
                 val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId())
-                checkPermissions(effectiveRole, OrganizationRole.ADMIN)
+                checkPermissions(effectiveRole, OrganizationRole.ADMIN, expectedSuperuser = true)
             }
 
             "replace an already exiting assignment" {
@@ -710,13 +729,15 @@ private const val USER_ID = "test-user"
 
 /**
  * Check that the given [effectiveRole] contains exactly the specified [expectedOrganizationPermissions],
- * [expectedProductPermissions], and [expectedRepositoryPermissions] on the different hierarchy levels.
+ * [expectedProductPermissions], and [expectedRepositoryPermissions] on the different hierarchy levels. Also check the
+ * [superuser][expectedSuperuser] flag.
  */
 private fun checkPermissions(
     effectiveRole: EffectiveRole,
     expectedOrganizationPermissions: Set<OrganizationPermission> = emptySet(),
     expectedProductPermissions: Set<ProductPermission> = emptySet(),
-    expectedRepositoryPermissions: Set<RepositoryPermission> = emptySet()
+    expectedRepositoryPermissions: Set<RepositoryPermission> = emptySet(),
+    expectedSuperuser: Boolean = false
 ) {
     OrganizationPermission.entries.forAll {
         effectiveRole.hasOrganizationPermission(it) shouldBe (it in expectedOrganizationPermissions)
@@ -727,15 +748,19 @@ private fun checkPermissions(
     RepositoryPermission.entries.forAll {
         effectiveRole.hasRepositoryPermission(it) shouldBe (it in expectedRepositoryPermissions)
     }
+
+    effectiveRole.isSuperuser shouldBe expectedSuperuser
 }
 
 /**
- * Check that the given [effectiveRole] contains exactly the permissions as defined by the given [expectedRole].
+ * Check that the given [effectiveRole] contains exactly the permissions as defined by the given [expectedRole]. Also
+ * check the [superuser][expectedSuperuser] flag.
  */
-private fun checkPermissions(effectiveRole: EffectiveRole, expectedRole: Role) =
+private fun checkPermissions(effectiveRole: EffectiveRole, expectedRole: Role, expectedSuperuser: Boolean = false) =
     checkPermissions(
         effectiveRole,
         expectedRole.organizationPermissions,
         expectedRole.productPermissions,
-        expectedRole.repositoryPermissions
+        expectedRole.repositoryPermissions,
+        expectedSuperuser
     )

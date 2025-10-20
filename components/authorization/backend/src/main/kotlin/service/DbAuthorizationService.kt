@@ -67,10 +67,20 @@ class DbAuthorizationService(
         userId: String,
         compoundHierarchyId: CompoundHierarchyId
     ): EffectiveRole {
+        val roleAssignments = loadAssignments(userId, compoundHierarchyId)
+        val permissions = roleAssignments.map { it.toHierarchyPermissions() }
+            .takeUnless { it.isEmpty() }?.reduce(::reducePermissions) ?: EMPTY_PERMISSIONS
+        val isSuperuser = roleAssignments.any {
+            it[RoleAssignmentsTable.organizationId] == null &&
+                    it[RoleAssignmentsTable.productId] == null &&
+                    it[RoleAssignmentsTable.repositoryId] == null &&
+                    it.extractRole() == OrganizationRole.ADMIN
+        }
+
         return EffectiveRoleImpl(
             elementId = compoundHierarchyId,
-            permissions = loadAssignments(userId, compoundHierarchyId)
-                .takeUnless { it.isEmpty() }?.reduce(::reducePermissions) ?: EMPTY_PERMISSIONS
+            isSuperuser = isSuperuser,
+            permissions = permissions
         )
     }
 
@@ -85,6 +95,7 @@ class DbAuthorizationService(
 
             EffectiveRoleImpl(
                 elementId = compoundHierarchyId,
+                isSuperuser = false,
                 permissions = EMPTY_PERMISSIONS
             )
         } else {
@@ -200,7 +211,7 @@ class DbAuthorizationService(
     private suspend fun loadAssignments(
         userId: String,
         compoundHierarchyId: CompoundHierarchyId
-    ): List<HierarchyPermissions> = db.dbQuery {
+    ): List<ResultRow> = db.dbQuery {
         RoleAssignmentsTable.selectAll()
             .where {
                 (RoleAssignmentsTable.userId eq userId) and (
@@ -208,7 +219,7 @@ class DbAuthorizationService(
                                 productWildcardCondition(compoundHierarchyId) or
                                 organizationWildcardCondition()
                         )
-            }.map { it.toHierarchyPermissions() }
+            }.toList()
     }
 
     /**
@@ -264,6 +275,8 @@ private val EMPTY_PERMISSIONS = HierarchyPermissions(
  */
 private class EffectiveRoleImpl(
     override val elementId: CompoundHierarchyId,
+
+    override val isSuperuser: Boolean,
 
     /** The permissions granted on the different levels of the hierarchy. */
     private val permissions: HierarchyPermissions
@@ -330,11 +343,12 @@ private fun reducePermissions(
  * assignments on higher levels in the same hierarchy.
  */
 private fun SqlExpressionBuilder.repositoryCondition(hierarchyId: CompoundHierarchyId): Op<Boolean> =
-    (RoleAssignmentsTable.repositoryId eq hierarchyId.repositoryId?.value) or (
-            (RoleAssignmentsTable.repositoryId eq null) and
+    (
+        (RoleAssignmentsTable.repositoryId eq hierarchyId.repositoryId?.value) or
+            (RoleAssignmentsTable.repositoryId eq null)
+    ) and
                     (RoleAssignmentsTable.productId eq hierarchyId.productId?.value) and
                     (RoleAssignmentsTable.organizationId eq hierarchyId.organizationId?.value)
-            )
 
 /**
  * Generate the SQL condition to match role assignments for the given [hierarchyId] for which no product ID is
