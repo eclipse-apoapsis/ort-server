@@ -35,6 +35,11 @@ interface EffectiveRole {
     val elementId: CompoundHierarchyId
 
     /**
+     * A flag indicating whether the associated user has superuser rights.
+     */
+    val isSuperuser: Boolean
+
+    /**
      * Check whether this effective role grants the given [permission] on the organization level.
      */
     fun hasOrganizationPermission(permission: OrganizationPermission): Boolean
