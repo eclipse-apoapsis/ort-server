@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.Jobs
 import org.eclipse.apoapsis.ortserver.model.NotifierJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
@@ -69,6 +70,8 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 
 import org.jetbrains.exposed.sql.Database
+
+fun Identifier.toCoordinates(): String = "$type:$namespace:$name:$version"
 
 /**
  * A helper class to manage test fixtures. It provides default instances as well as helper functions to create custom
@@ -194,6 +197,33 @@ class Fixtures(private val db: Database) {
         val reporterJob = createReporterJob(ortRunId)
         val notifierJob = createNotifierJob(ortRunId)
         return Jobs(analyzerJob, advisorJob, scannerJob, evaluatorJob, reporterJob, notifierJob)
+    }
+
+    fun createAnalyzerRunWithPackages(
+        packages: Set<Package>,
+        repositoryId: Long = createRepository().id,
+        projects: Set<Project> = emptySet(),
+        shortestPaths: Map<Identifier, List<ShortestDependencyPath>> = emptyMap()
+    ): OrtRun {
+        val ortRun = createOrtRun(
+            repositoryId = repositoryId,
+            revision = "revision",
+            jobConfigurations = JobConfigurations()
+        )
+
+        val analyzerJob = createAnalyzerJob(
+            ortRunId = ortRun.id,
+            configuration = AnalyzerJobConfiguration(),
+        )
+
+        createAnalyzerRun(
+            analyzerJobId = analyzerJob.id,
+            projects = projects,
+            packages = packages,
+            shortestDependencyPaths = shortestPaths
+        )
+
+        return ortRun
     }
 
     fun createIdentifier(
