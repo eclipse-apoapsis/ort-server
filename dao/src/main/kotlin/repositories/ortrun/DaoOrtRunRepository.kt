@@ -26,11 +26,17 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.blockingQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.AnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesAnalyzerRunsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerrun.PackagesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.userDisplayName.UserDisplayNameDao
+import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.utils.applyFilter
+import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
@@ -41,6 +47,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunWithPackageId
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -50,6 +57,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.concat
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.and
@@ -57,6 +65,7 @@ import org.jetbrains.exposed.sql.delete
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.max
+import org.jetbrains.exposed.sql.stringLiteral
 
 import org.slf4j.LoggerFactory
 
@@ -231,6 +240,92 @@ class DaoOrtRunRepository(private val db: Database) : OrtRunRepository {
             .innerJoin(RepositoriesTable, { repositoryId }, { id })
             .innerJoin(ProductsTable, { RepositoriesTable.productId }, { id })
             .delete(OrtRunsTable) { ProductsTable.id eq productId }
+    }
+
+    /**
+     * Find ORT runs containing the given package [identifier], optionally scoped by [organizationId],
+     * [productId], and [repositoryId]. If a lower-level scope is provided, its parent(s) must also be provided.
+     * If all are null, a global search is performed.
+     *
+     * @param identifier The package identifier (PURL or ORT ID).
+     * @param organizationId Optional organization scope.
+     * @param productId Optional product scope (requires organizationId).
+     * @param repositoryId Optional repository scope (requires productId and organizationId).
+     * @return List of ORT runs matching the criteria.
+     */
+    override fun findOrtRunsByPackage(
+        identifier: String,
+        organizationId: Long?,
+        productId: Long?,
+        repositoryId: Long?
+    ): List<OrtRunWithPackageId> = db.blockingQuery {
+        // Enforce scoping hierarchy
+        require(!(repositoryId != null && (productId == null || organizationId == null))) {
+            "If repositoryId is provided, productId and organizationId must also be provided."
+        }
+        require(organizationId != null || productId == null) {
+            "If productId is provided, organizationId must also be provided."
+        }
+
+        // Build base query
+        var query = OrtRunsTable
+            .innerJoin(AnalyzerJobsTable, { OrtRunsTable.id }, { ortRunId })
+            .innerJoin(AnalyzerRunsTable, { AnalyzerJobsTable.id }, { analyzerJobId })
+            .innerJoin(PackagesAnalyzerRunsTable, { AnalyzerRunsTable.id }, { PackagesAnalyzerRunsTable.analyzerRunId })
+            .innerJoin(PackagesTable, { PackagesAnalyzerRunsTable.packageId }, { PackagesTable.id })
+            .innerJoin(IdentifiersTable, { PackagesTable.identifierId }, { IdentifiersTable.id })
+
+        // Convert Identifier to a concatenated string format for ILike comparison
+        val concatenatedIdentifier = concat(
+            IdentifiersTable.type,
+            stringLiteral(":"),
+            IdentifiersTable.namespace,
+            stringLiteral(":"),
+            IdentifiersTable.name,
+            stringLiteral(":"),
+            IdentifiersTable.version
+        )
+
+        // Build where clause, possibly with scoping the search.
+
+        // GLobal search.
+        var whereClause: Op<Boolean> = concatenatedIdentifier.applyRegex(identifier)
+        if (repositoryId != null) {
+            // This implies org and prod are present, so the search is scoped
+            // to a specific repository inside an organization and product.
+            query = query
+                .innerJoin(RepositoriesTable, { OrtRunsTable.repositoryId }, { RepositoriesTable.id })
+                .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
+            whereClause = whereClause and (ProductsTable.organizationId eq organizationId)
+            whereClause = whereClause and (RepositoriesTable.productId eq productId)
+            whereClause = whereClause and (OrtRunsTable.repositoryId eq repositoryId)
+        } else if (productId != null) {
+            // This implies org is present, so the search is scoped
+            // to a specific product inside an organization.
+            query = query
+                .innerJoin(RepositoriesTable, { OrtRunsTable.repositoryId }, { RepositoriesTable.id })
+                .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
+            whereClause = whereClause and (ProductsTable.organizationId eq organizationId)
+            whereClause = whereClause and (RepositoriesTable.productId eq productId)
+        } else if (organizationId != null) {
+            // The search is scoped to a specific organization.
+            query = query
+                .innerJoin(RepositoriesTable, { OrtRunsTable.repositoryId }, { RepositoriesTable.id })
+                .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
+            whereClause = whereClause and (ProductsTable.organizationId eq organizationId)
+        }
+
+        val resultRows = query.select(OrtRunsTable.columns + IdentifiersTable.columns).where { whereClause }
+        resultRows.map { row ->
+            val ortRunDao = OrtRunDao.wrapRow(row)
+            val packageId = listOf(
+                row[IdentifiersTable.type],
+                row[IdentifiersTable.namespace],
+                row[IdentifiersTable.name],
+                row[IdentifiersTable.version]
+            ).joinToString(":")
+            OrtRunWithPackageId(ortRunDao.mapToModel(), packageId)
+        }
     }
 }
 

@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.ortrun
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeLessThan
@@ -45,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunIssueDao
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.OrtRunsIssuesTable
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.dao.test.toCoordinates
 import org.eclipse.apoapsis.ortserver.model.ActiveOrtRun
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
@@ -52,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunWithPackageId
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
@@ -567,6 +570,148 @@ class DaoOrtRunRepositoryTest : WordSpec({
 
             val expectedIds = runs.take(3).map(OrtRun::id)
             runsBefore shouldContainExactlyInAnyOrder expectedIds
+        }
+    }
+
+    data class OrtRunWithPackage(
+        val ortRun: OrtRun,
+        val orgId: Long,
+        val prodId: Long,
+        val repoId: Long,
+        val pkgId: Identifier
+    )
+
+    fun createOrtRunWithPackage(
+        repoId: Long = repositoryId,
+        pkgId: Identifier = Identifier("test", "ns", "name", "1.0")
+    ): OrtRunWithPackage {
+        val pkg = dbExtension.fixtures.generatePackage(pkgId)
+        val ortRun = dbExtension.fixtures.createAnalyzerRunWithPackages(packages = setOf(pkg), repositoryId = repoId)
+
+        return OrtRunWithPackage(ortRun, organizationId, productId, repoId, pkgId)
+    }
+
+    "findOrtRunsByPackage" should {
+        "support global search" {
+            val ortRun = createOrtRunWithPackage()
+            val expectedId = ortRun.pkgId.toCoordinates()
+            val result = ortRunRepository.findOrtRunsByPackage(expectedId)
+            result shouldContainExactly listOf(OrtRunWithPackageId(ortRun.ortRun, expectedId))
+        }
+
+        "support search inside an organization" {
+            val ortRun = createOrtRunWithPackage()
+            val expectedId = ortRun.pkgId.toCoordinates()
+            val otherOrg = dbExtension.fixtures.createOrganization(name = "other-org")
+            val otherProd = dbExtension.fixtures.createProduct(name = "other-prod", organizationId = otherOrg.id)
+            val otherRepo = dbExtension.fixtures.createRepository(
+                productId = otherProd.id,
+                url = "https://example.com/other-repo.git"
+            )
+            createOrtRunWithPackage(repoId = otherRepo.id)
+
+            val result = ortRunRepository.findOrtRunsByPackage(
+                expectedId,
+                organizationId = ortRun.orgId
+            )
+            result shouldContainExactly listOf(OrtRunWithPackageId(ortRun.ortRun, expectedId))
+        }
+
+        "support search inside a product" {
+            val ortRun = createOrtRunWithPackage()
+            val expectedId = ortRun.pkgId.toCoordinates()
+            val otherProd = dbExtension.fixtures.createProduct(name = "other-prod", organizationId = ortRun.orgId)
+            val otherRepo = dbExtension.fixtures.createRepository(
+                productId = otherProd.id,
+                url = "https://example.com/other-repo.git"
+            )
+            createOrtRunWithPackage(repoId = otherRepo.id)
+
+            val result = ortRunRepository.findOrtRunsByPackage(
+                expectedId,
+                organizationId = ortRun.orgId,
+                productId = ortRun.prodId
+            )
+            result shouldContainExactly listOf(OrtRunWithPackageId(ortRun.ortRun, expectedId))
+        }
+
+        "support search inside a repository" {
+            val ortRun = createOrtRunWithPackage()
+            val expectedId = ortRun.pkgId.toCoordinates()
+            val otherRepo = dbExtension.fixtures.createRepository(url = "https://example.com/other-repo.git")
+            createOrtRunWithPackage(repoId = otherRepo.id)
+
+            val result = ortRunRepository.findOrtRunsByPackage(
+                expectedId,
+                organizationId = ortRun.orgId,
+                productId = ortRun.prodId,
+                repositoryId = ortRun.repoId
+            )
+            result shouldContainExactly listOf(OrtRunWithPackageId(ortRun.ortRun, expectedId))
+        }
+
+        "find all runs for the same package in multiple repositories/products/orgs" {
+            val pkgId = Identifier("Maven", "org.hamcrest", "hamcrest-core", "1.3")
+            val expectedId = pkgId.toCoordinates()
+            val ortRun1 = createOrtRunWithPackage(pkgId = pkgId)
+            val otherOrg = dbExtension.fixtures.createOrganization(name = "other-org")
+            val otherProd = dbExtension.fixtures.createProduct(name = "other-prod", organizationId = otherOrg.id)
+            val otherRepo = dbExtension.fixtures.createRepository(
+                productId = otherProd.id,
+                url = "https://example.com/other-repo.git"
+            )
+            val ortRun2 = createOrtRunWithPackage(repoId = otherRepo.id, pkgId = pkgId)
+            val result = ortRunRepository.findOrtRunsByPackage(expectedId)
+            result shouldContainExactlyInAnyOrder listOf(
+                OrtRunWithPackageId(ortRun1.ortRun, expectedId),
+                OrtRunWithPackageId(ortRun2.ortRun, expectedId)
+            )
+        }
+
+        "return empty when package is not present in the given scope" {
+            val pkgId = Identifier("Maven", "org.hamcrest", "hamcrest-core", "1.3")
+            val expectedId = pkgId.toCoordinates()
+            val otherOrg = dbExtension.fixtures.createOrganization(name = "other-org")
+            val otherProd = dbExtension.fixtures.createProduct(name = "other-prod", organizationId = otherOrg.id)
+            // No run with pkgId in otherOrg
+            val result = ortRunRepository.findOrtRunsByPackage(expectedId, organizationId = otherOrg.id)
+            result shouldBe emptyList()
+        }
+
+        "find multiple runs for the same package in one repository" {
+            val pkgId = Identifier("Maven", "org.hamcrest", "hamcrest-core", "1.3")
+            val expectedId = pkgId.toCoordinates()
+            val ortRun1 = createOrtRunWithPackage(pkgId = pkgId)
+            val ortRun2 = createOrtRunWithPackage(pkgId = pkgId)
+            val result = ortRunRepository.findOrtRunsByPackage(
+                expectedId,
+                organizationId = ortRun1.orgId,
+                productId = ortRun1.prodId,
+                repositoryId = ortRun1.repoId
+            )
+            result shouldContainExactlyInAnyOrder listOf(
+                OrtRunWithPackageId(ortRun1.ortRun, expectedId),
+                OrtRunWithPackageId(ortRun2.ortRun, expectedId)
+            )
+        }
+
+        "support substring search for package coordinates" {
+            val pkgId = Identifier("Maven", "org.hamcrest", "hamcrest-core", "1.3")
+            val ortRun = createOrtRunWithPackage(pkgId = pkgId)
+            val expectedId = pkgId.toCoordinates()
+            val substrings = listOf(
+                "org.hamcrest",
+                "core:1.3",
+                "hamcrest-core",
+                "Maven:org.hamcrest:hamcrest-core", "1.3"
+            )
+            substrings.forEach { substring ->
+                val result = ortRunRepository.findOrtRunsByPackage(substring)
+                result.size shouldBe 1
+                val returned = result.first()
+                returned.ortRun shouldBe ortRun.ortRun
+                returned.packageId.contains(substring) shouldBe true
+            }
         }
     }
 

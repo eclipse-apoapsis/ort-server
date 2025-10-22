@@ -136,4 +136,16 @@ interface OrtRunRepository {
      * Delete all ORT runs associated to this [productId].
      */
     fun deleteByProduct(productId: Long): Int
+
+    /**
+     * Find the ORT runs that contain the provided package [identifier], optionally scoped by
+     * organizationId, productId, and repositoryId. If a lower-level scope is provided, its parent(s)
+     * must also be provided. If all are null, a global search is performed.
+     */
+    fun findOrtRunsByPackage(
+        identifier: String,
+        organizationId: Long? = null,
+        productId: Long? = null,
+        repositoryId: Long? = null
+    ): List<OrtRunWithPackageId>
 }
