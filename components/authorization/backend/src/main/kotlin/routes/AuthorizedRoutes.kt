@@ -29,6 +29,7 @@ import io.github.smiley4.ktoropenapi.post
 import io.github.smiley4.ktoropenapi.put
 
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
@@ -51,17 +52,13 @@ suspend fun ApplicationCall.createAuthorizedPrincipal(
     (this as? RoutingPipelineCall)?.let { routingCall ->
         val checker = routingCall.route.findAuthorizationChecker()
 
-        val effectiveRole = if (checker != null) {
-            checker.loadEffectiveRole(
-                service = authorizationService,
-                userId = payload.getClaim("preferred_username").asString(),
-                call = this
-            ).takeIf { checker.checkAuthorization(it) }
-        } else {
-            EffectiveRole.EMPTY
-        }
+        val effectiveRole = checker?.loadEffectiveRole(
+            service = authorizationService,
+            userId = payload.getClaim("preferred_username").asString(),
+            call = this
+        ) ?: EffectiveRole.EMPTY
 
-        effectiveRole?.let { OrtServerPrincipal.create(payload, it) }
+        OrtServerPrincipal.create(payload, effectiveRole)
     }
 
 /**
@@ -71,7 +68,7 @@ fun Route.get(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker) { get(builder, body) }
+): Route = documentedAuthorized(checker, body) { get(builder, it) }
 
 /**
  * Create a new [Route] for HTTP POST requests that performs an automatic authorization check using the given [checker].
@@ -80,7 +77,7 @@ fun Route.post(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker) { post(builder, body) }
+): Route = documentedAuthorized(checker, body) { post(builder, it) }
 
 /**
  * Create a new [Route] for HTTP PATCH requests that performs an automatic authorization check using the given
@@ -90,7 +87,7 @@ fun Route.patch(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker) { patch(builder, body) }
+): Route = documentedAuthorized(checker, body) { patch(builder, it) }
 
 /**
  * Create a new [Route] for HTTP PUT requests that performs an automatic authorization check using the given
@@ -100,7 +97,7 @@ fun Route.put(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker) { put(builder, body) }
+): Route = documentedAuthorized(checker, body) { put(builder, it) }
 
 /**
  * Create a new [Route] for HTTP DELETE requests that performs an automatic authorization check using the given
@@ -110,16 +107,31 @@ fun Route.delete(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker) { delete(builder, body) }
+): Route = documentedAuthorized(checker, body) { delete(builder, it) }
 
 /**
  * Generic function to create a new [Route] that performs an automatic authorization check using the given [checker].
- * The content of the route is defined by the given [build] function.
+ * The content of the route is defined by the given original [body] and the [build] function.
  */
-private fun Route.documentedAuthorized(checker: AuthorizationChecker, build: Route.() -> Unit): Route {
+private fun Route.documentedAuthorized(
+    checker: AuthorizationChecker,
+    body: suspend RoutingContext.() -> Unit,
+    build: Route.(suspend RoutingContext.() -> Unit) -> Unit
+): Route {
     val authorizedRoute = createChild(authorizedRouteSelector(checker.toString()))
     authorizedRoute.attributes.put(AuthorizationCheckerKey, checker)
-    authorizedRoute.build()
+
+    val authorizedBody: suspend RoutingContext.() -> Unit = {
+        val principal = call.principal<OrtServerPrincipal>() ?: throw AuthorizationException()
+
+        if (!checker.checkAuthorization(principal.effectiveRole)) {
+            throw AuthorizationException()
+        }
+
+        body()
+    }
+
+    authorizedRoute.build(authorizedBody)
     return authorizedRoute
 }
 
@@ -160,3 +172,9 @@ object AuthenticationProviders {
      */
     const val TOKEN_PROVIDER = "token"
 }
+
+/**
+ * An exception class to indicate a failed authorization check. Such exceptions are thrown by the route functions when
+ * the current user does not have the required permissions. They are mapped to HTTP 403 Forbidden responses.
+ */
+class AuthorizationException : RuntimeException()
