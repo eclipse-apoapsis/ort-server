@@ -23,8 +23,13 @@ import io.ktor.server.application.ApplicationCall
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
 /**
@@ -57,6 +62,15 @@ interface AuthorizationChecker {
     fun checkAuthorization(effectiveRole: EffectiveRole): Boolean
 }
 
+/** The name of the request parameter referring to the organization ID. */
+private const val ORGANIZATION_ID_PARAM = "organizationId"
+
+/** The name of the request parameter referring to the product ID. */
+private const val PRODUCT_ID_PARAM = "productId"
+
+/** The name of the request parameter referring to the repository ID. */
+private const val REPOSITORY_ID_PARAM = "repositoryId"
+
 /**
  * Create an [AuthorizationChecker] that checks for the presence of the given organization-level [permission].
  */
@@ -67,10 +81,64 @@ fun requirePermission(permission: OrganizationPermission): AuthorizationChecker 
             userId: String,
             call: ApplicationCall
         ): EffectiveRole =
-            service.getEffectiveRole(userId, OrganizationId(call.requireIdParameter("organizationId")))
+            service.getEffectiveRole(userId, OrganizationId(call.requireIdParameter(ORGANIZATION_ID_PARAM)))
 
         override fun checkAuthorization(effectiveRole: EffectiveRole): Boolean =
             effectiveRole.hasOrganizationPermission(permission)
 
         override fun toString(): String = "RequireOrganizationPermission($permission)"
+    }
+
+/**
+ * Create an [AuthorizationChecker] that checks for the presence of the given product-level [permission].
+ */
+fun requirePermission(permission: ProductPermission): AuthorizationChecker =
+    object : AuthorizationChecker {
+        override suspend fun loadEffectiveRole(
+            service: AuthorizationService,
+            userId: String,
+            call: ApplicationCall
+        ): EffectiveRole =
+            service.getEffectiveRole(userId, ProductId(call.requireIdParameter(PRODUCT_ID_PARAM)))
+
+        override fun checkAuthorization(effectiveRole: EffectiveRole): Boolean =
+            effectiveRole.hasProductPermission(permission)
+
+        override fun toString(): String = "RequireProductPermission($permission)"
+    }
+
+/**
+ * Create an [AuthorizationChecker] that checks for the presence of the given repository-level [permission].
+ */
+fun requirePermission(permission: RepositoryPermission): AuthorizationChecker =
+    object : AuthorizationChecker {
+        override suspend fun loadEffectiveRole(
+            service: AuthorizationService,
+            userId: String,
+            call: ApplicationCall
+        ): EffectiveRole =
+            service.getEffectiveRole(userId, RepositoryId(call.requireIdParameter(REPOSITORY_ID_PARAM)))
+
+        override fun checkAuthorization(effectiveRole: EffectiveRole): Boolean =
+            effectiveRole.hasRepositoryPermission(permission)
+
+        override fun toString(): String = "RequireRepositoryPermission($permission)"
+    }
+
+/**
+ * Create an [AuthorizationChecker] that checks whether the user is a superuser.
+ */
+fun requireSuperuser(): AuthorizationChecker =
+    object : AuthorizationChecker {
+        override suspend fun loadEffectiveRole(
+            service: AuthorizationService,
+            userId: String,
+            call: ApplicationCall
+        ): EffectiveRole =
+            service.getEffectiveRole(userId, CompoundHierarchyId.WILDCARD)
+
+        override fun checkAuthorization(effectiveRole: EffectiveRole): Boolean =
+            effectiveRole.isSuperuser
+
+        override fun toString(): String = "RequireSuperuser"
     }
