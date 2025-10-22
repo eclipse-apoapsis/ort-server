@@ -54,6 +54,7 @@ import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 
 import java.util.Date
 
@@ -64,6 +65,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Repository
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 
 class AuthorizedRoutesTest : WordSpec() {
     /**
@@ -268,6 +271,105 @@ class AuthorizedRoutesTest : WordSpec() {
                 ) { client ->
                     val response = client.delete("test/$ID_PARAMETER")
                     response.status shouldBe HttpStatusCode.OK
+                }
+            }
+
+            "support requests on product level" {
+                val effectiveRole = mockk<EffectiveRole> {
+                    every { hasProductPermission(ProductPermission.DELETE) } returns true
+                }
+                val service = mockk<AuthorizationService> {
+                    coEvery {
+                        getEffectiveRole(USERNAME, ProductId(ID_PARAMETER))
+                    } returns effectiveRole
+                }
+
+                runAuthorizationTest(
+                    service,
+                    routeBuilder = {
+                        route("test/{productId}") {
+                            get(testDocs, requirePermission(ProductPermission.DELETE)) {
+                                call.principal<OrtServerPrincipal>().shouldNotBeNull {
+                                    username shouldBe USERNAME
+                                }
+
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.get("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.OK
+
+                    verify {
+                        effectiveRole.hasProductPermission(ProductPermission.DELETE)
+                    }
+                }
+            }
+
+            "support requests on repository level" {
+                val effectiveRole = mockk<EffectiveRole> {
+                    every { hasRepositoryPermission(RepositoryPermission.READ) } returns true
+                }
+                val service = mockk<AuthorizationService> {
+                    coEvery {
+                        getEffectiveRole(USERNAME, RepositoryId(ID_PARAMETER))
+                    } returns effectiveRole
+                }
+
+                runAuthorizationTest(
+                    service,
+                    routeBuilder = {
+                        route("test/{repositoryId}") {
+                            get(testDocs, requirePermission(RepositoryPermission.READ)) {
+                                call.principal<OrtServerPrincipal>().shouldNotBeNull {
+                                    username shouldBe USERNAME
+                                }
+
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.get("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.OK
+
+                    verify {
+                        effectiveRole.hasRepositoryPermission(RepositoryPermission.READ)
+                    }
+                }
+            }
+
+            "support requests that require superuser rights" {
+                val effectiveRole = mockk<EffectiveRole> {
+                    every { isSuperuser } returns true
+                }
+                val service = mockk<AuthorizationService> {
+                    coEvery {
+                        getEffectiveRole(USERNAME, CompoundHierarchyId.WILDCARD)
+                    } returns effectiveRole
+                }
+
+                runAuthorizationTest(
+                    service,
+                    routeBuilder = {
+                        route("test/{organizationId}") {
+                            get(testDocs, requireSuperuser()) {
+                                call.principal<OrtServerPrincipal>().shouldNotBeNull {
+                                    username shouldBe USERNAME
+                                }
+
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.get("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.OK
+
+                    verify {
+                        effectiveRole.isSuperuser
+                    }
                 }
             }
         }
