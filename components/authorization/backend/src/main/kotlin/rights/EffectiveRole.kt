@@ -28,6 +28,24 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
  * provided here, client code can check whether the user has the required permissions to perform the requested action.
  */
 interface EffectiveRole {
+    companion object {
+        /**
+         * A special instance of [EffectiveRole] that does not contain any permissions and is not associated with any
+         * specific hierarchy element.
+         */
+        val EMPTY: EffectiveRole = object : EffectiveRole {
+            override val elementId: CompoundHierarchyId = CompoundHierarchyId.WILDCARD
+
+            override val isSuperuser: Boolean = false
+
+            override fun hasOrganizationPermission(permission: OrganizationPermission): Boolean = false
+
+            override fun hasProductPermission(permission: ProductPermission): Boolean = false
+
+            override fun hasRepositoryPermission(permission: RepositoryPermission): Boolean = false
+        }
+    }
+
     /**
      * The compound ID of the hierarchy element this effective role applies to. This object contains the aggregated
      * permissions of the current user for this element.

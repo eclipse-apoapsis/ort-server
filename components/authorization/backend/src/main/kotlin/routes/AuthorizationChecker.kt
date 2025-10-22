@@ -22,7 +22,10 @@ package org.eclipse.apoapsis.ortserver.components.authorization.routes
 import io.ktor.server.application.ApplicationCall
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
 
 /**
  * An interface defining a mechanism to check for required permissions using an [AuthorizationService] instance.
@@ -53,3 +56,21 @@ interface AuthorizationChecker {
      */
     fun checkAuthorization(effectiveRole: EffectiveRole): Boolean
 }
+
+/**
+ * Create an [AuthorizationChecker] that checks for the presence of the given organization-level [permission].
+ */
+fun requirePermission(permission: OrganizationPermission): AuthorizationChecker =
+    object : AuthorizationChecker {
+        override suspend fun loadEffectiveRole(
+            service: AuthorizationService,
+            userId: String,
+            call: ApplicationCall
+        ): EffectiveRole =
+            service.getEffectiveRole(userId, OrganizationId(call.requireIdParameter("organizationId")))
+
+        override fun checkAuthorization(effectiveRole: EffectiveRole): Boolean =
+            effectiveRole.hasOrganizationPermission(permission)
+
+        override fun toString(): String = "RequireOrganizationPermission($permission)"
+    }
