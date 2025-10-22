@@ -44,6 +44,7 @@ dependencies {
 
     testImplementation(ktorLibs.client.contentNegotiation)
     testImplementation(ktorLibs.client.core)
+    testImplementation(ktorLibs.server.statusPages)
     testImplementation(ktorLibs.server.testHost)
     testImplementation(ktorLibs.utils)
     testImplementation(libs.kotestAssertionsCore)

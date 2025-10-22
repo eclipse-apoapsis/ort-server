@@ -44,6 +44,7 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.principal
+import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
@@ -90,6 +91,12 @@ class AuthorizedRoutesTest : WordSpec() {
                         validate { credential ->
                             createAuthorizedPrincipal(service, credential.payload)
                         }
+                    }
+                }
+
+                install(StatusPages) {
+                    exception<AuthorizationException> { call, _ ->
+                        call.respond(HttpStatusCode.Forbidden)
                     }
                 }
 
@@ -261,6 +268,113 @@ class AuthorizedRoutesTest : WordSpec() {
                 ) { client ->
                     val response = client.delete("test/$ID_PARAMETER")
                     response.status shouldBe HttpStatusCode.OK
+                }
+            }
+        }
+
+        "failed authorization checks" should {
+            "return a 403 response for GET with insufficient organization permission" {
+                val effectiveRole = mockk<EffectiveRole> {
+                    every { hasOrganizationPermission(any()) } returns false
+                }
+                val service = createServiceForOrganizationRole(effectiveRole)
+
+                runAuthorizationTest(
+                    service,
+                    routeBuilder = {
+                        route("test/{organizationId}") {
+                            get(testDocs, requirePermission(OrganizationPermission.READ)) {
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.get("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.Forbidden
+                }
+            }
+
+            "return a 403 response for POST with insufficient organization permission" {
+                val effectiveRole = mockk<EffectiveRole> {
+                    every { hasOrganizationPermission(any()) } returns false
+                }
+                val service = createServiceForOrganizationRole(effectiveRole)
+
+                runAuthorizationTest(
+                    service,
+                    routeBuilder = {
+                        route("test/{organizationId}") {
+                            post(testDocs, requirePermission(OrganizationPermission.CREATE_PRODUCT)) {
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.post("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.Forbidden
+                }
+            }
+
+            "return a 403 response for PATCH with insufficient organization permission" {
+                val effectiveRole = mockk<EffectiveRole> {
+                    every { hasOrganizationPermission(any()) } returns false
+                }
+                val service = createServiceForOrganizationRole(effectiveRole)
+
+                runAuthorizationTest(
+                    service,
+                    routeBuilder = {
+                        route("test/{organizationId}") {
+                            patch(testDocs, requirePermission(OrganizationPermission.MANAGE_GROUPS)) {
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.patch("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.Forbidden
+                }
+            }
+
+            "return a 403 response for PUT with insufficient organization permission" {
+                val effectiveRole = mockk<EffectiveRole> {
+                    every { hasOrganizationPermission(any()) } returns false
+                }
+                val service = createServiceForOrganizationRole(effectiveRole)
+
+                runAuthorizationTest(
+                    service,
+                    routeBuilder = {
+                        route("test/{organizationId}") {
+                            put(testDocs, requirePermission(OrganizationPermission.WRITE_SECRETS)) {
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.put("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.Forbidden
+                }
+            }
+
+            "return a 403 response for DELETE with insufficient organization permission" {
+                val effectiveRole = mockk<EffectiveRole> {
+                    every { hasOrganizationPermission(any()) } returns false
+                }
+                val service = createServiceForOrganizationRole(effectiveRole)
+
+                runAuthorizationTest(
+                    service,
+                    routeBuilder = {
+                        route("test/{organizationId}") {
+                            delete(testDocs, requirePermission(OrganizationPermission.DELETE)) {
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.delete("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
