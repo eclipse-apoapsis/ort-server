@@ -188,4 +188,5 @@ tasks.register<Test>("generateOpenApiSpec") {
     classpath = files(test.map { it.sources.runtimeClasspath })
     include("org/eclipse/apoapsis/ortserver/core/utils/GenerateOpenApiSpec.class")
     systemProperties("generateOpenApiSpec" to "true")
+    outputs.file(rootDir.resolve("ui/build/openapi.json"))
 }
