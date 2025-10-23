@@ -32,6 +32,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.UserService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
+import org.eclipse.apoapsis.ortserver.components.packagesearch.backend.PackageSearchDataAccess
+import org.eclipse.apoapsis.ortserver.components.packagesearch.backend.PackageSearchDataAccessImpl
 import org.eclipse.apoapsis.ortserver.components.packagesearch.backend.PackageSearchService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -185,7 +187,6 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::OrganizationService)
     singleOf(::OrtRunService)
     singleOf(::PackageService)
-    singleOf(::PackageSearchService)
     singleOf(::ProductService)
     singleOf(::ProjectService)
     singleOf(::RepositoryService)
@@ -216,4 +217,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::PluginService)
     singleOf(::PluginTemplateEventStore)
     singleOf(::PluginTemplateService)
+
+    single<PackageSearchDataAccess> { PackageSearchDataAccessImpl(get<OrtRunRepository>()) }
+    single { PackageSearchService(get()) }
 }
