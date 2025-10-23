@@ -22,11 +22,13 @@ package org.eclipse.apoapsis.ortserver.core.di
 import com.typesafe.config.ConfigFactory
 
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.tryGetString
 
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.migration.RolesToDbMigration
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.KeycloakUserService
@@ -210,4 +212,17 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::PluginService)
     singleOf(::PluginTemplateEventStore)
     singleOf(::PluginTemplateService)
+
+    single { RolesToDbMigration(get(), get(), getKeycloakGroupPrefix(config), get()) }
 }
+
+/**
+ * Retrieve the prefix for Keycloak groups representing roles for hierarchy elements from the given [config]. This is
+ * needed for the migration of roles managed by Keycloak to roles stored in the database. The prefix is obtained from
+ * the configuration of the authorization component based on Keycloak. It is, however, possible to override it via a
+ * special property for the migration. This is useful for instance, to test the migration on different ORT Server
+ * deployments, e.g. a test environment.
+ */
+private fun getKeycloakGroupPrefix(config: ApplicationConfig): String =
+    config.tryGetString("keycloak.migrationGroupPrefix")
+        ?: config.tryGetString("keycloak.groupPrefix").orEmpty()
