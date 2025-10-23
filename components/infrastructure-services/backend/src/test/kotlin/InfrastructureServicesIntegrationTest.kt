@@ -24,6 +24,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
@@ -38,9 +39,12 @@ abstract class InfrastructureServicesIntegrationTest(
     lateinit var secretService: SecretService
 
     var orgId = 0L
+    var prodId = 0L
     var repoId = 0L
     lateinit var orgUserSecret: String
     lateinit var orgPassSecret: String
+    lateinit var prodUserSecret: String
+    lateinit var prodPassSecret: String
     lateinit var repoUserSecret: String
     lateinit var repoPassSecret: String
 
@@ -55,9 +59,12 @@ abstract class InfrastructureServicesIntegrationTest(
             infrastructureServiceService = InfrastructureServiceService(dbExtension.db, secretService)
 
             orgId = dbExtension.fixtures.organization.id
+            prodId = dbExtension.fixtures.product.id
             repoId = dbExtension.fixtures.repository.id
             orgUserSecret = secretService.createSecret(name = "user", "value", null, OrganizationId(orgId)).name
             orgPassSecret = secretService.createSecret(name = "pass", "value", null, OrganizationId(orgId)).name
+            prodUserSecret = secretService.createSecret(name = "user", "value", null, ProductId(prodId)).name
+            prodPassSecret = secretService.createSecret(name = "pass", "value", null, ProductId(prodId)).name
             repoUserSecret = secretService.createSecret(name = "user", "value", null, RepositoryId(repoId)).name
             repoPassSecret = secretService.createSecret(name = "pass", "value", null, RepositoryId(repoId)).name
         }

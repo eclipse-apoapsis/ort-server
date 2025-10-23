@@ -26,6 +26,11 @@ import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.o
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization.getOrganizationInfrastructureServices
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization.patchOrganizationInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization.postOrganizationInfrastructureService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.product.deleteProductInfrastructureService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.product.getProductInfrastructureService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.product.getProductInfrastructureServices
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.product.patchProductInfrastructureService
+import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.product.postProductInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository.deleteRepositoryInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository.getRepositoryInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository.getRepositoryInfrastructureServices
@@ -39,6 +44,13 @@ fun Route.infrastructureServicesRoutes(infrastructureServiceService: Infrastruct
     getOrganizationInfrastructureServices(infrastructureServiceService)
     patchOrganizationInfrastructureService(infrastructureServiceService)
     postOrganizationInfrastructureService(infrastructureServiceService)
+
+    // Product infrastructure services
+    deleteProductInfrastructureService(infrastructureServiceService)
+    getProductInfrastructureService(infrastructureServiceService)
+    getProductInfrastructureServices(infrastructureServiceService)
+    patchProductInfrastructureService(infrastructureServiceService)
+    postProductInfrastructureService(infrastructureServiceService)
 
     // Repository infrastructure services
     deleteRepositoryInfrastructureService(infrastructureServiceService)
