@@ -25,6 +25,7 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
@@ -73,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.update
 
 import org.ossreviewtoolkit.model.FileList
 import org.ossreviewtoolkit.model.OrtResult
@@ -436,6 +438,18 @@ class OrtRunService(
                 RUN_ID_LABEL to ortRun.id.toString()
             )
         )
+    }
+
+    /**
+     * Mark the ORT runs with the given [ortRunIds] as outdated with the provided [outdatedMessage].
+     */
+    fun markAsOutdated(ortRunIds: List<Long>, outdatedMessage: String) {
+        db.blockingQuery {
+            OrtRunsTable.update({ OrtRunsTable.id inList ortRunIds }) {
+                it[OrtRunsTable.outdated] = true
+                it[OrtRunsTable.outdatedMessage] = outdatedMessage
+            }
+        }
     }
 
     /**
