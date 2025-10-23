@@ -66,7 +66,7 @@ export const getIssueCategory = (message: string): IssueCategory => {
 if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest;
 
-  it('correctly categorizes an infrastructure issue', () => {
+  it('correctly categorizes infrastructure issues', () => {
     const messages = [
       'The analyzer worker failed due to an unexpected error.',
       "ERROR: Timeout after 30 seconds while scanning file 'example.txt'.",
@@ -83,19 +83,19 @@ if (import.meta.vitest) {
     });
   });
 
-  it('correctly categorizes a missing data issue', () => {
+  it('correctly categorizes missing data issues', () => {
     const message =
       "IOException: Could not resolve provenance for package 'Pod::RNVectorIcons:10.2.0' for source code origins [ARTIFACT, VCS].";
     expect(getIssueCategory(message)).toBe('Missing Data');
   });
 
-  it('correctly categorizes a build system issue', () => {
+  it('correctly categorizes build system issues', () => {
     const message =
       "GradleInspector failed to resolve dependencies for path 'android/build.gradle':";
     expect(getIssueCategory(message)).toBe('Build System');
   });
 
-  it('correctly categorizes an other issue', () => {
+  it('correctly categorizes other issues', () => {
     const message = 'Some other issue occurred.';
     expect(getIssueCategory(message)).toBe('Other');
   });
