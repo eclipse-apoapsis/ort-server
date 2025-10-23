@@ -75,7 +75,7 @@ const columnHelper = createColumnHelper<OrtRunSummary>();
 
 const columns = [
   columnHelper.accessor('index', {
-    header: 'Run',
+    header: 'Index',
     cell: ({ row }) => (
       <Link
         className='font-semibold text-blue-400 hover:underline'
