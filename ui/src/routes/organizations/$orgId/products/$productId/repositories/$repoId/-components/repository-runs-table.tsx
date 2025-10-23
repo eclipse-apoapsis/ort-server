@@ -121,7 +121,7 @@ const columns = [
     enableColumnFilter: false,
   }),
   columnHelper.accessor('status', {
-    header: 'Run Status',
+    header: 'Status',
     cell: ({ row }) => (
       <Badge
         className={`border ${getStatusBackgroundColor(row.original.status)}`}
