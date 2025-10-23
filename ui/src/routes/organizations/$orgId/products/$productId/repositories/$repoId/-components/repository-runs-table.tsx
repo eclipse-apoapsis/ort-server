@@ -133,7 +133,7 @@ const columns = [
   }),
   columnHelper.display({
     id: 'jobStatuses',
-    header: () => <div>Job Status</div>,
+    header: () => <div>Jobs</div>,
     cell: ({ row }) => (
       <OrtRunJobStatus
         jobs={row.original.jobs}
