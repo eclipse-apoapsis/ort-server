@@ -31,6 +31,7 @@ export type ItemResolved = z.infer<typeof itemResolvedSchema>;
 // Enum schema and type for the possible values of the issue categories.
 export const issueCategorySchema = z.enum([
   'Build System',
+  'Deprecation',
   'Missing Data',
   'Infrastructure',
   'Other',
