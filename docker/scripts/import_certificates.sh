@@ -43,12 +43,14 @@ done
 
 if [ -n "$KEYSTORE" ]; then
     for CRT_FILE in "$FILE_PREFIX"*; do
+      if test -f "$CRT_FILE"; then
         echo "Adding the following certificate from '$CRT_FILE' to the JVM's certificate store at '$KEYSTORE':"
         cat "$CRT_FILE"
 
         ALIAS=$(basename "$CRT_FILE" .crt)
-        $KEYTOOL -importcert -noprompt -trustcacerts -alias "$ALIAS" -file "$CRT_FILE" \
+        "$KEYTOOL" -importcert -noprompt -trustcacerts -alias "$ALIAS" -file "$CRT_FILE" \
             -keystore "$KEYSTORE" -storepass changeit
+      fi
     done
 else
     echo "No JVM keystore found, skipping the import."
