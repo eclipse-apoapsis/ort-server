@@ -27,7 +27,7 @@ import kotlin.concurrent.thread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.migration.RolesToDbMigration
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.utils.logging.withMdcContext
 
@@ -41,26 +41,28 @@ import org.slf4j.MDC
  */
 fun Application.configureLifecycle() {
     monitor.subscribe(ApplicationStarted) {
-        val authorizationService by inject<AuthorizationService>()
+        val rolesMigration by inject<RolesToDbMigration>()
 
         val mdcContext = MDC.getCopyOfContextMap()
 
         thread {
             MDC.setContextMap(mdcContext)
             runBlocking(Dispatchers.IO) {
-                syncRoles(authorizationService)
+                migrateRoles(rolesMigration)
             }
         }
     }
 }
 
 /**
- * Trigger the synchronization of permissions and roles in Keycloak. The synchronization then runs in the background.
+ * Perform a migration to new database-based structures for access rights if necessary. This makes sure that the
+ * new structures are populated once when switching from access rights stored in Keycloak to the new storage in the
+ * database. The migration then runs in the background.
  */
-private suspend fun syncRoles(authorizationService: AuthorizationService) {
+private suspend fun migrateRoles(migration: RolesToDbMigration) {
     withMdcContext("component" to "core") {
         launch {
-            authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
+            migration.migrateRolesToDb()
         }
     }
 }
