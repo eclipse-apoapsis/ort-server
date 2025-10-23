@@ -25,6 +25,7 @@ import { IssueCategory } from '@/schemas';
 // Unit tests can be run from the /ui folder with:
 //   pnpm test
 const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
+  Deprecation: [/^deprecated .*/],
   Infrastructure: [
     /The .* worker failed due to an unexpected error.*/,
     /ERROR: Timeout after .* seconds while scanning file '.*'\./,
@@ -65,6 +66,18 @@ export const getIssueCategory = (message: string): IssueCategory => {
 
 if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest;
+
+  it('correctly categorizes deprecation issues', () => {
+    const messages = [
+      'deprecated @npmcli/move-file@1.1.2: This functionality has been moved to @npmcli/fs',
+      'deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported',
+      'deprecated uuid@3.4.0: Please upgrade  to version 7 or higher.',
+    ];
+
+    messages.forEach((message) => {
+      expect(getIssueCategory(message)).toBe('Deprecation');
+    });
+  });
 
   it('correctly categorizes infrastructure issues', () => {
     const messages = [
