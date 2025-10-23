@@ -183,7 +183,7 @@ val test by testing.suites.existing(JvmTestSuite::class)
 
 tasks.register<Test>("generateOpenApiSpec") {
     group = "API"
-    description = "A fake test task that writes the OpenAPI specification to `build/openapi/openapi.json`."
+    description = "A fake test task that writes the OpenAPI specification to `ui/build/openapi.json`."
     testClassesDirs = files(test.map { it.sources.output.classesDirs })
     classpath = files(test.map { it.sources.runtimeClasspath })
     include("org/eclipse/apoapsis/ortserver/core/utils/GenerateOpenApiSpec.class")
