@@ -60,6 +60,7 @@ class PostRepositoryInfrastructureServiceIntegrationTest : InfrastructureService
                         CredentialsType.NO_AUTHENTICATION
                     )
                 )
+
                 val response = client.post("/repositories/$repoId/infrastructure-services") {
                     setBody(createInfrastructureService)
                 }
@@ -109,6 +110,7 @@ class PostRepositoryInfrastructureServiceIntegrationTest : InfrastructureService
                     "nonExistingSecret1",
                     "nonExistingSecret2"
                 )
+
                 val response = client.post("/repositories/$repoId/infrastructure-services") {
                     setBody(createInfrastructureService)
                 }
@@ -138,6 +140,7 @@ class PostRepositoryInfrastructureServiceIntegrationTest : InfrastructureService
                     repoUserSecret,
                     repoPassSecret
                 )
+
                 val response = client.post("/repositories/$repoId/infrastructure-services") {
                     setBody(createInfrastructureService)
                 }
