@@ -40,6 +40,8 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 
+import io.mockk.mockk
+
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
@@ -115,7 +117,8 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
+            keycloakGroupPrefix = "",
+            mockk()
         )
 
         authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()

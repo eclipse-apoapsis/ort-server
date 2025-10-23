@@ -128,4 +128,11 @@ interface AuthorizationService {
      * Return a [Set] with the names of all roles assigned to the user with the given [userId].
      */
     suspend fun getUserRoleNames(userId: String): Set<String>
+
+    /**
+     * Perform a one-time migration of roles stored in Keycloak to the database. The migration happens if and only if
+     * the table with role assignments is empty. It is then populated with data corresponding to the current set of
+     * groups existing in Keycloak. The return value indicates whether a migration was performed.
+     */
+    suspend fun migrateRolesToDb(): Boolean
 }

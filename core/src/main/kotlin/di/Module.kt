@@ -31,6 +31,8 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.UserService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService as DbBasedAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
@@ -194,9 +196,10 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     if (authorizationService != null) {
         single<AuthorizationService> { authorizationService }
     } else {
+        single<DbBasedAuthorizationService> { DbAuthorizationService(get()) }
         single<AuthorizationService> {
             val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
-            KeycloakAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
+            KeycloakAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix, get())
         }
     }
 

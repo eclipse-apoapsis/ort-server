@@ -49,6 +49,8 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.mockk
+
 import kotlinx.datetime.Clock
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
@@ -127,7 +129,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
+            keycloakGroupPrefix = "",
+            mockk()
         )
 
         organizationService = OrganizationService(

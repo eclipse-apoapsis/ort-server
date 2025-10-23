@@ -113,7 +113,8 @@ class KeycloakAuthorizationServiceTest : WordSpec({
             organizationRepository,
             productRepository,
             repositoryRepository,
-            keycloakGroupPrefix
+            keycloakGroupPrefix,
+            mockk()
         ).apply {
             if (createRolesForHierarchy) {
                 createOrganizationPermissions(organizationId)

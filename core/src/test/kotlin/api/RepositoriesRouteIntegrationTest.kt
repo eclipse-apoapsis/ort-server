@@ -46,6 +46,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.mockk
+
 import java.util.EnumSet
 
 import kotlinx.coroutines.Dispatchers
@@ -134,7 +136,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
+            keycloakGroupPrefix = "",
+            mockk()
         )
 
         val organizationService = OrganizationService(

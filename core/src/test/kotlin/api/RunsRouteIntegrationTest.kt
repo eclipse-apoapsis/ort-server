@@ -50,6 +50,8 @@ import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.jvm.javaio.copyTo
 
+import io.mockk.mockk
+
 import java.io.File
 import java.io.IOException
 import java.util.EnumSet
@@ -156,7 +158,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
+            keycloakGroupPrefix = "",
+            mockk()
         )
 
         organizationService = OrganizationService(

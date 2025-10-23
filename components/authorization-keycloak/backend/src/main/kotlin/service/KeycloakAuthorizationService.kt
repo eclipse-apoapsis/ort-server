@@ -27,6 +27,7 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.RoleName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
+import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
@@ -35,8 +36,20 @@ import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Pr
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Role
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole as DbOrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole as DbProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole as DbRepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role as DbRole
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService as DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.organization.OrganizationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
@@ -53,7 +66,7 @@ internal const val ROLE_DESCRIPTION = "This role is auto-generated, do not edit 
 /**
  * An implementation of [AuthorizationService], based on [Keycloak](https://www.keycloak.org/).
  */
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "LargeClass")
 class KeycloakAuthorizationService(
     private val keycloakClient: KeycloakClient,
     private val db: Database,
@@ -65,7 +78,13 @@ class KeycloakAuthorizationService(
      * A prefix for Keycloak group names, to be used when multiple instances of ORT Server share the same Keycloak
      * realm.
      */
-    private val keycloakGroupPrefix: String
+    private val keycloakGroupPrefix: String,
+
+    /**
+     * The reworked authorization service that stores authorization data in the database. This is used for the
+     * migration functionality.
+     */
+    private val dbAuthorizationService: DbAuthorizationService
 ) : AuthorizationService {
     override suspend fun createOrganizationPermissions(organizationId: Long) {
         OrganizationPermission.getRolesForOrganization(organizationId).forEach { roleName ->
@@ -779,5 +798,166 @@ class KeycloakAuthorizationService(
     override suspend fun getUserRoleNames(userId: String): Set<String> {
         return keycloakClient.getUserClientRoles(UserId(userId))
             .mapTo(mutableSetOf()) { role -> role.name.value }
+    }
+
+    override suspend fun migrateRolesToDb(): Boolean {
+        if (!canMigrate()) return false
+
+        logger.warn("Starting migration of Keycloak roles to database-based roles.")
+
+        val organizationIds = db.dbQuery {
+            OrganizationsTable.select(OrganizationsTable.id)
+                .map { it[OrganizationsTable.id].value }
+        }
+
+        logger.info("Migrating {} organizations.", organizationIds.size)
+        organizationIds.forEach { organizationId ->
+            migrateOrganizationRolesToDb(organizationId)
+        }
+
+        logger.info("Migrating superusers")
+        migrateUsersInGroupToDb(
+            GroupName(keycloakGroupPrefix + Superuser.GROUP_NAME),
+            DbOrganizationRole.ADMIN,
+            CompoundHierarchyId.WILDCARD
+        )
+
+        return true
+    }
+
+    /**
+     * Migrate the access rights for the organization with the given [organizationId] to the new database-based roles.
+     * This includes the migration of all products and repositories belonging to the organization.
+     */
+    private suspend fun migrateOrganizationRolesToDb(organizationId: Long) {
+        logger.info("Migrating roles for organization '{}'.", organizationId)
+        val organizationHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(organizationId))
+
+        migrateElementRolesToDb(
+            oldRoles = OrganizationRole.entries,
+            newRoles = DbOrganizationRole.entries,
+            id = OrganizationId(organizationId),
+            newHierarchyID = organizationHierarchyId
+        )
+
+        val productIds = db.dbQuery {
+            ProductsTable.select(ProductsTable.id)
+                .where { ProductsTable.organizationId eq organizationId }
+                .map { it[ProductsTable.id].value }
+        }
+
+        logger.info("Migrating {} products for organization '{}'.", productIds.size, organizationId)
+        productIds.forEach { productId ->
+            val productHierarchyId = CompoundHierarchyId.forProduct(
+                OrganizationId(organizationId),
+                ProductId(productId)
+            )
+            migrateProductRolesToDb(productHierarchyId)
+        }
+    }
+
+    /**
+     * Migrate the access rights for the product with the given [productHierarchyId] to the new database-based roles.
+     * This includes the migration of all repositories belonging to the product.
+     */
+    private suspend fun migrateProductRolesToDb(productHierarchyId: CompoundHierarchyId) {
+        val productId = requireNotNull(productHierarchyId.productId)
+        logger.info("Migrating roles for product '{}'.", productId)
+
+        migrateElementRolesToDb(
+            oldRoles = ProductRole.entries,
+            newRoles = DbProductRole.entries,
+            id = productId,
+            productHierarchyId
+        )
+
+        val repositoryIds = db.dbQuery {
+            RepositoriesTable.select(RepositoriesTable.id)
+                .where { RepositoriesTable.productId eq productId.value }
+                .map { it[RepositoriesTable.id].value }
+        }
+
+        logger.info("Migrating {} repositories for product '{}'.", repositoryIds.size, productId)
+        repositoryIds.forEach { repositoryId ->
+            val repositoryHierarchyId = CompoundHierarchyId.forRepository(
+                requireNotNull(productHierarchyId.organizationId),
+                productId,
+                RepositoryId(repositoryId)
+            )
+            migrateRepositoryRolesToDb(repositoryHierarchyId)
+        }
+    }
+
+    /**
+     * Migrate the access rights for the repository with the given [repositoryId] to the new database-based roles.
+     */
+    private suspend fun migrateRepositoryRolesToDb(repositoryId: CompoundHierarchyId) {
+        logger.info("Migrating roles for repository '{}'.", repositoryId.repositoryId)
+
+        migrateElementRolesToDb(
+            oldRoles = RepositoryRole.entries,
+            newRoles = DbRepositoryRole.entries,
+            id = requireNotNull(repositoryId.repositoryId),
+            repositoryId
+        )
+    }
+
+    /**
+     * Migrate all users in the given [oldRoles] to the corresponding [newRoles] for the hierarchy element with the
+     * given [id] and [newHierarchyID].
+     */
+    private suspend fun <ID : HierarchyId> migrateElementRolesToDb(
+        oldRoles: Collection<Role<*, ID>>,
+        newRoles: Collection<DbRole>,
+        id: ID,
+        newHierarchyID: CompoundHierarchyId
+    ) {
+        oldRoles.zip(newRoles).forEach { (oldRole, newRole) ->
+            migrateUsersForRoleToDb(oldRole, newRole, id, newHierarchyID)
+        }
+    }
+
+    /**
+     * Migrate all users assigned to the given [oldRole] for the hierarchy element with the given [id] to the new
+     * [newRole] in the database, using the provided [newHierarchyID].
+     */
+    private suspend fun <ID : HierarchyId> migrateUsersForRoleToDb(
+        oldRole: Role<*, ID>,
+        newRole: DbRole,
+        id: ID,
+        newHierarchyID: CompoundHierarchyId
+    ) {
+        val groupName = GroupName(keycloakGroupPrefix + oldRole.groupName(id))
+        migrateUsersInGroupToDb(groupName, newRole, newHierarchyID)
+    }
+
+    /**
+     * Migrate all users in the Keycloak group with the given [groupName] (which represents a role) to the given
+     * [newRole] for the hierarchy element with the given [newHierarchyID].
+     */
+    private suspend fun migrateUsersInGroupToDb(
+        groupName: GroupName,
+        newRole: DbRole,
+        newHierarchyID: CompoundHierarchyId
+    ) {
+        runCatching {
+            keycloakClient.getGroupMembers(groupName).forEach { user ->
+                dbAuthorizationService.assignRole(
+                    userId = user.username.value,
+                    role = newRole,
+                    compoundHierarchyId = newHierarchyID
+                )
+            }
+        }.onFailure { exception ->
+            logger.error("Failed to load users in group '${groupName.value}' during migration.", exception)
+        }
+    }
+
+    /**
+     * Return a flag whether the migration of access rights to the new database structures is possible. This is the
+     * case
+     */
+    private suspend fun canMigrate(): Boolean = db.dbQuery {
+        RoleAssignmentsTable.select(RoleAssignmentsTable.id).count() == 0L
     }
 }
