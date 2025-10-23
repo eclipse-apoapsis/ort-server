@@ -48,7 +48,6 @@ class GetOrganizationInfrastructureServiceIntegrationTest : InfrastructureServic
                 )
 
                 response shouldHaveStatus HttpStatusCode.OK
-
                 response shouldHaveBody service.mapToApi()
             }
         }

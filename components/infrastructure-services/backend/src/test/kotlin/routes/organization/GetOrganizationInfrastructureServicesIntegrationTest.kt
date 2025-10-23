@@ -73,8 +73,7 @@ class GetOrganizationInfrastructureServicesIntegrationTest : InfrastructureServi
                 val response = client.get("/organizations/$orgId/infrastructure-services")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<InfrastructureService>>().data shouldContainExactlyInAnyOrder
-                        apiServices
+                response.body<PagedResponse<InfrastructureService>>().data shouldContainExactlyInAnyOrder apiServices
             }
         }
 
@@ -107,8 +106,7 @@ class GetOrganizationInfrastructureServicesIntegrationTest : InfrastructureServi
                 val response = client.get("/organizations/$orgId/infrastructure-services?sort=name&limit=4")
 
                 response shouldHaveStatus HttpStatusCode.OK
-                response.body<PagedResponse<InfrastructureService>>().data shouldContainExactlyInAnyOrder
-                        apiServices
+                response.body<PagedResponse<InfrastructureService>>().data shouldContainExactlyInAnyOrder apiServices
             }
         }
     }
