@@ -37,7 +37,10 @@ const issueCategoryMap: Record<IssueCategory, RegExp[]> = {
     /StreamResetException: stream was reset*/,
   ],
   'Missing Data': [/Could not resolve provenance for .*/],
-  'Build System': [/.* failed to resolve dependencies for .*/],
+  'Build System': [
+    /.* failed to resolve dependencies for .*/,
+    /^Multiple projects with the same id .*/,
+  ],
   Other: [/.*/],
 };
 
@@ -103,9 +106,14 @@ if (import.meta.vitest) {
   });
 
   it('correctly categorizes build system issues', () => {
-    const message =
-      "GradleInspector failed to resolve dependencies for path 'android/build.gradle':";
-    expect(getIssueCategory(message)).toBe('Build System');
+    const messages = [
+      "GradleInspector failed to resolve dependencies for path 'android/build.gradle':",
+      "Multiple projects with the same id 'NPM::project:1.0.0' found.",
+    ];
+
+    messages.forEach((message) => {
+      expect(getIssueCategory(message)).toBe('Build System');
+    });
   });
 
   it('correctly categorizes other issues', () => {
