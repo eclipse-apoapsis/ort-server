@@ -76,6 +76,12 @@ dependencies {
             requireCapability("$group:routes")
         }
     }
+    implementation(projects.components.packageSearch.backend)
+    implementation(projects.components.packageSearch.backend) {
+        capabilities {
+            requireCapability("$group:routes:$version")
+        }
+    }
     implementation(projects.components.pluginManager.backend)
     implementation(projects.components.pluginManager.backend) {
         capabilities {
