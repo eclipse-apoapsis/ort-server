@@ -25,8 +25,11 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -143,6 +146,46 @@ class DaoOrganizationRepositoryTest : StringSpec({
         organizationRepository.list(parameters, FilterParameter("^core")) shouldBe ListQueryResult(
             data = listOf(createdOrg1, createdOrg2),
             params = parameters,
+            totalCount = 2
+        )
+    }
+
+    "list should apply a hierarchy filter" {
+        val createdOrg1 = organizationRepository.create("org1", "description1")
+        val org1Id = CompoundHierarchyId.forOrganization(OrganizationId(createdOrg1.id))
+        val createdOrg2 = organizationRepository.create("org2", "description2")
+        val org2Id = CompoundHierarchyId.forOrganization(OrganizationId(createdOrg2.id))
+        organizationRepository.create("org3", "description3")
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(org1Id, org2Id)),
+            nonTransitiveIncludes = emptyMap(),
+        )
+        val result = organizationRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
+            data = listOf(createdOrg1, createdOrg2),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "list should apply a hierarchy filter with non-transitive includes" {
+        val createdOrg1 = organizationRepository.create("org1", "description1")
+        val org1Id = CompoundHierarchyId.forOrganization(OrganizationId(createdOrg1.id))
+        val createdOrg2 = organizationRepository.create("org2", "description2")
+        val org2Id = CompoundHierarchyId.forOrganization(OrganizationId(createdOrg2.id))
+        organizationRepository.create("org3", "description3")
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(org1Id)),
+            nonTransitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(org2Id)),
+        )
+        val result = organizationRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
+            data = listOf(createdOrg1, createdOrg2),
+            params = ListQueryParameters.DEFAULT,
             totalCount = 2
         )
     }
