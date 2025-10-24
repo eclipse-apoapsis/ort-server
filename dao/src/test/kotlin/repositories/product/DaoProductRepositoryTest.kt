@@ -28,8 +28,12 @@ import io.kotest.matchers.shouldBe
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -112,7 +116,7 @@ class DaoProductRepositoryTest : StringSpec({
         fixtures.createProduct("product-gateway")
         fixtures.createProduct("core-service")
 
-        productRepository.list(filter = FilterParameter("product$")) shouldBe ListQueryResult(
+        productRepository.list(nameFilter = FilterParameter("product$")) shouldBe ListQueryResult(
             data = listOf(
                 Product(prod1.id, orgId, prod1.name, prod1.description),
                 Product(prod2.id, orgId, prod2.name, prod2.description)
@@ -128,7 +132,92 @@ class DaoProductRepositoryTest : StringSpec({
         fixtures.createProduct("user-product")
         fixtures.createProduct("name")
 
-        productRepository.list(filter = FilterParameter("^product")) shouldBe ListQueryResult(
+        productRepository.list(nameFilter = FilterParameter("^product")) shouldBe ListQueryResult(
+            data = listOf(
+                Product(prod1.id, orgId, prod1.name, prod1.description),
+                Product(prod2.id, orgId, prod2.name, prod2.description)
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "list should apply a hierarchy filter on product level" {
+        val prod1 = fixtures.createProduct("prod1")
+        val prod1Id = CompoundHierarchyId.forProduct(
+            OrganizationId(fixtures.organization.id),
+            ProductId(prod1.id)
+        )
+        val prod2 = fixtures.createProduct("prod2")
+        val prod2Id = CompoundHierarchyId.forProduct(
+            OrganizationId(fixtures.organization.id),
+            ProductId(prod2.id)
+        )
+        fixtures.createProduct("prod3")
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(prod1Id, prod2Id)),
+            nonTransitiveIncludes = emptyMap(),
+        )
+        val result = productRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
+            data = listOf(
+                Product(prod1.id, orgId, prod1.name, prod1.description),
+                Product(prod2.id, orgId, prod2.name, prod2.description)
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "list should apply a hierarchy filter on organization level" {
+        val org2 = fixtures.createOrganization(name = "org2")
+        val org1Id = CompoundHierarchyId.forOrganization(OrganizationId(fixtures.organization.id))
+        val org2Id = CompoundHierarchyId.forOrganization(OrganizationId(org2.id))
+
+        val prod1 = fixtures.createProduct("prod1")
+        val prod2 = fixtures.createProduct("prod2", organizationId = org2.id)
+
+        val otherOrg = fixtures.createOrganization(name = "otherOrg")
+        fixtures.createProduct("prod3", organizationId = otherOrg.id)
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(org1Id, org2Id)),
+            nonTransitiveIncludes = emptyMap(),
+        )
+        val result = productRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
+            data = listOf(
+                Product(prod1.id, orgId, prod1.name, prod1.description),
+                Product(prod2.id, org2.id, prod2.name, prod2.description)
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "list should apply a filter with non-transitive includes" {
+        val prod1 = fixtures.createProduct("prod1")
+        val prod1Id = CompoundHierarchyId.forProduct(
+            OrganizationId(fixtures.organization.id),
+            ProductId(prod1.id)
+        )
+        val prod2 = fixtures.createProduct("prod2")
+        val prod2Id = CompoundHierarchyId.forProduct(
+            OrganizationId(fixtures.organization.id),
+            ProductId(prod2.id)
+        )
+        fixtures.createProduct("prod3")
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(prod1Id)),
+            nonTransitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(prod2Id)),
+        )
+        val result = productRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
             data = listOf(
                 Product(prod1.id, orgId, prod1.name, prod1.description),
                 Product(prod2.id, orgId, prod2.name, prod2.description)
