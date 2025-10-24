@@ -4,34 +4,53 @@ This directory contains the web UI for ORT Server.
 
 ## Architecture
 
-The UI is a [React](https://react.dev/) application and uses [Vite](https://vitejs.dev/) as the
-build tool and [pnpm](https://pnpm.io/) as the package manager.
+The UI is a [React](https://react.dev/) application and uses [Vite](https://vitejs.dev/) as the build tool and [pnpm](https://pnpm.io/) as the package manager.
+
+## Prerequisites
+
+By default, the UI expects ORT Server to be running locally.
+
+If there are no local changes, the fastest way to get started is to use published ORT Server images for UI development.
+To do so, run the following commands from the project root directory:
+
+```shell
+$ docker compose pull # Ensure that all images are up-to-date.
+$ docker compose up -d # Bring services up in detached mode.
+```
+
+If you depend on local changes to the Kotlin backend, you instead need to build the images locally:
+
+```shell
+$ ./gradlew :buildAllImages # Build all images locally.
+$ docker compose up -d # Bring services up in detached mode.
+```
+
+Next, ensure that the API definitions are up to date by running:
+
+```shell
+$ ./gradlew :core:generateOpenApiSpec
+$ pnpm -C ui install
+$ pnpm -C ui build
+```
 
 ## Development
 
-The UI expects ORT Server to be running locally.
-In addition, the following Gradle task must be executed to generate the OpenAPI specification locally:
+For interactive UI development with live-preview in the browser follow these steps:
+
+1. Run `pnpm -C ui dev`.
+2. Ctrl-click the shown `http://localhost:5173/` link.
+3. Log in via Keycloak (use "admin" / "admin" as username / password).
+
+### API Changes
+
+If changes to the API were done during development, these are the minimum commands to rerun to reflect the changes (again from the project root):
 
 ```shell
-./gradlew :core:generateOpenApiSpec
+$ ./gradlew -PdockerImagePrefix=ghcr.io/eclipse-apoapsis/ -PdockerImageTag=main :core:jibDockerBuild
+$ docker compose up -d core
+$ ./gradlew :core:generateOpenApiSpec
+$ pnpm -C ui generate:api
 ```
-
-## Run the UI
-
-Here are the instructions to start the UI in local development mode:
-
-1. Go to the `ui` folder.
-2. Run `pnpm install` followed by `pnpm dev`.
-3. Ctrl-click the shown `http://localhost:5173/` link.
-4. Log in via Keycloak (use "admin" / "admin" as username / password).
-
-## Generating the UI Query Client
-
-As a precondition for generating the query client, the OpenAPI specification must be generated as documented in
-[Development](#development).
-
-The query client is generated automatically as part of `pnpm build`.
-To generate it manually, for example, for testing local changes to the API, run `pnpm generate:api`.
 
 ## Docker
 
