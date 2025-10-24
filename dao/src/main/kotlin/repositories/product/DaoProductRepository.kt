@@ -21,15 +21,20 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.product
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
+import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 
@@ -44,17 +49,17 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
 
     override fun get(id: Long) = db.entityQuery { ProductDao[id].mapToModel() }
 
-    override fun list(parameters: ListQueryParameters, filter: FilterParameter?) =
+    override fun list(parameters: ListQueryParameters, nameFilter: FilterParameter?, hierarchyFilter: HierarchyFilter) =
         db.blockingQuery {
-            ProductDao.listQuery(parameters, ProductDao::mapToModel) {
-                var condition: Op<Boolean> = Op.TRUE
-                filter?.let {
-                    condition = condition and ProductsTable.name.applyRegex(
-                        it.value
-                    )
-                }
-                condition
+            val nameCondition = nameFilter?.let {
+                ProductsTable.name.applyRegex(it.value)
+            } ?: Op.TRUE
+
+            val builder = hierarchyFilter.apply(nameCondition) { level, ids, filter ->
+                generateHierarchyCondition(level, ids, filter)
             }
+
+            ProductDao.listQuery(parameters, ProductDao::mapToModel, builder)
         }
 
     override fun countForOrganization(organizationId: Long) =
@@ -62,14 +67,14 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
 
     override fun listForOrganization(organizationId: Long, parameters: ListQueryParameters, filter: FilterParameter?) =
         db.blockingQuery {
-        ProductDao.listQuery(parameters, ProductDao::mapToModel) {
-            if (filter != null) {
-                ProductsTable.organizationId eq organizationId and ProductsTable.name.applyRegex(filter.value)
-            } else {
-                ProductsTable.organizationId eq organizationId
+            ProductDao.listQuery(parameters, ProductDao::mapToModel) {
+                if (filter != null) {
+                    ProductsTable.organizationId eq organizationId and ProductsTable.name.applyRegex(filter.value)
+                } else {
+                    ProductsTable.organizationId eq organizationId
+                }
             }
         }
-    }
 
     override fun update(id: Long, name: OptionalValue<String>, description: OptionalValue<String?>) = db.blockingQuery {
         val product = ProductDao[id]
@@ -82,3 +87,25 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
 
     override fun delete(id: Long) = db.blockingQuery { ProductDao[id].delete() }
 }
+
+/**
+ * Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids].
+ */
+private fun SqlExpressionBuilder.generateHierarchyCondition(
+    level: Int,
+    ids: List<CompoundHierarchyId>,
+    filter: HierarchyFilter
+): Op<Boolean> =
+    when (level) {
+        CompoundHierarchyId.PRODUCT_LEVEL ->
+            ProductsTable.id inList (
+                ids.extractIds(CompoundHierarchyId.PRODUCT_LEVEL) +
+                    filter.nonTransitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL].orEmpty()
+                        .extractIds(CompoundHierarchyId.PRODUCT_LEVEL)
+            )
+
+        CompoundHierarchyId.ORGANIZATION_LEVEL ->
+            ProductsTable.organizationId inList ids.extractIds(CompoundHierarchyId.ORGANIZATION_LEVEL)
+
+        else -> Op.FALSE
+    }
