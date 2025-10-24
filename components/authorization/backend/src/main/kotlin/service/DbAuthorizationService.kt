@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+@file:Suppress("TooManyFunctions")
+
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
@@ -160,6 +162,54 @@ class DbAuthorizationService(
             .mapValues { it.value.filterNotNullTo(mutableSetOf()) }
     }
 
+    override suspend fun listAccessibleHierarchyIds(
+        userId: String,
+        organizationPermissions: Set<OrganizationPermission>,
+        productPermissions: Set<ProductPermission>,
+        repositoryPermissions: Set<RepositoryPermission>,
+        containedIn: HierarchyId?
+    ): Set<CompoundHierarchyId> {
+        val idsByLevel = db.dbQuery {
+            RoleAssignmentsTable.selectAll()
+                .where { RoleAssignmentsTable.userId eq userId }
+                .filter { row ->
+                    row.extractRole()?.let { role ->
+                        organizationPermissions.all { it in role.organizationPermissions } &&
+                                productPermissions.all { it in role.productPermissions } &&
+                                repositoryPermissions.all { it in role.repositoryPermissions }
+                    } ?: false
+                }.map { it.extractHierarchyId() }
+                .groupBy { it.level }
+        }
+
+        val containedInId = containedIn?.let { resolveCompoundId(it) }
+
+        return dominantContainsFilter(idsByLevel, containedInId)
+            ?: filteredMinimizedHierarchyIds(idsByLevel, containedInId)
+    }
+
+    /**
+     * Check if the given [containedInId] filter is contained in any of the IDs in [idsByLevel]. If so, the user can
+     * access all elements under the [containedInId] ID, so return a set with just this ID. If this is not the case or
+     * [containedInId] is undefined, return *null*.
+     */
+    private fun dominantContainsFilter(
+        idsByLevel: Map<Int, List<CompoundHierarchyId>>,
+        containedInId: CompoundHierarchyId?
+    ): Set<CompoundHierarchyId>? =
+        containedInId?.let {
+            val containedInLevel = it.level
+            val isFilterCovered = idsByLevel.entries.any { (level, ids) ->
+                level < containedInLevel && ids.any { id -> id.contains(containedInId) }
+            }
+
+            if (isFilterCovered) {
+                setOf(containedInId)
+            } else {
+                null
+            }
+        }
+
     /**
      * Retrieve the missing components to construct a [CompoundHierarchyId] from the given [hierarchyId]. Throw a
      * meaningful exception if this fails.
@@ -233,15 +283,15 @@ class DbAuthorizationService(
                         (RoleAssignmentsTable.productId eq compoundHierarchyId.productId?.value) and
                         (RoleAssignmentsTable.repositoryId eq compoundHierarchyId.repositoryId?.value)
             } == 1
-    ).also {
-        if (it) {
-            logger.info(
-                "Removed role assignment for user '{}' on hierarchy element {}.",
-                userId,
-                compoundHierarchyId
-            )
+            ).also {
+            if (it) {
+                logger.info(
+                    "Removed role assignment for user '{}' on hierarchy element {}.",
+                    userId,
+                    compoundHierarchyId
+                )
+            }
         }
-    }
 }
 
 /**
@@ -325,6 +375,28 @@ private fun ResultRow.toHierarchyPermissions(): HierarchyPermissions =
     } ?: EMPTY_PERMISSIONS
 
 /**
+ * Extract the [CompoundHierarchyId] on the correct level from this [ResultRow].
+ */
+private fun ResultRow.extractHierarchyId(): CompoundHierarchyId {
+    val orgId = this[RoleAssignmentsTable.organizationId]?.let { OrganizationId(it.value) }
+    if (orgId == null) {
+        return CompoundHierarchyId.WILDCARD
+    } else {
+        val productId = this[RoleAssignmentsTable.productId]?.let { ProductId(it.value) }
+        if (productId == null) {
+            return CompoundHierarchyId.forOrganization(orgId)
+        } else {
+            val repositoryId = this[RoleAssignmentsTable.repositoryId]?.let { RepositoryId(it.value) }
+            return if (repositoryId == null) {
+                CompoundHierarchyId.forProduct(orgId, productId)
+            } else {
+                CompoundHierarchyId.forRepository(orgId, productId, repositoryId)
+            }
+        }
+    }
+}
+
+/**
  * Combine two [HierarchyPermissions] instances [p1] and [p2] by constructing the union of their permissions on all
  * levels.
  */
@@ -339,16 +411,48 @@ private fun reducePermissions(
     )
 
 /**
+ * Return a minimized [Set] with [CompoundHierarchyId]s to be used for filtering that covers all IDs in the given
+ * [idsByLevel] map. This function removes IDs that are already covered by higher-level IDs.
+ */
+private fun minimizeHierarchyIds(idsByLevel: Map<Int, List<CompoundHierarchyId>>): Set<CompoundHierarchyId> =
+    if (CompoundHierarchyId.WILDCARD_LEVEL in idsByLevel) {
+        setOf(CompoundHierarchyId.WILDCARD)
+    } else {
+        buildSet {
+            for (level in CompoundHierarchyId.ORGANIZATION_LEVEL..CompoundHierarchyId.REPOSITORY_LEVEL) {
+                idsByLevel[level]?.filter { id -> none { id in it } }?.also { addAll(it) }
+            }
+        }
+    }
+
+/**
+ * Return a minimized [Set] with [CompoundHierarchyId]s to be used for filtering that covers all IDs in the given
+ * [idsByLevel] map, filtered to only include IDs that are contained in the given [containedInId], if defined.
+ */
+private fun filteredMinimizedHierarchyIds(
+    idsByLevel: Map<Int, List<CompoundHierarchyId>>,
+    containedInId: CompoundHierarchyId?
+): Set<CompoundHierarchyId> {
+    val minimizedIds = minimizeHierarchyIds(idsByLevel)
+
+    return if (containedInId == null) {
+        minimizedIds
+    } else {
+        minimizedIds.filterTo(mutableSetOf()) { id -> id in containedInId }
+    }
+}
+
+/**
  * Generate the SQL condition to match the repository part of this [hierarchyId]. The condition also has to select
  * assignments on higher levels in the same hierarchy.
  */
 private fun SqlExpressionBuilder.repositoryCondition(hierarchyId: CompoundHierarchyId): Op<Boolean> =
     (
-        (RoleAssignmentsTable.repositoryId eq hierarchyId.repositoryId?.value) or
-            (RoleAssignmentsTable.repositoryId eq null)
-    ) and
-                    (RoleAssignmentsTable.productId eq hierarchyId.productId?.value) and
-                    (RoleAssignmentsTable.organizationId eq hierarchyId.organizationId?.value)
+            (RoleAssignmentsTable.repositoryId eq hierarchyId.repositoryId?.value) or
+                    (RoleAssignmentsTable.repositoryId eq null)
+            ) and
+            (RoleAssignmentsTable.productId eq hierarchyId.productId?.value) and
+            (RoleAssignmentsTable.organizationId eq hierarchyId.organizationId?.value)
 
 /**
  * Generate the SQL condition to match role assignments for the given [hierarchyId] for which no product ID is
