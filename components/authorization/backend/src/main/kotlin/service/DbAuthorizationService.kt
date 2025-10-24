@@ -17,11 +17,14 @@
  * License-Filename: LICENSE
  */
 
+@file:Suppress("TooManyFunctions")
+
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.IdsByLevel
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.PermissionChecker
@@ -38,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
@@ -199,6 +203,54 @@ class DbAuthorizationService(
             .mapValues { it.value.filterNotNullTo(mutableSetOf()) }
     }
 
+    override suspend fun filterHierarchyIds(
+        userId: String,
+        organizationPermissions: Set<OrganizationPermission>,
+        productPermissions: Set<ProductPermission>,
+        repositoryPermissions: Set<RepositoryPermission>,
+        containedIn: HierarchyId?
+    ): HierarchyFilter {
+        val assignments = loadAssignments(userId, null)
+        val checker = PermissionChecker(
+            organizationPermissions,
+            productPermissions,
+            repositoryPermissions
+        )
+        val permissions = HierarchyPermissions.create(assignments, checker)
+
+        val containedInId = containedIn?.let { resolveCompoundId(it) }
+        val includes = includesDominatedByContainsFilter(permissions, containedInId)
+            ?: permissions.includes().filterContainedIn(containedInId)
+
+        return HierarchyFilter(
+            transitiveIncludes = includes,
+            nonTransitiveIncludes = permissions.implicitIncludes().filterContainedIn(containedInId),
+            isWildcard = permissions.isSuperuser()
+        )
+    }
+
+    /**
+     * Check if the given [containedInId] filter is contained in any of the includes in the given [permissions]. If so,
+     * the user can access all elements under the [containedInId] ID, so return a map of includes with just this ID.
+     * If this is not the case or [containedInId] is undefined, return *null*.
+     */
+    private fun includesDominatedByContainsFilter(
+        permissions: HierarchyPermissions,
+        containedInId: CompoundHierarchyId?
+    ): IdsByLevel? =
+        containedInId?.let {
+            val containedInLevel = it.level
+            val isFilterCovered = permissions.includes().entries.any { (level, ids) ->
+                level < containedInLevel && ids.any { id -> id.contains(containedInId) }
+            }
+
+            if (isFilterCovered) {
+                mapOf(containedInId.level to listOf(containedInId))
+            } else {
+                null
+            }
+        }
+
     /**
      * Retrieve the missing components to construct a [CompoundHierarchyId] from the given [hierarchyId]. Throw a
      * meaningful exception if this fails.
@@ -246,19 +298,20 @@ class DbAuthorizationService(
     /**
      * Load all role assignments for the given [userId] in the hierarchy defined by [compoundHierarchyId]. Return a
      * list with pairs of IDs and assigned roles for the entities that were found. The function selects assignments in
-     * the whole hierarchy below the organization referenced by [compoundHierarchyId]. This makes sure that all
-     * relevant assignments are found.
+     * the whole hierarchy below the organization referenced by [compoundHierarchyId] or all assignments of the given
+     * [userId] if no ID is specified. This makes sure that all relevant assignments are found.
      */
     private suspend fun loadAssignments(
         userId: String,
-        compoundHierarchyId: CompoundHierarchyId
+        compoundHierarchyId: CompoundHierarchyId?
     ): List<Pair<CompoundHierarchyId, Role>> = db.dbQuery {
         RoleAssignmentsTable.selectAll()
             .where {
-                (RoleAssignmentsTable.userId eq userId) and (
-                        (RoleAssignmentsTable.organizationId eq compoundHierarchyId.organizationId?.value) or
-                                (RoleAssignmentsTable.organizationId eq null)
-                        )
+                val hierarchyCondition = compoundHierarchyId?.let { id ->
+                    (RoleAssignmentsTable.organizationId eq id.organizationId?.value) or
+                            (RoleAssignmentsTable.organizationId eq null)
+                } ?: Op.TRUE
+                (RoleAssignmentsTable.userId eq userId) and hierarchyCondition
             }.mapNotNull { row ->
                 row.extractRole()?.let { role ->
                     row.extractHierarchyId() to role
@@ -277,15 +330,15 @@ class DbAuthorizationService(
                         (RoleAssignmentsTable.productId eq compoundHierarchyId.productId?.value) and
                         (RoleAssignmentsTable.repositoryId eq compoundHierarchyId.repositoryId?.value)
             } == 1
-    ).also {
-        if (it) {
-            logger.info(
-                "Removed role assignment for user '{}' on hierarchy element {}.",
-                userId,
-                compoundHierarchyId
-            )
+            ).also {
+            if (it) {
+                logger.info(
+                    "Removed role assignment for user '{}' on hierarchy element {}.",
+                    userId,
+                    compoundHierarchyId
+                )
+            }
         }
-    }
 }
 
 /**
@@ -385,6 +438,21 @@ private fun SqlExpressionBuilder.roleCondition(role: Role): Op<Boolean> =
         is OrganizationRole -> RoleAssignmentsTable.organizationRole eq role.name
         is ProductRole -> RoleAssignmentsTable.productRole eq role.name
         is RepositoryRole -> RoleAssignmentsTable.repositoryRole eq role.name
+    }
+
+/**
+ * Filter the IDs in this [IdsByLevel] to only include those that are contained in the given [containedInId]. If
+ * [containedInId] is *null*, return this object unmodified.
+ */
+private fun IdsByLevel.filterContainedIn(
+    containedInId: CompoundHierarchyId?
+): IdsByLevel =
+    if (containedInId == null) {
+        this
+    } else {
+        this.mapValues { (_, ids) ->
+            ids.filter { id -> id in containedInId }
+        }.filterValues { it.isNotEmpty() }
     }
 
 /**
