@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -48,11 +49,13 @@ interface RepositoryRepository {
     fun getHierarchy(id: Long): Hierarchy
 
     /**
-     * List all repositories according to the given [parameters].
+     * List all repositories according to the given [parameters]. Optionally, a [urlFilter] on the repository URL and a
+     * [hierarchyFilter] can be provided.
      */
     fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        filter: FilterParameter? = null
+        urlFilter: FilterParameter? = null,
+        hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
     ): ListQueryResult<Repository>
 
     /**
