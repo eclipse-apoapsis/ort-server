@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.model.repositories
 
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -40,11 +41,13 @@ interface ProductRepository {
     fun get(id: Long): Product?
 
     /**
-     * List all products according to the given [parameters].
+     * List all products according to the given [parameters]. Optionally, a [nameFilter] on the product name and a
+     * [hierarchyFilter] can be provided.
      */
     fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        filter: FilterParameter? = null
+        nameFilter: FilterParameter? = null,
+        hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
     ): ListQueryResult<Product>
 
     /**
