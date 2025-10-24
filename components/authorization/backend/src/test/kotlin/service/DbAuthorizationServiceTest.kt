@@ -21,8 +21,10 @@ package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -769,6 +771,440 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 users.keys shouldHaveSize 1
                 users[USER_ID] shouldContainExactlyInAnyOrder listOf(RepositoryRole.READER)
+            }
+        }
+
+        "filterHierarchyIds" should {
+            "return a filter that includes the IDs of repositories a user has access to" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val otherRepo = dbExtension.fixtures.createRepository(url = "https://example.com/other.git")
+                val otherRepoId = CompoundHierarchyId.forRepository(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id),
+                    RepositoryId(otherRepo.id)
+                )
+                val otherOrg = dbExtension.fixtures.createOrganization("otherOrg")
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct", organizationId = otherOrg.id)
+                val repoInOtherStructure = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/other-structure.git",
+                    productId = otherProduct.id
+                )
+                val repoInOtherStructureId = CompoundHierarchyId.forRepository(
+                    OrganizationId(otherOrg.id),
+                    ProductId(otherProduct.id),
+                    RepositoryId(repoInOtherStructure.id)
+                )
+                dbExtension.fixtures.createRepository(url = "https://example.com/forbidden.git")
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.WRITER,
+                    otherRepoId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.ADMIN,
+                    repoInOtherStructureId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.transitiveIncludes shouldHaveSize 1
+                filter.transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    repositoryCompoundId,
+                    otherRepoId,
+                    repoInOtherStructureId
+                )
+                filter.isWildcard shouldBe false
+            }
+
+            "return a filter that includes the IDs of organizations the user has access to" {
+                val organizationId = CompoundHierarchyId.forOrganization(
+                    OrganizationId(dbExtension.fixtures.organization.id)
+                )
+                val otherOrg = dbExtension.fixtures.createOrganization("otherOrg")
+                val otherOrgId = CompoundHierarchyId.forOrganization(OrganizationId(otherOrg.id))
+                dbExtension.fixtures.createOrganization("forbiddenOrg")
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.READER,
+                    organizationId
+                )
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    otherOrgId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    requiredRole = OrganizationRole.READER
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    organizationId,
+                    otherOrgId
+                )
+            }
+
+            "only list IDs for which all required permissions are available" {
+                val productId = CompoundHierarchyId.forProduct(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id)
+                )
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct")
+                val otherProductId = CompoundHierarchyId.forProduct(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(otherProduct.id)
+                )
+                dbExtension.fixtures.createProduct("forbiddenProduct")
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.READER,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.WRITER,
+                    otherProductId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    productPermissions = setOf(ProductPermission.WRITE)
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    otherProductId
+                )
+                filter.transitiveIncludes shouldHaveSize 1
+            }
+
+            "handle role assignments on higher levels correctly" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val productId = repositoryCompoundId.parent!!
+                val otherOrg = dbExtension.fixtures.createOrganization("otherOrg")
+                val otherOrgId = CompoundHierarchyId.forOrganization(OrganizationId(otherOrg.id))
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct", organizationId = otherOrg.id)
+                dbExtension.fixtures.createRepository(
+                    url = "https://example.com/other.git",
+                    productId = otherProduct.id
+                )
+                val thirdOrg = dbExtension.fixtures.createOrganization("thirdOrg")
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    otherOrgId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.ADMIN,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.READER,
+                    CompoundHierarchyId.forOrganization(OrganizationId(thirdOrg.id))
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.WRITE)
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    productId
+                )
+                filter.transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    otherOrgId
+                )
+            }
+
+            "drop IDs contained in others" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val productId = repositoryCompoundId.parent!!
+                val organizationId = productId.parent!!
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.ADMIN,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    organizationId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactly setOf(
+                    organizationId
+                )
+                filter.transitiveIncludes shouldHaveSize 1
+            }
+
+            "handle superuser assignments correctly" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val productId = repositoryCompoundId.parent!!
+                val organizationId = productId.parent!!
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    CompoundHierarchyId.WILDCARD
+                )
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    organizationId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.ADMIN,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.isWildcard shouldBe true
+            }
+
+            "correctly filter for the user ID" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val otherRepo = dbExtension.fixtures.createRepository(url = "https://example.com/other.git")
+                val otherRepoId = CompoundHierarchyId.forRepository(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id),
+                    RepositoryId(otherRepo.id)
+                )
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    "other-user",
+                    RepositoryRole.READER,
+                    otherRepoId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId
+                )
+            }
+
+            "apply a containedIn filter on product level" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct")
+                val otherRepo = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/other.git",
+                    productId = otherProduct.id
+                )
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(dbExtension.fixtures.organization.id),
+                        ProductId(otherProduct.id),
+                        RepositoryId(otherRepo.id)
+                    )
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ),
+                    containedIn = repositoryCompoundId.productId
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId
+                )
+            }
+
+            "apply a containedIn filter on organization level" {
+                val productId = CompoundHierarchyId.forProduct(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id)
+                )
+                val otherOrg = dbExtension.fixtures.createOrganization("otherOrg")
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct", organizationId = otherOrg.id)
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.WRITER,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.WRITER,
+                    CompoundHierarchyId.forProduct(
+                        OrganizationId(otherOrg.id),
+                        ProductId(otherProduct.id)
+                    )
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    productPermissions = setOf(ProductPermission.WRITE),
+                    containedIn = productId.organizationId
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(productId)
+            }
+
+            "handle a containedIn filter together with a superuser assignment" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    CompoundHierarchyId.WILDCARD
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ),
+                    containedIn = repositoryCompoundId.productId
+                )
+
+                filter.transitiveIncludes shouldHaveSize 1
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent
+                )
+            }
+
+            "handle a containedIn filter together with permissive rights on a higher level" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    CompoundHierarchyId.forOrganization(
+                        OrganizationId(dbExtension.fixtures.organization.id)
+                    )
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ),
+                    containedIn = repositoryCompoundId.productId
+                )
+
+                filter.transitiveIncludes shouldHaveSize 1
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent
+                )
+            }
+
+            "find non-transitive includes" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.nonTransitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent
+                )
+                filter.nonTransitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent?.parent
+                )
+                filter.nonTransitiveIncludes shouldHaveSize 2
+            }
+
+            "apply a containedIn filter to non-transitive includes" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val product2 = dbExtension.fixtures.createProduct("otherProduct")
+                val repo2 = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/other.git",
+                    productId = product2.id
+                )
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(dbExtension.fixtures.organization.id),
+                        ProductId(product2.id),
+                        RepositoryId(repo2.id)
+                    )
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ),
+                    containedIn = repositoryCompoundId.productId
+                )
+
+                filter.nonTransitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent
+                )
+                filter.nonTransitiveIncludes shouldHaveSize 1
             }
         }
     }
