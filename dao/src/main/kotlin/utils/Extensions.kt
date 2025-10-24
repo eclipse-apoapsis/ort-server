@@ -28,7 +28,9 @@ import kotlinx.datetime.minus
 
 import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
@@ -46,6 +48,7 @@ import org.jetbrains.exposed.sql.QueryParameter
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greater
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
@@ -55,6 +58,8 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.notInList
 import org.jetbrains.exposed.sql.TextColumnType
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.or
 
 /**
  * Transform the given column to an [EntityID] when creating a DAO object. This can be used for foreign key columns to
@@ -79,6 +84,45 @@ fun <T : Instant?> Column<T>.transformToDatabasePrecision() =
  * database.
  */
 fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANOSECOND)
+
+/**
+ * Extract the defined IDs on the specified [level] from the [CompoundHierarchyId]s in this collection as long values.
+ */
+fun Collection<CompoundHierarchyId>.extractIds(level: Int): List<Long> = mapNotNull { it[level]?.value }
+
+/**
+ * Definition of a function type for generating query conditions based on accessible hierarchy elements. The function
+ * has access to a [SqlExpressionBuilder] to create the conditions. It is passed the level in the hierarchy to filter
+ * by, a list with the IDs to be included together with their child elements, and the filter itself to gain access to
+ * additional properties. The function returns an [Op] representing the condition. The conditions for the different
+ * hierarchy levels are then combined using an `OR` operator.
+ */
+typealias HierarchyConditionGenerator = SqlExpressionBuilder.(
+    level: Int,
+    ids: List<CompoundHierarchyId>,
+    filter: HierarchyFilter
+) -> Op<Boolean>
+
+/**
+ * Generate a condition for this [HierarchyFilter] using the provided [generator] function. The [generator] is
+ * responsible for creating the conditions on each hierarchy level. This function combines these conditions using an
+ * `OR` operator. The result is then combined with the optional [otherCondition] using an `AND` operator.
+ */
+fun HierarchyFilter.apply(
+    otherCondition: Op<Boolean> = Op.TRUE,
+    generator: HierarchyConditionGenerator
+): ConditionBuilder = {
+    if (isWildcard) {
+        otherCondition
+    } else {
+        val hierarchyCondition = transitiveIncludes.entries.fold(Op.FALSE as Op<Boolean>) { op, (level, ids) ->
+            val condition = generator(this, level, ids, this@apply)
+            op or condition
+        }
+
+        otherCondition and hierarchyCondition
+    }
+}
 
 /**
  * Run the provided [query] with the given [parameters] to create a [ListQueryResult]. The entities are mapped to the
