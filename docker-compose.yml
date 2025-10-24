@@ -32,7 +32,7 @@ services:
     # Use port 5433 on the host to avoid a conflict with a running postgres instance on the host.
     - "5433:5432"
     volumes:
-    - db:/var/lib/postgresql/data
+    - db:/var/lib/postgresql
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:
