@@ -75,7 +75,7 @@ const columnHelper = createColumnHelper<OrtRunSummary>();
 
 const columns = [
   columnHelper.accessor('index', {
-    header: 'Run',
+    header: 'Index',
     cell: ({ row }) => (
       <Link
         className='font-semibold text-blue-400 hover:underline'
@@ -121,7 +121,7 @@ const columns = [
     enableColumnFilter: false,
   }),
   columnHelper.accessor('status', {
-    header: 'Run Status',
+    header: 'Status',
     cell: ({ row }) => (
       <Badge
         className={`border ${getStatusBackgroundColor(row.original.status)}`}
@@ -133,7 +133,7 @@ const columns = [
   }),
   columnHelper.display({
     id: 'jobStatuses',
-    header: () => <div>Job Status</div>,
+    header: () => <div>Jobs</div>,
     cell: ({ row }) => (
       <OrtRunJobStatus
         jobs={row.original.jobs}
