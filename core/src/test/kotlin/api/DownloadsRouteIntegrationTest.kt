@@ -30,6 +30,8 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.mockk
+
 import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.datetime.Clock
@@ -57,7 +59,8 @@ class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
+            keycloakGroupPrefix = "",
+            mockk()
         )
 
         val organizationService = OrganizationService(
