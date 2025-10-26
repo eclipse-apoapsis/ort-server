@@ -22,10 +22,12 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.contain
 
 import kotlinx.datetime.Clock
 
@@ -282,6 +284,121 @@ class DaoScannerRunRepositoryTest : WordSpec({
                     scanResultPkg3.mapToModel()
                         .copy(provenance = RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision))
                 )
+            }
+        }
+    }
+
+    "getProvenanceResolutionResults" should {
+        "convert artifact provenances to resolution results" {
+            transaction {
+                val provenances = listOf(
+                    PackageProvenanceDao.new {
+                        identifier = IdentifierDao.getOrPut(pkg.identifier)
+                        artifact = RemoteArtifactDao.getOrPut(pkg.sourceArtifact)
+                    }
+                )
+
+                scannerRunRepository.getProvenanceResolutionResults(provenances) should
+                        containExactlyInAnyOrder(
+                            ProvenanceResolutionResult(
+                                id = pkg.identifier,
+                                packageProvenance = ArtifactProvenance(sourceArtifact = pkg.sourceArtifact)
+                            )
+                        )
+            }
+        }
+
+        "convert repository provenances to resolution results" {
+            transaction {
+                val provenances = listOf(
+                    PackageProvenanceDao.new {
+                        identifier = IdentifierDao.getOrPut(pkg.identifier)
+                        vcs = VcsInfoDao.getOrPut(pkg.vcsProcessed)
+                        resolvedRevision = pkg.vcsProcessed.revision
+                        nestedProvenance = NestedProvenanceDao.new {
+                            rootVcs = VcsInfoDao.getOrPut(pkg.vcsProcessed)
+                            rootResolvedRevision = pkg.vcsProcessed.revision
+                            hasOnlyFixedRevisions = false
+                        }
+                    }
+                )
+
+                scannerRunRepository.getProvenanceResolutionResults(provenances) should
+                        containExactlyInAnyOrder(
+                            ProvenanceResolutionResult(
+                                id = pkg.identifier,
+                                packageProvenance = RepositoryProvenance(
+                                    vcsInfo = pkg.vcsProcessed,
+                                    resolvedRevision = pkg.vcsProcessed.revision
+                                )
+                            )
+                        )
+            }
+        }
+
+        "create errors for failed resolutions" {
+            transaction {
+                val provenances = listOf(
+                    PackageProvenanceDao.new {
+                        identifier = IdentifierDao.getOrPut(pkg.identifier)
+                        artifact = RemoteArtifactDao.getOrPut(pkg.sourceArtifact)
+                        errorMessage = "Failed to resolve artifact provenance"
+                    },
+                    PackageProvenanceDao.new {
+                        identifier = IdentifierDao.getOrPut(pkg.identifier)
+                        vcs = VcsInfoDao.getOrPut(pkg.vcsProcessed)
+                        errorMessage = "Failed to resolve repository provenance"
+                    }
+                )
+
+                scannerRunRepository.getProvenanceResolutionResults(provenances).shouldBeSingleton {
+                    it.packageProvenanceResolutionIssue shouldNotBeNull {
+                        message should contain("Failed to resolve artifact provenance")
+                        message should contain("Failed to resolve repository provenance")
+                    }
+                }
+            }
+        }
+
+        "create errors for missing nested provenances" {
+            transaction {
+                val provenances = listOf(
+                    PackageProvenanceDao.new {
+                        identifier = IdentifierDao.getOrPut(pkg.identifier)
+                        vcs = VcsInfoDao.getOrPut(pkg.vcsProcessed)
+                        resolvedRevision = pkg.vcsProcessed.revision
+                    }
+                )
+
+                scannerRunRepository.getProvenanceResolutionResults(provenances).shouldBeSingleton {
+                    it.nestedProvenanceResolutionIssue shouldNotBeNull {
+                        message should contain("Could not resolve nested provenance")
+                    }
+                }
+            }
+        }
+
+        "ignore recovered failures" {
+            transaction {
+                val provenances = listOf(
+                    PackageProvenanceDao.new {
+                        identifier = IdentifierDao.getOrPut(pkg.identifier)
+                        vcs = VcsInfoDao.getOrPut(pkg.vcsProcessed)
+                        errorMessage = "Failed to resolve provenance"
+                    },
+                    PackageProvenanceDao.new {
+                        identifier = IdentifierDao.getOrPut(pkg.identifier)
+                        artifact = RemoteArtifactDao.getOrPut(pkg.sourceArtifact)
+                    }
+                )
+
+                scannerRunRepository.getProvenanceResolutionResults(provenances) should
+                        containExactlyInAnyOrder(
+                            ProvenanceResolutionResult(
+                                id = pkg.identifier,
+                                packageProvenance = ArtifactProvenance(sourceArtifact = pkg.sourceArtifact)
+                            )
+                        )
             }
         }
     }
