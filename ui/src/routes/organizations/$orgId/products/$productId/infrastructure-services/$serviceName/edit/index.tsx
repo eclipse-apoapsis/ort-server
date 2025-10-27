@@ -62,7 +62,7 @@ import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
   name: z.string().optional(),
-  url: z.string().url(),
+  url: z.url(),
   description: z.string().optional(),
   usernameSecretRef: z.string(),
   passwordSecretRef: z.string(),
