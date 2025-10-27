@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.dao.repositories.scannerrun
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -62,7 +62,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.scanner.ScannerRun
 
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class DaoScannerRunRepositoryTest : StringSpec({
+class DaoScannerRunRepositoryTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
 
     lateinit var scannerRunRepository: DaoScannerRunRepository
@@ -79,57 +79,53 @@ class DaoScannerRunRepositoryTest : StringSpec({
         scannerJobId = dbExtension.fixtures.scannerJob.id
     }
 
-    "create should create an entry in the database" {
-        val createdScannerRun = scannerRunRepository.create(scannerJobId)
+    "create" should {
+        "create an entry in the database" {
+            val createdScannerRun = scannerRunRepository.create(scannerJobId)
 
-        val dbEntry = scannerRunRepository.get(createdScannerRun.id)
+            val dbEntry = scannerRunRepository.get(createdScannerRun.id)
 
-        dbEntry.shouldNotBeNull()
-        dbEntry shouldBe scannerRun.copy(
-            id = createdScannerRun.id,
-            scannerJobId = scannerJobId,
-            startTime = null,
-            endTime = null,
-            environment = null,
-            config = null
-        )
+            dbEntry.shouldNotBeNull()
+            dbEntry shouldBe scannerRun.copy(
+                id = createdScannerRun.id,
+                scannerJobId = scannerJobId,
+                startTime = null,
+                endTime = null,
+                environment = null,
+                config = null
+            )
+        }
     }
 
-    "update should store the provided values" {
-        val scanners = mapOf(pkg.identifier to setOf(SCANNER_NAME))
+    "update" should {
+        "store the provided values" {
+            val scanners = mapOf(pkg.identifier to setOf(SCANNER_NAME))
 
-        val createdScannerRun = scannerRunRepository.create(scannerJobId)
+            val createdScannerRun = scannerRunRepository.create(scannerJobId)
 
-        scannerRunRepository.update(
-            createdScannerRun.id,
-            scannerRun.startTime!!,
-            scannerRun.endTime!!,
-            scannerRun.environment!!,
-            scannerRun.config!!,
-            scanners,
-            scannerRun.issues
-        )
+            scannerRunRepository.update(
+                createdScannerRun.id,
+                scannerRun.startTime!!,
+                scannerRun.endTime!!,
+                scannerRun.environment!!,
+                scannerRun.config!!,
+                scanners,
+                scannerRun.issues
+            )
 
-        val dbEntry = scannerRunRepository.get(createdScannerRun.id)
+            val dbEntry = scannerRunRepository.get(createdScannerRun.id)
 
-        dbEntry.shouldNotBeNull()
-        dbEntry shouldBe scannerRun.copy(id = createdScannerRun.id, scannerJobId = scannerJobId, scanners = scanners)
-    }
+            dbEntry.shouldNotBeNull()
+            dbEntry shouldBe scannerRun.copy(
+                id = createdScannerRun.id,
+                scannerJobId = scannerJobId,
+                scanners = scanners
+            )
+        }
 
-    "update should fail if it is called twice" {
-        val createdScannerRun = scannerRunRepository.create(scannerJobId)
+        "fail if it is called twice" {
+            val createdScannerRun = scannerRunRepository.create(scannerJobId)
 
-        scannerRunRepository.update(
-            createdScannerRun.id,
-            scannerRun.startTime!!,
-            scannerRun.endTime!!,
-            scannerRun.environment!!,
-            scannerRun.config!!,
-            scannerRun.scanners,
-            scannerRun.issues
-        )
-
-        shouldThrow<IllegalArgumentException> {
             scannerRunRepository.update(
                 createdScannerRun.id,
                 scannerRun.startTime!!,
@@ -139,140 +135,154 @@ class DaoScannerRunRepositoryTest : StringSpec({
                 scannerRun.scanners,
                 scannerRun.issues
             )
+
+            shouldThrow<IllegalArgumentException> {
+                scannerRunRepository.update(
+                    createdScannerRun.id,
+                    scannerRun.startTime!!,
+                    scannerRun.endTime!!,
+                    scannerRun.environment!!,
+                    scannerRun.config!!,
+                    scannerRun.scanners,
+                    scannerRun.issues
+                )
+            }
+        }
+
+        "store and retrieve issues correctly" {
+            val testIssue = Issue(
+                timestamp = Clock.System.now().toDatabasePrecision(),
+                source = "test-scanner",
+                message = "Test issue message",
+                severity = Severity.WARNING,
+                affectedPath = "/path/to/file.kt",
+                identifier = pkg.identifier,
+                worker = "scanner"
+            )
+
+            val issues = mapOf(
+                pkg.identifier to setOf(testIssue)
+            )
+
+            val createdScannerRun = scannerRunRepository.create(scannerJobId)
+
+            scannerRunRepository.update(
+                createdScannerRun.id,
+                scannerRun.startTime!!,
+                scannerRun.endTime!!,
+                scannerRun.environment!!,
+                scannerRun.config!!,
+                scannerRun.scanners,
+                issues
+            )
+
+            val dbEntry = scannerRunRepository.get(createdScannerRun.id)
+
+            dbEntry.shouldNotBeNull()
+            dbEntry.issues shouldBe issues
+            dbEntry.issues[pkg.identifier]?.firstOrNull()?.let { retrievedIssue ->
+                retrievedIssue.source shouldBe testIssue.source
+                retrievedIssue.message shouldBe testIssue.message
+                retrievedIssue.severity shouldBe testIssue.severity
+                retrievedIssue.affectedPath shouldBe testIssue.affectedPath
+                retrievedIssue.identifier shouldBe testIssue.identifier
+                retrievedIssue.worker shouldBe testIssue.worker
+            }
         }
     }
 
-    "get should return null" {
-        scannerRunRepository.get(1L).shouldBeNull()
-    }
-
-    "get should return a scanner run with scan results" {
-        val pkg1 = pkg.copy(
-            identifier = pkg.identifier.copy(name = "package-1"),
-            vcs = pkg.vcs.copy(url = "https://example.com/package-1.git"),
-            vcsProcessed = pkg.vcsProcessed.copy(url = "https://example.com/package-1.git"),
-            sourceArtifact = pkg.sourceArtifact.copy("https://example.com/package-1-sources.zip")
-        )
-        val pkg2 = pkg.copy(
-            identifier = pkg.identifier.copy(name = "package-2"),
-            vcs = pkg.vcs.copy(url = "https://example.com/package-2.git"),
-            vcsProcessed = pkg.vcsProcessed.copy(url = "https://example.com/package-2.git"),
-            sourceArtifact = pkg.sourceArtifact.copy("https://example.com/package-2-sources.zip")
-        )
-        val pkg3 = pkg.copy(
-            identifier = pkg.identifier.copy(name = "package-3"),
-            vcs = pkg.vcs.copy(url = "https://example.com/package-3.git"),
-            vcsProcessed = pkg.vcsProcessed.copy(url = "https://example.com/package-3.git"),
-            sourceArtifact = pkg.sourceArtifact.copy("https://example.com/package-3-sources.zip")
-        )
-        val pkg4 = pkg.copy(
-            identifier = pkg.identifier.copy(name = "package-4"),
-            vcs = pkg.vcs.copy(url = "https://example.com/package-4.git"),
-            vcsProcessed = pkg.vcsProcessed.copy(url = "https://example.com/package-4.git"),
-            sourceArtifact = pkg.sourceArtifact.copy("https://example.com/package-4-sources.zip")
-        )
-
-        val packageProvenance1 = createPackageProvenance(id = pkg1.identifier, sourceArtifact = pkg1.sourceArtifact)
-        val packageProvenance2 = createPackageProvenance(id = pkg2.identifier, vcsProcessed = pkg2.vcsProcessed)
-        val nestedProvenance2 = createNestedProvenance(pkg2.vcsProcessed, mapOf("sub-repo" to pkg3.vcsProcessed))
-        associatePackageProvenanceWithNestedProvenance(packageProvenance2, nestedProvenance2)
-
-        val packageProvenance4 = createPackageProvenance(pkg4.identifier, vcsProcessed = pkg4.vcsProcessed)
-        val nestedProvenance4 = createNestedProvenance(pkg4.vcsProcessed, emptyMap())
-        associatePackageProvenanceWithNestedProvenance(packageProvenance4, nestedProvenance4)
-
-        val otherScanner = "SomeOtherScanner"
-        val scanResultPkg1 = createScanResult(artifact = pkg1.sourceArtifact)
-        val scanResultPkg2 = createScanResult(vcs = pkg2.vcsProcessed)
-        val scanResultPkg3 = createScanResult(vcs = pkg3.vcsProcessed, scanner = otherScanner)
-        val scanners = mapOf(
-            pkg1.identifier to setOf(SCANNER_NAME),
-            pkg2.identifier to setOf(SCANNER_NAME, otherScanner),
-            pkg3.identifier to setOf(otherScanner)
-        )
-
-        analyzerRunRepository.create(fixtures.analyzerJob.id, analyzerRun.copy(packages = setOf(pkg1, pkg2)))
-        val createdScannerRun = scannerRunRepository.create(scannerJobId, scannerRun.copy(scanners = scanners))
-        associateScannerRunWithScanResult(createdScannerRun, scanResultPkg1)
-        associateScannerRunWithScanResult(createdScannerRun, scanResultPkg2)
-        associateScannerRunWithScanResult(createdScannerRun, scanResultPkg3)
-        associateScannerRunWithPackageProvenance(createdScannerRun, packageProvenance1)
-        associateScannerRunWithPackageProvenance(createdScannerRun, packageProvenance2)
-
-        val newOrtRun = fixtures.createOrtRun()
-        val newAnalyzerJobId = fixtures.createAnalyzerJob(newOrtRun.id).id
-        val newScannerJobId = fixtures.createScannerJob(newOrtRun.id).id
-        analyzerRunRepository.create(newAnalyzerJobId, analyzerRun.copy(packages = setOf(pkg4)))
-        val newCreatedScannerRun = scannerRunRepository.create(newScannerJobId, scannerRun)
-        associateScannerRunWithPackageProvenance(newCreatedScannerRun, packageProvenance4)
-
-        val scannerRun = scannerRunRepository.get(scannerJobId)
-
-        scannerRun.shouldNotBeNull()
-
-        scannerRun.provenances should containExactlyInAnyOrder(
-            ProvenanceResolutionResult(
-                id = pkg1.identifier,
-                packageProvenance = ArtifactProvenance(sourceArtifact = pkg1.sourceArtifact)
-            ),
-            ProvenanceResolutionResult(
-                id = pkg2.identifier,
-                packageProvenance = RepositoryProvenance(vcsInfo = pkg2.vcsProcessed, resolvedRevision = "main"),
-                subRepositories = mapOf("sub-repo" to pkg3.vcsProcessed)
-            )
-        )
-
-        scannerRun.scanners shouldBe scanners
-
-        transaction {
-            scannerRun.scanResults should containExactlyInAnyOrder(
-                scanResultPkg1.mapToModel().copy(provenance = ArtifactProvenance(pkg1.sourceArtifact)),
-                scanResultPkg2.mapToModel()
-                    .copy(provenance = RepositoryProvenance(pkg2.vcsProcessed, pkg2.vcsProcessed.revision)),
-                scanResultPkg3.mapToModel()
-                    .copy(provenance = RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision))
-            )
+    "get" should {
+        "return null if the scanner run does not exist" {
+            scannerRunRepository.get(1L).shouldBeNull()
         }
-    }
 
-    "update should store and retrieve issues correctly" {
-        val testIssue = Issue(
-            timestamp = Clock.System.now().toDatabasePrecision(),
-            source = "test-scanner",
-            message = "Test issue message",
-            severity = Severity.WARNING,
-            affectedPath = "/path/to/file.kt",
-            identifier = pkg.identifier,
-            worker = "scanner"
-        )
+        "return a scanner run with scan results" {
+            val pkg1 = pkg.copy(
+                identifier = pkg.identifier.copy(name = "package-1"),
+                vcs = pkg.vcs.copy(url = "https://example.com/package-1.git"),
+                vcsProcessed = pkg.vcsProcessed.copy(url = "https://example.com/package-1.git"),
+                sourceArtifact = pkg.sourceArtifact.copy("https://example.com/package-1-sources.zip")
+            )
+            val pkg2 = pkg.copy(
+                identifier = pkg.identifier.copy(name = "package-2"),
+                vcs = pkg.vcs.copy(url = "https://example.com/package-2.git"),
+                vcsProcessed = pkg.vcsProcessed.copy(url = "https://example.com/package-2.git"),
+                sourceArtifact = pkg.sourceArtifact.copy("https://example.com/package-2-sources.zip")
+            )
+            val pkg3 = pkg.copy(
+                identifier = pkg.identifier.copy(name = "package-3"),
+                vcs = pkg.vcs.copy(url = "https://example.com/package-3.git"),
+                vcsProcessed = pkg.vcsProcessed.copy(url = "https://example.com/package-3.git"),
+                sourceArtifact = pkg.sourceArtifact.copy("https://example.com/package-3-sources.zip")
+            )
+            val pkg4 = pkg.copy(
+                identifier = pkg.identifier.copy(name = "package-4"),
+                vcs = pkg.vcs.copy(url = "https://example.com/package-4.git"),
+                vcsProcessed = pkg.vcsProcessed.copy(url = "https://example.com/package-4.git"),
+                sourceArtifact = pkg.sourceArtifact.copy("https://example.com/package-4-sources.zip")
+            )
 
-        val issues = mapOf(
-            pkg.identifier to setOf(testIssue)
-        )
+            val packageProvenance1 = createPackageProvenance(id = pkg1.identifier, sourceArtifact = pkg1.sourceArtifact)
+            val packageProvenance2 = createPackageProvenance(id = pkg2.identifier, vcsProcessed = pkg2.vcsProcessed)
+            val nestedProvenance2 = createNestedProvenance(pkg2.vcsProcessed, mapOf("sub-repo" to pkg3.vcsProcessed))
+            associatePackageProvenanceWithNestedProvenance(packageProvenance2, nestedProvenance2)
 
-        val createdScannerRun = scannerRunRepository.create(scannerJobId)
+            val packageProvenance4 = createPackageProvenance(pkg4.identifier, vcsProcessed = pkg4.vcsProcessed)
+            val nestedProvenance4 = createNestedProvenance(pkg4.vcsProcessed, emptyMap())
+            associatePackageProvenanceWithNestedProvenance(packageProvenance4, nestedProvenance4)
 
-        scannerRunRepository.update(
-            createdScannerRun.id,
-            scannerRun.startTime!!,
-            scannerRun.endTime!!,
-            scannerRun.environment!!,
-            scannerRun.config!!,
-            scannerRun.scanners,
-            issues
-        )
+            val otherScanner = "SomeOtherScanner"
+            val scanResultPkg1 = createScanResult(artifact = pkg1.sourceArtifact)
+            val scanResultPkg2 = createScanResult(vcs = pkg2.vcsProcessed)
+            val scanResultPkg3 = createScanResult(vcs = pkg3.vcsProcessed, scanner = otherScanner)
+            val scanners = mapOf(
+                pkg1.identifier to setOf(SCANNER_NAME),
+                pkg2.identifier to setOf(SCANNER_NAME, otherScanner),
+                pkg3.identifier to setOf(otherScanner)
+            )
 
-        val dbEntry = scannerRunRepository.get(createdScannerRun.id)
+            analyzerRunRepository.create(fixtures.analyzerJob.id, analyzerRun.copy(packages = setOf(pkg1, pkg2)))
+            val createdScannerRun = scannerRunRepository.create(scannerJobId, scannerRun.copy(scanners = scanners))
+            associateScannerRunWithScanResult(createdScannerRun, scanResultPkg1)
+            associateScannerRunWithScanResult(createdScannerRun, scanResultPkg2)
+            associateScannerRunWithScanResult(createdScannerRun, scanResultPkg3)
+            associateScannerRunWithPackageProvenance(createdScannerRun, packageProvenance1)
+            associateScannerRunWithPackageProvenance(createdScannerRun, packageProvenance2)
 
-        dbEntry.shouldNotBeNull()
-        dbEntry.issues shouldBe issues
-        dbEntry.issues[pkg.identifier]?.firstOrNull()?.let { retrievedIssue ->
-            retrievedIssue.source shouldBe testIssue.source
-            retrievedIssue.message shouldBe testIssue.message
-            retrievedIssue.severity shouldBe testIssue.severity
-            retrievedIssue.affectedPath shouldBe testIssue.affectedPath
-            retrievedIssue.identifier shouldBe testIssue.identifier
-            retrievedIssue.worker shouldBe testIssue.worker
+            val newOrtRun = fixtures.createOrtRun()
+            val newAnalyzerJobId = fixtures.createAnalyzerJob(newOrtRun.id).id
+            val newScannerJobId = fixtures.createScannerJob(newOrtRun.id).id
+            analyzerRunRepository.create(newAnalyzerJobId, analyzerRun.copy(packages = setOf(pkg4)))
+            val newCreatedScannerRun = scannerRunRepository.create(newScannerJobId, scannerRun)
+            associateScannerRunWithPackageProvenance(newCreatedScannerRun, packageProvenance4)
+
+            val scannerRun = scannerRunRepository.get(scannerJobId)
+
+            scannerRun.shouldNotBeNull()
+
+            scannerRun.provenances should containExactlyInAnyOrder(
+                ProvenanceResolutionResult(
+                    id = pkg1.identifier,
+                    packageProvenance = ArtifactProvenance(sourceArtifact = pkg1.sourceArtifact)
+                ),
+                ProvenanceResolutionResult(
+                    id = pkg2.identifier,
+                    packageProvenance = RepositoryProvenance(vcsInfo = pkg2.vcsProcessed, resolvedRevision = "main"),
+                    subRepositories = mapOf("sub-repo" to pkg3.vcsProcessed)
+                )
+            )
+
+            scannerRun.scanners shouldBe scanners
+
+            transaction {
+                scannerRun.scanResults should containExactlyInAnyOrder(
+                    scanResultPkg1.mapToModel().copy(provenance = ArtifactProvenance(pkg1.sourceArtifact)),
+                    scanResultPkg2.mapToModel()
+                        .copy(provenance = RepositoryProvenance(pkg2.vcsProcessed, pkg2.vcsProcessed.revision)),
+                    scanResultPkg3.mapToModel()
+                        .copy(provenance = RepositoryProvenance(pkg3.vcsProcessed, pkg3.vcsProcessed.revision))
+                )
+            }
         }
     }
 })
