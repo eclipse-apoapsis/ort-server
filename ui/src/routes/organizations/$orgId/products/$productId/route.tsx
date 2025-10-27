@@ -19,7 +19,14 @@
 
 import { createFileRoute, Outlet, useParams } from '@tanstack/react-router';
 import { AxiosError } from 'axios';
-import { BookLock, Eye, Settings, ShieldQuestion, User } from 'lucide-react';
+import {
+  BookLock,
+  Eye,
+  ServerCog,
+  Settings,
+  ShieldQuestion,
+  User,
+} from 'lucide-react';
 
 import { getProductOptions } from '@/api/@tanstack/react-query.gen';
 import { PageLayout } from '@/components/page-layout';
@@ -66,6 +73,15 @@ const Layout = () => {
           visible: user.hasRole([
             'superuser',
             `permission_product_${productId}_write_secrets`,
+          ]),
+        },
+        {
+          title: 'Infrastructure Services',
+          to: '/organizations/$orgId/products/$productId/infrastructure-services',
+          icon: () => <ServerCog className='h-4 w-4' />,
+          visible: user.hasRole([
+            'superuser',
+            `role_product_${productId}_admin`,
           ]),
         },
         {
