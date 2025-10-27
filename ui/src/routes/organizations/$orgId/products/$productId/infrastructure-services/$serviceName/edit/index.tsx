@@ -1,0 +1,356 @@
+/*
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * License-Filename: LICENSE
+ */
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import {
+  getProductInfrastructureServiceOptions,
+  getProductSecretsOptions,
+  patchProductInfrastructureServiceMutation,
+} from '@/api/@tanstack/react-query.gen';
+import { MultiSelectField } from '@/components/form/multi-select-field';
+import { LoadingIndicator } from '@/components/loading-indicator';
+import { ToastError } from '@/components/toast-error';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ApiError } from '@/lib/api-error';
+import { ALL_ITEMS } from '@/lib/constants';
+import { toast } from '@/lib/toast';
+
+const formSchema = z.object({
+  name: z.string().optional(),
+  url: z.string().url(),
+  description: z.string().optional(),
+  usernameSecretRef: z.string(),
+  passwordSecretRef: z.string(),
+  credentialsTypes: z.array(
+    z.enum(['NETRC_FILE', 'GIT_CREDENTIALS_FILE', 'NO_AUTHENTICATION'])
+  ),
+});
+
+type FormSchema = z.infer<typeof formSchema>;
+
+const EditInfrastructureServicePage = () => {
+  const navigate = useNavigate();
+  const params = Route.useParams();
+
+  const { data: secrets } = useQuery({
+    ...getProductSecretsOptions({
+      path: { productId: Number.parseInt(params.productId) },
+      query: { limit: ALL_ITEMS },
+    }),
+  });
+
+  const { data: service } = useSuspenseQuery({
+    ...getProductInfrastructureServiceOptions({
+      path: {
+        productId: Number.parseInt(params.productId),
+        serviceName: params.serviceName,
+      },
+    }),
+  });
+
+  const { mutateAsync, isPending } = useMutation({
+    ...patchProductInfrastructureServiceMutation(),
+    onSuccess(data) {
+      toast.info('Edit Infrastructure Service', {
+        description: `Infrastructure service "${data.name}" has been updated successfully.`,
+      });
+      navigate({
+        to: '/organizations/$orgId/products/$productId/infrastructure-services',
+        params: { orgId: params.orgId, productId: params.productId },
+      });
+    },
+    onError(error: ApiError) {
+      toast.error(error.message, {
+        description: <ToastError error={error} />,
+        duration: Infinity,
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => {},
+        },
+      });
+    },
+  });
+
+  const form = useForm<FormSchema>({
+    resolver: zodResolver(formSchema),
+    values: {
+      name: service?.name,
+      url: service?.url,
+      description: service?.description ?? undefined,
+      usernameSecretRef: service?.usernameSecretRef,
+      passwordSecretRef: service?.passwordSecretRef,
+      credentialsTypes: service?.credentialsTypes ?? [],
+    },
+  });
+
+  const onSubmit = (values: FormSchema) => {
+    mutateAsync({
+      path: {
+        productId: Number.parseInt(params.productId),
+        serviceName: params.serviceName,
+      },
+      body: {
+        url: values.url,
+        description: values.description,
+        usernameSecretRef: values.usernameSecretRef,
+        passwordSecretRef: values.passwordSecretRef,
+        credentialsTypes: values.credentialsTypes,
+      },
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>Edit Infrastructure Service</CardHeader>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardContent className='space-y-4'>
+            <FormField
+              control={form.control}
+              name='name'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    The name of the infrastructure service (cannot be changed).
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+              disabled
+            />
+            <FormField
+              control={form.control}
+              name='url'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Url</FormLabel>
+                  <FormControl autoFocus>
+                    <Input {...field} type='url' />
+                  </FormControl>
+                  <FormDescription>
+                    The URL of the infrastructure service.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='description'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='(optional)' />
+                  </FormControl>
+                  <FormDescription>
+                    The description of the infrastructure service.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='usernameSecretRef'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username Secret</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select an existing username secret from the list' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {secrets?.data.map((secret) => (
+                        <SelectItem key={secret.name} value={secret.name}>
+                          {secret.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    The name of the product secret that contains the username of
+                    the credentials for the infrastructure service. Please note
+                    that the secret first needs to be created in order to use it
+                    here.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='passwordSecretRef'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password Secret</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select an existing password secret from the list' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {secrets?.data.map((secret) => (
+                        <SelectItem key={secret.name} value={secret.name}>
+                          {secret.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    The name of the product secret that contains the password of
+                    the credentials for the infrastructure service. Please note
+                    that the secret first needs to be created in order to use it
+                    here.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <MultiSelectField
+              form={form}
+              name='credentialsTypes'
+              label='Add Credentials To Files'
+              description={
+                <div className='space-y-2'>
+                  <p>
+                    Choose which files the credentials of the service should be
+                    added to. Note that you can choose multiple files, or none
+                    at all, in which case the credentials for this service will
+                    be ignored when generating configuration files for
+                    credentials.
+                  </p>
+                  <p>
+                    In some cases, there could be conflicting services; for
+                    instance, if multiple repositories with different
+                    credentials are defined on the same repository server.
+                    Therefore it is also possible to choose not to include the
+                    credentials in any files.
+                  </p>
+                </div>
+              }
+              options={[
+                {
+                  id: 'NETRC_FILE',
+                  label: 'Netrc File',
+                },
+                {
+                  id: 'GIT_CREDENTIALS_FILE',
+                  label: 'Git Credentials File',
+                },
+                {
+                  id: 'NO_AUTHENTICATION',
+                  label: 'Do not use for authentication',
+                },
+              ]}
+              className='mt-4!'
+            />
+          </CardContent>
+          <CardFooter>
+            <Button
+              type='button'
+              className='m-1'
+              variant='outline'
+              onClick={() =>
+                navigate({
+                  to: '/organizations/$orgId/products/$productId/infrastructure-services',
+                  params: { orgId: params.orgId, productId: params.productId },
+                })
+              }
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button type='submit' disabled={isPending}>
+              {isPending ? (
+                <>
+                  <span className='sr-only'>
+                    Editing infrastructure service...
+                  </span>
+                  <Loader2 size={16} className='mx-3 animate-spin' />
+                </>
+              ) : (
+                'Submit'
+              )}
+            </Button>
+          </CardFooter>
+        </form>
+      </Form>
+    </Card>
+  );
+};
+
+export const Route = createFileRoute(
+  '/organizations/$orgId/products/$productId/infrastructure-services/$serviceName/edit/'
+)({
+  loader: async ({ context: { queryClient }, params }) => {
+    await queryClient.ensureQueryData({
+      ...getProductInfrastructureServiceOptions({
+        path: {
+          productId: Number.parseInt(params.productId),
+          serviceName: params.serviceName,
+        },
+      }),
+    });
+  },
+  component: EditInfrastructureServicePage,
+  pendingComponent: LoadingIndicator,
+});
