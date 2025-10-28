@@ -60,7 +60,7 @@ import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  username: z.string().min(1),
+  username: z.string().trim().min(1),
   firstName: asOptionalField(z.string().min(1)),
   lastName: asOptionalField(z.string().min(1)),
   email: asOptionalField(z.email()),
