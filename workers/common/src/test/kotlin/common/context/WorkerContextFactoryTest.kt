@@ -57,7 +57,10 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path as SecretPath
@@ -339,24 +342,29 @@ class WorkerContextFactoryTest : WordSpec({
         }
 
         "return plugin configurations with resolved secrets" {
-            val pluginConfig1 = PluginConfig(
+            val pluginConfig1 = ResolvablePluginConfig(
                 options = mapOf("plugin1Option1" to "v1", "plugin1Option2" to "v2"),
-                secrets = mapOf("plugin1User" to "dbUser", "plugin1Password" to "dbPassword")
+                secrets = mapOf(
+                    "plugin1User" to ResolvableSecret("dbUser", SecretSource.ADMIN),
+                    "plugin1Password" to ResolvableSecret("dbPassword", SecretSource.ADMIN)
+                )
             )
-            val pluginConfig2 = PluginConfig(
+            val pluginConfig2 = ResolvablePluginConfig(
                 options = mapOf("plugin2Option" to "v3"),
                 secrets = mapOf(
-                    "plugin2ServiceUser" to "serviceUser",
-                    "plugin2ServicePassword" to "servicePassword",
-                    "plugin2DBAccess" to "dbPassword"
+                    "plugin2ServiceUser" to ResolvableSecret("serviceUser", SecretSource.ADMIN),
+                    "plugin2ServicePassword" to ResolvableSecret("servicePassword", SecretSource.ADMIN),
+                    "plugin2DBAccess" to ResolvableSecret("dbPassword", SecretSource.ADMIN)
                 )
             )
             val config = mapOf("p1" to pluginConfig1, "p2" to pluginConfig2)
 
-            val resolvedConfig1 = pluginConfig1.copy(
+            val resolvedConfig1 = PluginConfig(
+                options = pluginConfig1.options,
                 secrets = mapOf("plugin1User" to "scott", "plugin1Password" to "tiger")
             )
-            val resolvedConfig2 = pluginConfig2.copy(
+            val resolvedConfig2 = PluginConfig(
+                options = pluginConfig2.options,
                 secrets = mapOf(
                     "plugin2ServiceUser" to "svcUser",
                     "plugin2ServicePassword" to "svcPass",

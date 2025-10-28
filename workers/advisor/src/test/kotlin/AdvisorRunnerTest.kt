@@ -32,6 +32,9 @@ import io.mockk.verify
 
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
@@ -69,16 +72,22 @@ class AdvisorRunnerTest : WordSpec({
             val vulnerableCodeFactory = mockAdviceProviderFactory("VulnerableCode")
             mockAdvisorAll(listOf(osvFactory, vulnerableCodeFactory))
 
-            val osvSecretRefs = mapOf("secret1" to "passRef1", "secret2" to "passRef2")
+            val osvSecretRefs = mapOf(
+                "secret1" to ResolvableSecret("passRef1", SecretSource.ADMIN),
+                "secret2" to ResolvableSecret("passRef2", SecretSource.ADMIN)
+            )
             val osvSecrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
-            val osvConfig = PluginConfig(
+            val osvConfig = ResolvablePluginConfig(
                 options = mapOf("option1" to "value1", "option2" to "value2"),
                 secrets = osvSecretRefs
             )
 
-            val vulnerableCodeSecretRefs = mapOf("secret3" to "passRef3", "secret4" to "passRef4")
+            val vulnerableCodeSecretRefs = mapOf(
+                "secret3" to ResolvableSecret("passRef3", SecretSource.ADMIN),
+                "secret4" to ResolvableSecret("passRef4", SecretSource.ADMIN)
+            )
             val vulnerableCodeSecrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
-            val vulnerableCodeConfig = PluginConfig(
+            val vulnerableCodeConfig = ResolvablePluginConfig(
                 options = mapOf("option3" to "value3", "option4" to "value4"),
                 secrets = vulnerableCodeSecretRefs
             )
@@ -92,8 +101,11 @@ class AdvisorRunnerTest : WordSpec({
             )
 
             val resolvedPluginConfig = mapOf(
-                "OSV" to osvConfig.copy(secrets = osvSecrets),
-                "VulnerableCode" to vulnerableCodeConfig.copy(secrets = vulnerableCodeSecrets)
+                "OSV" to PluginConfig(options = osvConfig.options, secrets = osvSecrets),
+                "VulnerableCode" to PluginConfig(
+                    options = vulnerableCodeConfig.options,
+                    secrets = vulnerableCodeSecrets
+                )
             )
             val context = mockContext(jobConfig, resolvedPluginConfig)
 
@@ -110,8 +122,13 @@ class AdvisorRunnerTest : WordSpec({
             )
 
             verify(exactly = 1) {
-                osvFactory.create(osvConfig.copy(secrets = osvSecrets).mapToOrt())
-                vulnerableCodeFactory.create(vulnerableCodeConfig.copy(secrets = vulnerableCodeSecrets).mapToOrt())
+                osvFactory.create(PluginConfig(options = osvConfig.options, secrets = osvSecrets).mapToOrt())
+                vulnerableCodeFactory.create(
+                    PluginConfig(
+                        options = vulnerableCodeConfig.options,
+                        secrets = vulnerableCodeSecrets
+                    ).mapToOrt()
+                )
             }
         }
     }
