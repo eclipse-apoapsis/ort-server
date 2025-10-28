@@ -148,4 +148,37 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
             }
         }
     }
+
+    "RestoreVulnerabilityResolution" should {
+        "require role RepositoryPermission.WRITE.roleName(repositoryId)" {
+            val userDisplayName = UserDisplayName("abc", "Test")
+
+            val definitionId = definitionService.create(
+                RepositoryId(repositoryId),
+                runId,
+                userDisplayName,
+                createBody.idMatchers,
+                createBody.reason.mapToModel(),
+                createBody.comment
+            ).id
+
+            definitionService.archive(definitionId, userDisplayName)
+
+            requestShouldRequireRole(
+                routes = { resolutionsRoutes(ortRunService, definitionService) },
+                role = RepositoryPermission.WRITE.roleName(repositoryId)
+            ) {
+                post("/resolutions/vulnerabilities/$definitionId/restore")
+            }
+        }
+
+        "respond with 'Forbidden' when repository ID cannot be resolved" {
+            requestShouldRequireAuthentication(
+                routes = { resolutionsRoutes(ortRunService, definitionService) },
+                successStatus = HttpStatusCode.Forbidden
+            ) {
+                post("/resolutions/vulnerabilities/9999/restore")
+            }
+        }
+    }
 })
