@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.PermissionChecker
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
@@ -29,6 +30,29 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyId
  * hierarchy.
  */
 interface AuthorizationService {
+    /**
+     * Check whether the user identified by [userId] has the permissions defined by the given [checker] on the element
+     * identified by [compoundHierarchyId]. If the check is successful, the function returns an [EffectiveRole] object
+     * with the requested permissions and the [compoundHierarchyId]; otherwise, it returns *null*.
+     */
+    suspend fun checkPermissions(
+        userId: String,
+        compoundHierarchyId: CompoundHierarchyId,
+        checker: PermissionChecker
+    ): EffectiveRole?
+
+    /**
+     * Check whether the user identified by [userId] has the permissions defined by the given [checker] on the element
+     * identified by [hierarchyId]. This function constructs a [CompoundHierarchyId] based on the passed in
+     * [hierarchyId]. If such a [CompoundHierarchyId] is already known, using the overloaded function is more
+     * efficient.
+     */
+    suspend fun checkPermissions(
+        userId: String,
+        hierarchyId: HierarchyId,
+        checker: PermissionChecker
+    ): EffectiveRole?
+
     /**
      * Return an [EffectiveRole] object for the specified [userId] that contains all permissions for this user on the
      * element identified by [compoundHierarchyId].
