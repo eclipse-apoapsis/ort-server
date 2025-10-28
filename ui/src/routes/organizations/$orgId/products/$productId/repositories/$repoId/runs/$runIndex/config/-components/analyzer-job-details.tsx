@@ -78,6 +78,26 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
                 )}
               </div>
             )}
+            {jobConfigs.environmentConfig?.infrastructureServices &&
+              jobConfigs.environmentConfig.infrastructureServices.length >
+                0 && (
+                <div>
+                  <Label className='font-semibold'>
+                    Inherited infrastructure services
+                  </Label>
+                  {jobConfigs.environmentConfig.infrastructureServices.map(
+                    (service) => (
+                      <div
+                        className='text-muted-foreground ml-2 flex gap-1'
+                        key={service.name}
+                      >
+                        <div>{service.name}</div>
+                        <div>({service.url})</div>
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
             {jobConfigs.packageManagerOptions && (
               <div className='space-y-2'>
                 <Label className='font-semibold'>Package manager options</Label>
