@@ -26,6 +26,7 @@ import {
   PostRepositoryRun,
   ReporterJobConfiguration,
 } from '@/api';
+import { zInfrastructureService } from '@/api/zod.gen';
 import { PackageManagerId, packageManagers } from '@/lib/types';
 
 const keyValueSchema = z.object({
@@ -461,7 +462,8 @@ export function defaultValues(
  * to the API. This function converts form values to correct payload to create an ORT run.
  */
 export function formValuesToPayload(
-  values: z.infer<typeof createRunFormSchema>
+  values: z.infer<typeof createRunFormSchema>,
+  infrastructureServices: z.infer<typeof zInfrastructureService>[]
 ): PostRepositoryRun {
   /**
    * A helper function to get the enabled package managers from the form values.
@@ -537,7 +539,8 @@ export function formValuesToPayload(
       values.jobConfigs.analyzer.repositoryConfigPath || undefined,
     skipExcluded: values.jobConfigs.analyzer.skipExcluded,
     environmentConfig: {
-      infrastructureServices: [],
+      // Inject all inherited infrastructure services into the analyzer job configuration.
+      infrastructureServices: infrastructureServices,
       environmentVariables:
         values.jobConfigs.analyzer.environmentVariables &&
         values.jobConfigs.analyzer.environmentVariables.length > 0

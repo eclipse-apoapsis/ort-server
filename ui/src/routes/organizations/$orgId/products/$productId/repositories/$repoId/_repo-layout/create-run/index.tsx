@@ -18,14 +18,19 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useSuspenseQueries } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { postRepositoryRunMutation } from '@/api/@tanstack/react-query.gen';
+import {
+  getOrganizationInfrastructureServicesOptions,
+  getProductInfrastructureServicesOptions,
+  getRepositoryInfrastructureServicesOptions,
+  postRepositoryRunMutation,
+} from '@/api/@tanstack/react-query.gen';
 import { getPluginsForRepository, getRepositoryRun } from '@/api/sdk.gen';
 import { CopyToClipboard } from '@/components/copy-to-clipboard';
 import { ToastError } from '@/components/toast-error';
@@ -54,6 +59,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/hooks/use-user.ts';
 import { ApiError } from '@/lib/api-error';
+import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import { AdvisorFields } from '../../-components/advisor-fields';
 import { AnalyzerFields } from '../../-components/analyzer-fields';
@@ -81,6 +87,51 @@ const CreateRunPage = () => {
     plugins?.data?.filter((plugin) => plugin.type === 'ADVISOR') || [];
   const reporterPlugins =
     plugins?.data?.filter((plugin) => plugin.type === 'REPORTER') || [];
+
+  const infrastructureServices = useSuspenseQueries({
+    queries: [
+      {
+        ...getOrganizationInfrastructureServicesOptions({
+          path: {
+            organizationId: Number.parseInt(params.orgId),
+          },
+          query: {
+            limit: ALL_ITEMS,
+          },
+        }),
+      },
+      {
+        ...getProductInfrastructureServicesOptions({
+          path: {
+            productId: Number.parseInt(params.productId),
+          },
+          query: {
+            limit: ALL_ITEMS,
+          },
+        }),
+      },
+      {
+        ...getRepositoryInfrastructureServicesOptions({
+          path: {
+            repositoryId: Number.parseInt(params.repoId),
+          },
+          query: {
+            limit: ALL_ITEMS,
+          },
+        }),
+      },
+    ],
+    combine: (results) => {
+      const [orgServices, productServices, repoServices] = results;
+      // Combine all infrastructure services into a single array.
+      // The precedence order is: repository > product > organization.
+      return [
+        ...orgServices.data.data,
+        ...productServices.data.data,
+        ...repoServices.data.data,
+      ];
+    },
+  });
 
   type AccordionSection =
     | 'analyzer'
@@ -163,7 +214,7 @@ const CreateRunPage = () => {
       path: {
         repositoryId: Number.parseInt(params.repoId),
       },
-      body: formValuesToPayload(values),
+      body: formValuesToPayload(values, infrastructureServices),
     });
   }
 
@@ -512,7 +563,10 @@ const CreateRunPage = () => {
                     className='h-96 pr-12 font-mono'
                     readOnly
                     value={JSON.stringify(
-                      formValuesToPayload(watchedValues),
+                      formValuesToPayload(
+                        watchedValues,
+                        infrastructureServices
+                      ),
                       null,
                       2
                     )}
@@ -520,7 +574,10 @@ const CreateRunPage = () => {
                   <div className='absolute top-2 right-2 z-10'>
                     <CopyToClipboard
                       copyText={JSON.stringify(
-                        formValuesToPayload(watchedValues),
+                        formValuesToPayload(
+                          watchedValues,
+                          infrastructureServices
+                        ),
                         null,
                         2
                       )}
