@@ -60,9 +60,7 @@ ORT Server can create these files based on so-called _Environment Definitions_ s
 The map of environment definitions uses the case-insensitive package manager plugin ID as the key.
 Depending on the package manager, the environment definitions may have different properties which are specified as generic string pairs.
 
-### `.ort.env.yml` Examples
-
-#### Conan
+### `.ort.env.yml` Example
 
 ```yaml
 environmentDefinitions:
@@ -71,42 +69,22 @@ environmentDefinitions:
       name: 'conancenter'
       url: 'https://center.conan.io'
       verifySsl: 'true'
-```
-
-#### Maven
-
-```yaml
-maven:
-  - service: 'RepositoryService'
-    id: 'mainRepo'
-```
-
-#### NPM
-
-```yaml
-npm:
-  - service: 'RepositoryService'
-    scope: 'external'
-    email: 'test@example.org'
-    authMode: 'USERNAME_PASSWORD_AUTH'
-```
-
-#### NuGet
-
-```yaml
-nuget:
-  - service: 'RepositoryService'
-    sourceName: 'nuget.org'
-    sourcePath: 'https://api.nuget.org/v3/index.json'
-    sourceProtocolVersion: '3'
-    authMode: 'PASSWORD'
-```
-
-#### Yarn
-
-```yaml
-yarn:
-  - service: 'RepositoryService'
-    alwaysAuth: 'true'
-    authMode: 'AUTH_IDENT'
+  maven:
+    - service: 'RepositoryService'
+      id: 'mainRepo'
+  npm:
+    - service: 'RepositoryService'
+      scope: 'external'
+      email: 'test@example.org'
+      authMode: 'USERNAME_PASSWORD_AUTH'
+  nuget:
+    - service: 'RepositoryService'
+      sourceName: 'nuget.org'
+      sourcePath: 'https://api.nuget.org/v3/index.json'
+      sourceProtocolVersion: '3'
+      authMode: 'PASSWORD'
+  yarn:
+    - service: 'RepositoryService'
+      alwaysAuth: 'true'
+      authMode: 'AUTH_IDENT'
 ```
