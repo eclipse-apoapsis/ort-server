@@ -23,7 +23,7 @@ ARG BASE_REGISTRY=""
 ARG BASE_IMAGE_TAG="latest"
 
 # Build-Stage for Python executing scancode-license-data to get the license texts in a directory
-FROM --platform=linux/amd64 python:3.13-slim AS scancode-license-data-build
+FROM --platform=linux/amd64 python:3.14-slim AS scancode-license-data-build
 
 # Keep in sync with Scanner.Dockerfile
 ARG SCANCODE_VERSION=32.5.0
