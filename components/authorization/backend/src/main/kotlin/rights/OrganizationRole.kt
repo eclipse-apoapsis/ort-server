@@ -22,18 +22,25 @@ package org.eclipse.apoapsis.ortserver.components.authorization.rights
 /**
  * This enum contains the available roles for [organizations][org.eclipse.apoapsis.ortserver.model.Organization]. It
  * maps the permissions available for an organization to the default roles [READER], [WRITER], and [ADMIN].
+ *
+ * Notes:
+ * - Permissions are inherited down the hierarchy. This is implemented by including the lower level permissions
+ *   of the corresponding roles in the sets of permissions managed by the single instances.
+ * - The constants are expected to be listed in increasing order of permissions.
  */
 enum class OrganizationRole(
     override val organizationPermissions: Set<OrganizationPermission>,
-    override val productPermissions: Set<ProductPermission> = emptySet(),
-    override val repositoryPermissions: Set<RepositoryPermission> = emptySet()
+    override val productPermissions: Set<ProductPermission>,
+    override val repositoryPermissions: Set<RepositoryPermission>
 ) : Role {
     /** A role that grants read permissions for an [org.eclipse.apoapsis.ortserver.model.Organization]. */
     READER(
         organizationPermissions = setOf(
             OrganizationPermission.READ,
             OrganizationPermission.READ_PRODUCTS
-        )
+        ),
+        productPermissions = ProductRole.READER.productPermissions,
+        repositoryPermissions = RepositoryRole.READER.repositoryPermissions
     ),
 
     /** A role that grants write permissions for an [org.eclipse.apoapsis.ortserver.model.Organization]. */
@@ -43,7 +50,9 @@ enum class OrganizationRole(
             OrganizationPermission.WRITE,
             OrganizationPermission.READ_PRODUCTS,
             OrganizationPermission.CREATE_PRODUCT
-        )
+        ),
+        productPermissions = ProductRole.WRITER.productPermissions,
+        repositoryPermissions = RepositoryRole.WRITER.repositoryPermissions
     ),
 
     /**
