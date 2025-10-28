@@ -32,7 +32,7 @@ import com.github.michaelbull.result.toResultOr
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateForOrganizationQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplateQuery
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.queries.GetPluginTemplatesQuery
-import org.eclipse.apoapsis.ortserver.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 
@@ -349,7 +349,7 @@ class PluginTemplateService(
      * [organization][organizationId].
      */
     fun validatePluginConfigs(
-        pluginConfigs: Map<PluginType, Map<String, PluginConfig>>,
+        pluginConfigs: Map<PluginType, Map<String, ResolvablePluginConfig>>,
         organizationId: Long
     ): PluginConfigValidationResult {
         validateOrganizationExists(organizationId).onFailure { error ->

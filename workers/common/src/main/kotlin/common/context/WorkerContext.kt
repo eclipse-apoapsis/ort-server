@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
@@ -83,7 +84,7 @@ interface WorkerContext : AutoCloseable {
      * in contrast to [resolveSecrets], this function deals with secrets from the configuration instead of secrets
      * managed on behalf of customers.
      */
-    suspend fun resolvePluginConfigSecrets(config: Map<String, PluginConfig>?): Map<String, PluginConfig>
+    suspend fun resolvePluginConfigSecrets(config: Map<String, ResolvablePluginConfig>?): Map<String, PluginConfig>
 
     /**
      * Resolve all the secrets referenced by the given [config]. If [config] is not *null*, obtain the referenced
