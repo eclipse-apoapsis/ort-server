@@ -55,9 +55,10 @@ A secret value cannot be retrieved after the Secret has been created, only repla
 ## Environment Definitions
 
 For artifact repositories you often need to generate configuration files for package managers&mdash;such as Maven's `settings.xml` or NPM's `.npmrc`.
-ORT Server creates these files from _Environment Definitions_ specified in your `.ort.env.yml`-file.
+ORT Server can create these files based on so-called _Environment Definitions_ specified in a `.ort.env.yml`-file that is committed to the repository under analysis.
 
-Depending on the package manager, the environment definitions have different properties.
+The map of environment definitions uses the case-insensitive package manager plugin ID as the key.
+Depending on the package manager, the environment definitions may have different properties which are specified as generic string pairs.
 
 ### `.ort.env.yml` Examples
 
