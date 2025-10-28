@@ -65,7 +65,7 @@ import { groupsSchema } from '@/schemas';
 import { ProductUsersTable } from './-components/product-users-table';
 
 const formSchema = z.object({
-  username: z.string().min(1),
+  username: z.string().trim().min(1),
   groupId: groupsSchema,
 });
 
