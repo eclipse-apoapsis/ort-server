@@ -102,6 +102,9 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -633,9 +636,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ortRunId = ortRun.id,
                     configuration = AdvisorJobConfiguration(
                         config = mapOf(
-                            "VulnerableCode" to PluginConfig(
+                            "VulnerableCode" to ResolvablePluginConfig(
                                 options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
-                                secrets = mapOf("apiKey" to "key")
+                                secrets = mapOf("apiKey" to ResolvableSecret("key", SecretSource.ADMIN))
                             )
                         )
                     )
@@ -695,9 +698,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ortRunId = ortRun.id,
                     configuration = AdvisorJobConfiguration(
                         config = mapOf(
-                            "VulnerableCode" to PluginConfig(
+                            "VulnerableCode" to ResolvablePluginConfig(
                                 options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
-                                secrets = mapOf("apiKey" to "key")
+                                secrets = mapOf("apiKey" to ResolvableSecret("key", SecretSource.ADMIN))
                             )
                         )
                     )
@@ -761,9 +764,9 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     ortRunId = ortRun.id,
                     configuration = AdvisorJobConfiguration(
                         config = mapOf(
-                            "VulnerableCode" to PluginConfig(
+                            "VulnerableCode" to ResolvablePluginConfig(
                                 options = mapOf("serverUrl" to "https://public.vulnerablecode.io"),
-                                secrets = mapOf("apiKey" to "key")
+                                secrets = mapOf("apiKey" to ResolvableSecret("key", SecretSource.ADMIN))
                             )
                         )
                     )

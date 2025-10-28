@@ -35,7 +35,10 @@ import io.mockk.verify
 
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
@@ -115,16 +118,22 @@ class ScannerRunnerTest : WordSpec({
             val licenseeFactory = mockScannerWrapperFactory("Licensee")
             mockScannerWrapperAll(listOf(scanCodeFactory, licenseeFactory))
 
-            val scanCodeSecretRefs = mapOf("secret1" to "passRef1", "secret2" to "passRef2")
+            val scanCodeSecretRefs = mapOf(
+                "secret1" to ResolvableSecret("passRef1", SecretSource.ADMIN),
+                "secret2" to ResolvableSecret("passRef2", SecretSource.ADMIN)
+            )
             val scanCodeSecrets = mapOf("secret1" to "pass1", "secret2" to "pass2")
-            val scanCodeConfig = PluginConfig(
+            val scanCodeConfig = ResolvablePluginConfig(
                 options = mapOf("option1" to "value1", "option2" to "value2"),
                 secrets = scanCodeSecretRefs
             )
 
-            val licenseeSecretRefs = mapOf("secret3" to "passRef3", "secret4" to "passRef4")
+            val licenseeSecretRefs = mapOf(
+                "secret3" to ResolvableSecret("passRef3", SecretSource.ADMIN),
+                "secret4" to ResolvableSecret("passRef4", SecretSource.ADMIN)
+            )
             val licenseeSecrets = mapOf("secret3" to "pass3", "secret4" to "pass4")
-            val licenseeConfig = PluginConfig(
+            val licenseeConfig = ResolvablePluginConfig(
                 options = mapOf("option3" to "value3", "option4" to "value4"),
                 secrets = licenseeSecretRefs
             )
@@ -139,15 +148,19 @@ class ScannerRunnerTest : WordSpec({
             )
 
             val resolvedPluginConfig = mapOf(
-                "ScanCode" to scanCodeConfig.copy(secrets = scanCodeSecrets),
-                "Licensee" to licenseeConfig.copy(secrets = licenseeSecrets)
+                "ScanCode" to PluginConfig(options = scanCodeConfig.options, secrets = scanCodeSecrets),
+                "Licensee" to PluginConfig(options = licenseeConfig.options, secrets = licenseeSecrets)
             )
             val context = mockContext(jobConfig, resolvedPluginConfig)
             runner.run(context, OrtResult.EMPTY, jobConfig, 0L)
 
             verify(exactly = 1) {
-                scanCodeFactory.create(scanCodeConfig.copy(secrets = scanCodeSecrets).mapToOrt())
-                licenseeFactory.create(licenseeConfig.copy(secrets = licenseeSecrets).mapToOrt())
+                scanCodeFactory.create(
+                    PluginConfig(options = scanCodeConfig.options, secrets = scanCodeSecrets).mapToOrt()
+                )
+                licenseeFactory.create(
+                    PluginConfig(options = licenseeConfig.options, secrets = licenseeSecrets).mapToOrt()
+                )
             }
         }
 

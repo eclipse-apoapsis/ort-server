@@ -113,15 +113,17 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunFilters
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunSummary
-import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterJob
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.ScannerJob
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.SubmoduleFetchStrategy
@@ -692,9 +694,15 @@ fun PackageManagerConfiguration.mapToApi() =
 fun ApiPackageManagerConfiguration.mapToModel() =
     PackageManagerConfiguration(mustRunAfter = mustRunAfter, options = options)
 
-fun PluginConfig.mapToApi() = ApiPluginConfig(options = options, secrets = secrets)
+fun ResolvablePluginConfig.mapToApi() = ApiPluginConfig(
+    options = options,
+    secrets = secrets.mapValues { it.value.name }
+)
 
-fun ApiPluginConfig.mapToModel() = PluginConfig(options = options, secrets = secrets)
+fun ApiPluginConfig.mapToModel() = ResolvablePluginConfig(
+    options = options,
+    secrets = secrets.mapValues { ResolvableSecret(it.value, SecretSource.ADMIN) }
+)
 
 fun ProviderPluginConfiguration.mapToApi() =
     ApiProviderPluginConfiguration(
