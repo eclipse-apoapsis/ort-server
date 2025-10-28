@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.resolutions.routes
 
+import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
@@ -30,7 +31,10 @@ import org.eclipse.apoapsis.ortserver.components.resolutions.PostVulnerabilityRe
 import org.eclipse.apoapsis.ortserver.components.resolutions.VulnerabilityResolutionDefinitionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.resolutionsRoutes
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
+import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
@@ -112,6 +116,35 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                 post("/resolutions/vulnerabilities") {
                     setBody(createBody.copy(contextRunId = nonExistentRunId))
                 }
+            }
+        }
+    }
+
+    "DeleteVulnerabilityResolution" should {
+        "require role RepositoryPermission.WRITE.roleName(repositoryId)" {
+            val definitionId = definitionService.create(
+                RepositoryId(repositoryId),
+                runId,
+                UserDisplayName("abc", "Test"),
+                createBody.idMatchers,
+                createBody.reason.mapToModel(),
+                createBody.comment
+            ).id
+
+            requestShouldRequireRole(
+                routes = { resolutionsRoutes(ortRunService, definitionService) },
+                role = RepositoryPermission.WRITE.roleName(repositoryId)
+            ) {
+                delete("/resolutions/vulnerabilities/$definitionId")
+            }
+        }
+
+        "respond with 'Forbidden' when repository id cannot be resolved" {
+            requestShouldRequireAuthentication(
+                routes = { resolutionsRoutes(ortRunService, definitionService) },
+                successStatus = HttpStatusCode.Forbidden
+            ) {
+                delete("/resolutions/vulnerabilities/9999")
             }
         }
     }

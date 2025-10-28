@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.resolutions
 
 import io.ktor.server.routing.Route
 
+import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.deleteVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.postVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 
@@ -30,4 +31,5 @@ fun Route.resolutionsRoutes(
     vulnerabilityResolutionDefinitionService: VulnerabilityResolutionDefinitionService
 ) {
     postVulnerabilityResolution(ortRunService, vulnerabilityResolutionDefinitionService)
+    deleteVulnerabilityResolution(vulnerabilityResolutionDefinitionService)
 }
