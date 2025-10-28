@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.components.resolutions.routes
 
 import io.ktor.client.request.delete
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
@@ -27,6 +28,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.resolutions.PatchVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.PostVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.components.resolutions.VulnerabilityResolutionDefinitionService
 import org.eclipse.apoapsis.ortserver.components.resolutions.resolutionsRoutes
@@ -36,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToModel
 import org.eclipse.apoapsis.ortserver.shared.apimodel.VulnerabilityResolutionReason
+import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 import org.jetbrains.exposed.sql.Database
@@ -178,6 +181,47 @@ class ResolutionsAuthorizationTest : AbstractAuthorizationTest({
                 successStatus = HttpStatusCode.Forbidden
             ) {
                 post("/resolutions/vulnerabilities/9999/restore")
+            }
+        }
+    }
+
+    "PatchVulnerabilityResolution" should {
+        "require role RepositoryPermission.WRITE.roleName(repositoryId)" {
+            val definitionId = definitionService.create(
+                RepositoryId(repositoryId),
+                runId,
+                UserDisplayName("abc", "Test"),
+                createBody.idMatchers,
+                createBody.reason.mapToModel(),
+                createBody.comment
+            ).id
+
+            requestShouldRequireRole(
+                routes = { resolutionsRoutes(ortRunService, definitionService) },
+                role = RepositoryPermission.WRITE.roleName(repositoryId)
+            ) {
+                patch("/resolutions/vulnerabilities/$definitionId") {
+                    setBody(
+                        PatchVulnerabilityResolution(
+                            comment = "Updated comment.".asPresent()
+                        )
+                    )
+                }
+            }
+        }
+
+        "respond with 'Forbidden' when repository ID cannot be resolved" {
+            requestShouldRequireAuthentication(
+                routes = { resolutionsRoutes(ortRunService, definitionService) },
+                successStatus = HttpStatusCode.Forbidden
+            ) {
+                patch("/resolutions/vulnerabilities/9999") {
+                    setBody(
+                        PatchVulnerabilityResolution(
+                            comment = "Updated comment.".asPresent()
+                        )
+                    )
+                }
             }
         }
     }
