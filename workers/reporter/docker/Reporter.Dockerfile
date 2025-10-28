@@ -26,7 +26,7 @@ ARG BASE_IMAGE_TAG="latest"
 FROM --platform=linux/amd64 python:3.13-slim AS scancode-license-data-build
 
 # Keep in sync with Scanner.Dockerfile
-ARG SCANCODE_VERSION=32.4.0
+ARG SCANCODE_VERSION=32.4.1
 
 RUN apt-get update && apt-get install -y curl libgomp1 && rm -rf /var/lib/apt/lists/*
 
