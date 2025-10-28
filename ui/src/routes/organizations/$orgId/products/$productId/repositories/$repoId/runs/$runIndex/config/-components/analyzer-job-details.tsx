@@ -61,23 +61,24 @@ export const AnalyzerJobDetails = ({ run }: AnalyzerJobDetailsProps) => {
               value={jobConfigs.enabledPackageManagers}
               showIfEmpty={false}
             />
-            {jobConfigs.environmentConfig?.environmentVariables && (
-              <div>
-                <Label className='font-semibold'>Environment variables</Label>
-                {jobConfigs.environmentConfig.environmentVariables.map(
-                  (env) => (
-                    <div
-                      className='text-muted-foreground ml-2 flex gap-1'
-                      key={env.name}
-                    >
-                      <div>{env.name}</div>
-                      <div>=</div>
-                      <div>{env.value}</div>
-                    </div>
-                  )
-                )}
-              </div>
-            )}
+            {jobConfigs.environmentConfig?.environmentVariables &&
+              jobConfigs.environmentConfig.environmentVariables.length > 0 && (
+                <div>
+                  <Label className='font-semibold'>Environment variables</Label>
+                  {jobConfigs.environmentConfig.environmentVariables.map(
+                    (env) => (
+                      <div
+                        className='text-muted-foreground ml-2 flex gap-1'
+                        key={env.name}
+                      >
+                        <div>{env.name}</div>
+                        <div>=</div>
+                        <div>{env.value}</div>
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
             {jobConfigs.environmentConfig?.infrastructureServices &&
               jobConfigs.environmentConfig.infrastructureServices.length >
                 0 && (
