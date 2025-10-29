@@ -83,10 +83,9 @@ class SecretService(
     suspend fun listForHierarchy(
         hierarchy: Hierarchy
     ): List<Secret> = db.dbQuery {
-        val parameters = ListQueryParameters(limit = Integer.MAX_VALUE)
-        val organizationSecrets = secretRepository.listForId(OrganizationId(hierarchy.organization.id), parameters)
-        val productSecrets = secretRepository.listForId(ProductId(hierarchy.product.id), parameters)
-        val repositorySecrets = secretRepository.listForId(RepositoryId(hierarchy.repository.id), parameters)
+        val organizationSecrets = secretRepository.listForId(OrganizationId(hierarchy.organization.id))
+        val productSecrets = secretRepository.listForId(ProductId(hierarchy.product.id))
+        val repositorySecrets = secretRepository.listForId(RepositoryId(hierarchy.repository.id))
 
         val secretNames = mutableSetOf<String>()
 
