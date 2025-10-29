@@ -22,7 +22,9 @@ package org.eclipse.apoapsis.ortserver.components.authorization.routes
 import io.ktor.server.application.ApplicationCall
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
@@ -51,15 +53,10 @@ interface AuthorizationChecker {
      * Use the provided [service] to load the [EffectiveRole] of the user with the given [userId] for the current
      * [call]. A typical implementation will figure out the ID of an element in the hierarchy (organization, product,
      * or repository) based on current call parameters. Then it can invoke the [service] to query the permissions on
-     * this element.
+     * this element. If the permission check is successful, return a properly initialized [EffectiveRole] instance.
+     * Otherwise, return *null*, which cause the request to fail with a 403 error.
      */
-    suspend fun loadEffectiveRole(service: AuthorizationService, userId: String, call: ApplicationCall): EffectiveRole
-
-    /**
-     * Check whether the given [effectiveRole] contains the permission(s) required by this [AuthorizationChecker].
-     * This function is called with the [EffectiveRole] that was loaded via [loadEffectiveRole].
-     */
-    fun checkAuthorization(effectiveRole: EffectiveRole): Boolean
+    suspend fun loadEffectiveRole(service: AuthorizationService, userId: String, call: ApplicationCall): EffectiveRole?
 }
 
 /** The name of the request parameter referring to the organization ID. */
@@ -80,11 +77,12 @@ fun requirePermission(permission: OrganizationPermission): AuthorizationChecker 
             service: AuthorizationService,
             userId: String,
             call: ApplicationCall
-        ): EffectiveRole =
-            service.getEffectiveRole(userId, OrganizationId(call.requireIdParameter(ORGANIZATION_ID_PARAM)))
-
-        override fun checkAuthorization(effectiveRole: EffectiveRole): Boolean =
-            effectiveRole.hasOrganizationPermission(permission)
+        ): EffectiveRole? =
+            service.checkPermissions(
+                userId,
+                OrganizationId(call.requireIdParameter(ORGANIZATION_ID_PARAM)),
+                HierarchyPermissions.permissions(permission)
+            )
 
         override fun toString(): String = "RequireOrganizationPermission($permission)"
     }
@@ -98,11 +96,12 @@ fun requirePermission(permission: ProductPermission): AuthorizationChecker =
             service: AuthorizationService,
             userId: String,
             call: ApplicationCall
-        ): EffectiveRole =
-            service.getEffectiveRole(userId, ProductId(call.requireIdParameter(PRODUCT_ID_PARAM)))
-
-        override fun checkAuthorization(effectiveRole: EffectiveRole): Boolean =
-            effectiveRole.hasProductPermission(permission)
+        ): EffectiveRole? =
+            service.checkPermissions(
+                userId,
+                ProductId(call.requireIdParameter(PRODUCT_ID_PARAM)),
+                HierarchyPermissions.permissions(permission)
+            )
 
         override fun toString(): String = "RequireProductPermission($permission)"
     }
@@ -116,11 +115,12 @@ fun requirePermission(permission: RepositoryPermission): AuthorizationChecker =
             service: AuthorizationService,
             userId: String,
             call: ApplicationCall
-        ): EffectiveRole =
-            service.getEffectiveRole(userId, RepositoryId(call.requireIdParameter(REPOSITORY_ID_PARAM)))
-
-        override fun checkAuthorization(effectiveRole: EffectiveRole): Boolean =
-            effectiveRole.hasRepositoryPermission(permission)
+        ): EffectiveRole? =
+            service.checkPermissions(
+                userId,
+                RepositoryId(call.requireIdParameter(REPOSITORY_ID_PARAM)),
+                HierarchyPermissions.permissions(permission)
+            )
 
         override fun toString(): String = "RequireRepositoryPermission($permission)"
     }
@@ -134,11 +134,12 @@ fun requireSuperuser(): AuthorizationChecker =
             service: AuthorizationService,
             userId: String,
             call: ApplicationCall
-        ): EffectiveRole =
-            service.getEffectiveRole(userId, CompoundHierarchyId.WILDCARD)
-
-        override fun checkAuthorization(effectiveRole: EffectiveRole): Boolean =
-            effectiveRole.isSuperuser
+        ): EffectiveRole? =
+            service.checkPermissions(
+                userId,
+                CompoundHierarchyId.WILDCARD,
+                HierarchyPermissions.permissions(OrganizationRole.ADMIN)
+            )?.takeIf { it.isSuperuser }
 
         override fun toString(): String = "RequireSuperuser"
     }

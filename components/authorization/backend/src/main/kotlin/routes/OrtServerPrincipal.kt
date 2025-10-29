@@ -36,8 +36,11 @@ class OrtServerPrincipal(
     /** The full name of the principal. */
     val fullName: String,
 
-    /** The effective role computed for the principal. */
-    val effectiveRole: EffectiveRole
+    /**
+     * The effective role computed for the principal. This can be *null* if either no authorization is required or the
+     * authorization check failed. In the latter case, an exception is thrown when the role is accessed.
+     */
+    private val role: EffectiveRole?
 ) {
     companion object {
         /** Constant for the name of the claim containing the username. */
@@ -49,12 +52,26 @@ class OrtServerPrincipal(
         /**
          * Create an [OrtServerPrincipal] from the given JWT [payload] and [effectiveRole].
          */
-        fun create(payload: Payload, effectiveRole: EffectiveRole): OrtServerPrincipal =
+        fun create(payload: Payload, effectiveRole: EffectiveRole?): OrtServerPrincipal =
             OrtServerPrincipal(
                 userId = payload.subject,
                 username = payload.getClaim(CLAIM_USERNAME).asString(),
                 fullName = payload.getClaim(CLAIM_FULL_NAME).asString(),
-                effectiveRole = effectiveRole
+                role = effectiveRole
             )
     }
+
+    /**
+     * A flag indicating whether the principal is authorized. If this is *true*, the effective role of the principal
+     * can be accessed via [effectiveRole].
+     */
+    val isAuthorized: Boolean
+        get() = role != null
+
+    /**
+     * The effective role of the principal if authorization was successful. Otherwise, accessing this property throws
+     * an [AuthorizationException].
+     */
+    val effectiveRole: EffectiveRole
+        get() = role ?: throw AuthorizationException()
 }

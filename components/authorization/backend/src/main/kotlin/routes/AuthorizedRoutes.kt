@@ -52,11 +52,15 @@ suspend fun ApplicationCall.createAuthorizedPrincipal(
     (this as? RoutingPipelineCall)?.let { routingCall ->
         val checker = routingCall.route.findAuthorizationChecker()
 
-        val effectiveRole = checker?.loadEffectiveRole(
-            service = authorizationService,
-            userId = payload.getClaim("preferred_username").asString(),
-            call = this
-        ) ?: EffectiveRole.EMPTY
+        val effectiveRole = if (checker != null) {
+            checker.loadEffectiveRole(
+                service = authorizationService,
+                userId = payload.getClaim("preferred_username").asString(),
+                call = this
+            )
+        } else {
+            EffectiveRole.EMPTY
+        }
 
         OrtServerPrincipal.create(payload, effectiveRole)
     }
@@ -122,9 +126,8 @@ private fun Route.documentedAuthorized(
     authorizedRoute.attributes.put(AuthorizationCheckerKey, checker)
 
     val authorizedBody: suspend RoutingContext.() -> Unit = {
-        val principal = call.principal<OrtServerPrincipal>() ?: throw AuthorizationException()
-
-        if (!checker.checkAuthorization(principal.effectiveRole)) {
+        // Check whether an authorized principal is available in the call.
+        if (call.principal<OrtServerPrincipal>()?.isAuthorized != true) {
             throw AuthorizationException()
         }
 
