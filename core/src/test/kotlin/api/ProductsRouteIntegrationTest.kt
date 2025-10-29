@@ -150,8 +150,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            authorizationService
+            dbExtension.fixtures.productRepository
         )
 
         pluginService = PluginService(dbExtension.db)
