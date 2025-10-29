@@ -72,6 +72,12 @@ import org.eclipse.apoapsis.ortserver.model.runs.ShortestDependencyPath
 import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Excludes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Includes
+import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseChoices
+import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 
 import org.jetbrains.exposed.sql.Database
 
@@ -325,6 +331,25 @@ class Fixtures(private val db: Database) {
             )
         ),
         results = results
+    )
+
+    fun createRepositoryConfiguration(
+        runId: Long = ortRun.id,
+        vulnerabilityResolutions: List<VulnerabilityResolution> = emptyList()
+    ) = repositoryConfigurationRepository.create(
+        ortRunId = runId,
+        analyzerConfig = null,
+        excludes = Excludes(emptyList(), emptyList()),
+        includes = Includes(emptyList()),
+        resolutions = Resolutions(
+            issues = emptyList(),
+            ruleViolations = emptyList(),
+            vulnerabilities = vulnerabilityResolutions
+        ),
+        curations = Curations(emptyList(), emptyList()),
+        packageConfigurations = emptyList(),
+        licenseChoices = LicenseChoices(emptyList(), emptyList()),
+        provenanceSnippetChoices = emptyList()
     )
 
     fun generatePackage(

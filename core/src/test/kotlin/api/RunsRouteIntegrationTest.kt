@@ -111,6 +111,7 @@ import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
@@ -138,6 +139,8 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.PagedSearchResponse
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortDirection
 import org.eclipse.apoapsis.ortserver.shared.apimodel.SortProperty
+import org.eclipse.apoapsis.ortserver.shared.apimodel.VulnerabilityResolutionDefinition
+import org.eclipse.apoapsis.ortserver.shared.apimodel.VulnerabilityResolutionReason as ApiVulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.shouldHaveBody
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
@@ -811,6 +814,66 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                     }
 
                     first().resolutions shouldBe emptyList()
+                }
+            }
+        }
+
+        "return the definition of the vulnerability resolution if it originated from the server" {
+            integrationTestApplication {
+                val run1 = dbExtension.fixtures.createOrtRun(repositoryId)
+                val definitionId = dbExtension.fixtures.createVulnerabilityResolutionDefinition(
+                    RepositoryId(repositoryId),
+                    run1.id,
+                    listOf("CVE-2021-1234"),
+                    VulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY
+                )
+
+                val run2 = dbExtension.fixtures.createOrtRun(repositoryId)
+                val advisorJobId = dbExtension.fixtures.createAdvisorJob(run2.id).id
+                dbExtension.fixtures.createAdvisorRun(advisorJobId, generateAdvisorResult())
+
+                val vulnerabilityResolution = VulnerabilityResolution(
+                    "CVE-2018-14721",
+                    "INEFFECTIVE_VULNERABILITY",
+                    "Comment."
+                )
+
+                val repositoryConfiguration =
+                    dbExtension.fixtures.createRepositoryConfiguration(run2.id, listOf(vulnerabilityResolution))
+
+                dbExtension.fixtures.resolvedConfigurationRepository.addResolutions(
+                    run2.id,
+                    repositoryConfiguration.resolutions
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${run2.id}/vulnerabilities")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.data shouldHaveSize 2
+
+                with(vulnerabilities.data.first()) {
+                    vulnerability.externalId shouldBe "CVE-2018-14721"
+
+                    resolutions.shouldBeSingleton {
+                        it.definition should beNull()
+                    }
+                }
+
+                with(vulnerabilities.data.last()) {
+                    vulnerability.externalId shouldBe "CVE-2021-1234"
+
+                    resolutions.shouldBeSingleton {
+                        it.definition shouldBe VulnerabilityResolutionDefinition(
+                            id = definitionId,
+                            idMatchers = listOf("CVE-2021-1234"),
+                            reason = ApiVulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY,
+                            comment = "Comment.",
+                            archived = false,
+                            changes = emptyList()
+                        )
+                    }
                 }
             }
         }

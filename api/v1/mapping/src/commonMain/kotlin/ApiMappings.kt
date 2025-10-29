@@ -93,6 +93,7 @@ import org.eclipse.apoapsis.ortserver.model.AdvisorJob
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJob
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.AppliedVulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.ContentManagementSection
 import org.eclipse.apoapsis.ortserver.model.EcosystemStats
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
@@ -599,6 +600,14 @@ fun AdvisorDetails.mapToApi() = ApiAdvisorDetails(
     name = name,
     capabilities = capabilities.map { ApiAdvisorCapability.valueOf(it.name) }.toSet()
 )
+
+fun AppliedVulnerabilityResolution.mapToApi() =
+    ApiVulnerabilityResolution(
+        externalId = resolution.externalId,
+        reason = resolution.reason,
+        comment = resolution.comment,
+        definition = definition?.mapToApi()
+    )
 
 fun VulnerabilityWithDetails.mapToApi() =
     ApiVulnerabilityWithDetails(
