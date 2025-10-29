@@ -140,8 +140,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.db,
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
-            dbExtension.fixtures.ortRunRepository,
-            authorizationService
+            dbExtension.fixtures.ortRunRepository
         )
     }
 

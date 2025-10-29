@@ -23,19 +23,11 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
-import org.eclipse.apoapsis.ortserver.model.RepositoryType
 
 import org.jetbrains.exposed.sql.Database
 
@@ -56,48 +48,9 @@ class ProductServiceTest : WordSpec({
         fixtures = dbExtension.fixtures
     }
 
-    "createRepository" should {
-        "create Keycloak permissions" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { createRepositoryPermissions(any()) } just runs
-                coEvery { createRepositoryRoles(any()) } just runs
-            }
-
-            val service =
-                ProductService(db, productRepository, repositoryRepository, ortRunRepository, authorizationService)
-            val repository = service.createRepository(
-                RepositoryType.GIT,
-                "https://example.com/repo.git",
-                fixtures.product.id,
-                "Description"
-            )
-
-            coVerify(exactly = 1) {
-                authorizationService.createRepositoryPermissions(repository.id)
-                authorizationService.createRepositoryRoles(repository.id)
-            }
-        }
-    }
-
     "deleteProduct" should {
-        "delete Keycloak permissions" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { deleteProductPermissions(any()) } just runs
-                coEvery { deleteProductRoles(any()) } just runs
-            }
-
-            val service =
-                ProductService(db, productRepository, repositoryRepository, ortRunRepository, authorizationService)
-            service.deleteProduct(fixtures.product.id)
-
-            coVerify(exactly = 1) {
-                authorizationService.deleteProductPermissions(fixtures.product.id)
-                authorizationService.deleteProductRoles(fixtures.product.id)
-            }
-        }
-
         "delete all repositories associated to this product" {
-            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository)
 
             val product = fixtures.createProduct()
 
@@ -123,7 +76,7 @@ class ProductServiceTest : WordSpec({
 
     "getRepositoryIdsForProduct" should {
         "return IDs for all repositories of a product" {
-            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository, mockk())
+            val service = ProductService(db, productRepository, repositoryRepository, ortRunRepository)
 
             val prodId = fixtures.createProduct().id
 
