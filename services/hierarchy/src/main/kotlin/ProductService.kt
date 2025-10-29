@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -42,10 +40,6 @@ import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.max
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
-
 /**
  * A service providing functions for working with [products][Product].
  */
@@ -54,7 +48,6 @@ class ProductService(
     private val productRepository: ProductRepository,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
-    private val authorizationService: AuthorizationService
 ) {
     /**
      * Create a repository inside a [product][productId].
@@ -64,33 +57,19 @@ class ProductService(
         url: String,
         productId: Long,
         description: String?
-    ): Repository = db.dbQueryCatching {
+    ): Repository = db.dbQuery {
         repositoryRepository.create(type, url, productId, description)
-    }.onSuccess { repository ->
-        runCatching {
-            authorizationService.createRepositoryPermissions(repository.id)
-            authorizationService.createRepositoryRoles(repository.id)
-        }.onFailure { e ->
-            logger.error("Error while creating Keycloak roles for repository '${repository.id}'.", e)
-        }
-    }.getOrThrow()
+    }
 
     /**
      * Delete a [product][productId] with its [repositories][Repository] and [OrtRun]s.
      */
-    suspend fun deleteProduct(productId: Long): Unit = db.dbQueryCatching {
+    suspend fun deleteProduct(productId: Long): Unit = db.dbQuery {
         ortRunRepository.deleteByProduct(productId)
         repositoryRepository.deleteByProduct(productId)
 
         productRepository.delete(productId)
-    }.onSuccess {
-        runCatching {
-            authorizationService.deleteProductPermissions(productId)
-            authorizationService.deleteProductRoles(productId)
-        }.onFailure { e ->
-            logger.error("Error while deleting Keycloak roles for product '$productId'.", e)
-        }
-    }.getOrThrow()
+    }
 
     /**
      * Get a product by [productId]. Returns null if the product is not found.
