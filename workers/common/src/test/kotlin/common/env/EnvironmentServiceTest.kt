@@ -87,7 +87,7 @@ class EnvironmentServiceTest : WordSpec({
             )
 
             val service = mockk<InfrastructureServiceService> {
-                coEvery { listForHierarchy(any<Hierarchy>()) } returns services
+                coEvery { listForHierarchy(any()) } returns services
             }
 
             val workerContext = mockk<WorkerContext> {
