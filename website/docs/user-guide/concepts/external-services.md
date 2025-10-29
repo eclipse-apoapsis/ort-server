@@ -85,6 +85,5 @@ environmentDefinitions:
       authMode: 'PASSWORD'
   yarn:
     - service: 'YarnRepositoryService'
-      alwaysAuth: 'true'
       authMode: 'AUTH_IDENT'
 ```
