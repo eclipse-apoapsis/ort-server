@@ -21,6 +21,8 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.containExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -28,7 +30,9 @@ import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
+import org.eclipse.apoapsis.ortserver.model.VulnerabilityResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
@@ -139,6 +143,62 @@ class DaoRepositoryConfigurationRepositoryTest : WordSpec({
 
             dbEntry shouldNotBeNull {
                 includes.paths should containExactly(pathInclude)
+            }
+        }
+
+        "inject vulnerability resolutions that have been defined for the repository" {
+            fixtures.createVulnerabilityResolutionDefinition(
+                idMatchers = listOf("CVE-2020-15250", "GHSA-269g-pwp5-87pp"),
+                reason = VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY
+            )
+
+            val ortRun2Id = fixtures.createOrtRun().id
+
+            val createdRepositoryConfiguration = repositoryConfigurationRepository.create(
+                ortRun2Id, repositoryConfig
+            )
+
+            val dbEntry = repositoryConfigurationRepository.get(createdRepositoryConfiguration.id)
+
+            dbEntry shouldNotBeNull {
+                resolutions.vulnerabilities shouldHaveSize 3
+                resolutions.vulnerabilities shouldContainExactlyInAnyOrder listOf(
+                    vulnerabilityResolution,
+                    VulnerabilityResolution(
+                        "CVE-2020-15250",
+                        VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY.name,
+                        "Comment."
+                    ),
+                    VulnerabilityResolution(
+                        "GHSA-269g-pwp5-87pp",
+                        VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY.name,
+                        "Comment."
+                    )
+                )
+            }
+        }
+
+        "not inject vulnerability resolutions made for other repositories" {
+            fixtures.createVulnerabilityResolutionDefinition(
+                RepositoryId(fixtures.ortRun.repositoryId),
+                ortRunId,
+                listOf("CVE-2020-15250", "GHSA-269g-pwp5-87pp"),
+                VulnerabilityResolutionReason.INEFFECTIVE_VULNERABILITY,
+                "comment"
+            )
+
+            val repo2Id = fixtures.createRepository(url = "https://example.com/repo2.git").id
+            val run2Id = fixtures.createOrtRun(repo2Id).id
+
+            val createdRepositoryConfiguration = repositoryConfigurationRepository.create(
+                run2Id, repositoryConfig
+            )
+
+            val dbEntry = repositoryConfigurationRepository.get(createdRepositoryConfiguration.id)
+
+            dbEntry shouldNotBeNull {
+                resolutions.vulnerabilities shouldHaveSize 1
+                resolutions.vulnerabilities.first() shouldBe vulnerabilityResolution
             }
         }
     }
