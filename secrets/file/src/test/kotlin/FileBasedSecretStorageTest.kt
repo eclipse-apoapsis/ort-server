@@ -55,7 +55,7 @@ class FileBasedSecretStorageTest : WordSpec() {
             "return the value of an existing secret" {
                 val password = storage.readSecret(Path("password"))
 
-                password shouldBe Secret("securePassword123")
+                password shouldBe SecretValue("securePassword123")
             }
 
             "return null for a non-existing secret" {
@@ -68,7 +68,7 @@ class FileBasedSecretStorageTest : WordSpec() {
         "writeSecret" should {
             "create a new secret" {
                 val newSecretPath = Path("brandNewSecret")
-                val newSecretValue = Secret("You will never know...")
+                val newSecretValue = SecretValue("You will never know...")
 
                 storage.writeSecret(newSecretPath, newSecretValue)
 
@@ -77,8 +77,8 @@ class FileBasedSecretStorageTest : WordSpec() {
 
             "update an existing secret" {
                 val newSecretPath = Path("secretWithUpdates")
-                val firstValue = Secret("You will never know...")
-                val secondValue = Secret("Maybe time after time?")
+                val firstValue = SecretValue("You will never know...")
+                val secondValue = SecretValue("Maybe time after time?")
 
                 storage.writeSecret(newSecretPath, firstValue)
 
@@ -92,7 +92,7 @@ class FileBasedSecretStorageTest : WordSpec() {
             "remove an existing secret" {
                 val targetPath = Path("justWaste")
 
-                storage.writeSecret(targetPath, Secret("toBeDeleted"))
+                storage.writeSecret(targetPath, SecretValue("toBeDeleted"))
 
                 storage.removeSecret(targetPath)
 
@@ -102,9 +102,9 @@ class FileBasedSecretStorageTest : WordSpec() {
             "remove a secret with all its versions" {
                 val targetPath = Path("evenMoreWaste")
 
-                storage.writeSecret(targetPath, Secret("toBeOverwritten"))
-                storage.writeSecret(targetPath, Secret("toBeOverwrittenAgain"))
-                storage.writeSecret(targetPath, Secret("toBeDeleted"))
+                storage.writeSecret(targetPath, SecretValue("toBeOverwritten"))
+                storage.writeSecret(targetPath, SecretValue("toBeOverwrittenAgain"))
+                storage.writeSecret(targetPath, SecretValue("toBeDeleted"))
 
                 storage.removeSecret(targetPath)
 

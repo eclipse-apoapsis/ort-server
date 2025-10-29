@@ -52,13 +52,13 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
         val SERVICE_PATH = Path("$PREFIX.service")
 
         /** The predefined password secret. */
-        val PASSWORD_SECRET = Secret("aS3ce3TPwd")
+        val PASSWORD_SECRET = SecretValue("aS3ce3TPwd")
 
         /** The predefined token secret. */
-        val TOKEN_SECRET = Secret("1234567890abcdefghijklmnopqrstuvwxyz")
+        val TOKEN_SECRET = SecretValue("1234567890abcdefghijklmnopqrstuvwxyz")
 
         /** The predefined service secret. */
-        val SERVICE_SECRET = Secret("db_data")
+        val SERVICE_SECRET = SecretValue("db_data")
 
         /**
          * Stores the latest provider instance that has been created. This can be used to access this instance from
@@ -75,7 +75,7 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
         /**
          * Return a map to be used as internal secret store that is already populated with the test secrets.
          */
-        private fun createStorage(): MutableMap<Path, Secret> =
+        private fun createStorage(): MutableMap<Path, SecretValue> =
             mutableMapOf(
                 PASSWORD_PATH to PASSWORD_SECRET,
                 TOKEN_PATH to TOKEN_SECRET,
@@ -95,9 +95,9 @@ class SecretsProviderFactoryForTesting : SecretsProviderFactory {
             path.takeUnless { it.path == errorPath } ?: throw IllegalArgumentException("Test exception")
 
         return object : SecretsProvider {
-            override fun readSecret(path: Path): Secret? = storage[checkPath(path)]
+            override fun readSecret(path: Path): SecretValue? = storage[checkPath(path)]
 
-            override fun writeSecret(path: Path, secret: Secret) {
+            override fun writeSecret(path: Path, secret: SecretValue) {
                 storage[checkPath(path)] = secret
             }
 

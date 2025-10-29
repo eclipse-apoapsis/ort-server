@@ -45,7 +45,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.Secret
+import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultLoginResponse
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultSecretData
@@ -86,7 +86,7 @@ class VaultSecretsProvider(
     /** The client to interact with the Vault service. */
     private val vaultClient = createClient()
 
-    override fun readSecret(path: Path): Secret? {
+    override fun readSecret(path: Path): SecretValue? {
         return vaultRequest {
             val response = get(path.toUri()) {
                 // Override this flag here to handle 404 responses manually.
@@ -97,7 +97,7 @@ class VaultSecretsProvider(
                 response.status == HttpStatusCode.NotFound -> null
                 response.status.isSuccess() -> {
                     val secretResponse = response.body<VaultSecretResponse>()
-                    secretResponse.data.value?.let(::Secret)
+                    secretResponse.data.value?.let(::SecretValue)
                 }
 
                 else -> throw ClientRequestException(response, response.body())
@@ -105,7 +105,7 @@ class VaultSecretsProvider(
         }
     }
 
-    override fun writeSecret(path: Path, secret: Secret) {
+    override fun writeSecret(path: Path, secret: SecretValue) {
         val data = VaultSecretData.withValue(secret.value)
         vaultRequest {
             post(path.toUri()) {

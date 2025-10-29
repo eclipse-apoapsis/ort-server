@@ -48,7 +48,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.Secret
+import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
@@ -91,7 +91,7 @@ class ScalewaySecretsProvider(
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    override fun readSecret(path: Path): Secret? = runBlocking {
+    override fun readSecret(path: Path): SecretValue? = runBlocking {
         // See https://www.scaleway.com/en/developers/api/secret-manager/#path-secret-versions-access-a-secrets-version-using-the-secrets-name-and-path.
         val response = client.get("secrets-by-path/versions/$LATEST_REVISION/access") {
             parameter("project_id", config.projectId)
@@ -117,14 +117,14 @@ class ScalewaySecretsProvider(
 
                 logger.debug("Read a secret at $path.")
 
-                Secret(String(Base64.decode(secretResponse.data)))
+                SecretValue(String(Base64.decode(secretResponse.data)))
             }
 
             else -> throw ClientRequestException(response, response.body())
         }
     }
 
-    override fun writeSecret(path: Path, secret: Secret) = runBlocking {
+    override fun writeSecret(path: Path, secret: SecretValue) = runBlocking {
         val listResponse = listSecrets(path)
 
         val secretId = if (listResponse.totalCount < 1) {

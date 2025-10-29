@@ -31,7 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.Secret
+import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 
 class VaultSecretsProviderTest : WordSpec() {
     private val vault = installVaultTestContainer()
@@ -43,7 +43,7 @@ class VaultSecretsProviderTest : WordSpec() {
 
                 val password = provider.readSecret(Path("password"))
 
-                password shouldBe Secret("tiger")
+                password shouldBe SecretValue("tiger")
             }
 
             "return null for a non-existing secret" {
@@ -74,7 +74,7 @@ class VaultSecretsProviderTest : WordSpec() {
         "writeSecret" should {
             "create a new secret" {
                 val newSecretPath = Path("brandNewSecret")
-                val newSecretValue = Secret("You will never know...")
+                val newSecretValue = SecretValue("You will never know...")
                 val provider = vault.createProvider()
 
                 provider.writeSecret(newSecretPath, newSecretValue)
@@ -84,8 +84,8 @@ class VaultSecretsProviderTest : WordSpec() {
 
             "update an existing secret" {
                 val newSecretPath = Path("secretWithUpdates")
-                val firstValue = Secret("You will never know...")
-                val secondValue = Secret("Maybe time after time?")
+                val firstValue = SecretValue("You will never know...")
+                val secondValue = SecretValue("Maybe time after time?")
                 val provider = vault.createProvider()
                 provider.writeSecret(newSecretPath, firstValue)
 
@@ -99,7 +99,7 @@ class VaultSecretsProviderTest : WordSpec() {
             "remove an existing secret" {
                 val targetPath = Path("justWaste")
                 val provider = vault.createProvider()
-                provider.writeSecret(targetPath, Secret("toBeDeleted"))
+                provider.writeSecret(targetPath, SecretValue("toBeDeleted"))
 
                 provider.removeSecret(targetPath)
 
@@ -109,9 +109,9 @@ class VaultSecretsProviderTest : WordSpec() {
             "remove a secret with all its versions" {
                 val targetPath = Path("evenMoreWaste")
                 val provider = vault.createProvider()
-                provider.writeSecret(targetPath, Secret("toBeOverwritten"))
-                provider.writeSecret(targetPath, Secret("toBeOverwrittenAgain"))
-                provider.writeSecret(targetPath, Secret("toBeDeleted"))
+                provider.writeSecret(targetPath, SecretValue("toBeOverwritten"))
+                provider.writeSecret(targetPath, SecretValue("toBeOverwrittenAgain"))
+                provider.writeSecret(targetPath, SecretValue("toBeDeleted"))
 
                 provider.removeSecret(targetPath)
 

@@ -23,8 +23,8 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.Secret
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 
 class VaultSecretsProviderFactoryTest : StringSpec() {
     private val vault = installVaultTestContainer()
@@ -35,7 +35,7 @@ class VaultSecretsProviderFactoryTest : StringSpec() {
 
             val storage = SecretStorage.createStorage(config)
 
-            storage.getSecret(Path("password")) shouldBe Secret("tiger")
+            storage.getSecret(Path("password")) shouldBe SecretValue("tiger")
         }
     }
 }

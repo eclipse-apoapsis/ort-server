@@ -146,7 +146,7 @@ class SecretStorageTest : WordSpec({
     "writeSecret" should {
         "write a secret successfully" {
             val newPath = Path("new-secret")
-            val newSecret = Secret("BrandNewSecret")
+            val newSecret = SecretValue("BrandNewSecret")
             val storage = createStorage()
 
             storage.writeSecret(newPath, newSecret)
@@ -156,7 +156,7 @@ class SecretStorageTest : WordSpec({
 
         "throw an exception if writing fails" {
             val exception = shouldThrow<SecretStorageException> {
-                createStorage().writeSecret(ERROR_PATH, Secret("will-fail"))
+                createStorage().writeSecret(ERROR_PATH, SecretValue("will-fail"))
             }
 
             exception.cause should beInstanceOf<IllegalArgumentException>()
@@ -166,7 +166,7 @@ class SecretStorageTest : WordSpec({
     "writeSecretCatching" should {
         "return a success result if the operation is successful" {
             val newPath = Path("new-secret")
-            val newSecret = Secret("BrandNewSecret")
+            val newSecret = SecretValue("BrandNewSecret")
             val storage = createStorage()
 
             val result = storage.writeSecretCatching(newPath, newSecret)
@@ -176,7 +176,7 @@ class SecretStorageTest : WordSpec({
         }
 
         "return a failure result for a failing operation" {
-            val result = createStorage().writeSecretCatching(ERROR_PATH, Secret("?"))
+            val result = createStorage().writeSecretCatching(ERROR_PATH, SecretValue("?"))
 
             result shouldBeFailure { exception ->
                 exception should beInstanceOf<SecretStorageException>()
