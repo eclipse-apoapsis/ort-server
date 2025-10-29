@@ -69,6 +69,8 @@ environmentDefinitions:
       name: 'conancenter'
       url: 'https://center.conan.io'
       verifySsl: 'true'
+  gradle:
+    - service: 'GradleRepositoryService'
   maven:
     - service: 'MavenRepositoryService'
       id: 'mainRepo'
