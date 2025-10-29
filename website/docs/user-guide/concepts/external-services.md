@@ -65,26 +65,26 @@ Depending on the package manager, the environment definitions may have different
 ```yaml
 environmentDefinitions:
   conan:
-    - service: 'RepositoryService'
+    - service: 'ConanRepositoryService'
       name: 'conancenter'
       url: 'https://center.conan.io'
       verifySsl: 'true'
   maven:
-    - service: 'RepositoryService'
+    - service: 'MavenRepositoryService'
       id: 'mainRepo'
   npm:
-    - service: 'RepositoryService'
+    - service: 'NpmRepositoryService'
       scope: 'external'
       email: 'test@example.org'
       authMode: 'USERNAME_PASSWORD_AUTH'
   nuget:
-    - service: 'RepositoryService'
+    - service: 'NuGetRepositoryService'
       sourceName: 'nuget.org'
       sourcePath: 'https://api.nuget.org/v3/index.json'
       sourceProtocolVersion: '3'
       authMode: 'PASSWORD'
   yarn:
-    - service: 'RepositoryService'
+    - service: 'YarnRepositoryService'
       alwaysAuth: 'true'
       authMode: 'AUTH_IDENT'
 ```
