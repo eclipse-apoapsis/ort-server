@@ -27,6 +27,7 @@ import io.github.smiley4.ktoropenapi.get
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
@@ -52,18 +53,22 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 
 import java.util.Date
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.PermissionChecker
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -117,6 +122,42 @@ class AuthorizedRoutesTest : WordSpec() {
         }
     }
 
+    /**
+     * Run a test with an authorized route that requires the given [requiredPermission]. Delegate to the overloaded
+     * function with a mock service and the given [routeBuilder] and [test] function. After the test completes,
+     * verify that the service was called correctly.
+     */
+    private fun <E : Enum<E>> runAuthorizationTest(
+        requiredPermission: E,
+        routeBuilder: Route.() -> Unit,
+        test: suspend (HttpClient) -> Unit
+    ) {
+        val service = createAuthorizationService()
+
+        runAuthorizationTest(service, routeBuilder, test)
+
+        val slotHierarchyId = slot<HierarchyId>()
+        val slotChecker = slot<PermissionChecker>()
+        coVerify {
+            service.checkPermissions(USERNAME, capture(slotHierarchyId), capture(slotChecker))
+        }
+
+        when (requiredPermission) {
+            is OrganizationPermission -> {
+                slotHierarchyId.captured shouldBe OrganizationId(ID_PARAMETER)
+                slotChecker.captured.organizationPermissions shouldContainExactly setOf(requiredPermission)
+            }
+            is ProductPermission -> {
+                slotHierarchyId.captured shouldBe ProductId(ID_PARAMETER)
+                slotChecker.captured.productPermissions shouldContainExactly setOf(requiredPermission)
+            }
+            is RepositoryPermission -> {
+                slotHierarchyId.captured shouldBe RepositoryId(ID_PARAMETER)
+                slotChecker.captured.repositoryPermissions shouldContainExactly setOf(requiredPermission)
+            }
+        }
+    }
+
     init {
         "authorized routes" should {
             "support a route without permission requirements" {
@@ -150,13 +191,8 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "support GET with an organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(OrganizationPermission.WRITE_SECRETS) } returns true
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
-
                 runAuthorizationTest(
-                    service,
+                    OrganizationPermission.WRITE_SECRETS,
                     routeBuilder = {
                         route("test/{organizationId}") {
                             get(testDocs, requirePermission(OrganizationPermission.WRITE_SECRETS)) {
@@ -175,13 +211,8 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "support POST with an organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(OrganizationPermission.MANAGE_GROUPS) } returns true
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
-
                 runAuthorizationTest(
-                    service,
+                    OrganizationPermission.MANAGE_GROUPS,
                     routeBuilder = {
                         route("test/{organizationId}") {
                             post(testDocs, requirePermission(OrganizationPermission.MANAGE_GROUPS)) {
@@ -200,13 +231,8 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "support PATCH with an organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(OrganizationPermission.CREATE_PRODUCT) } returns true
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
-
                 runAuthorizationTest(
-                    service,
+                    OrganizationPermission.CREATE_PRODUCT,
                     routeBuilder = {
                         route("test/{organizationId}") {
                             patch(testDocs, requirePermission(OrganizationPermission.CREATE_PRODUCT)) {
@@ -225,13 +251,8 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "support PUT with an organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(OrganizationPermission.READ_PRODUCTS) } returns true
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
-
                 runAuthorizationTest(
-                    service,
+                    OrganizationPermission.READ_PRODUCTS,
                     routeBuilder = {
                         route("test/{organizationId}") {
                             put(testDocs, requirePermission(OrganizationPermission.READ_PRODUCTS)) {
@@ -250,13 +271,8 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "support DELETE with an organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(OrganizationPermission.WRITE) } returns true
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
-
                 runAuthorizationTest(
-                    service,
+                    OrganizationPermission.WRITE,
                     routeBuilder = {
                         route("test/{organizationId}") {
                             delete(testDocs, requirePermission(OrganizationPermission.WRITE)) {
@@ -275,17 +291,8 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "support requests on product level" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasProductPermission(ProductPermission.DELETE) } returns true
-                }
-                val service = mockk<AuthorizationService> {
-                    coEvery {
-                        getEffectiveRole(USERNAME, ProductId(ID_PARAMETER))
-                    } returns effectiveRole
-                }
-
                 runAuthorizationTest(
-                    service,
+                    ProductPermission.DELETE,
                     routeBuilder = {
                         route("test/{productId}") {
                             get(testDocs, requirePermission(ProductPermission.DELETE)) {
@@ -300,25 +307,12 @@ class AuthorizedRoutesTest : WordSpec() {
                 ) { client ->
                     val response = client.get("test/$ID_PARAMETER")
                     response.status shouldBe HttpStatusCode.OK
-
-                    verify {
-                        effectiveRole.hasProductPermission(ProductPermission.DELETE)
-                    }
                 }
             }
 
             "support requests on repository level" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasRepositoryPermission(RepositoryPermission.READ) } returns true
-                }
-                val service = mockk<AuthorizationService> {
-                    coEvery {
-                        getEffectiveRole(USERNAME, RepositoryId(ID_PARAMETER))
-                    } returns effectiveRole
-                }
-
                 runAuthorizationTest(
-                    service,
+                    RepositoryPermission.READ,
                     routeBuilder = {
                         route("test/{repositoryId}") {
                             get(testDocs, requirePermission(RepositoryPermission.READ)) {
@@ -333,10 +327,6 @@ class AuthorizedRoutesTest : WordSpec() {
                 ) { client ->
                     val response = client.get("test/$ID_PARAMETER")
                     response.status shouldBe HttpStatusCode.OK
-
-                    verify {
-                        effectiveRole.hasRepositoryPermission(RepositoryPermission.READ)
-                    }
                 }
             }
 
@@ -345,9 +335,7 @@ class AuthorizedRoutesTest : WordSpec() {
                     every { isSuperuser } returns true
                 }
                 val service = mockk<AuthorizationService> {
-                    coEvery {
-                        getEffectiveRole(USERNAME, CompoundHierarchyId.WILDCARD)
-                    } returns effectiveRole
+                    coEvery { checkPermissions(USERNAME, CompoundHierarchyId.WILDCARD, any()) } returns effectiveRole
                 }
 
                 runAuthorizationTest(
@@ -376,10 +364,7 @@ class AuthorizedRoutesTest : WordSpec() {
 
         "failed authorization checks" should {
             "return a 403 response for GET with insufficient organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(any()) } returns false
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
+                val service = createAuthorizationService(null)
 
                 runAuthorizationTest(
                     service,
@@ -397,10 +382,7 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "return a 403 response for POST with insufficient organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(any()) } returns false
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
+                val service = createAuthorizationService(null)
 
                 runAuthorizationTest(
                     service,
@@ -418,10 +400,7 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "return a 403 response for PATCH with insufficient organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(any()) } returns false
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
+                val service = createAuthorizationService(null)
 
                 runAuthorizationTest(
                     service,
@@ -439,10 +418,7 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "return a 403 response for PUT with insufficient organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(any()) } returns false
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
+                val service = createAuthorizationService(null)
 
                 runAuthorizationTest(
                     service,
@@ -460,10 +436,7 @@ class AuthorizedRoutesTest : WordSpec() {
             }
 
             "return a 403 response for DELETE with insufficient organization permission" {
-                val effectiveRole = mockk<EffectiveRole> {
-                    every { hasOrganizationPermission(any()) } returns false
-                }
-                val service = createServiceForOrganizationRole(effectiveRole)
+                val service = createAuthorizationService(null)
 
                 runAuthorizationTest(
                     service,
@@ -510,12 +483,9 @@ private fun createToken(): String =
         .sign(Algorithm.HMAC256(JWT_SECRET))
 
 /**
- * Create a mock [AuthorizationService] that returns the given [effectiveRole] when asked for permissions of the test
- * user in the test organization.
+ * Create a mock [AuthorizationService] that is prepared to handle a permission check. Per default, the check
+ * returns a mock effective role.
  */
-private fun createServiceForOrganizationRole(effectiveRole: EffectiveRole): AuthorizationService =
-    mockk<AuthorizationService> {
-    coEvery {
-        getEffectiveRole(USERNAME, OrganizationId(ID_PARAMETER))
-    } returns effectiveRole
+private fun createAuthorizationService(effectiveRole: EffectiveRole? = mockk()): AuthorizationService = mockk {
+    coEvery { checkPermissions(any(), any<HierarchyId>(), any()) } returns effectiveRole
 }

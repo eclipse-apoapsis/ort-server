@@ -21,7 +21,8 @@ package org.eclipse.apoapsis.ortserver.components.authorization.routes
 
 import com.auth0.jwt.interfaces.Payload
 
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
 import io.mockk.every
@@ -29,23 +30,76 @@ import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 
-class OrtServerPrincipalTest : StringSpec({
-    "An instance should be created correctly from a JWT payload" {
-        val userId = "0x93847-973498-734987"
-        val username = "jdoe"
-        val fullName = "John Doe"
-        val payload = mockk<Payload> {
-            every { subject } returns userId
-            every { getClaim("preferred_username").asString() } returns username
-            every { getClaim("name").asString() } returns fullName
+class OrtServerPrincipalTest : WordSpec({
+    "create()" should {
+        "create an instance correctly from a JWT payload" {
+            val userId = "0x93847-973498-734987"
+            val username = "jdoe"
+            val fullName = "John Doe"
+            val payload = mockk<Payload> {
+                every { subject } returns userId
+                every { getClaim("preferred_username").asString() } returns username
+                every { getClaim("name").asString() } returns fullName
+            }
+            val effectiveRole = mockk<EffectiveRole>()
+
+            val principal = OrtServerPrincipal.create(payload, effectiveRole)
+
+            principal.userId shouldBe userId
+            principal.username shouldBe username
+            principal.fullName shouldBe fullName
+            principal.effectiveRole shouldBe effectiveRole
         }
-        val effectiveRole = mockk<EffectiveRole>()
+    }
 
-        val principal = OrtServerPrincipal.create(payload, effectiveRole)
+    "isAuthorized" should {
+        "return true if an effective role is present" {
+            val principal = OrtServerPrincipal(
+                userId = "user-id",
+                username = "username",
+                fullName = "Full Name",
+                role = mockk()
+            )
 
-        principal.userId shouldBe userId
-        principal.username shouldBe username
-        principal.fullName shouldBe fullName
-        principal.effectiveRole shouldBe effectiveRole
+            principal.isAuthorized shouldBe true
+        }
+
+        "return false if no effective role is present" {
+            val principal = OrtServerPrincipal(
+                userId = "user-id",
+                username = "username",
+                fullName = "Full Name",
+                role = null
+            )
+
+            principal.isAuthorized shouldBe false
+        }
+    }
+
+    "effectiveRole" should {
+        "return the effective role if present" {
+            val effectiveRole = mockk<EffectiveRole>()
+            val principal = OrtServerPrincipal(
+                userId = "user-id",
+                username = "username",
+                fullName = "Full Name",
+                role = effectiveRole
+            )
+
+            principal.effectiveRole shouldBe effectiveRole
+        }
+
+        "throw an exception if no effective role is present" {
+            val principal = OrtServerPrincipal(
+                userId = "user-id",
+                username = "username",
+                fullName = "Full Name",
+                role = null
+            )
+
+            shouldThrow<AuthorizationException> {
+                principal.effectiveRole
+            }
+        }
     }
 })
