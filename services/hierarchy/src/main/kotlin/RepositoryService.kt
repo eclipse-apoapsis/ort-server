@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.repositories.advisorjob.AdvisorJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.evaluatorjob.EvaluatorJobsTable
@@ -49,10 +47,6 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
-
 /**
  * A service providing functions for working with [repositories][Repository].
  */
@@ -66,24 +60,16 @@ class RepositoryService(
     private val scannerJobRepository: ScannerJobRepository,
     private val evaluatorJobRepository: EvaluatorJobRepository,
     private val reporterJobRepository: ReporterJobRepository,
-    private val notifierJobRepository: NotifierJobRepository,
-    private val authorizationService: AuthorizationService
+    private val notifierJobRepository: NotifierJobRepository
 ) {
     /**
      * Delete the [Repository] by its [repositoryId] and all [OrtRun]s that are associated with it.
      */
-    suspend fun deleteRepository(repositoryId: Long): Unit = db.dbQueryCatching {
+    suspend fun deleteRepository(repositoryId: Long): Unit = db.dbQuery {
         ortRunRepository.deleteByRepository(repositoryId)
 
         repositoryRepository.delete(repositoryId)
-    }.onSuccess {
-        runCatching {
-            authorizationService.deleteRepositoryPermissions(repositoryId)
-            authorizationService.deleteRepositoryRoles(repositoryId)
-        }.onFailure { e ->
-            logger.error("Error while deleting Keycloak roles for repository '$repositoryId'.", e)
-        }
-    }.getOrThrow()
+    }
 
     /**
      * Get all [Jobs] for the [OrtRun] with the provided [ortRunIndex] and [repositoryId].
