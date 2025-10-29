@@ -48,12 +48,12 @@ interface SecretRepository {
     ): ListQueryResult<Secret>
 
     /**
-     * Update a secret by [id] and name with the [present][OptionalValue.Present] values.
+     * Update a secret by [id] and [name] with the [present][OptionalValue.Present] values.
      */
     fun updateForIdAndName(id: HierarchyId, name: String, description: OptionalValue<String?>): Secret
 
     /**
-     * Delete a secret by [id] and secret's [name].
+     * Delete a secret by [id] and [name].
      */
     fun deleteForIdAndName(id: HierarchyId, name: String)
 }
