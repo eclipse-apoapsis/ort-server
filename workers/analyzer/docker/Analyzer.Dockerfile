@@ -33,7 +33,6 @@ ARG DOTNET_VERSION=6.0
 ARG GO_VERSION=1.25.0
 ARG HASKELL_STACK_VERSION=2.13.1
 ARG NODEJS_VERSION=24.10.0
-ARG NPM_VERSION=10.9.2
 ARG NUGET_INSPECTOR_VERSION=0.9.12
 ARG PIPTOOL_VERSION=25.0.1
 ARG PYENV_GIT_TAG=v2.6.11
@@ -159,7 +158,6 @@ FROM ort-base-image AS nodebuild
 
 ARG BOWER_VERSION
 ARG NODEJS_VERSION
-ARG NPM_VERSION
 
 ENV NVM_DIR=/opt/nvm
 ENV PATH=$PATH:$NVM_DIR/versions/node/v$NODEJS_VERSION/bin
@@ -169,7 +167,7 @@ RUN . $NVM_DIR/nvm.sh \
     && nvm install "$NODEJS_VERSION" \
     && nvm alias default "$NODEJS_VERSION" \
     && nvm use default \
-    && npm install --global npm@$NPM_VERSION bower@$BOWER_VERSION corepack@latest \
+    && npm install --global bower@$BOWER_VERSION corepack@latest \
     && corepack enable
 
 FROM scratch AS node
