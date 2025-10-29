@@ -78,7 +78,6 @@ import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Or
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -120,20 +119,10 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var productService: ProductService
 
     beforeEach {
-        authorizationService = KeycloakAuthorizationService(
-            keycloakClient,
-            dbExtension.db,
-            dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
-        )
-
         organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            authorizationService
+            dbExtension.fixtures.productRepository
         )
 
         productService = ProductService(
