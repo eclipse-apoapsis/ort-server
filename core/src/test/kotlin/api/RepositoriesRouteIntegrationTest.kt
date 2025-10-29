@@ -84,7 +84,6 @@ import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.mapToMod
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
@@ -127,20 +126,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     var productId = -1L
 
     beforeEach {
-        authorizationService = KeycloakAuthorizationService(
-            keycloakClient,
-            dbExtension.db,
-            dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
-        )
-
         val organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            authorizationService
+            dbExtension.fixtures.productRepository
         )
 
         pluginService = PluginService(dbExtension.db)

@@ -30,7 +30,6 @@ dependencies {
 
     api(libs.exposedCore)
 
-    implementation(projects.components.authorizationKeycloak.backend)
     implementation(projects.dao)
     implementation(projects.services.reportStorageService)
 
