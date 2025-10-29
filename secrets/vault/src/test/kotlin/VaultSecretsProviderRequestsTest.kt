@@ -31,7 +31,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.kotest.core.spec.style.StringSpec
 
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.Secret
+import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.vault.model.VaultCredentials
 
 /**
@@ -59,7 +59,7 @@ class VaultSecretsProviderRequestsTest : StringSpec({
         val config = VaultConfiguration(server.vaultUrl(), credentials, "", prefix = prefix)
         val provider = VaultSecretsProvider(config)
 
-        provider.writeSecret(Path(path), Secret("secret"))
+        provider.writeSecret(Path(path), SecretValue("secret"))
 
         server.verify(postRequestedFor(urlPathEqualTo("/v1/$prefix/data/$path")))
     }
@@ -70,7 +70,7 @@ class VaultSecretsProviderRequestsTest : StringSpec({
         val config = VaultConfiguration(server.vaultUrl(), credentials, "", namespace = namespace)
         val provider = VaultSecretsProvider(config)
 
-        provider.writeSecret(Path(path), Secret("secretInNamespace"))
+        provider.writeSecret(Path(path), SecretValue("secretInNamespace"))
 
         server.verify(
             postRequestedFor(urlPathEqualTo("/v1/secret/data/$path"))

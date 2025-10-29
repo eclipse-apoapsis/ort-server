@@ -36,20 +36,20 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
  */
 interface SecretsProvider {
     /**
-     * Return the [Secret] associated with the given [Path] or `null` if no secret is associated with this path.
+     * Return the [SecretValue] associated with the given [Path] or `null` if no secret is associated with this path.
      * A concrete implementation may throw a proprietary exception if there was a problem when accessing the
      * underlying secret storage.
      */
-    fun readSecret(path: Path): Secret?
+    fun readSecret(path: Path): SecretValue?
 
     /**
      * Write the given [secret] under the given [path] into the underlying secret storage. An implementation may throw
      * a proprietary exception if it encounters a problem.
      */
-    fun writeSecret(path: Path, secret: Secret)
+    fun writeSecret(path: Path, secret: SecretValue)
 
     /**
-     * Remove the [Secret] associated with the given [path] from the underlying secret storage. An implementation
+     * Remove the [SecretValue] associated with the given [path] from the underlying secret storage. An implementation
      * should throw an exception if the operation failed.
      */
     fun removeSecret(path: Path)

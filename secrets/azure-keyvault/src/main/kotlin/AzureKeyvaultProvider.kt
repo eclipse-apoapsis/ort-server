@@ -26,7 +26,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.Secret
+import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 
 // Regex for allowed object names in Azure Key Vault, see:
@@ -35,12 +35,12 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 private val PATH_REGEX = Regex("^[0-9a-zA-Z\\-]{1,100}\$")
 
 class AzureKeyvaultProvider(private val secretClient: SecretClient) : SecretsProvider {
-    override fun readSecret(path: Path): Secret? =
+    override fun readSecret(path: Path): SecretValue? =
         runCatching {
-            secretClient.getSecret(path.path).value?.let { Secret(it) }
+            secretClient.getSecret(path.path).value?.let { SecretValue(it) }
         }.getOrNull()
 
-    override fun writeSecret(path: Path, secret: Secret) {
+    override fun writeSecret(path: Path, secret: SecretValue) {
         secretClient.setSecret(path.path, secret.value)
     }
 

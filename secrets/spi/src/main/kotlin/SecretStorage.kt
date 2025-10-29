@@ -29,11 +29,11 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyId
  * A class providing convenient access to secrets based on a [SecretsProvider].
  *
  * This class takes care of the instantiation of a [SecretsProvider] based on the application configuration via the
- * [createStorage] function. This provider is then wrapped, and a richer API to deal with [Secret]s is implemented on
- * top of it.
+ * [createStorage] function. This provider is then wrapped, and a richer API to deal with [SecretValue]s is implemented
+ * on top of it.
  *
- * The extended functionality compared to [SecretsProvider] is mainly related to the handling of missing [Secret]s
- * and exception handling. There are functions that require a [Secret] to exist or throw an exception otherwise.
+ * The extended functionality compared to [SecretsProvider] is mainly related to the handling of missing [SecretValue]s
+ * and exception handling. There are functions that require a [SecretValue] to exist or throw an exception otherwise.
  * With regard to exception handling, in general all exceptions thrown by the underlying [SecretsProvider] are caught
  * and wrapped in a [SecretStorageException]; so, it should be sufficient to catch this exception type. Alternatively,
  * consumers can choose to use functions that return [Result] objects.
@@ -80,35 +80,36 @@ class SecretStorage(
     }
 
     /**
-     * Return the [Secret] at the given [path] or `null` if the path cannot be resolved.
+     * Return the [SecretValue] at the given [path] or `null` if the path cannot be resolved.
      */
-    fun readSecret(path: Path): Secret? = wrapExceptions { provider.readSecret(path) }
+    fun readSecret(path: Path): SecretValue? = wrapExceptions { provider.readSecret(path) }
 
     /**
-     * Return the [Secret] at the given [path] or fail with a [SecretStorageException] if the path cannot be resolved.
+     * Return the [SecretValue] at the given [path] or fail with a [SecretStorageException] if the path cannot be
+     * resolved.
      */
-    fun getSecret(path: Path): Secret =
+    fun getSecret(path: Path): SecretValue =
         readSecret(path) ?: throw SecretStorageException("No secret found at path '$path'.")
 
     /**
-     * Return a [Result] with a nullable [Secret] found at the given [path]. This function works like [readSecret],
+     * Return a [Result] with a nullable [SecretValue] found at the given [path]. This function works like [readSecret],
      * but wraps an occurring exception inside a [Result]. Exceptions from the underlying [SecretsProvider] are
      * wrapped in a [SecretStorageException].
      */
-    fun readSecretCatching(path: Path): Result<Secret?> = runCatching { readSecret(path) }
+    fun readSecretCatching(path: Path): Result<SecretValue?> = runCatching { readSecret(path) }
 
     /**
-     * Return a [Result] with the [Secret] found at the given [path]. This function works like [getSecret], but
+     * Return a [Result] with the [SecretValue] found at the given [path]. This function works like [getSecret], but
      * wraps an occurring exception inside a [Result]. Exceptions from the underlying [SecretsProvider] are wrapped
      * in a [SecretStorageException]. If the given [path] cannot be resolved, a failed [Result] is returned as well.
      */
-    fun getSecretCatching(path: Path): Result<Secret> = runCatching { getSecret(path) }
+    fun getSecretCatching(path: Path): Result<SecretValue> = runCatching { getSecret(path) }
 
     /**
      * Store the given [secret] under the given [path] in the underlying [SecretsProvider]. Throw a
      * [SecretStorageException] if this fails.
      */
-    fun writeSecret(path: Path, secret: Secret) {
+    fun writeSecret(path: Path, secret: SecretValue) {
         wrapExceptions { provider.writeSecret(path, secret) }
     }
 
@@ -117,18 +118,19 @@ class SecretStorage(
      * the outcome of the operation. Exceptions thrown by the [SecretsProvider] are wrapped in a
      * [SecretStorageException] and returned in the [Result].
      */
-    fun writeSecretCatching(path: Path, secret: Secret): Result<Unit> = runCatching { writeSecret(path, secret) }
+    fun writeSecretCatching(path: Path, secret: SecretValue): Result<Unit> = runCatching { writeSecret(path, secret) }
 
     /**
-     * Remove the [Secret] under the given [path]. Throw a [SecretStorageException] if this fails.
+     * Remove the [SecretValue] under the given [path]. Throw a [SecretStorageException] if this fails.
      */
     fun removeSecret(path: Path) {
         wrapExceptions { provider.removeSecret(path) }
     }
 
     /**
-     * Remove the [Secret] under the given [path] and return a [Result] for the outcome of the operation. Exceptions
-     * thrown by the [SecretsProvider] are wrapped in a [SecretStorageException] and returned in the [Result].
+     * Remove the [SecretValue] under the given [path] and return a [Result] for the outcome of the operation.
+     * Exceptions thrown by the [SecretsProvider] are wrapped in a [SecretStorageException] and returned in the
+     * [Result].
      */
     fun removeSecretCatching(path: Path): Result<Unit> = runCatching { removeSecret(path) }
 

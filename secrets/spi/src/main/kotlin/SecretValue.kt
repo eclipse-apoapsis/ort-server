@@ -20,9 +20,9 @@
 package org.eclipse.apoapsis.ortserver.secrets
 
 /**
- * A class representing a secret.
+ * A class representing the value of a secret.
  *
  * This is a typically text-based secret that was obtained from or can be written into a secret storage.
  */
 @JvmInline
-value class Secret(val value: String)
+value class SecretValue(val value: String)

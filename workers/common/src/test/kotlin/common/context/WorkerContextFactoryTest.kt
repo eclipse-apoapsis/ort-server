@@ -61,8 +61,8 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path as SecretPath
-import org.eclipse.apoapsis.ortserver.secrets.Secret as SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
@@ -172,7 +172,7 @@ class WorkerContextFactoryTest : WordSpec({
             val secretsProvider = SecretsProviderFactoryForTesting.instance()
             secretsProvider.writeSecret(
                 SecretsProviderFactoryForTesting.SERVICE_PATH,
-                org.eclipse.apoapsis.ortserver.secrets.Secret("changedValue")
+                org.eclipse.apoapsis.ortserver.secrets.SecretValue("changedValue")
             )
 
             context.resolveSecret(secret) shouldBe SecretsProviderFactoryForTesting.SERVICE_SECRET.value
@@ -209,7 +209,7 @@ class WorkerContextFactoryTest : WordSpec({
             val secretsProvider = SecretsProviderFactoryForTesting.instance()
             secretsProvider.writeSecret(
                 SecretsProviderFactoryForTesting.SERVICE_PATH,
-                org.eclipse.apoapsis.ortserver.secrets.Secret("changedValue")
+                org.eclipse.apoapsis.ortserver.secrets.SecretValue("changedValue")
             )
 
             context.resolveSecret(secret1) shouldBe SecretsProviderFactoryForTesting.PASSWORD_SECRET.value

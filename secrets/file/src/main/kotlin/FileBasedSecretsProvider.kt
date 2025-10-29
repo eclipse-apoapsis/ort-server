@@ -29,7 +29,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.Secret
+import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProvider
 import org.eclipse.apoapsis.ortserver.secrets.file.model.FileBasedSecretsStorage
 import org.eclipse.apoapsis.ortserver.utils.config.getStringOrDefault
@@ -60,7 +60,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
      * Return a map representing all secrets stored in file-based secret storage.
      */
     @OptIn(ExperimentalEncodingApi::class)
-    private fun readSecrets(): MutableMap<Path, Secret> {
+    private fun readSecrets(): MutableMap<Path, SecretValue> {
         val file = getOrCreateStorageFile()
 
         val decodedSecrets = Base64.decode(file.readBytes())
@@ -69,7 +69,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
         return Json.decodeFromString(
             serializer,
             String(decodedSecrets)
-        ).secrets.map { (key, value) -> Path(key) to Secret(value) }.toMap().toMutableMap()
+        ).secrets.map { (key, value) -> Path(key) to SecretValue(value) }.toMap().toMutableMap()
     }
 
     private fun getOrCreateStorageFile(): File {
@@ -90,7 +90,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
      * Return a map representing all secrets stored in file-based secret storage.
      */
     @OptIn(ExperimentalEncodingApi::class)
-    private fun writeSecrets(secrets: MutableMap<Path, Secret>) {
+    private fun writeSecrets(secrets: MutableMap<Path, SecretValue>) {
         val serializer = FileBasedSecretsStorage.serializer()
         val secretsJson = Json.encodeToString(
             serializer,
@@ -103,12 +103,12 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     }
 
     @Synchronized
-    override fun readSecret(path: Path): Secret? {
+    override fun readSecret(path: Path): SecretValue? {
         return readSecrets()[path]
     }
 
     @Synchronized
-    override fun writeSecret(path: Path, secret: Secret) {
+    override fun writeSecret(path: Path, secret: SecretValue) {
         val secrets = readSecrets()
         secrets[path] = secret
         writeSecrets(secrets)
