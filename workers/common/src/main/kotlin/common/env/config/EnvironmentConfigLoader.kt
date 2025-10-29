@@ -33,7 +33,6 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
@@ -225,21 +224,13 @@ class EnvironmentConfigLoader(
             allSecretsNames += service.passwordSecret
         }
 
-        val resolvedSecrets = mutableMapOf<String, Secret>()
-
-        fun fetchSecrets(fetcher: suspend () -> List<Secret>) {
-            if (allSecretsNames.isNotEmpty()) {
-                val secrets = runBlocking { fetcher() }
-
-                val secretsMap = secrets.associateBy(Secret::name)
-                resolvedSecrets += secretsMap
-                allSecretsNames -= secretsMap.keys
-            }
+        val resolvedSecrets = if (allSecretsNames.isNotEmpty()) {
+            runBlocking { secretService.listForHierarchy(hierarchy) }.associateBy(Secret::name)
+        } else {
+            emptyMap()
         }
 
-        fetchSecrets { secretService.listForId(RepositoryId(hierarchy.repository.id)).data }
-        fetchSecrets { secretService.listForId(ProductId(hierarchy.product.id)).data }
-        fetchSecrets { secretService.listForId(OrganizationId(hierarchy.organization.id)).data }
+        allSecretsNames -= resolvedSecrets.keys
 
         if (allSecretsNames.isNotEmpty()) {
             val message = "Invalid secret names. The following names cannot be resolved: $allSecretsNames"

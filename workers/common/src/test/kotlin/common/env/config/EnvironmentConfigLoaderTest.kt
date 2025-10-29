@@ -34,7 +34,6 @@ import io.kotest.matchers.string.shouldContain
 
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 
 import java.io.File
@@ -53,7 +52,6 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -182,7 +180,7 @@ class EnvironmentConfigLoaderTest : StringSpec({
 
         // There should be only one call for the repository hierarchy.
         coVerify(exactly = 1) {
-            helper.secretService.listForId(any(), any())
+            helper.secretService.listForHierarchy(any())
         }
     }
 
@@ -544,21 +542,11 @@ private class TestHelper(
      */
     private fun initSecretRepository() {
         coEvery {
-            secretService.listForId(RepositoryId(repository.id))
-        } returns mockk<ListQueryResult<Secret>> {
-            every { data } returns secrets.filter { it.repositoryId != null }
-        }
-
-        coEvery {
-            secretService.listForId(ProductId(product.id))
-        } returns mockk<ListQueryResult<Secret>> {
-            every { data } returns secrets.filter { it.productId != null }
-        }
-
-        coEvery {
-            secretService.listForId(OrganizationId(organization.id))
-        } returns mockk<ListQueryResult<Secret>> {
-            every { data } returns secrets.filter { it.organizationId != null }
+            secretService.listForHierarchy(Hierarchy(repository, product, organization))
+        } returns buildList {
+            addAll(secrets.filter { it.repositoryId == repository.id })
+            addAll(secrets.filter { it.productId == product.id && none { secret -> secret.name == it.name } })
+            addAll(secrets.filter { it.organizationId == organization.id && none { secret -> secret.name == it.name } })
         }
     }
 
