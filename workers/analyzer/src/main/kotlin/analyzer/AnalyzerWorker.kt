@@ -100,7 +100,7 @@ internal class AnalyzerWorker(
 
             // Set the default package managers if none are configured, because the runner might be executed in a
             // separate process which cannot access the database.
-            val jobConfiguration = job.configuration.takeIf { it.enabledPackageManagers.orEmpty().isNotEmpty() }
+            val jobConfiguration = job.configuration.takeUnless { it.enabledPackageManagers.isNullOrEmpty() }
                 ?: job.configuration.copy(enabledPackageManagers = getDefaultPackageManagers(pluginService))
 
             val resolvedEnvConfig = environmentService.setUpEnvironment(
