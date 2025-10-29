@@ -86,7 +86,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileCriteria
@@ -153,20 +152,10 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     var repositoryId = -1L
 
     beforeEach {
-        val authorizationService = KeycloakAuthorizationService(
-            keycloakClient,
-            dbExtension.db,
-            dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
-        )
-
         organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            authorizationService
+            dbExtension.fixtures.productRepository
         )
 
         productService = ProductService(
