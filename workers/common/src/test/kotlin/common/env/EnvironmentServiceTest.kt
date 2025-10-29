@@ -90,7 +90,7 @@ class EnvironmentServiceTest : WordSpec({
                 coEvery { listForHierarchy(any<Hierarchy>()) } returns services
             }
 
-            val workerConext = mockk<WorkerContext> {
+            val workerContext = mockk<WorkerContext> {
                 every { hierarchy } returns repositoryHierarchy
             }
 
@@ -101,7 +101,7 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 mockk()
             )
-            val result = environmentService.findInfrastructureServicesForRepository(workerConext, null)
+            val result = environmentService.findInfrastructureServicesForRepository(workerContext, null)
 
             result shouldContainExactlyInAnyOrder services
         }
