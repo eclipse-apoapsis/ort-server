@@ -19,9 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.Organization
@@ -34,51 +32,32 @@ import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
 
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
-
 /**
  * A service providing functions for working with [organizations][Organization].
  */
 class OrganizationService(
     private val db: Database,
     private val organizationRepository: OrganizationRepository,
-    private val productRepository: ProductRepository,
-    private val authorizationService: AuthorizationService
+    private val productRepository: ProductRepository
 ) {
     /**
      * Create an organization.
      */
-    suspend fun createOrganization(name: String, description: String?): Organization = db.dbQueryCatching {
+    suspend fun createOrganization(name: String, description: String?): Organization = db.dbQuery {
         organizationRepository.create(name, description)
-    }.onSuccess { organization ->
-        runCatching {
-            authorizationService.createOrganizationPermissions(organization.id)
-            authorizationService.createOrganizationRoles(organization.id)
-        }.onFailure { e ->
-            logger.error("Error while creating Keycloak roles for organization '${organization.id}'.", e)
-        }
-    }.getOrThrow()
+    }
 
     /**
      * Create a product inside an [organization][organizationId].
      */
-    suspend fun createProduct(name: String, description: String?, organizationId: Long) = db.dbQueryCatching {
+    suspend fun createProduct(name: String, description: String?, organizationId: Long) = db.dbQuery {
         productRepository.create(name, description, organizationId)
-    }.onSuccess { product ->
-        runCatching {
-            authorizationService.createProductPermissions(product.id)
-            authorizationService.createProductRoles(product.id)
-        }.onFailure { e ->
-            logger.error("Error while creating Keycloak roles for product '${product.id}'.", e)
-        }
-    }.getOrThrow()
+    }
 
     /**
      * Delete an organization by [organizationId].
      */
-    suspend fun deleteOrganization(organizationId: Long): Unit = db.dbQueryCatching {
+    suspend fun deleteOrganization(organizationId: Long): Unit = db.dbQuery {
         if (productRepository.countForOrganization(organizationId) != 0L) {
             throw OrganizationNotEmptyException(
                 "Cannot delete organization '$organizationId', as it still contains products."
@@ -86,14 +65,7 @@ class OrganizationService(
         }
 
         organizationRepository.delete(organizationId)
-    }.onSuccess {
-        runCatching {
-            authorizationService.deleteOrganizationPermissions(organizationId)
-            authorizationService.deleteOrganizationRoles(organizationId)
-        }.onFailure { e ->
-            logger.error("Error while deleting Keycloak roles for organization '$organizationId'.", e)
-        }
-    }.getOrThrow()
+    }
 
     /**
      * Get an organization by [organizationId]. Returns null if the organization is not found.

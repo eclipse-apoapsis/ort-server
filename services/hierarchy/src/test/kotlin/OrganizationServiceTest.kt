@@ -22,13 +22,6 @@ package org.eclipse.apoapsis.ortserver.services
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
@@ -51,60 +44,9 @@ class OrganizationServiceTest : WordSpec({
         fixtures = dbExtension.fixtures
     }
 
-    "createOrganization" should {
-        "create Keycloak roles" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { createOrganizationPermissions(any()) } just runs
-                coEvery { createOrganizationRoles(any()) } just runs
-            }
-
-            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
-            val organization = service.createOrganization("name", "description")
-
-            coVerify(exactly = 1) {
-                authorizationService.createOrganizationPermissions(organization.id)
-                authorizationService.createOrganizationRoles(organization.id)
-            }
-        }
-    }
-
-    "createProduct" should {
-        "create Keycloak roles" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { createProductPermissions(any()) } just runs
-                coEvery { createProductRoles(any()) } just runs
-            }
-
-            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
-            val product = service.createProduct("name", "description", fixtures.organization.id)
-
-            coVerify(exactly = 1) {
-                authorizationService.createProductPermissions(product.id)
-                authorizationService.createProductRoles(product.id)
-            }
-        }
-    }
-
-    "deleteOrganization" should {
-        "delete Keycloak roles" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { deleteOrganizationPermissions(any()) } just runs
-                coEvery { deleteOrganizationRoles(any()) } just runs
-            }
-
-            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
-            service.deleteOrganization(fixtures.organization.id)
-
-            coVerify(exactly = 1) {
-                authorizationService.deleteOrganizationPermissions(fixtures.organization.id)
-                authorizationService.deleteOrganizationRoles(fixtures.organization.id)
-            }
-        }
-    }
-
     "getRepositoryIdsForOrganization" should {
         "return IDs for all repositories found in the products of the organization" {
-            val service = OrganizationService(db, organizationRepository, productRepository, mockk())
+            val service = OrganizationService(db, organizationRepository, productRepository)
 
             val orgId = fixtures.createOrganization().id
 
