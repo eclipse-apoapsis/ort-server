@@ -17,29 +17,17 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply precompiled plugins.
-    id("ort-server-kotlin-multiplatform-conventions")
-    id("ort-server-publication-conventions")
+package org.eclipse.apoapsis.ortserver.components.resolutions
 
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinSerialization)
-}
+import io.ktor.server.routing.Route
 
-group = "org.eclipse.apoapsis.ortserver.shared"
+import org.eclipse.apoapsis.ortserver.components.resolutions.routes.vulnerabilities.postVulnerabilityResolution
+import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
 
-kotlin {
-    linuxX64()
-    macosArm64()
-    macosX64()
-    mingwX64()
-
-    sourceSets {
-        commonMain {
-            dependencies {
-                implementation(libs.kotlinxDatetime)
-                implementation(libs.kotlinxSerializationJson)
-            }
-        }
-    }
+/** Add all resolutions routes. */
+fun Route.resolutionsRoutes(
+    ortRunService: OrtRunService,
+    vulnerabilityResolutionDefinitionService: VulnerabilityResolutionDefinitionService
+) {
+    postVulnerabilityResolution(ortRunService, vulnerabilityResolutionDefinitionService)
 }

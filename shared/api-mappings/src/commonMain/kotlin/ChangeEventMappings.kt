@@ -17,29 +17,17 @@
  * License-Filename: LICENSE
  */
 
-plugins {
-    // Apply precompiled plugins.
-    id("ort-server-kotlin-multiplatform-conventions")
-    id("ort-server-publication-conventions")
+package org.eclipse.apoapsis.ortserver.shared.apimappings
 
-    // Apply third-party plugins.
-    alias(libs.plugins.kotlinSerialization)
-}
+import org.eclipse.apoapsis.ortserver.model.ChangeEvent
+import org.eclipse.apoapsis.ortserver.model.ChangeEventAction
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ChangeEvent as ApiChangeEvent
+import org.eclipse.apoapsis.ortserver.shared.apimodel.ChangeEventAction as ApiChangeEventAction
 
-group = "org.eclipse.apoapsis.ortserver.shared"
+fun ChangeEvent.mapToApi() = ApiChangeEvent(
+        user = user.mapToApi(),
+        occurredAt = occurredAt,
+        action = action.mapToApi()
+    )
 
-kotlin {
-    linuxX64()
-    macosArm64()
-    macosX64()
-    mingwX64()
-
-    sourceSets {
-        commonMain {
-            dependencies {
-                implementation(libs.kotlinxDatetime)
-                implementation(libs.kotlinxSerializationJson)
-            }
-        }
-    }
-}
+fun ChangeEventAction.mapToApi() = ApiChangeEventAction.valueOf(name)

@@ -341,6 +341,17 @@ class OrtRunService(
     }
 
     /**
+     * Return the ID of the repository for the provided [ortRunId] or `null` if the run does not exist.
+     */
+    fun getRepositoryIdForOrtRun(ortRunId: Long) = db.blockingQuery {
+        OrtRunsTable
+            .select(OrtRunsTable.repositoryId)
+            .where { OrtRunsTable.id eq ortRunId }
+            .singleOrNull()
+            ?.get(OrtRunsTable.repositoryId)?.value
+    }
+
+    /**
      * Return the [NotifierJob] for the provided [id] or `null` if the run does not exist.
      */
     fun getNotifierJob(id: Long) = db.blockingQuery { notifierJobRepository.get(id) }
