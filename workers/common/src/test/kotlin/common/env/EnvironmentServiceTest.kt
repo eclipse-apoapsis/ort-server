@@ -115,7 +115,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val config = mockk<EnvironmentConfig>()
             val configLoader = mockk<EnvironmentConfigLoader> {
-                every { resolve(config, any()) } returns ResolvedEnvironmentConfig(services)
+                coEvery { resolve(config, any()) } returns ResolvedEnvironmentConfig(services)
             }
 
             val service = mockk<InfrastructureServiceService> {
@@ -146,7 +146,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val config = mockk<EnvironmentConfig>()
             val configLoader = mockk<EnvironmentConfigLoader> {
-                every {
+                coEvery {
                     resolve(config, any())
                 } returns ResolvedEnvironmentConfig(listOf(configService, overrideService))
             }
@@ -878,7 +878,7 @@ private fun mockConfigLoader(config: ResolvedEnvironmentConfig): EnvironmentConf
 
     return mockk<EnvironmentConfigLoader> {
         every { resolveAndParse(repositoryFolder) } returns envConfig
-        every { resolve(any(), repositoryHierarchy) } returns config
+        coEvery { resolve(any(), repositoryHierarchy) } returns config
     }
 }
 
@@ -897,7 +897,7 @@ private fun mockConfigLoader(
 
     return mockk {
         every { resolveAndParse(repositoryFolder) } returns mockConfig
-        every { resolve(envConfig, repositoryHierarchy) } returns resultConfig
+        coEvery { resolve(envConfig, repositoryHierarchy) } returns resultConfig
     }
 }
 

@@ -467,7 +467,7 @@ private fun TestConfiguration.parseConfig(name: String, helper: TestHelper): Env
 /**
  * Resolve the test configuration using the given [helper].
  */
-private fun EnvironmentConfig.resolve(helper: TestHelper): ResolvedEnvironmentConfig =
+private suspend fun EnvironmentConfig.resolve(helper: TestHelper): ResolvedEnvironmentConfig =
     helper.loader().resolve(this, hierarchy)
 
 /**
