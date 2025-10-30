@@ -671,10 +671,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     organizationAdminUser
                 )
 
-                users[USER_ID] shouldContainExactlyInAnyOrder listOf(RepositoryRole.READER)
-                users[writerUser] shouldContainExactlyInAnyOrder listOf(RepositoryRole.WRITER)
-                users[productAdminUser] shouldContainExactlyInAnyOrder listOf(ProductRole.ADMIN)
-                users[organizationAdminUser] shouldContainExactlyInAnyOrder listOf(OrganizationRole.ADMIN)
+                users[USER_ID] shouldBe RepositoryRole.READER
+                users[writerUser] shouldBe RepositoryRole.WRITER
+                users[productAdminUser] shouldBe RepositoryRole.ADMIN
+                users[organizationAdminUser] shouldBe RepositoryRole.ADMIN
             }
 
             "list users with assignments on organization level" {
@@ -684,59 +684,55 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
                 val writerUser = "writer-user"
                 val adminUser = "admin-user"
+                val repoReaderUser = "repo-reader-user"
                 val service = createService()
 
                 service.assignRole(USER_ID, OrganizationRole.READER, organizationCompoundId)
                 service.assignRole(writerUser, OrganizationRole.WRITER, organizationCompoundId)
                 service.assignRole(adminUser, OrganizationRole.ADMIN, organizationCompoundId)
-                service.assignRole("repo-reader-user", RepositoryRole.READER, repositoryCompoundId)
+                service.assignRole(repoReaderUser, RepositoryRole.READER, repositoryCompoundId)
 
                 val users = service.listUsers(organizationCompoundId)
                 users.keys shouldContainExactlyInAnyOrder listOf(
                     USER_ID,
                     writerUser,
-                    adminUser
+                    adminUser,
+                    repoReaderUser
                 )
 
-                users[USER_ID] shouldContainExactlyInAnyOrder listOf(OrganizationRole.READER)
-                users[writerUser] shouldContainExactlyInAnyOrder listOf(OrganizationRole.WRITER)
-                users[adminUser] shouldContainExactlyInAnyOrder listOf(OrganizationRole.ADMIN)
+                users[USER_ID] shouldBe OrganizationRole.READER
+                users[writerUser] shouldBe OrganizationRole.WRITER
+                users[adminUser] shouldBe OrganizationRole.ADMIN
+                users[repoReaderUser] shouldBe OrganizationRole.READER
             }
 
-            "list all roles assigned to a user" {
+            "list users with implicit rights from lower levels" {
                 val repositoryCompoundId = repositoryCompoundId()
-                val product2 = dbExtension.fixtures.createProduct("otherProduct")
                 val service = createService()
 
                 service.assignRole(USER_ID, RepositoryRole.READER, repositoryCompoundId)
+
+                val users = service.listUsers(repositoryCompoundId.parent!!)
+                users shouldHaveSize 1
+
+                users[USER_ID] shouldBe ProductRole.READER
+            }
+
+            "inherit roles from higher levels" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val service = createService()
+
                 service.assignRole(
                     USER_ID,
-                    ProductRole.ADMIN,
-                    CompoundHierarchyId.forProduct(
-                        OrganizationId(dbExtension.fixtures.organization.id),
-                        ProductId(product2.id)
-                    )
-                )
-                service.assignRole(
-                    USER_ID,
-                    ProductRole.WRITER,
-                    CompoundHierarchyId.forProduct(
-                        OrganizationId(dbExtension.fixtures.organization.id),
-                        ProductId(dbExtension.fixtures.product.id)
-                    )
-                )
-                service.assignRole(
-                    USER_ID,
-                    OrganizationRole.ADMIN,
+                    OrganizationRole.WRITER,
                     CompoundHierarchyId.forOrganization(OrganizationId(dbExtension.fixtures.organization.id))
                 )
+                service.assignRole(USER_ID, RepositoryRole.READER, repositoryCompoundId)
 
                 val users = service.listUsers(repositoryCompoundId)
-                users[USER_ID] shouldContainExactlyInAnyOrder listOf(
-                    RepositoryRole.READER,
-                    ProductRole.WRITER,
-                    OrganizationRole.ADMIN
-                )
+                users shouldHaveSize 1
+
+                users[USER_ID] shouldBe RepositoryRole.WRITER
             }
 
             "not include super users" {
@@ -771,7 +767,7 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 users.entries.shouldBeSingleton { (key, value) ->
                     key shouldBe USER_ID
-                    value shouldBe setOf(RepositoryRole.READER)
+                    value shouldBe RepositoryRole.READER
                 }
             }
         }
