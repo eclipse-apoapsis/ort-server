@@ -158,7 +158,7 @@ class EnvironmentConfigLoader(
      * environment configuration for the repository is not read from the source code, but passed when triggering the
      * run.
      */
-    fun resolve(config: EnvironmentConfig, hierarchy: Hierarchy): ResolvedEnvironmentConfig {
+    suspend fun resolve(config: EnvironmentConfig, hierarchy: Hierarchy): ResolvedEnvironmentConfig {
         val repositoryConfig = RepositoryEnvironmentConfig(
             infrastructureServices = config.infrastructureServices.map { it.toRepositoryService() },
             environmentDefinitions = config.environmentDefinitions,
@@ -173,7 +173,7 @@ class EnvironmentConfigLoader(
      * Resolve the declarations in the given [config] using the provided [hierarchy]. Handle references that cannot be
      * resolved according to the `strict` flag in the configuration.
      */
-    private fun resolveRepositoryEnvironmentConfig(
+    private suspend fun resolveRepositoryEnvironmentConfig(
         config: RepositoryEnvironmentConfig,
         hierarchy: Hierarchy
     ): ResolvedEnvironmentConfig {
@@ -216,7 +216,7 @@ class EnvironmentConfigLoader(
      * repository. Return a [Map] with the resolved secrets keyed by their names. Depending on the strict flag, fail
      * if secrets cannot be resolved.
      */
-    private fun resolveSecrets(config: RepositoryEnvironmentConfig, hierarchy: Hierarchy): Map<String, Secret> {
+    private suspend fun resolveSecrets(config: RepositoryEnvironmentConfig, hierarchy: Hierarchy): Map<String, Secret> {
         val allSecretsNames = mutableSetOf<String>()
         allSecretsNames += config.environmentVariables.mapNotNull { it.secretName }
         config.infrastructureServices.forEach { service ->
@@ -225,7 +225,7 @@ class EnvironmentConfigLoader(
         }
 
         val resolvedSecrets = if (allSecretsNames.isNotEmpty()) {
-            runBlocking { secretService.listForHierarchy(hierarchy) }.associateBy(Secret::name)
+            secretService.listForHierarchy(hierarchy).associateBy(Secret::name)
         } else {
             emptyMap()
         }
