@@ -156,9 +156,6 @@ const CreateRunPage = () => {
   });
 
   async function onSubmit(values: CreateRunFormValues) {
-    if (isTest) {
-      return;
-    }
     await mutateAsync({
       path: {
         repositoryId: Number.parseInt(params.repoId),
