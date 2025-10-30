@@ -22,11 +22,17 @@ import { z } from 'zod';
 
 import {
   AnalyzerJobConfiguration,
+  InfrastructureService,
   OrtRun,
   PostRepositoryRun,
   ReporterJobConfiguration,
 } from '@/api';
-import { PackageManagerId, packageManagers } from '@/lib/types';
+import { zInfrastructureService } from '@/api/zod.gen';
+import {
+  environmentDefinitionsSchema,
+  PackageManagerId,
+  packageManagers,
+} from '@/lib/types';
 
 const keyValueSchema = z.object({
   key: z.string(),
@@ -64,7 +70,10 @@ export const createRunFormSchema = z.object({
       repositoryConfigPath: z.string().optional(),
       allowDynamicVersions: z.boolean(),
       skipExcluded: z.boolean(),
+      environmentDefinitionsEnabled: z.boolean(),
+      environmentDefinitions: environmentDefinitionsSchema.optional(),
       environmentVariables: z.array(environmentVariableSchema).optional(),
+      infrastructureServices: z.array(zInfrastructureService).optional(),
       keepAliveWorker: z.boolean(),
       packageManagers: z
         .object({
@@ -284,6 +293,9 @@ export function defaultValues(
         allowDynamicVersions: true,
         skipExcluded: true,
         keepAliveWorker: false,
+        environmentDefinitionsEnabled: false,
+        environmentDefinitions: undefined,
+        infrastructureServices: [],
         packageManagers: {
           Bazel: defaultPackageManagerOptions('Bazel'),
           Bower: defaultPackageManagerOptions('Bower'),
@@ -351,6 +363,18 @@ export function defaultValues(
   // when a rerun action has been taken, fetched from the ORT Run that is
   // being rerun. Whenever a rerun job config parameter is missing, use the
   // default value.
+  const existingEnvironmentDefinitions =
+    ortRun?.jobConfigs.analyzer?.environmentConfig?.environmentDefinitions;
+
+  const parsedEnvironmentDefinitions = existingEnvironmentDefinitions
+    ? environmentDefinitionsSchema.parse(existingEnvironmentDefinitions)
+    : undefined;
+
+  const hasEnvironmentDefinitions =
+    parsedEnvironmentDefinitions !== undefined &&
+    Object.values(parsedEnvironmentDefinitions).some(
+      (entries) => entries && entries.length > 0
+    );
   return ortRun
     ? {
         revision: ortRun.revision || baseDefaults.revision,
@@ -370,9 +394,17 @@ export function defaultValues(
             // defaultPackageManagerOptions gets the options from the previous run already in the
             // baseDefaults object, so those values can be used here.
             packageManagers: baseDefaults.jobConfigs.analyzer.packageManagers,
+            environmentDefinitionsEnabled: hasEnvironmentDefinitions,
+            environmentDefinitions: hasEnvironmentDefinitions
+              ? parsedEnvironmentDefinitions
+              : undefined,
             environmentVariables:
               ortRun.jobConfigs.analyzer?.environmentConfig
                 ?.environmentVariables || undefined,
+            infrastructureServices:
+              ortRun.jobConfigs.analyzer?.environmentConfig
+                ?.infrastructureServices ||
+              baseDefaults.jobConfigs.analyzer.infrastructureServices,
             keepAliveWorker:
               (ortRun.jobConfigs.analyzer?.keepAliveWorker && isSuperuser) ||
               baseDefaults.jobConfigs.analyzer.keepAliveWorker,
@@ -531,19 +563,43 @@ export function formValuesToPayload(
   // in the request body. If a job is disabled in the UI, we pass "undefined"
   // as the configuration for that job in the request body, in effect leaving
   // it empty, and thus disabling the job.
+  const environmentDefinitions =
+    values.jobConfigs.analyzer.environmentDefinitionsEnabled &&
+    values.jobConfigs.analyzer.environmentDefinitions &&
+    Object.values(values.jobConfigs.analyzer.environmentDefinitions).some(
+      (entries) => entries.length > 0
+    )
+      ? values.jobConfigs.analyzer.environmentDefinitions
+      : undefined;
+
+  const environmentVariables =
+    values.jobConfigs.analyzer.environmentVariables &&
+    values.jobConfigs.analyzer.environmentVariables.length > 0
+      ? values.jobConfigs.analyzer.environmentVariables
+      : undefined;
+
+  const infrastructureServices: InfrastructureService[] =
+    values.jobConfigs.analyzer.infrastructureServices?.map((service) => ({
+      credentialsTypes: service.credentialsTypes,
+      description: service.description,
+      name: service.name,
+      passwordSecretRef: service.passwordSecretRef,
+      url: service.url,
+      usernameSecretRef: service.usernameSecretRef,
+    })) || [];
+
+  const environmentConfig = {
+    infrastructureServices,
+    ...(environmentDefinitions ? { environmentDefinitions } : {}),
+    ...(environmentVariables ? { environmentVariables } : {}),
+  };
+
   const analyzerConfig: AnalyzerJobConfiguration = {
     allowDynamicVersions: values.jobConfigs.analyzer.allowDynamicVersions,
     repositoryConfigPath:
       values.jobConfigs.analyzer.repositoryConfigPath || undefined,
     skipExcluded: values.jobConfigs.analyzer.skipExcluded,
-    environmentConfig: {
-      infrastructureServices: [],
-      environmentVariables:
-        values.jobConfigs.analyzer.environmentVariables &&
-        values.jobConfigs.analyzer.environmentVariables.length > 0
-          ? values.jobConfigs.analyzer.environmentVariables
-          : undefined,
-    },
+    environmentConfig,
     // Determine the enabled package managers by filtering the packageManagers object
     // and finding those for which 'enabled' is true.
     enabledPackageManagers: [
