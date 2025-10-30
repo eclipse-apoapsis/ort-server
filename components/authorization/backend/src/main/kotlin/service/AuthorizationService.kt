@@ -93,11 +93,11 @@ interface AuthorizationService {
     suspend fun listUsersWithRole(role: Role, compoundHierarchyId: CompoundHierarchyId): Set<String>
 
     /**
-     * Return a [Map] with the IDs of all users and their assigned roles on the hierarchy element identified by the
+     * Return a [Map] with the IDs of all users and their assigned role on the hierarchy element identified by the
      * given [compoundHierarchyId]. The result includes users who inherit access rights on this hierarchy element from
-     * higher levels, such as organization admins.
+     * higher levels, such as organization admins, but no superusers.
      */
-    suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, Set<Role>>
+    suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, Role>
 
     /**
      * Return a [HierarchyFilter] with information about all hierarchy elements for which the specified [userId] has at

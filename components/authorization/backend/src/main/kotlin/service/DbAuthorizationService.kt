@@ -105,22 +105,17 @@ class DbAuthorizationService(
         compoundHierarchyId: CompoundHierarchyId
     ): EffectiveRole {
         val roleAssignments = loadAssignments(userId, compoundHierarchyId)
-        val roles = rolesForLevel(compoundHierarchyId).reversed().asSequence()
 
-        // Check for all roles on the current level, starting with the ADMIN role, whether all its permissions are
-        // granted. This is then the effective role. This assumes that constants in the enums for roles are ordered
-        // by the number of permissions they grant in ascending order. If this changes, there should be failing tests.
-        return roles.mapNotNull { role ->
-            val permissionChecker = HierarchyPermissions.permissions(role)
-            HierarchyPermissions.create(roleAssignments, permissionChecker)
-                .takeIf { it.hasPermission(compoundHierarchyId) }?.let {
-                    EffectiveRoleImpl(
-                        elementId = compoundHierarchyId,
-                        isSuperuser = it.isSuperuser(),
-                        permissions = permissionChecker
-                    )
-                }
-        }.firstOrNull() ?: EffectiveRoleImpl(
+        return findHighestRole(
+            roleAssignments,
+            compoundHierarchyId
+        )?.let { (_, permissionChecker, hierarchyPermissions) ->
+            EffectiveRoleImpl(
+                elementId = compoundHierarchyId,
+                isSuperuser = hierarchyPermissions.isSuperuser(),
+                permissions = permissionChecker
+            )
+        } ?: EffectiveRoleImpl(
             elementId = compoundHierarchyId,
             isSuperuser = false,
             permissions = PermissionChecker()
@@ -193,14 +188,18 @@ class DbAuthorizationService(
             }.mapTo(mutableSetOf()) { it[RoleAssignmentsTable.userId] }
     }
 
-    override suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, Set<Role>> = db.dbQuery {
+    override suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, Role> = db.dbQuery {
         RoleAssignmentsTable.selectAll()
             .where {
-                repositoryCondition(compoundHierarchyId) or productWildcardCondition(compoundHierarchyId)
-            }.map { row -> row[RoleAssignmentsTable.userId] to row.extractRole() }
-            .filterNot { it.second == null }
-            .groupBy(keySelector = { it.first }, valueTransform = { it.second })
-            .mapValues { it.value.filterNotNullTo(mutableSetOf()) }
+                RoleAssignmentsTable.organizationId eq compoundHierarchyId.organizationId?.value
+            }.mapNotNull { row ->
+                row.extractRole()?.let { role ->
+                    Triple(row[RoleAssignmentsTable.userId], role, row.extractHierarchyId())
+                }
+            }.groupBy(keySelector = { it.first }, valueTransform = { it.third to it.second })
+            .mapNotNull { (user, assignments) ->
+                computeRoleForUser(compoundHierarchyId, assignments)?.let { user to it }
+            }.toMap()
     }
 
     override suspend fun filterHierarchyIds(
@@ -411,24 +410,14 @@ private fun ResultRow.extractHierarchyId(): CompoundHierarchyId {
 }
 
 /**
- * Generate the SQL condition to match the repository part of this [hierarchyId]. The condition also has to select
- * assignments on higher levels in the same hierarchy.
+ * Compute the effective [Role] for a user on the element with the given [hierarchyId] based on the given
+ * [assignments].
  */
-private fun SqlExpressionBuilder.repositoryCondition(hierarchyId: CompoundHierarchyId): Op<Boolean> =
-    (
-            (RoleAssignmentsTable.repositoryId eq hierarchyId.repositoryId?.value) or
-                    (RoleAssignmentsTable.repositoryId eq null)
-            ) and
-            (RoleAssignmentsTable.productId eq hierarchyId.productId?.value) and
-            (RoleAssignmentsTable.organizationId eq hierarchyId.organizationId?.value)
-
-/**
- * Generate the SQL condition to match role assignments for the given [hierarchyId] for which no product ID is
- * defined.
- */
-private fun SqlExpressionBuilder.productWildcardCondition(hierarchyId: CompoundHierarchyId): Op<Boolean> =
-    (RoleAssignmentsTable.productId eq null) and
-            (RoleAssignmentsTable.organizationId eq hierarchyId.organizationId?.value)
+private fun computeRoleForUser(
+    hierarchyId: CompoundHierarchyId,
+    assignments: List<Pair<CompoundHierarchyId, Role>>
+): Role? =
+    findHighestRole(assignments, hierarchyId)?.first
 
 /**
  * Generate the SQL condition to match role assignments for the given [role].
@@ -456,11 +445,26 @@ private fun IdsByLevel.filterContainedIn(
     }
 
 /**
- * Return a collection with the roles that are relevant on the hierarchy level defined by [hierarchyId].
+ * Find the highest role for the given [hierarchyId] based on the provided [roleAssignments]. Check for all roles on
+ * the level of the hierarchy ID, starting with the ADMIN role, whether all its permissions are granted. This is then
+ * the effective role. This assumes that constants in the enums for roles are ordered by the number of permissions they
+ * grant in ascending order. (If this changes, there should be failing tests.) Return all relevant information about
+ * the detected role and the relevant permissions, or *null* if no role was found.
  */
-private fun rolesForLevel(hierarchyId: CompoundHierarchyId): Collection<Role> =
-    when (hierarchyId.level) {
-        CompoundHierarchyId.REPOSITORY_LEVEL -> RepositoryRole.entries
-        CompoundHierarchyId.PRODUCT_LEVEL -> ProductRole.entries
-        else -> OrganizationRole.entries
-    }
+private fun findHighestRole(
+    roleAssignments: List<Pair<CompoundHierarchyId, Role>>,
+    hierarchyId: CompoundHierarchyId
+): Triple<Role, PermissionChecker, HierarchyPermissions>? {
+    val roles = (
+            Role.rolesForLevel(hierarchyId.level)
+                .takeUnless { it.isEmpty() } ?: OrganizationRole.entries
+            ).reversed().asSequence()
+
+    return roles.mapNotNull { role ->
+        val permissionChecker = HierarchyPermissions.permissions(role)
+        HierarchyPermissions.create(roleAssignments, permissionChecker)
+            .takeIf { it.hasPermission(hierarchyId) }?.let {
+                Triple(role, permissionChecker, it)
+            }
+    }.firstOrNull()
+}
