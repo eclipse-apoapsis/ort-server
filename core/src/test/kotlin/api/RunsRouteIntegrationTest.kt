@@ -26,6 +26,7 @@ import io.kotest.assertions.ktor.client.haveHeader
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.engine.spec.tempdir
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -874,6 +875,49 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                             changes = emptyList()
                         )
                     }
+                }
+            }
+        }
+
+        "return new matching definitions that have been created after the run" {
+            integrationTestApplication {
+                val run = dbExtension.fixtures.createOrtRun(repositoryId)
+                val advisorJobId = dbExtension.fixtures.createAdvisorJob(run.id).id
+                dbExtension.fixtures.createAdvisorRun(advisorJobId, generateAdvisorResult())
+
+                val definitionId = dbExtension.fixtures.createVulnerabilityResolutionDefinition(
+                    RepositoryId(repositoryId),
+                    run.id,
+                    listOf("CVE-2021-1234"),
+                    VulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${run.id}/vulnerabilities")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                val vulnerabilities = response.body<PagedResponse<VulnerabilityWithDetails>>()
+
+                vulnerabilities.data shouldHaveSize 2
+
+                with(vulnerabilities.data.first()) {
+                    vulnerability.externalId shouldBe "CVE-2018-14721"
+                    resolutions.shouldBeEmpty()
+                    newMatchingResolutionDefinitions.shouldBeEmpty()
+                }
+
+                with(vulnerabilities.data.last()) {
+                    vulnerability.externalId shouldBe "CVE-2021-1234"
+                    resolutions.shouldBeEmpty()
+                    newMatchingResolutionDefinitions shouldHaveSize 1
+
+                    newMatchingResolutionDefinitions.first() shouldBe VulnerabilityResolutionDefinition(
+                        id = definitionId,
+                        idMatchers = listOf("CVE-2021-1234"),
+                        reason = ApiVulnerabilityResolutionReason.INVALID_MATCH_VULNERABILITY,
+                        comment = "Comment.",
+                        archived = false,
+                        changes = emptyList()
+                    )
                 }
             }
         }
