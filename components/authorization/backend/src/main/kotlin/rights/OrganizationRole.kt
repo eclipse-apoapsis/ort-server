@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+
 /**
  * This enum contains the available roles for [organizations][org.eclipse.apoapsis.ortserver.model.Organization]. It
  * maps the permissions available for an organization to the default roles [READER], [WRITER], and [ADMIN].
@@ -63,5 +65,7 @@ enum class OrganizationRole(
         organizationPermissions = OrganizationPermission.entries.toSet(),
         productPermissions = ProductPermission.entries.toSet(),
         repositoryPermissions = RepositoryPermission.entries.toSet()
-    )
+    );
+
+    override val level = CompoundHierarchyId.ORGANIZATION_LEVEL
 }
