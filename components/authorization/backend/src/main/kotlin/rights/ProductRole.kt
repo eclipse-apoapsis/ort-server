@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+
 /**
  * This enum contains the available roles for [products][org.eclipse.apoapsis.ortserver.model.Product]. It
  * maps the permissions available for a product to the default roles [READER], [WRITER], and [ADMIN].
@@ -61,5 +63,7 @@ enum class ProductRole(
     ADMIN(
         productPermissions = ProductPermission.entries.toSet(),
         repositoryPermissions = RepositoryPermission.entries.toSet()
-    )
+    );
+
+    override val level = CompoundHierarchyId.PRODUCT_LEVEL
 }

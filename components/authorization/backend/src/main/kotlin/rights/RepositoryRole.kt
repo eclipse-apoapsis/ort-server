@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+
 /**
  * This enum contains the available roles for [repositories][org.eclipse.apoapsis.ortserver.model.Repository]. It
  * maps the permissions available for a product to the default roles [READER], [WRITER], and [ADMIN].
@@ -49,5 +51,7 @@ enum class RepositoryRole(
     /** A role that grants all permissions for a [org.eclipse.apoapsis.ortserver.model.Repository]. */
     ADMIN(
         repositoryPermissions = RepositoryPermission.entries.toSet()
-    )
+    );
+
+    override val level: Int = CompoundHierarchyId.REPOSITORY_LEVEL
 }
