@@ -21,6 +21,10 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
+
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
@@ -188,19 +192,26 @@ class DbAuthorizationService(
             }.mapTo(mutableSetOf()) { it[RoleAssignmentsTable.userId] }
     }
 
-    override suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, Role> = db.dbQuery {
-        RoleAssignmentsTable.selectAll()
-            .where {
-                RoleAssignmentsTable.organizationId eq compoundHierarchyId.organizationId?.value
-            }.mapNotNull { row ->
-                row.extractRole()?.let { role ->
-                    Triple(row[RoleAssignmentsTable.userId], role, row.extractHierarchyId())
-                }
+    override suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, Role> =
+        withContext(Dispatchers.Default) {
+            db.dbQuery {
+                logger.info("Loading role assignments on element {}...", compoundHierarchyId)
+
+                RoleAssignmentsTable.selectAll()
+                    .where {
+                        RoleAssignmentsTable.organizationId eq compoundHierarchyId.organizationId?.value
+                    }.mapNotNull { row ->
+                        row.extractRole()?.let { role ->
+                            Triple(row[RoleAssignmentsTable.userId], role, row.extractHierarchyId())
+                        }
+                    }
             }.groupBy(keySelector = { it.first }, valueTransform = { it.third to it.second })
-            .mapNotNull { (user, assignments) ->
-                computeRoleForUser(compoundHierarchyId, assignments)?.let { user to it }
-            }.toMap()
-    }
+                .mapValues { (user, assignments) ->
+                    async { computeRoleForUser(user, compoundHierarchyId, assignments) }
+                }.mapNotNull { (user, deferredRole) ->
+                    deferredRole.await()?.let { user to it }
+                }.toMap()
+        }
 
     override suspend fun filterHierarchyIds(
         userId: String,
@@ -304,6 +315,8 @@ class DbAuthorizationService(
         userId: String,
         compoundHierarchyId: CompoundHierarchyId?
     ): List<Pair<CompoundHierarchyId, Role>> = db.dbQuery {
+        logger.info("Loading role assignments for user '{}' on element {}...", userId, compoundHierarchyId)
+
         RoleAssignmentsTable.selectAll()
             .where {
                 val hierarchyCondition = compoundHierarchyId?.let { id ->
@@ -414,10 +427,14 @@ private fun ResultRow.extractHierarchyId(): CompoundHierarchyId {
  * [assignments].
  */
 private fun computeRoleForUser(
+    user: String,
     hierarchyId: CompoundHierarchyId,
     assignments: List<Pair<CompoundHierarchyId, Role>>
-): Role? =
-    findHighestRole(assignments, hierarchyId)?.first
+): Role? {
+    logger.info("Computing effective role for user '{}' on element {}...", user, hierarchyId)
+
+    return findHighestRole(assignments, hierarchyId)?.first
+}
 
 /**
  * Generate the SQL condition to match role assignments for the given [role].
