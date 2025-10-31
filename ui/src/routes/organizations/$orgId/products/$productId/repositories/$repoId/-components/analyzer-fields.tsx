@@ -17,9 +17,18 @@
  * License-Filename: LICENSE
  */
 
+import { useQueries } from '@tanstack/react-query';
+import { useParams } from '@tanstack/react-router';
 import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
 
+import { InfrastructureService } from '@/api';
+import {
+  getOrganizationInfrastructureServicesOptions,
+  getProductInfrastructureServicesOptions,
+  getRepositoryInfrastructureServicesOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { InlineCode } from '@/components/typography.tsx';
 import {
   AccordionContent,
@@ -27,6 +36,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import {
   FormControl,
   FormDescription,
@@ -36,7 +46,22 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { useUser } from '@/hooks/use-user.ts';
+import { ALL_ITEMS } from '@/lib/constants';
+import {
+  EnvironmentDefinitions,
+  NpmAuthMode,
+  npmAuthModes,
+  npmEnvironmentDefinitions,
+} from '@/lib/types';
 import { CreateRunFormValues } from '../_repo-layout/create-run/-create-run-utils';
 import { PackageManagerField } from './package-manager-field';
 
@@ -47,12 +72,17 @@ type AnalyzerFieldsProps = {
   isSuperuser: boolean;
 };
 
+type InfrastructureServiceWithHierarchy = InfrastructureService & {
+  hierarchy: 'organization' | 'product' | 'repository';
+};
+
 export const AnalyzerFields = ({
   form,
   value,
   onToggle,
   isSuperuser,
 }: AnalyzerFieldsProps) => {
+  const { orgId, productId, repoId } = useParams({ strict: false });
   const {
     fields: environmentVariablesFields,
     append: environmentVariablesAppend,
@@ -61,6 +91,114 @@ export const AnalyzerFields = ({
     name: 'jobConfigs.analyzer.environmentVariables',
     control: form.control,
   });
+
+  const user = useUser();
+
+  // Only fetch infrastructure services the user has access to.
+  const infrastructureServices = useQueries({
+    queries: [
+      {
+        ...getOrganizationInfrastructureServicesOptions({
+          path: {
+            organizationId: Number.parseInt(orgId || ''),
+          },
+          query: {
+            limit: ALL_ITEMS,
+          },
+        }),
+        enabled: user.hasRole([
+          'superuser',
+          `permission_organization_${orgId}_read`,
+        ]),
+      },
+      {
+        ...getProductInfrastructureServicesOptions({
+          path: {
+            productId: Number.parseInt(productId || ''),
+          },
+          query: {
+            limit: ALL_ITEMS,
+          },
+        }),
+        enabled: user.hasRole([
+          'superuser',
+          `permission_product_${productId}_read`,
+        ]),
+      },
+      {
+        ...getRepositoryInfrastructureServicesOptions({
+          path: {
+            repositoryId: Number.parseInt(repoId || ''),
+          },
+          query: {
+            limit: ALL_ITEMS,
+          },
+        }),
+        enabled: user.hasRole([
+          'superuser',
+          `permission_repository_${repoId}_read`,
+        ]),
+      },
+    ],
+    combine: (results) => {
+      const [orgServices, productServices, repoServices] = results;
+      // Combine all infrastructure services into an array of objects.
+      // Each object contains the name of the service and to which hierarchy
+      // level it belongs (organization, product, repository).
+      return [
+        ...(orgServices.data?.data?.map((service) => ({
+          ...service,
+          hierarchy: 'organization',
+        })) ?? []),
+        ...(productServices.data?.data?.map((service) => ({
+          ...service,
+          hierarchy: 'product',
+        })) ?? []),
+        ...(repoServices.data?.data?.map((service) => ({
+          ...service,
+          hierarchy: 'repository',
+        })) ?? []),
+      ];
+    },
+  }) as InfrastructureServiceWithHierarchy[];
+
+  // Keep the form in sync with the latest infrastructure services fetched for all hierarchy levels.
+  useEffect(() => {
+    const sanitized = infrastructureServices.map((serviceWithHierarchy) => {
+      const { hierarchy, ...service } = serviceWithHierarchy;
+      void hierarchy; // Explicitly ignore the hierarchy helper field.
+      return service;
+    }) as InfrastructureService[];
+
+    form.setValue('jobConfigs.analyzer.infrastructureServices', sanitized, {
+      shouldDirty: false,
+    });
+  }, [form, infrastructureServices]);
+
+  const cloneEnvironmentDefinitions = (
+    definitions: EnvironmentDefinitions | undefined
+  ): EnvironmentDefinitions | undefined => {
+    if (!definitions) {
+      return undefined;
+    }
+    return Object.fromEntries(
+      Object.entries(definitions).map(([key, entries]) => [
+        key,
+        entries.map((entry) => ({ ...entry })),
+      ])
+    ) as EnvironmentDefinitions;
+  };
+
+  const environmentDefinitionsEnabled =
+    form.watch('jobConfigs.analyzer.environmentDefinitionsEnabled') ?? false;
+
+  const environmentDefinitionsBackup = useRef<
+    EnvironmentDefinitions | undefined
+  >(
+    cloneEnvironmentDefinitions(
+      form.getValues('jobConfigs.analyzer.environmentDefinitions')
+    )
+  );
 
   return (
     <div className='flex flex-row align-middle'>
@@ -216,6 +354,183 @@ export const AnalyzerFields = ({
               Add environment variable
               <PlusIcon className='ml-1 h-4 w-4' />
             </Button>
+          </div>
+          <div className='flex flex-col gap-2'>
+            <h3>Environment configuration</h3>
+            <FormField
+              control={form.control}
+              name='jobConfigs.analyzer.environmentDefinitionsEnabled'
+              render={({ field }) => (
+                <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                  <div className='space-y-0.5'>
+                    <FormLabel>Enable NPM environment definition</FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        const currentDefinitions = form.getValues(
+                          'jobConfigs.analyzer.environmentDefinitions'
+                        );
+
+                        if (checked) {
+                          if (
+                            !currentDefinitions ||
+                            Object.keys(currentDefinitions).length === 0
+                          ) {
+                            const definitionsToRestore =
+                              environmentDefinitionsBackup.current ??
+                              npmEnvironmentDefinitions;
+
+                            form.setValue(
+                              'jobConfigs.analyzer.environmentDefinitions',
+                              cloneEnvironmentDefinitions(definitionsToRestore),
+                              { shouldDirty: true }
+                            );
+                          }
+                        } else {
+                          environmentDefinitionsBackup.current =
+                            cloneEnvironmentDefinitions(currentDefinitions);
+                          form.setValue(
+                            'jobConfigs.analyzer.environmentDefinitions',
+                            undefined,
+                            { shouldDirty: true }
+                          );
+                        }
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            {environmentDefinitionsEnabled && (
+              <Card className='p-4'>
+                <CardTitle>NPM</CardTitle>
+                <CardContent className='flex flex-col gap-4'>
+                  <FormField
+                    control={form.control}
+                    name='jobConfigs.analyzer.environmentDefinitions.npm.0.service'
+                    render={({ field }) => {
+                      const selectedValue =
+                        typeof field.value === 'string' &&
+                        field.value.length > 0
+                          ? field.value
+                          : undefined;
+                      return (
+                        <FormItem>
+                          <FormLabel>Service</FormLabel>
+                          <Select
+                            value={selectedValue}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                            }}
+                          >
+                            <FormControl>
+                              <SelectTrigger className='w-full'>
+                                <SelectValue placeholder='Select an infrastructure service' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {infrastructureServices.map((service) => {
+                                const hierarchyLabel =
+                                  service.hierarchy.charAt(0).toUpperCase() +
+                                  service.hierarchy.slice(1);
+                                const label = `${service.name} (${hierarchyLabel})`;
+                                return (
+                                  <SelectItem
+                                    key={`${service.hierarchy}:${service.name}`}
+                                    value={service.name}
+                                  >
+                                    {label}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Select the infrastructure service from a chosen
+                            hierarchy level.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='jobConfigs.analyzer.environmentDefinitions.npm.0.scope'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Scope</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder='(optional)' />
+                        </FormControl>
+                        <FormDescription>
+                          Optional NPM scope that this configuration applies to.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='jobConfigs.analyzer.environmentDefinitions.npm.0.email'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder='(optional)' />
+                        </FormControl>
+                        <FormDescription>
+                          Optional email address used by the NPM registry.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='jobConfigs.analyzer.environmentDefinitions.npm.0.authMode'
+                    render={({ field }) => {
+                      const selectedValue =
+                        typeof field.value === 'string' &&
+                        field.value.length > 0
+                          ? (field.value as NpmAuthMode)
+                          : undefined;
+                      return (
+                        <FormItem>
+                          <FormLabel>Authorization mode</FormLabel>
+                          <Select
+                            value={selectedValue}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                            }}
+                          >
+                            <FormControl>
+                              <SelectTrigger className='w-full'>
+                                <SelectValue placeholder='Select the authorization mode' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {npmAuthModes.map((mode) => (
+                                <SelectItem key={mode} value={mode}>
+                                  {mode.replaceAll('_', ' ')}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Pick how the NPM registry authenticates requests.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
           <PackageManagerField form={form} />
           {isSuperuser && (
