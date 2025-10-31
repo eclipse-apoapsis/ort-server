@@ -69,6 +69,9 @@ import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
@@ -170,10 +173,10 @@ class ReporterRunnerTest : WordSpec({
             every { createTempDir() } returnsMany listOf(outputDirectory, configDirectory)
             every { close() } just runs
             coEvery { resolvePluginConfigSecrets(any()) } answers {
-                val pluginConfigs: Map<String, PluginConfig>? = firstArg()
+                val pluginConfigs: Map<String, ResolvablePluginConfig>? = firstArg()
                 pluginConfigs.orEmpty().mapValues { entry ->
                     val resolvedSecrets = entry.value.secrets.mapValues { secretEntry ->
-                        "${secretEntry.value}_resolved"
+                        "${secretEntry.value.name}_resolved"
                     }
                     PluginConfig(entry.value.options, resolvedSecrets)
                 }
@@ -242,8 +245,8 @@ class ReporterRunnerTest : WordSpec({
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(plainFormat, templateFormat),
                 config = mapOf(
-                    plainPluginId to PluginConfig(plainOptions, emptyMap()),
-                    templatePluginId to PluginConfig(
+                    plainPluginId to ResolvablePluginConfig(plainOptions, emptyMap()),
+                    templatePluginId to ResolvablePluginConfig(
                         mapOf(
                             "ugly" to "false",
                             "templateFile" to "${ReporterComponent.TEMPLATE_REFERENCE}$templateFileReference1",
@@ -302,7 +305,7 @@ class ReporterRunnerTest : WordSpec({
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(templateFormat),
                 config = mapOf(
-                    templateFormat to PluginConfig(
+                    templateFormat to ResolvablePluginConfig(
                         mapOf(
                             "templateFile" to
                                     "$otherReference1,${ReporterComponent.TEMPLATE_REFERENCE}$fileReference," +
@@ -345,7 +348,7 @@ class ReporterRunnerTest : WordSpec({
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(templateFormat),
                 config = mapOf(
-                    templateFormat to PluginConfig(
+                    templateFormat to ResolvablePluginConfig(
                         mapOf("currentWorkingDir" to "${ReporterComponent.WORK_DIR_PLACEHOLDER}/reports"),
                         emptyMap()
                     )
@@ -376,12 +379,15 @@ class ReporterRunnerTest : WordSpec({
             mockReporterFactoryAll(templateFormat to templateReporter)
 
             val options = mapOf("foo" to "bar")
-            val secrets = mapOf("username" to "secretUsername", "password" to "secretPassword")
-            val resolvedSecrets = secrets.mapValues { e -> e.value + "_resolved" }
+            val secrets = mapOf(
+                "username" to ResolvableSecret("secretUsername", SecretSource.ADMIN),
+                "password" to ResolvableSecret("secretPassword", SecretSource.ADMIN)
+            )
+            val resolvedSecrets = secrets.mapValues { e -> e.value.name + "_resolved" }
 
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(templateFormat),
-                config = mapOf(templateFormat to PluginConfig(options, secrets))
+                config = mapOf(templateFormat to ResolvablePluginConfig(options, secrets))
             )
 
             val reporterConfig = createReporterConfig(
@@ -995,14 +1001,14 @@ class ReporterRunnerTest : WordSpec({
             val jobConfig = ReporterJobConfiguration(
                 formats = listOf(templateFormat),
                 config = mapOf(
-                    templatePluginId to PluginConfig(
+                    templatePluginId to ResolvablePluginConfig(
                         mapOf(
                             "ugly" to "false",
                             "templateFile" to "someTemplate.ftl"
                         ),
                         emptyMap()
                     ),
-                    "$templatePluginId:$templateFormat" to PluginConfig(
+                    "$templatePluginId:$templateFormat" to ResolvablePluginConfig(
                         mapOf(
                             "templateFile" to "anotherTemplate.ftl",
                             "specialProperty" to "specialValue"
