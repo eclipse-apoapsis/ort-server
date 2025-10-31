@@ -69,6 +69,10 @@ class KeycloakUserService(
         ids.map { async { getUserById(it) } }
             .mapTo(mutableSetOf()) { it.await() }
     }
+
+    override suspend fun existsUser(id: String): Boolean {
+        return runCatching { getUserById(id) }.isSuccess
+    }
 }
 
 /**
