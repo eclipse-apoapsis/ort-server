@@ -21,17 +21,23 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.repository
 
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
+import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
+import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
+import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -56,17 +62,17 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         Hierarchy(repository.mapToModel(), product.mapToModel(), organization.mapToModel())
     }
 
-    override fun list(parameters: ListQueryParameters, filter: FilterParameter?) =
+    override fun list(parameters: ListQueryParameters, urlFilter: FilterParameter?, hierarchyFilter: HierarchyFilter) =
         db.blockingQuery {
-            RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) {
-                var condition: Op<Boolean> = Op.TRUE
-                filter?.let {
-                    condition = condition and RepositoriesTable.url.applyRegex(
-                        it.value
-                    )
-                }
-                condition
+            val urlCondition = urlFilter?.let {
+                RepositoriesTable.url.applyRegex(it.value)
+            } ?: Op.TRUE
+
+            val builder = hierarchyFilter.apply(urlCondition) { level, ids, _ ->
+                generateHierarchyCondition(level, ids)
             }
+
+            RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel, builder)
         }
 
     override fun listForProduct(productId: Long, parameters: ListQueryParameters, filter: FilterParameter?) =
@@ -101,3 +107,27 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         RepositoriesTable.deleteWhere { RepositoriesTable.productId eq productId }
     }
 }
+
+/**
+ * Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids].
+ */
+private fun SqlExpressionBuilder.generateHierarchyCondition(
+    level: Int,
+    ids: List<CompoundHierarchyId>
+): Op<Boolean> =
+    when (level) {
+        CompoundHierarchyId.REPOSITORY_LEVEL ->
+            RepositoriesTable.id inList ids.extractIds(CompoundHierarchyId.REPOSITORY_LEVEL)
+
+        CompoundHierarchyId.PRODUCT_LEVEL ->
+            RepositoriesTable.productId inList ids.extractIds(CompoundHierarchyId.PRODUCT_LEVEL)
+
+        CompoundHierarchyId.ORGANIZATION_LEVEL -> {
+            val subquery = ProductsTable.select(ProductsTable.id).where {
+                ProductsTable.organizationId inList ids.extractIds(CompoundHierarchyId.ORGANIZATION_LEVEL)
+            }
+            RepositoriesTable.productId inSubQuery subquery
+        }
+
+        else -> Op.FALSE
+    }

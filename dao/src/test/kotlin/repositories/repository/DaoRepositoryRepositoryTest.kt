@@ -28,10 +28,15 @@ import io.kotest.matchers.shouldBe
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
@@ -121,7 +126,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         fixtures.createRepository(url = "https://example.com/repo3.git")
         fixtures.createRepository(url = "https://example.com/repo4.git")
 
-        repositoryRepository.list(filter = FilterParameter("repository.git$")) shouldBe ListQueryResult(
+        repositoryRepository.list(urlFilter = FilterParameter("repository.git$")) shouldBe ListQueryResult(
             data = listOf(
                 Repository(repo1.id, orgId, repo1.productId, repo1.type, repo1.url, repo1.description),
                 Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description),
@@ -142,7 +147,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
             url = "https://subdomain.example.com/repo.git"
         )
 
-        val result = repositoryRepository.list(filter = FilterParameter("example\\.com"))
+        val result = repositoryRepository.list(urlFilter = FilterParameter("example\\.com"))
 
         result shouldBe ListQueryResult(
             data = listOf(
@@ -152,6 +157,102 @@ class DaoRepositoryRepositoryTest : StringSpec({
             ),
             params = ListQueryParameters.DEFAULT,
             totalCount = 3
+        )
+    }
+
+    "list should apply a hierarchy filter on repository level" {
+        val repo1 = fixtures.createRepository(url = "https://example.com/repo1.git")
+        val repo1Id = CompoundHierarchyId.forRepository(
+            OrganizationId(fixtures.organization.id),
+            ProductId(fixtures.product.id),
+            RepositoryId(repo1.id)
+        )
+        val repo2 = fixtures.createRepository(url = "https://example.com/repo2.git")
+        val repo2Id = CompoundHierarchyId.forRepository(
+            OrganizationId(fixtures.organization.id),
+            ProductId(fixtures.product.id),
+            RepositoryId(repo2.id)
+        )
+        fixtures.createRepository(url = "https://example.com/repo3.git")
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(CompoundHierarchyId.REPOSITORY_LEVEL to listOf(repo1Id, repo2Id)),
+            nonTransitiveIncludes = emptyMap()
+        )
+        val result = repositoryRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
+            data = listOf(
+                Repository(repo1.id, orgId, repo1.productId, repo1.type, repo1.url, repo1.description),
+                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description),
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "list should apply a hierarchy filter on product level" {
+        val product1 = fixtures.createProduct(name = "product1")
+        val product1Id = CompoundHierarchyId.forProduct(
+            OrganizationId(fixtures.organization.id),
+            ProductId(product1.id)
+        )
+        val repo1 = fixtures.createRepository(url = "https://example.com/repo1.git", productId = product1.id)
+        val product2 = fixtures.createProduct(name = "product2")
+        val product2Id = CompoundHierarchyId.forProduct(
+            OrganizationId(fixtures.organization.id),
+            ProductId(product2.id)
+        )
+        val repo2 = fixtures.createRepository(url = "https://example.com/repo2.git", productId = product2.id)
+        fixtures.createRepository(url = "https://example.com/repo3.git")
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(product1Id, product2Id)),
+            nonTransitiveIncludes = emptyMap()
+        )
+        val result = repositoryRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
+            data = listOf(
+                Repository(repo1.id, orgId, repo1.productId, repo1.type, repo1.url, repo1.description),
+                Repository(repo2.id, orgId, repo2.productId, repo2.type, repo2.url, repo2.description),
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "list should apply a hierarchy filter on organization level" {
+        val organization1 = fixtures.createOrganization(name = "testOrganization")
+        val organization1Id = CompoundHierarchyId.forOrganization(OrganizationId(organization1.id))
+        val product1 = fixtures.createProduct(name = "product1", organizationId = organization1.id)
+        val repo1 = fixtures.createRepository(url = "https://example.com/repo1.git", productId = product1.id)
+
+        val organization2 = fixtures.createOrganization(name = "organization2")
+        val organization2Id = CompoundHierarchyId.forOrganization(OrganizationId(organization2.id))
+        val product2 = fixtures.createProduct(name = "product2", organizationId = organization2.id)
+        val repo2 = fixtures.createRepository(url = "https://example.com/repo2.git", productId = product2.id)
+
+        fixtures.createRepository(url = "https://example.com/repo3.git")
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(
+                CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(
+                    organization1Id,
+                    organization2Id
+                )
+            ),
+            nonTransitiveIncludes = emptyMap()
+        )
+        val result = repositoryRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
+            data = listOf(
+                Repository(repo1.id, organization1.id, repo1.productId, repo1.type, repo1.url, repo1.description),
+                Repository(repo2.id, organization2.id, repo2.productId, repo2.type, repo2.url, repo2.description),
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 2
         )
     }
 

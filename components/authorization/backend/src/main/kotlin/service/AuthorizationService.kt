@@ -20,15 +20,43 @@
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.PermissionChecker
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 /**
  * A service interface providing functionality to query and manage roles and permissions for users on entities in the
  * hierarchy.
  */
 interface AuthorizationService {
+    /**
+     * Check whether the user identified by [userId] has the permissions defined by the given [checker] on the element
+     * identified by [compoundHierarchyId]. If the check is successful, the function returns an [EffectiveRole] object
+     * with the requested permissions and the [compoundHierarchyId]; otherwise, it returns *null*.
+     */
+    suspend fun checkPermissions(
+        userId: String,
+        compoundHierarchyId: CompoundHierarchyId,
+        checker: PermissionChecker
+    ): EffectiveRole?
+
+    /**
+     * Check whether the user identified by [userId] has the permissions defined by the given [checker] on the element
+     * identified by [hierarchyId]. This function constructs a [CompoundHierarchyId] based on the passed in
+     * [hierarchyId]. If such a [CompoundHierarchyId] is already known, using the overloaded function is more
+     * efficient.
+     */
+    suspend fun checkPermissions(
+        userId: String,
+        hierarchyId: HierarchyId,
+        checker: PermissionChecker
+    ): EffectiveRole?
+
     /**
      * Return an [EffectiveRole] object for the specified [userId] that contains all permissions for this user on the
      * element identified by [compoundHierarchyId].
@@ -70,4 +98,43 @@ interface AuthorizationService {
      * higher levels, such as organization admins.
      */
     suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, Set<Role>>
+
+    /**
+     * Return a [HierarchyFilter] with information about all hierarchy elements for which the specified [userId] has at
+     * least all the permissions defined by [organizationPermissions], [productPermissions], and
+     * [repositoryPermissions]. With the optional [containedIn] ID, the filter can be restricted to elements that
+     * belong to this root element (directly or indirectly). This function can be used to generate filters for queries
+     * based on the access rights of a user. For the returned [CompoundHierarchyId]s not necessarily all components
+     * corresponding to the requested permissions are filled. For instance, if all repositories with READ access are
+     * requested and the user has the ADMIN role on the product, the result will contain the ID of this product. This
+     * basically means that all repositories under this product are accessible to the user.
+     */
+    suspend fun filterHierarchyIds(
+        userId: String,
+        organizationPermissions: Set<OrganizationPermission> = emptySet(),
+        productPermissions: Set<ProductPermission> = emptySet(),
+        repositoryPermissions: Set<RepositoryPermission> = emptySet(),
+        containedIn: HierarchyId? = null
+    ): HierarchyFilter
+
+    /**
+     * Return a [HierarchyFilter] with information about all hierarchy elements for which the specified [userId] has at
+     * least the permissions defined by the given [requiredRole], optionally restricted to the hierarchical structure
+     * defined by [containedIn]. This is an overload of the function with the same name that obtains the required
+     * permissions from the passed in role. Note that this does not perform an exact match of the role, but checks
+     * whether all the permissions defined by the role are granted to the user. So, for instance, when searching for a
+     * READER role, also WRITER and ADMIN roles will match.
+     */
+    suspend fun filterHierarchyIds(
+        userId: String,
+        requiredRole: Role,
+        containedIn: HierarchyId? = null
+    ): HierarchyFilter =
+        filterHierarchyIds(
+            userId = userId,
+            organizationPermissions = requiredRole.organizationPermissions,
+            productPermissions = requiredRole.productPermissions,
+            repositoryPermissions = requiredRole.repositoryPermissions,
+            containedIn = containedIn
+        )
 }

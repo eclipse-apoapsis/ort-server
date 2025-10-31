@@ -21,12 +21,18 @@ package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.HierarchyPermissions
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
@@ -43,6 +49,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 
 import org.jetbrains.exposed.sql.insert
 
+@Suppress("LargeClass")
 class DbAuthorizationServiceTest : WordSpec() {
     private val dbExtension = extension(DatabaseTestExtension())
 
@@ -144,46 +151,61 @@ class DbAuthorizationServiceTest : WordSpec() {
             }
 
             "correctly resolve permissions on repository level" {
-                val repositoryCompoundId = repositoryCompoundId()
-                createAssignment(
-                    organizationId = dbExtension.fixtures.organization.id,
-                    productId = dbExtension.fixtures.product.id,
-                    repositoryId = dbExtension.fixtures.repository.id,
-                    repositoryRole = RepositoryRole.READER
-                )
                 val service = createService()
 
-                val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId)
+                RepositoryRole.entries.forAll { role ->
+                    val repository = dbExtension.fixtures.createRepository(
+                        url = "https://example.com/testRepo_$role.git"
+                    )
 
-                checkPermissions(effectiveRole, RepositoryRole.READER)
+                    createAssignment(
+                        organizationId = dbExtension.fixtures.organization.id,
+                        productId = dbExtension.fixtures.product.id,
+                        repositoryId = repository.id,
+                        repositoryRole = role
+                    )
+
+                    val effectiveRole = service.getEffectiveRole(USER_ID, RepositoryId(repository.id))
+
+                    checkPermissions(effectiveRole, role)
+                }
             }
 
             "correctly resolve permissions on product level" {
-                createAssignment(
-                    organizationId = dbExtension.fixtures.organization.id,
-                    productId = dbExtension.fixtures.product.id,
-                    productRole = ProductRole.WRITER
-                )
                 val service = createService()
 
-                val effectiveRole = service.getEffectiveRole(USER_ID, ProductId(dbExtension.fixtures.product.id))
+                ProductRole.entries.forAll { role ->
+                    val product = dbExtension.fixtures.createProduct("testProduct_$role")
 
-                checkPermissions(effectiveRole, ProductRole.WRITER)
+                    createAssignment(
+                        organizationId = dbExtension.fixtures.organization.id,
+                        productId = product.id,
+                        productRole = role
+                    )
+
+                    val effectiveRole = service.getEffectiveRole(USER_ID, ProductId(product.id))
+
+                    checkPermissions(effectiveRole, role)
+                }
             }
 
             "correctly resolve permissions on organization level" {
-                createAssignment(
-                    organizationId = dbExtension.fixtures.organization.id,
-                    organizationRole = OrganizationRole.WRITER
-                )
                 val service = createService()
 
-                val effectiveRole = service.getEffectiveRole(
-                    USER_ID,
-                    OrganizationId(dbExtension.fixtures.organization.id)
-                )
+                OrganizationRole.entries.forAll { role ->
+                    val org = dbExtension.fixtures.createOrganization("testOrg_$role")
+                    createAssignment(
+                        organizationId = org.id,
+                        organizationRole = role
+                    )
 
-                checkPermissions(effectiveRole, OrganizationRole.WRITER)
+                    val effectiveRole = service.getEffectiveRole(
+                        USER_ID,
+                        OrganizationId(org.id)
+                    )
+
+                    checkPermissions(effectiveRole, role)
+                }
             }
 
             "consider all roles in the hierarchy" {
@@ -196,7 +218,7 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId)
 
-                checkPermissions(effectiveRole, OrganizationRole.ADMIN)
+                checkPermissions(effectiveRole, RepositoryRole.ADMIN)
             }
 
             "filter correctly by user ID" {
@@ -245,7 +267,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 checkPermissions(effectiveRole, RepositoryRole.READER)
             }
 
-            "combine multiple assignments" {
+            "allow overriding assignments from higher levels" {
                 val repositoryCompoundId = repositoryCompoundId()
                 createAssignment(
                     organizationId = dbExtension.fixtures.organization.id,
@@ -255,18 +277,13 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
                 createAssignment(
                     organizationId = dbExtension.fixtures.organization.id,
-                    productId = dbExtension.fixtures.product.id,
-                    productRole = ProductRole.ADMIN
-                )
-                createAssignment(
-                    organizationId = dbExtension.fixtures.organization.id,
                     organizationRole = OrganizationRole.ADMIN
                 )
                 val service = createService()
 
                 val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId)
 
-                checkPermissions(effectiveRole, OrganizationRole.ADMIN)
+                checkPermissions(effectiveRole, RepositoryRole.ADMIN)
             }
 
             "support role assignments on super user level (without an organization ID)" {
@@ -278,7 +295,7 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId)
 
-                checkPermissions(effectiveRole, OrganizationRole.ADMIN, expectedSuperuser = true)
+                checkPermissions(effectiveRole, RepositoryRole.ADMIN, expectedSuperuser = true)
             }
 
             "allow querying super users only" {
@@ -313,6 +330,120 @@ class DbAuthorizationServiceTest : WordSpec() {
                 val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId)
 
                 checkPermissions(effectiveRole)
+            }
+        }
+
+        "checkPermissions" should {
+            "return null for missing permissions" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val service = createService()
+
+                val effectiveRole = service.checkPermissions(
+                    USER_ID,
+                    repositoryCompoundId,
+                    HierarchyPermissions.permissions(RepositoryPermission.TRIGGER_ORT_RUN)
+                )
+
+                effectiveRole should beNull()
+            }
+
+            "return an EffectiveRole for permissions explicitly granted" {
+                val repositoryCompoundId = repositoryCompoundId()
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = dbExtension.fixtures.product.id,
+                    repositoryId = dbExtension.fixtures.repository.id,
+                    repositoryRole = RepositoryRole.WRITER
+                )
+                val service = createService()
+
+                val effectiveRole = service.checkPermissions(
+                    USER_ID,
+                    repositoryCompoundId,
+                    HierarchyPermissions.permissions(RepositoryPermission.READ)
+                )
+
+                effectiveRole shouldNotBeNull {
+                    checkPermissions(this, expectedRepositoryPermissions = setOf(RepositoryPermission.READ))
+                    elementId shouldBe repositoryCompoundId
+                }
+            }
+
+            "return an EffectiveRole for permissions granted via a higher level" {
+                val repositoryCompoundId = repositoryCompoundId()
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    organizationRole = OrganizationRole.READER
+                )
+                val service = createService()
+
+                val effectiveRole = service.checkPermissions(
+                    USER_ID,
+                    repositoryCompoundId,
+                    HierarchyPermissions.permissions(RepositoryPermission.READ)
+                )
+
+                effectiveRole shouldNotBeNull {
+                    checkPermissions(this, expectedRepositoryPermissions = setOf(RepositoryPermission.READ))
+                    elementId shouldBe repositoryCompoundId
+                }
+            }
+
+            "return an EffectiveRole for implicit permissions derived from a lower level" {
+                val orgId = OrganizationId(dbExtension.fixtures.organization.id)
+                createAssignment(
+                    organizationId = dbExtension.fixtures.organization.id,
+                    productId = dbExtension.fixtures.product.id,
+                    repositoryId = dbExtension.fixtures.repository.id,
+                    repositoryRole = RepositoryRole.WRITER
+                )
+                val service = createService()
+
+                val effectiveRole = service.checkPermissions(
+                    USER_ID,
+                    orgId,
+                    HierarchyPermissions.permissions(OrganizationPermission.READ)
+                )
+
+                effectiveRole shouldNotBeNull {
+                    checkPermissions(this, expectedOrganizationPermissions = setOf(OrganizationPermission.READ))
+                    elementId shouldBe CompoundHierarchyId.forOrganization(orgId)
+                }
+            }
+
+            "return an EffectiveRole for superuser permissions" {
+                val repositoryCompoundId = repositoryCompoundId()
+                createAssignment(
+                    organizationRole = OrganizationRole.ADMIN
+                )
+                val service = createService()
+
+                val effectiveRole = service.checkPermissions(
+                    USER_ID,
+                    repositoryCompoundId,
+                    HierarchyPermissions.permissions(RepositoryPermission.DELETE)
+                )
+
+                effectiveRole shouldNotBeNull {
+                    checkPermissions(
+                        this,
+                        expectedRepositoryPermissions = setOf(RepositoryPermission.DELETE),
+                        expectedSuperuser = true
+                    )
+                    elementId shouldBe repositoryCompoundId
+                }
+            }
+
+            "handle an invalid compound hierarchy ID gracefully" {
+                val service = createService()
+
+                val effectiveRole = service.checkPermissions(
+                    USER_ID,
+                    ProductId(-1L),
+                    HierarchyPermissions.permissions(ProductPermission.READ)
+                )
+
+                effectiveRole should beNull()
             }
         }
 
@@ -370,7 +501,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 checkPermissions(effectiveRole, OrganizationRole.WRITER)
 
                 val effectiveRoleRepo = service.getEffectiveRole(USER_ID, repositoryCompoundId())
-                checkPermissions(effectiveRoleRepo, OrganizationRole.WRITER)
+                checkPermissions(effectiveRoleRepo, RepositoryRole.WRITER)
             }
 
             "create a new superuser role assignment" {
@@ -383,7 +514,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
 
                 val effectiveRole = service.getEffectiveRole(USER_ID, repositoryCompoundId())
-                checkPermissions(effectiveRole, OrganizationRole.ADMIN, expectedSuperuser = true)
+                checkPermissions(effectiveRole, RepositoryRole.ADMIN, expectedSuperuser = true)
             }
 
             "replace an already exiting assignment" {
@@ -640,6 +771,440 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 users.keys shouldHaveSize 1
                 users[USER_ID] shouldContainExactlyInAnyOrder listOf(RepositoryRole.READER)
+            }
+        }
+
+        "filterHierarchyIds" should {
+            "return a filter that includes the IDs of repositories a user has access to" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val otherRepo = dbExtension.fixtures.createRepository(url = "https://example.com/other.git")
+                val otherRepoId = CompoundHierarchyId.forRepository(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id),
+                    RepositoryId(otherRepo.id)
+                )
+                val otherOrg = dbExtension.fixtures.createOrganization("otherOrg")
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct", organizationId = otherOrg.id)
+                val repoInOtherStructure = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/other-structure.git",
+                    productId = otherProduct.id
+                )
+                val repoInOtherStructureId = CompoundHierarchyId.forRepository(
+                    OrganizationId(otherOrg.id),
+                    ProductId(otherProduct.id),
+                    RepositoryId(repoInOtherStructure.id)
+                )
+                dbExtension.fixtures.createRepository(url = "https://example.com/forbidden.git")
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.WRITER,
+                    otherRepoId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.ADMIN,
+                    repoInOtherStructureId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.transitiveIncludes shouldHaveSize 1
+                filter.transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    repositoryCompoundId,
+                    otherRepoId,
+                    repoInOtherStructureId
+                )
+                filter.isWildcard shouldBe false
+            }
+
+            "return a filter that includes the IDs of organizations the user has access to" {
+                val organizationId = CompoundHierarchyId.forOrganization(
+                    OrganizationId(dbExtension.fixtures.organization.id)
+                )
+                val otherOrg = dbExtension.fixtures.createOrganization("otherOrg")
+                val otherOrgId = CompoundHierarchyId.forOrganization(OrganizationId(otherOrg.id))
+                dbExtension.fixtures.createOrganization("forbiddenOrg")
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.READER,
+                    organizationId
+                )
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    otherOrgId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    requiredRole = OrganizationRole.READER
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    organizationId,
+                    otherOrgId
+                )
+            }
+
+            "only list IDs for which all required permissions are available" {
+                val productId = CompoundHierarchyId.forProduct(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id)
+                )
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct")
+                val otherProductId = CompoundHierarchyId.forProduct(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(otherProduct.id)
+                )
+                dbExtension.fixtures.createProduct("forbiddenProduct")
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.READER,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.WRITER,
+                    otherProductId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    productPermissions = setOf(ProductPermission.WRITE)
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    otherProductId
+                )
+                filter.transitiveIncludes shouldHaveSize 1
+            }
+
+            "handle role assignments on higher levels correctly" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val productId = repositoryCompoundId.parent!!
+                val otherOrg = dbExtension.fixtures.createOrganization("otherOrg")
+                val otherOrgId = CompoundHierarchyId.forOrganization(OrganizationId(otherOrg.id))
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct", organizationId = otherOrg.id)
+                dbExtension.fixtures.createRepository(
+                    url = "https://example.com/other.git",
+                    productId = otherProduct.id
+                )
+                val thirdOrg = dbExtension.fixtures.createOrganization("thirdOrg")
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    otherOrgId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.ADMIN,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.READER,
+                    CompoundHierarchyId.forOrganization(OrganizationId(thirdOrg.id))
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.WRITE)
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    productId
+                )
+                filter.transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                    otherOrgId
+                )
+            }
+
+            "drop IDs contained in others" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val productId = repositoryCompoundId.parent!!
+                val organizationId = productId.parent!!
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.ADMIN,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    organizationId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactly setOf(
+                    organizationId
+                )
+                filter.transitiveIncludes shouldHaveSize 1
+            }
+
+            "handle superuser assignments correctly" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val productId = repositoryCompoundId.parent!!
+                val organizationId = productId.parent!!
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    CompoundHierarchyId.WILDCARD
+                )
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    organizationId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.ADMIN,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.isWildcard shouldBe true
+            }
+
+            "correctly filter for the user ID" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val otherRepo = dbExtension.fixtures.createRepository(url = "https://example.com/other.git")
+                val otherRepoId = CompoundHierarchyId.forRepository(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id),
+                    RepositoryId(otherRepo.id)
+                )
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    "other-user",
+                    RepositoryRole.READER,
+                    otherRepoId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId
+                )
+            }
+
+            "apply a containedIn filter on product level" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct")
+                val otherRepo = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/other.git",
+                    productId = otherProduct.id
+                )
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(dbExtension.fixtures.organization.id),
+                        ProductId(otherProduct.id),
+                        RepositoryId(otherRepo.id)
+                    )
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ),
+                    containedIn = repositoryCompoundId.productId
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId
+                )
+            }
+
+            "apply a containedIn filter on organization level" {
+                val productId = CompoundHierarchyId.forProduct(
+                    OrganizationId(dbExtension.fixtures.organization.id),
+                    ProductId(dbExtension.fixtures.product.id)
+                )
+                val otherOrg = dbExtension.fixtures.createOrganization("otherOrg")
+                val otherProduct = dbExtension.fixtures.createProduct("otherProduct", organizationId = otherOrg.id)
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.WRITER,
+                    productId
+                )
+                service.assignRole(
+                    USER_ID,
+                    ProductRole.WRITER,
+                    CompoundHierarchyId.forProduct(
+                        OrganizationId(otherOrg.id),
+                        ProductId(otherProduct.id)
+                    )
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    productPermissions = setOf(ProductPermission.WRITE),
+                    containedIn = productId.organizationId
+                )
+
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(productId)
+            }
+
+            "handle a containedIn filter together with a superuser assignment" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    CompoundHierarchyId.WILDCARD
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ),
+                    containedIn = repositoryCompoundId.productId
+                )
+
+                filter.transitiveIncludes shouldHaveSize 1
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent
+                )
+            }
+
+            "handle a containedIn filter together with permissive rights on a higher level" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    OrganizationRole.ADMIN,
+                    CompoundHierarchyId.forOrganization(
+                        OrganizationId(dbExtension.fixtures.organization.id)
+                    )
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ),
+                    containedIn = repositoryCompoundId.productId
+                )
+
+                filter.transitiveIncludes shouldHaveSize 1
+                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent
+                )
+            }
+
+            "find non-transitive includes" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ)
+                )
+
+                filter.nonTransitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent
+                )
+                filter.nonTransitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent?.parent
+                )
+                filter.nonTransitiveIncludes shouldHaveSize 2
+            }
+
+            "apply a containedIn filter to non-transitive includes" {
+                val repositoryCompoundId = repositoryCompoundId()
+                val product2 = dbExtension.fixtures.createProduct("otherProduct")
+                val repo2 = dbExtension.fixtures.createRepository(
+                    url = "https://example.com/other.git",
+                    productId = product2.id
+                )
+                val service = createService()
+
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    repositoryCompoundId
+                )
+                service.assignRole(
+                    USER_ID,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(dbExtension.fixtures.organization.id),
+                        ProductId(product2.id),
+                        RepositoryId(repo2.id)
+                    )
+                )
+
+                val filter = service.filterHierarchyIds(
+                    USER_ID,
+                    repositoryPermissions = setOf(RepositoryPermission.READ),
+                    containedIn = repositoryCompoundId.productId
+                )
+
+                filter.nonTransitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
+                    repositoryCompoundId.parent
+                )
+                filter.nonTransitiveIncludes shouldHaveSize 1
             }
         }
     }
