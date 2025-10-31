@@ -17,12 +17,87 @@
  * License-Filename: LICENSE
  */
 
+import { z } from 'zod';
+
 import { RepositoryType } from '@/api';
+import { zEnvironmentConfig } from '@/api/zod.gen';
 
 /**
  * Redefine or extend some data types coming from the OpenAPI Query Client for UI purposes.
  * Also define types and constants for UI usage which are not included in the query client.
  */
+
+// Schemas, consts and types for environment definitions leveraging the auto-generated
+// EnvironmentConfig.
+
+export enum NpmAuthMode {
+  PASSWORD = 'PASSWORD',
+  PASSWORD_BASE64 = 'PASSWORD_BASE64',
+  PASSWORD_AUTH = 'PASSWORD_AUTH',
+  PASSWORD_AUTH_TOKEN = 'PASSWORD_AUTH_TOKEN',
+  USERNAME_PASSWORD_AUTH = 'USERNAME_PASSWORD_AUTH',
+}
+
+export const npmAuthModes = Object.values(NpmAuthMode) as NpmAuthMode[];
+
+const environmentDefinitionsBase =
+  zEnvironmentConfig.shape.environmentDefinitions.unwrap();
+
+export type EnvironmentDefinitions = z.infer<typeof environmentDefinitionsBase>;
+export type EnvironmentDefinitionEntry =
+  EnvironmentDefinitions[keyof EnvironmentDefinitions][number];
+
+const npmEnvironmentDefinition = z
+  .object({
+    service: z.string(),
+    authMode: z.enum(NpmAuthMode),
+    scope: z.string().optional(),
+    email: z.string().optional(),
+  })
+  .catchall(z.string());
+
+const environmentDefinitionValidators: Record<string, z.ZodTypeAny> = {
+  npm: npmEnvironmentDefinition,
+};
+
+export const environmentDefinitionsSchema =
+  environmentDefinitionsBase.superRefine((definitions, ctx) => {
+    for (const [pluginId, entries] of Object.entries(definitions)) {
+      entries.forEach((entry, index) => {
+        if (!entry.service) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Service is required',
+            path: [pluginId, index, 'service'],
+          });
+        }
+
+        const validator =
+          environmentDefinitionValidators[pluginId.toLowerCase()];
+        const result = validator?.safeParse(entry);
+
+        if (result && !result.success) {
+          for (const issue of result.error.issues) {
+            ctx.addIssue({
+              ...issue,
+              path: [pluginId, index, ...issue.path],
+            });
+          }
+        }
+      });
+    }
+  });
+
+export const npmEnvironmentDefinitions: EnvironmentDefinitions = {
+  npm: [
+    {
+      service: '',
+      scope: '',
+      email: '',
+      authMode: NpmAuthMode.USERNAME_PASSWORD_AUTH,
+    },
+  ],
+};
 
 // Some input types for creating runs are merely strings in the API, but they actually take a
 // limited set of values. Define the possible values here to use in the UI.
