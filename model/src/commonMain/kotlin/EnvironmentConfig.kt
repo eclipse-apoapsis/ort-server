@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
 /**
  * Type definition the generic map with environment definitions.
  */
-typealias RepositoryEnvironmentDefinitions = Map<String, List<Map<String, String>>>
+typealias EnvironmentDefinitions = Map<String, List<Map<String, String>>>
 
 /**
  * A data class describing the environment configuration of a specific repository.
@@ -35,7 +35,7 @@ data class EnvironmentConfig(
     val infrastructureServices: List<InfrastructureServiceDeclaration> = emptyList(),
 
     /** A map with environment definitions of different types. */
-    val environmentDefinitions: RepositoryEnvironmentDefinitions = emptyMap(),
+    val environmentDefinitions: EnvironmentDefinitions = emptyMap(),
 
     /** A list with declarations for environment variables for this repository. */
     val environmentVariables: List<EnvironmentVariableDeclaration> = emptyList(),
