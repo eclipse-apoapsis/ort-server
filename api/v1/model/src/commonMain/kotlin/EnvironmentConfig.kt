@@ -30,7 +30,7 @@ import org.eclipse.apoapsis.ortserver.shared.apimodel.InfrastructureService
  * The list then contains the corresponding definitions with their specific properties. This structure is evaluated by
  * a factory that creates concrete class instances out of it.
  */
-typealias RepositoryEnvironmentDefinitions = Map<String, List<Options>>
+typealias EnvironmentDefinitions = Map<String, List<Options>>
 
 /**
  * A data class describing the environment configuration of a specific repository.
@@ -45,7 +45,7 @@ data class EnvironmentConfig(
     val infrastructureServices: List<InfrastructureService>,
 
     /** A map with environment definitions of different types. */
-    val environmentDefinitions: RepositoryEnvironmentDefinitions = emptyMap(),
+    val environmentDefinitions: EnvironmentDefinitions = emptyMap(),
 
     /** A list with declarations for environment variables for this repository. */
     val environmentVariables: List<EnvironmentVariableDeclaration> = emptyList(),
