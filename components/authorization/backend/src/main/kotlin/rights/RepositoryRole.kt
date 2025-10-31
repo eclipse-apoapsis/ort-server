@@ -26,8 +26,8 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
  * maps the permissions available for a product to the default roles [READER], [WRITER], and [ADMIN].
  */
 enum class RepositoryRole(
-    override val organizationPermissions: Set<OrganizationPermission> = setOf(OrganizationPermission.READ),
-    override val productPermissions: Set<ProductPermission> = setOf(ProductPermission.READ),
+    override val organizationPermissions: Set<OrganizationPermission> = organizationReadPermissions,
+    override val productPermissions: Set<ProductPermission> = productReadPermissions,
     override val repositoryPermissions: Set<RepositoryPermission>
 ) : Role {
     /** A role that grants read permissions for a [org.eclipse.apoapsis.ortserver.model.Repository]. */

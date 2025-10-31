@@ -49,3 +49,12 @@ enum class OrganizationPermission {
     /** Permission to delete the [Organization]. */
     DELETE
 }
+
+/**
+ * The set of permissions required by the role to read an organization. (This is defined here to avoid circular
+ * dependencies, as it is referenced by multiple role classes.)
+ */
+internal val organizationReadPermissions = setOf(
+    OrganizationPermission.READ,
+    OrganizationPermission.READ_PRODUCTS
+)

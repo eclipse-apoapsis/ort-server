@@ -51,3 +51,12 @@ enum class ProductPermission {
     /** Permission to delete the [Product]. */
     DELETE
 }
+
+/**
+ * The set of permissions required by the role to read a product. (This is defined here to avoid circular dependencies,
+ * as it is referenced by multiple role classes.)
+ */
+internal val productReadPermissions = setOf(
+    ProductPermission.READ,
+    ProductPermission.READ_REPOSITORIES
+)

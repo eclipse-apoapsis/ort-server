@@ -31,16 +31,13 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
  * - The constants are expected to be listed in increasing order of permissions.
  */
 enum class ProductRole(
-    override val organizationPermissions: Set<OrganizationPermission> = setOf(OrganizationPermission.READ),
+    override val organizationPermissions: Set<OrganizationPermission> = organizationReadPermissions,
     override val productPermissions: Set<ProductPermission>,
     override val repositoryPermissions: Set<RepositoryPermission>
 ) : Role {
     /** A role that grants read permissions for a [org.eclipse.apoapsis.ortserver.model.Product]. */
     READER(
-        productPermissions = setOf(
-            ProductPermission.READ,
-            ProductPermission.READ_REPOSITORIES
-        ),
+        productPermissions = productReadPermissions,
         repositoryPermissions = RepositoryRole.READER.repositoryPermissions
     ),
 
