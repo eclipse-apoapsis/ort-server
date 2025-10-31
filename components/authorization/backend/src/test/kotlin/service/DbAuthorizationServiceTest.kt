@@ -462,7 +462,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 checkPermissions(effectiveRole, RepositoryRole.READER)
 
                 val effectiveRoleProduct = service.getEffectiveRole(USER_ID, repositoryCompoundId.parent!!)
-                checkPermissions(effectiveRoleProduct)
+                checkPermissions(effectiveRoleProduct, ProductRole.READER)
             }
 
             "create a new role assignment on product level" {
@@ -482,7 +482,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 checkPermissions(effectiveRole, ProductRole.WRITER)
 
                 val effectiveRoleOrg = service.getEffectiveRole(USER_ID, productCompoundId.parent!!)
-                checkPermissions(effectiveRoleOrg)
+                checkPermissions(effectiveRoleOrg, OrganizationRole.READER)
             }
 
             "create a new role assignment on organization level" {

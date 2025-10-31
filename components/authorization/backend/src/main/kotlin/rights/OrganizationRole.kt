@@ -37,10 +37,7 @@ enum class OrganizationRole(
 ) : Role {
     /** A role that grants read permissions for an [org.eclipse.apoapsis.ortserver.model.Organization]. */
     READER(
-        organizationPermissions = setOf(
-            OrganizationPermission.READ,
-            OrganizationPermission.READ_PRODUCTS
-        ),
+        organizationPermissions = organizationReadPermissions,
         productPermissions = ProductRole.READER.productPermissions,
         repositoryPermissions = RepositoryRole.READER.repositoryPermissions
     ),
