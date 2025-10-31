@@ -31,6 +31,7 @@ import io.mockk.mockk
 import io.mockk.runs
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
+import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClientException
 import org.eclipse.apoapsis.ortserver.clients.keycloak.User as KeycloakUser
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
@@ -141,6 +142,28 @@ class KeycloakUserServiceTest : WordSpec({
             val users = service.getUsersById(userIds)
 
             users shouldContainExactly expectedUsers
+        }
+    }
+
+    "userExists" should {
+        "return true if the username can be resolved" {
+            val username = "existing-user"
+            val client = mockk<KeycloakClient> {
+                coEvery { getUser(UserName(username)) } returns createKeycloakUser(1)
+            }
+
+            val service = KeycloakUserService(client)
+            service.userExists(username) shouldBe true
+        }
+
+        "return false if the username does not exist" {
+            val username = "non-existing-user"
+            val client = mockk<KeycloakClient> {
+                coEvery { getUser(UserName(username)) } throws KeycloakClientException("User not found")
+            }
+
+            val service = KeycloakUserService(client)
+            service.userExists(username) shouldBe false
         }
     }
 })

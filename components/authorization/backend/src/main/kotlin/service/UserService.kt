@@ -57,4 +57,9 @@ interface UserService {
      * Resolve a number of users by their internal [ids]. Ignore unknown ids.
      */
     suspend fun getUsersById(ids: Set<String>): Set<User>
+
+    /**
+     * Return a flag whether a user with the given [id] exists.
+     */
+    suspend fun userExists(id: String): Boolean
 }
