@@ -1381,6 +1381,37 @@ class OrtRunServiceTest : WordSpec({
             }
         }
     }
+
+    "markAsOutdated" should {
+        "mark the provided runs as outdated and save the describing message" {
+            val run1Id = fixtures.createOrtRun().id
+            val run2Id = fixtures.createOrtRun().id
+            val run3Id = fixtures.createOrtRun().id
+
+            val outdatedMsg = "Outdated"
+
+            service.markAsOutdated(listOf(run1Id, run3Id), outdatedMsg)
+
+            val run1 = service.getOrtRun(run1Id)
+            val run2 = service.getOrtRun(run2Id)
+            val run3 = service.getOrtRun(run3Id)
+
+            run1 shouldNotBeNull {
+                outdated shouldBe true
+                outdatedMessage shouldBe outdatedMessage
+            }
+
+            run2 shouldNotBeNull {
+                outdated shouldBe false
+                outdatedMessage shouldBe null
+            }
+
+            run3 shouldNotBeNull {
+                outdated shouldBe true
+                outdatedMessage shouldBe outdatedMessage
+            }
+        }
+    }
 })
 
 private fun createOrtRun(

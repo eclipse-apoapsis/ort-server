@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.resolutions.VulnerabilityResolutionDefinitionService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
@@ -189,6 +190,7 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::RepositoryService)
     singleOf(::RuleViolationService)
     singleOf(::SecretService)
+    singleOf(::VulnerabilityResolutionDefinitionService)
     singleOf(::VulnerabilityService)
 
     if (authorizationService != null) {

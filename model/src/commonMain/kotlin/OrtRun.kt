@@ -155,7 +155,17 @@ data class OrtRun(
     /**
      * Name of the user that triggered this run.
      */
-    val userDisplayName: UserDisplayName? = null
+    val userDisplayName: UserDisplayName? = null,
+
+    /**
+     * A flag to indicate if the results of the run are outdated, e.g. because of a new resolution.
+     */
+    val outdated: Boolean = false,
+
+    /**
+     * A message describing why the results of the run are outdated.
+     */
+    val outdatedMessage: String? = null
 )
 
 enum class OrtRunStatus(

@@ -23,6 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.mapAndDeduplicate
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.tables.VulnerabilityResolutionDefinitionsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifierDao
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryConfigurationRepository
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
@@ -36,8 +37,12 @@ import org.eclipse.apoapsis.ortserver.model.runs.repository.ProvenanceSnippetCho
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryAnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RepositoryConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.SizedIterable
+import org.jetbrains.exposed.sql.and
 
 /**
  * An implementation of [RepositoryConfigurationRepository] that stores repository configurations in
@@ -55,7 +60,38 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
         licenseChoices: LicenseChoices,
         provenanceSnippetChoices: List<ProvenanceSnippetChoices>
     ): RepositoryConfiguration = db.blockingQuery {
-        RepositoryConfigurationDao.new {
+        val ortRun = OrtRunDao[ortRunId].mapToModel()
+        val vulnerabilityResolutions = mapAndDeduplicate(
+            resolutions.vulnerabilities,
+            VulnerabilityResolutionDao::getOrPut
+        )
+
+        val idToVulnerabilityResolutionDaos = VulnerabilityResolutionDefinitionsTable
+            .select(VulnerabilityResolutionDefinitionsTable.columns)
+            .where {
+                (VulnerabilityResolutionDefinitionsTable.repositoryId eq ortRun.repositoryId) and
+                        (VulnerabilityResolutionDefinitionsTable.archived eq false)
+            }
+            .associateBy({ row -> row[VulnerabilityResolutionDefinitionsTable.id].value }, { row ->
+                row[VulnerabilityResolutionDefinitionsTable.idMatchers].map { idMatcher ->
+                    VulnerabilityResolutionDao.getOrPut(
+                        VulnerabilityResolution(
+                            idMatcher,
+                            row[VulnerabilityResolutionDefinitionsTable.reason],
+                            row[VulnerabilityResolutionDefinitionsTable.comment]
+                        )
+                    )
+                }
+            })
+
+        val combinedVulnerabilityResolutions: SizedIterable<VulnerabilityResolutionDao> = SizedCollection(
+            buildList {
+                addAll(vulnerabilityResolutions.toList())
+                addAll(idToVulnerabilityResolutionDaos.values.flatten())
+            }.distinctBy { it.id.value }
+        )
+
+        val repositoryConfiguration = RepositoryConfigurationDao.new {
             this.ortRun = OrtRunDao[ortRunId]
             this.repositoryAnalyzerConfiguration = analyzerConfig?.let {
                 RepositoryAnalyzerConfigurationDao.getOrPut(it)
@@ -66,8 +102,7 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
             this.issueResolutions = mapAndDeduplicate(resolutions.issues, IssueResolutionDao::getOrPut)
             this.ruleViolationResolutions =
                 mapAndDeduplicate(resolutions.ruleViolations, RuleViolationResolutionDao::getOrPut)
-            this.vulnerabilityResolutions =
-                mapAndDeduplicate(resolutions.vulnerabilities, VulnerabilityResolutionDao::getOrPut)
+            this.vulnerabilityResolutions = combinedVulnerabilityResolutions
             this.curations = mapAndDeduplicate(curations.packages, ::createPackageCuration)
             this.licenseFindingCurations =
                 mapAndDeduplicate(curations.licenseFindings, LicenseFindingCurationDao::getOrPut)
@@ -78,6 +113,19 @@ class DaoRepositoryConfigurationRepository(private val db: Database) : Repositor
                 mapAndDeduplicate(licenseChoices.packageLicenseChoices, ::createPackageLicenseChoice)
             this.provenanceSnippetChoices = mapAndDeduplicate(provenanceSnippetChoices, SnippetChoicesDao::getOrPut)
         }.mapToModel()
+
+        idToVulnerabilityResolutionDaos.forEach {
+                (vulnerabilityResolutionDefinitionId, vulnerabilityResolutionDaoList) ->
+            vulnerabilityResolutionDaoList.forEach {
+                RepositoryConfigurationsVulnerabilityResolutionsTable.addDefinitionId(
+                    repositoryConfiguration.id,
+                    it.id.value,
+                    vulnerabilityResolutionDefinitionId
+                )
+            }
+        }
+
+        repositoryConfiguration
     }
 
     override fun get(id: Long): RepositoryConfiguration? = db.entityQuery {

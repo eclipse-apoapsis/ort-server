@@ -25,6 +25,7 @@ import kotlinx.datetime.Instant
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
+import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.NestedRepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.VcsInfoDao
 import org.eclipse.apoapsis.ortserver.model.AdvisorJob
@@ -73,6 +74,7 @@ import org.eclipse.apoapsis.ortserver.services.ResourceNotFoundException
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.update
 
 import org.ossreviewtoolkit.model.FileList
 import org.ossreviewtoolkit.model.OrtResult
@@ -339,6 +341,17 @@ class OrtRunService(
     }
 
     /**
+     * Return the ID of the repository for the provided [ortRunId] or `null` if the run does not exist.
+     */
+    fun getRepositoryIdForOrtRun(ortRunId: Long) = db.blockingQuery {
+        OrtRunsTable
+            .select(OrtRunsTable.repositoryId)
+            .where { OrtRunsTable.id eq ortRunId }
+            .singleOrNull()
+            ?.get(OrtRunsTable.repositoryId)?.value
+    }
+
+    /**
      * Return the [NotifierJob] for the provided [id] or `null` if the run does not exist.
      */
     fun getNotifierJob(id: Long) = db.blockingQuery { notifierJobRepository.get(id) }
@@ -436,6 +449,18 @@ class OrtRunService(
                 RUN_ID_LABEL to ortRun.id.toString()
             )
         )
+    }
+
+    /**
+     * Mark the ORT runs with the given [ortRunIds] as outdated with the provided [outdatedMessage].
+     */
+    fun markAsOutdated(ortRunIds: List<Long>, outdatedMessage: String) {
+        db.blockingQuery {
+            OrtRunsTable.update({ OrtRunsTable.id inList ortRunIds }) {
+                it[OrtRunsTable.outdated] = true
+                it[OrtRunsTable.outdatedMessage] = outdatedMessage
+            }
+        }
     }
 
     /**
