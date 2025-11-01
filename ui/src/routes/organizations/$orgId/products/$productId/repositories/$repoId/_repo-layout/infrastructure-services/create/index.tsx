@@ -61,7 +61,7 @@ import { ALL_ITEMS } from '@/lib/constants.ts';
 import { toast } from '@/lib/toast.ts';
 
 const formSchema = z.object({
-  name: z.string(),
+  name: z.string().trim(),
   url: z.url(),
   description: z.string().optional(),
   usernameSecretRef: z.string(),
