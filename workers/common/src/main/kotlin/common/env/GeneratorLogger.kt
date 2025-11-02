@@ -33,7 +33,7 @@ internal object GeneratorLogger {
 
     internal fun entryAdded(entry: String, targetFile: String, service: InfrastructureService) {
         logger.debug(
-            "Added entry '{}' to '{}' file for '{}', '{}', '{}'.",
+            "Added entry '{}' to file '{}' for service '{}', organization '{}', product '{}'.",
             entry,
             targetFile,
             service.name,
@@ -43,14 +43,14 @@ internal object GeneratorLogger {
     }
 
     internal fun entryAdded(entry: String, targetFile: String) {
-        logger.debug("Added entry '{}' to '{}' file.", entry, targetFile)
+        logger.debug("Added entry '{}' to file '{}'.", entry, targetFile)
     }
 
     internal fun proxySettingAdded(entry: String, targetFile: String) {
-        logger.debug("Added proxy setting '{}' to {} file.", entry, targetFile)
+        logger.debug("Added proxy setting '{}' to file '{}'.", entry, targetFile)
     }
 
     internal fun error(errorMsg: String, targetFile: String, exception: Throwable) {
-        logger.error("Error occurred while generating '{}': \n{}\n", targetFile, errorMsg, exception)
+        logger.error("Error occurred while generating file '{}': \n{}\n", targetFile, errorMsg, exception)
     }
 }
