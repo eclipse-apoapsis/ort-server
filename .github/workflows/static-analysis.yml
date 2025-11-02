@@ -142,7 +142,7 @@ jobs:
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
     - name: Validate Repository Renovate Config
-      run: npx -y --package renovate -- renovate-config-validator renovate.json
+      run: npx -y --package renovate@latest -- renovate-config-validator renovate.json
 
   reuse-tool:
     runs-on: ubuntu-24.04
