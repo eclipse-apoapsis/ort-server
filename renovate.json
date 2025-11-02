@@ -12,7 +12,7 @@
       "customType": "regex",
       "datasourceTemplate": "docker",
       "depNameTemplate": "eclipse-temurin",
-      "fileMatch": ["^gradle\\/libs\\.versions\\.toml$"],
+      "managerFilePatterns": ["^gradle\\/libs\\.versions\\.toml$"],
       "matchStrings": ["eclipseTemurin = \"(?<currentValue>[^@]+)(?:@(?<currentDigest>sha256:[a-f0-9]+))\""],
       "versioningTemplate": "docker"
     }
@@ -29,11 +29,11 @@
       "enabled": false
     },
     {
-      "matchPackagePrefixes": ["@tanstack/"],
+      "matchPackageNames": ["@tanstack/**"],
       "schedule": ["after 9pm on sunday"]
     },
     {
-      "matchPackagePrefixes": ["aws.sdk.kotlin:"],
+      "matchPackageNames": ["aws.sdk.kotlin:**"],
       "schedule": ["after 9pm on sunday"]
     },
     {
