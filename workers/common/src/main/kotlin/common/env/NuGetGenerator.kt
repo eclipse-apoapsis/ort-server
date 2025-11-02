@@ -30,13 +30,13 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NuGetDefinit
 class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
     companion object {
         /** The name of the configuration file created by this generator. */
-        private const val TARGET = ".nuget/NuGet/NuGet.Config"
+        private const val NUGET_CONFIG_PATH = ".nuget/NuGet/NuGet.Config"
     }
 
     override val environmentDefinitionType: Class<NuGetDefinition> = NuGetDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<NuGetDefinition>) {
-        builder.buildInUserHome(TARGET) {
+        builder.buildInUserHome(NUGET_CONFIG_PATH) {
             println("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
             println("<configuration>")
 
@@ -52,7 +52,7 @@ class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
                 GeneratorLogger.entryAdded(
                     "package source ${definition.sourceName}:${definition.sourcePath} " +
                         "protocol version: ${definition.sourceProtocolVersion.orEmpty()}",
-                    TARGET,
+                    NUGET_CONFIG_PATH,
                     definition.service
                 )
             }
@@ -68,7 +68,7 @@ class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
 
                 GeneratorLogger.entryAdded(
                     "package credentials ${definition.sourceName}:username/password",
-                    TARGET,
+                    NUGET_CONFIG_PATH,
                     definition.service
                 )
             }
@@ -81,7 +81,7 @@ class NuGetGenerator : EnvironmentConfigGenerator<NuGetDefinition> {
 
                 GeneratorLogger.entryAdded(
                     "auth api key ${definition.sourcePath}:apiKey",
-                    TARGET,
+                    NUGET_CONFIG_PATH,
                     definition.service
                 )
             }
