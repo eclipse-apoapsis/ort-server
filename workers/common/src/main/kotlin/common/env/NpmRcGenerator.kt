@@ -78,7 +78,8 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 val serviceUri = definition.service.url.takeIf { it.endsWith('/') }
                     ?: (definition.service.url + "/")
                 val uriFragment = serviceUri.substringAfter(':')
-                definition.scope?.let {
+
+                if (!definition.scope.isNullOrBlank()) {
                     println("@${definition.scope}:registry=$serviceUri")
                     GeneratorLogger.entryAdded(
                         "@${definition.scope}:registry=$serviceUri",
@@ -89,10 +90,15 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
 
                 printLines(generateAuthentication(builder, definition, uriFragment))
 
-                definition.email?.let {
-                    println("$uriFragment:email=$it")
-                    GeneratorLogger.entryAdded("$uriFragment:email=$it", NPMRC_FILE_NAME, definition.service)
+                if (!definition.email.isNullOrBlank()) {
+                    println("$uriFragment:email=${definition.email}")
+                    GeneratorLogger.entryAdded(
+                        "$uriFragment:email=${definition.email}",
+                        NPMRC_FILE_NAME,
+                        definition.service
+                    )
                 }
+
                 if (definition.alwaysAuth) {
                     println("$uriFragment:always-auth=true")
                     GeneratorLogger.entryAdded("$uriFragment:always-auth=true", NPMRC_FILE_NAME, definition.service)
