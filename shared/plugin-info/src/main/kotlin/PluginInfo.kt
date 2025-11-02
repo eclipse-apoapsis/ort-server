@@ -59,16 +59,12 @@ object PluginInfo {
      * their type.
      */
     private fun loadPluginInfo(): Map<PluginType, List<TypedPluginId>> =
-        javaClass.getResourceAsStream(PLUGIN_SUMMARY_RESOURCE)?.use { inputStream ->
-            inputStream.bufferedReader().use { reader ->
-                reader.readLines().mapNotNullTo(mutableSetOf()) { line ->
-                    line.split(',').takeIf { it.size == 3 }?.let { parts ->
-                        TypedPluginId(
-                            PluginId(parts[0]),
-                            PluginType(parts[1])
-                        )
-                    }
-                }
+        javaClass.getResource(PLUGIN_SUMMARY_RESOURCE)?.readText()?.lines()?.mapNotNullTo(mutableSetOf()) { line ->
+            line.split(',').takeIf { it.size == 3 }?.let { parts ->
+                TypedPluginId(
+                    PluginId(parts[0]),
+                    PluginType(parts[1])
+                )
             }
         }?.groupBy { it.type }?.also {
             logger.info("Loaded plugin summary from resource '$PLUGIN_SUMMARY_RESOURCE': ${it.size} plugins found.")
