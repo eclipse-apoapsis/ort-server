@@ -51,6 +51,6 @@ internal object GeneratorLogger {
     }
 
     internal fun error(errorMsg: String, targetFile: String, exception: Throwable) {
-        logger.error("Error occurred while generating file '{}': \n{}\n", targetFile, errorMsg, exception)
+        logger.error("Error occurred while generating file '$targetFile': $errorMsg", exception)
     }
 }
