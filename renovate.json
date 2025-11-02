@@ -38,7 +38,7 @@
     },
     {
       "matchPackageNames": ["eclipse-temurin"],
-      "allowedVersions": "< 18"
+      "allowedVersions": "< 22"
     },
     {
       "matchPackageNames": ["eslint"],
