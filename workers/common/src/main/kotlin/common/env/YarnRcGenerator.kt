@@ -33,7 +33,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnDefiniti
 class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
     companion object {
         /** The name of the configuration file created by this generator. */
-        private const val TARGET = ".yarnrc.yml"
+        private const val YARNRC_FILE_NAME = ".yarnrc.yml"
 
         /**
          * Print a line for the given [key] and [value] if the value is not null.
@@ -41,7 +41,7 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
         private fun PrintWriter.printOptionalSetting(key: String, value: String?) {
             value?.let {
                 println("$key: \"${value}\"")
-                GeneratorLogger.entryAdded("$key: \"$value\"", TARGET)
+                GeneratorLogger.entryAdded("$key: \"$value\"", YARNRC_FILE_NAME)
             }
         }
     }
@@ -49,7 +49,7 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
     override val environmentDefinitionType: Class<YarnDefinition> = YarnDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<YarnDefinition>) {
-        builder.buildInUserHome(TARGET) {
+        builder.buildInUserHome(YARNRC_FILE_NAME) {
             printProxySettings { proxyConfig ->
                 printOptionalSetting("httpProxy", proxyConfig.httpProxy)
                 printOptionalSetting("httpsProxy", proxyConfig.httpsProxy)
@@ -89,7 +89,7 @@ class YarnRcGenerator : EnvironmentConfigGenerator<YarnDefinition> {
                     }
                 }
 
-                GeneratorLogger.entryAdded(logEntry.toString(), TARGET, definition.service)
+                GeneratorLogger.entryAdded(logEntry.toString(), YARNRC_FILE_NAME, definition.service)
             }
         }
     }

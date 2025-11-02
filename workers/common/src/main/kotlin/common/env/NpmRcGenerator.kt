@@ -38,7 +38,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.NpmDefinitio
 class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
     companion object {
         /** The name of the configuration file created by this generator. */
-        private const val TARGET = ".npmrc"
+        private const val NPMRC_FILE_NAME = ".npmrc"
 
         /** The NPM configuration option to define the HTTP proxy. */
         private const val PROXY_SETTING = "proxy"
@@ -68,7 +68,7 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
     override val environmentDefinitionType: Class<NpmDefinition> = NpmDefinition::class.java
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<NpmDefinition>) {
-        builder.buildInUserHome(TARGET) {
+        builder.buildInUserHome(NPMRC_FILE_NAME) {
             definitions.forEachIndexed { index, definition ->
                 if (index > 0) {
                     // Add an empty line between two definitions.
@@ -80,18 +80,22 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 val uriFragment = serviceUri.substringAfter(':')
                 definition.scope?.let {
                     println("@${definition.scope}:registry=$serviceUri")
-                    GeneratorLogger.entryAdded("@${definition.scope}:registry=$serviceUri", TARGET, definition.service)
+                    GeneratorLogger.entryAdded(
+                        "@${definition.scope}:registry=$serviceUri",
+                        NPMRC_FILE_NAME,
+                        definition.service
+                    )
                 }
 
                 printLines(generateAuthentication(builder, definition, uriFragment))
 
                 definition.email?.let {
                     println("$uriFragment:email=$it")
-                    GeneratorLogger.entryAdded("$uriFragment:email=$it", TARGET, definition.service)
+                    GeneratorLogger.entryAdded("$uriFragment:email=$it", NPMRC_FILE_NAME, definition.service)
                 }
                 if (definition.alwaysAuth) {
                     println("$uriFragment:always-auth=true")
-                    GeneratorLogger.entryAdded("$uriFragment:always-auth=true", TARGET, definition.service)
+                    GeneratorLogger.entryAdded("$uriFragment:always-auth=true", NPMRC_FILE_NAME, definition.service)
                 }
             }
 
@@ -99,13 +103,13 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 println()
 
                 printProxySetting(PROXY_SETTING, proxyConfig.httpProxy)
-                GeneratorLogger.proxySettingAdded("$PROXY_SETTING=${proxyConfig.httpProxy}", TARGET)
+                GeneratorLogger.proxySettingAdded("$PROXY_SETTING=${proxyConfig.httpProxy}", NPMRC_FILE_NAME)
 
                 printProxySetting(HTTPS_PROXY_SETTING, proxyConfig.httpsProxy)
-                GeneratorLogger.proxySettingAdded("$HTTPS_PROXY_SETTING=${proxyConfig.httpsProxy}", TARGET)
+                GeneratorLogger.proxySettingAdded("$HTTPS_PROXY_SETTING=${proxyConfig.httpsProxy}", NPMRC_FILE_NAME)
 
                 printProxySetting(NO_PROXY_SETTING, proxyConfig.noProxy)
-                GeneratorLogger.proxySettingAdded("$NO_PROXY_SETTING=${proxyConfig.noProxy}", TARGET)
+                GeneratorLogger.proxySettingAdded("$NO_PROXY_SETTING=${proxyConfig.noProxy}", NPMRC_FILE_NAME)
             }
         }
     }
@@ -122,7 +126,11 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
         with(definition) {
             when (authMode) {
                 NpmAuthMode.PASSWORD -> {
-                    GeneratorLogger.entryAdded("$fragment:username=[username],_password=[password]", TARGET, service)
+                    GeneratorLogger.entryAdded(
+                        "$fragment:username=[username],_password=[password]",
+                        NPMRC_FILE_NAME,
+                        service
+                    )
 
                     """
                     $fragment:username=${builder.secretRef(definition.service.usernameSecret)}
@@ -132,7 +140,11 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
 
                 NpmAuthMode.PASSWORD_BASE64 -> {
                     val password = builder.resolverFun(service.passwordSecret).base64()
-                    GeneratorLogger.entryAdded("$fragment:username=[username],_password=[base64]", TARGET, service)
+                    GeneratorLogger.entryAdded(
+                        "$fragment:username=[username],_password=[base64]",
+                        NPMRC_FILE_NAME,
+                        service
+                    )
 
                     """
                     $fragment:username=${builder.secretRef(service.usernameSecret)}
@@ -141,13 +153,13 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                 }
 
                 NpmAuthMode.PASSWORD_AUTH -> {
-                    GeneratorLogger.entryAdded("$fragment:_auth=[password]", TARGET, service)
+                    GeneratorLogger.entryAdded("$fragment:_auth=[password]", NPMRC_FILE_NAME, service)
 
                     "$fragment:_auth=${builder.secretRef(service.passwordSecret)}"
                 }
 
                 NpmAuthMode.PASSWORD_AUTH_TOKEN -> {
-                    GeneratorLogger.entryAdded("$fragment:_authToken=[token]", TARGET, service)
+                    GeneratorLogger.entryAdded("$fragment:_authToken=[token]", NPMRC_FILE_NAME, service)
 
                     "$fragment:_authToken=${builder.secretRef(service.passwordSecret)}"
                 }
@@ -159,7 +171,7 @@ class NpmRcGenerator : EnvironmentConfigGenerator<NpmDefinition> {
                         service.passwordSecret
                     )
                     val auth = "${secretValues[service.usernameSecret]}:${secretValues[service.passwordSecret]}"
-                    GeneratorLogger.entryAdded("$fragment:_auth=[base64]", TARGET, service)
+                    GeneratorLogger.entryAdded("$fragment:_auth=[base64]", NPMRC_FILE_NAME, service)
 
                     "$fragment:_auth=${auth.base64()}"
                 }

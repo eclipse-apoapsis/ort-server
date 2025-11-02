@@ -43,7 +43,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentS
 class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> {
     companion object {
         /** The name of the file to be generated. */
-        private const val TARGET_NAME = ".netrc"
+        private const val NETRC_FILE_NAME = ".netrc"
 
         /**
          * Obtain the host name of this [InfrastructureService] from its URL or *null* if the URL is not valid.
@@ -52,7 +52,7 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
             runCatching {
                 URI.create(url).host
             }.onFailure {
-                GeneratorLogger.error("Could not extract host for service '$this'. Ignoring it.", TARGET_NAME, it)
+                GeneratorLogger.error("Could not extract host for service '$this'. Ignoring it.", NETRC_FILE_NAME, it)
             }.getOrNull()
     }
 
@@ -68,7 +68,7 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
             .values
             .map { it.first() }
 
-        builder.buildInUserHome(TARGET_NAME) {
+        builder.buildInUserHome(NETRC_FILE_NAME) {
             deDuplicatedServices.forEach { service ->
                 val host = URI.create(service.url).host
                 val username = builder.secretRef(service.usernameSecret)
@@ -76,7 +76,7 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
 
                 println("machine $host login $username password $password")
 
-                GeneratorLogger.entryAdded("'$host:username/password'", TARGET_NAME, service)
+                GeneratorLogger.entryAdded("'$host:username/password'", NETRC_FILE_NAME, service)
             }
         }
     }
