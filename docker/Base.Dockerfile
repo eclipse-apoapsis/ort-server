@@ -22,7 +22,7 @@
 # setting file permissions for the user, setting up certificates, etc. And, it defines the temurin base image.
 
 # When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
-ARG TEMURIN_VERSION=21.0.7_6-jdk-jammy@sha256:746ad7128069fdaa77df1f06a0463ad50f4ae787648cbbcc6d6ab0e702e6c97e
+ARG TEMURIN_VERSION=21.0.8_9-jdk-jammy@sha256:adb9b2d15adf1833d9dae0bdc1cff61ef5a804dc58dfbfb34269f32432b2e5dc
 
 FROM eclipse-temurin:$TEMURIN_VERSION
 
