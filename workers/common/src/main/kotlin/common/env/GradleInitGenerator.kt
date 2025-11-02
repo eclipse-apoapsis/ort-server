@@ -68,20 +68,21 @@ class GradleInitGenerator : EnvironmentConfigGenerator<GradleDefinition> {
 
     override suspend fun generate(builder: ConfigFileBuilder, definitions: Collection<GradleDefinition>) {
         builder.adminConfig.mavenCentralMirror?.let { mirror ->
-            javaClass.getResourceAsStream(TEMPLATE_NAME).use { it?.readAllBytes() }?.let { template ->
-                builder.buildInUserHome(TARGET_NAME) {
-                    val variables = mapOf(
-                        "MIRROR_URL" to mirror.url,
-                        "MIRROR_USERNAME" to mirror.usernameSecret?.let {
-                            """"${builder.infraSecretResolverFun(Path(it))}""""
-                        },
-                        "MIRROR_PASSWORD" to mirror.passwordSecret?.let {
-                            """"${builder.infraSecretResolverFun(Path(it))}""""
-                        }
-                    )
-                    val content = replaceTemplateVariables(template.decodeToString(), variables)
-                    println(content)
-                }
+            val template = javaClass.getResource(TEMPLATE_NAME).readText()
+
+            builder.buildInUserHome(TARGET_NAME) {
+                val variables = mapOf(
+                    "MIRROR_URL" to mirror.url,
+                    "MIRROR_USERNAME" to mirror.usernameSecret?.let {
+                        """"${builder.infraSecretResolverFun(Path(it))}""""
+                    },
+                    "MIRROR_PASSWORD" to mirror.passwordSecret?.let {
+                        """"${builder.infraSecretResolverFun(Path(it))}""""
+                    }
+                )
+
+                val content = replaceTemplateVariables(template, variables)
+                println(content)
             }
         }
     }
