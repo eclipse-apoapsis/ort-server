@@ -66,8 +66,8 @@ class KeycloakUserService(
         keycloakClient.getUser(UserName(id)).toOrtUser()
 
     override suspend fun getUsersById(ids: Set<String>): Set<User> = withContext(Dispatchers.IO) {
-        ids.map { async { getUserById(it) } }
-            .mapTo(mutableSetOf()) { it.await() }
+        ids.map { async { runCatching { getUserById(it) } } }
+            .mapNotNullTo(mutableSetOf()) { it.await().getOrNull() }
     }
 
     override suspend fun existsUser(id: String): Boolean {
