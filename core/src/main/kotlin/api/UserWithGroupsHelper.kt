@@ -21,6 +21,9 @@ package org.eclipse.apoapsis.ortserver.core.api
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToGroup
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.User
 import org.eclipse.apoapsis.ortserver.model.UserGroup
@@ -65,5 +68,13 @@ internal object UserWithGroupsHelper {
             user.key.mapToApi(),
             user.value.map { it.mapToApi() }.toList().sortedBy { it.getRank() }.reversed()
         )
+    }
+
+    internal suspend fun Map<String, Role>.mapToApi(userService: UserService): List<UserWithGroups> {
+        val userMapping = userService.getUsersById(keys).associateBy(User::username)
+
+        return filter { it.key in userMapping }
+            .mapKeys { userMapping.getValue(it.key) }
+            .mapValues { (_, role) -> setOf(role.mapToGroup()) }.mapToApi()
     }
 }

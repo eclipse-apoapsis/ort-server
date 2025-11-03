@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
@@ -38,7 +40,8 @@ import org.jetbrains.exposed.sql.Database
 class OrganizationService(
     private val db: Database,
     private val organizationRepository: OrganizationRepository,
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val authorizationService: AuthorizationService
 ) {
     /**
      * Create an organization.
@@ -82,6 +85,23 @@ class OrganizationService(
         filter: FilterParameter? = null
     ): ListQueryResult<Organization> = db.dbQuery {
         organizationRepository.list(parameters, filter)
+    }
+
+    /**
+     * List all organizations that are visible to the given [userId] according to the given [parameters] and [filter].
+     */
+    suspend fun listOrganizationsForUser(
+        userId: String,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        filter: FilterParameter? = null
+    ): ListQueryResult<Organization> {
+        val orgFilter = authorizationService.filterHierarchyIds(userId, OrganizationRole.READER)
+
+        return organizationRepository.list(
+            parameters = parameters,
+            nameFilter = filter,
+            hierarchyFilter = orgFilter
+        )
     }
 
     /**

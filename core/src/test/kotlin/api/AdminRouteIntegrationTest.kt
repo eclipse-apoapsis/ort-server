@@ -41,7 +41,6 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.ContentManagementSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.User
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
@@ -55,21 +54,6 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
     val testEmail = "test@test.com"
     val testPassword = "password123"
     val testTemporary = true
-
-    "GET /admin/sync-roles" should {
-        "start sync process for permissions and roles" {
-            integrationTestApplication {
-                val response = superuserClient.get("/api/v1/admin/sync-roles")
-                response shouldHaveStatus HttpStatusCode.Accepted
-            }
-        }
-
-        "require superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Accepted) {
-                get("/api/v1/admin/sync-roles")
-            }
-        }
-    }
 
     "GET /admin/users" should {
         "return a list of users" {
@@ -89,7 +73,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.OK) {
+            requestShouldRequireSuperuser(HttpStatusCode.OK) {
                 get("/api/v1/admin/users")
             }
         }
@@ -138,7 +122,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Created) {
+            requestShouldRequireSuperuser(HttpStatusCode.Created) {
                 post("/api/v1/admin/users") {
                     setBody(
                         PostUser(
@@ -180,7 +164,7 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.NoContent) {
+            requestShouldRequireSuperuser(HttpStatusCode.NoContent) {
                 delete("/api/v1/admin/users") {
                     parameter("username", TEST_USER.username.value)
                 }

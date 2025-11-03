@@ -21,6 +21,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.routes
 
+import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.interfaces.Payload
 
 import io.github.smiley4.ktoropenapi.config.RouteConfig
@@ -30,8 +31,13 @@ import io.github.smiley4.ktoropenapi.patch
 import io.github.smiley4.ktoropenapi.post
 import io.github.smiley4.ktoropenapi.put
 
+import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.principal
+import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
@@ -40,8 +46,43 @@ import io.ktor.server.routing.RoutingPipelineCall
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.util.AttributeKey
 
+import java.net.URI
+import java.util.concurrent.TimeUnit
+
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+
+/**
+ * Configure the authentication for this server application.
+ *
+ * This function sets up the Ktor plugins for authentication using JWT tokens. It configures the creation of an
+ * [OrtServerPrincipal] instance for authorized requests.
+ */
+fun Application.configureAuthentication(config: ApplicationConfig, authorizationService: AuthorizationService) {
+    val issuer = config.property("jwt.issuer").getString()
+    val jwksUri = URI.create(config.property("jwt.jwksUri").getString()).toURL()
+    val configuredRealm = config.property("jwt.realm").getString()
+    val requiredAudience = config.property("jwt.audience").getString()
+    val jwkProvider = JwkProviderBuilder(jwksUri)
+        .cached(10, 24, TimeUnit.HOURS)
+        .rateLimited(10, 1, TimeUnit.MINUTES)
+        .build()
+
+    install(Authentication) {
+        jwt(AuthenticationProviders.TOKEN_PROVIDER) {
+            realm = configuredRealm
+            verifier(jwkProvider, issuer) {
+                acceptLeeway(10)
+            }
+
+            validate { credential ->
+                credential.payload.takeIf { it.audience.contains(requiredAudience) }?.let {
+                    createAuthorizedPrincipal(authorizationService, credential.payload)
+                }
+            }
+        }
+    }
+}
 
 /**
  * Create an [OrtServerPrincipal] for this [ApplicationCall]. If an [AuthorizationChecker] is present in the current
