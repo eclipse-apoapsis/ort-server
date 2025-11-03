@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.service
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeSingleton
@@ -29,6 +30,7 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 
 import org.eclipse.apoapsis.ortserver.components.authorization.db.RoleAssignmentsTable
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
@@ -105,36 +107,33 @@ class DbAuthorizationServiceTest : WordSpec() {
                 }
             }
 
-            "return an object with no permissions if resolving the product ID fails" {
+            "throw an InvalidHierarchyIdException if resolving the product ID fails" {
                 val service = createService()
-
                 val missingProductId = ProductId(-1L)
 
-                val effectiveRole = service.getEffectiveRole(
-                    USER_ID,
-                    missingProductId
-                )
+                val exception = shouldThrow<InvalidHierarchyIdException> {
+                    service.getEffectiveRole(
+                        USER_ID,
+                        missingProductId
+                    )
+                }
 
-                effectiveRole.elementId shouldBe CompoundHierarchyId.forProduct(OrganizationId(-1L), missingProductId)
-                checkPermissions(effectiveRole)
+                exception.hierarchyId shouldBe missingProductId
             }
 
-            "return an object with no permissions if resolving the repository ID fails" {
+            "throw an IllegalHierarchyIdException if resolving the repository ID fails" {
                 val service = createService()
 
                 val missingRepositoryId = RepositoryId(-1L)
 
-                val effectiveRole = service.getEffectiveRole(
-                    USER_ID,
-                    missingRepositoryId
-                )
+                val exception = shouldThrow<InvalidHierarchyIdException> {
+                    service.getEffectiveRole(
+                        USER_ID,
+                        missingRepositoryId
+                    )
+                }
 
-                effectiveRole.elementId shouldBe CompoundHierarchyId.forRepository(
-                    OrganizationId(-1L),
-                    ProductId(-1L),
-                    missingRepositoryId
-                )
-                checkPermissions(effectiveRole)
+                exception.hierarchyId shouldBe missingRepositoryId
             }
 
             "return an object with no permissions for a user without role assignments" {
@@ -434,16 +433,20 @@ class DbAuthorizationServiceTest : WordSpec() {
                 }
             }
 
-            "handle an invalid compound hierarchy ID gracefully" {
+            "throw an InvalidHierarchyIdException for an invalid hierarchy ID" {
                 val service = createService()
+                val invalidId = ProductId(-1L)
 
-                val effectiveRole = service.checkPermissions(
-                    USER_ID,
-                    ProductId(-1L),
-                    HierarchyPermissions.permissions(ProductPermission.READ)
-                )
+                val exception = shouldThrow<InvalidHierarchyIdException> {
+                    service.checkPermissions(
+                        USER_ID,
+                        invalidId,
+                        HierarchyPermissions.permissions(ProductPermission.READ)
+                    )
+                }
 
-                effectiveRole should beNull()
+                exception.hierarchyId shouldBe invalidId
+                exception.message shouldContain "Could not resolve hierarchy ID"
             }
         }
 

@@ -96,13 +96,8 @@ class DbAuthorizationService(
         userId: String,
         hierarchyId: HierarchyId,
         checker: PermissionChecker
-    ): EffectiveRole? {
-        val compoundHierarchyId = resolveCompoundId(hierarchyId)
-
-        return compoundHierarchyId.takeUnless { it.isInvalid() }?.let {
-            checkPermissions(userId, it, checker)
-        }
-    }
+    ): EffectiveRole? =
+        checkPermissions(userId, resolveCompoundId(hierarchyId), checker)
 
     override suspend fun getEffectiveRole(
         userId: String,
@@ -129,21 +124,8 @@ class DbAuthorizationService(
     override suspend fun getEffectiveRole(
         userId: String,
         hierarchyId: HierarchyId
-    ): EffectiveRole {
-        val compoundHierarchyId = resolveCompoundId(hierarchyId)
-
-        return if (compoundHierarchyId.isInvalid()) {
-            logger.warn("Failed to resolve hierarchy ID $hierarchyId.")
-
-            EffectiveRoleImpl(
-                elementId = compoundHierarchyId,
-                isSuperuser = false,
-                permissions = PermissionChecker()
-            )
-        } else {
-            getEffectiveRole(userId, compoundHierarchyId)
-        }
-    }
+    ): EffectiveRole =
+        getEffectiveRole(userId, resolveCompoundId(hierarchyId))
 
     override suspend fun assignRole(
         userId: String,
@@ -272,6 +254,11 @@ class DbAuthorizationService(
             is RepositoryId -> {
                 val (orgId, prodId) = resolveOrganizationAndProduct(hierarchyId)
                 CompoundHierarchyId.forRepository(orgId, prodId, hierarchyId)
+            }
+        }.also {
+            if (it.isInvalid()) {
+                logger.warn("Failed to resolve hierarchy ID $hierarchyId.")
+                throw InvalidHierarchyIdException(hierarchyId)
             }
         }
 
