@@ -50,6 +50,8 @@ import io.ktor.http.isSuccess
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.jvm.javaio.copyTo
 
+import io.mockk.mockk
+
 import java.io.File
 import java.io.IOException
 import java.util.EnumSet
@@ -84,22 +86,25 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.RuleViolation as ApiRuleViola
 import org.eclipse.apoapsis.ortserver.api.v1.model.Severity as ApiSeverity
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityWithDetails
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileCriteria
 import org.eclipse.apoapsis.ortserver.logaccess.LogFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.model.AdvisorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.LogLevel
 import org.eclipse.apoapsis.ortserver.model.LogSource
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
@@ -150,12 +155,14 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var productService: ProductService
 
     var repositoryId = -1L
+    lateinit var hierarchyId: CompoundHierarchyId
 
     beforeEach {
         organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository
+            dbExtension.fixtures.productRepository,
+            mockk()
         )
 
         productService = ProductService(
@@ -176,6 +183,11 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             productId = productId,
             description = "description"
         ).id
+        hierarchyId = CompoundHierarchyId.forRepository(
+            OrganizationId(orgId),
+            ProductId(productId),
+            RepositoryId(repositoryId)
+        )
 
         LogFileProviderFactoryForTesting.reset()
     }
@@ -331,7 +343,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 null
             )
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${run.id}")
             }
         }
@@ -425,7 +437,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 null
             )
 
-            requestShouldRequireRole(RepositoryPermission.DELETE.roleName(repositoryId), HttpStatusCode.NoContent) {
+            requestShouldRequireRole(RepositoryRole.ADMIN, hierarchyId, HttpStatusCode.NoContent) {
                 delete("/api/v1/runs/${run.id}")
             }
         }
@@ -565,7 +577,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         "require RepositoryPermission.READ_ORT_RUNS" {
             val run = prepareLogTest(EnumSet.of(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO))
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${run.id}/logs")
             }
         }
@@ -605,7 +617,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         "require RepositoryPermission.READ_ORT_RUNS" {
             val run = createReport()
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${run.id}/reporter/$reportFile")
             }
         }
@@ -814,7 +826,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 null
             )
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${run.id}/vulnerabilities")
             }
         }
@@ -828,7 +840,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 jobConfigurations = JobConfigurations()
             )
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${ortRun.id}/issues")
             }
         }
@@ -1370,7 +1382,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 null
             )
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${run.id}/packages")
             }
         }
@@ -1474,7 +1486,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 null
             )
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${run.id}/projects")
             }
         }
@@ -1664,7 +1676,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME) {
+            requestShouldRequireSuperuser {
                 get("/api/v1/runs")
             }
         }
@@ -1678,7 +1690,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 jobConfigurations = JobConfigurations()
             )
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${ortRun.id}/rule-violations")
             }
         }
@@ -2189,7 +2201,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 jobConfigurations = JobConfigurations()
             )
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/${ortRun.id}/statistics")
             }
         }
@@ -2257,7 +2269,7 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
                 jobConfigurations = JobConfigurations()
             ).id
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(repositoryId)) {
+            requestShouldRequireRole(RepositoryRole.READER, hierarchyId) {
                 get("/api/v1/runs/$ortRunId/packages/licenses")
             }
         }

@@ -29,7 +29,8 @@ import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.AuthorizationException
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthorizationException
+import org.eclipse.apoapsis.ortserver.components.authorization.service.InvalidHierarchyIdException
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InvalidSecretReferenceException
 import org.eclipse.apoapsis.ortserver.core.api.AuthenticationException
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
@@ -60,6 +61,9 @@ fun Application.configureStatusPages() {
         }
         exception<EntityNotFoundException> { call, _ ->
             call.respond(HttpStatusCode.NotFound)
+        }
+        exception<InvalidHierarchyIdException> { call, e ->
+            call.respondError(HttpStatusCode.NotFound, e.message.orEmpty())
         }
         exception<InvalidSecretReferenceException> { call, e ->
             call.respondError(HttpStatusCode.BadRequest, "Secret reference could not be resolved.", e.message)
