@@ -143,6 +143,22 @@ class KeycloakUserServiceTest : WordSpec({
 
             users shouldContainExactly expectedUsers
         }
+
+        "ignore unknown user IDs" {
+            val existingKeycloakUser = createKeycloakUser(1)
+            val expectedUser = createUser(1)
+            val userIds = setOf(existingKeycloakUser.username.value, "non-existing-user")
+
+            val client = mockk<KeycloakClient> {
+                coEvery { getUser(existingKeycloakUser.username) } returns existingKeycloakUser
+                coEvery { getUser(UserName("non-existing-user")) } throws KeycloakClientException("User not found")
+            }
+
+            val service = KeycloakUserService(client)
+            val users = service.getUsersById(userIds)
+
+            users shouldContainExactly setOf(expectedUser)
+        }
     }
 
     "userExists" should {
