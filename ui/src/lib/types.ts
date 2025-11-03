@@ -94,7 +94,7 @@ export const npmEnvironmentDefinitions: EnvironmentDefinitions = {
       service: '',
       scope: '',
       email: '',
-      authMode: NpmAuthMode.USERNAME_PASSWORD_AUTH,
+      authMode: NpmAuthMode.PASSWORD,
     },
   ],
 };
