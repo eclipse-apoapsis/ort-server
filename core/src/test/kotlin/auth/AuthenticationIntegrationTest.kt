@@ -22,9 +22,8 @@ package org.eclipse.apoapsis.ortserver.components.authorization
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
@@ -47,13 +46,13 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUserRoles
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.SecurityConfigurations
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthenticationProviders
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER_PASSWORD
 import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 class AuthenticationIntegrationTest : StringSpec({
@@ -81,7 +80,7 @@ class AuthenticationIntegrationTest : StringSpec({
         ortServerTestApplication(config = TestConfig.TestAuth, additionalConfigs = keycloakConfig + jwtConfig) {
             routing {
                 route("api/v1") {
-                    authenticate(SecurityConfigurations.TOKEN) {
+                    authenticate(AuthenticationProviders.TOKEN_PROVIDER) {
                         route("test") {
                             get {
                                 onCall()
@@ -131,19 +130,20 @@ class AuthenticationIntegrationTest : StringSpec({
         }
     }
 
-    "A principal with the correct client roles should be created" {
+    "A principal with correct properties should be created" {
         keycloak.keycloakAdminClient.setUpClientScope(TEST_SUBJECT_CLIENT)
-        keycloak.keycloakAdminClient.setUpUserRoles(TEST_USER.username.value, listOf("role-1", "role-2"))
 
         authTestApplication(onCall = {
-            val principal = call.principal<OrtPrincipal>(SecurityConfigurations.TOKEN)
+            val principal = call.principal<OrtServerPrincipal>(AuthenticationProviders.TOKEN_PROVIDER)
 
             principal.shouldNotBeNull()
-            principal.roles should containExactlyInAnyOrder("role-1", "role-2")
+            principal.username shouldBe TEST_USER.username.value
+            principal.effectiveRole.elementId shouldBe CompoundHierarchyId.WILDCARD
+            principal.effectiveRole.isSuperuser shouldBe false
         }) {
             val authenticatedClient = client.configureAuthentication(testUserClientConfig, json)
 
-            authenticatedClient.get("/api/v1/test")
+            authenticatedClient.get("/api/v1/test") shouldHaveStatus HttpStatusCode.OK
         }
     }
 })

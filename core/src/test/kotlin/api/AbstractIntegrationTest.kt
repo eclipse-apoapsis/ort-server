@@ -33,15 +33,15 @@ import kotlinx.serialization.json.Json
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUserRoles
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER_PASSWORD
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
@@ -50,8 +50,10 @@ import org.eclipse.apoapsis.ortserver.core.createJsonClient
 import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 @Suppress("UnnecessaryAbstractClass")
 abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit) : WordSpec() {
@@ -59,18 +61,16 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
 
     val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
         setUpUser(SUPERUSER, SUPERUSER_PASSWORD)
-        setUpUserRoles(SUPERUSER.username.value, listOf(Superuser.ROLE_NAME))
         setUpUser(TEST_USER, TEST_USER_PASSWORD)
         setUpClientScope(TEST_SUBJECT_CLIENT)
     }
 
-    val keycloakClient = keycloak.createKeycloakClientForTestRealm()
-
     private val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     private val jwtConfig = keycloak.createJwtConfigMapForTestRealm()
 
-    val secretValue = "secret-value"
     val secretErrorPath = "error-path"
+
+    private lateinit var authorizationService: AuthorizationService
 
     private val secretsConfig = mapOf(
         "${SecretStorage.CONFIG_PREFIX}.${SecretStorage.NAME_PROPERTY}" to SecretsProviderFactoryForTesting.NAME,
@@ -114,11 +114,15 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
         body()
     }
 
-    fun integrationTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) =
+    fun integrationTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) {
+        authorizationService = setUpAuthorizationService()
+
         ortServerTestApplication(dbExtension.db, TestConfig.TestAuth, additionalConfig, block)
+    }
 
     fun requestShouldRequireRole(
-        role: String,
+        role: Role,
+        hierarchyId: CompoundHierarchyId,
         successStatus: HttpStatusCode = HttpStatusCode.OK,
         request: suspend HttpClient.() -> HttpResponse
     ) {
@@ -126,7 +130,24 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
             val client = testUserClient
 
             client.request() shouldHaveStatus HttpStatusCode.Forbidden
-            keycloak.keycloakAdminClient.addUserRole(TEST_USER.username.value, role)
+            authorizationService.assignRole(TEST_USER.username.value, role, hierarchyId)
+            client.request() shouldHaveStatus successStatus
+        }
+    }
+
+    fun requestShouldRequireSuperuser(
+        successStatus: HttpStatusCode = HttpStatusCode.OK,
+        request: suspend HttpClient.() -> HttpResponse
+    ) {
+        integrationTestApplication {
+            val client = testUserClient
+
+            client.request() shouldHaveStatus HttpStatusCode.Forbidden
+            authorizationService.assignRole(
+                TEST_USER.username.value,
+                OrganizationRole.ADMIN,
+                CompoundHierarchyId.WILDCARD
+            )
             client.request() shouldHaveStatus successStatus
         }
     }
@@ -140,4 +161,19 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
             testUserClient.request() shouldHaveStatus successStatus
         }
     }
+
+    /**
+     * Create a new instance of the [AuthorizationService] used for testing and make sure that the permissions
+     * required by tests are added.
+     */
+    private fun setUpAuthorizationService(): AuthorizationService =
+        DbAuthorizationService(dbExtension.db).apply {
+            runBlocking {
+                assignRole(
+                    SUPERUSER.username.value,
+                    OrganizationRole.ADMIN,
+                    CompoundHierarchyId.WILDCARD
+                )
+            }
+        }
 }
