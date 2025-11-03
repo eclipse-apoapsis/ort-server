@@ -19,14 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
-import io.github.smiley4.ktoropenapi.delete
-import io.github.smiley4.ktoropenapi.get
-import io.github.smiley4.ktoropenapi.patch
-import io.github.smiley4.ktoropenapi.post
-import io.github.smiley4.ktoropenapi.put
-
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -40,18 +33,18 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PatchProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.api.ProductRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getFullName
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUserId
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUsername
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.hasRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.mapToModel
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.UserService
+import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.ortServerPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.put
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
@@ -70,7 +63,6 @@ import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
-import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
@@ -107,9 +99,7 @@ fun Route.products() = route("products/{productId}") {
     val userService by inject<UserService>()
     val orchestratorService by inject<OrchestratorService>()
 
-    get(getProduct) {
-        requirePermission(ProductPermission.READ)
-
+    get(getProduct, requirePermission(ProductPermission.READ)) {
         val id = call.requireIdParameter("productId")
 
         val product = productService.getProduct(id)
@@ -121,9 +111,7 @@ fun Route.products() = route("products/{productId}") {
         }
     }
 
-    patch(patchProduct) {
-        requirePermission(ProductPermission.WRITE)
-
+    patch(patchProduct, requirePermission(ProductPermission.WRITE)) {
         val id = call.requireIdParameter("productId")
         val updateProduct = call.receive<PatchProduct>()
 
@@ -133,9 +121,7 @@ fun Route.products() = route("products/{productId}") {
         call.respond(HttpStatusCode.OK, updatedProduct.mapToApi())
     }
 
-    delete(deleteProduct) {
-        requirePermission(ProductPermission.DELETE)
-
+    delete(deleteProduct, requirePermission(ProductPermission.DELETE)) {
         val id = call.requireIdParameter("productId")
 
         productService.deleteProduct(id)
@@ -144,8 +130,7 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("repositories") {
-        get(getProductRepositories) {
-            requirePermission(ProductPermission.READ_REPOSITORIES)
+        get(getProductRepositories, requirePermission(ProductPermission.READ_REPOSITORIES)) {
             val filter = call.filterParameter("filter")
 
             val productId = call.requireIdParameter("productId")
@@ -159,9 +144,7 @@ fun Route.products() = route("products/{productId}") {
             call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
-        post(postRepository) {
-            requirePermission(ProductPermission.CREATE_REPOSITORY)
-
+        post(postRepository, requirePermission(ProductPermission.CREATE_REPOSITORY)) {
             val id = call.requireIdParameter("productId")
             val createRepository = call.receive<PostRepository>()
             val repository = productService.createRepository(
@@ -180,9 +163,7 @@ fun Route.products() = route("products/{productId}") {
 
     route("roles") {
         route("{role}") {
-            put(putProductRoleToUser) {
-                requirePermission(ProductPermission.MANAGE_GROUPS)
-
+            put(putProductRoleToUser, requirePermission(ProductPermission.MANAGE_GROUPS)) {
                 val user = call.receive<Username>()
                 val productId = call.requireIdParameter("productId")
                 val role = call.requireEnumParameter<ProductRole>("role").mapToModel()
@@ -192,15 +173,18 @@ fun Route.products() = route("products/{productId}") {
                     return@put
                 }
 
-                authorizationService.addUserRole(user.username, ProductId(productId), role)
+                if (!userService.existsUser(user.username)) {
+                    call.respondError(HttpStatusCode.NotFound, "Could not find user '${user.username}'.")
+                    return@put
+                }
+
+                authorizationService.assignRole(user.username, role, call.ortServerPrincipal.effectiveRole.elementId)
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            delete(deleteProductRoleFromUser) {
-                requirePermission(ProductPermission.MANAGE_GROUPS)
-
+            delete(deleteProductRoleFromUser, requirePermission(ProductPermission.MANAGE_GROUPS)) {
                 val productId = call.requireIdParameter("productId")
-                val role = call.requireEnumParameter<ProductRole>("role").mapToModel()
+                call.requireEnumParameter<ProductRole>("role")
                 val username = call.requireParameter("username")
 
                 if (productService.getProduct(productId) == null) {
@@ -208,16 +192,19 @@ fun Route.products() = route("products/{productId}") {
                     return@delete
                 }
 
-                authorizationService.removeUserRole(username, ProductId(productId), role)
+                if (!userService.existsUser(username)) {
+                    call.respondError(HttpStatusCode.NotFound, "Could not find user '$username'.")
+                    return@delete
+                }
+
+                authorizationService.removeAssignment(username, call.ortServerPrincipal.effectiveRole.elementId)
                 call.respond(HttpStatusCode.NoContent)
             }
         }
     }
 
     route("vulnerabilities") {
-        get(getProductVulnerabilities) {
-            requirePermission(ProductPermission.READ)
-
+        get(getProductVulnerabilities, requirePermission(ProductPermission.READ)) {
             val productId = call.requireIdParameter("productId")
             val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
             val filters = call.vulnerabilityForRunsFilters()
@@ -241,9 +228,7 @@ fun Route.products() = route("products/{productId}") {
 
     route("statistics") {
         route("runs") {
-            get(getProductRunStatistics) {
-                requirePermission(ProductPermission.READ)
-
+            get(getProductRunStatistics, requirePermission(ProductPermission.READ)) {
                 val productId = call.requireIdParameter("productId")
 
                 val repositoryIds = productService.getRepositoryIdsForProduct(productId)
@@ -340,9 +325,7 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("runs") {
-        post(postProductRuns) {
-            requirePermission(ProductPermission.TRIGGER_ORT_RUN)
-
+        post(postProductRuns, requirePermission(ProductPermission.TRIGGER_ORT_RUN)) {
             val productId = call.requireIdParameter("productId")
 
             val product = productService.getProduct(productId)
@@ -353,8 +336,8 @@ fun Route.products() = route("products/{productId}") {
             }
 
             val createOrtRun = call.receive<PostRepositoryRun>()
-            val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
-                UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
+            val userDisplayName = call.ortServerPrincipal.let { principal ->
+                UserDisplayName(principal.userId, principal.username, principal.fullName)
             }
 
             // Validate the plugin configuration.
@@ -375,7 +358,7 @@ fun Route.products() = route("products/{productId}") {
             }
 
             // Restrict the `keepAliveWorker` flags to superusers only.
-            if (createOrtRun.hasKeepAliveWorkerFlag() && !hasRole(Superuser.ROLE_NAME)) {
+            if (createOrtRun.hasKeepAliveWorkerFlag() && !call.ortServerPrincipal.effectiveRole.isSuperuser) {
                 call.respondError(
                     HttpStatusCode.Forbidden,
                     "The 'keepAliveWorker' flag is only allowed for superusers."
@@ -432,13 +415,11 @@ fun Route.products() = route("products/{productId}") {
     }
 
     route("users") {
-        get(getProductUsers) {
-            requirePermission(ProductPermission.READ)
-
-            val productId = call.requireIdParameter("productId")
+        get(getProductUsers, requirePermission(ProductPermission.READ)) {
             val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
 
-            val users = userService.getUsersHavingRightForProduct(productId).mapToApi()
+            val users = authorizationService.listUsers(call.ortServerPrincipal.effectiveRole.elementId)
+                .mapToApi(userService)
 
             call.respond(
                 PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))

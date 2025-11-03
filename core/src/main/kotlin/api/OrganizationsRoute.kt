@@ -19,13 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
-import io.github.smiley4.ktoropenapi.delete
 import io.github.smiley4.ktoropenapi.get
-import io.github.smiley4.ktoropenapi.patch
-import io.github.smiley4.ktoropenapi.post
-import io.github.smiley4.ktoropenapi.put
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -38,14 +35,19 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PatchOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostOrganization
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostProduct
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.api.OrganizationRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.hasPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.mapToModel
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.UserService
+import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.put
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteOrganization
@@ -61,6 +63,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.postOrganization
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postProduct
 import org.eclipse.apoapsis.ortserver.core.apiDocs.putOrganizationRoleToUser
 import org.eclipse.apoapsis.ortserver.core.utils.vulnerabilityForRunsFilters
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithAccumulatedData
@@ -99,13 +102,14 @@ fun Route.organizations() = route("organizations") {
     get(getOrganizations) {
         val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
         val filter = call.filterParameter("filter")
+        val principal = requireNotNull(call.principal<OrtServerPrincipal>())
 
         val filteredOrganizations = organizationService
-            .listOrganizations(
+            .listOrganizationsForUser(
+                principal.username,
                 parameters = pagingOptions.copy(limit = null, offset = null).mapToModel(),
                 filter = filter?.mapToModel()
-            )
-            .data.filter { hasPermission(it.id, OrganizationPermission.READ) }
+            ).data
 
         val pagedOrganizations = filteredOrganizations.paginate(pagingOptions)
             .map { it.mapToApi() }
@@ -118,9 +122,7 @@ fun Route.organizations() = route("organizations") {
         call.respond(HttpStatusCode.OK, pagedResponse)
     }
 
-    post(postOrganization) {
-        requireSuperuser()
-
+    post(postOrganization, requireSuperuser()) {
         val createOrganization = call.receive<PostOrganization>()
 
         val createdOrganization =
@@ -130,9 +132,7 @@ fun Route.organizations() = route("organizations") {
     }
 
     route("{organizationId}") {
-        get(getOrganization) {
-            requirePermission(OrganizationPermission.READ)
-
+        get(getOrganization, requirePermission(OrganizationPermission.READ)) {
             val id = call.requireIdParameter("organizationId")
 
             val organization = organizationService.getOrganization(id)
@@ -141,9 +141,7 @@ fun Route.organizations() = route("organizations") {
                 ?: call.respond(HttpStatusCode.NotFound)
         }
 
-        patch(patchOrganization) {
-            requirePermission(OrganizationPermission.WRITE)
-
+        patch(patchOrganization, requirePermission(OrganizationPermission.WRITE)) {
             val organizationId = call.requireIdParameter("organizationId")
             val org = call.receive<PatchOrganization>()
 
@@ -156,9 +154,7 @@ fun Route.organizations() = route("organizations") {
             call.respond(HttpStatusCode.OK, updatedOrg.mapToApi())
         }
 
-        delete(deleteOrganization) {
-            requirePermission(OrganizationPermission.DELETE)
-
+        delete(deleteOrganization, requirePermission(OrganizationPermission.DELETE)) {
             val id = call.requireIdParameter("organizationId")
 
             organizationService.deleteOrganization(id)
@@ -167,9 +163,7 @@ fun Route.organizations() = route("organizations") {
         }
 
         route("products") {
-            get(getOrganizationProducts) {
-                requirePermission(OrganizationPermission.READ_PRODUCTS)
-
+            get(getOrganizationProducts, requirePermission(OrganizationPermission.READ_PRODUCTS)) {
                 val orgId = call.requireIdParameter("organizationId")
                 val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
                 val filter = call.filterParameter("filter")
@@ -186,9 +180,7 @@ fun Route.organizations() = route("organizations") {
                 call.respond(HttpStatusCode.OK, pagedResponse)
             }
 
-            post(postProduct) {
-                requirePermission(OrganizationPermission.CREATE_PRODUCT)
-
+            post(postProduct, requirePermission(OrganizationPermission.CREATE_PRODUCT)) {
                 val createProduct = call.receive<PostProduct>()
                 val orgId = call.requireIdParameter("organizationId")
 
@@ -201,9 +193,7 @@ fun Route.organizations() = route("organizations") {
 
         route("roles") {
             route("{role}") {
-                put(putOrganizationRoleToUser) {
-                    requirePermission(OrganizationPermission.MANAGE_GROUPS)
-
+                put(putOrganizationRoleToUser, requirePermission(OrganizationPermission.MANAGE_GROUPS)) {
                     val user = call.receive<Username>()
                     val organizationId = call.requireIdParameter("organizationId")
                     val role = call.requireEnumParameter<OrganizationRole>("role").mapToModel()
@@ -213,32 +203,46 @@ fun Route.organizations() = route("organizations") {
                         return@put
                     }
 
-                    authorizationService.addUserRole(user.username, OrganizationId(organizationId), role)
-                    call.respond(HttpStatusCode.NoContent)
+                    if (!userService.existsUser(user.username)) {
+                        call.respondError(
+                            HttpStatusCode.NotFound,
+                            "Could not find user with username '${user.username}'."
+                        )
+                    } else {
+                        authorizationService.assignRole(
+                            user.username,
+                            role,
+                            CompoundHierarchyId.forOrganization(OrganizationId(organizationId))
+                        )
+                        call.respond(HttpStatusCode.NoContent)
+                    }
                 }
 
-                delete(deleteOrganizationRoleFromUser) {
-                    requirePermission(OrganizationPermission.MANAGE_GROUPS)
-
+                delete(deleteOrganizationRoleFromUser, requirePermission(OrganizationPermission.MANAGE_GROUPS)) {
                     val organizationId = call.requireIdParameter("organizationId")
-                    val role = call.requireEnumParameter<OrganizationRole>("role").mapToModel()
                     val username = call.requireParameter("username")
+                    call.requireEnumParameter<OrganizationRole>("role")
 
                     if (organizationService.getOrganization(organizationId) == null) {
                         call.respondError(HttpStatusCode.NotFound, "Organization with ID '$organizationId' not found.")
                         return@delete
                     }
 
-                    authorizationService.removeUserRole(username, OrganizationId(organizationId), role)
-                    call.respond(HttpStatusCode.NoContent)
+                    if (!userService.existsUser(username)) {
+                        call.respondError(HttpStatusCode.NotFound, "Could not find user with username '$username'.")
+                    } else {
+                        authorizationService.removeAssignment(
+                            username,
+                            CompoundHierarchyId.forOrganization(OrganizationId(organizationId))
+                        )
+                        call.respond(HttpStatusCode.NoContent)
+                    }
                 }
             }
         }
 
         route("vulnerabilities") {
-            get(getOrganizationVulnerabilities) {
-                requirePermission(OrganizationPermission.READ)
-
+            get(getOrganizationVulnerabilities, requirePermission(OrganizationPermission.READ)) {
                 val organizationId = call.requireIdParameter("organizationId")
                 val pagingOptions = call.pagingOptions(SortProperty("rating", SortDirection.DESCENDING))
                 val filters = call.vulnerabilityForRunsFilters()
@@ -265,9 +269,7 @@ fun Route.organizations() = route("organizations") {
 
         route("statistics") {
             route("runs") {
-                get(getOrganizationRunStatistics) {
-                    requirePermission(OrganizationPermission.READ)
-
+                get(getOrganizationRunStatistics, requirePermission(OrganizationPermission.READ)) {
                     val orgId = call.requireIdParameter("organizationId")
 
                     val repositoryIds = organizationService.getRepositoryIdsForOrganization(orgId)
@@ -364,14 +366,13 @@ fun Route.organizations() = route("organizations") {
         }
 
         route("users") {
-            get(getOrganizationUsers) {
-                requirePermission(OrganizationPermission.READ)
-
-                val orgId = call.requireIdParameter("organizationId")
+            get(getOrganizationUsers, requirePermission(OrganizationPermission.READ)) {
+                val orgId = CompoundHierarchyId.forOrganization(
+                    OrganizationId(call.requireIdParameter("organizationId"))
+                )
                 val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
 
-                val users = userService.getUsersHavingRightsForOrganization(orgId).mapToApi()
-
+                val users = authorizationService.listUsers(orgId).mapToApi(userService)
                 call.respond(
                     PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))
                 )

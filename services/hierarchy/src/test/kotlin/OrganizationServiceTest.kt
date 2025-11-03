@@ -21,11 +21,20 @@ package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 
+import io.mockk.coEvery
+import io.mockk.mockk
+
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.sql.Database
 
@@ -46,7 +55,7 @@ class OrganizationServiceTest : WordSpec({
 
     "getRepositoryIdsForOrganization" should {
         "return IDs for all repositories found in the products of the organization" {
-            val service = OrganizationService(db, organizationRepository, productRepository)
+            val service = OrganizationService(db, organizationRepository, productRepository, mockk())
 
             val orgId = fixtures.createOrganization().id
 
@@ -58,6 +67,34 @@ class OrganizationServiceTest : WordSpec({
             val repo3Id = fixtures.createRepository(url = "https://example.com/repo3.git", productId = prod2Id).id
 
             service.getRepositoryIdsForOrganization(orgId).shouldContainExactlyInAnyOrder(repo1Id, repo2Id, repo3Id)
+        }
+    }
+
+    "listOrganizationsForUser" should {
+        "filter for organizations visible to a specific user" {
+            val userId = "test-user"
+            val org1Id = fixtures.organization.id
+            val org2 = fixtures.createOrganization(name = "Org2")
+            val org2Id = org2.id
+            val orgHierarchyIds = listOf(org1Id, org2Id).map { id ->
+                CompoundHierarchyId.forOrganization(OrganizationId(id))
+            }
+            fixtures.createOrganization(name = "HiddenOrg").id
+
+            val authService = mockk<AuthorizationService> {
+                coEvery {
+                    filterHierarchyIds(userId, OrganizationRole.READER)
+                } returns HierarchyFilter(
+                    transitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to orgHierarchyIds),
+                    nonTransitiveIncludes = emptyMap()
+                )
+            }
+
+            val service = OrganizationService(db, organizationRepository, productRepository, authService)
+            val organizations = service.listOrganizationsForUser(userId)
+
+            organizations.totalCount shouldBe 2
+            organizations.data shouldContainExactlyInAnyOrder listOf(fixtures.organization, org2)
         }
     }
 })

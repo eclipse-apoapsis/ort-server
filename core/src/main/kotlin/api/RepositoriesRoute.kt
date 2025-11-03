@@ -19,14 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
-import io.github.smiley4.ktoropenapi.delete
-import io.github.smiley4.ktoropenapi.get
-import io.github.smiley4.ktoropenapi.patch
-import io.github.smiley4.ktoropenapi.post
-import io.github.smiley4.ktoropenapi.put
-
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -38,18 +31,18 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Jobs
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchRepository
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.api.RepositoryRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getFullName
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUserId
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUsername
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.hasRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.mapToModel
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.UserService
+import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.ortServerPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.put
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.mapToApi
 import org.eclipse.apoapsis.ortserver.core.api.UserWithGroupsHelper.sortAndPage
@@ -66,7 +59,6 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putRepositoryRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
-import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
@@ -92,18 +84,14 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     val repositoryService by inject<RepositoryService>()
     val userService by inject<UserService>()
 
-    get(getRepository) {
-        requirePermission(RepositoryPermission.READ)
-
+    get(getRepository, requirePermission(RepositoryPermission.READ)) {
         val id = call.requireIdParameter("repositoryId")
 
         repositoryService.getRepository(id)?.let { call.respond(HttpStatusCode.OK, it.mapToApi()) }
             ?: call.respond(HttpStatusCode.NotFound)
     }
 
-    patch(patchRepository) {
-        requirePermission(RepositoryPermission.WRITE)
-
+    patch(patchRepository, requirePermission(RepositoryPermission.WRITE)) {
         val id = call.requireIdParameter("repositoryId")
         val updateRepository = call.receive<PatchRepository>()
 
@@ -117,9 +105,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         call.respond(HttpStatusCode.OK, updatedRepository.mapToApi())
     }
 
-    delete(deleteRepository) {
-        requirePermission(RepositoryPermission.DELETE)
-
+    delete(deleteRepository, requirePermission(RepositoryPermission.DELETE)) {
         val id = call.requireIdParameter("repositoryId")
 
         repositoryService.deleteRepository(id)
@@ -128,9 +114,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
     }
 
     route("runs") {
-        get(getRepositoryRuns) {
-            requirePermission(RepositoryPermission.READ_ORT_RUNS)
-
+        get(getRepositoryRuns, requirePermission(RepositoryPermission.READ_ORT_RUNS)) {
             val repositoryId = call.requireIdParameter("repositoryId")
             val pagingOptions = call.pagingOptions(SortProperty("index", SortDirection.ASCENDING))
 
@@ -139,17 +123,15 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             call.respond(HttpStatusCode.OK, pagedResponse)
         }
 
-        post(postRepositoryRun) {
-            requirePermission(RepositoryPermission.TRIGGER_ORT_RUN)
-
+        post(postRepositoryRun, requirePermission(RepositoryPermission.TRIGGER_ORT_RUN)) {
             val repositoryId = call.requireIdParameter("repositoryId")
 
             repositoryService.getRepository(repositoryId)?.let {
                 val createOrtRun = call.receive<PostRepositoryRun>()
 
                 // Extract the user information from the principal.
-                val userDisplayName = call.principal<OrtPrincipal>()?.let { principal ->
-                    UserDisplayName(principal.getUserId(), principal.getUsername(), principal.getFullName())
+                val userDisplayName = call.ortServerPrincipal.let { principal ->
+                    UserDisplayName(principal.userId, principal.username, principal.fullName)
                 }
 
                 // Validate the plugin configuration.
@@ -170,7 +152,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 }
 
                 // Restrict the `keepAliveWorker` flags to superusers only.
-                if (createOrtRun.hasKeepAliveWorkerFlag() && !hasRole(Superuser.ROLE_NAME)) {
+                if (createOrtRun.hasKeepAliveWorkerFlag() && !call.ortServerPrincipal.effectiveRole.isSuperuser) {
                     call.respondError(
                         HttpStatusCode.Forbidden,
                         "The 'keepAliveWorker' flag is only allowed for superusers."
@@ -195,9 +177,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         }
 
         route("{ortRunIndex}") {
-            get(getRepositoryRun) {
-                requirePermission(RepositoryPermission.READ_ORT_RUNS)
-
+            get(getRepositoryRun, requirePermission(RepositoryPermission.READ_ORT_RUNS)) {
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val ortRunIndex = call.requireIdParameter("ortRunIndex")
 
@@ -208,11 +188,9 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                 } ?: call.respond(HttpStatusCode.NotFound)
             }
 
-            delete(deleteRepositoryRun) {
+            delete(deleteRepositoryRun, requirePermission(RepositoryPermission.DELETE)) {
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val ortRunIndex = call.requireIdParameter("ortRunIndex")
-
-                requirePermission(RepositoryPermission.DELETE)
 
                 repositoryService.getOrtRunId(repositoryId, ortRunIndex)?.let { ortRunId ->
                     ortRunService.deleteOrtRun(ortRunId)
@@ -224,9 +202,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
 
     route("roles") {
         route("{role}") {
-            put(putRepositoryRoleToUser) {
-                requirePermission(RepositoryPermission.MANAGE_GROUPS)
-
+            put(putRepositoryRoleToUser, requirePermission(RepositoryPermission.MANAGE_GROUPS)) {
                 val user = call.receive<Username>()
                 val repositoryId = call.requireIdParameter("repositoryId")
                 val role = call.requireEnumParameter<RepositoryRole>("role").mapToModel()
@@ -236,15 +212,18 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     return@put
                 }
 
-                authorizationService.addUserRole(user.username, RepositoryId(repositoryId), role)
+                if (!userService.existsUser(user.username)) {
+                    call.respondError(HttpStatusCode.NotFound, "Could not find user '${user.username}'.")
+                    return@put
+                }
+
+                authorizationService.assignRole(user.username, role, call.ortServerPrincipal.effectiveRole.elementId)
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            delete(deleteRepositoryRoleFromUser) {
-                requirePermission(RepositoryPermission.MANAGE_GROUPS)
-
+            delete(deleteRepositoryRoleFromUser, requirePermission(RepositoryPermission.MANAGE_GROUPS)) {
                 val repositoryId = call.requireIdParameter("repositoryId")
-                val role = call.requireEnumParameter<RepositoryRole>("role").mapToModel()
+                call.requireEnumParameter<RepositoryRole>("role")
                 val username = call.requireParameter("username")
 
                 if (repositoryService.getRepository(repositoryId) == null) {
@@ -252,20 +231,23 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     return@delete
                 }
 
-                authorizationService.removeUserRole(username, RepositoryId(repositoryId), role)
+                if (!userService.existsUser(username)) {
+                    call.respondError(HttpStatusCode.NotFound, "Could not find user '$username'.")
+                    return@delete
+                }
+
+                authorizationService.removeAssignment(username, call.ortServerPrincipal.effectiveRole.elementId)
                 call.respond(HttpStatusCode.NoContent)
             }
         }
     }
 
     route("users") {
-        get(getRepositoryUsers) {
-            requirePermission(RepositoryPermission.READ)
-
-            val repositoryId = call.requireIdParameter("repositoryId")
+        get(getRepositoryUsers, requirePermission(RepositoryPermission.READ)) {
             val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
 
-            val users = userService.getUsersHavingRightsForRepository(repositoryId).mapToApi()
+            val users = authorizationService.listUsers(call.ortServerPrincipal.effectiveRole.elementId)
+                .mapToApi(userService)
 
             call.respond(
                 PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))
