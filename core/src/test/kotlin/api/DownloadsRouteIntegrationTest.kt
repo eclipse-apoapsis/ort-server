@@ -30,6 +30,8 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.mockk
+
 import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.datetime.Clock
@@ -53,7 +55,8 @@ class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
         val organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository
+            dbExtension.fixtures.productRepository,
+            mockk()
         )
 
         val productService = ProductService(
