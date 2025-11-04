@@ -77,6 +77,11 @@ class SecretService(
     }
 
     /**
+     * Get the value of a [secret]. Returns `null` if the value is not found.
+     */
+    fun getSecretValue(secret: Secret): SecretValue? = secretStorage.readSecret(Path(secret.path))
+
+    /**
      * List all secrets for the provided [hierarchy]. If there are secrets with the same name in different levels of the
      * hierarchy, only the one closest to the repository is returned.
      */
