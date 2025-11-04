@@ -21,9 +21,9 @@ package org.eclipse.apoapsis.ortserver.components.authorization.service
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -769,8 +769,10 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 val users = service.listUsers(repositoryCompoundId)
 
-                users.keys shouldHaveSize 1
-                users[USER_ID] shouldContainExactlyInAnyOrder listOf(RepositoryRole.READER)
+                users.entries.shouldBeSingleton { (key, value) ->
+                    key shouldBe USER_ID
+                    value shouldBe setOf(RepositoryRole.READER)
+                }
             }
         }
 
@@ -818,12 +820,14 @@ class DbAuthorizationServiceTest : WordSpec() {
                     repositoryPermissions = setOf(RepositoryPermission.READ)
                 )
 
-                filter.transitiveIncludes shouldHaveSize 1
-                filter.transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL] shouldContainExactlyInAnyOrder setOf(
-                    repositoryCompoundId,
-                    otherRepoId,
-                    repoInOtherStructureId
-                )
+                filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
+                    key shouldBe CompoundHierarchyId.REPOSITORY_LEVEL
+                    value shouldBe setOf(
+                        repositoryCompoundId,
+                        otherRepoId,
+                        repoInOtherStructureId
+                    )
+                }
                 filter.isWildcard shouldBe false
             }
 
@@ -887,10 +891,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     productPermissions = setOf(ProductPermission.WRITE)
                 )
 
-                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactlyInAnyOrder setOf(
-                    otherProductId
-                )
-                filter.transitiveIncludes shouldHaveSize 1
+                filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
+                    key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+                    value shouldBe setOf(otherProductId)
+                }
             }
 
             "handle role assignments on higher levels correctly" {
@@ -962,10 +966,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     repositoryPermissions = setOf(RepositoryPermission.READ)
                 )
 
-                filter.transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactly setOf(
-                    organizationId
-                )
-                filter.transitiveIncludes shouldHaveSize 1
+                filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
+                    key shouldBe CompoundHierarchyId.ORGANIZATION_LEVEL
+                    value shouldBe setOf(organizationId)
+                }
             }
 
             "handle superuser assignments correctly" {
@@ -1117,10 +1121,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     containedIn = repositoryCompoundId.productId
                 )
 
-                filter.transitiveIncludes shouldHaveSize 1
-                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
-                    repositoryCompoundId.parent
-                )
+                filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
+                    key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+                    value shouldBe setOf(repositoryCompoundId.parent)
+                }
             }
 
             "handle a containedIn filter together with permissive rights on a higher level" {
@@ -1141,10 +1145,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     containedIn = repositoryCompoundId.productId
                 )
 
-                filter.transitiveIncludes shouldHaveSize 1
-                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
-                    repositoryCompoundId.parent
-                )
+                filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
+                    key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+                    value shouldBe setOf(repositoryCompoundId.parent)
+                }
             }
 
             "find non-transitive includes" {
@@ -1201,10 +1205,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     containedIn = repositoryCompoundId.productId
                 )
 
-                filter.nonTransitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
-                    repositoryCompoundId.parent
-                )
-                filter.nonTransitiveIncludes shouldHaveSize 1
+                filter.nonTransitiveIncludes.entries.shouldBeSingleton { (key, value) ->
+                    key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+                    value shouldBe setOf(repositoryCompoundId.parent)
+                }
             }
         }
     }

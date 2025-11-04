@@ -26,7 +26,7 @@ import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
@@ -613,8 +613,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     group.shouldNotBeNull()
 
                     val members = keycloakClient.getGroupMembers(group.name)
-                    members shouldHaveSize 1
-                    members.map { it.username } shouldContain TEST_USER.username
+                    members.shouldBeSingleton {
+                        it.username shouldBe TEST_USER.username
+                    }
                 }
             }
         }
@@ -633,8 +634,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     val groupName = role.mapToModel().groupName(createdProd.id)
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
                     val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
-                    membersBefore shouldHaveSize 1
-                    membersBefore.map { it.username } shouldContain TEST_USER.username
+                    membersBefore.shouldBeSingleton {
+                        it.username shouldBe TEST_USER.username
+                    }
 
                     val response = superuserClient.delete(
                         "/api/v1/products/${createdProd.id}/roles/${role.name}?username=${user.username}"
@@ -1572,12 +1574,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 responseSpecific shouldHaveStatus HttpStatusCode.Created
 
                 val createdRunsSpecific = responseSpecific.body<List<OrtRun>>()
-                createdRunsSpecific shouldHaveSize 1
-
-                val repositoryIdsSpecific = createdRunsSpecific.map { run ->
-                    dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
+                createdRunsSpecific.shouldBeSingleton {
+                    dbExtension.fixtures.ortRunRepository.get(it.id)?.repositoryId shouldBe repository1Id
                 }
-                repositoryIdsSpecific shouldContainExactlyInAnyOrder listOf(repository1Id)
             }
         }
 

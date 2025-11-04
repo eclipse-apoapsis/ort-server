@@ -23,6 +23,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.containExactly as containExactlyEntries
@@ -380,8 +381,9 @@ class PackageServiceTest : WordSpec() {
                     )
                 )
 
-                results.data shouldHaveSize 1
-                results.data.first().pkg.identifier shouldBe Identifier("NPM", "", "example", "1.0")
+                results.data.shouldBeSingleton {
+                    it.pkg.identifier shouldBe Identifier("NPM", "", "example", "1.0")
+                }
             }
 
             "use case insensitive filtering for purl and identifier filtering" {
@@ -413,10 +415,10 @@ class PackageServiceTest : WordSpec() {
                     )
                 )
 
-                results1.data shouldHaveSize 1
                 results1.totalCount shouldBe 1
-
-                results1.data.first().pkg.identifier shouldBe Identifier("Maven", "com.example", "example2", "1.0")
+                results1.data.shouldBeSingleton {
+                    it.pkg.identifier shouldBe Identifier("Maven", "com.example", "example2", "1.0")
+                }
 
                 results2 shouldBe results1
             }
@@ -441,10 +443,10 @@ class PackageServiceTest : WordSpec() {
                     )
                 )
 
-                results.data shouldHaveSize 1
                 results.totalCount shouldBe 1
-
-                results.data.first().pkg.purl shouldBe "pkg:NPM/com.example/example2@1.0"
+                results.data.shouldBeSingleton {
+                    it.pkg.purl shouldBe "pkg:NPM/com.example/example2@1.0"
+                }
             }
 
             "allow filtering by processed declared license" {
@@ -545,8 +547,9 @@ class PackageServiceTest : WordSpec() {
                 with(packages.data.single { it.pkg.identifier == pkg1.identifier }) {
                     pkg.authors should containExactly(*curation1.data.authors.orEmpty().toTypedArray())
                     concludedLicense shouldBe curation1.data.concludedLicense
-                    curations shouldHaveSize 1
-                    curations.first() shouldBe curation1.data
+                    curations.shouldBeSingleton {
+                        it shouldBe curation1.data
+                    }
                 }
 
                 with(packages.data.single { it.pkg.identifier == pkg2.identifier }) {
@@ -554,8 +557,9 @@ class PackageServiceTest : WordSpec() {
                     pkg.processedDeclaredLicense.mappedLicenses should
                             containExactlyEntries("invalid-license" to "LicenseRef-mapped")
                     concludedLicense shouldBe curation2.data.concludedLicense
-                    curations shouldHaveSize 1
-                    curations.first() shouldBe curation2.data
+                    curations.shouldBeSingleton {
+                        it shouldBe curation2.data
+                    }
                 }
             }
         }

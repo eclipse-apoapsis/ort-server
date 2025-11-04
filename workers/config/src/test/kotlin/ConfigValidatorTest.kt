@@ -22,10 +22,10 @@ package org.eclipse.apoapsis.ortserver.workers.config
 import io.kotest.assertions.AssertionErrorBuilder
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeLessThan
-import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -74,11 +74,14 @@ class ConfigValidatorTest : StringSpec({
             "Current repository is ${testHierarchy.repository.url}",
             Severity.HINT
         )
-        validationResult.issues shouldHaveSize 1
-        checkIssue(expectedIssue, validationResult.issues[0])
+        validationResult.issues.shouldBeSingleton {
+            checkIssue(expectedIssue, it)
+        }
 
-        validationResult.labels shouldHaveSize 1
-        validationResult.labels["test"] shouldBe "success"
+        validationResult.labels.entries.shouldBeSingleton { (key, value) ->
+            key shouldBe "test"
+            value shouldBe "success"
+        }
     }
 
     "A failed validation should be handled" {
@@ -94,8 +97,9 @@ class ConfigValidatorTest : StringSpec({
             "Current repository is ${testHierarchy.repository.url}; invalid parameters.",
             Severity.ERROR
         )
-        validationResult.issues shouldHaveSize 1
-        checkIssue(expectedIssue, validationResult.issues[0])
+        validationResult.issues.shouldBeSingleton {
+            checkIssue(expectedIssue, it)
+        }
     }
 
     "An invalid script should be handled" {
@@ -105,11 +109,10 @@ class ConfigValidatorTest : StringSpec({
         val validator = ConfigValidator.create(context, createAdminConfigService())
         val validationResult = validator.validate(script).shouldBeTypeOf<ConfigValidationResultFailure>()
 
-        validationResult.issues shouldHaveSize 1
-        with(validationResult.issues[0]) {
-            source shouldBe ConfigValidator.INVALID_SCRIPT_SOURCE
-            message shouldContain "executing validation script"
-            severity shouldBe Severity.ERROR
+        validationResult.issues.shouldBeSingleton {
+            it.source shouldBe ConfigValidator.INVALID_SCRIPT_SOURCE
+            it.message shouldContain "executing validation script"
+            it.severity shouldBe Severity.ERROR
         }
     }
 

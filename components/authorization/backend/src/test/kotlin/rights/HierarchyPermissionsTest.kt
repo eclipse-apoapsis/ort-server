@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.shouldHaveSize
@@ -300,10 +301,10 @@ class HierarchyPermissionsTest : WordSpec({
         "return a map with includes containing only the wildcard ID" {
             val includes = superuserPermissions.includes()
 
-            includes shouldHaveSize 1
-            includes[CompoundHierarchyId.WILDCARD_LEVEL] shouldContainExactlyInAnyOrder listOf(
-                CompoundHierarchyId.WILDCARD
-            )
+            includes.entries.shouldBeSingleton { (key, value) ->
+                key shouldBe CompoundHierarchyId.WILDCARD_LEVEL
+                value shouldBe listOf(CompoundHierarchyId.WILDCARD)
+            }
         }
 
         "return an empty map for implicit includes" {

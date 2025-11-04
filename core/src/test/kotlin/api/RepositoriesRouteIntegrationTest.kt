@@ -25,9 +25,8 @@ import io.kotest.data.row
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -1103,8 +1102,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     group.shouldNotBeNull()
 
                     val members = keycloakClient.getGroupMembers(group.name)
-                    members shouldHaveSize 1
-                    members.map { it.username } shouldContain TEST_USER.username
+                    members.shouldBeSingleton {
+                        it.username shouldBe TEST_USER.username
+                    }
                 }
             }
         }
@@ -1123,8 +1123,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     val groupName = role.mapToModel().groupName(createdRepo.id)
                     val groupBefore = keycloakClient.getGroup(GroupName(groupName))
                     val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
-                    membersBefore shouldHaveSize 1
-                    membersBefore.map { it.username } shouldContain TEST_USER.username
+                    membersBefore.shouldBeSingleton {
+                        it.username shouldBe TEST_USER.username
+                    }
 
                     val response = superuserClient.delete(
                         "/api/v1/repositories/${createdRepo.id}/roles/${role.name}?username=${user.username}"
