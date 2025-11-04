@@ -16,10 +16,6 @@
 # License-Filename: LICENSE
 
 [versions]
-# Docker
-# When updating this version, make sure to keep it in sync with the worker Dockerfiles.
-eclipseTemurin = "21.0.7_6-jdk-jammy@sha256:746ad7128069fdaa77df1f06a0463ad50f4ae787648cbbcc6d6ab0e702e6c97e"
-
 # Gradle plugins
 buildConfigPlugin = "5.7.1"
 dependencyAnalysisPlugin = "3.4.1"

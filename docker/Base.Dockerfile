@@ -21,7 +21,7 @@
 # This is a common base image for all ORT Server images requiring Java. It provides some base functionality like
 # setting file permissions for the user, setting up certificates, etc. And, it defines the temurin base image.
 
-# When updating this version make sure to keep it in sync with the other worker Dockerfiles and libs.version.toml.
+# When updating this version make sure to keep it in sync with the other worker Dockerfiles.
 ARG TEMURIN_VERSION=21.0.8_9-jdk-jammy@sha256:adb9b2d15adf1833d9dae0bdc1cff61ef5a804dc58dfbfb34269f32432b2e5dc
 
 FROM eclipse-temurin:$TEMURIN_VERSION
