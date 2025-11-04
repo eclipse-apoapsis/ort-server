@@ -132,9 +132,8 @@ internal class WorkerContextImpl(
     override suspend fun resolveSecret(secret: Secret): String =
         singleTransform(secret, secretsCache, this::resolveSecret, ::extractSecretKey)
 
-    override suspend fun resolveSecrets(vararg secrets: Secret): Map<Secret, String> {
-        return parallelTransform(secrets.toList(), secretsCache, this::resolveSecret, ::extractSecretKey)
-    }
+    override suspend fun resolveSecrets(vararg secrets: Secret): Map<Secret, String> =
+        parallelTransform(secrets.toList(), secretsCache, this::resolveSecret, ::extractSecretKey)
 
     override suspend fun resolvePluginConfigSecrets(
         config: Map<String, ResolvablePluginConfig>?
