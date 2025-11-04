@@ -37,6 +37,15 @@ class OrtServerPrincipal(
     val fullName: String,
 
     /**
+     * An exception that occurred when setting up the principal. If this is not *null*, this exception is re-thrown
+     * when querying the authorization status. The background of this property is that during authentication, all
+     * exceptions are caught by Ktor and lead to HTTP 401 responses. However, for some exceptions, different status
+     * codes are more appropriate, for instance, status 404 if a non-existing hierarchy ID was requested. This can
+     * only be achieved by storing the exception first and re-throwing it later when a route handler is active.
+     */
+    val validationException: Throwable?,
+
+    /**
      * The effective role computed for the principal. This can be *null* if either no authorization is required or the
      * authorization check failed. In the latter case, an exception is thrown when the role is accessed.
      */
@@ -57,16 +66,32 @@ class OrtServerPrincipal(
                 userId = payload.subject,
                 username = payload.getClaim(CLAIM_USERNAME).asString(),
                 fullName = payload.getClaim(CLAIM_FULL_NAME).asString(),
-                role = effectiveRole
+                role = effectiveRole,
+                validationException = null
+            )
+
+        /**
+         * Create an [OrtServerPrincipal] for the case that during authentication the given [exception] occurred. This
+         * exception is recorded, so that it can be handled later.
+         */
+        fun fromException(exception: Throwable): OrtServerPrincipal =
+            OrtServerPrincipal(
+                userId = "",
+                username = "",
+                fullName = "",
+                role = null,
+                validationException = exception
             )
     }
 
     /**
      * A flag indicating whether the principal is authorized. If this is *true*, the effective role of the principal
-     * can be accessed via [effectiveRole].
+     * can be accessed via [effectiveRole]. If a [validationException] is recorded in this instance, it is thrown
+     * when accessing this property. Since this property is typically accessed in the beginning of a route handler,
+     * this leads to proper exception handling and mapping to HTTP response status codes.
      */
     val isAuthorized: Boolean
-        get() = role != null
+        get() = validationException?.let { throw it } ?: (role != null)
 
     /**
      * The effective role of the principal if authorization was successful. Otherwise, accessing this property throws
