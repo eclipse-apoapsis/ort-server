@@ -66,6 +66,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Organizati
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.PermissionChecker
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.InvalidHierarchyIdException
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
@@ -183,6 +184,26 @@ class AuthorizedRoutesTest : WordSpec() {
                                         effectiveRole.hasRepositoryPermission(permission) shouldBe false
                                     }
                                 }
+
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.get("test")
+                    response.status shouldBe HttpStatusCode.OK
+                }
+            }
+
+            "support checks for an authenticated principal" {
+                runAuthorizationTest(
+                    mockk(),
+                    routeBuilder = {
+                        route("test") {
+                            get(testDocs) {
+                                val principal = requirePrincipal()
+                                principal.username shouldBe USERNAME
+                                principal.effectiveRole.elementId shouldBe CompoundHierarchyId.WILDCARD
 
                                 call.respond(HttpStatusCode.OK)
                             }
