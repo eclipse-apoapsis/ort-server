@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -162,10 +163,12 @@ class RuleViolationServiceTest : WordSpec() {
                     ruleViolationFilter = RuleViolationFilters(resolved = false)
                 ).data
 
-                resultsResolved shouldHaveSize 1
-                resultsResolved[0].rule shouldBe "Rule-1"
-                resultsResolved[0].resolutions shouldHaveSize 1
-                resultsResolved[0].resolutions[0].message shouldBe "Message-1"
+                resultsResolved.shouldBeSingleton {
+                    it.rule shouldBe "Rule-1"
+                    it.resolutions.shouldBeSingleton { resolution ->
+                        resolution.message shouldBe "Message-1"
+                    }
+                }
 
                 resultsUnresolved shouldHaveSize 2
                 resultsUnresolved[0].rule shouldBe "Rule-2"

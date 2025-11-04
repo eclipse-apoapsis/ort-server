@@ -31,8 +31,10 @@ import dasniko.testcontainers.keycloak.KeycloakContainer
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
 
@@ -162,9 +164,9 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
 
                 val groups = confidentialClient.getGroups(groupNameFilter = "B")
 
-                groups shouldHaveSize 1
-                groups.map { it.name.value } shouldContainAll
-                    listOf("Organization-B")
+                groups.shouldBeSingleton {
+                    it.name.value shouldBe "Organization-B"
+                }
             }
         }
     }

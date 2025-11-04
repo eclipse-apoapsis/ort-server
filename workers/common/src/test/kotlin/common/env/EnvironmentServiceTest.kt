@@ -20,8 +20,8 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
@@ -483,8 +483,9 @@ class EnvironmentServiceTest : WordSpec({
             environmentService.setUpEnvironment(context, repositoryFolder, envConfig, emptyList())
 
             val (_, definitions) = generator.verify(context, null)
-            definitions shouldHaveSize 1
-            definitions.first().service shouldBe infrastructureService
+            definitions.shouldBeSingleton {
+                it.service shouldBe infrastructureService
+            }
         }
     }
 
