@@ -19,9 +19,9 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.common
 
-import com.networknt.schema.JsonSchemaFactory
-import com.networknt.schema.SpecVersion
-import com.networknt.schema.serialization.JsonNodeReader
+import com.networknt.schema.SchemaRegistry
+import com.networknt.schema.SpecificationVersion
+import com.networknt.schema.serialization.NodeReader
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
@@ -67,11 +67,13 @@ class JsonSchemaTest : WordSpec({
 
 private fun File.toJsonNode() = yamlMapper.readTree(inputStream())
 
-private val nodeReader = JsonNodeReader.builder().yamlMapper(yamlMapper).build()
+private val nodeReader = NodeReader.builder().yamlMapper(yamlMapper).build()
 
-private val schemaV7 = JsonSchemaFactory
-    .builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7))
-    .jsonNodeReader(nodeReader)
+private val schemaV7 = SchemaRegistry
+    .builder(SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_7))
+    .nodeReader(nodeReader)
     .build()
 
-private val schema = schemaV7.getSchema(File("../../integrations/schemas/repository-environment-config.json").toURI())
+private val schema = schemaV7.getSchema(
+    File("../../integrations/schemas/repository-environment-config.json").readText()
+)
