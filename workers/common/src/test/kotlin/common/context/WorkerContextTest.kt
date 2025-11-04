@@ -75,10 +75,14 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
 
 class WorkerContextTest : WordSpec({
+    lateinit var helper: ContextFactoryTestHelper
+
     beforeEach {
         mockkObject(OrtServerAuthenticator)
 
         every { OrtServerAuthenticator.install(any()) } returns mockk(relaxed = true)
+
+        helper = ContextFactoryTestHelper()
     }
 
     afterEach {
@@ -87,8 +91,6 @@ class WorkerContextTest : WordSpec({
 
     "ortRun" should {
         "return the OrtRun object" {
-            val helper = ContextFactoryTestHelper()
-
             val run = helper.expectRunRequest()
 
             val context = helper.context()
@@ -97,8 +99,6 @@ class WorkerContextTest : WordSpec({
         }
 
         "throw an exception if the run ID cannot be resolved" {
-            val helper = ContextFactoryTestHelper()
-
             every { helper.ortRunRepository.get(any()) } returns null
 
             val context = helper.context()
@@ -112,7 +112,6 @@ class WorkerContextTest : WordSpec({
     "hierarchy" should {
         "return the hierarchy of the current repository" {
             val repositoryId = 20230607144801L
-            val helper = ContextFactoryTestHelper()
 
             val run = helper.expectRunRequest()
             every { run.repositoryId } returns repositoryId
@@ -128,7 +127,6 @@ class WorkerContextTest : WordSpec({
 
     "createTempDir" should {
         "return a temporary directory" {
-            val helper = ContextFactoryTestHelper()
             helper.context().use { context ->
                 val dir1 = context.createTempDir()
                 val dir2 = context.createTempDir()
@@ -139,7 +137,6 @@ class WorkerContextTest : WordSpec({
         }
 
         "remove the content of the temporary directory when the context is closed" {
-            val helper = ContextFactoryTestHelper()
             val tempDir = helper.context().use { context ->
                 val dir = context.createTempDir()
 
@@ -159,7 +156,6 @@ class WorkerContextTest : WordSpec({
         "resolve a secret" {
             val secret = createSecret(SecretsProviderFactoryForTesting.PASSWORD_PATH.path)
 
-            val helper = ContextFactoryTestHelper()
             val context = helper.context()
 
             context.resolveSecret(secret) shouldBe SecretsProviderFactoryForTesting.PASSWORD_SECRET.value
@@ -168,7 +164,6 @@ class WorkerContextTest : WordSpec({
         "cache the value of a secret that has been resolved" {
             val secret = createSecret(SecretsProviderFactoryForTesting.SERVICE_PATH.path)
 
-            val helper = ContextFactoryTestHelper()
             val context = helper.context()
             context.resolveSecret(secret)
 
@@ -188,7 +183,6 @@ class WorkerContextTest : WordSpec({
             val secret2 = createSecret(SecretsProviderFactoryForTesting.SERVICE_PATH.path)
             val secret3 = createSecret(SecretsProviderFactoryForTesting.TOKEN_PATH.path)
 
-            val helper = ContextFactoryTestHelper()
             val context = helper.context()
 
             val secretValues = context.resolveSecrets(secret1, secret2, secret3)
@@ -204,7 +198,6 @@ class WorkerContextTest : WordSpec({
             val secret1 = createSecret(SecretsProviderFactoryForTesting.PASSWORD_PATH.path)
             val secret2 = createSecret(SecretsProviderFactoryForTesting.SERVICE_PATH.path)
 
-            val helper = ContextFactoryTestHelper()
             val context = helper.context()
 
             context.resolveSecrets(secret1, secret2)
@@ -222,7 +215,6 @@ class WorkerContextTest : WordSpec({
     "downloadConfigurationFile" should {
         "download a single configuration file" {
             val dir = tempdir()
-            val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
             val context = helper.context()
 
@@ -235,7 +227,6 @@ class WorkerContextTest : WordSpec({
         "allow renaming a configuration file" {
             val dir = tempdir()
             val targetName = "my-config.txt"
-            val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
             val context = helper.context()
 
@@ -247,7 +238,6 @@ class WorkerContextTest : WordSpec({
 
         "cache files that have already been downloaded" {
             val dir = tempdir()
-            val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
             val context = helper.context()
 
@@ -259,7 +249,6 @@ class WorkerContextTest : WordSpec({
 
         "not cache downloaded files if they use different names" {
             val dir = tempdir()
-            val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
             val context = helper.context()
 
@@ -272,7 +261,6 @@ class WorkerContextTest : WordSpec({
         "not cache downloaded files if they use different target directories" {
             val dir1 = tempdir()
             val dir2 = tempdir()
-            val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
             val context = helper.context()
 
@@ -285,7 +273,6 @@ class WorkerContextTest : WordSpec({
 
     "downloadConfigurationFiles" should {
         "download multiple configuration files" {
-            val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
 
             helper.context().use { context ->
@@ -302,7 +289,6 @@ class WorkerContextTest : WordSpec({
 
         "cache files that have already been downloaded" {
             val dir = tempdir()
-            val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
 
             helper.context().use { context ->
@@ -317,7 +303,6 @@ class WorkerContextTest : WordSpec({
 
     "downloadConfigurationDirectory" should {
         "download all files in a configuration directory" {
-            val helper = ContextFactoryTestHelper()
             helper.expectRunRequest()
 
             helper.context().use { context ->
@@ -334,8 +319,6 @@ class WorkerContextTest : WordSpec({
 
     "resolvePluginConfigSecrets" should {
         "return an empty Map for null input" {
-            val helper = ContextFactoryTestHelper()
-
             val resolvedConfig = helper.context().resolvePluginConfigSecrets(null)
 
             resolvedConfig should beEmptyMap()
@@ -373,8 +356,6 @@ class WorkerContextTest : WordSpec({
             )
             val expectedConfig = mapOf("p1" to resolvedConfig1, "p2" to resolvedConfig2)
 
-            val helper = ContextFactoryTestHelper()
-
             val resolvedConfig = helper.context().resolvePluginConfigSecrets(config)
 
             resolvedConfig shouldBe expectedConfig
@@ -383,8 +364,6 @@ class WorkerContextTest : WordSpec({
 
     "resolveProviderPluginConfigSecrets" should {
         "return an empty Map for null input" {
-            val helper = ContextFactoryTestHelper()
-
             val resolvedConfig = helper.context().resolveProviderPluginConfigSecrets(null)
 
             resolvedConfig should beEmpty()
@@ -419,8 +398,6 @@ class WorkerContextTest : WordSpec({
             )
             val expectedConfig = listOf(resolvedConfig1, resolvedConfig2)
 
-            val helper = ContextFactoryTestHelper()
-
             val resolvedConfig = helper.context().resolveProviderPluginConfigSecrets(config)
 
             resolvedConfig shouldContainExactly expectedConfig
@@ -435,7 +412,6 @@ class WorkerContextTest : WordSpec({
             }
             every { WorkerOrtConfig.create(config) } returns workerOrtConfigMock
 
-            val helper = ContextFactoryTestHelper()
             helper.context()
 
             verify {
@@ -446,8 +422,6 @@ class WorkerContextTest : WordSpec({
 
     "withContext" should {
         "properly close the context after the block has been executed" {
-            val helper = ContextFactoryTestHelper()
-
             val tempDir = helper.factory.withContext(RUN_ID) { context ->
                 context.createTempDir().also {
                     it.exists() shouldBe true
@@ -462,7 +436,6 @@ class WorkerContextTest : WordSpec({
         "uninstall the ORT Server authenticator" {
             mockkObject(OrtAuthenticator)
 
-            val helper = ContextFactoryTestHelper()
             helper.factory.withContext(RUN_ID) { }
 
             verify {
@@ -479,7 +452,6 @@ class WorkerContextTest : WordSpec({
             }
             every { OrtServerAuthenticator.install(any()) } returns authenticator
 
-            val helper = ContextFactoryTestHelper()
             val context = helper.context()
 
             // Make sure the secrets provider is initialized.
@@ -540,7 +512,6 @@ class WorkerContextTest : WordSpec({
         }
 
         "pass a correct resolver function to the authenticator" {
-            val helper = ContextFactoryTestHelper()
             helper.context()
 
             val slotResolverFun = slot<InfraSecretResolverFun>()
@@ -558,7 +529,6 @@ class WorkerContextTest : WordSpec({
 
     "credentialsResolverFunc" should {
         "always fail if there are no current services" {
-            val helper = ContextFactoryTestHelper()
             val context = helper.context()
 
             val resolverFun = context.credentialResolverFun
@@ -569,7 +539,6 @@ class WorkerContextTest : WordSpec({
         }
 
         "resolve a secret from an active infrastructure service" {
-            val helper = ContextFactoryTestHelper()
             val context = helper.context()
 
             // Make sure the secrets provider is initialized.
@@ -601,7 +570,6 @@ class WorkerContextTest : WordSpec({
         }
 
         "be aware of later changes of authentication data" {
-            val helper = ContextFactoryTestHelper()
             val context = helper.context()
 
             // Make sure the secrets provider is initialized.
