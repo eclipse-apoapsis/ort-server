@@ -48,6 +48,7 @@ import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
@@ -63,6 +64,7 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.Path as SecretPath
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
@@ -572,9 +574,6 @@ class WorkerContextTest : WordSpec({
         "be aware of later changes of authentication data" {
             val context = helper.context()
 
-            // Make sure the secrets provider is initialized.
-            context.resolveSecret(createSecret(SecretsProviderFactoryForTesting.PASSWORD_PATH.path))
-
             val resolverFun = context.credentialResolverFun
 
             val secretsProvider = SecretsProviderFactoryForTesting.instance()
@@ -650,8 +649,19 @@ private class ContextFactoryTestHelper {
     /** Mock for the [RepositoryRepository]. */
     val repositoryRepository: RepositoryRepository = mockk()
 
+    /** Mock for the [SecretRepository]. */
+    val secretRepository: SecretRepository = mockk()
+
+    /** The [SecretService] used by the test factory. */
+    val secretService = SecretService(
+        mockk(),
+        secretRepository,
+        SecretStorage(SecretsProviderFactoryForTesting().createProvider())
+    )
+
     /** The factory to be tested. */
-    val factory: WorkerContextFactory = WorkerContextFactory(config, ortRunRepository, repositoryRepository, mockk())
+    val factory: WorkerContextFactory =
+        WorkerContextFactory(config, ortRunRepository, repositoryRepository, secretService)
 
     /**
      * Prepare the mock [OrtRunRepository] to be queried for the test run ID. Return a mock run that is also returned

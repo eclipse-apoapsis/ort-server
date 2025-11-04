@@ -44,8 +44,6 @@ import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
-import org.eclipse.apoapsis.ortserver.secrets.Path
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
@@ -81,11 +79,8 @@ internal class WorkerContextImpl(
     /** The service for accessing secrets. */
     private val secretService: SecretService
 ) : WorkerContext {
-    /** The object for accessing secrets. */
-    private val secretStorage by lazy { SecretStorage.createStorage(configManager) }
-
     /** A cache for the secrets that have already been loaded. */
-    private val secretsCache = ConcurrentHashMap<String, Deferred<String>>()
+    private val secretsCache = ConcurrentHashMap<Secret, Deferred<String>>()
 
     /** A cache for the configuration secrets that have already been loaded. */
     private val configSecretsCache = ConcurrentHashMap<String, Deferred<String>>()
@@ -130,10 +125,10 @@ internal class WorkerContextImpl(
     private val currentContext by lazy { ortRun.resolvedJobConfigContext?.let(::Context) }
 
     override suspend fun resolveSecret(secret: Secret): String =
-        singleTransform(secret, secretsCache, this::resolveSecret, ::extractSecretKey)
+        singleTransform(secret, secretsCache, ::resolveSecretValue) { it }
 
     override suspend fun resolveSecrets(vararg secrets: Secret): Map<Secret, String> =
-        parallelTransform(secrets.toList(), secretsCache, this::resolveSecret, ::extractSecretKey)
+        parallelTransform(secrets.toList(), secretsCache, ::resolveSecretValue) { it }
 
     override suspend fun resolvePluginConfigSecrets(
         config: Map<String, ResolvablePluginConfig>?
@@ -263,10 +258,10 @@ internal class WorkerContextImpl(
         }
 
     /**
-     * Resolve the secret with the given [path] using the [SecretStorage] owned by this instance.
+     * Resolve the value of the provided [secret] using the [secretService].
      */
-    private fun resolveSecret(path: String): String =
-        secretStorage.getSecret(Path(path)).value
+    private fun resolveSecretValue(secret: Secret): String =
+        secretService.getSecretValue(secret)?.value ?: error("Could not resolve secret at path '${secret.path}'")
 
     /**
      * Resolve the given [secret] from the configuration manager.
@@ -286,11 +281,6 @@ internal class WorkerContextImpl(
             }
         }
 }
-
-/**
- * A key extraction function for [Secret]s. As key for the given [secret] its path is used.
- */
-private fun extractSecretKey(secret: Secret): String = secret.path
 
 /**
  * Return a key extraction function for configuration files that are downloaded to the given [directory] and optionally
