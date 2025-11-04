@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Permission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.InvalidHierarchyIdException
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -105,6 +106,9 @@ class AuthorizedRoutesTest : WordSpec() {
                 install(StatusPages) {
                     exception<AuthorizationException> { call, _ ->
                         call.respond(HttpStatusCode.Forbidden)
+                    }
+                    exception<InvalidHierarchyIdException> { call, _ ->
+                        call.respond(HttpStatusCode.NotFound)
                     }
                 }
 
@@ -450,6 +454,29 @@ class AuthorizedRoutesTest : WordSpec() {
                 ) { client ->
                     val response = client.delete("test/$ID_PARAMETER")
                     response.status shouldBe HttpStatusCode.Forbidden
+                }
+            }
+        }
+
+        "exceptions" should {
+            "be mapped to correct status codes" {
+                val service = mockk<AuthorizationService> {
+                    coEvery { checkPermissions(any(), any<HierarchyId>(), any()) } throws
+                        InvalidHierarchyIdException(OrganizationId(42))
+                }
+
+                runAuthorizationTest(
+                    service,
+                    routeBuilder = {
+                        route("test/{organizationId}") {
+                            get(testDocs, requirePermission(OrganizationPermission.READ)) {
+                                call.respond(HttpStatusCode.OK)
+                            }
+                        }
+                    }
+                ) { client ->
+                    val response = client.get("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.NotFound
                 }
             }
         }
