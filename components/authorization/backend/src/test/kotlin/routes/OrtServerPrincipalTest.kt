@@ -25,10 +25,14 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.shouldBe
 
+import io.ktor.server.auth.principal
+import io.ktor.server.routing.RoutingContext
+
 import io.mockk.every
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 
 class OrtServerPrincipalTest : WordSpec({
     "create()" should {
@@ -116,6 +120,18 @@ class OrtServerPrincipalTest : WordSpec({
 
             shouldThrow<AuthorizationException> {
                 principal.effectiveRole
+            }
+        }
+    }
+
+    "requirePrincipal()" should {
+        "throw an exception if no principal is present in the routing context" {
+            val context = mockk<RoutingContext> {
+                every { call.principal<OrtServerPrincipal>() } returns null
+            }
+
+            shouldThrow<AuthorizationException> {
+                context.requirePrincipal()
             }
         }
     }

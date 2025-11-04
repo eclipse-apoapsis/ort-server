@@ -21,6 +21,9 @@ package org.eclipse.apoapsis.ortserver.components.authorization.routes
 
 import com.auth0.jwt.interfaces.Payload
 
+import io.ktor.server.auth.principal
+import io.ktor.server.routing.RoutingContext
+
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.EffectiveRole
 
 /**
@@ -82,6 +85,13 @@ class OrtServerPrincipal(
                 role = null,
                 validationException = exception
             )
+
+        /**
+         * Make sure that the current [RoutingContext] contains an authorized [OrtServerPrincipal] and return it.
+         * Throw an [AuthorizationException] otherwise.
+         */
+        fun RoutingContext.requirePrincipal(): OrtServerPrincipal =
+            call.principal<OrtServerPrincipal>() ?: throw AuthorizationException()
     }
 
     /**
