@@ -34,6 +34,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
+import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 
 import org.jetbrains.exposed.sql.Database
@@ -53,6 +54,30 @@ class SecretServiceTest : WordSpec({
             fixtures.secretRepository,
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
+    }
+
+    "getSecretValue" should {
+        "return the value of a secret" {
+            val secret = secretService.createSecret(
+                "secret",
+                "secret value",
+                "description",
+                OrganizationId(fixtures.organization.id)
+            )
+
+            secretService.getSecretValue(secret) shouldBe SecretValue("secret value")
+        }
+
+        "return null if the value is not found" {
+            val secret = fixtures.secretRepository.create(
+                "path",
+                "name",
+                "description",
+                OrganizationId(fixtures.organization.id)
+            )
+
+            secretService.getSecretValue(secret) should beNull()
+        }
     }
 
     "listForHierarchy" should {
