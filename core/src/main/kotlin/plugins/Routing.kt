@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.Security
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.authorizationRoutes
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesRoutes
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
+import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
 import org.eclipse.apoapsis.ortserver.compositions.secretsroutes.secretsCompositionRoutes
 import org.eclipse.apoapsis.ortserver.core.api.admin
@@ -59,6 +60,7 @@ fun Application.configureRouting() {
                 products()
                 repositories()
                 runs()
+                searchRoutes(get())
                 secretsCompositionRoutes(get(), get())
                 secretsRoutes(get(), get())
                 versions()
