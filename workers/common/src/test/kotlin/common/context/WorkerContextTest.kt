@@ -643,16 +643,16 @@ private fun createSecret(path: String): Secret =
 /**
  * A test helper class managing a [WorkerContextFactory] instance and its dependencies.
  */
-private class ContextFactoryTestHelper(
+private class ContextFactoryTestHelper {
     /** Mock for the [OrtRunRepository]. */
-    val ortRunRepository: OrtRunRepository = mockk(),
+    val ortRunRepository: OrtRunRepository = mockk()
 
     /** Mock for the [RepositoryRepository]. */
-    val repositoryRepository: RepositoryRepository = mockk(),
+    val repositoryRepository: RepositoryRepository = mockk()
 
     /** The factory to be tested. */
     val factory: WorkerContextFactory = WorkerContextFactory(config, ortRunRepository, repositoryRepository, mockk())
-) {
+
     /**
      * Prepare the mock [OrtRunRepository] to be queried for the test run ID. Return a mock run that is also returned
      * by the repository.
