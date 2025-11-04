@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.withMockDatabaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.AdvisorWorkerResult
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.AdvisorEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
@@ -159,7 +160,8 @@ class AdvisorEndpointTest : KoinTest, StringSpec() {
                 "ADVISOR_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
                 "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
                 "ADVISOR_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME,
-                "VULNERABLE_CODE_API_KEY" to VULNERABLE_CODE_API_KEY
+                "VULNERABLE_CODE_API_KEY" to VULNERABLE_CODE_API_KEY,
+                "SECRETS_PROVIDER_NAME" to SecretsProviderFactoryForTesting.NAME
             )
 
             withEnvironment(environment) {

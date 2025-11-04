@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.withMockDatabaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.NotifierWorkerResult
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
 import org.eclipse.apoapsis.ortserver.transport.NotifierEndpoint
@@ -134,7 +135,8 @@ class NotifierEndpointTest : KoinTest, StringSpec() {
             val environment = mapOf(
                 "NOTIFIER_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
                 "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-                "NOTIFIER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME
+                "NOTIFIER_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME,
+                "SECRETS_PROVIDER_NAME" to SecretsProviderFactoryForTesting.NAME
             )
 
             withEnvironment(environment) {

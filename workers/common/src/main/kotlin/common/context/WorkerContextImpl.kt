@@ -31,6 +31,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path as ConfigPath
@@ -76,6 +77,9 @@ internal class WorkerContextImpl(
 
     /** The ID of the current ORT run. */
     private val ortRunId: Long,
+
+    /** The service for accessing secrets. */
+    private val secretService: SecretService
 ) : WorkerContext {
     /** The object for accessing secrets. */
     private val secretStorage by lazy { SecretStorage.createStorage(configManager) }

@@ -65,6 +65,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
 
     testImplementation(libs.koinTest)
