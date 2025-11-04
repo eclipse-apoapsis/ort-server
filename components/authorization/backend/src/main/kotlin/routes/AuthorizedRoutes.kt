@@ -52,17 +52,19 @@ suspend fun ApplicationCall.createAuthorizedPrincipal(
     (this as? RoutingPipelineCall)?.let { routingCall ->
         val checker = routingCall.route.findAuthorizationChecker()
 
-        val effectiveRole = if (checker != null) {
-            checker.loadEffectiveRole(
-                service = authorizationService,
-                userId = payload.getClaim("preferred_username").asString(),
-                call = this
-            )
-        } else {
-            EffectiveRole.EMPTY
-        }
+        runCatching {
+            val effectiveRole = if (checker != null) {
+                checker.loadEffectiveRole(
+                    service = authorizationService,
+                    userId = payload.getClaim("preferred_username").asString(),
+                    call = this
+                )
+            } else {
+                EffectiveRole.EMPTY
+            }
 
-        OrtServerPrincipal.create(payload, effectiveRole)
+            OrtServerPrincipal.create(payload, effectiveRole)
+        }.getOrElse(OrtServerPrincipal::fromException)
     }
 
 /**

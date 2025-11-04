@@ -58,7 +58,8 @@ class OrtServerPrincipalTest : WordSpec({
                 userId = "user-id",
                 username = "username",
                 fullName = "Full Name",
-                role = mockk()
+                role = mockk(),
+                validationException = null
             )
 
             principal.isAuthorized shouldBe true
@@ -69,10 +70,24 @@ class OrtServerPrincipalTest : WordSpec({
                 userId = "user-id",
                 username = "username",
                 fullName = "Full Name",
-                role = null
+                role = null,
+                validationException = null
             )
 
             principal.isAuthorized shouldBe false
+        }
+
+        "re-throw a validation exception if present" {
+            val exception = IllegalStateException("Validation failed")
+            val principal = OrtServerPrincipal.fromException(exception)
+
+            principal.userId shouldBe ""
+            principal.username shouldBe ""
+            principal.fullName shouldBe ""
+
+            shouldThrow<IllegalStateException> {
+                principal.isAuthorized
+            } shouldBe exception
         }
     }
 
@@ -83,7 +98,8 @@ class OrtServerPrincipalTest : WordSpec({
                 userId = "user-id",
                 username = "username",
                 fullName = "Full Name",
-                role = effectiveRole
+                role = effectiveRole,
+                validationException = null
             )
 
             principal.effectiveRole shouldBe effectiveRole
@@ -94,7 +110,8 @@ class OrtServerPrincipalTest : WordSpec({
                 userId = "user-id",
                 username = "username",
                 fullName = "Full Name",
-                role = null
+                role = null,
+                validationException = null
             )
 
             shouldThrow<AuthorizationException> {
