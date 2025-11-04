@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.api.v1.model
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
+import org.eclipse.apoapsis.ortserver.shared.apimodel.UserDisplayName
+
 @Serializable
 data class OrtRun(
     /**
@@ -136,7 +138,17 @@ data class OrtRun(
     /**
      * The display name of the user that triggered the scan.
      */
-    val userDisplayName: UserDisplayName? = null
+    val userDisplayName: UserDisplayName? = null,
+
+    /**
+     * A flag to indicate if the results of the run are outdated, e.g. because of a new resolution.
+     */
+    val outdated: Boolean = false,
+
+    /**
+     * A message describing why the results of the run are outdated.
+     */
+    val outdatedMessage: String? = null
 )
 
 /**
