@@ -110,6 +110,7 @@ fun Application.configureOpenApi() {
             tag("Runs") { }
             tag("Admin") { }
             tag("Versions") { }
+            tag("Search") { }
         }
 
         schemas {
