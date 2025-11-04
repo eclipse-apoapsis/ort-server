@@ -215,3 +215,53 @@ jobs:
         if [ "${{ env.IS_PR }}" = "false" ]; then
           docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.jibImage }} --all-tags
         fi
+
+  publish-base-image:
+    name: Publish Base Image
+    runs-on: ubuntu-24.04
+    if: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
+    permissions:
+      packages: write
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
+
+    - name: Get ORT-Server Version
+      run: |
+        ORT_SERVER_VERSION=$(./gradlew -q printVersion)
+        echo "ORT_SERVER_VERSION=${ORT_SERVER_VERSION}" >> $GITHUB_ENV
+
+    - name: Extract Docker Metadata for base image
+      id: meta-base-image
+      uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+      with:
+        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image
+        tags: |
+          type=raw,value=${{ env.ORT_SERVER_VERSION }}
+          type=ref,event=branch
+          type=sha
+          type=raw,value=latest,enable={{ is_default_branch }}
+
+    - name: Build and push base image to registry
+      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+      with:
+        context: docker
+        file: docker/Base.Dockerfile
+        tags: ${{ steps.meta-base-image.outputs.tags }}
+        labels: ${{ steps.meta-base-image.outputs.labels }}
+        cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache
+        cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image:cache,mode=max
+        push: true
