@@ -74,7 +74,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
 
-class WorkerContextFactoryTest : WordSpec({
+class WorkerContextTest : WordSpec({
     beforeEach {
         mockkObject(OrtServerAuthenticator)
 
