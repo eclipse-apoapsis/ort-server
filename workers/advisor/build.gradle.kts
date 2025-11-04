@@ -56,6 +56,7 @@ dependencies {
     implementation(platform(ortLibs.ortPlugins.advisors))
 
     runtimeOnly(platform(projects.config))
+    runtimeOnly(platform(projects.secrets))
     runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.transport))
 
@@ -66,6 +67,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
 
     testImplementation(libs.koinTest)

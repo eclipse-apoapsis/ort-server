@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.withMockDatabaseModule
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigRequest
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerError
 import org.eclipse.apoapsis.ortserver.model.orchestrator.ConfigWorkerResult
+import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.transport.ConfigEndpoint
 import org.eclipse.apoapsis.ortserver.transport.Message
 import org.eclipse.apoapsis.ortserver.transport.MessageHeader
@@ -127,7 +128,8 @@ private suspend fun runEndpointTest(block: suspend () -> Unit) {
         val environment = mapOf(
             "CONFIG_RECEIVER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
             "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
-            "CONFIG_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME
+            "CONFIG_SECRET_PROVIDER" to ConfigSecretProviderFactoryForTesting.NAME,
+            "SECRETS_PROVIDER_NAME" to SecretsProviderFactoryForTesting.NAME
         )
 
         withEnvironment(environment) {

@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.context
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
@@ -37,7 +38,10 @@ class WorkerContextFactory(
     private val ortRunRepository: OrtRunRepository,
 
     /** The repository for repository entities. */
-    private val repositoryRepository: RepositoryRepository
+    private val repositoryRepository: RepositoryRepository,
+
+    /** The service for accessing secrets. */
+    private val secretService: SecretService
 ) {
     /**
      * Create a new [WorkerContext] for the given [ID of an ORT run][ortRunId] and execute the given [block] passing
@@ -62,6 +66,6 @@ class WorkerContextFactory(
         val ortConfig = WorkerOrtConfig.create(configManager)
         ortConfig.setUpOrtEnvironment()
 
-        return WorkerContextImpl(configManager, ortRunRepository, repositoryRepository, ortRunId)
+        return WorkerContextImpl(configManager, ortRunRepository, repositoryRepository, ortRunId, secretService)
     }
 }

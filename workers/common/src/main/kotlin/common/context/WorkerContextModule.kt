@@ -19,10 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.context
 
+import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.DaoOrtRunRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryRepository
+import org.eclipse.apoapsis.ortserver.dao.repositories.secret.DaoSecretRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
+import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 
 import org.koin.core.module.Module
@@ -37,6 +41,12 @@ import org.koin.dsl.module
 fun workerContextModule(): Module = module {
     single<OrtRunRepository> { DaoOrtRunRepository(get()) }
     single<RepositoryRepository> { DaoRepositoryRepository(get()) }
+    single<SecretRepository> { DaoSecretRepository(get()) }
+
+    single {
+        val secretStorage = SecretStorage.createStorage(get())
+        SecretService(get(), get(), secretStorage)
+    }
 
     singleOf(::WorkerContextFactory)
     singleOf(::AdminConfigService)

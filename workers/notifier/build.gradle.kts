@@ -57,6 +57,7 @@ dependencies {
     runtimeOnly(libs.logback)
 
     runtimeOnly(platform(projects.config))
+    runtimeOnly(platform(projects.secrets))
     runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.transport))
 
@@ -66,6 +67,7 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(testFixtures(projects.config.configSpi))
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.secrets.secretsSpi))
     testImplementation(testFixtures(projects.transport.transportSpi))
 }
 
