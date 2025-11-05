@@ -26,13 +26,17 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PatchInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PostInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesRoutes
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
@@ -41,13 +45,19 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
     var orgId = 0L
     var repoId = 0L
+    lateinit var orgHierarchyId: CompoundHierarchyId
+    lateinit var repoHierarchyId: CompoundHierarchyId
     lateinit var infrastructureServiceService: InfrastructureServiceService
 
     beforeEach {
         orgId = dbExtension.fixtures.organization.id
         repoId = dbExtension.fixtures.repository.id
-
-        authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
+        orgHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(orgId))
+        repoHierarchyId = CompoundHierarchyId.forRepository(
+            OrganizationId(orgId),
+            ProductId(dbExtension.fixtures.product.id),
+            RepositoryId(repoId)
+        )
 
         infrastructureServiceService = InfrastructureServiceService(
             dbExtension.db,
@@ -63,8 +73,9 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = OrganizationPermission.WRITE.roleName(orgId),
-                successStatus = HttpStatusCode.NotFound
+                role = OrganizationRole.WRITER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = orgHierarchyId
             ) {
                 delete("/organizations/$orgId/infrastructure-services/name")
             }
@@ -75,8 +86,9 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.READ" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = OrganizationPermission.READ.roleName(orgId),
-                successStatus = HttpStatusCode.NotFound
+                role = OrganizationRole.READER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = orgHierarchyId
             ) {
                 get("/organizations/$orgId/infrastructure-services/not-found")
             }
@@ -87,7 +99,8 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.READ" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = OrganizationPermission.READ.roleName(orgId),
+                role = OrganizationRole.READER,
+                hierarchyId = orgHierarchyId
             ) {
                 get("/organizations/$orgId/infrastructure-services")
             }
@@ -98,8 +111,9 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = OrganizationPermission.WRITE.roleName(orgId),
-                successStatus = HttpStatusCode.NotFound
+                role = OrganizationRole.WRITER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = orgHierarchyId
             ) {
                 patch("/organizations/$orgId/infrastructure-services/name") {
                     setBody(
@@ -117,8 +131,9 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = OrganizationPermission.WRITE.roleName(orgId),
-                successStatus = HttpStatusCode.InternalServerError
+                role = OrganizationRole.WRITER,
+                successStatus = HttpStatusCode.InternalServerError,
+                hierarchyId = orgHierarchyId
             ) {
                 post("/organizations/$orgId/infrastructure-services") {
                     setBody(
@@ -139,8 +154,9 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = RepositoryPermission.WRITE.roleName(repoId),
-                successStatus = HttpStatusCode.NotFound
+                role = RepositoryRole.WRITER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = repoHierarchyId
             ) {
                 delete("/repositories/$repoId/infrastructure-services/name")
             }
@@ -151,8 +167,9 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.READ" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = RepositoryPermission.READ.roleName(repoId),
-                successStatus = HttpStatusCode.NotFound
+                role = RepositoryRole.READER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = repoHierarchyId
             ) {
                 get("/repositories/$repoId/infrastructure-services/not-found")
             }
@@ -163,7 +180,8 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.READ" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = RepositoryPermission.READ.roleName(repoId)
+                role = RepositoryRole.READER,
+                hierarchyId = repoHierarchyId
             ) {
                 get("/repositories/$repoId/infrastructure-services")
             }
@@ -174,8 +192,9 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = RepositoryPermission.WRITE.roleName(repoId),
-                successStatus = HttpStatusCode.NotFound
+                role = RepositoryRole.WRITER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = repoHierarchyId
             ) {
                 patch("/repositories/$repoId/infrastructure-services/name") {
                     setBody(
@@ -193,8 +212,9 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.WRITE" {
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
-                role = RepositoryPermission.WRITE.roleName(repoId),
-                successStatus = HttpStatusCode.InternalServerError
+                role = RepositoryRole.WRITER,
+                successStatus = HttpStatusCode.InternalServerError,
+                hierarchyId = repoHierarchyId
             ) {
                 post("/repositories/$repoId/infrastructure-services") {
                     setBody(

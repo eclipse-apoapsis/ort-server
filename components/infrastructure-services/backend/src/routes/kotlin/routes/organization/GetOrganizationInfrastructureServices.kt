@@ -19,14 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.organization
 
-import io.github.smiley4.ktoropenapi.get
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService as ModelInfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -89,9 +88,7 @@ internal fun Route.getOrganizationInfrastructureServices(
             }
         }
     }
-}) {
-    requirePermission(OrganizationPermission.READ)
-
+}, requirePermission(OrganizationPermission.READ)) {
     val orgId = call.requireIdParameter("organizationId")
     val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
 

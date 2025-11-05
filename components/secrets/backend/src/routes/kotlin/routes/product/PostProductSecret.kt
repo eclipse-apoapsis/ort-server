@@ -19,15 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
 
-import io.github.smiley4.ktoropenapi.post
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
 import org.eclipse.apoapsis.ortserver.components.secrets.PostSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
@@ -67,9 +66,7 @@ internal fun Route.postProductSecret(secretService: SecretService) =
                 }
             }
         }
-    }) {
-        requirePermission(ProductPermission.WRITE_SECRETS)
-
+    }, requirePermission(ProductPermission.WRITE_SECRETS)) {
         val productId = call.requireIdParameter("productId")
         val createSecret = call.receive<PostSecret>()
 

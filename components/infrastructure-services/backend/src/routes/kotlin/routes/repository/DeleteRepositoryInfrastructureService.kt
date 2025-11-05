@@ -19,14 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
 
-import io.github.smiley4.ktoropenapi.delete
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
@@ -53,9 +52,7 @@ internal fun Route.deleteRepositoryInfrastructureService(
             description = "Success"
         }
     }
-}) {
-    requirePermission(RepositoryPermission.WRITE)
-
+}, requirePermission(RepositoryPermission.WRITE)) {
     val repositoryId = call.requireIdParameter("repositoryId")
     val serviceName = call.requireParameter("serviceName")
 

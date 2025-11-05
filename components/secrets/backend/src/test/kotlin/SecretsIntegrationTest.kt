@@ -22,8 +22,6 @@ package org.eclipse.apoapsis.ortserver.components.secrets
 import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 
-import io.mockk.mockk
-
 import org.eclipse.apoapsis.ortserver.model.repositories.SecretRepository
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
@@ -50,8 +48,7 @@ abstract class SecretsIntegrationTest(body: SecretsIntegrationTest.() -> Unit) :
                 dbExtension.fixtures.scannerJobRepository,
                 dbExtension.fixtures.evaluatorJobRepository,
                 dbExtension.fixtures.reporterJobRepository,
-                dbExtension.fixtures.notifierJobRepository,
-                mockk()
+                dbExtension.fixtures.notifierJobRepository
             )
             secretRepository = dbExtension.fixtures.secretRepository
             secretService = SecretService(
