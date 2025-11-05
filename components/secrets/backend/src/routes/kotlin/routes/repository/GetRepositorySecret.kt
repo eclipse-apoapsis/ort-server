@@ -19,14 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes.repository
 
-import io.github.smiley4.ktoropenapi.get
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
@@ -60,9 +59,7 @@ internal fun Route.getRepositorySecret(secretService: SecretService) =
                 }
             }
         }
-    }) {
-        requirePermission(RepositoryPermission.READ)
-
+    }, requirePermission(RepositoryPermission.READ)) {
         val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
         val secretName = call.requireParameter("secretName")
 

@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.shared.ktorutils
 
-import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.WordSpec
 
 import io.ktor.client.HttpClient
@@ -38,7 +37,6 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.requestvalidation.RequestValidation
 import io.ktor.server.plugins.requestvalidation.RequestValidationConfig
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
@@ -46,14 +44,10 @@ import io.ktor.util.appendIfNameAbsent
 
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkAll
 
 import kotlinx.serialization.json.Json
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUserId
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.hasRole
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
@@ -64,22 +58,14 @@ import org.eclipse.apoapsis.ortserver.utils.test.Integration
 abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit) : WordSpec() {
     val dbExtension = extension(DatabaseTestExtension())
 
-    val principal = mockk<OrtPrincipal> {
-        every { getUserId() } returns "userId"
-        every { hasRole(any()) } returns true
+    val principal = mockk<OrtServerPrincipal> {
+        every { userId } returns "userId"
+        every { isAuthorized } returns true
     }
 
     init {
         tags(Integration)
         body()
-    }
-
-    override suspend fun beforeSpec(spec: Spec) {
-        mockkStatic(RoutingContext::hasRole)
-    }
-
-    override suspend fun afterSpec(spec: Spec) {
-        unmockkAll()
     }
 
     fun integrationTestApplication(
@@ -123,7 +109,7 @@ fun ApplicationTestBuilder.createJsonClient() = createClient {
     }
 }
 
-class DummyConfig(val principal: OrtPrincipal) : AuthenticationProvider.Config("test")
+class DummyConfig(val principal: OrtServerPrincipal) : AuthenticationProvider.Config("test")
 
 class FakeAuthenticationProvider(val config: DummyConfig) : AuthenticationProvider(config) {
     override suspend fun onAuthenticate(context: AuthenticationContext) {

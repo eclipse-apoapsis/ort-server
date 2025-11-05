@@ -19,16 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
-import io.github.smiley4.ktoropenapi.post
-
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUserId
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDisabled
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEvent
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
@@ -67,9 +64,7 @@ internal fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plu
             description = "The plugin is already disabled."
         }
     }
-}) {
-    requireSuperuser()
-
+}, requireSuperuser()) {
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
     val pluginId = normalizePluginId(pluginType, call.requireParameter("pluginId"))
 
@@ -78,7 +73,7 @@ internal fun Route.disablePlugin(eventStore: PluginEventStore) = post("admin/plu
         return@post
     }
 
-    val userId = checkNotNull(call.principal<OrtPrincipal>()).getUserId()
+    val userId = requirePrincipal().userId
 
     val plugin = eventStore.getPlugin(pluginType, pluginId)
 
