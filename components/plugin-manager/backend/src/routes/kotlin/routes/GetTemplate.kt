@@ -22,13 +22,12 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 
-import io.github.smiley4.ktoropenapi.get
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplate
@@ -92,9 +91,7 @@ internal fun Route.getTemplate(
             description = "The specified plugin template does not exist."
         }
     }
-}) {
-    requireSuperuser()
-
+}, requireSuperuser()) {
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")

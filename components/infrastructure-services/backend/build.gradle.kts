@@ -49,7 +49,7 @@ dependencies {
 
     implementation(libs.exposedCore)
 
-    routesImplementation(projects.components.authorizationKeycloak.backend)
+    routesImplementation(projects.components.authorization.backend)
     routesImplementation(projects.shared.apiMappings)
     routesImplementation(projects.shared.ktorUtils)
 

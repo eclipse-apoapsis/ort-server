@@ -19,8 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.components.adminconfig.routes
 
-import io.github.smiley4.ktoropenapi.post
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -29,7 +27,8 @@ import io.ktor.server.routing.Route
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigTable
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
@@ -69,9 +68,7 @@ internal fun Route.setConfigByKey(db: Database) = post("admin/config/{key}", {
             description = "The config key is invalid."
         }
     }
-}) {
-    requireSuperuser()
-
+}, requireSuperuser()) {
     val keyParameter = call.requireParameter("key")
 
     val key = runCatching {

@@ -19,14 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes.product
 
-import io.github.smiley4.ktoropenapi.get
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.mapToApi
@@ -60,9 +59,7 @@ internal fun Route.getProductSecret(secretService: SecretService) =
                 }
             }
         }
-    }) {
-        requirePermission(ProductPermission.READ)
-
+    }, requirePermission(ProductPermission.READ)) {
         val productId = ProductId(call.requireIdParameter("productId"))
         val secretName = call.requireParameter("secretName")
 
