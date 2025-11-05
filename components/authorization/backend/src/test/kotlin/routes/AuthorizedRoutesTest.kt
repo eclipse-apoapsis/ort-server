@@ -385,6 +385,116 @@ class AuthorizedRoutesTest : WordSpec() {
                     }
                 }
             }
+
+            "support GET with a path" {
+                runAuthorizationTest(
+                    OrganizationPermission.WRITE_SECRETS,
+                    routeBuilder = {
+                        get(
+                            "test/{organizationId}",
+                            testDocs,
+                            requirePermission(OrganizationPermission.WRITE_SECRETS)
+                        ) {
+                            call.principal<OrtServerPrincipal>().shouldNotBeNull {
+                                username shouldBe USERNAME
+                            }
+
+                            call.respond(HttpStatusCode.OK)
+                        }
+                    }
+                ) { client ->
+                    val response = client.get("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.OK
+                }
+            }
+
+            "support POST with a path" {
+                runAuthorizationTest(
+                    OrganizationPermission.MANAGE_GROUPS,
+                    routeBuilder = {
+                        post(
+                            "test/{organizationId}",
+                            testDocs,
+                            requirePermission(OrganizationPermission.MANAGE_GROUPS)
+                        ) {
+                            call.principal<OrtServerPrincipal>().shouldNotBeNull {
+                                username shouldBe USERNAME
+                            }
+
+                            call.respond(HttpStatusCode.OK)
+                        }
+                    }
+                ) { client ->
+                    val response = client.post("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.OK
+                }
+            }
+
+            "support PATCH with a path" {
+                runAuthorizationTest(
+                    OrganizationPermission.CREATE_PRODUCT,
+                    routeBuilder = {
+                        patch(
+                            "test/{organizationId}",
+                            testDocs,
+                            requirePermission(OrganizationPermission.CREATE_PRODUCT)
+                        ) {
+                            call.principal<OrtServerPrincipal>().shouldNotBeNull {
+                                username shouldBe USERNAME
+                            }
+
+                            call.respond(HttpStatusCode.OK)
+                        }
+                    }
+                ) { client ->
+                    val response = client.patch("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.OK
+                }
+            }
+
+            "support PUT with a path" {
+                runAuthorizationTest(
+                    OrganizationPermission.READ_PRODUCTS,
+                    routeBuilder = {
+                        put(
+                            "test/{organizationId}",
+                            testDocs,
+                            requirePermission(OrganizationPermission.READ_PRODUCTS)
+                        ) {
+                            call.principal<OrtServerPrincipal>().shouldNotBeNull {
+                                username shouldBe USERNAME
+                            }
+
+                            call.respond(HttpStatusCode.OK)
+                        }
+                    }
+                ) { client ->
+                    val response = client.put("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.OK
+                }
+            }
+
+            "support DELETE with a path" {
+                runAuthorizationTest(
+                    OrganizationPermission.WRITE,
+                    routeBuilder = {
+                        delete(
+                            "test/{organizationId}",
+                            testDocs,
+                            requirePermission(OrganizationPermission.WRITE)
+                        ) {
+                            call.principal<OrtServerPrincipal>().shouldNotBeNull {
+                                username shouldBe USERNAME
+                            }
+
+                            call.respond(HttpStatusCode.OK)
+                        }
+                    }
+                ) { client ->
+                    val response = client.delete("test/$ID_PARAMETER")
+                    response.status shouldBe HttpStatusCode.OK
+                }
+            }
         }
 
         "failed authorization checks" should {
