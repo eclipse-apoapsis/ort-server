@@ -48,20 +48,20 @@ import org.eclipse.apoapsis.ortserver.clients.keycloak.UserId
 import org.eclipse.apoapsis.ortserver.clients.keycloak.UserName
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_SUBJECT_CLIENT
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpClientScope
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.setUpUser
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.AuthorizationException
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.SecurityConfigurations
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.configureAuthentication
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthenticationProviders
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthorizationException
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.configureAuthentication
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.utils.test.Authorization
 
 import org.jetbrains.exposed.dao.exceptions.EntityNotFoundException
@@ -97,7 +97,6 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
 
     val json = Json { ignoreUnknownKeys = true }
 
-    val keycloakClient = keycloak.createKeycloakClientForTestRealm()
     val keycloakConfig = keycloak.createKeycloakConfigMapForTestRealm()
     val jwtConfig = keycloak.createJwtConfigMapForTestRealm()
 
@@ -109,16 +108,7 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
     lateinit var authorizationService: AuthorizationService
 
     override suspend fun beforeEach(testCase: TestCase) {
-        authorizationService = KeycloakAuthorizationService(
-            keycloakClient,
-            dbExtension.db,
-            dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
-        )
-
-        authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
+        authorizationService = DbAuthorizationService(dbExtension.db)
     }
 
     private fun authorizationTestApplication(
@@ -152,7 +142,7 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
                 configureAuthentication(config, authorizationService)
 
                 routing {
-                    authenticate(SecurityConfigurations.TOKEN) {
+                    authenticate(AuthenticationProviders.TOKEN_PROVIDER) {
                         routes()
                     }
                 }
@@ -181,13 +171,14 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
 
     fun requestShouldRequireRole(
         routes: Route.() -> Unit,
-        role: String,
+        role: Role,
+        hierarchyId: CompoundHierarchyId,
         successStatus: HttpStatusCode = HttpStatusCode.OK,
         request: suspend HttpClient.() -> HttpResponse
     ) {
         authorizationTestApplication(routes) { _, testUserClient ->
             testUserClient.request() shouldHaveStatus HttpStatusCode.Forbidden
-            keycloak.keycloakAdminClient.addUserRole(TEST_USER.username.value, role)
+            authorizationService.assignRole(TEST_USER.username.value, role, hierarchyId)
             testUserClient.request() shouldHaveStatus successStatus
         }
     }
@@ -197,6 +188,6 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
         successStatus: HttpStatusCode = HttpStatusCode.OK,
         request: suspend HttpClient.() -> HttpResponse
     ) {
-        requestShouldRequireRole(routes, Superuser.ROLE_NAME, successStatus, request)
+        requestShouldRequireRole(routes, OrganizationRole.ADMIN, CompoundHierarchyId.WILDCARD, successStatus, request)
     }
 }

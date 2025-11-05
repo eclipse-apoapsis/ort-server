@@ -22,11 +22,15 @@ package org.eclipse.apoapsis.ortserver.compositions.secretsroutes
 import io.ktor.client.request.delete
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
@@ -35,6 +39,9 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
     var orgId = 0L
     var prodId = 0L
     var repoId = 0L
+    lateinit var orgHierarchyId: CompoundHierarchyId
+    lateinit var prodHierarchyId: CompoundHierarchyId
+    lateinit var repoHierarchyId: CompoundHierarchyId
     lateinit var infrastructureServiceService: InfrastructureServiceService
     lateinit var secretService: SecretService
 
@@ -43,7 +50,16 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
         prodId = dbExtension.fixtures.product.id
         repoId = dbExtension.fixtures.repository.id
 
-        authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
+        orgHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(orgId))
+        prodHierarchyId = CompoundHierarchyId.forProduct(
+            OrganizationId(orgId),
+            ProductId(prodId)
+        )
+        repoHierarchyId = CompoundHierarchyId.forRepository(
+            OrganizationId(orgId),
+            ProductId(prodId),
+            RepositoryId(repoId)
+        )
 
         secretService = SecretService(
             dbExtension.db,
@@ -60,8 +76,9 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },
-                role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
-                successStatus = HttpStatusCode.NotFound
+                role = OrganizationRole.ADMIN,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = orgHierarchyId
             ) {
                 delete("/organizations/$orgId/secrets/name")
             }
@@ -72,8 +89,9 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },
-                role = ProductPermission.WRITE_SECRETS.roleName(prodId),
-                successStatus = HttpStatusCode.NotFound
+                role = ProductRole.ADMIN,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = prodHierarchyId
             ) {
                 delete("/products/$prodId/secrets/name")
             }
@@ -84,8 +102,9 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsCompositionRoutes(infrastructureServiceService, secretService) },
-                role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
-                successStatus = HttpStatusCode.NotFound
+                role = RepositoryRole.ADMIN,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = repoHierarchyId
             ) {
                 delete("/repositories/$repoId/secrets/name")
             }
