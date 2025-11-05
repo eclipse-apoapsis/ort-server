@@ -19,14 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
 
-import io.github.smiley4.ktoropenapi.get
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.shared.apimappings.mapToApi
@@ -67,9 +66,7 @@ internal fun Route.getRepositoryInfrastructureService(
             }
         }
     }
-}) {
-    requirePermission(RepositoryPermission.READ)
-
+}, requirePermission(RepositoryPermission.READ)) {
     val repositoryId = call.requireIdParameter("repositoryId")
     val serviceName = call.requireParameter("serviceName")
 

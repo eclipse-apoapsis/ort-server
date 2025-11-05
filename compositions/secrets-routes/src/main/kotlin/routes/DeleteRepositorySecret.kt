@@ -19,14 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.compositions.secretsroutes.routes
 
-import io.github.smiley4.ktoropenapi.delete
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -56,9 +55,7 @@ internal fun Route.deleteRepositorySecret(
             description = "Success"
         }
     }
-}) {
-    requirePermission(RepositoryPermission.WRITE_SECRETS)
-
+}, requirePermission(RepositoryPermission.WRITE_SECRETS)) {
     val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
     val secretName = call.requireParameter("secretName")
 

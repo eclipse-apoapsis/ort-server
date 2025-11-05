@@ -19,13 +19,12 @@
 
 package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 
-import io.github.smiley4.ktoropenapi.get
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginDescriptor
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOption
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
@@ -84,8 +83,6 @@ internal fun Route.getInstalledPlugins(pluginService: PluginService) = get("admi
             }
         }
     }
-}) {
-    requireSuperuser()
-
+}, requireSuperuser()) {
     call.respond(HttpStatusCode.OK, pluginService.getPlugins())
 }
