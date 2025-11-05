@@ -25,13 +25,17 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.secrets.PatchSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.PostSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.components.secrets.secretsRoutes
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
@@ -42,6 +46,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
     var orgId = 0L
     var prodId = 0L
     var repoId = 0L
+    lateinit var orgHierarchyId: CompoundHierarchyId
+    lateinit var productHierarchyId: CompoundHierarchyId
+    lateinit var repoHierarchyId: CompoundHierarchyId
     lateinit var repositoryService: RepositoryService
     lateinit var secretService: SecretService
 
@@ -50,7 +57,16 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         prodId = dbExtension.fixtures.product.id
         repoId = dbExtension.fixtures.repository.id
 
-        authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
+        orgHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(orgId))
+        productHierarchyId = CompoundHierarchyId.forProduct(
+            OrganizationId(orgId),
+            ProductId(prodId)
+        )
+        repoHierarchyId = CompoundHierarchyId.forRepository(
+            OrganizationId(orgId),
+            ProductId(prodId),
+            RepositoryId(repoId)
+        )
 
         repositoryService = RepositoryService(
             dbExtension.db,
@@ -61,8 +77,7 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
             dbExtension.fixtures.scannerJobRepository,
             dbExtension.fixtures.evaluatorJobRepository,
             dbExtension.fixtures.reporterJobRepository,
-            dbExtension.fixtures.notifierJobRepository,
-            authorizationService
+            dbExtension.fixtures.notifierJobRepository
         )
 
         secretService = SecretService(
@@ -76,8 +91,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.READ" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = RepositoryPermission.READ.roleName(repoId),
-                successStatus = HttpStatusCode.NotFound
+                role = RepositoryRole.READER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = repoHierarchyId
             ) {
                 get("/repositories/$repoId/secrets/availableSecrets")
             }
@@ -88,8 +104,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.READ" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = OrganizationPermission.READ.roleName(orgId),
-                successStatus = HttpStatusCode.NotFound
+                role = OrganizationRole.READER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = orgHierarchyId
             ) {
                 get("/organizations/$orgId/secrets/name")
             }
@@ -100,8 +117,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require ProductPermission.READ" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = ProductPermission.READ.roleName(prodId),
-                successStatus = HttpStatusCode.NotFound
+                role = ProductRole.READER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = productHierarchyId
             ) {
                 get("/products/$prodId/secrets/name")
             }
@@ -112,8 +130,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.READ" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = RepositoryPermission.READ.roleName(repoId),
-                successStatus = HttpStatusCode.NotFound
+                role = RepositoryRole.READER,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = repoHierarchyId
             ) {
                 get("/repositories/$repoId/secrets/name")
             }
@@ -124,7 +143,8 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.READ" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = OrganizationPermission.READ.roleName(orgId)
+                role = OrganizationRole.READER,
+                hierarchyId = orgHierarchyId
             ) {
                 get("/organizations/$orgId/secrets")
             }
@@ -135,7 +155,8 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require ProductPermission.READ" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = ProductPermission.READ.roleName(prodId)
+                role = ProductRole.READER,
+                hierarchyId = productHierarchyId
             ) {
                 get("/products/$prodId/secrets")
             }
@@ -146,7 +167,8 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.READ" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = RepositoryPermission.READ.roleName(repoId)
+                role = RepositoryRole.READER,
+                hierarchyId = repoHierarchyId
             ) {
                 get("/repositories/$repoId/secrets")
             }
@@ -157,8 +179,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
-                successStatus = HttpStatusCode.NotFound
+                role = OrganizationRole.ADMIN,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = orgHierarchyId
             ) {
                 val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
                 patch("/organizations/$orgId/secrets/name") { setBody(updateSecret) }
@@ -170,8 +193,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = ProductPermission.WRITE_SECRETS.roleName(prodId),
-                successStatus = HttpStatusCode.NotFound
+                role = ProductRole.ADMIN,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = productHierarchyId
             ) {
                 val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
                 patch("/products/$prodId/secrets/name") { setBody(updateSecret) }
@@ -183,8 +207,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
-                successStatus = HttpStatusCode.NotFound
+                role = RepositoryRole.ADMIN,
+                successStatus = HttpStatusCode.NotFound,
+                hierarchyId = repoHierarchyId
             ) {
                 val updateSecret = PatchSecret("value".asPresent(), "description".asPresent())
                 patch("/repositories/$repoId/secrets/name") { setBody(updateSecret) }
@@ -196,8 +221,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require OrganizationPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = OrganizationPermission.WRITE_SECRETS.roleName(orgId),
-                successStatus = HttpStatusCode.Created
+                role = OrganizationRole.ADMIN,
+                successStatus = HttpStatusCode.Created,
+                hierarchyId = orgHierarchyId
             ) {
                 val createSecret = PostSecret("name", "value", "description")
                 post("/organizations/$orgId/secrets") { setBody(createSecret) }
@@ -209,8 +235,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require ProductPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = ProductPermission.WRITE_SECRETS.roleName(prodId),
-                successStatus = HttpStatusCode.Created
+                role = ProductRole.ADMIN,
+                successStatus = HttpStatusCode.Created,
+                hierarchyId = productHierarchyId
             ) {
                 val createSecret = PostSecret("name", "value", "description")
                 post("/products/$prodId/secrets") { setBody(createSecret) }
@@ -222,8 +249,9 @@ class SecretsAuthorizationTest : AbstractAuthorizationTest({
         "require RepositoryPermission.WRITE_SECRETS" {
             requestShouldRequireRole(
                 routes = { secretsRoutes(repositoryService, secretService) },
-                role = RepositoryPermission.WRITE_SECRETS.roleName(repoId),
-                successStatus = HttpStatusCode.Created
+                role = RepositoryRole.ADMIN,
+                successStatus = HttpStatusCode.Created,
+                hierarchyId = repoHierarchyId
             ) {
                 val createSecret = PostSecret("name", "value", "description")
                 post("/repositories/$repoId/secrets") { setBody(createSecret) }
