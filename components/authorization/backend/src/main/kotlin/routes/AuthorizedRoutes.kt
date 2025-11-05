@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+@file:Suppress("TooManyFunctions")
+
 package org.eclipse.apoapsis.ortserver.components.authorization.routes
 
 import com.auth0.jwt.interfaces.Payload
@@ -77,13 +79,36 @@ fun Route.get(
 ): Route = documentedAuthorized(checker, body) { get(builder, it) }
 
 /**
- * Create a new [Route] for HTTP POST requests that performs an automatic authorization check using the given [checker].
+ * Create a new [Route] for HTTP GET requests with the given [path] that performs an automatic authorization check
+ * using the given [checker].
+ */
+fun Route.get(
+    path: String,
+    builder: RouteConfig.() -> Unit,
+    checker: AuthorizationChecker,
+    body: suspend RoutingContext.() -> Unit
+): Route = documentedAuthorized(checker, body) { get(path, builder, it) }
+
+/**
+ * Create a new [Route] for HTTP POST requests that performs an automatic authorization check using the given
+ * [checker].
  */
 fun Route.post(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
 ): Route = documentedAuthorized(checker, body) { post(builder, it) }
+
+/**
+ * Create a new [Route] for HTTP POST requests with the given [path] that performs an automatic authorization check
+ * using the given [checker].
+ */
+fun Route.post(
+    path: String,
+    builder: RouteConfig.() -> Unit,
+    checker: AuthorizationChecker,
+    body: suspend RoutingContext.() -> Unit
+): Route = documentedAuthorized(checker, body) { post(path, builder, it) }
 
 /**
  * Create a new [Route] for HTTP PATCH requests that performs an automatic authorization check using the given
@@ -96,6 +121,17 @@ fun Route.patch(
 ): Route = documentedAuthorized(checker, body) { patch(builder, it) }
 
 /**
+ * Create a new [Route] for HTTP PATCH requests with the given [path] that performs an automatic authorization check
+ * using the given [checker].
+ */
+fun Route.patch(
+    path: String,
+    builder: RouteConfig.() -> Unit,
+    checker: AuthorizationChecker,
+    body: suspend RoutingContext.() -> Unit
+): Route = documentedAuthorized(checker, body) { patch(path, builder, it) }
+
+/**
  * Create a new [Route] for HTTP PUT requests that performs an automatic authorization check using the given
  * [checker].
  */
@@ -106,6 +142,17 @@ fun Route.put(
 ): Route = documentedAuthorized(checker, body) { put(builder, it) }
 
 /**
+ * Create a new [Route] for HTTP PUT requests with the given [path] that performs an automatic authorization check
+ * using the given [checker].
+ */
+fun Route.put(
+    path: String,
+    builder: RouteConfig.() -> Unit,
+    checker: AuthorizationChecker,
+    body: suspend RoutingContext.() -> Unit
+): Route = documentedAuthorized(checker, body) { put(path, builder, it) }
+
+/**
  * Create a new [Route] for HTTP DELETE requests that performs an automatic authorization check using the given
  * [checker].
  */
@@ -114,6 +161,17 @@ fun Route.delete(
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
 ): Route = documentedAuthorized(checker, body) { delete(builder, it) }
+
+/**
+ * Create a new [Route] for HTTP DELETE requests with the given [path] that performs an automatic authorization check
+ * using the given [checker].
+ */
+fun Route.delete(
+    path: String,
+    builder: RouteConfig.() -> Unit,
+    checker: AuthorizationChecker,
+    body: suspend RoutingContext.() -> Unit
+): Route = documentedAuthorized(checker, body) { delete(path, builder, it) }
 
 /**
  * Generic function to create a new [Route] that performs an automatic authorization check using the given [checker].
