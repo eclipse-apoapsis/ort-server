@@ -120,6 +120,10 @@ const SBOMComponent = () => {
     (filename) => filename.toLowerCase().includes('cyclonedx')
   );
 
+  const systemMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
+
   return (
     <div className='flex flex-col gap-4'>
       <div className='grid grid-cols-2 gap-4'>
@@ -134,7 +138,12 @@ const SBOMComponent = () => {
                 <TooltipTrigger>
                   <img
                     alt='CycloneDX'
-                    src={mode === 'dark' ? CycloneDXLight : CycloneDXDark}
+                    src={
+                      mode === 'dark' ||
+                      (mode === 'system' && systemMode === 'dark')
+                        ? CycloneDXLight
+                        : CycloneDXDark
+                    }
                     width={230}
                   />
                 </TooltipTrigger>
