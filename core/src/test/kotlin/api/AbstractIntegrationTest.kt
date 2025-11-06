@@ -56,10 +56,18 @@ import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 
 @Suppress("UnnecessaryAbstractClass")
-abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit) : WordSpec() {
+abstract class AbstractIntegrationTest(
+    body: AbstractIntegrationTest.() -> Unit,
+
+    /**
+     * A flag indicating whether a new Keycloak realm should be created for each test. This should be set to *true* for
+     * test classes that manipulate the Keycloak realm during text execution.
+     */
+    createKeycloakRealmPerTest: Boolean = false
+) : WordSpec() {
     val dbExtension = extension(DatabaseTestExtension())
 
-    val keycloak = install(KeycloakTestExtension(createRealmPerTest = true)) {
+    val keycloak = install(KeycloakTestExtension(createRealmPerTest = createKeycloakRealmPerTest)) {
         setUpUser(SUPERUSER, SUPERUSER_PASSWORD)
         setUpUser(TEST_USER, TEST_USER_PASSWORD)
         setUpClientScope(TEST_SUBJECT_CLIENT)
