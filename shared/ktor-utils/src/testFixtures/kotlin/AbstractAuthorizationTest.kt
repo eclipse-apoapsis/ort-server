@@ -83,7 +83,7 @@ private const val TEST_USER_PASSWORD = "password"
 @Suppress("UnnecessaryAbstractClass")
 abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> Unit) : WordSpec() {
     val dbExtension = DatabaseTestExtension()
-    val keycloakExtension = KeycloakTestExtension(createRealmPerTest = true)
+    val keycloakExtension = KeycloakTestExtension()
 
     // The "extension()" and "install()" functions cannot be used above because of
     // https://github.com/kotest/kotest/issues/3555.
