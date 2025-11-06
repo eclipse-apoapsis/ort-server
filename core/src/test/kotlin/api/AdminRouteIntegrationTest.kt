@@ -258,4 +258,4 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
     }
-})
+}, createKeycloakRealmPerTest = true)
