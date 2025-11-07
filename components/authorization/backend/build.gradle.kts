@@ -40,7 +40,10 @@ dependencies {
     implementation(libs.exposedCore)
     implementation(libs.exposedJdbc)
 
+    routesImplementation(libs.ktorOpenApi)
+
     testImplementation(testFixtures(projects.dao))
+    testImplementation(testFixtures(projects.shared.ktorUtils))
 
     testImplementation(ktorLibs.client.contentNegotiation)
     testImplementation(ktorLibs.client.core)
