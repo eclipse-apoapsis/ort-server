@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.PostRepositoryRun
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
@@ -135,9 +136,14 @@ fun Route.products() = route("products/{productId}") {
 
             val productId = call.requireIdParameter("productId")
             val pagingOptions = call.pagingOptions(SortProperty("url", SortDirection.ASCENDING))
+            val principal = requirePrincipal()
 
-            val repositoriesForProduct =
-                productService.listRepositoriesForProduct(productId, pagingOptions.mapToModel(), filter?.mapToModel())
+            val repositoriesForProduct = productService.listRepositoriesForProductAndUser(
+                productId,
+                principal.username,
+                pagingOptions.mapToModel(),
+                filter?.mapToModel()
+            )
 
             val pagedResponse = repositoriesForProduct.mapToApi(Repository::mapToApi)
 
