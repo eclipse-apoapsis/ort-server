@@ -217,7 +217,7 @@ class DbAuthorizationService(
         return HierarchyFilter(
             transitiveIncludes = includes,
             nonTransitiveIncludes = permissions.implicitIncludes().filterContainedIn(containedInId),
-            isWildcard = permissions.isSuperuser()
+            isWildcard = permissions.isSuperuser() && containedInId == null
         )
     }
 
