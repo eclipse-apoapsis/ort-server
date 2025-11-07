@@ -286,6 +286,7 @@ type ChartLegendContentProps = {
   verticalAlign?: LegendProps['verticalAlign'];
   payload?: LegendPayload[];
   nameKey?: string;
+  order?: string[];
 };
 
 function ChartLegendContent({
@@ -294,10 +295,36 @@ function ChartLegendContent({
   payload,
   verticalAlign = 'bottom',
   nameKey,
+  order,
 }: ChartLegendContentProps) {
   const { config } = useChart();
 
-  if (!payload?.length) {
+  const orderedPayload = React.useMemo(() => {
+    if (!payload?.length) {
+      return undefined;
+    }
+
+    if (!order?.length) {
+      return payload;
+    }
+
+    const indexByKey = new Map(order.map((key, index) => [key, index]));
+
+    const getItemKey = (item: LegendPayload) =>
+      `${nameKey || item.dataKey || 'value'}`;
+
+    return [...payload].sort((a, b) => {
+      const aIndex = indexByKey.get(getItemKey(a));
+      const bIndex = indexByKey.get(getItemKey(b));
+
+      const safeIndex = (value: number | undefined) =>
+        value === undefined ? Number.POSITIVE_INFINITY : value;
+
+      return safeIndex(aIndex) - safeIndex(bIndex);
+    });
+  }, [payload, order, nameKey]);
+
+  if (!orderedPayload?.length) {
     return null;
   }
 
@@ -309,7 +336,7 @@ function ChartLegendContent({
         className
       )}
     >
-      {payload.map((item) => {
+      {orderedPayload.map((item) => {
         const key = `${nameKey || item.dataKey || 'value'}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
