@@ -111,7 +111,7 @@ abstract class AbstractAuthorizationTest(body: AbstractAuthorizationTest.() -> U
         authorizationService = DbAuthorizationService(dbExtension.db)
     }
 
-    private fun authorizationTestApplication(
+    fun authorizationTestApplication(
         routes: Route.() -> Unit,
         block: suspend ApplicationTestBuilder.(unauthenticatedClient: HttpClient, testUserClient: HttpClient) -> Unit
     ) {
