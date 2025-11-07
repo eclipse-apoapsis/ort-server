@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.core
 
 import io.ktor.server.application.Application
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.configureAuthentication
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.configureAuthentication
 import org.eclipse.apoapsis.ortserver.core.plugins.*
 
 import org.koin.ktor.ext.get
