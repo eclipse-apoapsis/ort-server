@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
@@ -167,10 +168,12 @@ fun Route.organizations() = route("organizations") {
                 val orgId = call.requireIdParameter("organizationId")
                 val pagingOptions = call.pagingOptions(SortProperty("name", SortDirection.ASCENDING))
                 val filter = call.filterParameter("filter")
+                val principal = requirePrincipal()
 
                 val productsForOrganization =
-                    organizationService.listProductsForOrganization(
+                    organizationService.listProductsForOrganizationAndUser(
                         orgId,
+                        principal.username,
                         pagingOptions.mapToModel(),
                         filter?.mapToModel()
                     )

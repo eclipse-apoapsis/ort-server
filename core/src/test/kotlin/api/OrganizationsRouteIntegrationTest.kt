@@ -67,6 +67,8 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
 import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole as ApiOrganizationRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
@@ -75,6 +77,8 @@ import org.eclipse.apoapsis.ortserver.core.TEST_USER
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -588,6 +592,77 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     organizationService.createProduct(name = name2, description = description, organizationId = orgId)
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        Product(createdProduct1.id, orgId, name1, description),
+                        Product(createdProduct2.id, orgId, name2, description)
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "return only products for which the user has ProductPermission.READ" {
+            integrationTestApplication {
+                val createdOrganization = createOrganization()
+                val orgId = createdOrganization.id
+                val otherOrg = createOrganization("otherOrg")
+
+                val name1 = "name1"
+                val name2 = "name2"
+                val description = "description"
+
+                val createdProduct1 =
+                    organizationService.createProduct(name = name1, description = description, organizationId = orgId)
+                val createdProduct2 =
+                    organizationService.createProduct(name = name2, description = description, organizationId = orgId)
+                organizationService.createProduct(name = "name3", description = description, organizationId = orgId)
+                val createdRepo = productService.createRepository(
+                    RepositoryType.GIT,
+                    "https://example.com/repo.git",
+                    createdProduct2.id,
+                    null
+                )
+                val productInOtherOrg = organizationService.createProduct(
+                    name = "otherOrgProduct",
+                    description = description,
+                    organizationId = otherOrg.id
+                )
+
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(
+                        OrganizationId(createdOrganization.id),
+                        ProductId(createdProduct1.id)
+                    )
+                )
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(
+                        OrganizationId(otherOrg.id),
+                        ProductId(productInOtherOrg.id)
+                    )
+                )
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.WRITER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(createdOrganization.id),
+                        ProductId(createdProduct2.id),
+                        RepositoryId(createdRepo.id)
+                    )
+                )
+
+                val response = testUserClient.get("/api/v1/organizations/$orgId/products")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
