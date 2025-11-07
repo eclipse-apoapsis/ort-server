@@ -19,12 +19,15 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -48,6 +51,7 @@ class ProductService(
     private val productRepository: ProductRepository,
     private val repositoryRepository: RepositoryRepository,
     private val ortRunRepository: OrtRunRepository,
+    private val authorizationService: AuthorizationService
 ) {
     /**
      * Create a repository inside a [product][productId].
@@ -88,6 +92,22 @@ class ProductService(
     ): ListQueryResult<Repository> = db.dbQuery {
         repositoryRepository.listForProduct(productId, parameters, filter)
     }
+
+    /**
+     * List all repositories for a [product][productId] that are visible to a specific [user][userId] according to the
+     * given [parameters] and [urlFilter].
+     */
+    suspend fun listRepositoriesForProductAndUser(
+        productId: Long,
+        userId: String,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        urlFilter: FilterParameter? = null
+    ): ListQueryResult<Repository> = getProduct(productId)?.let { product ->
+        val filter = authorizationService.filterHierarchyIds(userId, RepositoryRole.READER, ProductId(product.id))
+        db.dbQuery {
+            repositoryRepository.list(parameters, urlFilter, filter)
+        }
+    } ?: ListQueryResult(emptyList(), parameters, 0)
 
     /**
      * Update a product by [productId] with the [present][OptionalValue.Present] values.

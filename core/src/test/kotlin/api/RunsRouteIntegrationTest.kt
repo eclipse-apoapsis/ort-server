@@ -169,7 +169,8 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.db,
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
-            dbExtension.fixtures.ortRunRepository
+            dbExtension.fixtures.ortRunRepository,
+            mockk()
         )
 
         ortRunRepository = dbExtension.fixtures.ortRunRepository
