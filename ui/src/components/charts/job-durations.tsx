@@ -76,6 +76,14 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const legendOrderWorkers = [
+  'analyzer',
+  'advisor',
+  'scanner',
+  'evaluator',
+  'reporter',
+];
+
 type JobDurationsProps = {
   repoId: string;
   pageIndex: number;
@@ -121,7 +129,12 @@ export const JobDurations = ({
     refetchInterval: pollInterval,
   });
 
-  const chartData = getDurationChartData(runs, showInfrastructure);
+  const chartData = getDurationChartData(runs, true);
+
+  // Determine legend order based on whether infrastructure is shown.
+  const legendOrder = showInfrastructure
+    ? [...legendOrderWorkers, 'infrastructure']
+    : legendOrderWorkers;
 
   if (runsIsPending) {
     return <LoadingIndicator />;
@@ -263,13 +276,15 @@ export const JobDurations = ({
                 />
               }
             />
-            <ChartLegend content={<ChartLegendContent />} />
-            <Bar
-              dataKey='infrastructure'
-              stackId='a'
-              fill='var(--color-infrastructure)'
-              className='cursor-pointer'
-            />
+            <ChartLegend content={<ChartLegendContent order={legendOrder} />} />
+            {showInfrastructure && (
+              <Bar
+                dataKey='infrastructure'
+                stackId='a'
+                fill='var(--color-infrastructure)'
+                className='cursor-pointer'
+              />
+            )}
             <Bar
               dataKey='analyzer'
               stackId='a'
