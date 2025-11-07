@@ -63,7 +63,8 @@ class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.db,
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
-            dbExtension.fixtures.ortRunRepository
+            dbExtension.fixtures.ortRunRepository,
+            mockk()
         )
 
         val orgId = organizationService.createOrganization(name = "name", description = "description").id
