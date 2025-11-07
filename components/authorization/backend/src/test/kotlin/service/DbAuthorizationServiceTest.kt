@@ -1120,6 +1120,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     containedIn = repositoryCompoundId.productId
                 )
 
+                filter.isWildcard shouldBe false
                 filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
                     key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
                     value shouldBe setOf(repositoryCompoundId.parent)
