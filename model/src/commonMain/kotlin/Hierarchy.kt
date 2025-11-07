@@ -38,4 +38,12 @@ data class Hierarchy(
 
     /** The [Organization] the current repository and product belong to. */
     val organization: Organization
-)
+) {
+    val compoundId: CompoundHierarchyId by lazy {
+        CompoundHierarchyId.forRepository(
+            organizationId = OrganizationId(organization.id),
+            productId = ProductId(product.id),
+            repositoryId = RepositoryId(repository.id)
+        )
+    }
+}

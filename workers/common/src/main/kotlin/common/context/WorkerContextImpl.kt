@@ -42,8 +42,10 @@ import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
+import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
@@ -113,6 +115,10 @@ internal class WorkerContextImpl(
         repositoryRepository.getHierarchy(ortRun.repositoryId)
     }
 
+    private val hierarchySecrets by lazy {
+        runBlocking { secretService.listForHierarchy(hierarchy) }.associateBy { it.name }
+    }
+
     override val credentialResolverFun: CredentialResolverFun
         get() = { secret ->
             refCredentialResolverFun.get().invoke(secret)
@@ -134,10 +140,22 @@ internal class WorkerContextImpl(
         config: Map<String, ResolvablePluginConfig>?
     ): Map<String, PluginConfig> =
         config?.let { c ->
-            val secrets = c.values.flatMap { pluginConfig -> pluginConfig.secrets.values.map { it.name } }
-            val resolvedSecrets = parallelTransform(secrets, configSecretsCache, this::resolveConfigSecret) { it }
+            val configSecrets = c.values.flatMap { pluginConfig ->
+                pluginConfig.secrets.values.filter { it.source == SecretSource.ADMIN }.map { it.name }
+            }
+            val userSecrets = c.values.flatMap { pluginConfig ->
+                pluginConfig.secrets.values.filter { it.source == SecretSource.USER }.map {
+                    hierarchySecrets[it.name]
+                        ?: error("Could not find secret '${it.name}' in hierarchy '${hierarchy.compoundId}'.")
+                }
+            }
 
-            c.mapValues { (_, pluginConfig) -> pluginConfig.resolveSecrets(resolvedSecrets) }
+            val resolvedConfigSecrets =
+                parallelTransform(configSecrets, configSecretsCache, ::resolveConfigSecret) { it }
+            val resolvedUserSecrets = parallelTransform(userSecrets, secretsCache, ::resolveSecretValue) { it }
+                .mapKeys { it.key.name }
+
+            c.mapValues { (_, pluginConfig) -> pluginConfig.resolveSecrets(resolvedConfigSecrets, resolvedUserSecrets) }
         }.orEmpty()
 
     override suspend fun resolveProviderPluginConfigSecrets(
@@ -293,10 +311,20 @@ private fun extractDownloadFileKey(directory: String, targetName: String?): (Con
 }
 
 /**
- * Return a [PluginConfig] whose secrets are resolved according to the given map with [secretValues].
+ * Return a [PluginConfig] whose secrets are resolved according to the given map with [configSecretValues] and
+ * [userSecretValues].
  */
-private fun ResolvablePluginConfig.resolveSecrets(secretValues: Map<String, String>): PluginConfig {
-    val resolvedSecrets = secrets.mapValues { e -> secretValues.getValue(e.value.name) }
+private fun ResolvablePluginConfig.resolveSecrets(
+    configSecretValues: Map<String, String>,
+    userSecretValues: Map<String, String>
+): PluginConfig {
+    val resolvedSecrets = secrets.mapValues { (_, resolvableSecret) ->
+        when (resolvableSecret.source) {
+            SecretSource.ADMIN -> configSecretValues.getValue(resolvableSecret.name)
+            SecretSource.USER -> userSecretValues.getValue(resolvableSecret.name)
+        }
+    }
+
     return PluginConfig(options, resolvedSecrets)
 }
 
