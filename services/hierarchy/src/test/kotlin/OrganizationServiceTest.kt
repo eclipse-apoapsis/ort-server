@@ -27,6 +27,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
@@ -34,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.sql.Database
@@ -95,6 +97,41 @@ class OrganizationServiceTest : WordSpec({
 
             organizations.totalCount shouldBe 2
             organizations.data shouldContainExactlyInAnyOrder listOf(fixtures.organization, org2)
+        }
+    }
+
+    "listOrganizationsForUserAndOrganization" should {
+        "filter for products visible to a specific user in a specific organization" {
+            val userId = "test-user"
+            val org1Id = fixtures.organization.id
+            val prod1 = fixtures.createProduct("product", organizationId = org1Id)
+            val prod2 = fixtures.createProduct("product2", organizationId = org1Id)
+            fixtures.createProduct("hiddenProduct")
+            val prod1HierarchyId = CompoundHierarchyId.forProduct(
+                OrganizationId(org1Id),
+                ProductId(prod1.id)
+            )
+            val prod2HierarchyId = CompoundHierarchyId.forProduct(
+                OrganizationId(org1Id),
+                ProductId(prod2.id)
+            )
+
+            val authService = mockk<AuthorizationService> {
+                coEvery {
+                    filterHierarchyIds(userId, ProductRole.READER, OrganizationId(org1Id))
+                } returns HierarchyFilter(
+                    transitiveIncludes = mapOf(
+                        CompoundHierarchyId.PRODUCT_LEVEL to listOf(prod1HierarchyId, prod2HierarchyId)
+                    ),
+                    nonTransitiveIncludes = emptyMap()
+                )
+            }
+
+            val service = OrganizationService(db, organizationRepository, productRepository, authService)
+            val products = service.listProductsForOrganizationAndUser(org1Id, userId)
+
+            products.totalCount shouldBe 2
+            products.data shouldContainExactlyInAnyOrder listOf(prod1, prod2)
         }
     }
 })

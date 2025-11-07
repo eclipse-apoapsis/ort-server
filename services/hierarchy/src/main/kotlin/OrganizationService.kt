@@ -20,11 +20,14 @@
 package org.eclipse.apoapsis.ortserver.services
 
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.Organization
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
@@ -113,6 +116,25 @@ class OrganizationService(
         filter: FilterParameter? = null
     ) = db.dbQuery {
         productRepository.listForOrganization(organizationId, parameters, filter)
+    }
+
+    /**
+     * List all products for an [organization][organizationId] that are visible to the user with the given [userId],
+     * applying the given [parameters] and optional [nameFilter].
+     */
+    suspend fun listProductsForOrganizationAndUser(
+        organizationId: Long,
+        userId: String,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        nameFilter: FilterParameter? = null
+    ): ListQueryResult<Product> {
+        val productFilter = authorizationService.filterHierarchyIds(
+            userId,
+            ProductRole.READER,
+            OrganizationId(organizationId)
+        )
+
+        return productRepository.list(parameters, nameFilter, productFilter)
     }
 
     /**
