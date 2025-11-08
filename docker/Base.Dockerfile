@@ -21,7 +21,7 @@
 # This is a common base image for all ORT Server images requiring Java. It provides some base functionality like
 # setting file permissions for the user, setting up certificates, etc. And, it defines the temurin base image.
 
-ARG TEMURIN_VERSION=21.0.8_9-jdk-jammy@sha256:adb9b2d15adf1833d9dae0bdc1cff61ef5a804dc58dfbfb34269f32432b2e5dc
+ARG TEMURIN_VERSION=21.0.9_10-jdk-jammy@sha256:a2c315e9d6b9941601c0dd821eb3a32f8a41b8aaaadd6549fc53a5e7f55c3f86
 
 FROM eclipse-temurin:$TEMURIN_VERSION
 
