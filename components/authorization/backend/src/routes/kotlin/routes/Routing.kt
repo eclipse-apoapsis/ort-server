@@ -22,7 +22,9 @@ package org.eclipse.apoapsis.ortserver.components.authorization.routes
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.userinfo.getSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.userinfo.getUserInfo
 
 fun Route.authorizationRoutes() {
     getSuperuser()
+    getUserInfo()
 }
