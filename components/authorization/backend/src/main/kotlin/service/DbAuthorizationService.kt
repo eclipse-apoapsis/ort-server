@@ -356,14 +356,11 @@ private class EffectiveRoleImpl(
     /** The permissions granted on the different levels of the hierarchy. */
     private val permissions: PermissionChecker
 ) : EffectiveRole {
-    override fun hasOrganizationPermission(permission: OrganizationPermission): Boolean =
-        permission in permissions.organizationPermissions
+    override fun getOrganizationPermissions(): Set<OrganizationPermission> = permissions.organizationPermissions
 
-    override fun hasProductPermission(permission: ProductPermission): Boolean =
-        permission in permissions.productPermissions
+    override fun getProductPermissions(): Set<ProductPermission> = permissions.productPermissions
 
-    override fun hasRepositoryPermission(permission: RepositoryPermission): Boolean =
-        permission in permissions.repositoryPermissions
+    override fun getRepositoryPermissions(): Set<RepositoryPermission> = permissions.repositoryPermissions
 }
 
 /**

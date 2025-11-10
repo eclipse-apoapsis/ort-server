@@ -61,7 +61,7 @@ class DbAuthorizationServiceTest : WordSpec() {
     private fun createService() = DbAuthorizationService(dbExtension.db)
 
     init {
-        "getEffectiveRoles" should {
+        "getEffectiveRole" should {
             "resolve a repository ID correctly" {
                 val service = createService()
 
