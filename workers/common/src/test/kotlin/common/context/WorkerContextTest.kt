@@ -172,7 +172,7 @@ class WorkerContextTest : WordSpec({
             val secretsProvider = SecretsProviderFactoryForTesting.instance()
             secretsProvider.writeSecret(
                 SecretsProviderFactoryForTesting.SERVICE_PATH,
-                org.eclipse.apoapsis.ortserver.secrets.SecretValue("changedValue")
+                SecretValue("changedValue")
             )
 
             context.resolveSecret(secret) shouldBe SecretsProviderFactoryForTesting.SERVICE_SECRET.value
@@ -207,7 +207,7 @@ class WorkerContextTest : WordSpec({
             val secretsProvider = SecretsProviderFactoryForTesting.instance()
             secretsProvider.writeSecret(
                 SecretsProviderFactoryForTesting.SERVICE_PATH,
-                org.eclipse.apoapsis.ortserver.secrets.SecretValue("changedValue")
+                SecretValue("changedValue")
             )
 
             context.resolveSecret(secret1) shouldBe SecretsProviderFactoryForTesting.PASSWORD_SECRET.value
