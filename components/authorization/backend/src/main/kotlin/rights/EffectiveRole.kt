@@ -38,11 +38,11 @@ interface EffectiveRole {
 
             override val isSuperuser: Boolean = false
 
-            override fun hasOrganizationPermission(permission: OrganizationPermission): Boolean = false
+            override fun getOrganizationPermissions(): Set<OrganizationPermission> = emptySet()
 
-            override fun hasProductPermission(permission: ProductPermission): Boolean = false
+            override fun getProductPermissions(): Set<ProductPermission> = emptySet()
 
-            override fun hasRepositoryPermission(permission: RepositoryPermission): Boolean = false
+            override fun getRepositoryPermissions(): Set<RepositoryPermission> = emptySet()
         }
     }
 
@@ -58,17 +58,41 @@ interface EffectiveRole {
     val isSuperuser: Boolean
 
     /**
-     * Check whether this effective role grants the given [permission] on the organization level.
+     * Return all organization-level permissions granted by this effective role.
      */
-    fun hasOrganizationPermission(permission: OrganizationPermission): Boolean
+    fun getOrganizationPermissions(): Set<OrganizationPermission>
 
     /**
-     * Check whether this effective role grants the given [permission] on the product level.
+     * Return all product-level permissions granted by this effective role.
      */
-    fun hasProductPermission(permission: ProductPermission): Boolean
+    fun getProductPermissions(): Set<ProductPermission>
 
     /**
-     * Check whether this effective role grants the given [permission] on the repository level.
+     * Return all repository-level permissions granted by this effective role.
      */
-    fun hasRepositoryPermission(permission: RepositoryPermission): Boolean
+    fun getRepositoryPermissions(): Set<RepositoryPermission>
+
+    /**
+     * Check whether this effective role grants the given [permission] on the organization level. This base
+     * implementation checks whether the specified [permission] is contained in the set returned by
+     * [getOrganizationPermissions]; it does not take the [isSuperuser] flag into account.
+     */
+    fun hasOrganizationPermission(permission: OrganizationPermission): Boolean =
+        permission in getOrganizationPermissions()
+
+    /**
+     * Check whether this effective role grants the given [permission] on the product level. This base
+     * implementation checks whether the specified [permission] is contained in the set returned by
+     * [getProductPermissions]; it does not take the [isSuperuser] flag into account.
+     */
+    fun hasProductPermission(permission: ProductPermission): Boolean =
+        permission in getProductPermissions()
+
+    /**
+     * Check whether this effective role grants the given [permission] on the repository level. This base
+     * implementation checks whether the specified [permission] is contained in the set returned by
+     * [getRepositoryPermissions]; it does not take the [isSuperuser] flag into account.
+     */
+    fun hasRepositoryPermission(permission: RepositoryPermission): Boolean =
+        permission in getRepositoryPermissions()
 }
