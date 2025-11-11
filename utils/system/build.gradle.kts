@@ -37,4 +37,30 @@ kotlin {
     macosArm64()
     macosX64()
     mingwX64()
+
+    sourceSets {
+        jvmMain {
+            dependencies {
+                implementation(ortLibs.utils.common)
+            }
+        }
+
+        linuxMain {
+            dependencies {
+                implementation(ktorLibs.client.curl)
+            }
+        }
+
+        macosMain {
+            dependencies {
+                implementation(ktorLibs.client.darwin)
+            }
+        }
+
+        mingwMain {
+            dependencies {
+                implementation(ktorLibs.client.winhttp)
+            }
+        }
+    }
 }

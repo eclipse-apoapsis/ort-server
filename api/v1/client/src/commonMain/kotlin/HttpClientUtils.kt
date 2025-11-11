@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.client
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.ProxyBuilder
+import io.ktor.client.engine.http
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -42,6 +44,14 @@ import io.ktor.serialization.kotlinx.json.json
 
 import kotlinx.serialization.json.Json
 
+import org.eclipse.apoapsis.ortserver.utils.system.getEnv
+
+/**
+ * A collection with environment variables that are typically used to configure HTTP proxies. The function to create a
+ * default HTTP client checks if any of these variables are set to create a proxy configuration automatically.
+ */
+private val proxyEnvironmentVariables = sequenceOf("HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy")
+
 /**
  * Create a default HTTP client with the given [json] configuration and [engine]. If no engine is provided, it will
  * choose the engine automatically based on the platform. If [maxRetriesOnTimeout] is greater than zero, the client
@@ -53,7 +63,14 @@ fun createDefaultHttpClient(
     engine: HttpClientEngine? = null,
     maxRetriesOnTimeout: Int = 3
 ): HttpClient {
-    val client = engine?.let { HttpClient(it) } ?: HttpClient()
+    val client = engine?.let { HttpClient(it) } ?: HttpClient {
+        // Configure proxy settings from environment variables if any are set.
+        proxyEnvironmentVariables.mapNotNull { getEnv(it) }.firstOrNull()?.let { proxyUrl ->
+            engine {
+                proxy = ProxyBuilder.http(proxyUrl)
+            }
+        }
+    }
 
     return client.config {
         defaultRequest {

@@ -26,7 +26,7 @@ import java.nio.file.attribute.PosixFilePermission
 import okio.Path
 import okio.Path.Companion.toPath
 
-import org.eclipse.apoapsis.ortserver.cli.getEnv
+import org.eclipse.apoapsis.ortserver.utils.system.getEnv
 
 @Suppress("SwallowedException")
 internal actual fun Path.setPermissionsToOwnerReadWrite() {

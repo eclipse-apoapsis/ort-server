@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.cli
+package org.eclipse.apoapsis.ortserver.utils.system
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
@@ -25,4 +25,4 @@ import kotlinx.cinterop.toKString
 import platform.posix.getenv
 
 @OptIn(ExperimentalForeignApi::class)
-actual fun getEnv(name: String): String? = getenv(name)?.toKString()
+actual fun getEnv(name: String) = getenv(name)?.toKString()
