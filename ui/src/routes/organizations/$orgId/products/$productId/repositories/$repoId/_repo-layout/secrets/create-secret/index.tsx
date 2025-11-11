@@ -47,7 +47,7 @@ import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
-  name: z.string().trim(),
+  name: z.string().trim().min(1),
   value: z.string(),
   description: z.string().optional(),
 });
