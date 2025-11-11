@@ -50,7 +50,7 @@ class GitCredentialsGenerator : EnvironmentConfigGenerator<EnvironmentServiceDef
             val serviceUrl = URI.create(url).toURL()
 
             GeneratorLogger.entryAdded(
-                "${serviceUrl.protocol}://username:****@${serviceUrl.authority}${serviceUrl.path}",
+                "${serviceUrl.protocol}://<username>:<password>@${serviceUrl.authority}${serviceUrl.path}",
                 GIT_CREDENTIALS_FILE_NAME,
                 this
             )
