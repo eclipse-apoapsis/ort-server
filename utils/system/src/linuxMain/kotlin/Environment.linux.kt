@@ -16,22 +16,12 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
+package org.eclipse.apoapsis.ortserver.utils.system
 
-package org.eclipse.apoapsis.ortserver.cli.utils
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.toKString
 
-import okio.Path
-import okio.Path.Companion.toPath
+import platform.posix.getenv
 
-import org.eclipse.apoapsis.ortserver.utils.system.getEnv
-
-import platform.posix.S_IRUSR as READ_USER
-import platform.posix.S_IWUSR as WRITE_USER
-import platform.posix.chmod
-
-actual fun getHomeDirectory(): Path = requireNotNull(getEnv("USERPROFILE")?.toPath() ?: getEnv("HOME")?.toPath()) {
-    "Could not determine the home directory."
-}
-
-internal actual fun Path.setPermissionsToOwnerReadWrite() {
-    chmod(toString(), READ_USER or WRITE_USER)
-}
+@OptIn(ExperimentalForeignApi::class)
+actual fun getEnv(name: String): String? = getenv(name)?.toKString()

@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.cli
+package org.eclipse.apoapsis.ortserver.utils.system
 
 import org.ossreviewtoolkit.utils.common.Os
 

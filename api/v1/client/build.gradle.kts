@@ -38,6 +38,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(projects.api.v1.apiV1Model)
+                implementation(projects.utils.system)
 
                 implementation(ktorLibs.client.auth)
                 implementation(ktorLibs.client.contentNegotiation)

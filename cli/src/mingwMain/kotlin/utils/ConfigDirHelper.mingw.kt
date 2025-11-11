@@ -24,7 +24,7 @@ import okio.Path
 import okio.Path.Companion.toPath
 
 import org.eclipse.apoapsis.ortserver.cli.COMMAND_NAME
-import org.eclipse.apoapsis.ortserver.cli.getEnv
+import org.eclipse.apoapsis.ortserver.utils.system.getEnv
 
 internal actual val configDir: Path =
     getEnv("XDG_CONFIG_HOME")?.toPath()?.resolve(COMMAND_NAME)

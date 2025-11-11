@@ -27,7 +27,7 @@ import kotlinx.cinterop.toKString
 import okio.Path
 import okio.Path.Companion.toPath
 
-import org.eclipse.apoapsis.ortserver.cli.getEnv
+import org.eclipse.apoapsis.ortserver.utils.system.getEnv
 
 import platform.posix.S_IRUSR as USER_READ
 import platform.posix.S_IWUSR as USER_WRITE

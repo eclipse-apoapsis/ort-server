@@ -17,12 +17,9 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.cli
+package org.eclipse.apoapsis.ortserver.utils.system
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.toKString
-
-import platform.posix.getenv
-
-@OptIn(ExperimentalForeignApi::class)
-actual fun getEnv(name: String) = getenv(name)?.toKString()
+/**
+ * Get the value of the environment variable with the given [name], or `null` if it is not set.
+ */
+expect fun getEnv(name: String): String?

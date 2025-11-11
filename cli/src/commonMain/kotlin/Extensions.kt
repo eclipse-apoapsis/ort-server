@@ -23,11 +23,7 @@ import com.github.ajalt.clikt.parameters.options.NullableOption
 import com.github.ajalt.clikt.parameters.options.transformAll
 
 import org.eclipse.apoapsis.ortserver.cli.utils.getHomeDirectory
-
-/**
- * Get the value of the environment variable with the given [name], or `null` if it is not set.
- */
-expect fun getEnv(name: String): String?
+import org.eclipse.apoapsis.ortserver.utils.system.getEnv
 
 /**
  * Add a trailing slash to this [String] if it is missing.
