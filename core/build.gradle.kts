@@ -122,7 +122,6 @@ dependencies {
     implementation(ktorLibs.server.requestValidation)
     implementation(ktorLibs.server.statusPages)
     implementation(libs.bundles.schemaKenerator)
-    implementation(libs.jsonSchemaSerialization)
     implementation(libs.koinKtor)
     implementation(libs.konform)
     implementation(libs.ktorOpenApi)

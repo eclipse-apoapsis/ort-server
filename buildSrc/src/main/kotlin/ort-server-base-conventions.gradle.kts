@@ -30,16 +30,6 @@ repositories {
 
     exclusiveContent {
         forRepository {
-            maven("https://jitpack.io")
-        }
-
-        filter {
-            includeModule("com.github.Ricky12Awesome", "json-schema-serialization")
-        }
-    }
-
-    exclusiveContent {
-        forRepository {
             maven("https://packages.atlassian.com/maven-external")
         }
 
