@@ -43,7 +43,7 @@ jobs:
             buildPath: 'cli/build/bin/macosArm64/releaseExecutable/osc.kexe'
             binName: 'osc'
           - name: 'macOS x64'
-            os: macos-13
+            os: macos-15-intel
             task: 'linkReleaseExecutableMacosX64'
             artifact: 'osc-cli-macos-x64'
             buildPath: 'cli/build/bin/macosX64/releaseExecutable/osc.kexe'
