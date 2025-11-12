@@ -164,7 +164,7 @@ services:
       - "5000:5000"
     environment:
       PORT: 8080
-      UI_HOSTS: "localhost:5173,localhost:8082"
+      UI_HOSTS: "localhost:5173,localhost:8080,localhost:8082"
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ort_server
