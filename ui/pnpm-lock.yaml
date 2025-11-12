@@ -148,8 +148,8 @@ importers:
         specifier: ^9.37.0
         version: 9.39.1
       '@hey-api/openapi-ts':
-        specifier: 0.87.1
-        version: 0.87.1(typescript@5.9.3)
+        specifier: 0.87.2
+        version: 0.87.2(typescript@5.9.3)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.2.1
         version: 4.7.0(prettier@3.6.2)
@@ -625,8 +625,8 @@ packages:
     resolution: {integrity: sha512-inPeksRLq+j3ArnuGOzQPQE//YrhezQG0+9Y9yizScBN2qatJ78fIByhEgKdNAbtguDCn4RPxmEhcrePwHxs4A==}
     engines: {node: '>= 16'}
 
-  '@hey-api/openapi-ts@0.87.1':
-    resolution: {integrity: sha512-IFjwE11VPebjbCJqtTnszx22IWeabWWIOAkKKsn6AlV4i2voiUUolB/a/vSnvbwdoolnzB+jOhkYyww2odoJaQ==}
+  '@hey-api/openapi-ts@0.87.2':
+    resolution: {integrity: sha512-o5dnv4Gx37gAuzu/XxwoHtibg/oYUyusd2i47XId9NJQXh2PWj7liRy8FR+N2McF1fObr7h8DuntIHbtu/LD+w==}
     engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
@@ -3870,7 +3870,7 @@ snapshots:
       js-yaml: 4.1.0
       lodash: 4.17.21
 
-  '@hey-api/openapi-ts@0.87.1(typescript@5.9.3)':
+  '@hey-api/openapi-ts@0.87.2(typescript@5.9.3)':
     dependencies:
       '@hey-api/codegen-core': 0.3.3(typescript@5.9.3)
       '@hey-api/json-schema-ref-parser': 1.2.1
