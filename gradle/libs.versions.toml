@@ -27,7 +27,7 @@ kotlinxCoroutines = "1.10.2"
 kotlinxDatetime = "0.6.2"
 kotlinxSerialization = "1.9.0"
 kspPlugin = "2.3.2"
-mavenPublishPlugin = "0.34.0"
+mavenPublishPlugin = "0.35.0"
 
 # Gradle dependencies
 aedile = "3.0.1"
