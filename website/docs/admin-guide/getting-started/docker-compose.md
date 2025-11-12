@@ -94,15 +94,15 @@ To list all available tasks, run:
 
 The following services are exposed by Docker Compose:
 
-| Service        | URL                              | Credentials                                             |
-| -------------- | -------------------------------- | ------------------------------------------------------- |
-| ORT Server API | http://localhost:8080/swagger-ui |                                                         |
-| ORT Server UI  | http://localhost:8082            | Same as Keycloak                                        |
-| Keycloak       | http://localhost:8081            | Administrator: admin:admin<br/>User: ort-admin:password |
-| PostgreSQL     | http://localhost:5433            | postgres:postgres                                       |
-| RabbitMQ       | http://localhost:15672           | admin:admin                                             |
-| Graphite       | http://localhost:8888            | root:root                                               |
-| Grafana        | http://localhost:3200            | admin:1234                                              |
+| Service        | URL                                         | Credentials                                                                          |
+| -------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ORT Server API | http://localhost:8080/swagger-ui/index.html | Credentials: Same as Keycloak<br/>Client: ort-server<br/>Client Secret: &lt;none&gt; |
+| ORT Server UI  | http://localhost:8082                       | Same as Keycloak                                                                     |
+| Keycloak       | http://localhost:8081                       | Administrator: admin:admin<br/>User: ort-admin:password                              |
+| PostgreSQL     | http://localhost:5433                       | postgres:postgres                                                                    |
+| RabbitMQ       | http://localhost:15672                      | admin:admin                                                                          |
+| Graphite       | http://localhost:8888                       | root:root                                                                            |
+| Grafana        | http://localhost:3200                       | admin:1234                                                                           |
 
 ## Development
 
