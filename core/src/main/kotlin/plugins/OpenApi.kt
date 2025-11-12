@@ -71,8 +71,9 @@ fun Application.configureOpenApi() {
             securityScheme(SecurityConfigurations.TOKEN) {
                 type = AuthType.OAUTH2
                 flows {
-                    authorizationCode {
+                    password {
                         authorizationUrl = "${config.property("jwt.issuer").getString()}/protocol/openid-connect/auth"
+                        refreshUrl = "${config.property("jwt.issuer").getString()}/protocol/openid-connect/token"
                         tokenUrl = "${config.property("jwt.issuer").getString()}/protocol/openid-connect/token"
                         scopes = emptyMap()
                     }
