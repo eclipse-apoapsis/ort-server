@@ -142,7 +142,7 @@ const RunsComponent = () => {
       enableColumnFilter: false,
     }),
     columnHelper.accessor('createdAt', {
-      header: 'Created At',
+      header: 'Created',
       cell: ({ row }) => (
         <TimestampWithUTC timestamp={row.original.createdAt} />
       ),
@@ -150,7 +150,7 @@ const RunsComponent = () => {
       enableColumnFilter: false,
     }),
     columnHelper.accessor('finishedAt', {
-      header: 'Finished At',
+      header: 'Finished',
       cell: ({ row }) =>
         row.original.finishedAt ? (
           <TimestampWithUTC timestamp={row.original.finishedAt} />
@@ -161,7 +161,7 @@ const RunsComponent = () => {
       enableColumnFilter: false,
     }),
     columnHelper.accessor('status', {
-      header: 'Run Status',
+      header: 'Status',
       cell: ({ row }) => (
         <Badge
           className={`border ${getStatusBackgroundColor(row.original.status)}`}
@@ -190,7 +190,7 @@ const RunsComponent = () => {
     }),
     columnHelper.display({
       id: 'jobStatuses',
-      header: 'Job Status',
+      header: 'Jobs',
       cell: ({ row }) => (
         <OrtRunJobStatus
           jobs={row.original.jobs}
