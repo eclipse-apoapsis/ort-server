@@ -123,6 +123,20 @@ Please note that `postgres` does not have to be explicitly passed: since it is a
 
 Then execute the ORT Server in IntelliJ with the run configuration ["Run ORT Server"](https://github.com/eclipse-apoapsis/ort-server/blob/main/.run/Run%20ORT%20Server.run.xml).
 
+### Updating Keycloak configuration
+
+On the first start, the Keycloak configuration is initialized from a [realm file](https://github.com/eclipse-apoapsis/ort-server/blob/main/scripts/docker/keycloak/master-realm.json).
+To update the configuration, you can either modify the realm file directly or export the current configuration from the running Keycloak container:
+
+```shell
+docker compose exec -it keycloak /bin/bash
+KC_HTTP_PORT=8081 /opt/keycloak/bin/kc.sh export --dir /opt/keycloak_init --users realm_file
+```
+
+Unfortunately, Keycloak keeps changing the order of entries in the exported JSON file, especially after version upgrades.
+To minimize the diff when making changes, it is recommended to export the configuration before making any changes and then again after applying the changes, and to put the changes in spearate commits.
+Otherwise, it can be hard to identify the actual changes.
+
 ## Troubleshooting
 
 ### Flyway migration errors
