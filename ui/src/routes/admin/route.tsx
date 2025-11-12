@@ -48,6 +48,9 @@ const Layout = () => {
         {
           title: 'Runs',
           to: '/admin/runs',
+          search: {
+            status: ['ACTIVE'],
+          },
           icon: () => <ListVideo className='h-4 w-4' />,
         },
       ],
