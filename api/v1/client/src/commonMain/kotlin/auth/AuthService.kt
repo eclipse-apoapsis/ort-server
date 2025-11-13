@@ -59,8 +59,11 @@ class AuthService(
                     "Failed to generate token: ${response.status.value}: ${response.bodyAsText()}."
                 )
             }
-        }.getOrElse {
-            throw HttpRequestException("Failed to generate token. Check your authentication provider configuration.")
+        }.getOrElse { cause ->
+            throw HttpRequestException(
+                "Failed to generate token. Check your authentication provider configuration.",
+                cause
+            )
         }.body()
 
     /**
