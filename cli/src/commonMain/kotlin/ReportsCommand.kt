@@ -46,7 +46,6 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
         envvar = "OSC_RUN_ID",
         help = "The ID of the ORT run, or the latest one started via $COMMAND_NAME."
     ).long()
-        .withFallback(ContextStorage.get().run?.latestId)
 
     private val ortRunByIndex by OrtRunByIndexOptions().cooccurring()
 
@@ -73,14 +72,15 @@ class ReportsCommand : SuspendingCliktCommand(name = "reports") {
             throw MutuallyExclusiveGroupException(listOf("--run-id", "--repository-id and --index"))
         }
 
-        if (runId == null && ortRunByIndex == null) {
+        val selectedRunId = runId ?: ContextStorage.get().run?.latestId
+        if (selectedRunId == null && ortRunByIndex == null) {
             throw UsageError("Either --run-id or --repository-id and --index must be provided.")
         }
 
         val client = createAuthenticatedOrtServerClient() ?: throw AuthenticationError()
-        val resolvedOrtRunId = runId ?: ortRunByIndex?.let {
+        val resolvedOrtRunId = ortRunByIndex?.let {
             client.repositories.getOrtRun(it.repositoryId, it.ortRunIndex).id
-        } ?: throw ProgramResult(1)
+        } ?: selectedRunId ?: throw ProgramResult(1)
 
         outputDir.mkdirs()
 
