@@ -239,15 +239,86 @@ jobs:
         node-version: 24
         cache: pnpm
         cache-dependency-path: ui/pnpm-lock.yaml
-
+ 
     - name: Install dependencies
       run: pnpm -C ui install
+
+    - name: Build UI
+      run: pnpm -C ui build
 
     - name: Install Playwright Browsers
       run: pnpm -C ui exec playwright install --with-deps
 
+    - name: Start core services
+      run: docker compose up -d core
+
+    - name: Wait for core readiness
+      run: |
+        echo "Waiting for core liveness endpoint..."
+        for i in {1..60}; do
+          if curl -fsS http://127.0.0.1:8080/api/v1/liveness >/dev/null; then
+            echo "Core liveness endpoint is available."
+            break
+          fi
+
+          if [ $i -eq 60 ]; then
+            echo "Core failed to report healthy within 120 seconds" >&2
+            docker compose logs core
+            exit 1
+          fi
+
+          sleep 2
+        done
+
     - name: Run Playwright tests
-      run: pnpm -C ui test:e2e
+      env:
+        PLAYWRIGHT_TEST_BASE_URL: http://127.0.0.1:8082
+        VITE_BASEPATH: /
+        VITE_API_URL: http://127.0.0.1:8080
+        VITE_AUTHORITY: http://127.0.0.1:8081/realms/master
+        VITE_UI_URL: http://127.0.0.1:8082/
+      run: |
+        set -euo pipefail
+
+        pnpm -C ui dev --host 0.0.0.0 --port 8082 > ui-dev.log 2>&1 &
+        UI_DEV_PID=$!
+
+        cleanup() {
+          if ps -p $UI_DEV_PID > /dev/null 2>&1; then
+            kill $UI_DEV_PID || true
+          fi
+        }
+        trap cleanup EXIT
+
+        echo "Waiting for UI dev server to respond on http://127.0.0.1:8082 ..."
+        for i in {1..60}; do
+          if ! ps -p $UI_DEV_PID > /dev/null 2>&1; then
+            echo "UI dev server process exited unexpectedly. Recent logs:"
+            tail -n 200 ui-dev.log || true
+            exit 1
+          fi
+
+          if curl -fsS http://127.0.0.1:8082 >/dev/null; then
+            echo "UI dev server is responding."
+            break
+          fi
+          if [ $i -eq 60 ]; then
+            echo "UI dev server failed to start within 120 seconds" >&2
+            tail -n 200 ui-dev.log || true
+            exit 1
+          fi
+          sleep 2
+        done
+
+        pnpm -C ui test:e2e
+
+    - name: Upload UI dev log
+      if: success() || failure()
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        name: ui-dev-log
+        path: ui-dev.log
+        retention-days: 7
 
     - name: Upload Playwright report
       uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
