@@ -411,6 +411,7 @@
   "users" : [ {
     "id" : "b4192f3c-d52a-43a8-8e5d-4ea429f08ca4",
     "username" : "admin",
+    "firstName" : "admin",
     "emailVerified" : false,
     "enabled" : true,
     "createdTimestamp" : 1660816938576,
