@@ -42,7 +42,6 @@ class InfoCommand : SuspendingCliktCommand(name = "info") {
         envvar = "OSC_RUN_ID",
         help = "The ID of the ORT run."
     ).long()
-        .withFallback(ContextStorage.get().run?.latestId)
 
     private val ortRunByIndex by OrtRunByIndexOptions().cooccurring()
 
@@ -53,19 +52,14 @@ class InfoCommand : SuspendingCliktCommand(name = "info") {
             throw MutuallyExclusiveGroupException(listOf("--run-id", "--repository-id and --index"))
         }
 
-        if (runId == null && ortRunByIndex == null) {
+        val selectedRunId = runId ?: ContextStorage.get().run?.latestId
+        if (selectedRunId == null && ortRunByIndex == null) {
             throw UsageError("Either --run-id or --repository-id and --index must be provided.")
         }
 
         val client = createAuthenticatedOrtServerClient() ?: throw AuthenticationError()
 
-        val ortRun = runId?.let {
-            try {
-                client.runs.getOrtRun(it)
-            } catch (e: NotFoundException) {
-                throw RunNotFoundException("Run with ID '$it' not found.", e)
-            }
-        } ?: ortRunByIndex?.let {
+        val ortRun = ortRunByIndex?.let {
             try {
                 client.repositories.getOrtRun(it.repositoryId, it.ortRunIndex)
             } catch (e: NotFoundException) {
@@ -73,6 +67,12 @@ class InfoCommand : SuspendingCliktCommand(name = "info") {
                     "Run with index '${it.ortRunIndex}' for repository '${it.repositoryId}' not found.",
                     e
                 )
+            }
+        } ?: selectedRunId?.let {
+            try {
+                client.runs.getOrtRun(it)
+            } catch (e: NotFoundException) {
+                throw RunNotFoundException("Run with ID '$it' not found.", e)
             }
         } ?: throw ProgramResult(1)
 
