@@ -23,18 +23,15 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.containAll
-import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldStartWith
 
@@ -68,21 +65,20 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWith
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
-import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.api.OrganizationRole as ApiOrganizationRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.mapToModel
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.OrganizationRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.ProductRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.Superuser
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.api.OrganizationRole as ApiOrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -120,14 +116,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
     lateinit var productService: ProductService
 
     beforeEach {
-        authorizationService = KeycloakAuthorizationService(
-            keycloakClient,
-            dbExtension.db,
-            dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
-        )
+        authorizationService = DbAuthorizationService(dbExtension.db)
 
         organizationService = OrganizationService(
             dbExtension.db,
@@ -180,13 +169,15 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val org4 = createOrganization(name = "org4")
                 createOrganization(name = "org5")
 
-                keycloak.keycloakAdminClient.addUserRole(
+                authorizationService.assignRole(
                     TEST_USER.username.value,
-                    OrganizationPermission.READ.roleName(org2.id)
+                    OrganizationRole.READER,
+                    CompoundHierarchyId.forOrganization(OrganizationId(org2.id))
                 )
-                keycloak.keycloakAdminClient.addUserRole(
+                authorizationService.assignRole(
                     TEST_USER.username.value,
-                    OrganizationPermission.READ.roleName(org4.id)
+                    OrganizationRole.READER,
+                    CompoundHierarchyId.forOrganization(OrganizationId(org4.id))
                 )
 
                 val response = testUserClient.get("/api/v1/organizations")
@@ -336,7 +327,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.READ" {
             val createdOrg = createOrganization()
-            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrg.id)) {
+            requestShouldRequireRole(OrganizationRole.READER, createdOrg.hierarchyId) {
                 get("/api/v1/organizations/${createdOrg.id}")
             }
         }
@@ -403,25 +394,6 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "create Keycloak roles and groups" {
-            integrationTestApplication {
-                val org = PostOrganization(name = "name", description = "description")
-
-                val createdOrg = superuserClient.post("/api/v1/organizations") {
-                    setBody(org)
-                }.body<Organization>()
-
-                keycloakClient.getRoles().map { it.name.value } should containAll(
-                    OrganizationPermission.getRolesForOrganization(createdOrg.id) +
-                            OrganizationRole.getRolesForOrganization(createdOrg.id)
-                )
-
-                keycloakClient.getGroups().map { it.name.value } should containAll(
-                    OrganizationRole.getGroupsForOrganization(createdOrg.id)
-                )
-            }
-        }
-
         "respond with 'Conflict' if the organization already exists" {
             integrationTestApplication {
                 createOrganization()
@@ -435,7 +407,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require the superuser role" {
-            requestShouldRequireRole(Superuser.ROLE_NAME, HttpStatusCode.Created) {
+            requestShouldRequireSuperuser(HttpStatusCode.Created) {
                 val org = PostOrganization(name = "name", description = "description")
                 post("/api/v1/organizations") { setBody(org) }
             }
@@ -526,7 +498,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.WRITE" {
             val createdOrg = createOrganization()
-            requestShouldRequireRole(OrganizationPermission.WRITE.roleName(createdOrg.id)) {
+            requestShouldRequireRole(OrganizationRole.WRITER, createdOrg.hierarchyId) {
                 val updateOrg = PatchOrganization("updated".asPresent(), "updated".asPresent())
                 patch("/api/v1/organizations/${createdOrg.id}") { setBody(updateOrg) }
             }
@@ -545,26 +517,13 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "delete Keycloak roles and groups" {
-            integrationTestApplication {
-                val createdOrg = createOrganization()
-
-                superuserClient.delete("/api/v1/organizations/${createdOrg.id}")
-
-                keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
-                    OrganizationPermission.getRolesForOrganization(createdOrg.id) +
-                            OrganizationRole.getRolesForOrganization(createdOrg.id)
-                )
-
-                keycloakClient.getGroups().map { it.name.value } shouldNot containAnyOf(
-                    OrganizationRole.getGroupsForOrganization(createdOrg.id)
-                )
-            }
-        }
-
         "require OrganizationPermission.DELETE" {
             val createdOrg = createOrganization()
-            requestShouldRequireRole(OrganizationPermission.DELETE.roleName(createdOrg.id), HttpStatusCode.NoContent) {
+            requestShouldRequireRole(
+                OrganizationRole.ADMIN,
+                createdOrg.hierarchyId,
+                HttpStatusCode.NoContent
+            ) {
                 delete("/api/v1/organizations/${createdOrg.id}")
             }
         }
@@ -606,30 +565,11 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "create Keycloak roles and groups" {
-            integrationTestApplication {
-                val orgId = createOrganization().id
-
-                val product = PostProduct(name = "product", description = "description")
-                val createdProduct = superuserClient.post("/api/v1/organizations/$orgId/products") {
-                    setBody(product)
-                }.body<Product>()
-
-                keycloakClient.getRoles().map { it.name.value } should containAll(
-                    ProductPermission.getRolesForProduct(createdProduct.id) +
-                            ProductRole.getRolesForProduct(createdProduct.id)
-                )
-
-                keycloakClient.getGroups().map { it.name.value } should containAll(
-                    ProductRole.getGroupsForProduct(createdProduct.id)
-                )
-            }
-        }
-
         "require OrganizationPermission.CREATE_PRODUCT" {
             val createdOrg = createOrganization()
             requestShouldRequireRole(
-                OrganizationPermission.CREATE_PRODUCT.roleName(createdOrg.id),
+                OrganizationRole.WRITER,
+                createdOrg.hierarchyId,
                 HttpStatusCode.Created
             ) {
                 val createProduct = PostProduct(name = "product", description = "description")
@@ -653,6 +593,77 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                     organizationService.createProduct(name = name2, description = description, organizationId = orgId)
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/products")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        Product(createdProduct1.id, orgId, name1, description),
+                        Product(createdProduct2.id, orgId, name2, description)
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("name", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "return only products for which the user has ProductPermission.READ" {
+            integrationTestApplication {
+                val createdOrganization = createOrganization()
+                val orgId = createdOrganization.id
+                val otherOrg = createOrganization("otherOrg")
+
+                val name1 = "name1"
+                val name2 = "name2"
+                val description = "description"
+
+                val createdProduct1 =
+                    organizationService.createProduct(name = name1, description = description, organizationId = orgId)
+                val createdProduct2 =
+                    organizationService.createProduct(name = name2, description = description, organizationId = orgId)
+                organizationService.createProduct(name = "name3", description = description, organizationId = orgId)
+                val createdRepo = productService.createRepository(
+                    RepositoryType.GIT,
+                    "https://example.com/repo.git",
+                    createdProduct2.id,
+                    null
+                )
+                val productInOtherOrg = organizationService.createProduct(
+                    name = "otherOrgProduct",
+                    description = description,
+                    organizationId = otherOrg.id
+                )
+
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(
+                        OrganizationId(createdOrganization.id),
+                        ProductId(createdProduct1.id)
+                    )
+                )
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    ProductRole.READER,
+                    CompoundHierarchyId.forProduct(
+                        OrganizationId(otherOrg.id),
+                        ProductId(productInOtherOrg.id)
+                    )
+                )
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.WRITER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(createdOrganization.id),
+                        ProductId(createdProduct2.id),
+                        RepositoryId(createdRepo.id)
+                    )
+                )
+
+                val response = testUserClient.get("/api/v1/organizations/$orgId/products")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
@@ -735,7 +746,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.READ_PRODUCTS" {
             val createdOrg = createOrganization()
-            requestShouldRequireRole(OrganizationPermission.READ_PRODUCTS.roleName(createdOrg.id)) {
+            requestShouldRequireRole(OrganizationRole.WRITER, createdOrg.hierarchyId) {
                 get("/api/v1/organizations/${createdOrg.id}/products")
             }
         }
@@ -751,7 +762,8 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                 val user = Username(TEST_USER.username.value)
 
                 requestShouldRequireRole(
-                    OrganizationPermission.MANAGE_GROUPS.roleName(createdOrg.id),
+                    OrganizationRole.ADMIN,
+                    createdOrg.hierarchyId,
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {
@@ -792,10 +804,10 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         else -> error("Unsupported method: $method")
                     }
 
-                    response shouldHaveStatus HttpStatusCode.InternalServerError
+                    response shouldHaveStatus HttpStatusCode.NotFound
 
                     val body = response.body<ErrorResponse>()
-                    body.cause shouldContain "Could not find user"
+                    body.message shouldContain "Could not find user"
                 }
             }
         }
@@ -887,6 +899,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             "assign the '$role' role to the user" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
+                    val orgHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(createdOrg.id))
                     val user = Username(TEST_USER.username.value)
 
                     val response = superuserClient.put(
@@ -897,14 +910,9 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 
-                    val groupName = role.mapToModel().groupName(createdOrg.id)
-                    val group = keycloakClient.getGroup(GroupName(groupName))
-                    group.shouldNotBeNull()
-
-                    val members = keycloakClient.getGroupMembers(group.name)
-                    members.shouldBeSingleton {
-                        it.username shouldBe TEST_USER.username
-                    }
+                    val members = authorizationService.listUsersWithRole(role.mapToModel(), orgHierarchyId)
+                    members shouldHaveSize 1
+                    members shouldContain TEST_USER.username.value
                 }
             }
         }
@@ -915,17 +923,10 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             "remove the '$role' role from the user" {
                 integrationTestApplication {
                     val createdOrg = createOrganization()
+                    val orgHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(createdOrg.id))
                     val user = Username(TEST_USER.username.value)
 
-                    authorizationService.addUserRole(user.username, OrganizationId(createdOrg.id), role.mapToModel())
-
-                    // Check pre-condition
-                    val groupName = role.mapToModel().groupName(createdOrg.id)
-                    val groupBefore = keycloakClient.getGroup(GroupName(groupName))
-                    val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
-                    membersBefore.shouldBeSingleton {
-                        it.username shouldBe TEST_USER.username
-                    }
+                    authorizationService.assignRole(user.username, role.mapToModel(), orgHierarchyId)
 
                     val response = superuserClient.delete(
                         "/api/v1/organizations/${createdOrg.id}/roles/${role.name}?username=${user.username}"
@@ -933,10 +934,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 
-                    val groupAfter = keycloakClient.getGroup(GroupName(groupName))
-                    groupAfter.shouldNotBeNull()
-
-                    val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
+                    val membersAfter = authorizationService.listUsersWithRole(role.mapToModel(), orgHierarchyId)
                     membersAfter.shouldBeEmpty()
                 }
             }
@@ -1518,7 +1516,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.READ" {
             val createdOrganization = createOrganization()
-            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrganization.id)) {
+            requestShouldRequireRole(OrganizationRole.READER, createdOrganization.hierarchyId) {
                 get("/api/v1/organizations/${createdOrganization.id}/vulnerabilities")
             }
         }
@@ -1733,7 +1731,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require OrganizationPermission.READ" {
             val createdOrganization = createOrganization()
-            requestShouldRequireRole(OrganizationPermission.READ.roleName(createdOrganization.id)) {
+            requestShouldRequireRole(OrganizationRole.READER, createdOrganization.hierarchyId) {
                 get("/api/v1/organizations/${createdOrganization.id}/statistics/runs")
             }
         }
@@ -1743,21 +1741,17 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         "return list of users that have rights for organization" {
             integrationTestApplication {
                 val orgId = createOrganization().id
+                val orgHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(orgId))
 
-                authorizationService.addUserRole(
+                authorizationService.assignRole(
                     TEST_USER.username.value,
-                    OrganizationId(orgId),
-                    OrganizationRole.READER
+                    OrganizationRole.READER,
+                    orgHierarchyId
                 )
-                authorizationService.addUserRole(
+                authorizationService.assignRole(
                     SUPERUSER.username.value,
-                    OrganizationId(orgId),
-                    OrganizationRole.WRITER
-                )
-                authorizationService.addUserRole(
-                    SUPERUSER.username.value,
-                    OrganizationId(orgId),
-                    OrganizationRole.ADMIN
+                    OrganizationRole.ADMIN,
+                    orgHierarchyId
                 )
 
                 val response = superuserClient.get("/api/v1/organizations/$orgId/users")
@@ -1778,6 +1772,42 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                         limit = DEFAULT_LIMIT,
                         offset = 0,
                         totalCount = 2,
+                        sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "handle unknown users gracefully" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+                val orgHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(orgId))
+
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    OrganizationRole.READER,
+                    orgHierarchyId
+                )
+                authorizationService.assignRole(
+                    "non-existing-user",
+                    OrganizationRole.ADMIN,
+                    orgHierarchyId
+                )
+
+                val response = superuserClient.get("/api/v1/organizations/$orgId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        ApiUserWithGroups(
+                            ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),
+                            listOf(ApiUserGroup.READERS)
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 1,
                         sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
                     )
                 )
@@ -1832,10 +1862,10 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require OrganizationPermission.READ" {
-            val orgId = createOrganization().id
+            val createdOrg = createOrganization()
 
-            requestShouldRequireRole(OrganizationPermission.READ.roleName(orgId)) {
-                get("/api/v1/organizations/$orgId/users")
+            requestShouldRequireRole(OrganizationRole.READER, createdOrg.hierarchyId) {
+                get("/api/v1/organizations/${createdOrg.id}/users")
             }
         }
     }
@@ -1850,3 +1880,9 @@ private fun generateAdvisorResult(vulnerabilities: List<Vulnerability>) = Adviso
     defects = emptyList(),
     vulnerabilities = vulnerabilities
 )
+
+/**
+ * Return a [CompoundHierarchyId] for this [Organization].
+ */
+private val org.eclipse.apoapsis.ortserver.model.Organization.hierarchyId: CompoundHierarchyId
+        get() = CompoundHierarchyId.forOrganization(OrganizationId(id))

@@ -22,17 +22,14 @@ package org.eclipse.apoapsis.ortserver.components.pluginmanager.routes
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 
-import io.github.smiley4.ktoropenapi.put
-
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUserId
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.put
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionType
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
@@ -87,10 +84,8 @@ internal fun Route.updateTemplateOptions(
             description = "The specified plugin is not installed or the template could not be updated."
         }
     }
-}) {
-    requireSuperuser()
-
-    val userId = checkNotNull(call.principal<OrtPrincipal>()).getUserId()
+}, requireSuperuser()) {
+    val userId = requirePrincipal().userId
     val pluginType = enumValueOf<PluginType>(call.requireParameter("pluginType"))
     val pluginId = call.requireParameter("pluginId")
     val templateName = call.requireParameter("templateName")

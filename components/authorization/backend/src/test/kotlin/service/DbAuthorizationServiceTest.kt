@@ -61,7 +61,7 @@ class DbAuthorizationServiceTest : WordSpec() {
     private fun createService() = DbAuthorizationService(dbExtension.db)
 
     init {
-        "getEffectiveRoles" should {
+        "getEffectiveRole" should {
             "resolve a repository ID correctly" {
                 val service = createService()
 
@@ -1120,6 +1120,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     containedIn = repositoryCompoundId.productId
                 )
 
+                filter.isWildcard shouldBe false
                 filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
                     key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
                     value shouldBe setOf(repositoryCompoundId.parent)

@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.authorization.routes
 
 import com.auth0.jwt.interfaces.Payload
 
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.RoutingContext
 
@@ -110,3 +111,10 @@ class OrtServerPrincipal(
     val effectiveRole: EffectiveRole
         get() = role ?: throw AuthorizationException()
 }
+
+/**
+ * A convenience extension property to obtain the [OrtServerPrincipal] from an [ApplicationCall] that has already been
+ * authenticated.
+ */
+val ApplicationCall.ortServerPrincipal: OrtServerPrincipal
+    get() = requireNotNull(principal())

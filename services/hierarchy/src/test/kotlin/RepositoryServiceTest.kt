@@ -26,13 +26,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.JobStatus
@@ -52,7 +45,7 @@ class RepositoryServiceTest : WordSpec({
         fixtures = dbExtension.fixtures
     }
 
-    fun createService(authorizationService: AuthorizationService = mockk()) = RepositoryService(
+    fun createService() = RepositoryService(
         db,
         dbExtension.fixtures.ortRunRepository,
         dbExtension.fixtures.repositoryRepository,
@@ -61,26 +54,10 @@ class RepositoryServiceTest : WordSpec({
         dbExtension.fixtures.scannerJobRepository,
         dbExtension.fixtures.evaluatorJobRepository,
         dbExtension.fixtures.reporterJobRepository,
-        dbExtension.fixtures.notifierJobRepository,
-        authorizationService
+        dbExtension.fixtures.notifierJobRepository
     )
 
     "deleteRepository" should {
-        "delete Keycloak permissions" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { deleteRepositoryPermissions(any()) } just runs
-                coEvery { deleteRepositoryRoles(any()) } just runs
-            }
-            val service = createService(authorizationService)
-
-            service.deleteRepository(fixtures.repository.id)
-
-            coVerify(exactly = 1) {
-                authorizationService.deleteRepositoryPermissions(fixtures.repository.id)
-                authorizationService.deleteRepositoryRoles(fixtures.repository.id)
-            }
-        }
-
         "delete all ORT runs of the repository" {
             val service = createService()
 

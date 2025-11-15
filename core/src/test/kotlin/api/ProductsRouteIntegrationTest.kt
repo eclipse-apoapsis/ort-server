@@ -23,18 +23,14 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.containAll
-import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.beNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldContainIgnoringCase
 
@@ -48,6 +44,8 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+
+import io.mockk.mockk
 
 import kotlinx.datetime.Clock
 
@@ -81,24 +79,23 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWith
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityForRunsFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.VulnerabilityRating
-import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.api.ProductRole as ApiProductRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.mapToModel
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.ProductRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.RepositoryRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.api.ProductRole as ApiProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.JobStatus
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -138,20 +135,13 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     var orgId = -1L
 
     beforeEach {
-        authorizationService = KeycloakAuthorizationService(
-            keycloakClient,
-            dbExtension.db,
-            dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
-        )
+        authorizationService = DbAuthorizationService(dbExtension.db)
 
         organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
-            authorizationService
+            mockk()
         )
 
         pluginService = PluginService(dbExtension.db)
@@ -176,6 +166,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         organizationId: Long = orgId
     ) = organizationService.createProduct(name, description, organizationId)
 
+    fun org.eclipse.apoapsis.ortserver.model.Product.hierarchyId(organizationId: Long = orgId): CompoundHierarchyId =
+        CompoundHierarchyId.forProduct(OrganizationId(organizationId), ProductId(id))
+
     "GET /products/{productId}" should {
         "return a single product" {
             integrationTestApplication {
@@ -190,7 +183,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require ProductPermission.READ" {
             val createdProduct = createProduct()
-            requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
+            requestShouldRequireRole(ProductRole.READER, createdProduct.hierarchyId()) {
                 get("/api/v1/products/${createdProduct.id}")
             }
         }
@@ -221,7 +214,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require ProductPermission.WRITE" {
             val createdProduct = createProduct()
-            requestShouldRequireRole(ProductPermission.WRITE.roleName(createdProduct.id)) {
+            requestShouldRequireRole(ProductRole.WRITER, createdProduct.hierarchyId()) {
                 val updatedProduct = PatchProduct("updatedName".asPresent(), "updatedDescription".asPresent())
                 patch("/api/v1/products/${createdProduct.id}") { setBody(updatedProduct) }
             }
@@ -260,26 +253,9 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "delete Keycloak roles and groups" {
-            integrationTestApplication {
-                val createdProduct = createProduct()
-
-                superuserClient.delete("/api/v1/products/${createdProduct.id}")
-
-                keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
-                    ProductPermission.getRolesForProduct(createdProduct.id) +
-                        ProductRole.getRolesForProduct(createdProduct.id)
-                )
-
-                keycloakClient.getGroups().map { it.name.value } shouldNot containAnyOf(
-                    ProductRole.getGroupsForProduct(createdProduct.id)
-                )
-            }
-        }
-
         "require ProductPermission.DELETE" {
             val createdProduct = createProduct()
-            requestShouldRequireRole(ProductPermission.DELETE.roleName(createdProduct.id), HttpStatusCode.NoContent) {
+            requestShouldRequireRole(ProductRole.ADMIN, createdProduct.hierarchyId(), HttpStatusCode.NoContent) {
                 delete("/api/v1/products/${createdProduct.id}")
             }
         }
@@ -309,6 +285,71 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
                 val response = superuserClient.get("/api/v1/products/${createdProduct.id}/repositories")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        Repository(createdRepository1.id, orgId, createdProduct.id, type.mapToApi(), url1, description),
+                        Repository(createdRepository2.id, orgId, createdProduct.id, type.mapToApi(), url2, description)
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 2,
+                        sortProperties = listOf(SortProperty("url", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
+        "return the repositories a user has access to" {
+            integrationTestApplication {
+                val createdProduct = createProduct()
+
+                val type = RepositoryType.GIT
+                val url1 = "https://example.com/repo1.git"
+                val url2 = "https://example.com/repo2.git"
+                val description = "description"
+
+                val createdRepository1 = productService.createRepository(
+                    type = type,
+                    url = url1,
+                    productId = createdProduct.id,
+                    description = description
+                )
+                val createdRepository2 = productService.createRepository(
+                    type = type,
+                    url = url2,
+                    productId = createdProduct.id,
+                    description = description
+                )
+                productService.createRepository(
+                    type = type,
+                    url = "https://example.com/hidden-repo.git",
+                    productId = createdProduct.id,
+                    description = "You cannot see me"
+                )
+
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(createdProduct.organizationId),
+                        ProductId(createdProduct.id),
+                        RepositoryId(createdRepository1.id)
+                    )
+                )
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(createdProduct.organizationId),
+                        ProductId(createdProduct.id),
+                        RepositoryId(createdRepository2.id)
+                    )
+                )
+
+                val response = testUserClient.get("/api/v1/products/${createdProduct.id}/repositories")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
@@ -375,7 +416,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require ProductPermission.READ_REPOSITORIES" {
             val createdProduct = createProduct()
-            requestShouldRequireRole(ProductPermission.READ_REPOSITORIES.roleName(createdProduct.id)) {
+            requestShouldRequireRole(ProductRole.WRITER, createdProduct.hierarchyId()) {
                 get("/api/v1/products/${createdProduct.id}/repositories")
             }
         }
@@ -431,30 +472,11 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "create Keycloak roles and groups" {
-            integrationTestApplication {
-                val createdProduct = createProduct()
-
-                val repository = PostRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
-                val createdRepository = superuserClient.post("/api/v1/products/${createdProduct.id}/repositories") {
-                    setBody(repository)
-                }.body<Repository>()
-
-                keycloakClient.getRoles().map { it.name.value } should containAll(
-                    RepositoryPermission.getRolesForRepository(createdRepository.id) +
-                        RepositoryRole.getRolesForRepository(createdRepository.id)
-                )
-
-                keycloakClient.getGroups().map { it.name.value } should containAll(
-                    RepositoryRole.getGroupsForRepository(createdRepository.id)
-                )
-            }
-        }
-
         "require ProductPermission.CREATE_REPOSITORY" {
             val createdProduct = createProduct()
             requestShouldRequireRole(
-                ProductPermission.CREATE_REPOSITORY.roleName(createdProduct.id),
+                ProductRole.WRITER,
+                createdProduct.hierarchyId(),
                 HttpStatusCode.Created
             ) {
                 val repository = PostRepository(ApiRepositoryType.GIT, "https://example.com/repo.git")
@@ -472,7 +494,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 val createdProd = createProduct()
                 val user = Username(TEST_USER.username.value)
                 requestShouldRequireRole(
-                    ProductPermission.MANAGE_GROUPS.roleName(createdProd.id),
+                    ProductRole.ADMIN,
+                    createdProd.hierarchyId(),
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {
@@ -508,10 +531,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                         else -> error("Unsupported method: $method")
                     }
 
-                    response shouldHaveStatus HttpStatusCode.InternalServerError
+                    response shouldHaveStatus HttpStatusCode.NotFound
 
                     val body = response.body<ErrorResponse>()
-                    body.cause shouldContain "Could not find user"
+                    body.message shouldContain "Could not find user"
                 }
             }
         }
@@ -539,7 +562,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NotFound
 
                     val body = response.body<ErrorResponse>()
-                    body.message shouldContain "not found"
+                    body.message shouldContain "Could not resolve hierarchy ID"
                 }
             }
         }
@@ -608,14 +631,15 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 
-                    val groupName = role.mapToModel().groupName(createdProd.id)
-                    val group = keycloakClient.getGroup(GroupName(groupName))
-                    group.shouldNotBeNull()
-
-                    val members = keycloakClient.getGroupMembers(group.name)
-                    members.shouldBeSingleton {
-                        it.username shouldBe TEST_USER.username
-                    }
+                    val members = authorizationService.listUsersWithRole(
+                        role.mapToModel(),
+                        CompoundHierarchyId.forProduct(
+                            OrganizationId(createdProd.organizationId),
+                            ProductId(createdProd.id)
+                        )
+                    )
+                    members shouldHaveSize 1
+                    members shouldContain TEST_USER.username.value
                 }
             }
         }
@@ -626,17 +650,13 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             "remove the '$role' role from the user" {
                 integrationTestApplication {
                     val createdProd = createProduct()
+                    val productHierarchyId = CompoundHierarchyId.forProduct(
+                        OrganizationId(createdProd.organizationId),
+                        ProductId(createdProd.id)
+                    )
                     val user = Username(TEST_USER.username.value)
 
-                    authorizationService.addUserRole(user.username, ProductId(createdProd.id), role.mapToModel())
-
-                    // Check pre-condition
-                    val groupName = role.mapToModel().groupName(createdProd.id)
-                    val groupBefore = keycloakClient.getGroup(GroupName(groupName))
-                    val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
-                    membersBefore.shouldBeSingleton {
-                        it.username shouldBe TEST_USER.username
-                    }
+                    authorizationService.assignRole(user.username, role.mapToModel(), productHierarchyId)
 
                     val response = superuserClient.delete(
                         "/api/v1/products/${createdProd.id}/roles/${role.name}?username=${user.username}"
@@ -644,10 +664,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 
-                    val groupAfter = keycloakClient.getGroup(GroupName(groupName))
-                    groupAfter.shouldNotBeNull()
-
-                    val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
+                    val membersAfter = authorizationService.listUsersWithRole(role.mapToModel(), productHierarchyId)
                     membersAfter.shouldBeEmpty()
                 }
             }
@@ -1124,7 +1141,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require ProductPermission.READ" {
             val createdProduct = createProduct()
-            requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
+            requestShouldRequireRole(ProductRole.READER, createdProduct.hierarchyId()) {
                 get("/api/v1/products/${createdProduct.id}/vulnerabilities")
             }
         }
@@ -1421,7 +1438,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
         "require ProductPermission.READ" {
             val createdProduct = createProduct()
-            requestShouldRequireRole(ProductPermission.READ.roleName(createdProduct.id)) {
+            requestShouldRequireRole(ProductRole.READER, createdProduct.hierarchyId()) {
                 get("/api/v1/products/${createdProduct.id}/statistics/runs")
             }
         }
@@ -1430,11 +1447,15 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
     "GET /products/{productId}/users" should {
         "return list of users that have rights for product" {
             integrationTestApplication {
-                val productId = createProduct().id
+                val product = createProduct()
+                val productId = product.id
+                val productHierarchyId = CompoundHierarchyId.forProduct(
+                    OrganizationId(product.organizationId),
+                    ProductId(productId)
+                )
 
-                authorizationService.addUserRole(TEST_USER.username.value, ProductId(productId), ProductRole.READER)
-                authorizationService.addUserRole(SUPERUSER.username.value, ProductId(productId), ProductRole.WRITER)
-                authorizationService.addUserRole(SUPERUSER.username.value, ProductId(productId), ProductRole.ADMIN)
+                authorizationService.assignRole(TEST_USER.username.value, ProductRole.READER, productHierarchyId)
+                authorizationService.assignRole(SUPERUSER.username.value, ProductRole.ADMIN, productHierarchyId)
 
                 val response = superuserClient.get("/api/v1/products/$productId/users")
 
@@ -1507,10 +1528,10 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require ProductPermission.READ" {
-            val productId = createProduct().id
+            val createProduct = createProduct()
 
-            requestShouldRequireRole(ProductPermission.READ.roleName(productId)) {
-                get("/api/v1/products/$productId/users")
+            requestShouldRequireRole(ProductRole.READER, createProduct.hierarchyId()) {
+                get("/api/v1/products/${createProduct.id}/users")
             }
         }
     }
@@ -1574,9 +1595,12 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                 responseSpecific shouldHaveStatus HttpStatusCode.Created
 
                 val createdRunsSpecific = responseSpecific.body<List<OrtRun>>()
-                createdRunsSpecific.shouldBeSingleton {
-                    dbExtension.fixtures.ortRunRepository.get(it.id)?.repositoryId shouldBe repository1Id
+                createdRunsSpecific shouldHaveSize 1
+
+                val repositoryIdsSpecific = createdRunsSpecific.map { run ->
+                    dbExtension.fixtures.ortRunRepository.get(run.id)?.repositoryId
                 }
+                repositoryIdsSpecific shouldContainExactlyInAnyOrder listOf(repository1Id)
             }
         }
 
@@ -1761,12 +1785,14 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
 
         "respond with 'Forbidden' if 'keepAliveWorker' is set by a non super-user" {
             integrationTestApplication {
-                val productId = createProduct().id
-
-                keycloak.keycloakAdminClient.addUserRole(
-                    TEST_USER.username.value,
-                    ProductPermission.TRIGGER_ORT_RUN.roleName(productId)
+                val product = createProduct()
+                val productId = product.id
+                val productHierarchyId = CompoundHierarchyId.forProduct(
+                    OrganizationId(product.organizationId),
+                    ProductId(productId)
                 )
+
+                authorizationService.assignRole(TEST_USER.username.value, ProductRole.WRITER, productHierarchyId)
 
                 keepAliveJobConfigs.forAll {
                     val response = testUserClient.post("/api/v1/products/$productId/runs") {
@@ -1931,7 +1957,8 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
         "require ProductPermission.TRIGGER_ORT_RUN" {
             val createdProduct = createProduct()
             requestShouldRequireRole(
-                ProductPermission.TRIGGER_ORT_RUN.roleName(createdProduct.id),
+                ProductRole.WRITER,
+                createdProduct.hierarchyId(),
                 HttpStatusCode.Created
             ) {
                 val createOrtRun = PostRepositoryRun(
