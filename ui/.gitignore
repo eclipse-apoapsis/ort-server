@@ -11,3 +11,10 @@ src/routeTree.gen.ts
 
 # AI Agent related files and directories
 plans/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
+    "test:e2e": "playwright test",
     "build": "pnpm generate:api && pnpm generate:routes && tsc && vite build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -66,6 +67,7 @@
     "@eslint/js": "^9.37.0",
     "@hey-api/openapi-ts": "0.87.5",
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@tailwindcss/typography": "^0.5.15",
     "@tanstack/router-cli": "^1.32.10",
