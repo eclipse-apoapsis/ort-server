@@ -54,8 +54,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useUser } from '@/hooks/use-user.ts';
 import { ALL_ITEMS } from '@/lib/constants';
+import {
+  OrganizationPermissions,
+  ProductPermissions,
+  RepositoryPermissions,
+} from '@/lib/permissions.ts';
 import {
   EnvironmentDefinitions,
   NpmAuthMode,
@@ -70,6 +74,11 @@ type AnalyzerFieldsProps = {
   value: string;
   onToggle: () => void;
   isSuperuser: boolean;
+  permissions: {
+    organization: OrganizationPermissions | undefined;
+    product: ProductPermissions | undefined;
+    repository: RepositoryPermissions | undefined;
+  };
 };
 
 type InfrastructureServiceWithHierarchy = InfrastructureService & {
@@ -81,6 +90,7 @@ export const AnalyzerFields = ({
   value,
   onToggle,
   isSuperuser,
+  permissions,
 }: AnalyzerFieldsProps) => {
   const { orgId, productId, repoId } = useParams({ strict: false });
   const {
@@ -91,8 +101,6 @@ export const AnalyzerFields = ({
     name: 'jobConfigs.analyzer.environmentVariables',
     control: form.control,
   });
-
-  const user = useUser();
 
   // Only fetch infrastructure services the user has access to.
   const infrastructureServices = useQueries({
@@ -106,10 +114,7 @@ export const AnalyzerFields = ({
             limit: ALL_ITEMS,
           },
         }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_organization_${orgId}_read`,
-        ]),
+        enabled: permissions.organization?.includes('READ'),
       },
       {
         ...getProductInfrastructureServicesOptions({
@@ -120,10 +125,7 @@ export const AnalyzerFields = ({
             limit: ALL_ITEMS,
           },
         }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_product_${productId}_read`,
-        ]),
+        enabled: permissions.product?.includes('READ'),
       },
       {
         ...getRepositoryInfrastructureServicesOptions({
@@ -134,10 +136,7 @@ export const AnalyzerFields = ({
             limit: ALL_ITEMS,
           },
         }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_repository_${repoId}_read`,
-        ]),
+        enabled: permissions.repository?.includes('READ'),
       },
     ],
     combine: (results) => {

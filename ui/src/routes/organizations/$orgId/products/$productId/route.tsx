@@ -31,11 +31,11 @@ import {
 import { getProductOptions } from '@/api/@tanstack/react-query.gen';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
-import { useUser } from '@/hooks/use-user';
+import { fetchProductPermissions } from '@/lib/permissions.ts';
 
 const Layout = () => {
-  const { productId, repoId, runIndex } = useParams({ strict: false });
-  const user = useUser();
+  const { repoId, runIndex } = useParams({ strict: false });
+  const productPermissions = Route.useRouteContext().permissions.product;
 
   const sections: SidebarNavProps['sections'] = [
     {
@@ -70,37 +70,25 @@ const Layout = () => {
           title: 'Secrets',
           to: '/organizations/$orgId/products/$productId/secrets',
           icon: () => <BookLock className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `permission_product_${productId}_write_secrets`,
-          ]),
+          visible: productPermissions?.includes('WRITE_SECRETS'),
         },
         {
           title: 'Infrastructure Services',
           to: '/organizations/$orgId/products/$productId/infrastructure-services',
           icon: () => <ServerCog className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_product_${productId}_admin`,
-          ]),
+          visible: productPermissions?.includes('WRITE'),
         },
         {
           title: 'Users',
           to: '/organizations/$orgId/products/$productId/users',
           icon: () => <User className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_product_${productId}_admin`,
-          ]),
+          visible: productPermissions?.includes('MANAGE_GROUPS'),
         },
         {
           title: 'Settings',
           to: '/organizations/$orgId/products/$productId/settings',
           icon: () => <Settings className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_product_${productId}_admin`,
-          ]),
+          visible: productPermissions?.includes('WRITE'),
         },
       ],
     },
@@ -123,16 +111,25 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId'
 )({
   loader: async ({ context, params }) => {
+    const productId = Number.parseInt(params.productId);
     try {
       const product = await context.queryClient.ensureQueryData({
         ...getProductOptions({
-          path: { productId: Number.parseInt(params.productId) },
+          path: { productId: productId },
         }),
       });
+
+      const productPermissions = await fetchProductPermissions(
+        context.queryClient,
+        productId
+      );
+
       context.breadcrumbs.product = product.name;
+      context.permissions.product = productPermissions;
     } catch (error) {
       if (error instanceof AxiosError && error.status === 403) {
         context.breadcrumbs.product = undefined;
+        context.permissions.product = undefined;
       }
     }
   },

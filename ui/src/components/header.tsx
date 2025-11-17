@@ -388,7 +388,7 @@ export const Header = () => {
                 <span>{user.username}</span>
               </div>
             </DropdownMenuItem>
-            {user.hasRole(['superuser']) && (
+            {user.isSuperuser && (
               <>
                 <DropdownMenuSeparator />
                 <Link to='/admin'>

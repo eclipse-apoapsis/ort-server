@@ -23,13 +23,8 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/secrets'
 )({
   component: () => <Outlet />,
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `permission_product_${params.productId}_write_secrets`,
-      ])
-    ) {
+  beforeLoad: ({ context }) => {
+    if (!context.permissions.product?.includes('WRITE_SECRETS')) {
       throw redirect({
         to: '/403',
       });

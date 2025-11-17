@@ -106,7 +106,7 @@ const Layout = () => {
 export const Route = createFileRoute('/admin')({
   component: Layout,
   beforeLoad: ({ context }) => {
-    if (!context.auth.hasRole(['superuser'])) {
+    if (!context.auth.isSuperuser) {
       throw redirect({
         to: '/403',
       });
