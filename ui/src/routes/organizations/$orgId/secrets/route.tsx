@@ -21,13 +21,8 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/organizations/$orgId/secrets')({
   component: () => <Outlet />,
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `permission_organization_${params.orgId}_write_secrets`,
-      ])
-    ) {
+  beforeLoad: ({ context }) => {
+    if (!context.permissions.organization?.includes('WRITE_SECRETS')) {
       throw redirect({
         to: '/403',
       });

@@ -74,8 +74,8 @@ const CreateRunPage = () => {
   const params = Route.useParams();
   const { ortRun, plugins } = Route.useLoaderData();
   const [isTest, setIsTest] = useState(false);
-  const user = useUser();
-  const isSuperuser = user.hasRole(['superuser']);
+  const isSuperuser = useUser().isSuperuser || false;
+  const permissions = Route.useRouteContext().permissions;
 
   const advisorPlugins =
     plugins?.data?.filter((plugin) => plugin.type === 'ADVISOR') || [];
@@ -427,6 +427,7 @@ const CreateRunPage = () => {
                 value='analyzer'
                 onToggle={() => toggleAccordionOpen('analyzer')}
                 isSuperuser={isSuperuser}
+                permissions={permissions}
               />
               <AdvisorFields
                 form={form}

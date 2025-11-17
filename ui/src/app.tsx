@@ -28,6 +28,11 @@ import { Button } from '@/components/ui/button.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
 import { config } from '@/config';
 import { authRef, useUser } from '@/hooks/use-user.ts';
+import {
+  OrganizationPermissions,
+  ProductPermissions,
+  RepositoryPermissions,
+} from '@/lib/permissions.ts';
 import { queryClient } from '@/lib/query-client.ts';
 import { routeTree } from '@/routeTree.gen';
 
@@ -45,6 +50,11 @@ export interface RouterContext {
     repo: string | undefined;
     run: string | undefined;
   };
+  permissions: {
+    organization: OrganizationPermissions | undefined;
+    product: ProductPermissions | undefined;
+    repository: RepositoryPermissions | undefined;
+  };
   auth: ReturnType<typeof useUser>;
 }
 
@@ -59,6 +69,11 @@ const router = createRouter({
       product: undefined,
       repo: undefined,
       run: undefined,
+    },
+    permissions: {
+      organization: undefined,
+      product: undefined,
+      repository: undefined,
     },
     auth: undefined!,
   },

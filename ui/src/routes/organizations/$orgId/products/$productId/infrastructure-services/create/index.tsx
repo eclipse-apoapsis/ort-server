@@ -55,7 +55,6 @@ import {
 } from '@/components/ui/select';
 import { capitalize } from '@/helpers/capitalize';
 import { useSecrets } from '@/hooks/use-secrets';
-import { useUser } from '@/hooks/use-user';
 import { ApiError } from '@/lib/api-error';
 import { toast } from '@/lib/toast';
 
@@ -73,12 +72,12 @@ type FormSchema = z.infer<typeof formSchema>;
 const CreateInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
-  const user = useUser();
+  const permissions = Route.useRouteContext().permissions;
 
   const secrets = useSecrets({
     orgId: params.orgId,
     productId: params.productId,
-    user,
+    permissions,
   });
 
   const { mutateAsync, isPending } = useMutation({

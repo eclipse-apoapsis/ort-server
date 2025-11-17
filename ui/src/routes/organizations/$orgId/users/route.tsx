@@ -50,13 +50,8 @@ export const Route = createFileRoute('/organizations/$orgId/users')({
       }),
     });
   },
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `role_organization_${params.orgId}_admin`,
-      ])
-    ) {
+  beforeLoad: ({ context }) => {
+    if (!context.permissions.organization?.includes('MANAGE_GROUPS')) {
       throw redirect({
         to: '/403',
       });

@@ -52,13 +52,8 @@ export const Route = createFileRoute(
       }),
     });
   },
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `role_repository_${params.repoId}_admin`,
-      ])
-    ) {
+  beforeLoad: ({ context }) => {
+    if (!context.permissions.repository?.includes('MANAGE_GROUPS')) {
       throw redirect({
         to: '/403',
       });

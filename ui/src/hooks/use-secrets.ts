@@ -26,6 +26,11 @@ import {
   getRepositorySecretsOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
+import {
+  OrganizationPermissions,
+  ProductPermissions,
+  RepositoryPermissions,
+} from '@/lib/permissions.ts';
 
 export type SecretWithHierarchy = Secret & {
   hierarchy: 'organization' | 'product' | 'repository';
@@ -35,8 +40,10 @@ type UseSecretsParams = {
   orgId?: string;
   productId?: string;
   repositoryId?: string;
-  user: {
-    hasRole: (roles: string[]) => boolean;
+  permissions: {
+    organization: OrganizationPermissions | undefined;
+    product: ProductPermissions | undefined;
+    repository: RepositoryPermissions | undefined;
   };
 };
 
@@ -44,7 +51,7 @@ export function useSecrets({
   orgId,
   productId,
   repositoryId,
-  user,
+  permissions,
 }: UseSecretsParams) {
   const secrets = useQueries({
     queries: [
@@ -57,10 +64,7 @@ export function useSecrets({
             limit: ALL_ITEMS,
           },
         }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_organization_${orgId}_read`,
-        ]),
+        enabled: permissions.organization?.includes('READ'),
       },
       {
         ...getProductSecretsOptions({
@@ -71,10 +75,7 @@ export function useSecrets({
             limit: ALL_ITEMS,
           },
         }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_product_${productId}_read`,
-        ]),
+        enabled: permissions.product?.includes('READ'),
       },
       {
         ...getRepositorySecretsOptions({
@@ -85,10 +86,7 @@ export function useSecrets({
             limit: ALL_ITEMS,
           },
         }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_repository_${repositoryId}_read`,
-        ]),
+        enabled: permissions.repository?.includes('READ'),
       },
     ],
     combine: (results) => {

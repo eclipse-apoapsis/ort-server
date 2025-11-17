@@ -23,13 +23,8 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets'
 )({
   component: () => <Outlet />,
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `permission_repository_${params.repoId}_write_secrets`,
-      ])
-    ) {
+  beforeLoad: ({ context }) => {
+    if (!context.permissions.repository?.includes('WRITE_SECRETS')) {
       throw redirect({
         to: '/403',
       });

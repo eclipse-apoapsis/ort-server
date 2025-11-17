@@ -20,6 +20,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 import { getRepositoryOptions } from '@/api/@tanstack/react-query.gen';
+import { fetchRepositoryPermissions } from '@/lib/permissions.ts';
 
 const Layout = () => {
   return <Outlet />;
@@ -29,14 +30,23 @@ export const Route = createFileRoute(
   '/organizations/$orgId/products/$productId/repositories/$repoId'
 )({
   loader: async ({ context, params }) => {
+    const repositoryId = Number.parseInt(params.repoId);
+
     const repo = await context.queryClient.ensureQueryData({
       ...getRepositoryOptions({
         path: {
-          repositoryId: Number.parseInt(params.repoId),
+          repositoryId: repositoryId,
         },
       }),
     });
+
+    const repositoryPermissions = await fetchRepositoryPermissions(
+      context.queryClient,
+      repositoryId
+    );
+
     context.breadcrumbs.repo = repo.url;
+    context.permissions.repository = repositoryPermissions;
   },
   component: Layout,
 });
