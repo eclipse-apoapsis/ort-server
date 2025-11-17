@@ -50,7 +50,11 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useInfrastructureServices } from '@/hooks/use-infrastructure-services.ts';
 import { useSecrets } from '@/hooks/use-secrets';
-import { useUser } from '@/hooks/use-user.ts';
+import {
+  OrganizationPermissions,
+  ProductPermissions,
+  RepositoryPermissions,
+} from '@/lib/permissions.ts';
 import {
   EnvironmentDefinitions,
   NpmAuthMode,
@@ -65,6 +69,11 @@ type AnalyzerFieldsProps = {
   value: string;
   onToggle: () => void;
   isSuperuser: boolean;
+  permissions: {
+    organization: OrganizationPermissions | undefined;
+    product: ProductPermissions | undefined;
+    repository: RepositoryPermissions | undefined;
+  };
 };
 
 export const AnalyzerFields = ({
@@ -72,6 +81,7 @@ export const AnalyzerFields = ({
   value,
   onToggle,
   isSuperuser,
+  permissions,
 }: AnalyzerFieldsProps) => {
   const { orgId, productId, repoId } = useParams({ strict: false });
   const {
@@ -83,20 +93,18 @@ export const AnalyzerFields = ({
     control: form.control,
   });
 
-  const user = useUser();
-
   const infrastructureServices = useInfrastructureServices({
     orgId,
     productId,
     repoId,
-    user,
+    permissions,
   });
 
   const secrets = useSecrets({
     orgId,
     productId,
     repositoryId: repoId,
-    user,
+    permissions,
   });
 
   // Keep the form in sync with the latest infrastructure services fetched for all hierarchy levels.
