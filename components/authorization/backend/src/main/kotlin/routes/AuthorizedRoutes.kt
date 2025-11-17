@@ -39,11 +39,8 @@ import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.principal
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.RouteSelector
-import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.RoutingPipelineCall
-import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.util.AttributeKey
 
 import java.net.URI
@@ -117,7 +114,7 @@ fun Route.get(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { get(builder, it) }
+): Route = get(builder, authorizedBody(body)).installChecker(checker)
 
 /**
  * Create a new [Route] for HTTP GET requests with the given [path] that performs an automatic authorization check
@@ -128,7 +125,7 @@ fun Route.get(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { get(path, builder, it) }
+): Route = get(path, builder, authorizedBody(body)).installChecker(checker)
 
 /**
  * Create a new [Route] for HTTP POST requests that performs an automatic authorization check using the given
@@ -138,7 +135,7 @@ fun Route.post(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { post(builder, it) }
+): Route = post(builder, authorizedBody(body)).installChecker(checker)
 
 /**
  * Create a new [Route] for HTTP POST requests with the given [path] that performs an automatic authorization check
@@ -149,7 +146,7 @@ fun Route.post(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { post(path, builder, it) }
+): Route = post(path, builder, authorizedBody(body)).installChecker(checker)
 
 /**
  * Create a new [Route] for HTTP PATCH requests that performs an automatic authorization check using the given
@@ -159,7 +156,7 @@ fun Route.patch(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { patch(builder, it) }
+): Route = patch(builder, authorizedBody(body)).installChecker(checker)
 
 /**
  * Create a new [Route] for HTTP PATCH requests with the given [path] that performs an automatic authorization check
@@ -170,7 +167,7 @@ fun Route.patch(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { patch(path, builder, it) }
+): Route = patch(path, builder, authorizedBody(body)).installChecker(checker)
 
 /**
  * Create a new [Route] for HTTP PUT requests that performs an automatic authorization check using the given
@@ -180,7 +177,7 @@ fun Route.put(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { put(builder, it) }
+): Route = put(builder, authorizedBody(body)).installChecker(checker)
 
 /**
  * Create a new [Route] for HTTP PUT requests with the given [path] that performs an automatic authorization check
@@ -191,7 +188,7 @@ fun Route.put(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { put(path, builder, it) }
+): Route = put(path, builder, authorizedBody(body)).installChecker(checker)
 
 /**
  * Create a new [Route] for HTTP DELETE requests that performs an automatic authorization check using the given
@@ -201,7 +198,7 @@ fun Route.delete(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { delete(builder, it) }
+): Route = delete(builder, authorizedBody(body)).installChecker(checker)
 
 /**
  * Create a new [Route] for HTTP DELETE requests with the given [path] that performs an automatic authorization check
@@ -212,47 +209,27 @@ fun Route.delete(
     builder: RouteConfig.() -> Unit,
     checker: AuthorizationChecker,
     body: suspend RoutingContext.() -> Unit
-): Route = documentedAuthorized(checker, body) { delete(path, builder, it) }
+): Route = delete(path, builder, authorizedBody(body)).installChecker(checker)
 
 /**
- * Generic function to create a new [Route] that performs an automatic authorization check using the given [checker].
- * The content of the route is defined by the given original [body] and the [build] function.
+ * Transform the given [body] to an authorized body that checks whether an authorized principal is available in the
+ * call.
  */
-private fun Route.documentedAuthorized(
-    checker: AuthorizationChecker,
-    body: suspend RoutingContext.() -> Unit,
-    build: Route.(suspend RoutingContext.() -> Unit) -> Unit
-): Route {
-    val authorizedRoute = createChild(authorizedRouteSelector(checker.toString()))
-    authorizedRoute.attributes.put(AuthorizationCheckerKey, checker)
-
-    val authorizedBody: suspend RoutingContext.() -> Unit = {
-        // Check whether an authorized principal is available in the call.
-        if (call.principal<OrtServerPrincipal>()?.isAuthorized != true) {
-            throw AuthorizationException()
-        }
-
-        body()
+private fun authorizedBody(body: suspend RoutingContext.() -> Unit): suspend RoutingContext.() -> Unit = {
+    if (call.principal<OrtServerPrincipal>()?.isAuthorized != true) {
+        throw AuthorizationException()
     }
 
-    authorizedRoute.build(authorizedBody)
-    return authorizedRoute
+    body()
 }
 
 /**
- * Create a [RouteSelector] for a new authorized [Route] whose string representation is derived from the given [tag].
+ * Install the given [checker] into this [Route]'s attributes, so that it is available for authorization checks when
+ * the route is called.
  */
-private fun authorizedRouteSelector(tag: String): RouteSelector =
-    object : RouteSelector() {
-        override suspend fun evaluate(
-            context: RoutingResolveContext,
-            segmentIndex: Int
-        ): RouteSelectorEvaluation = RouteSelectorEvaluation.Transparent
-
-        override fun toString(): String {
-            return "(authorized $tag)"
-        }
-    }
+private fun Route.installChecker(checker: AuthorizationChecker): Route = apply {
+    attributes.put(AuthorizationCheckerKey, checker)
+}
 
 /**
  * Search for an [AuthorizationChecker] object in the context of the current [Route]. The checker has been defined
