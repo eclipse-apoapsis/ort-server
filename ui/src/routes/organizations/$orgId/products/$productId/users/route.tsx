@@ -52,13 +52,8 @@ export const Route = createFileRoute(
       }),
     });
   },
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `role_product_${params.productId}_admin`,
-      ])
-    ) {
+  beforeLoad: ({ context }) => {
+    if (!context.permissions.product?.includes('MANAGE_GROUPS')) {
       throw redirect({
         to: '/403',
       });

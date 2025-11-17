@@ -48,7 +48,7 @@ const oidcConfig = {
   redirect_uri: UI_URL,
   client_id: CLIENT_ID,
   automaticSilentRenew: true,
-  loadUserInfo: true,
+  loadUserInfo: false,
   onSigninCallback: () => {
     // This removes the Keycloak related query parameters from the URL after a successful login.
     const url = new URL(window.location.href);

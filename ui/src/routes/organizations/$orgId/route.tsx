@@ -31,11 +31,12 @@ import {
 import { getOrganizationOptions } from '@/api/@tanstack/react-query.gen';
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
-import { useUser } from '@/hooks/use-user';
+import { fetchOrganizationPermissions } from '@/lib/permissions.ts';
 
 const Layout = () => {
-  const { orgId, productId, repoId, runIndex } = useParams({ strict: false });
-  const user = useUser();
+  const { productId, repoId, runIndex } = useParams({ strict: false });
+  const organizationPermissions =
+    Route.useRouteContext().permissions.organization;
 
   const sections: SidebarNavProps['sections'] = [
     {
@@ -70,37 +71,25 @@ const Layout = () => {
           title: 'Secrets',
           to: '/organizations/$orgId/secrets',
           icon: () => <BookLock className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `permission_organization_${orgId}_write_secrets`,
-          ]),
+          visible: organizationPermissions?.includes('WRITE_SECRETS'),
         },
         {
           title: 'Infrastructure Services',
           to: '/organizations/$orgId/infrastructure-services',
           icon: () => <ServerCog className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_organization_${orgId}_admin`,
-          ]),
+          visible: organizationPermissions?.includes('WRITE'),
         },
         {
           title: 'Users',
           to: '/organizations/$orgId/users',
           icon: () => <User className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_organization_${orgId}_admin`,
-          ]),
+          visible: organizationPermissions?.includes('MANAGE_GROUPS'),
         },
         {
           title: 'Settings',
           to: '/organizations/$orgId/settings',
           icon: () => <Settings className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_organization_${orgId}_admin`,
-          ]),
+          visible: organizationPermissions?.includes('WRITE'),
         },
       ],
     },
@@ -121,16 +110,26 @@ const Layout = () => {
 
 export const Route = createFileRoute('/organizations/$orgId')({
   loader: async ({ context, params }) => {
+    const organizationId = Number.parseInt(params.orgId);
+
     try {
       const organization = await context.queryClient.ensureQueryData({
         ...getOrganizationOptions({
-          path: { organizationId: Number.parseInt(params.orgId) },
+          path: { organizationId: organizationId },
         }),
       });
+
+      const organizationPermissions = await fetchOrganizationPermissions(
+        context.queryClient,
+        organizationId
+      );
+
       context.breadcrumbs.organization = organization.name;
+      context.permissions.organization = organizationPermissions;
     } catch (error) {
       if (error instanceof AxiosError && error.status === 403) {
         context.breadcrumbs.organization = undefined;
+        context.permissions.organization = undefined;
       }
     }
   },

@@ -17,9 +17,11 @@
  * License-Filename: LICENSE
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { AuthContextProps, useAuth } from 'react-oidc-context';
 
+import { getSuperuserOptions } from '@/api/@tanstack/react-query.gen.ts';
 import { config } from '@/config';
 
 export const authRef: { current: AuthContextProps | null } = {
@@ -62,6 +64,12 @@ export const useUser = () => {
   // Return end-user's full name, including all name parts.
   const fullName = auth?.user?.profile?.name;
 
+  // TODO: Handle errors for the superuser query.
+  const { data: isSuperuser } = useQuery({
+    ...getSuperuserOptions(),
+    staleTime: 60000,
+  });
+
   useEffect(() => {
     // Store the auth context in a ref for use outside of components.
     authRef.current = auth;
@@ -72,6 +80,7 @@ export const useUser = () => {
     username,
     fullName,
     refreshUser,
+    isSuperuser,
     ...auth,
   };
 };

@@ -23,13 +23,8 @@ export const Route = createFileRoute(
   '/organizations/$orgId/infrastructure-services'
 )({
   component: () => <Outlet />,
-  beforeLoad: ({ context, params }) => {
-    if (
-      !context.auth.hasRole([
-        'superuser',
-        `role_organization_${params.orgId}_admin`,
-      ])
-    ) {
+  beforeLoad: ({ context }) => {
+    if (!context.permissions.organization?.includes('WRITE')) {
       throw redirect({
         to: '/403',
       });
