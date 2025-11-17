@@ -140,8 +140,6 @@ fun Route.runs() = route("runs") {
                     call.attributes.put(keyOrtRun, ortRun)
                 }
             }
-
-            override fun toString(): String = "RequireRunPermission($permission)"
         }
 
     get(getRuns, requireSuperuser()) {
