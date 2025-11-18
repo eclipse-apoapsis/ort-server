@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -187,6 +188,27 @@ class DaoOrganizationRepositoryTest : StringSpec({
             data = listOf(createdOrg1, createdOrg2),
             params = ListQueryParameters.DEFAULT,
             totalCount = 2
+        )
+    }
+
+    "list should apply a hierarchy filter with non-transitive includes caused by elements on lower levels" {
+        val createdOrg = organizationRepository.create("org", "description1")
+        val orgId = CompoundHierarchyId.forOrganization(OrganizationId(createdOrg.id))
+        val productId = CompoundHierarchyId.forProduct(
+            OrganizationId(createdOrg.id),
+            ProductId(1)
+        )
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(productId)),
+            nonTransitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(orgId))
+        )
+        val result = organizationRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
+            data = listOf(createdOrg),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 1
         )
     }
 

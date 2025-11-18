@@ -32,6 +32,8 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -224,6 +226,34 @@ class DaoProductRepositoryTest : StringSpec({
             ),
             params = ListQueryParameters.DEFAULT,
             totalCount = 2
+        )
+    }
+
+    "list should apply a filter with non-transitive includes caused by elements on lower levels" {
+        val prod = fixtures.createProduct("prod1")
+        val prodId = CompoundHierarchyId.forProduct(
+            OrganizationId(fixtures.organization.id),
+            ProductId(prod.id)
+        )
+        val repo = fixtures.createRepository(RepositoryType.GIT, "https://repo.example.org", productId = prod.id)
+        val repoId = CompoundHierarchyId.forRepository(
+            OrganizationId(fixtures.organization.id),
+            ProductId(prod.id),
+            RepositoryId(repo.id)
+        )
+
+        val hierarchyFilter = HierarchyFilter(
+            transitiveIncludes = mapOf(CompoundHierarchyId.REPOSITORY_LEVEL to listOf(repoId)),
+            nonTransitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(prodId)),
+        )
+        val result = productRepository.list(hierarchyFilter = hierarchyFilter)
+
+        result shouldBe ListQueryResult(
+            data = listOf(
+                Product(prod.id, orgId, prod.name, prod.description)
+            ),
+            params = ListQueryParameters.DEFAULT,
+            totalCount = 1
         )
     }
 
