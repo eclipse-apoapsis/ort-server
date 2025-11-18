@@ -38,7 +38,7 @@ class OrtServerPrincipal(
     val username: String,
 
     /** The full name of the principal. */
-    val fullName: String,
+    val fullName: String?,
 
     /**
      * An exception that occurred when setting up the principal. If this is not *null*, this exception is re-thrown
@@ -69,7 +69,7 @@ class OrtServerPrincipal(
             OrtServerPrincipal(
                 userId = payload.subject,
                 username = payload.getClaim(CLAIM_USERNAME).asString(),
-                fullName = payload.getClaim(CLAIM_FULL_NAME).asString(),
+                fullName = payload.getClaim(CLAIM_FULL_NAME)?.asString(),
                 role = effectiveRole,
                 validationException = null
             )
