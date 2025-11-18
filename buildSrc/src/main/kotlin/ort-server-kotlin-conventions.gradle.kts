@@ -25,6 +25,9 @@ import org.gradle.kotlin.dsl.dependencies
 private val Project.libs: LibrariesForLibs
     get() = extensions.getByType()
 
+private val catalogs = extensions.getByType<VersionCatalogsExtension>()
+private val detektRulesVersion = catalogs.named("ortLibs").findLibrary("detektRules").get().get().version
+
 plugins {
     // Apply precompiled plugins.
     id("ort-server-base-conventions")
@@ -35,7 +38,7 @@ plugins {
 
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.libs.versions.detektPlugin.get()}")
-    detektPlugins("org.ossreviewtoolkit:detekt-rules:${rootProject.libs.versions.ort.get()}")
+    detektPlugins("org.ossreviewtoolkit:detekt-rules:$detektRulesVersion")
 }
 
 detekt {
