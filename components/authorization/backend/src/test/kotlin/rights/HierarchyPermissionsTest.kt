@@ -25,6 +25,7 @@ import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.maps.beEmpty
 import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -168,6 +169,76 @@ class HierarchyPermissionsTest : WordSpec({
         }
     }
 
+    "permissionsGrantedOnLevel" should {
+        "return null if the permission is absent" {
+            val id = CompoundHierarchyId.forRepository(OrganizationId(1), ProductId(2), RepositoryId(3))
+            val permissions = HierarchyPermissions.create(
+                emptyList(),
+                HierarchyPermissions.permissions(RepositoryPermission.READ)
+            )
+
+            permissions.permissionGrantedOnLevel(id) should beNull()
+        }
+
+        "return the ID on which the permission is explicitly granted" {
+            val repositoryId = CompoundHierarchyId.forRepository(OrganizationId(1), ProductId(2), RepositoryId(3))
+
+            val permissions = HierarchyPermissions.create(
+                listOf(repositoryId to RepositoryRole.READER),
+                HierarchyPermissions.permissions(RepositoryPermission.READ)
+            )
+
+            permissions.permissionGrantedOnLevel(repositoryId) shouldBe repositoryId
+        }
+
+        "return the ID from a higher level if the permission is inherited" {
+            val organization1Id = OrganizationId(1)
+            val organization2Id = OrganizationId(42)
+            val organizationHierarchyId = CompoundHierarchyId.forOrganization(organization2Id)
+            val product1Id = ProductId(2)
+            val product2Id = ProductId(3)
+            val repository1Id = CompoundHierarchyId.forRepository(organization1Id, product1Id, RepositoryId(4))
+            val repository2Id = CompoundHierarchyId.forRepository(organization1Id, product1Id, RepositoryId(5))
+            val repository3Id = CompoundHierarchyId.forRepository(organization1Id, product2Id, RepositoryId(6))
+            val repository4Id = CompoundHierarchyId.forRepository(
+                organization2Id,
+                ProductId(28),
+                RepositoryId(7)
+            )
+            val productHierarchyId = CompoundHierarchyId.forProduct(organization1Id, product1Id)
+
+            val permissions = HierarchyPermissions.create(
+                listOf(
+                    productHierarchyId to RepositoryRole.WRITER,
+                    organizationHierarchyId to OrganizationRole.ADMIN
+                ),
+                HierarchyPermissions.permissions(RepositoryPermission.WRITE)
+            )
+
+            permissions.permissionGrantedOnLevel(repository1Id) shouldBe productHierarchyId
+            permissions.permissionGrantedOnLevel(repository2Id) shouldBe productHierarchyId
+            permissions.permissionGrantedOnLevel(repository3Id) should beNull()
+            permissions.permissionGrantedOnLevel(repository4Id) shouldBe organizationHierarchyId
+        }
+
+        "return the ID from a lower level for an implicit permission" {
+            val repoId = CompoundHierarchyId.forRepository(OrganizationId(1), ProductId(2), RepositoryId(3))
+            val productId = repoId.parent!!
+            val orgId = productId.parent!!
+
+            val permissions = HierarchyPermissions.create(
+                listOf(
+                    repoId to RepositoryRole.READER
+                ),
+                HierarchyPermissions.permissions(RepositoryPermission.READ)
+            )
+
+            permissions.permissionGrantedOnLevel(repoId) shouldBe repoId
+            permissions.permissionGrantedOnLevel(productId) shouldBe repoId
+            permissions.permissionGrantedOnLevel(orgId) shouldBe repoId
+        }
+    }
+
     "includes" should {
         "return the IDs for which a sufficient role assignment exists" {
             val id1 = CompoundHierarchyId.forRepository(OrganizationId(1), ProductId(2), RepositoryId(3))
@@ -296,6 +367,17 @@ class HierarchyPermissionsTest : WordSpec({
                 CompoundHierarchyId.forRepository(OrganizationId(1), ProductId(2), RepositoryId(3))
             )
             ids.forAll { superuserPermissions.hasPermission(it) shouldBe true }
+        }
+
+        "always return the wildcard ID for permissionGrantedOnLevel" {
+            val ids = listOf(
+                CompoundHierarchyId.forOrganization(OrganizationId(1)),
+                CompoundHierarchyId.forProduct(OrganizationId(1), ProductId(2)),
+                CompoundHierarchyId.forRepository(OrganizationId(1), ProductId(2), RepositoryId(3))
+            )
+            ids.forAll {
+                superuserPermissions.permissionGrantedOnLevel(it) shouldBe CompoundHierarchyId.WILDCARD
+            }
         }
 
         "return a map with includes containing only the wildcard ID" {
