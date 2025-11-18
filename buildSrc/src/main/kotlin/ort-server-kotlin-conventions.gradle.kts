@@ -37,7 +37,7 @@ plugins {
 }
 
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${rootProject.libs.versions.detektPlugin.get()}")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${libs.versions.detektPlugin.get()}")
     detektPlugins("org.ossreviewtoolkit:detekt-rules:$detektRulesVersion")
 }
 
