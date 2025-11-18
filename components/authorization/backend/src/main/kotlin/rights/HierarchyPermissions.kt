@@ -118,7 +118,16 @@ interface HierarchyPermissions {
      * Check whether the permissions evaluated by this instance are granted on the hierarchy element identified by the
      * given [compoundHierarchyId].
      */
-    fun hasPermission(compoundHierarchyId: CompoundHierarchyId): Boolean
+    fun hasPermission(compoundHierarchyId: CompoundHierarchyId): Boolean =
+        permissionGrantedOnLevel(compoundHierarchyId) != null
+
+    /**
+     * Check whether the permissions evaluated by this instance are granted on the hierarchy element identified by the
+     * given [compoundHierarchyId], and return the ID of the hierarchy element from where they are granted. Return
+     * *null* if no permissions are available. With this function, it is possible to distinguish between explicitly
+     * granted permissions on a specific level and those that are inherited through the hierarchy.
+     */
+    fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId?
 
     /**
      * Return a [Map] with the IDs of all hierarchy elements for which a role assignment exists that grants the
@@ -148,7 +157,8 @@ interface HierarchyPermissions {
  * of superuser permissions is detected. This instance grants all permissions and returns corresponding filters.
  */
 private val superuserInstance = object : HierarchyPermissions {
-    override fun hasPermission(compoundHierarchyId: CompoundHierarchyId): Boolean = true
+    override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId =
+        CompoundHierarchyId.WILDCARD
 
     override fun includes(): IdsByLevel =
         mapOf(CompoundHierarchyId.WILDCARD_LEVEL to listOf(CompoundHierarchyId.WILDCARD))
@@ -167,12 +177,11 @@ private fun createStandardInstance(
     checker: PermissionChecker
 ): HierarchyPermissions {
     val assignmentsMap = constructAssignmentsMap(assignmentsByLevel, checker)
-    val implicits = computeImplicitIncludes(assignmentsMap, assignmentsByLevel, checker)
-    val implicitIds = implicits.values.flatMapTo(mutableSetOf()) { it }
+    val (implicits, causing) = computeImplicitIncludes(assignmentsMap, assignmentsByLevel, checker)
 
     return object : HierarchyPermissions {
-        override fun hasPermission(compoundHierarchyId: CompoundHierarchyId): Boolean =
-            findAssignment(assignmentsMap, compoundHierarchyId) || compoundHierarchyId in implicitIds
+        override fun permissionGrantedOnLevel(compoundHierarchyId: CompoundHierarchyId): CompoundHierarchyId? =
+            findAssignment(assignmentsMap, compoundHierarchyId) ?: causing[compoundHierarchyId]
 
         override fun includes(): IdsByLevel =
             assignmentsMap.filter { e -> e.value }
@@ -186,17 +195,22 @@ private fun createStandardInstance(
 }
 
 /**
- * Return the closest permission check result for the given [id] by traversing up the hierarchy if necessary. If no
- * assignment is found for the given [id] or any of its parents, assume that the permissions are not present.
+ * Return the [CompoundHierarchyId] of the closest permission check result for the given [id] by traversing up the
+ * hierarchy if necessary. If no assignment is found for the given [id] or any of its parents, assume that the
+ * permissions are not present and return *null*.
  */
 private tailrec fun findAssignment(
     assignments: Map<CompoundHierarchyId, Boolean>,
     id: CompoundHierarchyId?
-): Boolean =
+): CompoundHierarchyId? =
     if (id == null) {
-        false
+        null
     } else {
-        assignments[id] ?: findAssignment(assignments, id.parent)
+        if (assignments[id] == true) {
+            id
+        } else {
+            findAssignment(assignments, id.parent)
+        }
     }
 
 /**
@@ -211,7 +225,7 @@ private fun constructAssignmentsMap(
         val levelAssignments = assignmentsByLevel[level].orEmpty()
         levelAssignments.forEach { (id, role) ->
             val isPresent = checker(role)
-            val isPresentOnParent = findAssignment(this, id.parent)
+            val isPresentOnParent = findAssignment(this, id.parent) != null
 
             // If this assignment does not change the status from a higher level, it can be skipped.
             if (isPresent && !isPresentOnParent) {
@@ -224,23 +238,33 @@ private fun constructAssignmentsMap(
 /**
  * Find the IDs of all hierarchy elements from [assignmentsByLevel] that are granted implicit permissions due to role
  * assignments on lower levels in the hierarchy. The given [assignmentsMap] has already been populated with explicit
- * role assignments. Use the given [checker] function to determine whether permissions are granted.
+ * role assignments. Use the given [checker] function to determine whether permissions are granted. Return a [Map]
+ * with the found IDs grouped by their hierarchy level and a [Map] that assigns the found IDs to the IDs of the
+ * elements that caused the implicit permissions.
  */
 private fun computeImplicitIncludes(
     assignmentsMap: Map<CompoundHierarchyId, Boolean>,
     assignmentsByLevel: Map<Int, List<Pair<CompoundHierarchyId, Role>>>,
     checker: PermissionChecker
-): IdsByLevel = buildSet {
+): Pair<IdsByLevel, Map<CompoundHierarchyId, CompoundHierarchyId>> {
+    val implicitIds = mutableSetOf<CompoundHierarchyId>()
+    val causingIds = mutableMapOf<CompoundHierarchyId, CompoundHierarchyId>()
+
     for (level in CompoundHierarchyId.PRODUCT_LEVEL..CompoundHierarchyId.REPOSITORY_LEVEL) {
         assignmentsByLevel[level].orEmpty().filter { (_, role) -> checker(role) }
             .forEach { (id, _) ->
                 val parents = id.parents()
                 if (parents.none { it in assignmentsMap }) {
-                    addAll(parents)
+                    implicitIds += parents
+                    parents.forEach { parentId ->
+                        causingIds[parentId] = id
+                    }
                 }
             }
     }
-}.byLevel()
+
+    return implicitIds.byLevel() to causingIds
+}
 
 /**
  * Group the IDs contained in this [Collection] by their hierarchy level.
