@@ -115,10 +115,13 @@ fun HierarchyFilter.apply(
     if (isWildcard) {
         otherCondition
     } else {
-        val hierarchyCondition = transitiveIncludes.entries.fold(Op.FALSE as Op<Boolean>) { op, (level, ids) ->
-            val condition = generator(this, level, ids, this@apply)
-            op or condition
-        }
+        // Always iterate over all levels to make sure that conditions for all levels are generated.
+        val hierarchyCondition = (CompoundHierarchyId.ORGANIZATION_LEVEL..CompoundHierarchyId.REPOSITORY_LEVEL)
+            .fold(Op.FALSE as Op<Boolean>) { op, level ->
+                val ids = transitiveIncludes[level].orEmpty()
+                val condition = generator(this, level, ids, this@apply)
+                op or condition
+            }
 
         otherCondition and hierarchyCondition
     }
