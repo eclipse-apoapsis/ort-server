@@ -23,6 +23,8 @@ import com.auth0.jwt.interfaces.Payload
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.ktor.server.auth.principal
@@ -53,6 +55,19 @@ class OrtServerPrincipalTest : WordSpec({
             principal.username shouldBe username
             principal.fullName shouldBe fullName
             principal.effectiveRole shouldBe effectiveRole
+        }
+
+        "handle a missing full name claim gracefully" {
+            val payload = mockk<Payload> {
+                every { subject } returns "some-user-id"
+                every { getClaim("preferred_username").asString() } returns "some-username"
+                every { getClaim("name") } returns null
+            }
+            val effectiveRole = mockk<EffectiveRole>()
+
+            val principal = OrtServerPrincipal.create(payload, effectiveRole)
+
+            principal.fullName should beNull()
         }
     }
 
