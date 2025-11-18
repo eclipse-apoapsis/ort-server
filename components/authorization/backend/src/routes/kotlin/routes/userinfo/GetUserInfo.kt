@@ -90,7 +90,7 @@ internal fun Route.getUserInfo() = get("/authorization/userinfo", {
 
     val userInfo = UserInfo(
         username = principal.username,
-        fullName = principal.fullName,
+        fullName = principal.fullName.orEmpty(),
         permissions = extractPermissionNames(principal.effectiveRole),
         isSuperuser = principal.effectiveRole.isSuperuser
     )
