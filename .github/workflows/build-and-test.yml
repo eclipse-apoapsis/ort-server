@@ -214,3 +214,124 @@ jobs:
         name: integration-test-results
         path: "**/build/reports/tests"
         retention-days: 7
+
+  test-ui-e2e:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
+
+    - name: Generate OpenAPI spec
+      run: ./gradlew --stacktrace :core:generateOpenApiSpec
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+      with:
+        version: 10
+
+    - name: Install Node
+      uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+      with:
+        node-version: 24
+        cache: pnpm
+        cache-dependency-path: ui/pnpm-lock.yaml
+ 
+    - name: Install dependencies
+      run: pnpm -C ui install
+
+    - name: Generate API client and routes
+      run: pnpm -C ui generate:api && pnpm -C ui generate:routes
+
+    - name: Install Playwright Browsers
+      run: pnpm -C ui exec playwright install --with-deps
+
+    - name: Start core services
+      run: docker compose up -d core
+
+    - name: Wait for core readiness
+      run: |
+        echo "Waiting for core liveness endpoint..."
+        for i in {1..60}; do
+          if curl -fsS http://127.0.0.1:8080/api/v1/liveness >/dev/null; then
+            echo "Core liveness endpoint is available."
+            break
+          fi
+
+          if [ $i -eq 60 ]; then
+            echo "Core failed to report healthy within 120 seconds" >&2
+            docker compose logs core
+            exit 1
+          fi
+
+          sleep 2
+        done
+
+    - name: Run Playwright tests
+      env:
+        VITE_UI_URL: http://127.0.0.1:8082/
+        VITE_CLIENT_ID: ort-server-ui
+      run: |
+        # Exit on error, undefined variables, and pipe failures
+        set -euo pipefail
+
+        # Start the Vite dev server in the background
+        # The dev server is needed because Playwright tests run against a live server
+        pnpm -C ui dev --host 0.0.0.0 --port 8082 > ui-dev.log 2>&1 &
+        UI_DEV_PID=$!
+
+        # Set up cleanup to ensure the background dev server process is killed on exit
+        # This prevents process leaks even if the workflow fails or is cancelled
+        cleanup() {
+          if ps -p $UI_DEV_PID > /dev/null 2>&1; then
+            kill $UI_DEV_PID || true
+          fi
+        }
+        trap cleanup EXIT
+
+        echo "Waiting for UI dev server to be ready on http://localhost:8082 ..."
+        for i in {1..60}; do
+          # Fail fast if the dev server crashes - this provides better error messages
+          # than waiting for the timeout with no logs
+          if ! ps -p $UI_DEV_PID > /dev/null 2>&1; then
+            echo "UI dev server process exited unexpectedly. Recent logs:"
+            tail -n 200 ui-dev.log || true
+            exit 1
+          fi
+
+          # Check if Vite has finished building by looking for the ready message in the log
+          if grep -q "ready in" ui-dev.log 2>/dev/null; then
+            # Also verify the server actually returns HTML content
+            if curl -fsS http://127.0.0.1:8082 2>/dev/null | grep -q "<html"; then
+              echo "UI dev server is ready."
+              break
+            fi
+          fi
+          if [ $i -eq 60 ]; then
+            echo "UI dev server failed to become ready within 120 seconds" >&2
+            echo "Last 200 lines of UI dev log:"
+            tail -n 200 ui-dev.log || true
+            exit 1
+          fi
+          sleep 2
+        done
+
+        pnpm -C ui test:e2e
+
+    - name: Upload UI dev log
+      if: success() || failure()
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        name: ui-dev-log
+        path: ui-dev.log
+        retention-days: 7
+
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      if: success() || failure()
+      with:
+        name: playwright-report
+        path: ui/playwright-report
+        retention-days: 7
