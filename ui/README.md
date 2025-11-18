@@ -52,6 +52,17 @@ $ ./gradlew :core:generateOpenApiSpec
 $ pnpm -C ui generate:api
 ```
 
+## e2e tests
+
+To run the Playwright e2e tests locally, first start core service (also starts keycloak, postgres and rabbitmq) and dev UI, then run the tests:
+
+```shell
+$ docker compose up -d core
+$ cd ui
+$ pnpm dev
+$ pnpm test:e2e
+```
+
 ## Docker
 
 The Docker image for the UI is built as part of the `buildAllImages` Gradle task.
