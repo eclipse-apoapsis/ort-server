@@ -71,7 +71,11 @@ dependencies {
             requireCapability("$group:routes:$version")
         }
     }
-    implementation(projects.components.authorization.backend)
+    implementation(projects.components.authorization.backend) {
+        capabilities {
+            requireCapability("$group:routes:$version")
+        }
+    }
     implementation(projects.components.authorizationKeycloak.backend)
     implementation(projects.components.infrastructureServices.backend)
     implementation(projects.components.infrastructureServices.backend) {
