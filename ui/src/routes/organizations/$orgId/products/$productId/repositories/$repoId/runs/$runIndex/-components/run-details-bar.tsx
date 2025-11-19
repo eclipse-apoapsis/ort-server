@@ -19,9 +19,12 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
-import { ArrowBigLeft, Repeat } from 'lucide-react';
+import { ArrowBigLeft, ArrowBigRight, ArrowBigUp, Repeat } from 'lucide-react';
 
-import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
+import {
+  getRepositoryRunOptions,
+  getRepositoryRunsOptions,
+} from '@/api/@tanstack/react-query.gen';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
 import { RunDuration } from '@/components/run-duration';
 import { TimestampWithUTC } from '@/components/timestamp-with-utc';
@@ -35,6 +38,7 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
+import { ALL_ITEMS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 type RunDetailsBarProps = {
@@ -48,6 +52,21 @@ const routeApi = getRouteApi(
 export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
   const params = routeApi.useParams();
   const pollInterval = config.pollInterval;
+
+  // Because the list of run indexes for a repository can be discontinuous
+  // (due to run deletions), fetch and sort all run indexes to determine
+  // the previous and next runs.
+  const { data: allRunIndexes } = useSuspenseQuery({
+    ...getRepositoryRunsOptions({
+      path: {
+        repositoryId: Number.parseInt(params.repoId),
+      },
+      query: {
+        limit: ALL_ITEMS,
+      },
+    }),
+    select: (data) => data.data.map((run) => run.index).sort((a, b) => a - b),
+  });
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -67,22 +86,63 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
     },
   });
 
+  const currentIndex = Number.parseInt(params.runIndex);
+  const currentPosition = allRunIndexes.indexOf(currentIndex);
+
+  const previousIndex =
+    currentPosition > 0 ? allRunIndexes[currentPosition - 1] : null;
+  const nextIndex =
+    currentPosition < allRunIndexes.length - 1
+      ? allRunIndexes[currentPosition + 1]
+      : null;
+
+  const hasPrevious = previousIndex !== null;
+  const hasNext = nextIndex !== null;
+
   return (
     <div
       className={cn('flex flex-col justify-between p-4 md:flex-row', className)}
     >
-      <Link
-        to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
-        params={params}
-      >
-        <Button
-          variant='ghost'
-          className='flex w-full items-center justify-start gap-2'
+      <div className='flex items-start'>
+        <Link
+          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+          params={{
+            ...params,
+            runIndex: previousIndex?.toString() ?? '1',
+          }}
+          disabled={!hasPrevious}
         >
-          <ArrowBigLeft className='-ml-4 h-5 w-5' />
-          <div className='text-muted-foreground'>All Runs</div>
-        </Button>
-      </Link>
+          <Button variant='ghost' disabled={!hasPrevious}>
+            <ArrowBigLeft className='h-5 w-5' />
+            <div className='text-muted-foreground text-xs'>Previous</div>
+          </Button>
+        </Link>
+        <Link
+          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs'
+          params={params}
+        >
+          <Button
+            variant='ghost'
+            className='flex flex-col items-center gap-0.5'
+          >
+            <ArrowBigUp className='h-5 w-5' />
+            <div className='text-muted-foreground text-xs'>All</div>
+          </Button>
+        </Link>
+        <Link
+          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
+          params={{
+            ...params,
+            runIndex: nextIndex?.toString() ?? '1',
+          }}
+          disabled={!hasNext}
+        >
+          <Button variant='ghost' disabled={!hasNext}>
+            <div className='text-muted-foreground text-xs'>Next</div>
+            <ArrowBigRight className='h-5 w-5' />
+          </Button>
+        </Link>
+      </div>
       <div className='flex gap-4'>
         <div className='flex flex-col gap-2'>
           <Badge
