@@ -1178,6 +1178,41 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "filter out users with inherited roles" {
+            integrationTestApplication {
+                val repository = createRepository()
+
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.READER,
+                    repository.hierarchyId()
+                )
+                authorizationService.assignRole(
+                    SUPERUSER.username.value,
+                    RepositoryRole.ADMIN,
+                    repository.hierarchyId().parent!!
+                )
+
+                val response = superuserClient.get("/api/v1/repositories/${repository.id}/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        ApiUserWithGroups(
+                            ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),
+                            listOf(ApiUserGroup.READERS)
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 1,
+                        sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
         "respond with 'Bad Request' if there is more than one sort field" {
             integrationTestApplication {
                 val repositoryId = createRepository().id

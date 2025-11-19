@@ -1499,6 +1499,44 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "filter out users with inherited roles" {
+            integrationTestApplication {
+                val product = createProduct()
+                val productId = product.id
+                val productHierarchyId = CompoundHierarchyId.forProduct(
+                    OrganizationId(product.organizationId),
+                    ProductId(productId)
+                )
+
+                authorizationService.assignRole(TEST_USER.username.value, ProductRole.READER, productHierarchyId)
+                authorizationService.assignRole(
+                    SUPERUSER.username.value,
+                    ProductRole.ADMIN,
+                    CompoundHierarchyId.forOrganization(
+                        OrganizationId(product.organizationId)
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/products/$productId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        ApiUserWithGroups(
+                            ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),
+                            listOf(ApiUserGroup.READERS)
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 1,
+                        sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
         "respond with 'Bad Request' if there is more than one sort field" {
             integrationTestApplication {
                 val productId = createProduct().id
