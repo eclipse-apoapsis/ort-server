@@ -42,6 +42,9 @@ import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
 import org.eclipse.apoapsis.ortserver.services.config.RuleSet
@@ -170,6 +173,16 @@ class EvaluatorRunnerTest : WordSpec({
             )
 
             val packageConfigurationProviderConfigs = listOf(
+                ResolvableProviderPluginConfig(
+                    type = "Dir",
+                    options = mapOf(
+                        "path" to "src/test/resources/package-configurations",
+                        "mustExist" to "true"
+                    )
+                )
+            )
+
+            val resolvedPackageConfigurationProviderConfigs = listOf(
                 ProviderPluginConfiguration(
                     type = "Dir",
                     options = mapOf(
@@ -184,7 +197,7 @@ class EvaluatorRunnerTest : WordSpec({
                 EvaluatorJobConfiguration(
                     packageConfigurationProviders = packageConfigurationProviderConfigs
                 ),
-                createWorkerContext(packageConfigurationProviderConfigs)
+                createWorkerContext(packageConfigurationProviderConfigs, resolvedPackageConfigurationProviderConfigs)
             )
 
             // The test data contains a package with a LicenseRef-detected1 and a LicenseRef-detected2 license finding
@@ -220,15 +233,15 @@ class EvaluatorRunnerTest : WordSpec({
             every { PackageConfigurationProviderFactory.create(any()) } returns mockk(relaxed = true)
 
             val packageConfigurationProviderConfigs = listOf(
-                ProviderPluginConfiguration(
+                ResolvableProviderPluginConfig(
                     type = "Dir",
                     options = mapOf("path" to "path1"),
-                    secrets = mapOf("secret1" to "ref1")
+                    secrets = mapOf("secret1" to ResolvableSecret("ref1", SecretSource.ADMIN))
                 ),
-                ProviderPluginConfiguration(
+                ResolvableProviderPluginConfig(
                     type = "Dir",
                     options = mapOf("path" to "path2"),
-                    secrets = mapOf("secret2" to "ref2")
+                    secrets = mapOf("secret2" to ResolvableSecret("ref2", SecretSource.ADMIN))
                 )
             )
 
@@ -312,8 +325,8 @@ private fun createConfigManager(): ConfigManager {
 }
 
 private fun createWorkerContext(
-    providerPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
-    resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = providerPluginConfigs,
+    providerPluginConfigs: List<ResolvableProviderPluginConfig> = emptyList(),
+    resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
     ruleSetName: String? = RULE_SET
 ): WorkerContext {
     val configManagerMock = createConfigManager()

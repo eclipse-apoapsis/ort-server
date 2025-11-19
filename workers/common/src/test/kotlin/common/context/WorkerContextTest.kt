@@ -67,6 +67,7 @@ import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
@@ -441,26 +442,90 @@ class WorkerContextTest : WordSpec({
         }
 
         "return provider plugin configurations with resolved secrets" {
-            val pluginConfig1 = ProviderPluginConfiguration(
+            val hierarchy = Hierarchy(
+                repository = Repository(
+                    id = 1L,
+                    productId = 2L,
+                    organizationId = 3L,
+                    type = RepositoryType.GIT,
+                    url = "https://example.org/repo.git"
+                ),
+                product = Product(id = 2L, organizationId = 3L, name = "prod"),
+                organization = Organization(id = 3L, name = "org")
+            )
+
+            val run = helper.expectRunRequest()
+            every { run.repositoryId } returns hierarchy.repository.id
+
+            every { helper.repositoryRepository.getHierarchy(hierarchy.repository.id) } returns hierarchy
+
+            every { helper.secretRepository.listForId(OrganizationId(hierarchy.organization.id)) } returns
+                    ListQueryResult(
+                        data = listOf(
+                            Secret(
+                                id = 1L,
+                                path = "serviceUser",
+                                name = "serviceUser",
+                                description = null,
+                                organizationId = hierarchy.organization.id,
+                                productId = null,
+                                repositoryId = null
+                            )
+                        ),
+                        params = ListQueryParameters.DEFAULT,
+                        totalCount = 1
+                    )
+            every { helper.secretRepository.listForId(ProductId(hierarchy.product.id)) } returns
+                    ListQueryResult(emptyList(), ListQueryParameters.DEFAULT, 0)
+            every { helper.secretRepository.listForId(RepositoryId(hierarchy.repository.id)) } returns
+                    ListQueryResult(
+                        data = listOf(
+                            Secret(
+                                id = 1L,
+                                path = "servicePassword",
+                                name = "servicePassword",
+                                description = null,
+                                organizationId = null,
+                                productId = null,
+                                repositoryId = hierarchy.repository.id
+                            )
+                        ),
+                        params = ListQueryParameters.DEFAULT,
+                        totalCount = 1
+                    )
+
+            SecretsProviderFactoryForTesting.instance().run {
+                writeSecret(SecretPath("serviceUser"), SecretValue("svcUser"))
+                writeSecret(SecretPath("servicePassword"), SecretValue("svcPass"))
+            }
+
+            val pluginConfig1 = ResolvableProviderPluginConfig(
                 type = "type1",
                 options = mapOf("plugin1Option1" to "v1", "plugin1Option2" to "v2"),
-                secrets = mapOf("plugin1User" to "dbUser", "plugin1Password" to "dbPassword")
+                secrets = mapOf(
+                    "plugin1User" to ResolvableSecret("dbUser", SecretSource.ADMIN),
+                    "plugin1Password" to ResolvableSecret("dbPassword", SecretSource.ADMIN)
+                )
             )
-            val pluginConfig2 = ProviderPluginConfiguration(
+            val pluginConfig2 = ResolvableProviderPluginConfig(
                 type = "type2",
                 options = mapOf("plugin2Option" to "v3"),
                 secrets = mapOf(
-                    "plugin2ServiceUser" to "serviceUser",
-                    "plugin2ServicePassword" to "servicePassword",
-                    "plugin2DBAccess" to "dbPassword"
+                    "plugin2ServiceUser" to ResolvableSecret("serviceUser", SecretSource.USER),
+                    "plugin2ServicePassword" to ResolvableSecret("servicePassword", SecretSource.USER),
+                    "plugin2DBAccess" to ResolvableSecret("dbPassword", SecretSource.ADMIN)
                 )
             )
             val config = listOf(pluginConfig1, pluginConfig2)
 
-            val resolvedConfig1 = pluginConfig1.copy(
+            val resolvedConfig1 = ProviderPluginConfiguration(
+                type = pluginConfig1.type,
+                options = pluginConfig1.options,
                 secrets = mapOf("plugin1User" to "scott", "plugin1Password" to "tiger")
             )
-            val resolvedConfig2 = pluginConfig2.copy(
+            val resolvedConfig2 = ProviderPluginConfiguration(
+                type = pluginConfig2.type,
+                options = pluginConfig2.options,
                 secrets = mapOf(
                     "plugin2ServiceUser" to "svcUser",
                     "plugin2ServicePassword" to "svcPass",
@@ -469,7 +534,9 @@ class WorkerContextTest : WordSpec({
             )
             val expectedConfig = listOf(resolvedConfig1, resolvedConfig2)
 
-            val resolvedConfig = helper.context().resolveProviderPluginConfigSecrets(config)
+            val resolvedConfig = mockkTransaction {
+                helper.context().resolveProviderPluginConfigSecrets(config)
+            }
 
             resolvedConfig shouldContainExactly expectedConfig
         }

@@ -70,6 +70,7 @@ import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ReporterJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -162,8 +163,8 @@ class ReporterRunnerTest : WordSpec({
      * data.
      */
     fun mockContext(
-        providerPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
-        resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = providerPluginConfigs
+        providerPluginConfigs: List<ResolvableProviderPluginConfig> = emptyList(),
+        resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = emptyList()
     ): WorkerContext =
         mockk {
             every { ortRun.id } returns RUN_ID
@@ -570,15 +571,15 @@ class ReporterRunnerTest : WordSpec({
             every { PackageConfigurationProviderFactory.create(any()) } returns mockk(relaxed = true)
 
             val packageConfigurationProviderConfigs = listOf(
-                ProviderPluginConfiguration(
+                ResolvableProviderPluginConfig(
                     type = "Dir",
                     options = mapOf("path" to "path1"),
-                    secrets = mapOf("secret1" to "ref1")
+                    secrets = mapOf("secret1" to ResolvableSecret("ref1", SecretSource.ADMIN))
                 ),
-                ProviderPluginConfiguration(
+                ResolvableProviderPluginConfig(
                     type = "Dir",
                     options = mapOf("path" to "path2"),
-                    secrets = mapOf("secret2" to "ref2")
+                    secrets = mapOf("secret2" to ResolvableSecret("ref2", SecretSource.ADMIN))
                 )
             )
 
