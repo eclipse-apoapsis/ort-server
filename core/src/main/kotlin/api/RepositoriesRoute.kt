@@ -59,6 +59,7 @@ import org.eclipse.apoapsis.ortserver.core.apiDocs.putRepositoryRoleToUser
 import org.eclipse.apoapsis.ortserver.core.services.OrchestratorService
 import org.eclipse.apoapsis.ortserver.core.utils.getPluginConfigs
 import org.eclipse.apoapsis.ortserver.core.utils.hasKeepAliveWorkerFlag
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.services.RepositoryService
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrtRunService
@@ -247,7 +248,7 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
             val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
 
             val users = authorizationService.listUsers(call.ortServerPrincipal.effectiveRole.elementId)
-                .mapToApi(userService)
+                .mapToApi(userService) { it.assignedAt.level == CompoundHierarchyId.REPOSITORY_LEVEL }
 
             call.respond(
                 PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))

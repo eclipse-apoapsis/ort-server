@@ -25,6 +25,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.Permission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RoleInfo
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
@@ -93,11 +94,12 @@ interface AuthorizationService {
     suspend fun listUsersWithRole(role: Role, compoundHierarchyId: CompoundHierarchyId): Set<String>
 
     /**
-     * Return a [Map] with the IDs of all users and their assigned role on the hierarchy element identified by the
-     * given [compoundHierarchyId]. The result includes users who inherit access rights on this hierarchy element from
-     * higher levels, such as organization admins, but no superusers.
+     * Return a [Map] with the IDs of all users and information about their assigned role on the hierarchy element
+     * identified by the given [compoundHierarchyId]. The result includes users who inherit access rights on this
+     * hierarchy element from higher levels, such as organization admins, but no superusers. The [RoleInfo] objects
+     * can be used to find out from where users have been granted their access rights.
      */
-    suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, Role>
+    suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, RoleInfo>
 
     /**
      * Return a [HierarchyFilter] with information about all hierarchy elements for which the specified [userId] has at

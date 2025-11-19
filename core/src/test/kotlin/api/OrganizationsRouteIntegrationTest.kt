@@ -1833,6 +1833,48 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "filter out users with inherited roles" {
+            integrationTestApplication {
+                val orgId = createOrganization().id
+                val orgHierarchyId = CompoundHierarchyId.forOrganization(OrganizationId(orgId))
+                val productId = dbExtension.fixtures.createProduct(organizationId = orgId).id
+                val repositoryId = dbExtension.fixtures.createRepository(productId = productId).id
+
+                authorizationService.assignRole(
+                    SUPERUSER.username.value,
+                    OrganizationRole.WRITER,
+                    orgHierarchyId
+                )
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.READER,
+                    CompoundHierarchyId.forRepository(
+                        OrganizationId(orgId),
+                        ProductId(productId),
+                        RepositoryId(repositoryId)
+                    )
+                )
+
+                val response = superuserClient.get("/api/v1/organizations/$orgId/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        ApiUserWithGroups(
+                            ApiUser(SUPERUSER.username.value, SUPERUSER.firstName, SUPERUSER.lastName, SUPERUSER.email),
+                            listOf(ApiUserGroup.WRITERS)
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 1,
+                        sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
         "respond with 'Bad Request' if there is more than one sort field" {
             integrationTestApplication {
                 val orgId = createOrganization().id
