@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRol
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RoleInfo
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
@@ -626,6 +627,9 @@ class DbAuthorizationServiceTest : WordSpec() {
                 val repository2 = dbExtension.fixtures.createRepository(url = "https://example.com/other.git")
                 val product2 = dbExtension.fixtures.createProduct("otherProduct")
                 val organization2 = dbExtension.fixtures.createOrganization("otherOrg")
+                val organizationId = CompoundHierarchyId.forOrganization(
+                    OrganizationId(dbExtension.fixtures.organization.id)
+                )
                 val writerUser = "writer-user"
                 val productAdminUser = "product-admin-user"
                 val organizationAdminUser = "organization-admin-user"
@@ -663,7 +667,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 service.assignRole(
                     organizationAdminUser,
                     OrganizationRole.ADMIN,
-                    CompoundHierarchyId.forOrganization(OrganizationId(dbExtension.fixtures.organization.id))
+                    organizationId
                 )
 
                 val users = service.listUsers(repositoryCompoundId)
@@ -674,10 +678,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     organizationAdminUser
                 )
 
-                users[USER_ID] shouldBe RepositoryRole.READER
-                users[writerUser] shouldBe RepositoryRole.WRITER
-                users[productAdminUser] shouldBe RepositoryRole.ADMIN
-                users[organizationAdminUser] shouldBe RepositoryRole.ADMIN
+                users[USER_ID] shouldBe RoleInfo(RepositoryRole.READER, repositoryCompoundId)
+                users[writerUser] shouldBe RoleInfo(RepositoryRole.WRITER, repositoryCompoundId)
+                users[productAdminUser] shouldBe RoleInfo(RepositoryRole.ADMIN, repositoryCompoundId.parent!!)
+                users[organizationAdminUser] shouldBe RoleInfo(RepositoryRole.ADMIN, organizationId)
             }
 
             "list users with assignments on organization level" {
@@ -703,10 +707,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     repoReaderUser
                 )
 
-                users[USER_ID] shouldBe OrganizationRole.READER
-                users[writerUser] shouldBe OrganizationRole.WRITER
-                users[adminUser] shouldBe OrganizationRole.ADMIN
-                users[repoReaderUser] shouldBe OrganizationRole.READER
+                users[USER_ID] shouldBe RoleInfo(OrganizationRole.READER, organizationCompoundId)
+                users[writerUser] shouldBe RoleInfo(OrganizationRole.WRITER, organizationCompoundId)
+                users[adminUser] shouldBe RoleInfo(OrganizationRole.ADMIN, organizationCompoundId)
+                users[repoReaderUser] shouldBe RoleInfo(OrganizationRole.READER, repositoryCompoundId)
             }
 
             "list users with implicit rights from lower levels" {
@@ -718,24 +722,27 @@ class DbAuthorizationServiceTest : WordSpec() {
                 val users = service.listUsers(repositoryCompoundId.parent!!)
                 users shouldHaveSize 1
 
-                users[USER_ID] shouldBe ProductRole.READER
+                users[USER_ID] shouldBe RoleInfo(ProductRole.READER, repositoryCompoundId)
             }
 
             "inherit roles from higher levels" {
                 val repositoryCompoundId = repositoryCompoundId()
+                val orgCompoundId = CompoundHierarchyId.forOrganization(
+                    OrganizationId(dbExtension.fixtures.organization.id)
+                )
                 val service = createService()
 
                 service.assignRole(
                     USER_ID,
                     OrganizationRole.WRITER,
-                    CompoundHierarchyId.forOrganization(OrganizationId(dbExtension.fixtures.organization.id))
+                    orgCompoundId
                 )
                 service.assignRole(USER_ID, RepositoryRole.READER, repositoryCompoundId)
 
                 val users = service.listUsers(repositoryCompoundId)
                 users shouldHaveSize 1
 
-                users[USER_ID] shouldBe RepositoryRole.WRITER
+                users[USER_ID] shouldBe RoleInfo(RepositoryRole.WRITER, orgCompoundId)
             }
 
             "not include super users" {
@@ -770,7 +777,7 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 users.entries.shouldBeSingleton { (key, value) ->
                     key shouldBe USER_ID
-                    value shouldBe RepositoryRole.READER
+                    value shouldBe RoleInfo(RepositoryRole.READER, repositoryCompoundId)
                 }
             }
         }
