@@ -97,7 +97,7 @@ data class AnalyzerJobConfiguration(
     /**
      * The list of package curation providers to use.
      */
-    val packageCurationProviders: List<ProviderPluginConfiguration> = emptyList(),
+    val packageCurationProviders: List<ResolvableProviderPluginConfig> = emptyList(),
 
     /**
      * Package manager specific configurations. The key needs to match the name of the package manager class, e.g.
@@ -204,7 +204,7 @@ data class EvaluatorJobConfiguration(
     /**
      * The list of package configuration providers to use.
      */
-    val packageConfigurationProviders: List<ProviderPluginConfiguration> = emptyList(),
+    val packageConfigurationProviders: List<ResolvableProviderPluginConfig> = emptyList(),
 
     /**
      * Keep the worker alive after it has finished. This is useful for manual problem analysis directly
@@ -240,7 +240,7 @@ data class ReporterJobConfiguration(
      * [value from the evaluator job configuration][EvaluatorJobConfiguration.packageConfigurationProviders] is used to
      * ensure consistency.**
      */
-    val packageConfigurationProviders: List<ProviderPluginConfiguration> = emptyList(),
+    val packageConfigurationProviders: List<ResolvableProviderPluginConfig> = emptyList(),
 
     /**
      * A map of configuration options that are specific to a concrete reporter.

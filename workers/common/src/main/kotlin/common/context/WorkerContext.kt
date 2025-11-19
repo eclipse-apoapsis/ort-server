@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
@@ -93,7 +94,7 @@ interface WorkerContext : AutoCloseable {
      * managed on behalf of customers.
      */
     suspend fun resolveProviderPluginConfigSecrets(
-        config: List<ProviderPluginConfiguration>?
+        config: List<ResolvableProviderPluginConfig>?
     ): List<ProviderPluginConfiguration>
 
     /**

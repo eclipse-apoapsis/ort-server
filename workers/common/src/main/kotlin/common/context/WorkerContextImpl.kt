@@ -41,6 +41,7 @@ import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -159,13 +160,27 @@ internal class WorkerContextImpl(
         }.orEmpty()
 
     override suspend fun resolveProviderPluginConfigSecrets(
-        config: List<ProviderPluginConfiguration>?
+        config: List<ResolvableProviderPluginConfig>?
     ): List<ProviderPluginConfiguration> =
         config?.let { c ->
-            val secrets = c.flatMap { it.secrets.values }
-            val resolvedSecrets = parallelTransform(secrets, configSecretsCache, this::resolveConfigSecret) { it }
+            val configSecrets = c.flatMap { providerPluginConfig ->
+                providerPluginConfig.secrets.values.filter { it.source == SecretSource.ADMIN }.map { it.name }
+            }
+            val userSecrets = c.flatMap { providerPluginConfig ->
+                providerPluginConfig.secrets.values.filter { it.source == SecretSource.USER }.map {
+                    hierarchySecrets[it.name]
+                        ?: error("Could not find secret '${it.name}' in hierarchy '${hierarchy.compoundId}'.")
+                }
+            }
 
-            c.map { providerPluginConfig -> providerPluginConfig.resolveSecrets(resolvedSecrets) }
+            val resolvedConfigSecrets =
+                parallelTransform(configSecrets, configSecretsCache, ::resolveConfigSecret) { it }
+            val resolvedUserSecrets = parallelTransform(userSecrets, secretsCache, ::resolveSecretValue) { it }
+                .mapKeys { it.key.name }
+
+            c.map { providerPluginConfig ->
+                providerPluginConfig.resolveSecrets(resolvedConfigSecrets, resolvedUserSecrets)
+            }
         }.orEmpty()
 
     override suspend fun downloadConfigurationFile(
@@ -331,7 +346,16 @@ private fun ResolvablePluginConfig.resolveSecrets(
 /**
  * Return a [ProviderPluginConfiguration] whose secrets are resolved according to the given map with [secretValues].
  */
-private fun ProviderPluginConfiguration.resolveSecrets(secretValues: Map<String, String>): ProviderPluginConfiguration {
-    val resolvedSecrets = secrets.mapValues { e -> secretValues.getValue(e.value) }
-    return copy(secrets = resolvedSecrets)
+private fun ResolvableProviderPluginConfig.resolveSecrets(
+    configSecretValues: Map<String, String>,
+    userSecretValues: Map<String, String>
+): ProviderPluginConfiguration {
+    val resolvedSecrets = secrets.mapValues { (_, resolvableSecret) ->
+        when (resolvableSecret.source) {
+            SecretSource.ADMIN -> configSecretValues.getValue(resolvableSecret.name)
+            SecretSource.USER -> userSecretValues.getValue(resolvableSecret.name)
+        }
+    }
+
+    return ProviderPluginConfiguration(type, id, enabled, options, resolvedSecrets)
 }

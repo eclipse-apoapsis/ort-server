@@ -54,7 +54,10 @@ import java.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
+import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
+import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
 import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -107,8 +110,8 @@ private val projectDir = File("src/test/resources/mavenProject/").absoluteFile
 
 class AnalyzerRunnerTest : WordSpec({
     fun createWorkerContext(
-        providerPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
-        resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = providerPluginConfigs,
+        providerPluginConfigs: List<ResolvableProviderPluginConfig> = emptyList(),
+        resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = emptyList(),
         tempDir: File = tempdir()
     ): WorkerContext =
         mockk {
@@ -264,7 +267,8 @@ class AnalyzerRunnerTest : WordSpec({
             val enabledPackageManagers = listOf("conan", "npm")
             val disabledPackageManagers = listOf("maven")
             val packageManagerOptions = mapOf("conan" to PackageManagerConfiguration(listOf("npm")))
-            val packageCurationProviderConfigs = listOf(ProviderPluginConfiguration(type = "OrtConfig"))
+            val packageCurationProviderConfigs = listOf(ResolvableProviderPluginConfig(type = "OrtConfig"))
+            val resolvedPackageCurationProviderConfigs = listOf(ProviderPluginConfiguration(type = "OrtConfig"))
 
             val config = AnalyzerJobConfiguration(
                 allowDynamicVersions = true,
@@ -276,7 +280,7 @@ class AnalyzerRunnerTest : WordSpec({
             )
 
             val result = run(
-                context = createWorkerContext(packageCurationProviderConfigs),
+                context = createWorkerContext(packageCurationProviderConfigs, resolvedPackageCurationProviderConfigs),
                 config = config
             )
             val analyzerResult = result.analyzer.shouldNotBeNull()
@@ -439,15 +443,15 @@ class AnalyzerRunnerTest : WordSpec({
             val inputDir = createOrtTempDir().resolve("project").safeMkdirs()
 
             val packageCurationProviderConfigs = listOf(
-                ProviderPluginConfiguration(
+                ResolvableProviderPluginConfig(
                     type = "type1",
                     options = mapOf("path" to "path1"),
-                    secrets = mapOf("secret1" to "ref1")
+                    secrets = mapOf("secret1" to ResolvableSecret("ref1", SecretSource.ADMIN))
                 ),
-                ProviderPluginConfiguration(
+                ResolvableProviderPluginConfig(
                     type = "type2",
                     options = mapOf("path" to "path2"),
-                    secrets = mapOf("secret2" to "ref2")
+                    secrets = mapOf("secret2" to ResolvableSecret("ref2", SecretSource.ADMIN))
                 )
             )
 
@@ -498,15 +502,15 @@ class AnalyzerRunnerTest : WordSpec({
             val inputDir = createOrtTempDir().resolve("project").safeMkdirs()
 
             val packageCurationProviderConfigs = listOf(
-                ProviderPluginConfiguration(
+                ResolvableProviderPluginConfig(
                     type = "type1",
                     options = mapOf("path" to "path1"),
-                    secrets = mapOf("secret1" to "ref1")
+                    secrets = mapOf("secret1" to ResolvableSecret("ref1", SecretSource.ADMIN))
                 ),
-                ProviderPluginConfiguration(
+                ResolvableProviderPluginConfig(
                     type = "type2",
                     options = mapOf("path" to "path2"),
-                    secrets = mapOf("secret2" to "ref2")
+                    secrets = mapOf("secret2" to ResolvableSecret("ref2", SecretSource.ADMIN))
                 )
             )
 
