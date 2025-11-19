@@ -21,7 +21,7 @@ package org.eclipse.apoapsis.ortserver.core.api
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups
-import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RoleInfo
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToGroup
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
@@ -70,11 +70,20 @@ internal object UserWithGroupsHelper {
         )
     }
 
-    internal suspend fun Map<String, Role>.mapToApi(userService: UserService): List<UserWithGroups> {
+    /**
+     * Convert this [Map] with information about users and their assigned roles to a list of [UserWithGroups] objects
+     * that can be used to display user / group information for a specific hierarchy element. Apply the given
+     * [roleFilter] to select only specific items based on their role information. This can be used for instance, to
+     * distinguish between users with an explicit role assignment and users who only have inherited roles.
+     */
+    internal suspend fun Map<String, RoleInfo>.mapToApi(
+        userService: UserService,
+        roleFilter: (RoleInfo) -> Boolean = { true }
+    ): List<UserWithGroups> {
         val userMapping = userService.getUsersById(keys).associateBy(User::username)
 
-        return filter { it.key in userMapping }
+        return filter { it.key in userMapping && roleFilter(it.value) }
             .mapKeys { userMapping.getValue(it.key) }
-            .mapValues { (_, role) -> setOf(role.mapToGroup()) }.mapToApi()
+            .mapValues { (_, roleInfo) -> setOf(roleInfo.role.mapToGroup()) }.mapToApi()
     }
 }

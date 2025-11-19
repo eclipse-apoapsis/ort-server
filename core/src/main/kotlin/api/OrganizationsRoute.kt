@@ -375,7 +375,8 @@ fun Route.organizations() = route("organizations") {
                 )
                 val pagingOptions = call.pagingOptions(SortProperty("username", SortDirection.ASCENDING))
 
-                val users = authorizationService.listUsers(orgId).mapToApi(userService)
+                val users = authorizationService.listUsers(orgId)
+                    .mapToApi(userService) { it.assignedAt.level == CompoundHierarchyId.ORGANIZATION_LEVEL }
                 call.respond(
                     PagedResponse(users.sortAndPage(pagingOptions), pagingOptions.toPagingData(users.size.toLong()))
                 )
