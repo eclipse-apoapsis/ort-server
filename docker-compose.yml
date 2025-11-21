@@ -299,6 +299,8 @@ services:
       ADVISOR_RECEIVER_TRANSPORT_PASSWORD: admin
       ADVISOR_SECRET_PROVIDER: secret-file
       ADVISOR_SECRET_FILES: /mnt/secrets.properties
+      SECRETS_PROVIDER_NAME: fileBased
+      FILE_BASED_PATH: "/mnt/secrets-provider/secrets.store"
     volumes:
     - type: bind
       source: ./scripts/compose/config
@@ -393,6 +395,8 @@ services:
       CONFIG_RECEIVER_TRANSPORT_PASSWORD: admin
       CONFIG_SECRET_PROVIDER: secret-file
       CONFIG_SECRET_FILES: /mnt/secrets.properties
+      SECRETS_PROVIDER_NAME: fileBased
+      FILE_BASED_PATH: "/mnt/secrets-provider/secrets.store"
     volumes:
     - type: bind
       source: ./scripts/compose/config
@@ -438,6 +442,8 @@ services:
       EVALUATOR_RECEIVER_TRANSPORT_PASSWORD: admin
       EVALUATOR_SECRET_PROVIDER: secret-file
       EVALUATOR_SECRET_FILES: /mnt/secrets.properties
+      SECRETS_PROVIDER_NAME: fileBased
+      FILE_BASED_PATH: "/mnt/secrets-provider/secrets.store"
     volumes:
     - type: bind
       source: ./scripts/compose/config
