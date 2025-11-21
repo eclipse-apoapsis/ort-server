@@ -40,7 +40,7 @@ var resolvedJobConfigs = context.ortRun.jobConfigs.copy(reporter = resolvedRepor
 
 // Configure a version range for stored ScanCode results.
 context.ortRun.jobConfigs.scanner?.let { scannerJobConfig ->
-    val scanCodeConfig = (scannerJobConfig.config?.get("ScanCode") ?: PluginConfig(emptyMap(), emptyMap())).let {
+    val scanCodeConfig = (scannerJobConfig.config?.get("ScanCode") ?: ResolvablePluginConfig(emptyMap(), emptyMap())).let {
         it.copy(options = it.options + mapOf("minVersion" to "32.2.1", "maxVersion" to "33.0.0"))
     }
     val oldConfig = scannerJobConfig.config.orEmpty()
