@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.product
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
-import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
+import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
@@ -52,7 +52,7 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
     override fun list(parameters: ListQueryParameters, nameFilter: FilterParameter?, hierarchyFilter: HierarchyFilter) =
         db.blockingQuery {
             val nameCondition = nameFilter?.let {
-                ProductsTable.name.applyRegex(it.value)
+                ProductsTable.name.applyIRegex(it.value)
             } ?: Op.TRUE
 
             val builder = hierarchyFilter.apply(nameCondition) { level, ids, filter ->
@@ -69,7 +69,7 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
         db.blockingQuery {
             ProductDao.listQuery(parameters, ProductDao::mapToModel) {
                 if (filter != null) {
-                    ProductsTable.organizationId eq organizationId and ProductsTable.name.applyRegex(filter.value)
+                    ProductsTable.organizationId eq organizationId and ProductsTable.name.applyIRegex(filter.value)
                 } else {
                     ProductsTable.organizationId eq organizationId
                 }

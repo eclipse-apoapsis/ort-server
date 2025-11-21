@@ -23,7 +23,7 @@ import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
-import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
+import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
@@ -65,7 +65,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
     override fun list(parameters: ListQueryParameters, urlFilter: FilterParameter?, hierarchyFilter: HierarchyFilter) =
         db.blockingQuery {
             val urlCondition = urlFilter?.let {
-                RepositoriesTable.url.applyRegex(it.value)
+                RepositoriesTable.url.applyIRegex(it.value)
             } ?: Op.TRUE
 
             val builder = hierarchyFilter.apply(urlCondition) { level, ids, _ ->
@@ -79,7 +79,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         db.blockingQuery {
         RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) {
             if (filter !== null) {
-                RepositoriesTable.productId eq productId and RepositoriesTable.url.applyRegex(filter.value)
+                RepositoriesTable.productId eq productId and RepositoriesTable.url.applyIRegex(filter.value)
             } else {
                 RepositoriesTable.productId eq productId
             }
