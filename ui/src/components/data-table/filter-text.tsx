@@ -69,6 +69,7 @@ export function FilterText({
             }}
           >
             <Input
+              placeholder='(case-insensitive substring)'
               value={value}
               onBlur={() => setFilterValue(value)}
               onChange={(event) => {
