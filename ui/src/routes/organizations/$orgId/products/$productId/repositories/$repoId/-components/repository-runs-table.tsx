@@ -97,6 +97,7 @@ const columns = [
   }),
   columnHelper.accessor('createdAt', {
     header: 'Created',
+    size: 100,
     cell: ({ row }) => (
       <div>
         <TimestampWithUTC timestamp={row.original.createdAt} />
@@ -134,6 +135,7 @@ const columns = [
   columnHelper.display({
     id: 'jobStatuses',
     header: () => <div>Jobs</div>,
+    size: 70,
     cell: ({ row }) => (
       <OrtRunJobStatus
         jobs={row.original.jobs}
@@ -149,6 +151,7 @@ const columns = [
   columnHelper.display({
     id: 'duration',
     header: 'Duration',
+    size: 70,
     cell: ({ row }) => (
       <RunDuration
         createdAt={row.original.createdAt}
