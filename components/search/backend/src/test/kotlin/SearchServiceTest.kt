@@ -26,10 +26,19 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.should
 
+import io.mockk.coEvery
+import io.mockk.mockk
+
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.sql.Database
 
@@ -38,15 +47,22 @@ class SearchServiceTest : WordSpec({
 
     lateinit var db: Database
     lateinit var fixtures: Fixtures
+    lateinit var authorizationService: AuthorizationService
     lateinit var searchService: SearchService
     var repositoryId = -1L
 
     beforeEach {
         db = dbExtension.db
         fixtures = dbExtension.fixtures
-        searchService = SearchService(db)
+        authorizationService = mockk {
+            coEvery {
+                filterHierarchyIds(any(), any(), any(), any(), any())
+            } returns HierarchyFilter.WILDCARD
+        }
+        searchService = SearchService(db, authorizationService)
         repositoryId = fixtures.repository.id
     }
+    val userId = "user-id"
 
     "findOrtRunsByPackage" should {
         "throw if productId without organizationId" {
@@ -58,6 +74,7 @@ class SearchServiceTest : WordSpec({
                         name = "bar",
                         version = "1.0.0"
                     ).toCoordinates(),
+                    userId = userId,
                     productId = 2L
                 )
             }
@@ -72,6 +89,7 @@ class SearchServiceTest : WordSpec({
                         name = "bar",
                         version = "1.0.0"
                     ).toCoordinates(),
+                    userId = userId,
                     repositoryId = 3L
                 )
             }
@@ -83,6 +101,7 @@ class SearchServiceTest : WordSpec({
                         name = "bar",
                         version = "1.0.0"
                     ).toCoordinates(),
+                    userId = userId,
                     organizationId = 1L,
                     repositoryId = 3L
                 )
@@ -93,7 +112,7 @@ class SearchServiceTest : WordSpec({
             val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId)
             val expectedId = run.packageId
 
-            val result = searchService.findOrtRunsByPackage(expectedId)
+            val result = searchService.findOrtRunsByPackage(expectedId, userId)
 
             result shouldContainExactly listOf(run)
         }
@@ -111,6 +130,7 @@ class SearchServiceTest : WordSpec({
 
             val result = searchService.findOrtRunsByPackage(
                 identifier = expectedId,
+                userId = userId,
                 organizationId = run.organizationId
             )
 
@@ -129,6 +149,7 @@ class SearchServiceTest : WordSpec({
 
             val result = searchService.findOrtRunsByPackage(
                 expectedId,
+                userId = userId,
                 organizationId = run.organizationId,
                 productId = run.productId
             )
@@ -146,6 +167,7 @@ class SearchServiceTest : WordSpec({
 
             val result = searchService.findOrtRunsByPackage(
                 expectedId,
+                userId = userId,
                 organizationId = run.organizationId,
                 productId = run.productId,
                 repositoryId = run.repositoryId
@@ -174,7 +196,7 @@ class SearchServiceTest : WordSpec({
                 )
             )
 
-            val result = searchService.findOrtRunsByPackage(expectedId)
+            val result = searchService.findOrtRunsByPackage(expectedId, userId)
 
             result shouldContainExactlyInAnyOrder(listOf(run1, run2, run3))
         }
@@ -185,12 +207,48 @@ class SearchServiceTest : WordSpec({
 
             val result = searchService.findOrtRunsByPackage(
                 expectedId,
+                userId = userId,
                 organizationId = run.organizationId,
                 productId = run.productId,
                 repositoryId = run.repositoryId
             )
 
             result should beEmpty()
+        }
+
+        "return only runs from repositories included in the hierarchy filter" {
+            val packageIdentifier = Identifier(
+                type = "maven",
+                namespace = "filtered",
+                name = "package",
+                version = "1.0.0"
+            )
+            val run1 = createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = packageIdentifier)
+            val otherRepo = dbExtension.fixtures.createRepository(
+                productId = run1.productId,
+                url = "https://example.com/filtered.git"
+            )
+            createRunWithPackage(fixtures = fixtures, repoId = otherRepo.id, pkgId = packageIdentifier)
+
+            val filter = HierarchyFilter(
+                transitiveIncludes = mapOf(
+                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                        CompoundHierarchyId.forRepository(
+                            OrganizationId(run1.organizationId),
+                            ProductId(run1.productId),
+                            RepositoryId(run1.repositoryId)
+                        )
+                    )
+                ),
+                nonTransitiveIncludes = emptyMap()
+            )
+            coEvery {
+                authorizationService.filterHierarchyIds(any(), any(), any(), any(), any())
+            } returns filter
+
+            val result = searchService.findOrtRunsByPackage(run1.packageId, userId)
+
+            result shouldContainExactly listOf(run1)
         }
     }
 })

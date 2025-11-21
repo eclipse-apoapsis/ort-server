@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.components.search.backend
 
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.analyzerjob.AnalyzerJobsTable
@@ -31,28 +33,52 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
+import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.concat
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.innerJoin
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.stringLiteral
 
-class SearchService(private val db: Database) {
+class SearchService(
+    private val db: Database,
+    private val authorizationService: AuthorizationService
+) {
     /**
      * Search for Analyzer runs containing the given package identifier, with optional scoping.
      * Throws IllegalArgumentException for invalid scoping hierarchy.
      */
     @Suppress("LongMethod")
-    fun findOrtRunsByPackage(
+    suspend fun findOrtRunsByPackage(
         identifier: String,
+        userId: String,
         organizationId: Long? = null,
         productId: Long? = null,
         repositoryId: Long? = null
-    ): List<RunWithPackage> = db.blockingQuery {
+    ): List<RunWithPackage> {
         validateScope(organizationId, productId, repositoryId)
 
+        val containedIn = scopeHierarchyId(organizationId, productId, repositoryId)
+        val hierarchyFilter = authorizationService.filterHierarchyIds(
+            userId = userId,
+            repositoryPermissions = setOf(RepositoryPermission.READ),
+            containedIn = containedIn
+        )
+        val accessibleIds = hierarchyFilter.accessibleIds()
+        if (!hierarchyFilter.isWildcard && accessibleIds.isEmpty()) return emptyList()
+
+        return db.blockingQuery {
         // Build base query
         var query = OrtRunsTable
             .innerJoin(AnalyzerJobsTable, { OrtRunsTable.id }, { ortRunId })
@@ -75,36 +101,50 @@ class SearchService(private val db: Database) {
         val conditions = mutableListOf(concatenatedIdentifier.applyRegex(identifier))
 
         val scopeRequested = organizationId != null || productId != null || repositoryId != null
-        if (scopeRequested) {
+        val joinRepositories = scopeRequested ||
+                accessibleIds.productIds.isNotEmpty() ||
+                accessibleIds.organizationIds.isNotEmpty()
+        val joinProducts = organizationId != null || accessibleIds.organizationIds.isNotEmpty()
+
+        if (joinRepositories) {
             query = query
                 .innerJoin(RepositoriesTable, { OrtRunsTable.repositoryId }, { RepositoriesTable.id })
-                .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
+        }
+
+        if (joinProducts) {
+            query = query.innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
         }
 
         organizationId?.let { conditions += ProductsTable.organizationId eq it }
         productId?.let { conditions += RepositoriesTable.productId eq it }
         repositoryId?.let { conditions += OrtRunsTable.repositoryId eq it }
 
-        val whereClause = conditions.reduce { acc, expression -> acc and expression }
+        val authCondition = hierarchyFilter.authorizationCondition(accessibleIds)
+        val whereClause = conditions
+            .reduce { acc, expression -> acc and expression }
+            .let { baseCondition ->
+                authCondition?.let { baseCondition and it } ?: baseCondition
+            }
 
         val resultRows = query.select(OrtRunsTable.columns + IdentifiersTable.columns).where { whereClause }
-        resultRows.map { row ->
-            val ortRun = OrtRunDao.wrapRow(row).mapToModel()
-            val packageId = listOf(
-                row[IdentifiersTable.type],
-                row[IdentifiersTable.namespace],
-                row[IdentifiersTable.name],
-                row[IdentifiersTable.version]
-            ).joinToString(":")
-            RunWithPackage(
-                organizationId = ortRun.organizationId,
-                productId = ortRun.productId,
-                repositoryId = ortRun.repositoryId,
-                ortRunId = ortRun.id,
-                revision = ortRun.revision,
-                createdAt = ortRun.createdAt,
-                packageId = packageId
-            )
+            resultRows.map { row ->
+                val ortRun = OrtRunDao.wrapRow(row).mapToModel()
+                val packageId = listOf(
+                    row[IdentifiersTable.type],
+                    row[IdentifiersTable.namespace],
+                    row[IdentifiersTable.name],
+                    row[IdentifiersTable.version]
+                ).joinToString(":")
+                RunWithPackage(
+                    organizationId = ortRun.organizationId,
+                    productId = ortRun.productId,
+                    repositoryId = ortRun.repositoryId,
+                    ortRunId = ortRun.id,
+                    revision = ortRun.revision,
+                    createdAt = ortRun.createdAt,
+                    packageId = packageId
+                )
+            }
         }
     }
 
@@ -116,4 +156,60 @@ class SearchService(private val db: Database) {
             "If productId is provided, organizationId must also be provided."
         }
     }
+
+    private fun scopeHierarchyId(
+        organizationId: Long?,
+        productId: Long?,
+        repositoryId: Long?
+    ): HierarchyId? =
+        when {
+            repositoryId != null -> RepositoryId(repositoryId)
+            productId != null -> ProductId(productId)
+            organizationId != null -> OrganizationId(organizationId)
+            else -> null
+        }
+
+    private fun HierarchyFilter.authorizationCondition(ids: AccessibleHierarchyIds): Op<Boolean>? {
+        if (isWildcard) return null
+
+        val conditions = mutableListOf<Op<Boolean>>()
+        if (ids.repositoryIds.isNotEmpty()) {
+            conditions += OrtRunsTable.repositoryId inList ids.repositoryIds
+        }
+        if (ids.productIds.isNotEmpty()) {
+            conditions += RepositoriesTable.productId inList ids.productIds
+        }
+        if (ids.organizationIds.isNotEmpty()) {
+            conditions += ProductsTable.organizationId inList ids.organizationIds
+        }
+
+        return when {
+            conditions.isEmpty() -> Op.FALSE
+            else -> conditions.reduce { acc, op -> acc or op }
+        }
+    }
+
+    private fun HierarchyFilter.accessibleIds(): AccessibleHierarchyIds {
+        if (isWildcard) return AccessibleHierarchyIds()
+
+        val repositoryIds = (
+                transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL].orEmpty() +
+                        nonTransitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL].orEmpty()
+                ).extractIds(CompoundHierarchyId.REPOSITORY_LEVEL)
+        val productIds = transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL].orEmpty()
+            .extractIds(CompoundHierarchyId.PRODUCT_LEVEL)
+        val organizationIds = transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL].orEmpty()
+            .extractIds(CompoundHierarchyId.ORGANIZATION_LEVEL)
+
+        return AccessibleHierarchyIds(repositoryIds, productIds, organizationIds)
+    }
+}
+
+private data class AccessibleHierarchyIds(
+    val repositoryIds: List<Long> = emptyList(),
+    val productIds: List<Long> = emptyList(),
+    val organizationIds: List<Long> = emptyList()
+) {
+    fun isEmpty(): Boolean =
+        repositoryIds.isEmpty() && productIds.isEmpty() && organizationIds.isEmpty()
 }

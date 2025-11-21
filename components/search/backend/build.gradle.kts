@@ -38,6 +38,7 @@ repositories {
 dependencies {
     api(libs.exposedCore)
 
+    implementation(projects.components.authorization.backend)
     implementation(projects.components.search.apiModel)
     implementation(projects.dao)
     implementation(projects.model)

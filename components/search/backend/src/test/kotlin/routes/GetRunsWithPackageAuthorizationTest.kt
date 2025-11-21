@@ -23,12 +23,17 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.coEvery
+import io.mockk.mockk
+
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackage
@@ -36,9 +41,15 @@ import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackage
 class GetRunsWithPackageAuthorizationTest : AbstractAuthorizationTest({
     lateinit var searchService: SearchService
     lateinit var runWithPackage: RunWithPackage
+    lateinit var hierarchyAuthorizationService: AuthorizationService
 
     beforeEach {
-        searchService = SearchService(dbExtension.db)
+        hierarchyAuthorizationService = mockk {
+            coEvery {
+                filterHierarchyIds(any(), any(), any(), any(), any())
+            } returns HierarchyFilter.WILDCARD
+        }
+        searchService = SearchService(dbExtension.db, hierarchyAuthorizationService)
         runWithPackage = createRunWithPackage(
             fixtures = dbExtension.fixtures,
             repoId = dbExtension.fixtures.repository.id

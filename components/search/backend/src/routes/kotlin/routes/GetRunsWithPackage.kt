@@ -22,11 +22,14 @@ package org.eclipse.apoapsis.ortserver.components.search.routes
 import io.github.smiley4.ktoropenapi.get
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
 import kotlinx.datetime.Clock
 
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.OrtPrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.getUserId
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
@@ -118,8 +121,12 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
             requireSuperuser()
         }
 
+        val principal = call.principal<OrtPrincipal>()
+            ?: return@get call.respond(HttpStatusCode.Unauthorized, "User principal missing.")
+
         val ortRuns = searchService.findOrtRunsByPackage(
             identifier = identifierParam,
+            userId = principal.getUserId(),
             organizationId = organizationIdParam,
             productId = productIdParam,
             repositoryId = repositoryIdParam
