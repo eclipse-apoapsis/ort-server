@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.authorization.routes
 
 import com.auth0.jwt.interfaces.Payload
 
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.RoutingContext
 
@@ -37,7 +38,7 @@ class OrtServerPrincipal(
     val username: String,
 
     /** The full name of the principal. */
-    val fullName: String,
+    val fullName: String?,
 
     /**
      * An exception that occurred when setting up the principal. If this is not *null*, this exception is re-thrown
@@ -68,7 +69,7 @@ class OrtServerPrincipal(
             OrtServerPrincipal(
                 userId = payload.subject,
                 username = payload.getClaim(CLAIM_USERNAME).asString(),
-                fullName = payload.getClaim(CLAIM_FULL_NAME).asString(),
+                fullName = payload.getClaim(CLAIM_FULL_NAME)?.asString(),
                 role = effectiveRole,
                 validationException = null
             )
@@ -110,3 +111,10 @@ class OrtServerPrincipal(
     val effectiveRole: EffectiveRole
         get() = role ?: throw AuthorizationException()
 }
+
+/**
+ * A convenience extension property to obtain the [OrtServerPrincipal] from an [ApplicationCall] that has already been
+ * authenticated.
+ */
+val ApplicationCall.ortServerPrincipal: OrtServerPrincipal
+    get() = requireNotNull(principal())

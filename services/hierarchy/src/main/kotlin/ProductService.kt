@@ -19,14 +19,15 @@
 
 package org.eclipse.apoapsis.ortserver.services
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
-import org.eclipse.apoapsis.ortserver.dao.dbQueryCatching
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.Product
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -41,10 +42,6 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.max
-
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger(OrganizationService::class.java)
 
 /**
  * A service providing functions for working with [products][Product].
@@ -64,33 +61,19 @@ class ProductService(
         url: String,
         productId: Long,
         description: String?
-    ): Repository = db.dbQueryCatching {
+    ): Repository = db.dbQuery {
         repositoryRepository.create(type, url, productId, description)
-    }.onSuccess { repository ->
-        runCatching {
-            authorizationService.createRepositoryPermissions(repository.id)
-            authorizationService.createRepositoryRoles(repository.id)
-        }.onFailure { e ->
-            logger.error("Error while creating Keycloak roles for repository '${repository.id}'.", e)
-        }
-    }.getOrThrow()
+    }
 
     /**
      * Delete a [product][productId] with its [repositories][Repository] and [OrtRun]s.
      */
-    suspend fun deleteProduct(productId: Long): Unit = db.dbQueryCatching {
+    suspend fun deleteProduct(productId: Long): Unit = db.dbQuery {
         ortRunRepository.deleteByProduct(productId)
         repositoryRepository.deleteByProduct(productId)
 
         productRepository.delete(productId)
-    }.onSuccess {
-        runCatching {
-            authorizationService.deleteProductPermissions(productId)
-            authorizationService.deleteProductRoles(productId)
-        }.onFailure { e ->
-            logger.error("Error while deleting Keycloak roles for product '$productId'.", e)
-        }
-    }.getOrThrow()
+    }
 
     /**
      * Get a product by [productId]. Returns null if the product is not found.
@@ -109,6 +92,22 @@ class ProductService(
     ): ListQueryResult<Repository> = db.dbQuery {
         repositoryRepository.listForProduct(productId, parameters, filter)
     }
+
+    /**
+     * List all repositories for a [product][productId] that are visible to a specific [user][userId] according to the
+     * given [parameters] and [urlFilter].
+     */
+    suspend fun listRepositoriesForProductAndUser(
+        productId: Long,
+        userId: String,
+        parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
+        urlFilter: FilterParameter? = null
+    ): ListQueryResult<Repository> = getProduct(productId)?.let { product ->
+        val filter = authorizationService.filterHierarchyIds(userId, RepositoryRole.READER, ProductId(product.id))
+        db.dbQuery {
+            repositoryRepository.list(parameters, urlFilter, filter)
+        }
+    } ?: ListQueryResult(emptyList(), parameters, 0)
 
     /**
      * Update a product by [productId] with the [present][OptionalValue.Present] values.

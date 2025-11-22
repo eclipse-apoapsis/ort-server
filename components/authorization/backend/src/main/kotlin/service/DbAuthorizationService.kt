@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRol
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
 import org.eclipse.apoapsis.ortserver.components.authorization.rights.Role
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RoleInfo
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
@@ -174,7 +175,7 @@ class DbAuthorizationService(
             }.mapTo(mutableSetOf()) { it[RoleAssignmentsTable.userId] }
     }
 
-    override suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, Role> =
+    override suspend fun listUsers(compoundHierarchyId: CompoundHierarchyId): Map<String, RoleInfo> =
         withContext(Dispatchers.Default) {
             db.dbQuery {
                 logger.debug("Loading role assignments on element {}...", compoundHierarchyId)
@@ -217,7 +218,7 @@ class DbAuthorizationService(
         return HierarchyFilter(
             transitiveIncludes = includes,
             nonTransitiveIncludes = permissions.implicitIncludes().filterContainedIn(containedInId),
-            isWildcard = permissions.isSuperuser()
+            isWildcard = permissions.isSuperuser() && containedInId == null
         )
     }
 
@@ -356,14 +357,11 @@ private class EffectiveRoleImpl(
     /** The permissions granted on the different levels of the hierarchy. */
     private val permissions: PermissionChecker
 ) : EffectiveRole {
-    override fun hasOrganizationPermission(permission: OrganizationPermission): Boolean =
-        permission in permissions.organizationPermissions
+    override fun getOrganizationPermissions(): Set<OrganizationPermission> = permissions.organizationPermissions
 
-    override fun hasProductPermission(permission: ProductPermission): Boolean =
-        permission in permissions.productPermissions
+    override fun getProductPermissions(): Set<ProductPermission> = permissions.productPermissions
 
-    override fun hasRepositoryPermission(permission: RepositoryPermission): Boolean =
-        permission in permissions.repositoryPermissions
+    override fun getRepositoryPermissions(): Set<RepositoryPermission> = permissions.repositoryPermissions
 }
 
 /**
@@ -417,7 +415,7 @@ private fun computeRoleForUser(
     user: String,
     hierarchyId: CompoundHierarchyId,
     assignments: List<Pair<CompoundHierarchyId, Role>>
-): Role? {
+): RoleInfo? {
     logger.debug("Computing effective role for user '{}' on element {}...", user, hierarchyId)
 
     return findHighestRole(assignments, hierarchyId)?.first
@@ -458,7 +456,7 @@ private fun IdsByLevel.filterContainedIn(
 private fun findHighestRole(
     roleAssignments: List<Pair<CompoundHierarchyId, Role>>,
     hierarchyId: CompoundHierarchyId
-): Triple<Role, PermissionChecker, HierarchyPermissions>? {
+): Triple<RoleInfo, PermissionChecker, HierarchyPermissions>? {
     val roles = (
             Role.rolesForLevel(hierarchyId.level)
                 .takeUnless { it.isEmpty() } ?: OrganizationRole.entries
@@ -466,9 +464,9 @@ private fun findHighestRole(
 
     return roles.mapNotNull { role ->
         val permissionChecker = HierarchyPermissions.permissions(role)
-        HierarchyPermissions.create(roleAssignments, permissionChecker)
-            .takeIf { it.hasPermission(hierarchyId) }?.let {
-                Triple(role, permissionChecker, it)
-            }
+        val permissions = HierarchyPermissions.create(roleAssignments, permissionChecker)
+        permissions.permissionGrantedOnLevel(hierarchyId)?.let {
+            Triple(RoleInfo(role, it), permissionChecker, permissions)
+        }
     }.firstOrNull()
 }

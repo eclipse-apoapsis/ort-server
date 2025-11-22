@@ -44,9 +44,6 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireIdParameter
  *
  * Implementations of this interface can be passed into special routing functions that use them to perform
  * authorization checks automatically. There are convenience functions to create default instances easily.
- *
- * In addition to the functions defined here, concrete implementations should provide a meaningful `toString()`
- * implementation, since this is used to construct a routes selector internally.
  */
 interface AuthorizationChecker {
     /**
@@ -83,8 +80,6 @@ fun requirePermission(permission: OrganizationPermission): AuthorizationChecker 
                 OrganizationId(call.requireIdParameter(ORGANIZATION_ID_PARAM)),
                 HierarchyPermissions.permissions(permission)
             )
-
-        override fun toString(): String = "RequireOrganizationPermission($permission)"
     }
 
 /**
@@ -102,8 +97,6 @@ fun requirePermission(permission: ProductPermission): AuthorizationChecker =
                 ProductId(call.requireIdParameter(PRODUCT_ID_PARAM)),
                 HierarchyPermissions.permissions(permission)
             )
-
-        override fun toString(): String = "RequireProductPermission($permission)"
     }
 
 /**
@@ -121,8 +114,6 @@ fun requirePermission(permission: RepositoryPermission): AuthorizationChecker =
                 RepositoryId(call.requireIdParameter(REPOSITORY_ID_PARAM)),
                 HierarchyPermissions.permissions(permission)
             )
-
-        override fun toString(): String = "RequireRepositoryPermission($permission)"
     }
 
 /**
@@ -140,6 +131,4 @@ fun requireSuperuser(): AuthorizationChecker =
                 CompoundHierarchyId.WILDCARD,
                 HierarchyPermissions.permissions(OrganizationRole.ADMIN)
             )?.takeIf { it.isSuperuser }
-
-        override fun toString(): String = "RequireSuperuser"
     }

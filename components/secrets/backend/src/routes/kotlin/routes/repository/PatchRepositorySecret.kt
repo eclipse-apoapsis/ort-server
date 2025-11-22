@@ -19,15 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.components.secrets.routes.repository
 
-import io.github.smiley4.ktoropenapi.patch
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
 import org.eclipse.apoapsis.ortserver.components.secrets.PatchSecret
 import org.eclipse.apoapsis.ortserver.components.secrets.Secret
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
@@ -73,9 +72,7 @@ internal fun Route.patchRepositorySecret(secretService: SecretService) =
                 }
             }
         }
-    }) {
-        requirePermission(RepositoryPermission.WRITE_SECRETS)
-
+    }, requirePermission(RepositoryPermission.WRITE_SECRETS)) {
         val repositoryId = RepositoryId(call.requireIdParameter("repositoryId"))
         val secretName = call.requireParameter("secretName")
         val updateSecret = call.receive<PatchSecret>()

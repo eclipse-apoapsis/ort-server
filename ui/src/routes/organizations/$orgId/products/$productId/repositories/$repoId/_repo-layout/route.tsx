@@ -22,11 +22,9 @@ import { BookLock, Eye, ServerCog, Settings, User } from 'lucide-react';
 
 import { PageLayout } from '@/components/page-layout';
 import { SidebarNavProps } from '@/components/sidebar';
-import { useUser } from '@/hooks/use-user';
 
 const RepoLayout = () => {
-  const { repoId } = Route.useParams();
-  const user = useUser();
+  const repositoryPermissions = Route.useRouteContext().permissions.repository;
 
   const sections: SidebarNavProps['sections'] = [
     {
@@ -45,37 +43,25 @@ const RepoLayout = () => {
           title: 'Secrets',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/secrets',
           icon: () => <BookLock className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `permission_repository_${repoId}_write_secrets`,
-          ]),
+          visible: repositoryPermissions?.includes('WRITE_SECRETS'),
         },
         {
           title: 'Infrastructure Services',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/infrastructure-services',
           icon: () => <ServerCog className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `permission_repository_${repoId}_admin`,
-          ]),
+          visible: repositoryPermissions?.includes('WRITE'),
         },
         {
           title: 'Users',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/users',
           icon: () => <User className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_repository_${repoId}_admin`,
-          ]),
+          visible: repositoryPermissions?.includes('MANAGE_GROUPS'),
         },
         {
           title: 'Settings',
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/settings',
           icon: () => <Settings className='h-4 w-4' />,
-          visible: user.hasRole([
-            'superuser',
-            `role_repository_${repoId}_admin`,
-          ]),
+          visible: repositoryPermissions?.includes('WRITE'),
         },
       ],
     },
