@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.organization
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.entityQuery
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
-import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
+import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
@@ -52,7 +52,7 @@ class DaoOrganizationRepository(private val db: Database) : OrganizationReposito
     override fun list(parameters: ListQueryParameters, nameFilter: FilterParameter?, hierarchyFilter: HierarchyFilter) =
         db.blockingQuery {
             val nameCondition = nameFilter?.let {
-                OrganizationsTable.name.applyRegex(it.value)
+                OrganizationsTable.name.applyIRegex(it.value)
             } ?: Op.TRUE
 
             val builder = hierarchyFilter.apply(nameCondition) { level, ids, filter ->

@@ -98,7 +98,7 @@ export function FilterRegex({
             }}
           >
             <Input
-              placeholder='(enter a RegEx)'
+              placeholder='(regular expression)'
               value={value}
               onBlur={() => {
                 if (evaluateRegex().isValid) {

@@ -229,9 +229,15 @@ fun <T : Comparable<T>> Column<T>.applyFilter(operator: ComparisonOperator, valu
 class InsensitiveLikeOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "ILIKE")
 
 /**
-*  Represents a regex operation. This is an extension of the [ComparisonOp] class that uses the REGEX operator,
-* */
+ *  Represents a regex operation. This is an extension of the [ComparisonOp] class that uses the ~ operator.
+ */
 class RegexOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "~")
+
+/**
+ *  Represents a case-insensitive regex operation. This is an extension of the [ComparisonOp] class that uses the ~*
+ *  operator.
+ */
+class InsensitiveRegexOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "~*")
 
 /**
  * Apply the given [value] to filter this column by using the ILIKE operator.
@@ -239,11 +245,17 @@ class RegexOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, 
 fun Expression<String>.applyILike(value: String): Op<Boolean> =
     InsensitiveLikeOp(this, QueryParameter("%$value%", TextColumnType()))
 
-/*
-*  Apply the given [value] to filter this column by using the REGEX operator.
-*/
+/**
+ * Apply the given [value] to filter this column by using the ~ operator.
+ */
 fun Expression<String>.applyRegex(value: String): Op<Boolean> =
     RegexOp(this, QueryParameter(value, TextColumnType()))
+
+/**
+ * Apply the given [value] to filter this column by using the ~* operator.
+ */
+fun Expression<String>.applyIRegex(value: String): Op<Boolean> =
+    InsensitiveRegexOp(this, QueryParameter(value, TextColumnType()))
 
 /**
  * Apply the given [operator] and filter [values] to filter this column by. This is an overload of the
