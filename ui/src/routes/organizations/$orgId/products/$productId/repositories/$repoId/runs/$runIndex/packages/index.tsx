@@ -120,7 +120,7 @@ const PackageCard = ({ pkg }: { pkg: Package }) => {
       {declaredLicenses.length > 0 ? (
         <div className='flex gap-2 text-sm'>
           <div className='text-muted-foreground'>Declared License:</div>
-          <div className='break-words'>{declaredLicenses.join(',')}</div>
+          <div className='wrap-break-word'>{declaredLicenses.join(',')}</div>
         </div>
       ) : (
         <div className='text-muted-foreground italic'>No declared license</div>
