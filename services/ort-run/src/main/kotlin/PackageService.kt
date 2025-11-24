@@ -125,8 +125,10 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                 "Unsupported operator for identifier filter: ${filter.operator}"
             }
 
+            val idFilterRegex = Regex(filter.value, RegexOption.IGNORE_CASE)
+
             filteredResult = filteredResult.filter { pkg ->
-                pkg.pkg.identifier.mapToOrt().toCoordinates().contains(Regex(filter.value, RegexOption.IGNORE_CASE))
+                pkg.pkg.identifier.mapToOrt().toCoordinates().contains(idFilterRegex)
             }
         }
 
@@ -135,8 +137,10 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                 "Unsupported operator for identifier filter: ${filter.operator}"
             }
 
+            val purlFilterRegex = Regex(filter.value, RegexOption.IGNORE_CASE)
+
             filteredResult = filteredResult.filter { pkg ->
-                pkg.pkg.purl.contains(Regex(filter.value, RegexOption.IGNORE_CASE))
+                pkg.pkg.purl.contains(purlFilterRegex)
             }
         }
 
