@@ -128,7 +128,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             val idFilterRegex = Regex(filter.value, RegexOption.IGNORE_CASE)
 
             filteredResult = filteredResult.filter { pkg ->
-                pkg.pkg.identifier.mapToOrt().toCoordinates().contains(idFilterRegex)
+                idFilterRegex.containsMatchIn(pkg.pkg.identifier.mapToOrt().toCoordinates())
             }
         }
 
@@ -140,7 +140,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             val purlFilterRegex = Regex(filter.value, RegexOption.IGNORE_CASE)
 
             filteredResult = filteredResult.filter { pkg ->
-                pkg.pkg.purl.contains(purlFilterRegex)
+                purlFilterRegex.containsMatchIn(pkg.pkg.purl)
             }
         }
 
