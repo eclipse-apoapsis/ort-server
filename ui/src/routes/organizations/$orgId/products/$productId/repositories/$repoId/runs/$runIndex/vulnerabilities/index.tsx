@@ -72,6 +72,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   getResolvedBackgroundColor,
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
@@ -103,6 +108,7 @@ const VulnerabilityCard = ({
 }: {
   vulnerability: VulnerabilityWithDetails;
 }) => {
+  const params = Route.useParams();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
   const id =
     packageIdType === 'PURL' && vulnerability.purl
@@ -112,9 +118,26 @@ const VulnerabilityCard = ({
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
-        <div className='font-semibold'>
-          <BreakableString text={id} />
-        </div>
+        <Tooltip>
+          <TooltipTrigger>
+            <Link
+              className='font-semibold text-blue-400 hover:underline'
+              to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/packages'
+              params={{
+                orgId: params.orgId,
+                productId: params.productId,
+                repoId: params.repoId,
+                runIndex: params.runIndex,
+              }}
+              search={{ pkgId: id, marked: '0' }}
+            >
+              <BreakableString text={id} />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            Inspect the package details in packages table
+          </TooltipContent>
+        </Tooltip>
         <Badge className='bg-blue-300 whitespace-nowrap' variant='small'>
           {vulnerability.vulnerability.externalId}
         </Badge>
