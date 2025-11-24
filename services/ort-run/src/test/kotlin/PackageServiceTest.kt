@@ -351,7 +351,7 @@ class PackageServiceTest : WordSpec() {
                     PackageFilters(
                         identifier = FilterOperatorAndValue(
                             ComparisonOperator.ILIKE,
-                            "com.example/example2"
+                            "com.example:example2"
                         )
                     )
                 )
@@ -376,7 +376,7 @@ class PackageServiceTest : WordSpec() {
                     filters = PackageFilters(
                         identifier = FilterOperatorAndValue(
                             ComparisonOperator.ILIKE,
-                            "NPM:example@1.0"
+                            "NPM::example:1.0"
                         )
                     )
                 )
@@ -400,7 +400,7 @@ class PackageServiceTest : WordSpec() {
                     filters = PackageFilters(
                         identifier = FilterOperatorAndValue(
                             ComparisonOperator.ILIKE,
-                            "maven:com.example/Example2"
+                            "maven:com.example:Example2"
                         )
                     )
                 )

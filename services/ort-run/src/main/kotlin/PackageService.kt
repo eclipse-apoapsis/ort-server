@@ -126,18 +126,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             }
 
             filteredResult = filteredResult.filter { pkg ->
-                val identifierString = buildString {
-                    append(pkg.pkg.identifier.type)
-                    append(":")
-                    if (pkg.pkg.identifier.namespace.isNotEmpty()) {
-                        append(pkg.pkg.identifier.namespace)
-                        append("/")
-                    }
-                    append(pkg.pkg.identifier.name)
-                    append("@")
-                    append(pkg.pkg.identifier.version)
-                }
-                identifierString.contains(Regex(filter.value, RegexOption.IGNORE_CASE))
+                pkg.pkg.identifier.mapToOrt().toCoordinates().contains(Regex(filter.value, RegexOption.IGNORE_CASE))
             }
         }
 
