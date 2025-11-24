@@ -30,7 +30,7 @@ export const BreakableString = ({ text, className }: BreakableStringProps) => {
   const parts = text.split(/(:+)/g); // Split by ':' or '::', keeping delimiters
 
   return (
-    <span className={cn('break-words', className)}>
+    <span className={cn('wrap-break-word', className)}>
       {parts.map((part, index) => (
         <Fragment key={index}>
           {part}

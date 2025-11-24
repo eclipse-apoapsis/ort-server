@@ -102,7 +102,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
       {project.definitionFilePath ? (
         <div className='flex gap-2 text-sm'>
           <div className='text-muted-foreground'>Definition File:</div>
-          <div className='break-words'>{project.definitionFilePath}</div>
+          <div className='wrap-break-word'>{project.definitionFilePath}</div>
         </div>
       ) : (
         <div className='text-muted-foreground italic'>No definition file</div>
@@ -110,7 +110,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
       {declaredLicenses.length > 0 ? (
         <div className='flex gap-2 text-sm'>
           <div className='font-semibold'>Declared License: </div>
-          <div className='text-muted-foreground break-words'>
+          <div className='text-muted-foreground wrap-break-word'>
             {declaredLicenses.join(', ')}
           </div>
         </div>

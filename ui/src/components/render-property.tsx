@@ -68,7 +68,7 @@ export const RenderProperty = <T,>({
               {label}
               {isEmpty && ':'}
             </div>
-            <div className='ml-2 break-words'>
+            <div className='ml-2 wrap-break-word'>
               <FormattedValue value={value} type={'string'} />
             </div>
           </div>

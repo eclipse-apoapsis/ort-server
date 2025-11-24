@@ -120,7 +120,7 @@ const VulnerabilityCard = ({
         </Badge>
       </div>
       <div className='flex items-center justify-between'>
-        <div className='text-muted-foreground break-words italic'>
+        <div className='text-muted-foreground wrap-break-word italic'>
           {vulnerability.vulnerability.summary || 'No summary available'}
         </div>
         <div className='text-muted-foreground'>
