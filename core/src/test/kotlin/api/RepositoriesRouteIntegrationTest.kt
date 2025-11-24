@@ -750,7 +750,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "resolve provided plugin secrets from the admin secrets" {
+        "resolve provided plugin secrets from the user secrets" {
             integrationTestApplication {
                 val createdRepository = createRepository()
 
@@ -795,7 +795,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                         get("VulnerableCode").shouldNotBeNull {
                             secrets["apiKey"].shouldNotBeNull {
                                 name shouldBe "VC_API_KEY"
-                                source shouldBe SecretSource.ADMIN
+                                source shouldBe SecretSource.USER
                             }
                         }
                     }
@@ -806,7 +806,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                         it.type shouldBe "DOS"
                         it.secrets["token"].shouldNotBeNull {
                             name shouldBe "DOS_TOKEN"
-                            source shouldBe SecretSource.ADMIN
+                            source shouldBe SecretSource.USER
                         }
                     }
                 }
