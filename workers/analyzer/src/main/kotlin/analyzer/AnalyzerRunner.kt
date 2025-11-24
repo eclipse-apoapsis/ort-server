@@ -121,7 +121,7 @@ class AnalyzerRunner(
                 val configFile = exchangeDir.resolve(ANALYZER_CONFIG_FILE)
                 val resultFile = exchangeDir.resolve(ANALYZER_RESULT_FILE)
 
-                val config = configFile.readValue<AnalyzerJobConfiguration>()
+                val config = configFile.readValue<AnalyzerRunnerConfig>()
                 val runner = AnalyzerRunner(ConfigFactory.empty())
                 val result = runner.runInProcess(projectDir, config)
 
@@ -145,12 +145,20 @@ class AnalyzerRunner(
         environmentConfig: ResolvedEnvironmentConfig
     ): OrtResult {
         val packageCurationProviderConfigs = context.resolveProviderPluginConfigSecrets(config.packageCurationProviders)
-        val resolvedConfig = config.copy(packageCurationProviders = packageCurationProviderConfigs)
+        val runnerConfig = AnalyzerRunnerConfig(
+            allowDynamicVersions = config.allowDynamicVersions,
+            disabledPackageManagers = config.disabledPackageManagers,
+            enabledPackageManagers = config.enabledPackageManagers,
+            packageCurationProviders = packageCurationProviderConfigs,
+            packageManagerOptions = config.packageManagerOptions,
+            repositoryConfigPath = config.repositoryConfigPath,
+            skipExcluded = config.skipExcluded
+        )
 
         return if (environmentConfig.environmentVariables.isEmpty()) {
-            runInProcess(inputDir, resolvedConfig)
+            runInProcess(inputDir, runnerConfig)
         } else {
-            runForked(context, inputDir, resolvedConfig, environmentConfig)
+            runForked(context, inputDir, runnerConfig, environmentConfig)
         }
     }
 
@@ -207,7 +215,7 @@ class AnalyzerRunner(
     internal suspend fun runForked(
         context: WorkerContext,
         inputDir: File,
-        config: AnalyzerJobConfiguration,
+        config: AnalyzerRunnerConfig,
         environmentConfig: ResolvedEnvironmentConfig
     ): OrtResult {
         val exchangeDir = context.createTempDir()
@@ -248,7 +256,7 @@ class AnalyzerRunner(
      * This function is used if no custom environment variables need to be set, and therefore, the Analyzer can be
      * invoked directly.
      */
-    internal fun runInProcess(inputDir: File, config: AnalyzerJobConfiguration): OrtResult {
+    internal fun runInProcess(inputDir: File, config: AnalyzerRunnerConfig): OrtResult {
         val ortPackageManagerOptions =
             config.packageManagerOptions?.map { entry -> entry.key to entry.value.mapToOrt() }?.toMap()
 

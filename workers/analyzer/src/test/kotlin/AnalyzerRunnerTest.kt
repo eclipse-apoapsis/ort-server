@@ -481,7 +481,15 @@ class AnalyzerRunnerTest : WordSpec({
             verify(exactly = 1) {
                 runner.runInProcess(
                     inputDir,
-                    config.copy(packageCurationProviders = resolvedPackageCurationProviderConfigs)
+                    AnalyzerRunnerConfig(
+                        allowDynamicVersions = config.allowDynamicVersions,
+                        disabledPackageManagers = config.disabledPackageManagers,
+                        enabledPackageManagers = config.enabledPackageManagers,
+                        packageCurationProviders = resolvedPackageCurationProviderConfigs,
+                        packageManagerOptions = config.packageManagerOptions,
+                        repositoryConfigPath = config.repositoryConfigPath,
+                        skipExcluded = config.skipExcluded
+                    )
                 )
             }
         }
@@ -552,7 +560,15 @@ class AnalyzerRunnerTest : WordSpec({
                 runner.runForked(
                     any(),
                     inputDir,
-                    config.copy(packageCurationProviders = resolvedPackageCurationProviderConfigs),
+                    AnalyzerRunnerConfig(
+                        allowDynamicVersions = config.allowDynamicVersions,
+                        disabledPackageManagers = config.disabledPackageManagers,
+                        enabledPackageManagers = config.enabledPackageManagers,
+                        packageCurationProviders = resolvedPackageCurationProviderConfigs,
+                        packageManagerOptions = config.packageManagerOptions,
+                        repositoryConfigPath = config.repositoryConfigPath,
+                        skipExcluded = config.skipExcluded
+                    ),
                     environmentConfig
                 )
             }
@@ -646,12 +662,13 @@ class AnalyzerRunnerTest : WordSpec({
             val enabledPackageManagers = listOf("conan", "npm")
             val disabledPackageManagers = listOf("maven")
             val packageManagerOptions = mapOf("conan" to PackageManagerConfiguration(listOf("npm")))
-            val config = AnalyzerJobConfiguration(
+            val config = AnalyzerRunnerConfig(
                 allowDynamicVersions = true,
                 enabledPackageManagers = enabledPackageManagers,
                 disabledPackageManagers = disabledPackageManagers,
                 packageCurationProviders = listOf(ProviderPluginConfiguration(type = "OrtConfig")),
                 packageManagerOptions = packageManagerOptions,
+                repositoryConfigPath = null,
                 skipExcluded = true
             )
 
@@ -674,7 +691,17 @@ class AnalyzerRunnerTest : WordSpec({
 
         "produce a failure result in case of an error" {
             val exchangeDir = tempdir()
-            exchangeDir.resolve("analyzer-config.json").writeValue(AnalyzerJobConfiguration())
+            exchangeDir.resolve("analyzer-config.json").writeValue(
+                AnalyzerRunnerConfig(
+                    allowDynamicVersions = true,
+                    disabledPackageManagers = null,
+                    enabledPackageManagers = null,
+                    packageCurationProviders = emptyList(),
+                    packageManagerOptions = null,
+                    repositoryConfigPath = null,
+                    skipExcluded = null
+                )
+            )
 
             AnalyzerRunner.main(arrayOf(exchangeDir.absolutePath, "non-existing-directory"))
 
