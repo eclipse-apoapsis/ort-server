@@ -96,7 +96,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
 
         val encryptedSecrets = Base64.encode(secretsJson.toByteArray())
 
-        File(secretStorageFilePath).writeText(encryptedSecrets)
+        File(secretStorageFilePath).apply { parentFile.mkdirs() }.writeText(encryptedSecrets)
     }
 
     @Synchronized
