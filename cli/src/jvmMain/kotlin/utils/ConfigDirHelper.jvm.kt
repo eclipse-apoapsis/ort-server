@@ -48,7 +48,7 @@ internal actual val configDir: Path
             else -> fallbackDir
         }
 
-        if (!dir.exists()) dir.safeMkdirs()
+        dir.safeMkdirs()
 
         return dir.toOkioPath()
     }

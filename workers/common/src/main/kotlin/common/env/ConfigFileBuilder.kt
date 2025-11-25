@@ -178,7 +178,7 @@ class ConfigFileBuilder(
         }
 
         // Make sure that the parent directory exists in case the config should be stored in a subdirectory.
-        if (!file.parentFile.exists()) {
+        if (!file.parentFile.isDirectory) {
             file.parentFile.mkdirs()
         }
 

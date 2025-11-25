@@ -495,7 +495,7 @@ class WorkerContextTest : WordSpec({
         "properly close the context after the block has been executed" {
             val tempDir = helper.factory.withContext(RUN_ID) { context ->
                 context.createTempDir().also {
-                    it.exists() shouldBe true
+                    it shouldBe aDirectory()
                 }
             }
 

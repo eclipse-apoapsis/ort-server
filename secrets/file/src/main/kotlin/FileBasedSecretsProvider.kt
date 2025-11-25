@@ -75,7 +75,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     private fun getOrCreateStorageFile(): File {
         val file = File(secretStorageFilePath)
 
-        if (!file.exists()) {
+        if (!file.isFile) {
             logger.info(
                 "The secrets storage file was not found in location `$secretStorageFilePath`. " +
                         "Creating an empty secrets storage file."
