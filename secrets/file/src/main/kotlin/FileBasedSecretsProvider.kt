@@ -62,8 +62,10 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     @OptIn(ExperimentalEncodingApi::class)
     private fun readSecrets(): Map<Path, SecretValue> {
         val file = getOrCreateStorageFile()
+        val bytes = file.readBytes()
+        if (bytes.isEmpty()) return emptyMap()
 
-        val decodedSecrets = Base64.decode(file.readBytes())
+        val decodedSecrets = Base64.decode(bytes)
         val serializer = FileBasedSecretsStorage.serializer()
 
         return Json.decodeFromString(
@@ -75,10 +77,10 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
     private fun getOrCreateStorageFile(): File {
         val file = File(secretStorageFilePath)
 
-        if (!file.isFile) {
+        if (!file.isFile || file.length() == 0L) {
             logger.info(
-                "The secrets storage file was not found in location `$secretStorageFilePath`. " +
-                        "Creating an empty secrets storage file."
+                "No secrets storage content was found in file `$secretStorageFilePath`. " +
+                        "Creating a file with empty secrets storage contents."
             )
             writeSecrets(emptyMap())
         }
