@@ -17,18 +17,12 @@
  * License-Filename: LICENSE
  */
 
-import { useQueries } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
 
 import { InfrastructureService } from '@/api';
-import {
-  getOrganizationInfrastructureServicesOptions,
-  getProductInfrastructureServicesOptions,
-  getRepositoryInfrastructureServicesOptions,
-} from '@/api/@tanstack/react-query.gen';
 import { InlineCode } from '@/components/typography.tsx';
 import {
   AccordionContent,
@@ -54,8 +48,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { useInfrastructureServices } from '@/hooks/use-infrastructure-services.ts';
 import { useUser } from '@/hooks/use-user.ts';
-import { ALL_ITEMS } from '@/lib/constants';
 import {
   EnvironmentDefinitions,
   NpmAuthMode,
@@ -70,10 +64,6 @@ type AnalyzerFieldsProps = {
   value: string;
   onToggle: () => void;
   isSuperuser: boolean;
-};
-
-type InfrastructureServiceWithHierarchy = InfrastructureService & {
-  hierarchy: 'organization' | 'product' | 'repository';
 };
 
 export const AnalyzerFields = ({
@@ -94,73 +84,12 @@ export const AnalyzerFields = ({
 
   const user = useUser();
 
-  // Only fetch infrastructure services the user has access to.
-  const infrastructureServices = useQueries({
-    queries: [
-      {
-        ...getOrganizationInfrastructureServicesOptions({
-          path: {
-            organizationId: Number.parseInt(orgId || ''),
-          },
-          query: {
-            limit: ALL_ITEMS,
-          },
-        }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_organization_${orgId}_read`,
-        ]),
-      },
-      {
-        ...getProductInfrastructureServicesOptions({
-          path: {
-            productId: Number.parseInt(productId || ''),
-          },
-          query: {
-            limit: ALL_ITEMS,
-          },
-        }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_product_${productId}_read`,
-        ]),
-      },
-      {
-        ...getRepositoryInfrastructureServicesOptions({
-          path: {
-            repositoryId: Number.parseInt(repoId || ''),
-          },
-          query: {
-            limit: ALL_ITEMS,
-          },
-        }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_repository_${repoId}_read`,
-        ]),
-      },
-    ],
-    combine: (results) => {
-      const [orgServices, productServices, repoServices] = results;
-      // Combine all infrastructure services into an array of objects.
-      // Each object contains the name of the service and to which hierarchy
-      // level it belongs (organization, product, repository).
-      return [
-        ...(orgServices.data?.data?.map((service) => ({
-          ...service,
-          hierarchy: 'organization',
-        })) ?? []),
-        ...(productServices.data?.data?.map((service) => ({
-          ...service,
-          hierarchy: 'product',
-        })) ?? []),
-        ...(repoServices.data?.data?.map((service) => ({
-          ...service,
-          hierarchy: 'repository',
-        })) ?? []),
-      ];
-    },
-  }) as InfrastructureServiceWithHierarchy[];
+  const infrastructureServices = useInfrastructureServices({
+    orgId,
+    productId,
+    repoId,
+    user,
+  });
 
   // Keep the form in sync with the latest infrastructure services fetched for all hierarchy levels.
   useEffect(() => {
