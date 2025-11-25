@@ -147,13 +147,11 @@ private fun getStorage(storageFile: File): SecretStorage {
 
 @OptIn(ExperimentalEncodingApi::class)
 private fun initStorage(storageFile: File) {
-    val serializer = FileBasedSecretsStorage.serializer()
     val json = Json {
         allowStructuredMapKeys = true
     }
 
     val secretsJson = json.encodeToString(
-        serializer,
         FileBasedSecretsStorage(mapOf("password" to "securePassword123"))
     )
 
