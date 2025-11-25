@@ -101,8 +101,10 @@ jib {
         mainClass = "org.eclipse.apoapsis.ortserver.workers.scanner.EntrypointKt"
         creationTime = "USE_CURRENT_TIMESTAMP"
 
-        if (System.getProperty("idea.active").toBoolean()) {
-            jvmFlags = listOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5050")
+        jvmFlags = mutableListOf("--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED").apply {
+            if (System.getProperty("idea.active")?.toBoolean() == true) {
+                add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5030")
+            }
         }
     }
 }
