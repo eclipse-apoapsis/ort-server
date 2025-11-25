@@ -24,8 +24,7 @@ import kotlinx.serialization.Serializable
 /**
  * A data class representing the file storage for secrets.
  */
-
 @Serializable
 data class FileBasedSecretsStorage(
-    val secrets: MutableMap<String, String>
+    val secrets: Map<String, String>
 )

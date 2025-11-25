@@ -154,7 +154,7 @@ private fun initStorage(storageFile: File) {
 
     val secretsJson = json.encodeToString(
         serializer,
-        FileBasedSecretsStorage(mapOf("password" to "securePassword123").toMutableMap())
+        FileBasedSecretsStorage(mapOf("password" to "securePassword123"))
     )
 
     val encryptedSecrets = Base64.encode(secretsJson.toByteArray())

@@ -60,7 +60,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
      * Return a map representing all secrets stored in file-based secret storage.
      */
     @OptIn(ExperimentalEncodingApi::class)
-    private fun readSecrets(): MutableMap<Path, SecretValue> {
+    private fun readSecrets(): Map<Path, SecretValue> {
         val file = getOrCreateStorageFile()
 
         val decodedSecrets = Base64.decode(file.readBytes())
@@ -69,7 +69,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
         return Json.decodeFromString(
             serializer,
             String(decodedSecrets)
-        ).secrets.map { (key, value) -> Path(key) to SecretValue(value) }.toMap().toMutableMap()
+        ).secrets.entries.associate { (key, value) -> Path(key) to SecretValue(value) }
     }
 
     private fun getOrCreateStorageFile(): File {
@@ -80,7 +80,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
                 "The secrets storage file was not found in location `$secretStorageFilePath`. " +
                         "Creating an empty secrets storage file."
             )
-            writeSecrets(mutableMapOf())
+            writeSecrets(emptyMap())
         }
 
         return file
@@ -90,11 +90,11 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
      * Return a map representing all secrets stored in file-based secret storage.
      */
     @OptIn(ExperimentalEncodingApi::class)
-    private fun writeSecrets(secrets: MutableMap<Path, SecretValue>) {
+    private fun writeSecrets(secrets: Map<Path, SecretValue>) {
         val serializer = FileBasedSecretsStorage.serializer()
         val secretsJson = Json.encodeToString(
             serializer,
-            FileBasedSecretsStorage(secrets.map { (key, value) -> key.path to value.value }.toMap().toMutableMap())
+            FileBasedSecretsStorage(secrets.entries.associate { (key, value) -> key.path to value.value })
         )
 
         val encryptedSecrets = Base64.encode(secretsJson.toByteArray())
@@ -109,14 +109,14 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
 
     @Synchronized
     override fun writeSecret(path: Path, secret: SecretValue) {
-        val secrets = readSecrets()
+        val secrets = readSecrets().toMutableMap()
         secrets[path] = secret
         writeSecrets(secrets)
     }
 
     @Synchronized
     override fun removeSecret(path: Path) {
-        val secrets = readSecrets()
+        val secrets = readSecrets().toMutableMap()
         secrets -= path
         writeSecrets(secrets)
     }
