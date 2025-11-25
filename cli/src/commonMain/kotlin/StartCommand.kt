@@ -116,7 +116,7 @@ class StartCommand : SuspendingCliktCommand(name = "start") {
 
     override suspend fun run() {
         val createOrtRun = runCatching {
-            json.decodeFromString(PostRepositoryRun.serializer(), parameters)
+            json.decodeFromString<PostRepositoryRun>(parameters)
         }.getOrElse {
             throw CliInputException(
                 "Invalid run parameters: '$parameters'.",

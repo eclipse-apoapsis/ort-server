@@ -149,7 +149,7 @@ class EnvironmentConfigLoader(
         logger.info("Parsing environment configuration file '{}'.", environmentConfigFile)
 
         return environmentConfigFile.inputStream().use { stream ->
-            Yaml.default.decodeFromStream(EnvironmentConfig.serializer(), stream)
+            Yaml.default.decodeFromStream(stream)
         }
     }
 

@@ -66,12 +66,9 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
         if (bytes.isEmpty()) return emptyMap()
 
         val decodedSecrets = Base64.decode(bytes)
-        val serializer = FileBasedSecretsStorage.serializer()
 
-        return Json.decodeFromString(
-            serializer,
-            String(decodedSecrets)
-        ).secrets.entries.associate { (key, value) -> Path(key) to SecretValue(value) }
+        return Json.decodeFromString<FileBasedSecretsStorage>(String(decodedSecrets)).secrets.entries
+            .associate { (key, value) -> Path(key) to SecretValue(value) }
     }
 
     private fun getOrCreateStorageFile(): File {
@@ -93,9 +90,7 @@ class FileBasedSecretsProvider(config: Config) : SecretsProvider {
      */
     @OptIn(ExperimentalEncodingApi::class)
     private fun writeSecrets(secrets: Map<Path, SecretValue>) {
-        val serializer = FileBasedSecretsStorage.serializer()
-        val secretsJson = Json.encodeToString(
-            serializer,
+        val secretsJson = Json.encodeToString<FileBasedSecretsStorage>(
             FileBasedSecretsStorage(secrets.entries.associate { (key, value) -> key.path to value.value })
         )
 

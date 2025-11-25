@@ -300,10 +300,7 @@ private fun ISqlExpressionBuilder.matchesBasicScanResultProperties(scanResult: S
                     JsonHashFunction(ScanResultsTable.additionalScanResultData) eq
                     JsonHashFunction(
                         stringLiteral(
-                            Json.encodeToString(
-                                AdditionalScanResultData.serializer(),
-                                AdditionalScanResultData(scanResult.additionalData)
-                            )
+                            Json.encodeToString(AdditionalScanResultData(scanResult.additionalData))
                         )
                     )
             )
