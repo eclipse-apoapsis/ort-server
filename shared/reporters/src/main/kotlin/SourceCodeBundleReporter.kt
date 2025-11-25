@@ -259,7 +259,7 @@ class SourceCodeBundleReporter(
 
     private fun provideCodeBundleDownloadDir(outputDir: File): File {
         require(outputDir.isDirectory && outputDir.canWrite()) {
-            "Output dir ${outputDir.absolutePath} doesn't exists or is not writeable."
+            "The output directory at '${outputDir.absolutePath}' does not exist or is not writeable."
         }
 
         val codeBundleDir = outputDir.resolve(SOURCE_BUNDLE_SUB_DIR)
