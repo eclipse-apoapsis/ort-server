@@ -82,7 +82,7 @@ abstract class EndpointComponent<T : Any>(
          */
         suspend fun sleepWhileKeepAliveFileExists() {
             val file = getKeepAliveFile()
-            while (file.exists()) {
+            while (file.isFile) {
                 logger.info(
                     "Delete keep-alive lock file ${file.absolutePath} to continue. " +
                         "Next check in $CHECK_INTERVAL_SECONDS seconds."
