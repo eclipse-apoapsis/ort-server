@@ -143,9 +143,19 @@ services:
         gelf-address: "udp://127.0.0.1:12201"
         tag: "graphite"
 
+  # Give UID 1001 ownership of the secrets-provider volume as that UID is used by default by the ORT Server images.
+  init-secrets:
+    image: busybox
+    command: [ "sh", "-c", "chown -R 1001:1001 /mnt/secrets-provider" ]
+    volumes:
+    - secrets:/mnt/secrets-provider
+    restart: "no"
+
   core:
     image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-core:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
+      init-secrets:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       keycloak:
@@ -193,9 +203,7 @@ services:
       - type: bind
         source: ./scripts/compose/secrets.properties
         target: /mnt/secrets.properties
-      - type: bind
-        source: ./scripts/compose/secrets-provider
-        target: /mnt/secrets-provider
+      - secrets:/mnt/secrets-provider
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:
@@ -271,6 +279,8 @@ services:
   advisor-worker:
     image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-advisor-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
+      init-secrets:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       rabbitmq:
@@ -305,9 +315,7 @@ services:
     - type: bind
       source: ./scripts/compose/config
       target: /mnt/config
-    - type: bind
-      source: ./scripts/compose/secrets.properties
-      target: /mnt/secrets.properties
+    - secrets:/mnt/secrets-provider
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:
@@ -318,6 +326,8 @@ services:
   analyzer-worker:
     image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-analyzer-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
+      init-secrets:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       rabbitmq:
@@ -355,9 +365,7 @@ services:
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
-    - type: bind
-      source: ./scripts/compose/secrets-provider
-      target: /mnt/secrets-provider
+    - secrets:/mnt/secrets-provider
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:
@@ -368,6 +376,8 @@ services:
   config-worker:
     image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-config-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
+      init-secrets:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       rabbitmq:
@@ -404,6 +414,7 @@ services:
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
+    - secrets:/mnt/secrets-provider
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:
@@ -414,6 +425,8 @@ services:
   evaluator-worker:
     image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-evaluator-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
+      init-secrets:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       rabbitmq:
@@ -451,6 +464,7 @@ services:
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
+    - secrets:/mnt/secrets-provider
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:
@@ -461,6 +475,8 @@ services:
   reporter-worker:
     image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-reporter-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
+      init-secrets:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       rabbitmq:
@@ -498,9 +514,7 @@ services:
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
-    - type: bind
-      source: ./scripts/compose/secrets-provider
-      target: /mnt/secrets-provider
+    - secrets:/mnt/secrets-provider
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:
@@ -511,6 +525,8 @@ services:
   scanner-worker:
     image: ${ORT_SERVER_IMAGE_PREFIX-ghcr.io/eclipse-apoapsis/}ort-server-scanner-worker:${ORT_SERVER_IMAGE_TAG:-main}
     depends_on:
+      init-secrets:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       rabbitmq:
@@ -548,9 +564,7 @@ services:
     - type: bind
       source: ./scripts/compose/secrets.properties
       target: /mnt/secrets.properties
-    - type: bind
-      source: ./scripts/compose/secrets-provider
-      target: /mnt/secrets-provider
+    - secrets:/mnt/secrets-provider
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:
@@ -628,4 +642,6 @@ volumes:
   grafana:
     driver: local
   loki:
+    driver: local
+  secrets:
     driver: local
