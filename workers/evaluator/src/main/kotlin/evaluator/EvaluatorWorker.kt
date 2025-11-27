@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
 import org.slf4j.LoggerFactory
 
@@ -53,6 +54,7 @@ internal class EvaluatorWorker(
             job = ortRunService.startEvaluatorJob(job.id)
                 ?: throw IllegalArgumentException("The evaluator job with id '$jobId' could not be started.")
             logger.debug("Evaluator job with id '{}' started at {}.", job.id, job.startedAt)
+            logger.info("Using ORT version {}.", ORT_VERSION)
 
             if (job.configuration.keepAliveWorker) {
                 EndpointComponent.generateKeepAliveFile()

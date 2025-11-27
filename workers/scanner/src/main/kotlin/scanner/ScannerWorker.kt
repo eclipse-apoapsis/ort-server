@@ -38,6 +38,7 @@ import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.Provenance
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
 import org.slf4j.LoggerFactory
 
@@ -62,6 +63,7 @@ class ScannerWorker(
             job = ortRunService.startScannerJob(job.id)
                 ?: throw IllegalArgumentException("The scanner job with id '$jobId' could not be started.")
             logger.debug("Scanner job with id '{}' started at {}.", job.id, job.startedAt)
+            logger.info("Using ORT version {}.", ORT_VERSION)
 
             val repository = ortRunService.getOrtRepositoryInformation(ortRun)
             val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)

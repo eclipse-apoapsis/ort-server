@@ -38,6 +38,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
 import org.slf4j.LoggerFactory
 
@@ -63,6 +64,7 @@ internal class AnalyzerWorker(
         job = ortRunService.startAnalyzerJob(job.id)
             ?: throw IllegalArgumentException("The analyzer job with id '$jobId' could not be started.")
         logger.debug("Analyzer job with id '{}' started at {}.", job.id, job.startedAt)
+        logger.info("Using ORT version {}.", ORT_VERSION)
 
         contextFactory.withContext(job.ortRunId) { context ->
             if (job.configuration.keepAliveWorker) {

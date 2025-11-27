@@ -39,6 +39,7 @@ import org.jetbrains.exposed.sql.Database
 
 import org.ossreviewtoolkit.model.Repository
 import org.ossreviewtoolkit.model.Severity
+import org.ossreviewtoolkit.utils.ort.ORT_VERSION
 
 import org.slf4j.LoggerFactory
 
@@ -63,6 +64,7 @@ internal class ReporterWorker(
         job = ortRunService.startReporterJob(job.id)
             ?: throw IllegalArgumentException("The reporter job with id '$jobId' could not be started.")
         logger.debug("Reporter job with id '{}' started at {}.", job.id, job.startedAt)
+        logger.info("Using ORT version {}.", ORT_VERSION)
 
         if (job.configuration.keepAliveWorker) {
             EndpointComponent.generateKeepAliveFile()

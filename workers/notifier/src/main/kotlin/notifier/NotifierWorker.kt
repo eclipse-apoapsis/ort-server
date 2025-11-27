@@ -32,6 +32,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.validateForProcessing
 
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.utils.ort.ORT_VERSION
+
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(NotifierWorker::class.java)
@@ -51,6 +53,7 @@ internal class NotifierWorker(
             job = ortRunService.startNotifierJob(job.id)
                 ?: throw IllegalArgumentException("The notifier job '$jobId' does not exist.")
             logger.debug("Notifier job with id '{}' started at {}.", jobId, job.startedAt)
+            logger.info("Using ORT version {}.", ORT_VERSION)
 
             if (job.configuration.keepAliveWorker) {
                 EndpointComponent.generateKeepAliveFile()
