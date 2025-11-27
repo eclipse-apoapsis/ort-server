@@ -122,10 +122,10 @@ importers:
         version: 3.9.2(acorn@8.14.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.3.1
-        version: 4.7.0(prettier@3.7.0)
+        version: 4.7.0(prettier@3.7.1)
       prettier:
         specifier: ^3.3.3
-        version: 3.7.0
+        version: 3.7.1
       typescript:
         specifier: ~5.9.0
         version: 5.9.3
@@ -5280,8 +5280,8 @@ packages:
     resolution: {integrity: sha512-jOrdVvzUXBC7C+9gkIkpDJ3HIxOHTIqjpQ4C1EMt1ZGeMvSEpbFCKq23DEfgsj46vMnDgyQf+1ZLp2Wm+bKSsA==}
     engines: {node: '>=10'}
 
-  prettier@3.7.0:
-    resolution: {integrity: sha512-pBiBj/gjRY9Qpk1b7cDda6Rbwvkaggos779AHQ0Ek/odwDx6xG6DRBxtnp1QmxbuD7pAO8/SQ8vuhtGv9LoLWA==}
+  prettier@3.7.1:
+    resolution: {integrity: sha512-RWKXE4qB3u5Z6yz7omJkjWwmTfLdcbv44jUVHC5NpfXwFGzvpQM798FGv/6WNK879tc+Cn0AAyherCl1KjbyZQ==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -8599,13 +8599,13 @@ snapshots:
       react-dom: 19.2.0(react@19.2.0)
       react-hook-form: 7.56.4(react@19.2.0)
 
-  '@ianvs/prettier-plugin-sort-imports@4.7.0(prettier@3.7.0)':
+  '@ianvs/prettier-plugin-sort-imports@4.7.0(prettier@3.7.1)':
     dependencies:
       '@babel/generator': 7.28.3
       '@babel/parser': 7.28.3
       '@babel/traverse': 7.28.3
       '@babel/types': 7.28.2
-      prettier: 3.7.0
+      prettier: 3.7.1
       semver: 7.7.2
     transitivePeerDependencies:
       - supports-color
@@ -13436,7 +13436,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  prettier@3.7.0: {}
+  prettier@3.7.1: {}
 
   pretty-error@4.0.0:
     dependencies:
