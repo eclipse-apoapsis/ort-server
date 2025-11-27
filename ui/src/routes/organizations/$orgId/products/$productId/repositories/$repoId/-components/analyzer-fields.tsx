@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useInfrastructureServices } from '@/hooks/use-infrastructure-services.ts';
+import { useSecrets } from '@/hooks/use-secrets';
 import { useUser } from '@/hooks/use-user.ts';
 import {
   EnvironmentDefinitions,
@@ -88,6 +89,13 @@ export const AnalyzerFields = ({
     orgId,
     productId,
     repoId,
+    user,
+  });
+
+  const secrets = useSecrets({
+    orgId,
+    productId,
+    repositoryId: repoId,
     user,
   });
 
@@ -211,10 +219,10 @@ export const AnalyzerFields = ({
           <div className='flex flex-col gap-2'>
             <h3>Environment variables</h3>
             <div className='mb-2 text-sm text-gray-500'>
-              A map of key-value pairs to set as environment variables during
-              analysis. Use this to specify environment variables that are
-              required by the build process. In case of Gradle, this can also be
-              used to{' '}
+              A list of environment variable names and their values, either
+              literal ones, or retrieved from named secrets. Use this to specify
+              environment variables that are required by the build process. In
+              case of Gradle, this can also be used to{' '}
               <a
                 className='text-blue-400 hover:underline'
                 href={
@@ -227,62 +235,153 @@ export const AnalyzerFields = ({
               </a>
               .
             </div>
-            {environmentVariablesFields.map((field, index) => (
-              <div key={field.id} className='flex flex-row items-end space-x-2'>
-                <div className='flex-auto'>
-                  {index === 0 && <FormLabel className='mb-2'>Name</FormLabel>}
-                  <FormField
-                    control={form.control}
-                    name={`jobConfigs.analyzer.environmentVariables.${index}.name`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className='flex-auto'>
-                  {index === 0 && <FormLabel className='mb-2'>Value</FormLabel>}
-                  <FormField
-                    control={form.control}
-                    name={`jobConfigs.analyzer.environmentVariables.${index}.value`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input {...field} value={field.value ?? undefined} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Button
-                  type='button'
-                  variant='outline'
-                  size='sm'
-                  onClick={() => {
-                    environmentVariablesRemove(index);
-                  }}
-                >
-                  <TrashIcon className='h-4 w-4' />
-                </Button>
-              </div>
-            ))}
-            <Button
-              size='sm'
-              className='mt-2 w-min'
-              variant='outline'
-              type='button'
-              onClick={() => {
-                environmentVariablesAppend({ name: '', value: '' });
-              }}
-            >
-              Add environment variable
-              <PlusIcon className='ml-1 h-4 w-4' />
-            </Button>
+            {(() => {
+              const hasSecrets = environmentVariablesFields.some(
+                (field) => 'secretName' in field
+              );
+              const hasValues = environmentVariablesFields.some(
+                (field) => 'value' in field
+              );
+              const secondColumnLabel =
+                hasSecrets && hasValues
+                  ? 'Value / Secret'
+                  : hasSecrets
+                    ? 'Secret'
+                    : 'Value';
+
+              return environmentVariablesFields.map((field, index) => {
+                const isSecret = 'secretName' in field;
+                return (
+                  <div key={field.id} className='flex flex-row space-x-2'>
+                    <div className='flex-1'>
+                      <FormField
+                        control={form.control}
+                        name={`jobConfigs.analyzer.environmentVariables.${index}.name`}
+                        render={({ field }) => (
+                          <FormItem>
+                            {index === 0 && <FormLabel>Name</FormLabel>}
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className='flex-1'>
+                      {isSecret ? (
+                        <FormField
+                          control={form.control}
+                          name={`jobConfigs.analyzer.environmentVariables.${index}.secretName`}
+                          render={({ field }) => {
+                            const selectedValue =
+                              typeof field.value === 'string' &&
+                              field.value.length > 0
+                                ? field.value
+                                : undefined;
+                            return (
+                              <FormItem>
+                                {index === 0 && (
+                                  <FormLabel>{secondColumnLabel}</FormLabel>
+                                )}
+                                <Select
+                                  value={selectedValue}
+                                  onValueChange={(value) => {
+                                    field.onChange(value);
+                                  }}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className='w-full'>
+                                      <SelectValue placeholder='Select a secret' />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {secrets.map((secret) => {
+                                      const hierarchyLabel =
+                                        secret.hierarchy
+                                          .charAt(0)
+                                          .toUpperCase() +
+                                        secret.hierarchy.slice(1);
+                                      const label = `${secret.name} (${hierarchyLabel})`;
+                                      return (
+                                        <SelectItem
+                                          key={`${secret.hierarchy}:${secret.name}`}
+                                          value={secret.name}
+                                        >
+                                          {label}
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ) : (
+                        <FormField
+                          control={form.control}
+                          name={`jobConfigs.analyzer.environmentVariables.${index}.value`}
+                          render={({ field }) => (
+                            <FormItem>
+                              {index === 0 && (
+                                <FormLabel>{secondColumnLabel}</FormLabel>
+                              )}
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  value={field.value ?? undefined}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </div>
+                    <div className='flex items-end'>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={() => {
+                          environmentVariablesRemove(index);
+                        }}
+                      >
+                        <TrashIcon className='h-4 w-4' />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+            <div className='flex gap-2'>
+              <Button
+                size='sm'
+                className='mt-2 w-min'
+                variant='outline'
+                type='button'
+                onClick={() => {
+                  environmentVariablesAppend({ name: '', value: '' });
+                }}
+              >
+                Add environment variable
+                <PlusIcon className='ml-1 h-4 w-4' />
+              </Button>
+              <Button
+                size='sm'
+                className='mt-2 w-min'
+                variant='outline'
+                type='button'
+                onClick={() => {
+                  environmentVariablesAppend({ name: '', secretName: '' });
+                }}
+              >
+                Add environment secret
+                <PlusIcon className='ml-1 h-4 w-4' />
+              </Button>
+            </div>
           </div>
           <div className='flex flex-col gap-2'>
             <h3>Environment configuration</h3>
