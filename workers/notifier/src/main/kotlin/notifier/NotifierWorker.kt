@@ -50,7 +50,7 @@ internal class NotifierWorker(
 
             job = ortRunService.startNotifierJob(job.id)
                 ?: throw IllegalArgumentException("The notifier job '$jobId' does not exist.")
-            logger.debug("Notifier job with id '{}' started at '{}'.", jobId, job.startedAt)
+            logger.debug("Notifier job with id '{}' started at {}.", jobId, job.startedAt)
 
             if (job.configuration.keepAliveWorker) {
                 EndpointComponent.generateKeepAliveFile()
