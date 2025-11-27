@@ -58,6 +58,7 @@ const packageManagerOptionsSchema = z.object({
 // string | null | undefined.
 const environmentVariableSchema = z.object({
   name: z.string().min(1),
+  secretName: z.string().min(1).nullable().optional(),
   value: z.string().min(1).nullable().optional(),
 });
 
