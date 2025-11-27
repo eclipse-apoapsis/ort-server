@@ -121,7 +121,7 @@ jobs:
     - name: Extract Docker Metadata for ${{ matrix.docker.image }} Image
       if: ${{ matrix.docker.dockerfile != '' }}
       id: meta-base
-      uses: docker/metadata-action@318604b99e75e41977312d83839a89be02ca4893 # v5.9.0
+      uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
       with:
         images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-${{ matrix.docker.image }}
         tags: |
@@ -169,7 +169,7 @@ jobs:
     - name: Extract Docker Metadata for ${{ matrix.docker.jibImage }} Image
       if: ${{ matrix.docker.task != '' }}
       id: meta
-      uses: docker/metadata-action@318604b99e75e41977312d83839a89be02ca4893 # v5.9.0
+      uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
       with:
         tags: |
           type=raw,value=${{ env.ORT_SERVER_VERSION }}
@@ -246,7 +246,7 @@ jobs:
 
     - name: Extract Docker Metadata for base image
       id: meta-base-image
-      uses: docker/metadata-action@318604b99e75e41977312d83839a89be02ca4893 # v5.9.0
+      uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
       with:
         images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/ort-server-base-image
         tags: |
