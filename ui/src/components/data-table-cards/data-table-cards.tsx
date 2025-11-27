@@ -27,8 +27,9 @@ import { DataTablePagination } from '@/components/data-table/data-table-paginati
 import { Table } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
-interface DataTableCardsProps<TData>
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface DataTableCardsProps<
+  TData,
+> extends React.HTMLAttributes<HTMLDivElement> {
   table: TanstackTable<TData>;
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
   setCurrentPageOptions: (page: number) => LinkOptions;
