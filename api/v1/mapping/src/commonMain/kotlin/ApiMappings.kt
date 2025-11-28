@@ -54,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters as ApiOrtRunFil
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCuration as ApiPackageCuration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData as ApiPackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
@@ -785,7 +786,7 @@ fun PackageRunData.mapToApi() = ApiPackage(
     isMetadataOnly = pkg.isMetadataOnly,
     isModified = pkg.isModified,
     shortestDependencyPaths = shortestDependencyPaths.map { it.mapToApi() },
-    curations = curations.map { it.mapToApi() }
+    curations = curations.map { ApiPackageCuration(data = it.mapToApi()) }
 )
 
 fun PackageCurationData.mapToApi() = ApiPackageCurationData(
