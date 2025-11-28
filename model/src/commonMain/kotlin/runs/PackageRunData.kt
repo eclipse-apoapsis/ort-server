@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model.runs
 
-import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 
 /**
  * A data class representing a [Package] with additional data specific to an ORT run.
@@ -38,5 +38,5 @@ data class PackageRunData(
     val concludedLicense: String?,
 
     /** The list of curations applied to the package. */
-    val curations: List<PackageCurationData>
+    val curations: List<PackageCuration>
 )

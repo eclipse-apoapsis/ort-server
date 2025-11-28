@@ -153,6 +153,7 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
@@ -786,7 +787,11 @@ fun PackageRunData.mapToApi() = ApiPackage(
     isMetadataOnly = pkg.isMetadataOnly,
     isModified = pkg.isModified,
     shortestDependencyPaths = shortestDependencyPaths.map { it.mapToApi() },
-    curations = curations.map { ApiPackageCuration(data = it.mapToApi()) }
+    curations = curations.map { it.mapToApi() }
+)
+
+fun PackageCuration.mapToApi() = ApiPackageCuration(
+    data = data.mapToApi()
 )
 
 fun PackageCurationData.mapToApi() = ApiPackageCurationData(
