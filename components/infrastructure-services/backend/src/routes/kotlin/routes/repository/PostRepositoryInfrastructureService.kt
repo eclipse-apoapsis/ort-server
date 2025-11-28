@@ -19,15 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.components.infrastructureservices.routes.repository
 
-import io.github.smiley4.ktoropenapi.post
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryPermission
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requirePermission
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PostInfrastructureService
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -77,9 +76,7 @@ internal fun Route.postRepositoryInfrastructureService(
             }
         }
     }
-}) {
-    requirePermission(RepositoryPermission.WRITE)
-
+}, requirePermission(RepositoryPermission.WRITE)) {
     val repositoryId = call.requireIdParameter("repositoryId")
     val createService = call.receive<PostInfrastructureService>()
 

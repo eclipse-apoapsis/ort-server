@@ -19,10 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.core.api
 
-import io.github.smiley4.ktoropenapi.delete
 import io.github.smiley4.ktoropenapi.get
-import io.github.smiley4.ktoropenapi.patch
-import io.github.smiley4.ktoropenapi.post
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
@@ -30,60 +27,39 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
 import org.eclipse.apoapsis.ortserver.api.v1.model.PatchSection
 import org.eclipse.apoapsis.ortserver.api.v1.model.PostUser
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireAuthenticated
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.UserService
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.delete
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.patch
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.post
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserService
 import org.eclipse.apoapsis.ortserver.core.apiDocs.deleteUser
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.getUsers
 import org.eclipse.apoapsis.ortserver.core.apiDocs.patchSection
 import org.eclipse.apoapsis.ortserver.core.apiDocs.postUser
-import org.eclipse.apoapsis.ortserver.core.apiDocs.runPermissionsSync
 import org.eclipse.apoapsis.ortserver.services.ContentManagementService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 import org.koin.ktor.ext.inject
 
 fun Route.admin() = route("admin") {
-    route("sync-roles") {
-        val authorizationService by inject<AuthorizationService>()
-
-        get(runPermissionsSync) {
-            requireSuperuser()
-
-            withContext(Dispatchers.IO) {
-                launch {
-                    authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
-                }
-
-                call.respond(HttpStatusCode.Accepted)
-            }
-        }
-    }
     /**
      * For CRUD operations for users.
      */
     route("users") {
         val userService by inject<UserService>()
 
-        get(getUsers) {
-            requireSuperuser()
-
+        get(getUsers, requireSuperuser()) {
             val users = userService.getUsers().map { user -> user.mapToApi() }
             call.respond(users)
         }
 
-        post(postUser) {
-            requireSuperuser()
-
+        post(postUser, requireSuperuser()) {
             val createUser = call.receive<PostUser>()
             userService.createUser(
                 username = createUser.username,
@@ -97,9 +73,7 @@ fun Route.admin() = route("admin") {
             call.respond(HttpStatusCode.Created)
         }
 
-        delete(deleteUser) {
-            requireSuperuser()
-
+        delete(deleteUser, requireSuperuser()) {
             val username = call.requireParameter("username")
             userService.deleteUser(username)
 
@@ -115,7 +89,7 @@ fun Route.admin() = route("admin") {
 
         route("sections/{sectionId}") {
             get(getSection) {
-                requireAuthenticated()
+                requirePrincipal()
 
                 val id = call.requireParameter("sectionId")
 
@@ -125,9 +99,7 @@ fun Route.admin() = route("admin") {
                 call.respond(HttpStatusCode.OK, section.mapToApi())
             }
 
-            patch(patchSection) {
-                requireSuperuser()
-
+            patch(patchSection, requireSuperuser()) {
                 val id = call.requireParameter("sectionId")
                 val updateSection = call.receive<PatchSection>()
 

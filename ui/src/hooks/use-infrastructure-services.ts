@@ -26,6 +26,11 @@ import {
   getRepositoryInfrastructureServicesOptions,
 } from '@/api/@tanstack/react-query.gen';
 import { ALL_ITEMS } from '@/lib/constants';
+import {
+  OrganizationPermissions,
+  ProductPermissions,
+  RepositoryPermissions,
+} from '@/lib/permissions.ts';
 
 export type InfrastructureServiceWithHierarchy = InfrastructureService & {
   hierarchy: 'organization' | 'product' | 'repository';
@@ -35,8 +40,10 @@ type UseInfrastructureServicesParams = {
   orgId?: string;
   productId?: string;
   repoId?: string;
-  user: {
-    hasRole: (roles: string[]) => boolean;
+  permissions: {
+    organization: OrganizationPermissions | undefined;
+    product: ProductPermissions | undefined;
+    repository: RepositoryPermissions | undefined;
   };
 };
 
@@ -44,7 +51,7 @@ export const useInfrastructureServices = ({
   orgId,
   productId,
   repoId,
-  user,
+  permissions,
 }: UseInfrastructureServicesParams) => {
   // Only fetch infrastructure services the user has access to.
   const infrastructureServices = useQueries({
@@ -58,10 +65,7 @@ export const useInfrastructureServices = ({
             limit: ALL_ITEMS,
           },
         }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_organization_${orgId}_read`,
-        ]),
+        enabled: permissions.organization?.includes('READ'),
       },
       {
         ...getProductInfrastructureServicesOptions({
@@ -72,10 +76,7 @@ export const useInfrastructureServices = ({
             limit: ALL_ITEMS,
           },
         }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_product_${productId}_read`,
-        ]),
+        enabled: permissions.product?.includes('READ'),
       },
       {
         ...getRepositoryInfrastructureServicesOptions({
@@ -86,10 +87,7 @@ export const useInfrastructureServices = ({
             limit: ALL_ITEMS,
           },
         }),
-        enabled: user.hasRole([
-          'superuser',
-          `permission_repository_${repoId}_read`,
-        ]),
+        enabled: permissions.repository?.includes('READ'),
       },
     ],
     combine: (results) => {

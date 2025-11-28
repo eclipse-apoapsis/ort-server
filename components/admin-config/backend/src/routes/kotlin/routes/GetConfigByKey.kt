@@ -28,7 +28,7 @@ import io.ktor.server.routing.Route
 import org.eclipse.apoapsis.ortserver.components.adminconfig.Config
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigKey
 import org.eclipse.apoapsis.ortserver.components.adminconfig.ConfigTable
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireAuthenticated
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
@@ -68,7 +68,7 @@ internal fun Route.getConfigByKey(db: Database) = get("admin/config/{key}", {
         }
     }
 }) {
-    requireAuthenticated()
+    requirePrincipal()
 
     val keyParameter = call.requireParameter("key")
 

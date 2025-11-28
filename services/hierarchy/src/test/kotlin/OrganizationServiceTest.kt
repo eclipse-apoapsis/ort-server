@@ -21,18 +21,22 @@ package org.eclipse.apoapsis.ortserver.services
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.dao.repositories.organization.DaoOrganizationRepository
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.DaoProductRepository
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.sql.Database
 
@@ -51,57 +55,6 @@ class OrganizationServiceTest : WordSpec({
         fixtures = dbExtension.fixtures
     }
 
-    "createOrganization" should {
-        "create Keycloak roles" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { createOrganizationPermissions(any()) } just runs
-                coEvery { createOrganizationRoles(any()) } just runs
-            }
-
-            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
-            val organization = service.createOrganization("name", "description")
-
-            coVerify(exactly = 1) {
-                authorizationService.createOrganizationPermissions(organization.id)
-                authorizationService.createOrganizationRoles(organization.id)
-            }
-        }
-    }
-
-    "createProduct" should {
-        "create Keycloak roles" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { createProductPermissions(any()) } just runs
-                coEvery { createProductRoles(any()) } just runs
-            }
-
-            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
-            val product = service.createProduct("name", "description", fixtures.organization.id)
-
-            coVerify(exactly = 1) {
-                authorizationService.createProductPermissions(product.id)
-                authorizationService.createProductRoles(product.id)
-            }
-        }
-    }
-
-    "deleteOrganization" should {
-        "delete Keycloak roles" {
-            val authorizationService = mockk<AuthorizationService> {
-                coEvery { deleteOrganizationPermissions(any()) } just runs
-                coEvery { deleteOrganizationRoles(any()) } just runs
-            }
-
-            val service = OrganizationService(db, organizationRepository, productRepository, authorizationService)
-            service.deleteOrganization(fixtures.organization.id)
-
-            coVerify(exactly = 1) {
-                authorizationService.deleteOrganizationPermissions(fixtures.organization.id)
-                authorizationService.deleteOrganizationRoles(fixtures.organization.id)
-            }
-        }
-    }
-
     "getRepositoryIdsForOrganization" should {
         "return IDs for all repositories found in the products of the organization" {
             val service = OrganizationService(db, organizationRepository, productRepository, mockk())
@@ -116,6 +69,69 @@ class OrganizationServiceTest : WordSpec({
             val repo3Id = fixtures.createRepository(url = "https://example.com/repo3.git", productId = prod2Id).id
 
             service.getRepositoryIdsForOrganization(orgId).shouldContainExactlyInAnyOrder(repo1Id, repo2Id, repo3Id)
+        }
+    }
+
+    "listOrganizationsForUser" should {
+        "filter for organizations visible to a specific user" {
+            val userId = "test-user"
+            val org1Id = fixtures.organization.id
+            val org2 = fixtures.createOrganization(name = "Org2")
+            val org2Id = org2.id
+            val orgHierarchyIds = listOf(org1Id, org2Id).map { id ->
+                CompoundHierarchyId.forOrganization(OrganizationId(id))
+            }
+            fixtures.createOrganization(name = "HiddenOrg").id
+
+            val authService = mockk<AuthorizationService> {
+                coEvery {
+                    filterHierarchyIds(userId, OrganizationRole.READER)
+                } returns HierarchyFilter(
+                    transitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to orgHierarchyIds),
+                    nonTransitiveIncludes = emptyMap()
+                )
+            }
+
+            val service = OrganizationService(db, organizationRepository, productRepository, authService)
+            val organizations = service.listOrganizationsForUser(userId)
+
+            organizations.totalCount shouldBe 2
+            organizations.data shouldContainExactlyInAnyOrder listOf(fixtures.organization, org2)
+        }
+    }
+
+    "listOrganizationsForUserAndOrganization" should {
+        "filter for products visible to a specific user in a specific organization" {
+            val userId = "test-user"
+            val org1Id = fixtures.organization.id
+            val prod1 = fixtures.createProduct("product", organizationId = org1Id)
+            val prod2 = fixtures.createProduct("product2", organizationId = org1Id)
+            fixtures.createProduct("hiddenProduct")
+            val prod1HierarchyId = CompoundHierarchyId.forProduct(
+                OrganizationId(org1Id),
+                ProductId(prod1.id)
+            )
+            val prod2HierarchyId = CompoundHierarchyId.forProduct(
+                OrganizationId(org1Id),
+                ProductId(prod2.id)
+            )
+
+            val authService = mockk<AuthorizationService> {
+                coEvery {
+                    filterHierarchyIds(userId, ProductRole.READER, OrganizationId(org1Id))
+                } returns HierarchyFilter(
+                    transitiveIncludes = mapOf(
+                        CompoundHierarchyId.PRODUCT_LEVEL to listOf(prod1HierarchyId, prod2HierarchyId)
+                    ),
+                    nonTransitiveIncludes = emptyMap()
+                )
+            }
+
+            val service = OrganizationService(db, organizationRepository, productRepository, authService)
+            val products = service.listProductsForOrganizationAndUser(org1Id, userId)
+
+            products.totalCount shouldBe 2
+            products.data shouldContainExactlyInAnyOrder listOf(prod1, prod2)
         }
     }
 })

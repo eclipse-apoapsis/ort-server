@@ -30,11 +30,12 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.mockk
+
 import kotlin.time.Duration.Companion.minutes
 
 import kotlinx.datetime.Clock
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
@@ -51,20 +52,11 @@ class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
     var repositoryId = -1L
 
     beforeEach {
-        val authorizationService = KeycloakAuthorizationService(
-            keycloakClient,
-            dbExtension.db,
-            dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
-        )
-
         val organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
-            authorizationService
+            mockk()
         )
 
         val productService = ProductService(
@@ -72,7 +64,7 @@ class DownloadsRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
             dbExtension.fixtures.ortRunRepository,
-            authorizationService
+            mockk()
         )
 
         val orgId = organizationService.createOrganization(name = "name", description = "description").id

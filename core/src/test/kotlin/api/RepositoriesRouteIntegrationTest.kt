@@ -23,14 +23,13 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.containAnyOf
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldContainIgnoringCase
 
@@ -44,6 +43,8 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+
+import io.mockk.mockk
 
 import java.util.EnumSet
 
@@ -77,23 +78,23 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.User as ApiUser
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserGroup as ApiUserGroup
 import org.eclipse.apoapsis.ortserver.api.v1.model.UserWithGroups as ApiUserWithGroups
 import org.eclipse.apoapsis.ortserver.api.v1.model.Username
-import org.eclipse.apoapsis.ortserver.clients.keycloak.GroupName
-import org.eclipse.apoapsis.ortserver.clients.keycloak.test.addUserRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.api.RepositoryRole as ApiRepositoryRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.mapToModel
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.roles.RepositoryRole
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.api.RepositoryRole as ApiRepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.mapToModel
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginOptionTemplate
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginType
 import org.eclipse.apoapsis.ortserver.core.SUPERUSER
 import org.eclipse.apoapsis.ortserver.core.TEST_USER
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.JobConfigurations
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
@@ -127,20 +128,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     var productId = -1L
 
     beforeEach {
-        authorizationService = KeycloakAuthorizationService(
-            keycloakClient,
-            dbExtension.db,
-            dbExtension.fixtures.organizationRepository,
-            dbExtension.fixtures.productRepository,
-            dbExtension.fixtures.repositoryRepository,
-            keycloakGroupPrefix = ""
-        )
+        authorizationService = DbAuthorizationService(dbExtension.db)
 
         val organizationService = OrganizationService(
             dbExtension.db,
             dbExtension.fixtures.organizationRepository,
             dbExtension.fixtures.productRepository,
-            authorizationService
+            mockk()
         )
 
         pluginService = PluginService(dbExtension.db)
@@ -150,7 +144,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             dbExtension.fixtures.productRepository,
             dbExtension.fixtures.repositoryRepository,
             dbExtension.fixtures.ortRunRepository,
-            authorizationService
+            mockk()
         )
 
         ortRunRepository = dbExtension.fixtures.ortRunRepository
@@ -175,6 +169,13 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
     fun createJobSummaries(ortRunId: Long) = dbExtension.fixtures.createJobs(ortRunId).mapToApiSummary()
 
+    fun org.eclipse.apoapsis.ortserver.model.Repository.hierarchyId(prodId: Long = productId): CompoundHierarchyId =
+        CompoundHierarchyId.forRepository(
+            OrganizationId(orgId),
+            ProductId(prodId),
+            RepositoryId(id)
+        )
+
     "GET /repositories/{repositoryId}" should {
         "return a single repository" {
             integrationTestApplication {
@@ -197,7 +198,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         "require RepositoryPermission.READ" {
             val createdRepository = createRepository()
-            requestShouldRequireRole(RepositoryPermission.READ.roleName(createdRepository.id)) {
+            requestShouldRequireRole(RepositoryRole.READER, createdRepository.hierarchyId()) {
                 get("/api/v1/repositories/${createdRepository.id}")
             }
         }
@@ -274,7 +275,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         "require RepositoryPermission.WRITE" {
             val createdRepository = createRepository()
-            requestShouldRequireRole(RepositoryPermission.WRITE.roleName(createdRepository.id)) {
+            requestShouldRequireRole(RepositoryRole.WRITER, createdRepository.hierarchyId()) {
                 val updateRepository = PatchRepository(
                     ApiRepositoryType.SUBVERSION.asPresent(),
                     "https://svn.example.com/repos/org/repo/trunk".asPresent()
@@ -296,27 +297,11 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
-        "delete Keycloak roles and groups" {
-            integrationTestApplication {
-                val createdRepository = createRepository()
-
-                superuserClient.delete("/api/v1/repositories/${createdRepository.id}")
-
-                keycloakClient.getRoles().map { it.name.value } shouldNot containAnyOf(
-                    RepositoryPermission.getRolesForRepository(createdRepository.id) +
-                        RepositoryRole.getRolesForRepository(createdRepository.id)
-                )
-
-                keycloakClient.getGroups().map { it.name.value } shouldNot containAnyOf(
-                    RepositoryRole.getGroupsForRepository(createdRepository.id)
-                )
-            }
-        }
-
         "require RepositoryPermission.DELETE" {
             val createdRepository = createRepository()
             requestShouldRequireRole(
-                RepositoryPermission.DELETE.roleName(createdRepository.id),
+                RepositoryRole.ADMIN,
+                createdRepository.hierarchyId(),
                 HttpStatusCode.NoContent
             ) {
                 delete("/api/v1/repositories/${createdRepository.id}")
@@ -455,7 +440,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         "require RepositoryPermission.READ_ORT_RUNS" {
             val createdRepository = createRepository()
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(createdRepository.id)) {
+            requestShouldRequireRole(RepositoryRole.READER, createdRepository.hierarchyId()) {
                 get("/api/v1/repositories/${createdRepository.id}/runs")
             }
         }
@@ -522,7 +507,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     null
                 )
 
-            requestShouldRequireRole(RepositoryPermission.READ_ORT_RUNS.roleName(createdRepository.id)) {
+            requestShouldRequireRole(RepositoryRole.READER, createdRepository.hierarchyId()) {
                 get("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
             }
         }
@@ -544,7 +529,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 )
 
             requestShouldRequireRole(
-                RepositoryPermission.DELETE.roleName(createdRepository.id),
+                RepositoryRole.ADMIN,
+                createdRepository.hierarchyId(),
                 HttpStatusCode.NoContent
             ) {
                 delete("/api/v1/repositories/${createdRepository.id}/runs/${run.index}")
@@ -681,7 +667,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         "require RepositoryPermission.TRIGGER_ORT_RUN" {
             val createdRepository = createRepository()
             requestShouldRequireRole(
-                RepositoryPermission.TRIGGER_ORT_RUN.roleName(createdRepository.id),
+                RepositoryRole.WRITER,
+                createdRepository.hierarchyId(),
                 HttpStatusCode.Created
             ) {
                 val createRun = PostRepositoryRun("main", null, ApiJobConfigurations(), labelsMap)
@@ -917,15 +904,16 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
         "respond with 'Forbidden' if 'keepAliveWorker' is set by a non super-user" {
             integrationTestApplication {
-                val repositoryId = createRepository().id
+                val repository = createRepository()
 
-                keycloak.keycloakAdminClient.addUserRole(
+                authorizationService.assignRole(
                     TEST_USER.username.value,
-                    RepositoryPermission.TRIGGER_ORT_RUN.roleName(repositoryId)
+                    RepositoryRole.WRITER,
+                    repository.hierarchyId()
                 )
 
                 keepAliveJobConfigs.forAll {
-                    val response = testUserClient.post("/api/v1/repositories/$repositoryId/runs") {
+                    val response = testUserClient.post("/api/v1/repositories/${repository.id}/runs") {
                         setBody(PostRepositoryRun(revision = "main", jobConfigs = it))
                     }
 
@@ -959,7 +947,8 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                 val createdRepo = createRepository()
                 val user = Username(TEST_USER.username.value)
                 requestShouldRequireRole(
-                    RepositoryPermission.MANAGE_GROUPS.roleName(createdRepo.id),
+                    RepositoryRole.ADMIN,
+                    createdRepo.hierarchyId(),
                     HttpStatusCode.NoContent
                 ) {
                     when (method) {
@@ -995,10 +984,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                         else -> error("Unsupported method: $method")
                     }
 
-                    response shouldHaveStatus HttpStatusCode.InternalServerError
+                    response shouldHaveStatus HttpStatusCode.NotFound
 
                     val body = response.body<ErrorResponse>()
-                    body.cause shouldContain "Could not find user"
+                    body.message shouldContain "Could not find user"
                 }
             }
         }
@@ -1026,7 +1015,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     response shouldHaveStatus HttpStatusCode.NotFound
 
                     val body = response.body<ErrorResponse>()
-                    body.message shouldContain "not found"
+                    body.message shouldContain "Could not resolve hierarchy ID"
                 }
             }
         }
@@ -1097,14 +1086,9 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 
-                    val groupName = role.mapToModel().groupName(createdRepo.id)
-                    val group = keycloakClient.getGroup(GroupName(groupName))
-                    group.shouldNotBeNull()
-
-                    val members = keycloakClient.getGroupMembers(group.name)
-                    members.shouldBeSingleton {
-                        it.username shouldBe TEST_USER.username
-                    }
+                    val members = authorizationService.listUsersWithRole(role.mapToModel(), createdRepo.hierarchyId())
+                    members shouldHaveSize 1
+                    members shouldContain TEST_USER.username.value
                 }
             }
         }
@@ -1117,15 +1101,7 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
                     val createdRepo = createRepository()
                     val user = Username(TEST_USER.username.value)
 
-                    authorizationService.addUserRole(user.username, RepositoryId(createdRepo.id), role.mapToModel())
-
-                    // Check pre-condition
-                    val groupName = role.mapToModel().groupName(createdRepo.id)
-                    val groupBefore = keycloakClient.getGroup(GroupName(groupName))
-                    val membersBefore = keycloakClient.getGroupMembers(groupBefore.name)
-                    membersBefore.shouldBeSingleton {
-                        it.username shouldBe TEST_USER.username
-                    }
+                    authorizationService.assignRole(user.username, role.mapToModel(), createdRepo.hierarchyId())
 
                     val response = superuserClient.delete(
                         "/api/v1/repositories/${createdRepo.id}/roles/${role.name}?username=${user.username}"
@@ -1133,10 +1109,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
 
                     response shouldHaveStatus HttpStatusCode.NoContent
 
-                    val groupAfter = keycloakClient.getGroup(GroupName(groupName))
-                    groupAfter.shouldNotBeNull()
-
-                    val membersAfter = keycloakClient.getGroupMembers(groupAfter.name)
+                    val membersAfter = authorizationService.listUsersWithRole(
+                        role.mapToModel(),
+                        createdRepo.hierarchyId()
+                    )
                     membersAfter.shouldBeEmpty()
                 }
             }
@@ -1146,25 +1122,20 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
     "GET /repositories/{repositoryId}/users" should {
         "return list of users that have rights for repository" {
             integrationTestApplication {
-                val repositoryId = createRepository().id
+                val repository = createRepository()
 
-                authorizationService.addUserRole(
+                authorizationService.assignRole(
                     TEST_USER.username.value,
-                    RepositoryId(repositoryId),
-                    RepositoryRole.READER
+                    RepositoryRole.READER,
+                    repository.hierarchyId()
                 )
-                authorizationService.addUserRole(
+                authorizationService.assignRole(
                     SUPERUSER.username.value,
-                    RepositoryId(repositoryId),
-                    RepositoryRole.WRITER
-                )
-                authorizationService.addUserRole(
-                    SUPERUSER.username.value,
-                    RepositoryId(repositoryId),
-                    RepositoryRole.ADMIN
+                    RepositoryRole.ADMIN,
+                    repository.hierarchyId()
                 )
 
-                val response = superuserClient.get("/api/v1/repositories/$repositoryId/users")
+                val response = superuserClient.get("/api/v1/repositories/${repository.id}/users")
 
                 response shouldHaveStatus HttpStatusCode.OK
                 response shouldHaveBody PagedResponse(
@@ -1207,6 +1178,41 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "filter out users with inherited roles" {
+            integrationTestApplication {
+                val repository = createRepository()
+
+                authorizationService.assignRole(
+                    TEST_USER.username.value,
+                    RepositoryRole.READER,
+                    repository.hierarchyId()
+                )
+                authorizationService.assignRole(
+                    SUPERUSER.username.value,
+                    RepositoryRole.ADMIN,
+                    repository.hierarchyId().parent!!
+                )
+
+                val response = superuserClient.get("/api/v1/repositories/${repository.id}/users")
+
+                response shouldHaveStatus HttpStatusCode.OK
+                response shouldHaveBody PagedResponse(
+                    listOf(
+                        ApiUserWithGroups(
+                            ApiUser(TEST_USER.username.value, TEST_USER.firstName, TEST_USER.lastName, TEST_USER.email),
+                            listOf(ApiUserGroup.READERS)
+                        )
+                    ),
+                    PagingData(
+                        limit = DEFAULT_LIMIT,
+                        offset = 0,
+                        totalCount = 1,
+                        sortProperties = listOf(SortProperty("username", SortDirection.ASCENDING))
+                    )
+                )
+            }
+        }
+
         "respond with 'Bad Request' if there is more than one sort field" {
             integrationTestApplication {
                 val repositoryId = createRepository().id
@@ -1236,10 +1242,10 @@ class RepositoriesRouteIntegrationTest : AbstractIntegrationTest({
         }
 
         "require RepositoryPermission.READ" {
-            val repositoryId = createRepository().id
+            val createRepository = createRepository()
 
-            requestShouldRequireRole(RepositoryPermission.READ.roleName(repositoryId)) {
-                get("/api/v1/repositories/$repositoryId/users")
+            requestShouldRequireRole(RepositoryRole.READER, createRepository.hierarchyId()) {
+                get("/api/v1/repositories/${createRepository.id}/users")
             }
         }
     }
