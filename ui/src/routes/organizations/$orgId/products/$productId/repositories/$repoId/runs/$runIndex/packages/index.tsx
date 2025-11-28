@@ -304,7 +304,7 @@ const renderSubComponent = ({
               </div>
               {pkg.curations.map((curation, idx) => (
                 <div key={idx} className=''>
-                  <PackageCuration curation={curation} />
+                  <PackageCuration curation={curation.data} />
                 </div>
               ))}
             </AccordionContent>
