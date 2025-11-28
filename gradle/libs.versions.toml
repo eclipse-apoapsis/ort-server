@@ -17,7 +17,7 @@
 
 [versions]
 # Gradle plugins
-buildConfigPlugin = "6.0.5"
+buildConfigPlugin = "6.0.6"
 dependencyAnalysisPlugin = "3.5.1"
 detektPlugin = "1.23.8"
 gitSemverPlugin = "0.17.1"
