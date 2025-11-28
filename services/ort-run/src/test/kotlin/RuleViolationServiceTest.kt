@@ -195,6 +195,7 @@ class RuleViolationServiceTest : WordSpec() {
                     curations = listOf(
                         PackageCuration(
                             id = pkg1.identifier,
+                            providerName = "providerName",
                             data = PackageCurationData(purl = "curated")
                         )
                     )

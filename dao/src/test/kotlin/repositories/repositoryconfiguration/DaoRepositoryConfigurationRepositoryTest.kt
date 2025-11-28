@@ -252,6 +252,7 @@ private val identifier = Identifier(
 
 private val packageCuration = PackageCuration(
     id = identifier,
+    providerName = "providerName",
     data = packageCurationData
 )
 

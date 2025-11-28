@@ -777,7 +777,7 @@ class OrtRunServiceTest : WordSpec({
             val packageCurations = listOf(
                 ResolvedPackageCurations(
                     provider = PackageCurationProviderConfig(name = "name"),
-                    curations = listOf(PackageCuration(id = id, PackageCurationData()))
+                    curations = listOf(PackageCuration(id, "providerName", PackageCurationData()))
                 )
             )
             fixtures.resolvedConfigurationRepository.addPackageCurations(ortRun.id, packageCurations)

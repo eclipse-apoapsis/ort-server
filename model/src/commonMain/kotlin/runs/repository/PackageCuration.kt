@@ -23,5 +23,6 @@ import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 
 data class PackageCuration(
     val id: Identifier,
+    val providerName: String,
     val data: PackageCurationData
 )

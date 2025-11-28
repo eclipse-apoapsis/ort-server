@@ -518,6 +518,7 @@ class PackageServiceTest : WordSpec() {
 
                 val curation1 = PackageCuration(
                     id = pkg1.identifier,
+                    providerName = "providerName",
                     data = PackageCurationData(
                         comment = "comment1",
                         authors = setOf("author1", "author2"),
@@ -527,6 +528,7 @@ class PackageServiceTest : WordSpec() {
 
                 val curation2 = PackageCuration(
                     id = pkg2.identifier,
+                    providerName = "providerName",
                     data = PackageCurationData(
                         comment = "comment2",
                         declaredLicenseMapping = mapOf("invalid-license" to "LicenseRef-mapped"),

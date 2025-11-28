@@ -107,6 +107,15 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             loadEvaluatorRun = false,
             failIfRepoInfoMissing = false
         )
+
+        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
+
+        val curations = resolvedConfiguration.packageCurations.flatMap {
+            it.curations.map { curation ->
+                PackageCuration(curation.id, it.provider.name, curation.data)
+            }
+        }
+
         val packages = ortResult.getPackages()
 
         val result = packages.map { pkg ->
@@ -115,7 +124,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                 pkgId = 0L,
                 shortestDependencyPaths = emptyList(),
                 concludedLicense = pkg.metadata.concludedLicense?.toString(),
-                curations = pkg.curations.map { PackageCuration(pkg.metadata.id.mapToModel(), it.mapToModel()) }
+                curations = curations
             )
         }
 

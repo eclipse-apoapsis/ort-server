@@ -33,6 +33,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
  */
 object PackageCurationsTable : LongIdTable("package_curations") {
     val identifierId = reference("identifier_id", IdentifiersTable)
+    val providerName = text("provider_name")
     val packageCurationDataId = reference("package_curation_data_id", PackageCurationDataTable)
 }
 
@@ -40,10 +41,12 @@ class PackageCurationDao(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<PackageCurationDao>(PackageCurationsTable)
 
     var identifier by IdentifierDao referencedOn PackageCurationsTable.identifierId
+    var providerName by PackageCurationsTable.providerName
     var packageCurationData by PackageCurationDataDao referencedOn PackageCurationsTable.packageCurationDataId
 
     fun mapToModel() = PackageCuration(
         id = identifier.mapToModel(),
+        providerName = providerName,
         data = packageCurationData.mapToModel()
     )
 }
