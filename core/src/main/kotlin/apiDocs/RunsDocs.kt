@@ -42,6 +42,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatistics
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCuration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.ProcessedDeclaredLicense
@@ -480,22 +481,24 @@ val getRunPackages: RouteConfig.() -> Unit = {
                                     )
                                 ),
                                 curations = listOf(
-                                    PackageCurationData(
-                                        comment = "Fix the homepage URL.",
-                                        purl = null,
-                                        cpe = null,
-                                        authors = null,
-                                        concludedLicense = null,
-                                        description = null,
-                                        homepageUrl = "https://example.org",
-                                        binaryArtifact = null,
-                                        sourceArtifact = null,
-                                        vcs = null,
-                                        isMetadataOnly = null,
-                                        isModified = null,
-                                        declaredLicenseMapping = emptyMap(),
-                                        sourceCodeOrigins = null,
-                                        labels = emptyMap()
+                                    PackageCuration(
+                                        data = PackageCurationData(
+                                            comment = "Fix the homepage URL.",
+                                            purl = null,
+                                            cpe = null,
+                                            authors = null,
+                                            concludedLicense = null,
+                                            description = null,
+                                            homepageUrl = "https://example.org",
+                                            binaryArtifact = null,
+                                            sourceArtifact = null,
+                                            vcs = null,
+                                            isMetadataOnly = null,
+                                            isModified = null,
+                                            declaredLicenseMapping = emptyMap(),
+                                            sourceCodeOrigins = null,
+                                            labels = emptyMap()
+                                        )
                                     )
                                 )
                             )
