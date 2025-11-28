@@ -38,4 +38,6 @@ data class PackageCurationData(
     val declaredLicenseMapping: Map<String, String>,
     val sourceCodeOrigins: List<SourceCodeOrigin>?,
     val labels: Map<String, String>,
+    /** The name of the curation provider this curation came from. */
+    val providerName: String?,
 )
