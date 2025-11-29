@@ -28,14 +28,17 @@ import kotlinx.serialization.json.Json
 
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient
 import org.eclipse.apoapsis.ortserver.clients.keycloak.KeycloakClient
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService
+import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.AuthorizationService as KeycloakAuthService
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.KeycloakAuthorizationService
 import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.service.UserService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService as HierarchyAuthService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.DbAuthorizationService as DbAuthorizationServiceImpl
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginService
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateEventStore
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.PluginTemplateService
+import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.core.plugins.customSerializersModule
@@ -113,7 +116,7 @@ import org.ossreviewtoolkit.scanner.utils.FileListResolver
  * Creates the Koin module for the ORT server. The [config] is used to configure the application and the database. For
  * integration tests, the [database][db] from the testcontainer and an [authorizationService] can be provided directly.
  */
-fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationService: AuthorizationService?) = module {
+fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationService: KeycloakAuthService?) = module {
     single { config }
     single { ConfigFactory.parseMap(config.toMap()) }
     singleOf(ConfigManager::create)
@@ -188,17 +191,20 @@ fun ortServerModule(config: ApplicationConfig, db: Database?, authorizationServi
     singleOf(::ProjectService)
     singleOf(::RepositoryService)
     singleOf(::RuleViolationService)
+    singleOf(::SearchService)
     singleOf(::SecretService)
     singleOf(::VulnerabilityService)
 
     if (authorizationService != null) {
-        single<AuthorizationService> { authorizationService }
+        single<KeycloakAuthService> { authorizationService }
     } else {
-        single<AuthorizationService> {
+        single<KeycloakAuthService> {
             val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
             KeycloakAuthorizationService(get(), get(), get(), get(), get(), keycloakGroupPrefix)
         }
     }
+
+    single<HierarchyAuthService> { DbAuthorizationServiceImpl(get()) }
 
     single<UserService> {
         val keycloakGroupPrefix = get<ApplicationConfig>().tryGetString("keycloak.groupPrefix").orEmpty()
