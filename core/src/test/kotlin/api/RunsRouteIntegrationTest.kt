@@ -26,6 +26,7 @@ import io.kotest.assertions.ktor.client.haveHeader
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.engine.spec.tempdir
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.haveSize
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -106,8 +107,11 @@ import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableSecret
 import org.eclipse.apoapsis.ortserver.model.SecretSource
 import org.eclipse.apoapsis.ortserver.model.Severity
+import org.eclipse.apoapsis.ortserver.model.SourceCodeOrigin
 import org.eclipse.apoapsis.ortserver.model.UserDisplayName
 import org.eclipse.apoapsis.ortserver.model.repositories.OrtRunRepository
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
+import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.AnalyzerConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.Environment
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
@@ -124,7 +128,10 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.reporter.Report
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
+import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Resolutions
+import org.eclipse.apoapsis.ortserver.model.runs.repository.VcsInfoCurationData
 import org.eclipse.apoapsis.ortserver.model.runs.repository.VulnerabilityResolution
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
 import org.eclipse.apoapsis.ortserver.services.OrganizationService
@@ -1072,6 +1079,87 @@ class RunsRouteIntegrationTest : AbstractIntegrationTest({
     }
 
     "GET /runs/{runId}/packages" should {
+        "include providerName in curations for each package" {
+            integrationTestApplication {
+                val ortRun = dbExtension.fixtures.createOrtRun(
+                    repositoryId = repositoryId,
+                    revision = "revision-provider-test",
+                    jobConfigurations = JobConfigurations()
+                )
+
+                val analyzerJob = dbExtension.fixtures.createAnalyzerJob(
+                    ortRunId = ortRun.id,
+                    configuration = AnalyzerJobConfiguration()
+                )
+
+                val identifier = Identifier("Maven", "com.example", "provider-test", "1.0")
+                val pkg = dbExtension.fixtures.generatePackage(identifier)
+
+                dbExtension.fixtures.createAnalyzerRun(
+                    analyzerJobId = analyzerJob.id,
+                    packages = setOf(pkg)
+                )
+
+                // Add a curation with a provider name for this package.
+                // Note: All fields must have non-null values because the server serializes with
+                // explicitNulls=false, which omits null fields from JSON. The API model doesn't
+                // have defaults, so deserialization would fail if fields are missing.
+                val curationProviderName = "integration-provider"
+                val curation = PackageCuration(
+                    id = identifier,
+                    data = PackageCurationData(
+                        comment = "integration test curation",
+                        purl = "pkg:maven/com.example/provider-test@1.0",
+                        cpe = "cpe:2.3:a:example:provider-test:1.0:*:*:*:*:*:*:*",
+                        authors = setOf("Test Author"),
+                        concludedLicense = "Apache-2.0",
+                        description = "Test package for provider integration",
+                        homepageUrl = "https://example.com",
+                        binaryArtifact = RemoteArtifact(
+                            url = "https://repo1.maven.org/provider-test/1.0/provider-test-1.0.jar",
+                            hashValue = "0".repeat(64),
+                            hashAlgorithm = "SHA-256"
+                        ),
+                        sourceArtifact = RemoteArtifact(
+                            url = "https://repo1.maven.org/provider-test/1.0/provider-test-1.0-sources.jar",
+                            hashValue = "1".repeat(64),
+                            hashAlgorithm = "SHA-256"
+                        ),
+                        vcs = VcsInfoCurationData(
+                            type = RepositoryType.GIT,
+                            url = "https://github.com/example/provider-test.git",
+                            revision = "main",
+                            path = ""
+                        ),
+                        isMetadataOnly = false,
+                        isModified = false,
+                        declaredLicenseMapping = mapOf("MIT" to "MIT"),
+                        sourceCodeOrigins = listOf(SourceCodeOrigin.VCS),
+                        labels = mapOf("test" to "true")
+                    )
+                )
+                val resolvedCurations = ResolvedPackageCurations(
+                    provider = PackageCurationProviderConfig(curationProviderName),
+                    curations = listOf(curation)
+                )
+                dbExtension.fixtures.resolvedConfigurationRepository.addPackageCurations(
+                    ortRun.id,
+                    listOf(resolvedCurations)
+                )
+
+                val response = superuserClient.get("/api/v1/runs/${ortRun.id}/packages")
+                response shouldHaveStatus HttpStatusCode.OK
+                val packages = response.body<PagedSearchResponse<ApiPackage, PackageFilters>>()
+
+                packages.data.find { it.identifier == identifier.mapToApi() } shouldNotBeNull {
+                    curations should haveSize(1)
+                    with(curations.single()) {
+                        providerName shouldBe curationProviderName
+                        comment shouldBe "integration test curation"
+                    }
+                }
+            }
+        }
         "show the packages found in an ORT run" {
             integrationTestApplication {
                 val ortRun = dbExtension.fixtures.createOrtRun(

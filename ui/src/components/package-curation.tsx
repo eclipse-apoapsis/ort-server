@@ -19,7 +19,14 @@
 
 import { PackageCurationData } from '@/api';
 import { RenderProperty } from '@/components/render-property';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
 
 type PackageCurationProps = {
   curation: PackageCurationData;
@@ -33,6 +40,7 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
     ...curation,
     comment: undefined,
     declaredLicenseMapping:
+      curation.declaredLicenseMapping &&
       Object.keys(curation.declaredLicenseMapping).length > 0
         ? curation.declaredLicenseMapping
         : undefined,
@@ -40,13 +48,24 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
 
   return (
     <Card className='my-2 w-full'>
-      <CardHeader className='flex gap-2'>
+      <CardHeader className='flex flex-row justify-between gap-2 align-top'>
         <RenderProperty
           label='Comment'
           value={curation.comment}
           showIfEmpty={false}
           type='textblock'
         />
+        <Tooltip>
+          <TooltipTrigger>
+            <Badge
+              variant='small'
+              className={`${getIssueSeverityBackgroundColor('HINT')}`}
+            >
+              {curation.providerName}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>The provider of the curation.</TooltipContent>
+        </Tooltip>
       </CardHeader>
       {curationToDisplay &&
         Object.keys(curationToDisplay).some(
@@ -156,14 +175,15 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
                   </div>
                 </div>
               )}
-              {Object.keys(curation.declaredLicenseMapping).length > 0 && (
-                <RenderProperty
-                  label='Declared License Mapping'
-                  value={curation.declaredLicenseMapping}
-                  type='keyvalue'
-                  showIfEmpty={false}
-                />
-              )}
+              {curation.declaredLicenseMapping &&
+                Object.keys(curation.declaredLicenseMapping).length > 0 && (
+                  <RenderProperty
+                    label='Declared License Mapping'
+                    value={curation.declaredLicenseMapping}
+                    type='keyvalue'
+                    showIfEmpty={false}
+                  />
+                )}
               <RenderProperty
                 label='Concluded License'
                 value={curation.concludedLicense}
