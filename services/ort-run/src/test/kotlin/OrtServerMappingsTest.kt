@@ -389,6 +389,7 @@ class OrtServerMappingsTest : WordSpec({
 
             val packageCuration = PackageCuration(
                 id = pkgIdentifier,
+                providerName = "providerName",
                 data = PackageCurationData(
                     comment = "comment",
                     purl = "purl",

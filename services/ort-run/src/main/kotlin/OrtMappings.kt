@@ -227,7 +227,7 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
 fun OrtCopyrightFinding.mapToModel() = CopyrightFinding(statement = statement, location = location.mapToModel())
 
 fun OrtCurations.mapToModel() = Curations(
-    packages = packages.map(OrtPackageCuration::mapToModel),
+    packages = packages.map { it.mapToModel("RepositoryConfiguration") },
     licenseFindings = licenseFindings.map(OrtLicenseFindingCuration::mapToModel)
 )
 
@@ -361,8 +361,9 @@ fun OrtPackageConfiguration.mapToModel() = PackageConfiguration(
     licenseFindingCurations = licenseFindingCurations.map(OrtLicenseFindingCuration::mapToModel)
 )
 
-fun OrtPackageCuration.mapToModel() = PackageCuration(
+fun OrtPackageCuration.mapToModel(providerName: String) = PackageCuration(
     id = id.mapToModel(),
+    providerName = providerName,
     data = data.mapToModel()
 )
 
@@ -488,7 +489,7 @@ fun OrtResolutions.mapToModel() = Resolutions(
 fun OrtResolvedPackageCurations.mapToModel() =
     ResolvedPackageCurations(
         provider = provider.mapToModel(),
-        curations = curations.map { it.mapToModel() }
+        curations = curations.map { it.mapToModel(provider.id) }
     )
 
 fun OrtRootDependencyIndex.mapToModel() =

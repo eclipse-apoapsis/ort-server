@@ -212,6 +212,7 @@ private val packageCurations1 = ResolvedPackageCurations(
     curations = listOf(
         PackageCuration(
             id = identifier1,
+            providerName = "providerName",
             data = PackageCurationData(
                 comment = "comment1",
                 labels = mapOf("key1" to "value1", "key2" to "value2"),
@@ -220,6 +221,7 @@ private val packageCurations1 = ResolvedPackageCurations(
         ),
         PackageCuration(
             id = identifier2,
+            providerName = "providerName",
             data = PackageCurationData(comment = "comment2")
         )
     )
@@ -230,10 +232,12 @@ private val packageCurations2 = ResolvedPackageCurations(
     curations = listOf(
         PackageCuration(
             id = identifier1,
+            providerName = "providerName",
             data = PackageCurationData(homepageUrl = "https://example.org/package1")
         ),
         PackageCuration(
             id = identifier2,
+            providerName = "providerName",
             data = PackageCurationData(homepageUrl = "https://example.org/package2")
         )
     )

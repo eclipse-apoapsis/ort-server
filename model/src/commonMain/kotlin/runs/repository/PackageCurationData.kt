@@ -38,4 +38,4 @@ data class PackageCurationData(
     val declaredLicenseMapping: Map<String, String> = emptyMap(),
     val sourceCodeOrigins: List<SourceCodeOrigin>? = null,
     val labels: Map<String, String> = emptyMap()
-    )
+)

@@ -337,10 +337,12 @@ class IssueServiceTest : WordSpec() {
                     curations = listOf(
                         PackageCuration(
                             id = pkg2.identifier,
+                            providerName = "provider1",
                             data = PackageCurationData(purl = "curated"),
                         ),
                         PackageCuration(
                             id = pkg3.identifier,
+                            providerName = "provider1",
                             data = PackageCurationData(purl = "curated-higher")
                         )
                     )
@@ -351,6 +353,7 @@ class IssueServiceTest : WordSpec() {
                     curations = listOf(
                         PackageCuration(
                             id = pkg3.identifier,
+                            providerName = "provider2",
                             data = PackageCurationData(purl = "curated-lower")
                         )
                     )
