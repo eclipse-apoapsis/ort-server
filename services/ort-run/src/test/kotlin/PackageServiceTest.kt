@@ -553,6 +553,7 @@ class PackageServiceTest : WordSpec() {
                 with(packages.data.single { it.identifier == pkg1.identifier.mapToApi() }) {
                     authors should containExactly(*curation1.data.authors.orEmpty().toTypedArray())
                     curations.shouldBeSingleton {
+                        it.providerName shouldBe "test"
                         it.data shouldBe curation1.data.mapToApi()
                     }
                 }
@@ -562,6 +563,7 @@ class PackageServiceTest : WordSpec() {
                     processedDeclaredLicense.mappedLicenses should
                             containExactlyEntries("invalid-license" to "LicenseRef-mapped")
                     curations.shouldBeSingleton {
+                        it.providerName shouldBe "test"
                         it.data shouldBe curation2.data.mapToApi()
                     }
                 }

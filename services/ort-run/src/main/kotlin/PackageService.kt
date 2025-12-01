@@ -168,9 +168,21 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             ShortestDependencyPathsTable.getForOrtRunId(ortRunId)
         }
 
+        val resolvedConfiguration = ortRunService.getResolvedConfiguration(ortRun)
+        val curationsByProvider = resolvedConfiguration.packageCurations.associate { it.provider.name to it.curations }
+
         val finalResult = limitedResult.map { ortPkg ->
             val shortestDependencyPaths = shortestPathsByPackage[ortPkg.metadata.id.mapToModel()].orEmpty()
-            val curations = ortPkg.curations.map { ApiPackageCuration(data = it.mapToModel().mapToApi()) }
+
+            // TODO: Simplify once ORT has a better API, see https://github.com/oss-review-toolkit/ort/issues/10989.
+            val curations = curationsByProvider.flatMap { (providerName, curations) ->
+                val curationData = curations
+                    .filter { it.mapToOrt().isApplicable(ortPkg.metadata.id) }
+                    .map { it.data.mapToApi() }
+
+                curationData.map { ApiPackageCuration(providerName, it) }
+            }
+
             ortPkg.metadata.mapToModel().mapToApi(shortestDependencyPaths, curations)
         }
 
