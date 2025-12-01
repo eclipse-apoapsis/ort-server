@@ -770,7 +770,10 @@ fun ShortestDependencyPath.mapToApi() = ApiShortestDependencyPath(
     path = path.map { it.mapToApi() }
 )
 
-fun Package.mapToApi(curations: List<PackageCuration> = emptyList()) = ApiPackage(
+fun Package.mapToApi(
+    shortestDependencyPaths: List<ShortestDependencyPath> = emptyList(),
+    curations: List<PackageCuration> = emptyList()
+) = ApiPackage(
     identifier = identifier.mapToApi(),
     purl = purl,
     cpe = cpe,
@@ -785,7 +788,7 @@ fun Package.mapToApi(curations: List<PackageCuration> = emptyList()) = ApiPackag
     vcsProcessed = vcsProcessed.mapToApi(),
     isMetadataOnly = isMetadataOnly,
     isModified = isModified,
-    shortestDependencyPaths = emptyList(),
+    shortestDependencyPaths = shortestDependencyPaths.map { it.mapToApi() },
     curations = curations,
     sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToApi() },
     labels = labels
