@@ -84,6 +84,7 @@ export const PackageManagerField = ({
                     : false
               }
               onCheckedChange={(checked) => {
+                if (!field.value) return;
                 const enabledItems = Object.fromEntries(
                   Object.entries(field.value).map(([key, value]) => [
                     key,
@@ -111,6 +112,7 @@ export const PackageManagerField = ({
                     <Checkbox
                       checked={enabled}
                       onCheckedChange={(checked) => {
+                        if (!field.value) return;
                         return checked
                           ? field.onChange({
                               ...field.value,

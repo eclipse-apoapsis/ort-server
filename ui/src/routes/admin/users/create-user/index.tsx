@@ -298,7 +298,7 @@ const CreateUser = () => {
                           No results found.
                         </p>
                       }
-                      value={field.value.map(
+                      value={(field.value || []).map(
                         (v) =>
                           options.find((o) => o.value === v) || {
                             label: v,
