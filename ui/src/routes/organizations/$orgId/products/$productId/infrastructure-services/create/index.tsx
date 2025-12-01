@@ -18,16 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  getProductSecretsOptions,
-  postProductInfrastructureServiceMutation,
-} from '@/api/@tanstack/react-query.gen';
+import { postProductInfrastructureServiceMutation } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field';
 import { ToastError } from '@/components/toast-error';
 import { Button } from '@/components/ui/button';
@@ -56,8 +53,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { capitalize } from '@/helpers/capitalize';
+import { useSecrets } from '@/hooks/use-secrets';
+import { useUser } from '@/hooks/use-user';
 import { ApiError } from '@/lib/api-error';
-import { ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 
 const formSchema = z.object({
@@ -74,12 +73,12 @@ type FormSchema = z.infer<typeof formSchema>;
 const CreateInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
+  const user = useUser();
 
-  const { data: secrets } = useQuery({
-    ...getProductSecretsOptions({
-      path: { productId: Number.parseInt(params.productId) },
-      query: { limit: ALL_ITEMS },
-    }),
+  const secrets = useSecrets({
+    orgId: params.orgId,
+    productId: params.productId,
+    user,
   });
 
   const { mutateAsync, isPending } = useMutation({
@@ -218,11 +217,18 @@ const CreateInfrastructureServicePage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {secrets?.data.map((secret) => (
-                        <SelectItem key={secret.name} value={secret.name}>
-                          {secret.name}
-                        </SelectItem>
-                      ))}
+                      {secrets.map((secret) => {
+                        const hierarchyLabel = capitalize(secret.hierarchy);
+                        const label = `${secret.name} (${hierarchyLabel})`;
+                        return (
+                          <SelectItem
+                            key={`${secret.hierarchy}:${secret.name}`}
+                            value={secret.name}
+                          >
+                            {label}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormDescription>
@@ -251,11 +257,18 @@ const CreateInfrastructureServicePage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {secrets?.data.map((secret) => (
-                        <SelectItem key={secret.name} value={secret.name}>
-                          {secret.name}
-                        </SelectItem>
-                      ))}
+                      {secrets.map((secret) => {
+                        const hierarchyLabel = capitalize(secret.hierarchy);
+                        const label = `${secret.name} (${hierarchyLabel})`;
+                        return (
+                          <SelectItem
+                            key={`${secret.hierarchy}:${secret.name}`}
+                            value={secret.name}
+                          >
+                            {label}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormDescription>

@@ -18,16 +18,13 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import {
-  getRepositorySecretsOptions,
-  postRepositoryInfrastructureServiceMutation,
-} from '@/api/@tanstack/react-query.gen';
+import { postRepositoryInfrastructureServiceMutation } from '@/api/@tanstack/react-query.gen';
 import { MultiSelectField } from '@/components/form/multi-select-field.tsx';
 import { ToastError } from '@/components/toast-error.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -56,8 +53,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx';
+import { capitalize } from '@/helpers/capitalize';
+import { useSecrets } from '@/hooks/use-secrets';
+import { useUser } from '@/hooks/use-user';
 import { ApiError } from '@/lib/api-error';
-import { ALL_ITEMS } from '@/lib/constants.ts';
 import { toast } from '@/lib/toast.ts';
 
 const formSchema = z.object({
@@ -74,12 +73,13 @@ type FormSchema = z.infer<typeof formSchema>;
 const CreateInfrastructureServicePage = () => {
   const navigate = useNavigate();
   const params = Route.useParams();
+  const user = useUser();
 
-  const { data: secrets } = useQuery({
-    ...getRepositorySecretsOptions({
-      path: { repositoryId: Number.parseInt(params.repoId) },
-      query: { limit: ALL_ITEMS },
-    }),
+  const secrets = useSecrets({
+    orgId: params.orgId,
+    productId: params.productId,
+    repositoryId: params.repoId,
+    user,
   });
 
   const { mutateAsync, isPending } = useMutation({
@@ -222,18 +222,25 @@ const CreateInfrastructureServicePage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {secrets?.data.map((secret) => (
-                        <SelectItem key={secret.name} value={secret.name}>
-                          {secret.name}
-                        </SelectItem>
-                      ))}
+                      {secrets.map((secret) => {
+                        const hierarchyLabel = capitalize(secret.hierarchy);
+                        const label = `${secret.name} (${hierarchyLabel})`;
+                        return (
+                          <SelectItem
+                            key={`${secret.hierarchy}:${secret.name}`}
+                            value={secret.name}
+                          >
+                            {label}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    The name of the repository secret that contains the username
-                    of the credentials for the infrastructure service. Please
-                    note that the secret first needs to be created in order to
-                    use it here.
+                    The name of the secret that contains the username of the
+                    credentials for the infrastructure service. Please note that
+                    the secret first needs to be created in order to use it
+                    here.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -255,18 +262,25 @@ const CreateInfrastructureServicePage = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {secrets?.data.map((secret) => (
-                        <SelectItem key={secret.name} value={secret.name}>
-                          {secret.name}
-                        </SelectItem>
-                      ))}
+                      {secrets.map((secret) => {
+                        const hierarchyLabel = capitalize(secret.hierarchy);
+                        const label = `${secret.name} (${hierarchyLabel})`;
+                        return (
+                          <SelectItem
+                            key={`${secret.hierarchy}:${secret.name}`}
+                            value={secret.name}
+                          >
+                            {label}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    The name of the repository secret that contains the password
-                    of the credentials for the infrastructure service. Please
-                    note that the secret first needs to be created in order to
-                    use it here.
+                    The name of the secret that contains the password of the
+                    credentials for the infrastructure service. Please note that
+                    the secret first needs to be created in order to use it
+                    here.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
