@@ -66,6 +66,7 @@ dependencies {
     runtimeOnly(platform(projects.storage))
     runtimeOnly(platform(projects.transport))
 
+    runtimeOnly(libs.jrubyAsciiDoc)
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
     runtimeOnly(platform(ortLibs.ortPlugins.reporters))
@@ -96,6 +97,19 @@ jib {
             if (System.getProperty("idea.active")?.toBoolean() == true) {
                 add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5030")
             }
+        }
+    }
+}
+
+// ORT uses the JRuby version 10.x for both the Analyzer and the Reporter. Experiments have shown that switching
+// from JRuby 9.x to 10.x causes a measurable decrease in performance for the PDF report generation. Therefore,
+// as a temporary workaround, force the use of JRuby 9.x for the Reporter worker.
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jruby" && requested.name == "jruby"
+            && requested.version?.startsWith("10") == true
+        ) {
+            useTarget(libs.jrubyAsciiDoc)
         }
     }
 }
