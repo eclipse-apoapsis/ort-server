@@ -482,6 +482,7 @@ val getRunPackages: RouteConfig.() -> Unit = {
                                 ),
                                 curations = listOf(
                                     PackageCuration(
+                                        providerName = "Example",
                                         data = PackageCurationData(
                                             comment = "Fix the homepage URL.",
                                             purl = null,

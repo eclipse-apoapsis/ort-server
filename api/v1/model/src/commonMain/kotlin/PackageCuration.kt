@@ -23,5 +23,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PackageCuration(
+    val providerName: String,
     val data: PackageCurationData
 )
