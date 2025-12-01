@@ -48,6 +48,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { capitalize } from '@/helpers/capitalize';
 import { useInfrastructureServices } from '@/hooks/use-infrastructure-services.ts';
 import { useSecrets } from '@/hooks/use-secrets';
 import { useUser } from '@/hooks/use-user.ts';
@@ -297,11 +298,9 @@ export const AnalyzerFields = ({
                                   </FormControl>
                                   <SelectContent>
                                     {secrets.map((secret) => {
-                                      const hierarchyLabel =
+                                      const hierarchyLabel = capitalize(
                                         secret.hierarchy
-                                          .charAt(0)
-                                          .toUpperCase() +
-                                        secret.hierarchy.slice(1);
+                                      );
                                       const label = `${secret.name} (${hierarchyLabel})`;
                                       return (
                                         <SelectItem
@@ -461,9 +460,9 @@ export const AnalyzerFields = ({
                             </FormControl>
                             <SelectContent>
                               {infrastructureServices.map((service) => {
-                                const hierarchyLabel =
-                                  service.hierarchy.charAt(0).toUpperCase() +
-                                  service.hierarchy.slice(1);
+                                const hierarchyLabel = capitalize(
+                                  service.hierarchy
+                                );
                                 const label = `${service.name} (${hierarchyLabel})`;
                                 return (
                                   <SelectItem
