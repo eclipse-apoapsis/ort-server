@@ -49,11 +49,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
         filters: PackageFilters = PackageFilters()
     ): ListQueryResult<PackageRunData> {
-        val ortRun = ortRunService.getOrtRun(ortRunId)
-
-        if (ortRun == null) {
-            return ListQueryResult(emptyList(), parameters, 0)
-        }
+        val ortRun = ortRunService.getOrtRun(ortRunId) ?: return ListQueryResult(emptyList(), parameters, 0)
 
         var comparator = compareBy<PackageRunData> { 0 }
 

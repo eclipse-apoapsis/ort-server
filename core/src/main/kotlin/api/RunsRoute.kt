@@ -404,13 +404,7 @@ fun Route.runs() = route("runs") {
  */
 internal suspend fun ApplicationCall.forRun(repository: OrtRunRepository, handler: suspend (OrtRun) -> Unit) {
     val runId = requireIdParameter("runId")
-    val ortRun = repository.get(runId)
-
-    if (ortRun == null) {
-        respond(HttpStatusCode.NotFound)
-    } else {
-        handler(ortRun)
-    }
+    repository.get(runId)?.also { handler(it) } ?: respond(HttpStatusCode.NotFound)
 }
 
 /**
