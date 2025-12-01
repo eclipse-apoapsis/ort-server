@@ -60,37 +60,44 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             when (orderField.name) {
                 "identifier" -> {
                     comparator = when (orderField.direction) {
-                        OrderDirection.ASCENDING -> {
-                            comparator.thenBy { it.identifier.type }
+                        OrderDirection.ASCENDING ->
+                            comparator
+                                .thenBy { it.identifier.type }
                                 .thenBy { it.identifier.namespace }
                                 .thenBy { it.identifier.name }
                                 .thenBy { it.identifier.version }
-                        }
 
-                        OrderDirection.DESCENDING -> {
-                            comparator.thenByDescending { it.identifier.type }
+                        OrderDirection.DESCENDING ->
+                            comparator
+                                .thenByDescending { it.identifier.type }
                                 .thenByDescending { it.identifier.namespace }
                                 .thenByDescending { it.identifier.name }
                                 .thenByDescending { it.identifier.version }
-                        }
                     }
                 }
 
                 "purl" -> {
                     comparator = when (orderField.direction) {
-                        OrderDirection.ASCENDING -> comparator.thenBy { it.purl.substringBefore('@') }
-                            .thenBy { it.purl.substringAfter('@') }
+                        OrderDirection.ASCENDING ->
+                            comparator
+                                .thenBy { it.purl.substringBefore('@') }
+                                .thenBy { it.purl.substringAfter('@') }
 
-                        OrderDirection.DESCENDING -> comparator.thenByDescending { it.purl.substringBefore('@') }
-                            .thenByDescending { it.purl.substringAfter('@') }
+                        OrderDirection.DESCENDING ->
+                            comparator
+                                .thenByDescending { it.purl.substringBefore('@') }
+                                .thenByDescending { it.purl.substringAfter('@') }
                     }
                 }
 
                 "processedDeclaredLicense" -> {
                     comparator = when (orderField.direction) {
-                        OrderDirection.ASCENDING -> comparator.thenBy { it.processedDeclaredLicense.spdxExpression }
+                        OrderDirection.ASCENDING ->
+                            comparator
+                                .thenBy { it.processedDeclaredLicense.spdxExpression }
                         OrderDirection.DESCENDING ->
-                            comparator.thenByDescending { it.processedDeclaredLicense.spdxExpression }
+                            comparator
+                                .thenByDescending { it.processedDeclaredLicense.spdxExpression }
                     }
                 }
 
