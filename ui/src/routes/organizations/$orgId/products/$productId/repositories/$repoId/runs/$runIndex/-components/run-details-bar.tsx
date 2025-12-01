@@ -38,7 +38,6 @@ import {
 } from '@/components/ui/tooltip';
 import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
-import { ALL_ITEMS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 type RunDetailsBarProps = {
@@ -62,7 +61,8 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
         repositoryId: Number.parseInt(params.repoId),
       },
       query: {
-        limit: ALL_ITEMS,
+        limit: 100,
+        sort: '-index',
       },
     }),
     select: (data) => data.data.map((run) => run.index).sort((a, b) => a - b),

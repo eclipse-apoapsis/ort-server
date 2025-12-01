@@ -104,7 +104,7 @@ export const Siblings = ({ entity, pathName }: SiblingsProps) => {
   } = useQuery({
     ...getRepositoryRunsOptions({
       path: { repositoryId: Number(params.repoId) },
-      query: { limit: ALL_ITEMS, sort: '-index' },
+      query: { limit: 100, sort: '-index' },
     }),
     staleTime: staleTime,
     enabled: entity === 'run' || !!params.repoId,
