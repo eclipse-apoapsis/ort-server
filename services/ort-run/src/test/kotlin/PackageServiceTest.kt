@@ -32,6 +32,8 @@ import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
 
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
+import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.AnalyzerJobConfiguration
@@ -115,7 +117,7 @@ class PackageServiceTest : WordSpec() {
 
                 val ortRunId = createAnalyzerRunWithPackages(setOf(pkg1, pkg2)).id
 
-                service.listForOrtRunId(ortRunId).data.map { it.pkg } should containExactlyInAnyOrder(pkg1, pkg2)
+                service.listForOrtRunId(ortRunId).data should containExactlyInAnyOrder(pkg1.mapToApi(), pkg2.mapToApi())
             }
 
             "return non-empty maps and sets for authors, declared licenses, and mapped and unmapped licenses" {
@@ -141,7 +143,7 @@ class PackageServiceTest : WordSpec() {
 
                 results shouldHaveSize 1
 
-                with(results.first().pkg) {
+                with(results.first()) {
                     authors shouldHaveSize 3
                     authors shouldBe setOf("Author One", "Author Two", "Author Three")
                     declaredLicenses shouldHaveSize 4
@@ -176,8 +178,8 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 2
                 results.totalCount shouldBe 3
 
-                results.data.first().pkg.identifier.name shouldBe "example3"
-                results.data.last().pkg.identifier.name shouldBe "example2"
+                results.data.first().identifier.name shouldBe "example3"
+                results.data.last().identifier.name shouldBe "example2"
             }
 
             "allow sorting by identifier" {
@@ -205,7 +207,7 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 5
                 results.totalCount shouldBe 5
 
-                results.data.map { it.pkg.identifier } shouldContainInOrder listOf(
+                results.data.map { it.identifier.mapToModel() } shouldContainInOrder listOf(
                     identifier1,
                     identifier5,
                     identifier3,
@@ -252,9 +254,9 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 3
                 results.totalCount shouldBe 3
 
-                results.data[0].pkg.processedDeclaredLicense.spdxExpression shouldBe "Apache-2.0"
-                results.data[1].pkg.processedDeclaredLicense.spdxExpression shouldBe "EPL-1.0 OR LGPL-2.1-or-later"
-                results.data[2].pkg.processedDeclaredLicense.spdxExpression shouldBe "MIT"
+                results.data[0].processedDeclaredLicense.spdxExpression shouldBe "Apache-2.0"
+                results.data[1].processedDeclaredLicense.spdxExpression shouldBe "EPL-1.0 OR LGPL-2.1-or-later"
+                results.data[2].processedDeclaredLicense.spdxExpression shouldBe "MIT"
             }
 
             "return an empty list if no packages were found in an ORT run" {
@@ -309,18 +311,18 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 2
 
                 with(results.data.first()) {
-                    pkg.identifier shouldBe identifier2
+                    identifier shouldBe identifier2.mapToApi()
                     shortestDependencyPaths shouldBe listOf(
                         ShortestDependencyPath(
                             project1.identifier,
                             "compileClassPath",
                             listOf(identifier1)
                         )
-                    )
+                    ).map { it.mapToApi() }
                 }
 
                 with(results.data.last()) {
-                    pkg.identifier shouldBe identifier1
+                    identifier shouldBe identifier1.mapToApi()
                     shortestDependencyPaths shouldBe listOf(
                         ShortestDependencyPath(
                             project1.identifier,
@@ -332,16 +334,20 @@ class PackageServiceTest : WordSpec() {
                             "compileClassPath",
                             emptyList()
                         )
-                    )
+                    ).map { it.mapToApi() }
                 }
             }
 
             "allow filtering by identifier" {
+                val idMavenEx = Identifier("Maven", "com.example", "example", "1.0")
+                val idMavenEx2 = Identifier("Maven", "com.example", "example2", "1.0")
+                val idNpmEx2 = Identifier("NPM", "com.example", "example2", "1.0")
+
                 val ortRunId = createAnalyzerRunWithPackages(
                     setOf(
-                        fixtures.generatePackage(Identifier("Maven", "com.example", "example", "1.0")),
-                        fixtures.generatePackage(Identifier("Maven", "com.example", "example2", "1.0")),
-                        fixtures.generatePackage(Identifier("NPM", "com.example", "example2", "1.0"))
+                        fixtures.generatePackage(idMavenEx),
+                        fixtures.generatePackage(idMavenEx2),
+                        fixtures.generatePackage(idNpmEx2)
                     )
                 ).id
 
@@ -359,8 +365,8 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 2
                 results.totalCount shouldBe 2
 
-                results.data.first().pkg.identifier shouldBe Identifier("NPM", "com.example", "example2", "1.0")
-                results.data.last().pkg.identifier shouldBe Identifier("Maven", "com.example", "example2", "1.0")
+                results.data.first().identifier shouldBe idNpmEx2.mapToApi()
+                results.data.last().identifier shouldBe idMavenEx2.mapToApi()
             }
 
             "have a match when filtering by an identifier that doesn't have a namespace" {
@@ -382,7 +388,7 @@ class PackageServiceTest : WordSpec() {
                 )
 
                 results.data.shouldBeSingleton {
-                    it.pkg.identifier shouldBe Identifier("NPM", "", "example", "1.0")
+                    it.identifier shouldBe Identifier("NPM", "", "example", "1.0").mapToApi()
                 }
             }
 
@@ -417,7 +423,7 @@ class PackageServiceTest : WordSpec() {
 
                 results1.totalCount shouldBe 1
                 results1.data.shouldBeSingleton {
-                    it.pkg.identifier shouldBe Identifier("Maven", "com.example", "example2", "1.0")
+                    it.identifier shouldBe Identifier("Maven", "com.example", "example2", "1.0").mapToApi()
                 }
 
                 results2 shouldBe results1
@@ -445,7 +451,7 @@ class PackageServiceTest : WordSpec() {
 
                 results.totalCount shouldBe 1
                 results.data.shouldBeSingleton {
-                    it.pkg.purl shouldBe "pkg:NPM/com.example/example2@1.0"
+                    it.purl shouldBe "pkg:NPM/com.example/example2@1.0"
                 }
             }
 
@@ -493,13 +499,13 @@ class PackageServiceTest : WordSpec() {
                 results.data shouldHaveSize 2
                 results.totalCount shouldBe 2
 
-                with(results.data.first().pkg) {
-                    identifier shouldBe Identifier("Maven", "com.example", "example", "1.0")
+                with(results.data.first()) {
+                    identifier shouldBe Identifier("Maven", "com.example", "example", "1.0").mapToApi()
                     processedDeclaredLicense.spdxExpression shouldBe "Apache-2.0 OR LGPL-2.1-or-later"
                 }
 
-                with(results.data.last().pkg) {
-                    identifier shouldBe Identifier("NPM", "com.example", "example2", "1.0")
+                with(results.data.last()) {
+                    identifier shouldBe Identifier("NPM", "com.example", "example2", "1.0").mapToApi()
                     processedDeclaredLicense.spdxExpression shouldBe "MIT"
                 }
             }
@@ -544,21 +550,19 @@ class PackageServiceTest : WordSpec() {
                 val packages = service.listForOrtRunId(ortRunId)
                 packages.data shouldHaveSize 2
 
-                with(packages.data.single { it.pkg.identifier == pkg1.identifier }) {
-                    pkg.authors should containExactly(*curation1.data.authors.orEmpty().toTypedArray())
-                    concludedLicense shouldBe curation1.data.concludedLicense
+                with(packages.data.single { it.identifier == pkg1.identifier.mapToApi() }) {
+                    authors should containExactly(*curation1.data.authors.orEmpty().toTypedArray())
                     curations.shouldBeSingleton {
-                        it shouldBe curation1.data
+                        it.data shouldBe curation1.data.mapToApi()
                     }
                 }
 
-                with(packages.data.single { it.pkg.identifier == pkg2.identifier }) {
-                    pkg.processedDeclaredLicense.spdxExpression shouldBe "LicenseRef-declared1 AND LicenseRef-mapped"
-                    pkg.processedDeclaredLicense.mappedLicenses should
+                with(packages.data.single { it.identifier == pkg2.identifier.mapToApi() }) {
+                    processedDeclaredLicense.spdxExpression shouldBe "LicenseRef-declared1 AND LicenseRef-mapped"
+                    processedDeclaredLicense.mappedLicenses should
                             containExactlyEntries("invalid-license" to "LicenseRef-mapped")
-                    concludedLicense shouldBe curation2.data.concludedLicense
                     curations.shouldBeSingleton {
-                        it shouldBe curation2.data
+                        it.data shouldBe curation2.data.mapToApi()
                     }
                 }
             }
