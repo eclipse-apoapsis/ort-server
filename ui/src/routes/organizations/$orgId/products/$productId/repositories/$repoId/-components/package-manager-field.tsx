@@ -84,27 +84,12 @@ export const PackageManagerField = ({
                     : false
               }
               onCheckedChange={(checked) => {
-                const enabledItems = checked
-                  ? Object.keys(field.value || {}).reduce(
-                      (acc, key) => {
-                        acc[key as keyof typeof field.value] = {
-                          ...field.value[key as keyof typeof field.value],
-                          enabled: true,
-                        };
-                        return acc;
-                      },
-                      {} as typeof field.value
-                    )
-                  : Object.keys(field.value || {}).reduce(
-                      (acc, key) => {
-                        acc[key as keyof typeof field.value] = {
-                          ...field.value[key as keyof typeof field.value],
-                          enabled: false,
-                        };
-                        return acc;
-                      },
-                      {} as typeof field.value
-                    );
+                const enabledItems = Object.fromEntries(
+                  Object.entries(field.value).map(([key, value]) => [
+                    key,
+                    { ...value, enabled: !!checked },
+                  ])
+                ) as typeof field.value;
                 form.setValue(
                   'jobConfigs.analyzer.packageManagers',
                   enabledItems
