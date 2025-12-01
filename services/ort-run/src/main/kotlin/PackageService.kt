@@ -20,7 +20,6 @@
 package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToApi
-import org.eclipse.apoapsis.ortserver.api.v1.mapping.mapToModel
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCuration as ApiPackageCuration
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
@@ -43,6 +42,8 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.Database
 
+import org.ossreviewtoolkit.model.CuratedPackage as OrtCuratedPackage
+
 /**
  * A service to interact with packages.
  */
@@ -54,7 +55,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
     ): ListQueryResult<ApiPackage> {
         val ortRun = ortRunService.getOrtRun(ortRunId) ?: return ListQueryResult(emptyList(), parameters, 0)
 
-        var comparator = compareBy<ApiPackage> { 0 }
+        var comparator = compareBy<OrtCuratedPackage> { 0 }
 
         parameters.sortFields.forEach { orderField ->
             when (orderField.name) {
@@ -62,17 +63,17 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                     comparator = when (orderField.direction) {
                         OrderDirection.ASCENDING ->
                             comparator
-                                .thenBy { it.identifier.type }
-                                .thenBy { it.identifier.namespace }
-                                .thenBy { it.identifier.name }
-                                .thenBy { it.identifier.version }
+                                .thenBy { it.metadata.id.type }
+                                .thenBy { it.metadata.id.namespace }
+                                .thenBy { it.metadata.id.name }
+                                .thenBy { it.metadata.id.version }
 
                         OrderDirection.DESCENDING ->
                             comparator
-                                .thenByDescending { it.identifier.type }
-                                .thenByDescending { it.identifier.namespace }
-                                .thenByDescending { it.identifier.name }
-                                .thenByDescending { it.identifier.version }
+                                .thenByDescending { it.metadata.id.type }
+                                .thenByDescending { it.metadata.id.namespace }
+                                .thenByDescending { it.metadata.id.name }
+                                .thenByDescending { it.metadata.id.version }
                     }
                 }
 
@@ -80,13 +81,13 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                     comparator = when (orderField.direction) {
                         OrderDirection.ASCENDING ->
                             comparator
-                                .thenBy { it.purl.substringBefore('@') }
-                                .thenBy { it.purl.substringAfter('@') }
+                                .thenBy { it.metadata.purl.substringBefore('@') }
+                                .thenBy { it.metadata.purl.substringAfter('@') }
 
                         OrderDirection.DESCENDING ->
                             comparator
-                                .thenByDescending { it.purl.substringBefore('@') }
-                                .thenByDescending { it.purl.substringAfter('@') }
+                                .thenByDescending { it.metadata.purl.substringBefore('@') }
+                                .thenByDescending { it.metadata.purl.substringAfter('@') }
                     }
                 }
 
@@ -94,10 +95,11 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
                     comparator = when (orderField.direction) {
                         OrderDirection.ASCENDING ->
                             comparator
-                                .thenBy { it.processedDeclaredLicense.spdxExpression }
+                                .thenBy { it.metadata.declaredLicensesProcessed.spdxExpression.toString() }
+
                         OrderDirection.DESCENDING ->
                             comparator
-                                .thenByDescending { it.processedDeclaredLicense.spdxExpression }
+                                .thenByDescending { it.metadata.declaredLicensesProcessed.spdxExpression.toString() }
                     }
                 }
 
@@ -112,14 +114,8 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             loadEvaluatorRun = false,
             failIfRepoInfoMissing = false
         )
-        val packages = ortResult.getPackages()
 
-        val result = packages.map { ortPkg ->
-            val curations = ortPkg.curations.map { ApiPackageCuration(data = it.mapToModel().mapToApi()) }
-            ortPkg.metadata.mapToModel().mapToApi(curations)
-        }
-
-        var filteredResult = result
+        var filteredResult = ortResult.getPackages().toList()
 
         filters.identifier?.let { filter ->
             require(filter.operator == ComparisonOperator.ILIKE) {
@@ -129,7 +125,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             val idFilterRegex = Regex(filter.value, RegexOption.IGNORE_CASE)
 
             filteredResult = filteredResult.filter { pkg ->
-                idFilterRegex.containsMatchIn(pkg.identifier.mapToModel().mapToOrt().toCoordinates())
+                idFilterRegex.containsMatchIn(pkg.metadata.id.toCoordinates())
             }
         }
 
@@ -141,7 +137,7 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             val purlFilterRegex = Regex(filter.value, RegexOption.IGNORE_CASE)
 
             filteredResult = filteredResult.filter { pkg ->
-                purlFilterRegex.containsMatchIn(pkg.purl)
+                purlFilterRegex.containsMatchIn(pkg.metadata.purl)
             }
         }
 
@@ -151,9 +147,10 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             }
 
             filteredResult = filteredResult.filter { pkg ->
+                val declaredLicenseExpression = pkg.metadata.declaredLicensesProcessed.spdxExpression.toString()
                 when (filter.operator) {
-                    ComparisonOperator.IN -> pkg.processedDeclaredLicense.spdxExpression in filter.value
-                    ComparisonOperator.NOT_IN -> pkg.processedDeclaredLicense.spdxExpression !in filter.value
+                    ComparisonOperator.IN -> declaredLicenseExpression in filter.value
+                    ComparisonOperator.NOT_IN -> declaredLicenseExpression !in filter.value
                     else -> false
                 }
             }
@@ -171,12 +168,10 @@ class PackageService(private val db: Database, private val ortRunService: OrtRun
             ShortestDependencyPathsTable.getForOrtRunId(ortRunId)
         }
 
-        val finalResult = limitedResult.map { apiPkg ->
-            apiPkg.copy(
-                shortestDependencyPaths = shortestPathsByPackage[apiPkg.identifier.mapToModel()].orEmpty().map {
-                    it.mapToApi()
-                }
-            )
+        val finalResult = limitedResult.map { ortPkg ->
+            val shortestDependencyPaths = shortestPathsByPackage[ortPkg.metadata.id.mapToModel()].orEmpty()
+            val curations = ortPkg.curations.map { ApiPackageCuration(data = it.mapToModel().mapToApi()) }
+            ortPkg.metadata.mapToModel().mapToApi(shortestDependencyPaths, curations)
         }
 
         return ListQueryResult(
