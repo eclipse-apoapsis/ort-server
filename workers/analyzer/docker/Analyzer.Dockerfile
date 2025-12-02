@@ -450,6 +450,7 @@ COPY --from=ruby --chown=$USER:$USER $RBENV_ROOT $RBENV_ROOT
 
 # Repo and Android
 ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=$ANDROID_HOME
 ENV ANDROID_USER_HOME=$HOME/.android
 ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/cmdline-tools/bin
 ENV PATH=$PATH:$ANDROID_HOME/platform-tools
