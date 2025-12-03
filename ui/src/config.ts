@@ -27,7 +27,6 @@ interface Config {
   API_URL: string;
   oidcConfig: AuthProviderProps;
   oidcLogLevel: Log;
-  serverClientId: string;
   authBaseUrl: string;
   realm: string;
   pollInterval: number;
@@ -39,7 +38,6 @@ const API_URL = env.VITE_API_URL;
 const AUTHORITY = env.VITE_AUTHORITY;
 const UI_URL = env.VITE_UI_URL;
 const CLIENT_ID = env.VITE_CLIENT_ID;
-const CLIENT_ID_SERVER = env.VITE_CLIENT_ID_SERVER;
 const RUN_POLL_INTERVAL = env.VITE_RUN_POLL_INTERVAL;
 
 // Initialize the OpenID Connect configuration
@@ -64,8 +62,6 @@ const oidcLogLevel: Log = Log[
   env.VITE_OIDC_LOG_LEVEL as keyof typeof Log
 ] as Log;
 
-const serverClientId = CLIENT_ID_SERVER;
-
 // Configure Keycloak
 const authBaseUrl = AUTHORITY.split('/realms/')[0] || 'http://localhost:8081';
 const realm = AUTHORITY.split('/realms/')[1] || 'master';
@@ -78,7 +74,6 @@ export const config: Config = {
   API_URL,
   oidcConfig,
   oidcLogLevel,
-  serverClientId,
   authBaseUrl,
   realm,
   pollInterval,
