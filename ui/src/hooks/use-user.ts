@@ -22,7 +22,6 @@ import { useEffect } from 'react';
 import { AuthContextProps, useAuth } from 'react-oidc-context';
 
 import { getSuperuserOptions } from '@/api/@tanstack/react-query.gen.ts';
-import { config } from '@/config';
 
 export const authRef: { current: AuthContextProps | null } = {
   current: null,
@@ -30,14 +29,6 @@ export const authRef: { current: AuthContextProps | null } = {
 
 export const useUser = () => {
   const auth = useAuth();
-  const serverClientId = config.serverClientId;
-  const userRoles =
-    auth?.user?.profile?.resource_access?.[serverClientId]?.roles || [];
-
-  // Check if the user has any of the given roles.
-  const hasRole = (roles: string[]) => {
-    return roles.some((role) => userRoles.includes(role));
-  };
 
   // Refresh the token silently. This also refreshes the user profile (and the roles).
   const refreshUser = async () => {
@@ -76,7 +67,6 @@ export const useUser = () => {
   }, [auth]);
 
   return {
-    hasRole,
     username,
     fullName,
     refreshUser,
