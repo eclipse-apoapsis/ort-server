@@ -38,11 +38,12 @@ repositories {
 dependencies {
     api(libs.exposedCore)
 
+    implementation(projects.components.authorization.backend)
     implementation(projects.components.search.apiModel)
     implementation(projects.dao)
     implementation(projects.model)
 
-    routesImplementation(projects.components.authorizationKeycloak.backend)
+    routesImplementation(projects.components.authorization.backend)
     routesImplementation(projects.shared.apiModel)
     routesImplementation(projects.shared.ktorUtils)
 
@@ -50,7 +51,6 @@ dependencies {
     routesImplementation(ktorLibs.server.core)
     routesImplementation(libs.ktorOpenApi)
 
-    testImplementation(testFixtures(projects.clients.keycloak))
     testImplementation(testFixtures(projects.dao))
     testImplementation(testFixtures(projects.shared.ktorUtils))
 

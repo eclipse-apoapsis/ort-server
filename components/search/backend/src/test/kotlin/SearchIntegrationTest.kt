@@ -22,9 +22,14 @@ package ort.eclipse.apoapsis.ortserver.components.search
 import io.ktor.client.HttpClient
 import io.ktor.server.testing.ApplicationTestBuilder
 
+import io.mockk.coEvery
+import io.mockk.mockk
+
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
 
 import org.jetbrains.exposed.sql.Database
@@ -35,6 +40,7 @@ abstract class SearchIntegrationTest(
     body: SearchIntegrationTest.() -> Unit
 ) : AbstractIntegrationTest({}) {
     lateinit var searchService: SearchService
+    lateinit var hierarchyAuthorizationService: AuthorizationService
 
     private lateinit var db: Database
     private lateinit var fixtures: Fixtures
@@ -43,7 +49,12 @@ abstract class SearchIntegrationTest(
         beforeEach {
             db = dbExtension.db
             fixtures = dbExtension.fixtures
-            searchService = SearchService(db)
+            hierarchyAuthorizationService = mockk {
+                coEvery {
+                    filterHierarchyIds(any(), any(), any(), any(), any())
+                } returns HierarchyFilter.WILDCARD
+            }
+            searchService = SearchService(db, hierarchyAuthorizationService)
         }
 
         body()

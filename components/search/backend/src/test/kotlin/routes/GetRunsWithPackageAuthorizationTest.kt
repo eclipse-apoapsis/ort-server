@@ -23,12 +23,21 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
+import io.mockk.coEvery
+import io.mockk.mockk
+
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.OrganizationRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.ProductRole
+import org.eclipse.apoapsis.ortserver.components.authorization.rights.RepositoryRole
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
 import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackage
@@ -36,14 +45,19 @@ import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackage
 class GetRunsWithPackageAuthorizationTest : AbstractAuthorizationTest({
     lateinit var searchService: SearchService
     lateinit var runWithPackage: RunWithPackage
+    lateinit var hierarchyAuthorizationService: AuthorizationService
 
     beforeEach {
-        searchService = SearchService(dbExtension.db)
+        hierarchyAuthorizationService = mockk {
+            coEvery {
+                filterHierarchyIds(any(), any(), any(), any(), any())
+            } returns HierarchyFilter.WILDCARD
+        }
+        searchService = SearchService(dbExtension.db, hierarchyAuthorizationService)
         runWithPackage = createRunWithPackage(
             fixtures = dbExtension.fixtures,
             repoId = dbExtension.fixtures.repository.id
         )
-        authorizationService.ensureSuperuserAndSynchronizeRolesAndPermissions()
     }
 
     "GetRunsWithPackage" should {
@@ -59,11 +73,14 @@ class GetRunsWithPackageAuthorizationTest : AbstractAuthorizationTest({
         }
 
         "require organization permission when scoped to organization" {
-            val organizationRole = OrganizationPermission.READ.roleName(runWithPackage.organizationId)
+            val orgHierarchyId = CompoundHierarchyId.forOrganization(
+                OrganizationId(runWithPackage.organizationId)
+            )
 
             requestShouldRequireRole(
                 routes = { searchRoutes(searchService) },
-                role = organizationRole,
+                role = OrganizationRole.READER,
+                hierarchyId = orgHierarchyId,
                 successStatus = HttpStatusCode.OK
             ) {
                 get("/search/package") {
@@ -74,33 +91,39 @@ class GetRunsWithPackageAuthorizationTest : AbstractAuthorizationTest({
         }
 
         "require product permission when scoped to product" {
-            val productRole = ProductPermission.READ.roleName(runWithPackage.productId)
+            val productHierarchyId = CompoundHierarchyId.forProduct(
+                OrganizationId(runWithPackage.organizationId),
+                ProductId(runWithPackage.productId)
+            )
 
             requestShouldRequireRole(
                 routes = { searchRoutes(searchService) },
-                role = productRole,
+                role = ProductRole.READER,
+                hierarchyId = productHierarchyId,
                 successStatus = HttpStatusCode.OK
             ) {
                 get("/search/package") {
                     parameter("identifier", runWithPackage.packageId)
-                    parameter("organizationId", runWithPackage.organizationId.toString())
                     parameter("productId", runWithPackage.productId.toString())
                 }
             }
         }
 
         "require repository permission when scoped to repository" {
-            val repositoryRole = RepositoryPermission.READ.roleName(runWithPackage.repositoryId)
+            val repoHierarchyId = CompoundHierarchyId.forRepository(
+                OrganizationId(runWithPackage.organizationId),
+                ProductId(runWithPackage.productId),
+                RepositoryId(runWithPackage.repositoryId)
+            )
 
             requestShouldRequireRole(
                 routes = { searchRoutes(searchService) },
-                role = repositoryRole,
+                role = RepositoryRole.READER,
+                hierarchyId = repoHierarchyId,
                 successStatus = HttpStatusCode.OK
             ) {
                 get("/search/package") {
                     parameter("identifier", runWithPackage.packageId)
-                    parameter("organizationId", runWithPackage.organizationId.toString())
-                    parameter("productId", runWithPackage.productId.toString())
                     parameter("repositoryId", runWithPackage.repositoryId.toString())
                 }
             }
