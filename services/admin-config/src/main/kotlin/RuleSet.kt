@@ -23,7 +23,9 @@ package org.eclipse.apoapsis.ortserver.services.config
  * A data class that represents the configuration of a rule set.
  *
  * A rule set consists of a number of paths to files that are used by the Evaluator and partly by the Reporter. The
- * paths are passed to the _config file provider_ to obtain the actual configuration files.
+ * paths are passed to the [config file provider][org.eclipse.apoapsis.ortserver.config.ConfigFileProvider] to obtain
+ * the actual configuration files. Interpretation of the paths is up to the provider, but for file-based providers paths
+ * can be relative to the provider's root directory.
  */
 data class RuleSet(
     /** The path to the copyright garbage file. */
