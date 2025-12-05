@@ -33,6 +33,15 @@ import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 /**
  * A service interface providing functionality to query and manage roles and permissions for users on entities in the
  * hierarchy.
+ *
+ * Many functions in this interface come in two variants: one taking a [CompoundHierarchyId] and one taking a
+ * [HierarchyId]. The former is an optimized version for cases where the IDs of all affected hierarchy elements are
+ * already known. However, there is a caveat that the [CompoundHierarchyId] is not checked for consistency, which means
+ * that the contained IDs really belong together in the hierarchy. If used carelessly, this can lead to security
+ * issues where users get access to arbitrary elements by just providing an organization ID they have access to. So,
+ * these functions should only be called with trusted [CompoundHierarchyId]s, for instance, ones that have been
+ * obtained from the [EffectiveRole] returned by this service. If in doubt, use the functions taking a [HierarchyId],
+ * which is then resolved to a consistent [CompoundHierarchyId] internally.
  */
 interface AuthorizationService {
     /**
