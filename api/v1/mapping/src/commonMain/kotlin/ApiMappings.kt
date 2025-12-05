@@ -54,6 +54,7 @@ import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunFilters as ApiOrtRunFil
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunStatus as ApiOrtRunStatus
 import org.eclipse.apoapsis.ortserver.api.v1.model.OrtRunSummary as ApiOrtRunSummary
 import org.eclipse.apoapsis.ortserver.api.v1.model.Package as ApiPackage
+import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCuration
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageCurationData as ApiPackageCurationData
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageFilters as ApiPackageFilters
 import org.eclipse.apoapsis.ortserver.api.v1.model.PackageManagerConfiguration as ApiPackageManagerConfiguration
@@ -138,9 +139,9 @@ import org.eclipse.apoapsis.ortserver.model.VulnerabilityWithDetails
 import org.eclipse.apoapsis.ortserver.model.authentication.OidcConfig
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
+import org.eclipse.apoapsis.ortserver.model.runs.Package
 import org.eclipse.apoapsis.ortserver.model.runs.PackageFilters
 import org.eclipse.apoapsis.ortserver.model.runs.PackageManagerConfiguration
-import org.eclipse.apoapsis.ortserver.model.runs.PackageRunData
 import org.eclipse.apoapsis.ortserver.model.runs.ProcessedDeclaredLicense
 import org.eclipse.apoapsis.ortserver.model.runs.Project
 import org.eclipse.apoapsis.ortserver.model.runs.RemoteArtifact
@@ -769,23 +770,28 @@ fun ShortestDependencyPath.mapToApi() = ApiShortestDependencyPath(
     path = path.map { it.mapToApi() }
 )
 
-fun PackageRunData.mapToApi() = ApiPackage(
-    identifier = pkg.identifier.mapToApi(),
-    purl = pkg.purl,
-    cpe = pkg.cpe,
-    authors = pkg.authors,
-    declaredLicenses = pkg.declaredLicenses,
-    processedDeclaredLicense = pkg.processedDeclaredLicense.mapToApi(),
-    description = pkg.description,
-    homepageUrl = pkg.homepageUrl,
-    binaryArtifact = pkg.binaryArtifact.mapToApi(),
-    sourceArtifact = pkg.sourceArtifact.mapToApi(),
-    vcs = pkg.vcs.mapToApi(),
-    vcsProcessed = pkg.vcsProcessed.mapToApi(),
-    isMetadataOnly = pkg.isMetadataOnly,
-    isModified = pkg.isModified,
+fun Package.mapToApi(
+    shortestDependencyPaths: List<ShortestDependencyPath> = emptyList(),
+    curations: List<PackageCuration> = emptyList()
+) = ApiPackage(
+    identifier = identifier.mapToApi(),
+    purl = purl,
+    cpe = cpe,
+    authors = authors,
+    declaredLicenses = declaredLicenses,
+    processedDeclaredLicense = processedDeclaredLicense.mapToApi(),
+    description = description,
+    homepageUrl = homepageUrl,
+    binaryArtifact = binaryArtifact.mapToApi(),
+    sourceArtifact = sourceArtifact.mapToApi(),
+    vcs = vcs.mapToApi(),
+    vcsProcessed = vcsProcessed.mapToApi(),
+    isMetadataOnly = isMetadataOnly,
+    isModified = isModified,
     shortestDependencyPaths = shortestDependencyPaths.map { it.mapToApi() },
-    curations = curations.map { it.mapToApi() }
+    curations = curations,
+    sourceCodeOrigins = sourceCodeOrigins?.map { it.mapToApi() },
+    labels = labels
 )
 
 fun PackageCurationData.mapToApi() = ApiPackageCurationData(

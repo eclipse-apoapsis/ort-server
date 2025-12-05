@@ -17,12 +17,19 @@
  * License-Filename: LICENSE
  */
 
-import { PackageCurationData } from '@/api';
+import { PackageCuration as Curation } from '@/api';
 import { RenderProperty } from '@/components/render-property';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { getIssueSeverityBackgroundColor } from '@/helpers/get-status-class';
 
 type PackageCurationProps = {
-  curation: PackageCurationData;
+  curation: Curation;
 };
 
 export const PackageCuration = ({ curation }: PackageCurationProps) => {
@@ -33,21 +40,32 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
     ...curation,
     comment: undefined,
     declaredLicenseMapping:
-      curation.declaredLicenseMapping &&
-      Object.keys(curation.declaredLicenseMapping).length > 0
-        ? curation.declaredLicenseMapping
+      curation.data.declaredLicenseMapping &&
+      Object.keys(curation.data.declaredLicenseMapping).length > 0
+        ? curation.data.declaredLicenseMapping
         : undefined,
   };
 
   return (
     <Card className='my-2 w-full'>
-      <CardHeader className='flex gap-2'>
+      <CardHeader className='flex flex-row justify-between gap-2 align-top'>
         <RenderProperty
           label='Comment'
-          value={curation.comment}
+          value={curation.data.comment}
           showIfEmpty={false}
           type='textblock'
         />
+        <Tooltip>
+          <TooltipTrigger>
+            <Badge
+              variant='small'
+              className={`${getIssueSeverityBackgroundColor('HINT')}`}
+            >
+              {curation.providerName}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>The provider of the curation.</TooltipContent>
+        </Tooltip>
       </CardHeader>
       {curationToDisplay &&
         Object.keys(curationToDisplay).some(
@@ -59,136 +77,137 @@ export const PackageCuration = ({ curation }: PackageCurationProps) => {
             <div className='flex flex-col gap-4'>
               <RenderProperty
                 label='Authors'
-                value={curation.authors}
+                value={curation.data.authors}
                 showIfEmpty={false}
               />
               <RenderProperty
                 label='Description'
-                value={curation.description}
+                value={curation.data.description}
                 showIfEmpty={false}
               />
               <RenderProperty
                 label='Homepage'
-                value={curation.homepageUrl}
+                value={curation.data.homepageUrl}
                 type='url'
                 showIfEmpty={false}
               />
               <RenderProperty
                 label='CPE'
-                value={curation.cpe}
+                value={curation.data.cpe}
                 showIfEmpty={false}
               />
               <RenderProperty
                 label='Source Code Origins'
-                value={curation.sourceCodeOrigins}
+                value={curation.data.sourceCodeOrigins}
                 showIfEmpty={false}
               />
-              {curation.vcs && (
+              {curation.data.vcs && (
                 <div>
                   <div className='font-semibold'>VCS</div>
                   <div className='ml-2'>
                     <RenderProperty
                       label='Type'
-                      value={curation.vcs.type}
+                      value={curation.data.vcs.type}
                       showIfEmpty={false}
                     />
                     <RenderProperty
                       label='URL'
-                      value={curation.vcs.url}
+                      value={curation.data.vcs.url}
                       type='url'
                       showIfEmpty={false}
                     />
                     <RenderProperty
                       label='Revision'
-                      value={curation.vcs.revision}
+                      value={curation.data.vcs.revision}
                       showIfEmpty={false}
                     />
                     <RenderProperty
                       label='Path'
-                      value={curation.vcs.path}
+                      value={curation.data.vcs.path}
                       showIfEmpty={false}
                     />
                   </div>
                 </div>
               )}
-              {curation.binaryArtifact && (
+              {curation.data.binaryArtifact && (
                 <div>
                   <div className='font-semibold'>Binary Artifact</div>
                   <div className='ml-2'>
                     <RenderProperty
                       label='URL'
-                      value={curation.binaryArtifact.url}
+                      value={curation.data.binaryArtifact.url}
                       type='url'
                       showIfEmpty={false}
                     />
                     <RenderProperty
                       label='Hash Value'
-                      value={curation.binaryArtifact.hashValue}
+                      value={curation.data.binaryArtifact.hashValue}
                       showIfEmpty={false}
                     />
                     <RenderProperty
                       label='Hash Algorithm'
-                      value={curation.binaryArtifact.hashAlgorithm}
+                      value={curation.data.binaryArtifact.hashAlgorithm}
                       showIfEmpty={false}
                     />
                   </div>
                 </div>
               )}
-              {curation.sourceArtifact && (
+              {curation.data.sourceArtifact && (
                 <div>
                   <div className='font-semibold'>Source Artifact</div>
                   <div className='ml-2'>
                     <RenderProperty
                       label='URL'
-                      value={curation.sourceArtifact.url}
+                      value={curation.data.sourceArtifact.url}
                       type='url'
                       showIfEmpty={false}
                     />
                     <RenderProperty
                       label='Hash Value'
-                      value={curation.sourceArtifact.hashValue}
+                      value={curation.data.sourceArtifact.hashValue}
                       showIfEmpty={false}
                     />
                     <RenderProperty
                       label='Hash Algorithm'
-                      value={curation.sourceArtifact.hashAlgorithm}
+                      value={curation.data.sourceArtifact.hashAlgorithm}
                       showIfEmpty={false}
                     />
                   </div>
                 </div>
               )}
-              {curation.declaredLicenseMapping &&
-                Object.keys(curation.declaredLicenseMapping).length > 0 && (
+              {curation.data.declaredLicenseMapping &&
+                Object.keys(curation.data.declaredLicenseMapping).length >
+                  0 && (
                   <RenderProperty
                     label='Declared License Mapping'
-                    value={curation.declaredLicenseMapping}
+                    value={curation.data.declaredLicenseMapping}
                     type='keyvalue'
                     showIfEmpty={false}
                   />
                 )}
               <RenderProperty
                 label='Concluded License'
-                value={curation.concludedLicense}
+                value={curation.data.concludedLicense}
                 showIfEmpty={false}
               />
               <RenderProperty
                 label='Metadata Only'
-                value={curation.isMetadataOnly}
+                value={curation.data.isMetadataOnly}
                 showIfEmpty={false}
               />
               <RenderProperty
                 label='Modified'
-                value={curation.isModified}
+                value={curation.data.isModified}
                 showIfEmpty={false}
               />
               <RenderProperty
                 label='PURL'
-                value={curation.purl}
+                value={curation.data.purl}
                 showIfEmpty={false}
               />
               <RenderProperty
                 label='Labels'
-                value={curation.labels}
+                value={curation.data.labels}
                 type='keyvalue'
                 showIfEmpty={false}
               />

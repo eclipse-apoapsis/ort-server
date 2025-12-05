@@ -26,6 +26,8 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.services"
 
 dependencies {
+    api(projects.api.v1.apiV1Mapping)
+    api(projects.api.v1.apiV1Model)
     api(projects.dao)
     api(projects.model)
     api(projects.services.hierarchyService)
