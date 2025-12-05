@@ -60,6 +60,7 @@ abstract class AbstractIntegrationTest(body: AbstractIntegrationTest.() -> Unit)
 
     val principal = mockk<OrtServerPrincipal> {
         every { userId } returns "userId"
+        every { username } returns "testuser"
         every { isAuthorized } returns true
     }
 

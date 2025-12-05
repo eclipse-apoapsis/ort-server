@@ -26,3 +26,6 @@ http-client.private.env.json
 
 # VS Code
 .vscode/
+
+# Agent files.
+.github/chatmodes/
