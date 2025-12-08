@@ -21,6 +21,30 @@ import z from 'zod';
 
 import { zOrtRunStatus, zSeverity, zVulnerabilityRating } from '@/api/zod.gen';
 
+// Schema to validate that a string is a valid regular expression.
+export const regexSchema = z
+  .object({
+    value: z.string().superRefine((val, ctx) => {
+      try {
+        new RegExp(val);
+      } catch (error) {
+        if (error instanceof SyntaxError && error.message) {
+          ctx.addIssue({
+            code: 'custom',
+            message:
+              error.message.charAt(0).toUpperCase() + error.message.slice(1), // capitalize first letter
+          });
+        } else {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Invalid regular expression', // fallback message
+          });
+        }
+      }
+    }),
+  })
+  .optional();
+
 // Enum schema for the groupId parameter of the Groups endpoints
 export const groupsSchema = z.enum(['admins', 'writers', 'readers']);
 
