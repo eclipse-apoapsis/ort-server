@@ -57,17 +57,8 @@ val maxKotlinJvmTarget = runCatching { JvmTarget.fromTarget(javaLanguageVersion)
     .getOrDefault(enumValues<JvmTarget>().max())
 
 tasks.named<KotlinCompile>("compileKotlin") {
-    val hasSerializationPlugin = plugins.hasPlugin(libs.plugins.kotlinSerialization.get().pluginId)
-
-    val optInRequirements = listOfNotNull(
-        "kotlinx.serialization.ExperimentalSerializationApi".takeIf { hasSerializationPlugin }
-    )
-
     compilerOptions {
-        allWarningsAsErrors = true
-        freeCompilerArgs.addAll("-Xconsistent-data-class-copy-visibility", "-Xnon-local-break-continue")
         jvmTarget = maxKotlinJvmTarget
-        optIn = optInRequirements
     }
 }
 
