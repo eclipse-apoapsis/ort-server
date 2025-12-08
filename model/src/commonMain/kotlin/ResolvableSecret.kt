@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.KeepGeneratedSerializer
 import kotlinx.serialization.Serializable
@@ -28,6 +29,7 @@ import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonPrimitive
 
 @KeepGeneratedSerializer
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = ResolvableSecretSerializer::class)
 data class ResolvableSecret(
     /** The name of the secret. */
