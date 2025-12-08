@@ -30,7 +30,7 @@ import kotlinx.serialization.json.JsonPrimitive
 
 @KeepGeneratedSerializer
 @OptIn(ExperimentalSerializationApi::class)
-@Serializable(with = ResolvableSecretSerializer::class)
+@Serializable(ResolvableSecretSerializer::class)
 data class ResolvableSecret(
     /** The name of the secret. */
     val name: String,
