@@ -29,6 +29,10 @@ plugins {
     alias(libs.plugins.jib) apply false
 }
 
+dependencyAnalysis {
+    useTypesafeProjectAccessors(true)
+}
+
 semver {
     // Do not create an empty release commit when running the "releaseVersion" task.
     createReleaseCommit = false
