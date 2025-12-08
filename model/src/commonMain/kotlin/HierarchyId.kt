@@ -55,7 +55,6 @@ value class RepositoryId(override val value: Long) : HierarchyId
  * The class provides some functionality to access parent structures and to check whether an element is part of the
  * hierarchy of another element.
  */
-@ConsistentCopyVisibility
 data class CompoundHierarchyId private constructor(
     /**
      * The [OrganizationId] this element belongs to. This is only *null* for the special [WILDCARD] instance.

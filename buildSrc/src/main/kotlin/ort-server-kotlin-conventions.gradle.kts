@@ -21,6 +21,8 @@ import io.gitlab.arturbosch.detekt.Detekt
 
 import org.gradle.accessors.dm.LibrariesForLibs
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 private val Project.libs: LibrariesForLibs
     get() = extensions.getByType()
 
@@ -54,6 +56,22 @@ detekt {
     )
 
     basePath = rootDir.path
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    if (!name.startsWith("compileKotlin")) return@configureEach
+
+    val hasSerializationPlugin = plugins.hasPlugin(libs.plugins.kotlinSerialization.get().pluginId)
+
+    val optInRequirements = listOfNotNull(
+        "kotlinx.serialization.ExperimentalSerializationApi".takeIf { hasSerializationPlugin }
+    )
+
+    compilerOptions {
+        allWarningsAsErrors = true
+        freeCompilerArgs.addAll("-Xconsistent-data-class-copy-visibility", "-Xnon-local-break-continue")
+        optIn = optInRequirements
+    }
 }
 
 tasks.withType<Detekt>().configureEach {
