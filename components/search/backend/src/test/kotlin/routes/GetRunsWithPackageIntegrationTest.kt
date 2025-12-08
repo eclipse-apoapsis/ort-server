@@ -29,8 +29,15 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.http.HttpStatusCode
 
+import io.mockk.coEvery
+
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
+import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.OrganizationId
+import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import ort.eclipse.apoapsis.ortserver.components.search.SearchIntegrationTest
 import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackage
@@ -48,39 +55,27 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
             }
         }
 
-        "return BadRequest if productId without organizationId is provided" {
+        "return BadRequest if multiple scope parameters are provided" {
             val fixtures = dbExtension.fixtures
             val run = createRunWithPackage(fixtures = fixtures, repoId = fixtures.repository.id)
 
             searchTestApplication { client ->
-                val response = client.get(SEARCH_ROUTE) {
+                val withTwoScopes = client.get(SEARCH_ROUTE) {
                     parameter("identifier", run.packageId)
+                    parameter("organizationId", run.organizationId.toString())
                     parameter("productId", run.productId.toString())
                 }
 
-                response shouldHaveStatus HttpStatusCode.BadRequest
-            }
-        }
+                withTwoScopes shouldHaveStatus HttpStatusCode.BadRequest
 
-        "return BadRequest if repositoryId without productId and organizationId is provided" {
-            val fixtures = dbExtension.fixtures
-            val run = createRunWithPackage(fixtures = fixtures, repoId = fixtures.repository.id)
-
-            searchTestApplication { client ->
-                val withoutScopes = client.get(SEARCH_ROUTE) {
-                    parameter("identifier", run.packageId)
-                    parameter("repositoryId", run.repositoryId.toString())
-                }
-
-                withoutScopes shouldHaveStatus HttpStatusCode.BadRequest
-
-                val missingProduct = client.get(SEARCH_ROUTE) {
+                val withAllScopes = client.get(SEARCH_ROUTE) {
                     parameter("identifier", run.packageId)
                     parameter("organizationId", run.organizationId.toString())
+                    parameter("productId", run.productId.toString())
                     parameter("repositoryId", run.repositoryId.toString())
                 }
 
-                missingProduct shouldHaveStatus HttpStatusCode.BadRequest
+                withAllScopes shouldHaveStatus HttpStatusCode.BadRequest
             }
         }
 
@@ -125,6 +120,19 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 pkgId = packageIdentifier
             )
 
+            coEvery {
+                hierarchyAuthorizationService.filterHierarchyIds(
+                    any(), any(), any(), any(), OrganizationId(run.organizationId)
+                )
+            } returns HierarchyFilter(
+                transitiveIncludes = mapOf(
+                    CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(
+                        CompoundHierarchyId.forOrganization(OrganizationId(run.organizationId))
+                    )
+                ),
+                nonTransitiveIncludes = emptyMap()
+            )
+
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
                     parameter("identifier", run.packageId)
@@ -157,10 +165,25 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 pkgId = packageIdentifier
             )
 
+            coEvery {
+                hierarchyAuthorizationService.filterHierarchyIds(
+                    any(), any(), any(), any(), ProductId(run.productId)
+                )
+            } returns HierarchyFilter(
+                transitiveIncludes = mapOf(
+                    CompoundHierarchyId.PRODUCT_LEVEL to listOf(
+                        CompoundHierarchyId.forProduct(
+                            OrganizationId(run.organizationId),
+                            ProductId(run.productId)
+                        )
+                    )
+                ),
+                nonTransitiveIncludes = emptyMap()
+            )
+
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
                     parameter("identifier", run.packageId)
-                    parameter("organizationId", run.organizationId.toString())
                     parameter("productId", run.productId.toString())
                 }
 
@@ -189,11 +212,26 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
                 pkgId = packageIdentifier
             )
 
+            coEvery {
+                hierarchyAuthorizationService.filterHierarchyIds(
+                    any(), any(), any(), any(), RepositoryId(run.repositoryId)
+                )
+            } returns HierarchyFilter(
+                transitiveIncludes = mapOf(
+                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                        CompoundHierarchyId.forRepository(
+                            OrganizationId(run.organizationId),
+                            ProductId(run.productId),
+                            RepositoryId(run.repositoryId)
+                        )
+                    )
+                ),
+                nonTransitiveIncludes = emptyMap()
+            )
+
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
                     parameter("identifier", run.packageId)
-                    parameter("organizationId", run.organizationId.toString())
-                    parameter("productId", run.productId.toString())
                     parameter("repositoryId", run.repositoryId.toString())
                 }
 
@@ -201,6 +239,51 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
                 val body = response.body<List<RunWithPackage>>()
                 body shouldContainExactly listOf(run)
+            }
+        }
+
+        "respect hierarchy filters when fetching runs" {
+            val fixtures = dbExtension.fixtures
+            val packageIdentifier = identifierFor("hierarchy")
+            val allowed = createRunWithPackage(
+                fixtures = fixtures,
+                repoId = fixtures.repository.id,
+                pkgId = packageIdentifier
+            )
+            val otherRepo = fixtures.createRepository(
+                productId = allowed.productId,
+                url = "https://example.com/filtered.git"
+            )
+            createRunWithPackage(
+                fixtures = fixtures,
+                repoId = otherRepo.id,
+                pkgId = packageIdentifier
+            )
+
+            coEvery {
+                hierarchyAuthorizationService.filterHierarchyIds(any(), any(), any(), any(), any())
+            } returns HierarchyFilter(
+                transitiveIncludes = mapOf(
+                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                        CompoundHierarchyId.forRepository(
+                            OrganizationId(allowed.organizationId),
+                            ProductId(allowed.productId),
+                            RepositoryId(allowed.repositoryId)
+                        )
+                    )
+                ),
+                nonTransitiveIncludes = emptyMap()
+            )
+
+            searchTestApplication { client ->
+                val response = client.get(SEARCH_ROUTE) {
+                    parameter("identifier", allowed.packageId)
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<List<RunWithPackage>>()
+                body shouldContainExactly listOf(allowed)
             }
         }
 
@@ -256,8 +339,6 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
             searchTestApplication { client ->
                 val response = client.get(SEARCH_ROUTE) {
                     parameter("identifier", missingIdentifier)
-                    parameter("organizationId", run.organizationId.toString())
-                    parameter("productId", run.productId.toString())
                     parameter("repositoryId", run.repositoryId.toString())
                 }
 

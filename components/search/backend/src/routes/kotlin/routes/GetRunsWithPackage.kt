@@ -19,19 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.components.search.routes
 
-import io.github.smiley4.ktoropenapi.get
-
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 
 import kotlinx.datetime.Clock
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.OrganizationPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.ProductPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.permissions.RepositoryPermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requirePermission
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.requireSuperuser
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal.Companion.requirePrincipal
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
@@ -41,7 +36,7 @@ import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 internal fun Route.getRunsWithPackage(searchService: SearchService) =
     get("/search/package", {
         operationId = "getRunsWithPackage"
-        summary = "Return ORT runs containing a package, possibly scoped by organization, product, and repository"
+        summary = "Return ORT runs containing a package, possibly scoped by organization, product, or repository"
         tags = listOf("Search")
 
         request {
@@ -50,13 +45,16 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
                 required = true
             }
             queryParameter<Long?>("organizationId") {
-                description = "Optional organization ID to filter the search."
+                description = "Optional organization ID to filter the search. " +
+                    "Cannot be combined with productId or repositoryId."
             }
             queryParameter<Long?>("productId") {
-                description = "Optional product ID to filter the search."
+                description = "Optional product ID to filter the search. " +
+                    "Cannot be combined with organizationId or repositoryId."
             }
             queryParameter<Long?>("repositoryId") {
-                description = "Optional repository ID to filter the search."
+                description = "Optional repository ID to filter the search. " +
+                    "Cannot be combined with organizationId or productId."
             }
         }
 
@@ -88,41 +86,20 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
                     }
                 }
             }
+            HttpStatusCode.BadRequest to {
+                description = "If more than one scope parameter (organizationId, productId, repositoryId) is specified."
+            }
         }
-    }) {
+    }, requireScopedReadPermission()) {
         val identifierParam = call.requireParameter("identifier")
-        val organizationIdParam = call.request.queryParameters["organizationId"]?.toLongOrNull()
-        val productIdParam = call.request.queryParameters["productId"]?.toLongOrNull()
-        val repositoryIdParam = call.request.queryParameters["repositoryId"]?.toLongOrNull()
-
-        if (repositoryIdParam != null && (productIdParam == null || organizationIdParam == null)) {
-            return@get call.respond(
-                HttpStatusCode.BadRequest,
-                "A repository ID requires a product and an organization ID."
-            )
-        }
-        if (productIdParam != null && organizationIdParam == null) {
-            return@get call.respond(
-                HttpStatusCode.BadRequest,
-                "A product ID requires an organization ID."
-            )
-        }
-
-        if (repositoryIdParam != null) {
-            requirePermission(RepositoryPermission.READ.roleName(repositoryIdParam))
-        } else if (productIdParam != null) {
-            requirePermission(ProductPermission.READ.roleName(productIdParam))
-        } else if (organizationIdParam != null) {
-            requirePermission(OrganizationPermission.READ.roleName(organizationIdParam))
-        } else {
-            requireSuperuser()
-        }
+        // parseScope() throws QueryParametersException if multiple scope parameters are provided
+        val scope = call.parseScope()
+        val userId = requirePrincipal().username
 
         val ortRuns = searchService.findOrtRunsByPackage(
             identifier = identifierParam,
-            organizationId = organizationIdParam,
-            productId = productIdParam,
-            repositoryId = repositoryIdParam
+            userId = userId,
+            scope = scope
         )
         call.respond(HttpStatusCode.OK, ortRuns)
     }
