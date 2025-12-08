@@ -20,12 +20,34 @@
 package ort.eclipse.apoapsis.ortserver.components.search
 
 import io.ktor.client.HttpClient
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.kotlinx.serialization
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.authenticate
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.testApplication
 
+import io.mockk.coEvery
+import io.mockk.mockk
+
+import kotlinx.serialization.json.Json
+
+import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.components.search.searchRoutes
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractIntegrationTest
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.DummyConfig
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.FakeAuthenticationProvider
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.createJsonClient
+import org.eclipse.apoapsis.ortserver.shared.ktorutils.respondError
 
 import org.jetbrains.exposed.sql.Database
 
@@ -35,6 +57,7 @@ abstract class SearchIntegrationTest(
     body: SearchIntegrationTest.() -> Unit
 ) : AbstractIntegrationTest({}) {
     lateinit var searchService: SearchService
+    lateinit var hierarchyAuthorizationService: AuthorizationService
 
     private lateinit var db: Database
     private lateinit var fixtures: Fixtures
@@ -43,7 +66,12 @@ abstract class SearchIntegrationTest(
         beforeEach {
             db = dbExtension.db
             fixtures = dbExtension.fixtures
-            searchService = SearchService(db)
+            hierarchyAuthorizationService = mockk {
+                coEvery {
+                    filterHierarchyIds(any(), any(), any(), any(), any())
+                } returns HierarchyFilter.WILDCARD
+            }
+            searchService = SearchService(db, hierarchyAuthorizationService)
         }
 
         body()
@@ -51,8 +79,31 @@ abstract class SearchIntegrationTest(
 
     fun searchTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit
-    ) = integrationTestApplication(
-        routes = { searchRoutes(searchService) },
-        block = block
-    )
+    ) {
+        testApplication {
+            application {
+                install(ContentNegotiation) {
+                    serialization(ContentType.Application.Json, Json)
+                }
+
+                install(Authentication) {
+                    register(FakeAuthenticationProvider(DummyConfig(principal)))
+                }
+
+                install(StatusPages) {
+                    exception<QueryParametersException> { call, e ->
+                        call.respondError(HttpStatusCode.BadRequest, "Invalid query parameters.", e.message)
+                    }
+                }
+
+                routing {
+                    authenticate("test") {
+                        searchRoutes(searchService)
+                    }
+                }
+            }
+
+            block(createJsonClient())
+        }
+    }
 }
