@@ -34,7 +34,7 @@ import kotlinx.serialization.encoding.Encoder
  * ones that are [present][OptionalValue.Present]. Otherwise, for nullable properties, there would be no way to
  * distinguish if the property should be ignored or updated.
  */
-@Serializable(with = OptionalValueSerializer::class)
+@Serializable(OptionalValueSerializer::class)
 sealed interface OptionalValue<out T> {
     /**
      * Value is present, the property will be updated with [value].
