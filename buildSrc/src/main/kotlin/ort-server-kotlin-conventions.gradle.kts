@@ -20,7 +20,6 @@
 import io.gitlab.arturbosch.detekt.Detekt
 
 import org.gradle.accessors.dm.LibrariesForLibs
-import org.gradle.kotlin.dsl.dependencies
 
 private val Project.libs: LibrariesForLibs
     get() = extensions.getByType()
