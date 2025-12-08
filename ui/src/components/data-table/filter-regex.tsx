@@ -19,7 +19,6 @@
 
 import { Filter, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import z from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,29 +28,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-
-const regexSchema = z
-  .object({
-    value: z.string().superRefine((val, ctx) => {
-      try {
-        new RegExp(val);
-      } catch (error) {
-        if (error instanceof SyntaxError && error.message) {
-          ctx.addIssue({
-            code: 'custom',
-            message:
-              error.message.charAt(0).toUpperCase() + error.message.slice(1), // capitalize first letter
-          });
-        } else {
-          ctx.addIssue({
-            code: 'custom',
-            message: 'Invalid regular expression', // fallback message
-          });
-        }
-      }
-    }),
-  })
-  .optional();
+import { regexSchema } from '@/schemas';
 
 interface FilterRegexProps {
   title?: string;
