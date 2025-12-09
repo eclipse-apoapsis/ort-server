@@ -33,7 +33,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.EvaluatorJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
@@ -87,9 +86,6 @@ class ReporterRunner(
     /** The object to store the generated report files. */
     private val reportStorage: ReportStorage,
 
-    /** The config manager used to download configuration files. */
-    private val configManager: ConfigManager,
-
     /** The file archiver used for resolving license files. */
     private val fileArchiver: FileArchiver,
 
@@ -109,14 +105,14 @@ class ReporterRunner(
             context.ortRun.organizationId
         )
         val ruleSet = adminConfig.getRuleSet(context.ortRun.resolvedJobConfigs?.ruleSet)
-        val copyrightGarbage = configManager.readConfigFileValueWithDefault(
+        val copyrightGarbage = context.configManager.readConfigFileValueWithDefault(
             path = ruleSet.copyrightGarbageFile,
             defaultPath = ORT_COPYRIGHT_GARBAGE_FILENAME,
             fallbackValue = CopyrightGarbage(),
             context = context.resolvedConfigurationContext
         )
 
-        val licenseClassifications = configManager.readConfigFileValueWithDefault(
+        val licenseClassifications = context.configManager.readConfigFileValueWithDefault(
             path = ruleSet.licenseClassificationsFile,
             defaultPath = ORT_LICENSE_CLASSIFICATIONS_FILENAME,
             fallbackValue = LicenseClassifications(),
@@ -146,7 +142,7 @@ class ReporterRunner(
             // Resolve resolutions if not already done by the evaluator.
             val resolutionsFromOrtResult = resolvedOrtResult.repository.config.resolutions
 
-            val resolutionsFromFile = configManager.readConfigFileValueWithDefault(
+            val resolutionsFromFile = context.configManager.readConfigFileValueWithDefault(
                 path = ruleSet.resolutionsFile,
                 defaultPath = ORT_RESOLUTIONS_FILENAME,
                 fallbackValue = Resolutions(),
@@ -158,7 +154,7 @@ class ReporterRunner(
             resolvedOrtResult = resolvedOrtResult.setResolutions(resolutionProvider)
         }
 
-        val howToFixTextProviderScript = configManager.readConfigFileWithDefault(
+        val howToFixTextProviderScript = context.configManager.readConfigFileWithDefault(
             path = adminConfig.reporterConfig.howToFixTextProviderFile,
             defaultPath = ORT_HOW_TO_FIX_TEXT_PROVIDER_FILENAME,
             fallbackValue = "",

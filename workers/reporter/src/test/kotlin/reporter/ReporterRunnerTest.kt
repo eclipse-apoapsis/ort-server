@@ -167,6 +167,7 @@ class ReporterRunnerTest : WordSpec({
         resolvedProviderPluginConfigs: List<ProviderPluginConfiguration> = emptyList()
     ): WorkerContext =
         mockk {
+            every { this@mockk.configManager } returns configManager
             every { ortRun.id } returns RUN_ID
             every { ortRun.organizationId } returns ORGANIZATION_ID
             every { ortRun.resolvedJobConfigContext } returns configurationContext.name
@@ -192,7 +193,7 @@ class ReporterRunnerTest : WordSpec({
         storage: ReportStorage = mockk(relaxed = true),
         config: ReporterConfig = createReporterConfig()
     ): ReporterRunner =
-        ReporterRunner(storage, configManager, mockk(), createAdminConfigService(config))
+        ReporterRunner(storage, mockk(), createAdminConfigService(config))
 
     "run" should {
         "return a result with report format and report names" {
@@ -883,7 +884,6 @@ class ReporterRunnerTest : WordSpec({
             )
 
             val context = mockContext()
-            every { context.configManager } returns configManager
 
             val reporterConfig = createReporterConfig(
                 customLicenseTextDir = customLicenseTextsPath,
