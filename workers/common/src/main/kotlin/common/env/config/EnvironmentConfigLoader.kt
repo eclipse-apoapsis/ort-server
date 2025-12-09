@@ -361,7 +361,7 @@ private class ServiceResolver(
     secrets: Map<String, Secret>
 ) {
     /** A map for fast access to repository services. */
-    private val repositoryServices by lazy { configServices.associateByName() }
+    private val configuredRepositoryServices by lazy { configServices.associateByName() }
 
     /** A map with the services defined for the current product. */
     private val productServices by lazy {
@@ -389,7 +389,7 @@ private class ServiceResolver(
         val serviceName = properties[EnvironmentDefinitionFactory.SERVICE_PROPERTY]
             ?: throw EnvironmentConfigException("Missing service reference: $properties")
 
-        repositoryServices[serviceName]
+        configuredRepositoryServices[serviceName]
             ?: productServices[serviceName]
             ?: organizationServices[serviceName]
             ?: throw EnvironmentConfigException("Unknown service: '$serviceName'.")
