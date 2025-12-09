@@ -19,7 +19,6 @@
 
 package org.eclipse.apoapsis.ortserver.workers.config
 
-import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
@@ -49,9 +48,6 @@ class ConfigWorker(
     /** The factory for obtaining a worker context. */
     private val contextFactory: WorkerContextFactory,
 
-    /** The object for accessing configuration data. */
-    private val configManager: ConfigManager,
-
     /** The service to access the admin configuration. */
     private val adminConfigService: AdminConfigService
 ) {
@@ -77,7 +73,7 @@ class ConfigWorker(
 
         contextFactory.withContext(ortRunId) { context ->
             val jobConfigContext = context.ortRun.jobConfigContext?.let(::Context)
-            val resolvedJobConfigContext = configManager.resolveContext(jobConfigContext)
+            val resolvedJobConfigContext = context.configManager.resolveContext(jobConfigContext)
 
             logger.info(
                 "Provided configuration context '{}' was resolved to '{}'.",
@@ -87,11 +83,18 @@ class ConfigWorker(
 
             // TODO: Currently the path to the validation script is hard-coded. It may make sense to have it
             //       configurable.
-            val validationScriptExists = configManager.containsFile(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
+            val validationScriptExists = context.configManager.containsFile(
+                resolvedJobConfigContext,
+                VALIDATION_SCRIPT_PATH
+            )
+
             val (result, validationResult) = if (validationScriptExists) {
                 logger.info("Running validation script.")
 
-                val validationScript = configManager.getFileAsString(resolvedJobConfigContext, VALIDATION_SCRIPT_PATH)
+                val validationScript = context.configManager.getFileAsString(
+                    resolvedJobConfigContext,
+                    VALIDATION_SCRIPT_PATH
+                )
                 val validator = ConfigValidator.create(
                     createValidationWorkerContext(context, resolvedJobConfigContext),
                     adminConfigService
