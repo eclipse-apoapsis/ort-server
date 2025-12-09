@@ -42,8 +42,8 @@ import java.net.PasswordAuthentication
 import java.net.URI
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 import org.ossreviewtoolkit.utils.common.Os
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
@@ -160,7 +160,7 @@ class OrtServerAuthenticatorTest : WordSpec() {
                 val authenticator = OrtServerAuthenticator.install()
                 authenticator.updateAuthenticationListener(listener)
                 val service = createService("matchingService", url, usernameSecret, passwordSecret)
-                authenticator.updateAuthenticationInfo(createAuthInfo(listOf<InfrastructureService>(service)))
+                authenticator.updateAuthenticationInfo(createAuthInfo(listOf<ResolvedInfrastructureService>(service)))
 
                 Authenticator.requestPasswordAuthentication(
                     "host.does.not.matter",
@@ -579,8 +579,8 @@ private fun createSecret(path: String): Secret =
     Secret(0, path, "$path-secret", null, null, null, null)
 
 /**
- * Create an [InfrastructureService] object with the given [name], [url], and optional [username], [password], and
- * [credentialsTypes].
+ * Create an [ResolvedInfrastructureService] object with the given [name], [url], and optional [username], [password],
+ * and [credentialsTypes].
  */
 private fun createService(
     name: String,
@@ -588,22 +588,19 @@ private fun createService(
     username: Secret? = null,
     password: Secret? = null,
     credentialsTypes: Set<CredentialsType> = emptySet()
-): InfrastructureService =
-    InfrastructureService(
+): ResolvedInfrastructureService =
+    ResolvedInfrastructureService(
         name = name,
         url = url,
         usernameSecret = username ?: createSecret("unknown-username"),
         passwordSecret = password ?: createSecret("unknown-password"),
-        organization = null,
-        product = null,
-        repository = null,
         credentialsTypes = credentialsTypes
     )
 
 /**
  * Create an [AuthenticationInfo] object with the given [services] and the secrets used for testing.
  */
-private fun createAuthInfo(services: List<InfrastructureService>): AuthenticationInfo =
+private fun createAuthInfo(services: List<ResolvedInfrastructureService>): AuthenticationInfo =
     AuthenticationInfo(
         secrets = mapOf(
             usernameSecret.path to USERNAME,

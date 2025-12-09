@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 /**
  * An enumeration class defining the supported ways to declare the authentication against an NPM registry.
@@ -68,7 +68,7 @@ enum class NpmAuthMode {
  * See https://docs.npmjs.com/cli/v9/configuring-npm/npmrc?v=true
  */
 class NpmDefinition(
-    service: InfrastructureService,
+    service: ResolvedInfrastructureService,
 
     credentialsTypes: Set<CredentialsType>?,
 

@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env
 
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 import org.slf4j.LoggerFactory
 
@@ -31,14 +31,12 @@ internal object GeneratorLogger {
 
     private val logger = LoggerFactory.getLogger(GeneratorLogger::class.java)
 
-    internal fun entryAdded(entry: String, targetFile: String, service: InfrastructureService) {
+    internal fun entryAdded(entry: String, targetFile: String, service: ResolvedInfrastructureService) {
         logger.debug(
-            "Added entry '{}' to file '{}' for service '{}', organization '{}', product '{}'.",
+            "Added entry '{}' to file '{}' for service '{}'.",
             entry,
             targetFile,
-            service.name,
-            service.organization?.name.orEmpty(),
-            service.product?.name.orEmpty()
+            service.name
         )
     }
 

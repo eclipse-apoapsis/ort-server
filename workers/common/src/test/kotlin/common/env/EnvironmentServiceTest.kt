@@ -46,7 +46,6 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -59,6 +58,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.undefinedCredentialResolver
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
@@ -81,9 +81,9 @@ class EnvironmentServiceTest : WordSpec({
     "findInfrastructureServicesForRepository" should {
         "return the infrastructure services defined for the hierarchy" {
             val services = listOf(
-                createInfrastructureService(),
-                createInfrastructureService("https://repo.example.org/test-orga/test-repo"),
-                createInfrastructureService("https://repo.example.org/")
+                createInfrastructureService().toInfrastructureService(),
+                createInfrastructureService("https://repo.example.org/test-orga/test-repo").toInfrastructureService(),
+                createInfrastructureService("https://repo.example.org/").toInfrastructureService()
             )
 
             val service = mockk<InfrastructureServiceService> {
@@ -131,7 +131,7 @@ class EnvironmentServiceTest : WordSpec({
             )
             val result = environmentService.findInfrastructureServicesForRepository(mockContext(), config)
 
-            result shouldContainExactlyInAnyOrder services
+            result shouldContainExactlyInAnyOrder services.map(ResolvedInfrastructureService::toInfrastructureService)
         }
 
         "return the merged infrastructure services from the hierarchy and the environment configuration" {
@@ -141,7 +141,12 @@ class EnvironmentServiceTest : WordSpec({
             val overrideService = createInfrastructureService()
 
             val service = mockk<InfrastructureServiceService> {
-                coEvery { listForHierarchy(repositoryHierarchy) } returns listOf(hierarchyService, overriddenService)
+                coEvery { listForHierarchy(repositoryHierarchy) } returns listOf(
+                    hierarchyService,
+                    overriddenService
+                ).map(
+                    ResolvedInfrastructureService::toInfrastructureService
+                )
             }
 
             val config = mockk<EnvironmentConfig>()
@@ -160,7 +165,9 @@ class EnvironmentServiceTest : WordSpec({
             )
             val result = environmentService.findInfrastructureServicesForRepository(mockContext(), config)
 
-            result shouldContainExactlyInAnyOrder listOf(hierarchyService, configService, overrideService)
+            result shouldContainExactlyInAnyOrder listOf(hierarchyService, configService, overrideService).map(
+                ResolvedInfrastructureService::toInfrastructureService
+            )
         }
     }
 
@@ -297,9 +304,10 @@ class EnvironmentServiceTest : WordSpec({
             val repositoryService = createInfrastructureService()
             val otherService = createInfrastructureService("https://service.example.com/service")
 
-            val expectedDynamicServices = listOf(repositoryService, otherService).map(
-                InfrastructureService::toInfrastructureServiceDeclaration
-            )
+            val expectedDynamicServices = listOf(
+                repositoryService,
+                otherService
+            ).map(ResolvedInfrastructureService::toInfrastructureServiceDeclaration)
 
             val context = mockContext()
             val config = ResolvedEnvironmentConfig(listOf(otherService), emptyList())
@@ -315,7 +323,12 @@ class EnvironmentServiceTest : WordSpec({
                 configLoader,
                 createMockAdminConfigService()
             )
-            environmentService.setUpEnvironment(context, repositoryFolder, null, listOf(repositoryService))
+            environmentService.setUpEnvironment(
+                context,
+                repositoryFolder,
+                null,
+                listOf(repositoryService.toInfrastructureService())
+            )
 
             assignedServices shouldContainExactlyInAnyOrder expectedDynamicServices
         }
@@ -329,7 +342,7 @@ class EnvironmentServiceTest : WordSpec({
             val definitions = services.map(::EnvironmentServiceDefinition)
 
             val expectedDynamicServices = services.map(
-                InfrastructureService::toInfrastructureServiceDeclaration
+                ResolvedInfrastructureService::toInfrastructureServiceDeclaration
             )
 
             val context = mockContext()
@@ -352,7 +365,7 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "set an overridden credentials type when assigning infrastructure services to the current ORT run" {
-            val infrastructureService = InfrastructureService(
+            val infrastructureService = ResolvedInfrastructureService(
                 name = "aTestService",
                 url = "https://test.example.org/test/service.git",
                 usernameSecret = mockk {
@@ -360,10 +373,7 @@ class EnvironmentServiceTest : WordSpec({
                 },
                 passwordSecret = mockk {
                     every { name } returns "some-password-secret-name"
-                },
-                organization = null,
-                product = null,
-                repository = null
+                }
             )
             val definition = EnvironmentServiceDefinition(
                 infrastructureService,
@@ -402,7 +412,7 @@ class EnvironmentServiceTest : WordSpec({
                 referencedService
             )
             val expectedDynamicServices = services.map(
-                InfrastructureService::toInfrastructureServiceDeclaration
+                ResolvedInfrastructureService::toInfrastructureServiceDeclaration
             )
 
             val context = mockContext()
@@ -419,7 +429,12 @@ class EnvironmentServiceTest : WordSpec({
                 configLoader,
                 createMockAdminConfigService()
             )
-            environmentService.setUpEnvironment(context, repositoryFolder, null, listOf(repositoryService))
+            environmentService.setUpEnvironment(
+                context,
+                repositoryFolder,
+                null,
+                listOf(repositoryService.toInfrastructureService())
+            )
 
             assignedServices shouldContainExactlyInAnyOrder expectedDynamicServices
         }
@@ -517,7 +532,10 @@ class EnvironmentServiceTest : WordSpec({
                 mockk(),
                 createMockAdminConfigService()
             )
-            environmentService.setupAuthentication(context, services)
+            environmentService.setupAuthentication(
+                context,
+                services.map(ResolvedInfrastructureService::toInfrastructureService)
+            )
 
             coVerify { context.setupAuthentication(services, netRcManager) }
         }

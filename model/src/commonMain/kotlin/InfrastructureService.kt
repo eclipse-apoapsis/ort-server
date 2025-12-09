@@ -87,18 +87,4 @@ data class InfrastructureService(
             )
         }
     }
-
-    /**
-     * Map this [InfrastructureService] to a [InfrastructureServiceDeclaration]. This can be useful when both types
-     * of Infrastructure Service information are processed by the same code.
-     */
-    fun toInfrastructureServiceDeclaration() =
-        InfrastructureServiceDeclaration(
-            name = name,
-            url = url,
-            description = description,
-            usernameSecret = usernameSecret.name,
-            passwordSecret = passwordSecret.name,
-            credentialsTypes = credentialsTypes
-        )
 }

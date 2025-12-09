@@ -45,7 +45,6 @@ import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.EnvironmentConfig
 import org.eclipse.apoapsis.ortserver.model.EnvironmentVariableDeclaration
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
@@ -56,6 +55,7 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigException
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
@@ -484,10 +484,10 @@ private class TestHelper(
     private val secrets = mutableListOf<Secret>()
 
     /** Stores infrastructure services assigned to the current product. */
-    private val productServices = mutableListOf<InfrastructureService>()
+    private val productServices = mutableListOf<ResolvedInfrastructureService>()
 
     /** Stores infrastructure services assigned to the current organization. */
-    private val organizationServices = mutableListOf<InfrastructureService>()
+    private val organizationServices = mutableListOf<ResolvedInfrastructureService>()
 
     /**
      * Create a new [EnvironmentConfigLoader] instance with the dependencies managed by this object.
@@ -523,7 +523,7 @@ private class TestHelper(
      * Add the given [service] to the list of product services. It will be returned by the mock service repository
      * when it is queried for product services.
      */
-    fun withProductService(service: InfrastructureService): TestHelper {
+    fun withProductService(service: ResolvedInfrastructureService): TestHelper {
         productServices += service
         return this
     }
@@ -532,7 +532,7 @@ private class TestHelper(
      * Add the given [service] to the list of organization services. It will be returned by the mock service repository
      * when it is queried for organization services.
      */
-    fun withOrganizationService(service: InfrastructureService): TestHelper {
+    fun withOrganizationService(service: ResolvedInfrastructureService): TestHelper {
         organizationServices += service
         return this
     }
@@ -556,9 +556,17 @@ private class TestHelper(
      */
     private fun initInfrastructureServiceService() {
         coEvery { infrastructureServiceService.listForId(ProductId(hierarchy.product.id)) } returns
-                ListQueryResult(productServices, ListQueryParameters.DEFAULT, productServices.size.toLong())
+                ListQueryResult(
+                    productServices.map(ResolvedInfrastructureService::toInfrastructureService),
+                    ListQueryParameters.DEFAULT,
+                    productServices.size.toLong()
+                )
         coEvery { infrastructureServiceService.listForId(OrganizationId(hierarchy.organization.id)) } returns
-                ListQueryResult(organizationServices, ListQueryParameters.DEFAULT, organizationServices.size.toLong())
+                ListQueryResult(
+                    organizationServices.map(ResolvedInfrastructureService::toInfrastructureService),
+                    ListQueryParameters.DEFAULT,
+                    organizationServices.size.toLong()
+                )
     }
 }
 
@@ -578,16 +586,13 @@ private val hierarchy = Hierarchy(repository, product, organization)
 /**
  * Create a test service based on the given [index] with the given [userSecret] and [passSecret].
  */
-private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret): InfrastructureService =
-    InfrastructureService(
+private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret): ResolvedInfrastructureService =
+    ResolvedInfrastructureService(
         name = serviceName(index),
         url = serviceUrl(index),
         description = serviceDescription(index),
         usernameSecret = userSecret,
         passwordSecret = passSecret,
-        organization = null,
-        product = null,
-        repository = null,
         credentialsTypes = setOf(CredentialsType.entries[index % 2])
     )
 
@@ -611,7 +616,7 @@ private fun serviceDescription(index: Int) = "Test service $index"
  * the given [service] and passes the given [check].
  */
 private inline fun <reified T : EnvironmentServiceDefinition> ResolvedEnvironmentConfig.shouldContainDefinition(
-    service: InfrastructureService,
+    service: ResolvedInfrastructureService,
     check: (T) -> Boolean
 ) {
     environmentDefinitions.find { definition ->

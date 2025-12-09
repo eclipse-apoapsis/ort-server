@@ -22,14 +22,14 @@ package org.eclipse.apoapsis.ortserver.workers.common.env
 import java.net.URI
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
 /**
  * A specialized generator class to generate the content of the .netrc file.
  *
- * This generator class produces an entry for the _.netrc_ file for each [InfrastructureService] it is provided. See
- * https://daniel.haxx.se/blog/2022/05/31/netrc-pains/ for a discussion of the format and its limitations. The file
+ * This generator class produces an entry for the _.netrc_ file for each [ResolvedInfrastructureService] it is provided.
+ * See https://daniel.haxx.se/blog/2022/05/31/netrc-pains/ for a discussion of the format and its limitations. The file
  * written by this class is intended to be read by ORT's _NetRcAuthenticator_ class. As this class does not support
  * any advanced features (e.g., special characters in passwords, quoting, or escaping), those aspects are ignored here
  * as well.
@@ -46,9 +46,9 @@ class NetRcGenerator : EnvironmentConfigGenerator<EnvironmentServiceDefinition> 
         private const val NETRC_FILE_NAME = ".netrc"
 
         /**
-         * Obtain the host name of this [InfrastructureService] from its URL or *null* if the URL is not valid.
+         * Obtain the host name of this [ResolvedInfrastructureService] from its URL or *null* if the URL is not valid.
          */
-        private fun InfrastructureService.host(): String? =
+        private fun ResolvedInfrastructureService.host(): String? =
             runCatching {
                 URI.create(url).host
             }.onFailure {

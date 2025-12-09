@@ -20,16 +20,16 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 /**
  * A specific [EnvironmentServiceDefinition] class for generating the Maven _settings.xml_ file.
  *
- * This class defines under which ID a specific [InfrastructureService] with its credentials should be referenced from
- * the _settings.xml_ file.
+ * This class defines under which ID a specific [ResolvedInfrastructureService] with its credentials should be
+ * referenced from the _settings.xml_ file.
  */
 class MavenDefinition(
-    service: InfrastructureService,
+    service: ResolvedInfrastructureService,
 
     credentialsTypes: Set<CredentialsType>?,
 

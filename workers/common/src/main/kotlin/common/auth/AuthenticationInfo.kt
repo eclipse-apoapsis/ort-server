@@ -19,8 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.auth
 
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 /**
  * A data class holding all authentication information that is currently available. Based on this information,
@@ -32,8 +32,8 @@ internal data class AuthenticationInfo(
      */
     val secrets: Map<String, String>,
 
-    /** A list with the [InfrastructureService]s available in the current context. */
-    val services: List<InfrastructureService>
+    /** A list with the [ResolvedInfrastructureService]s available in the current context. */
+    val services: List<ResolvedInfrastructureService>
 ) {
     /**
      * Return the value of the given [secret] or throw an [IllegalArgumentException] if the secret cannot be resolved.

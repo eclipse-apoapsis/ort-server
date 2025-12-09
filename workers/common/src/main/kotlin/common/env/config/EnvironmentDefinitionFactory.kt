@@ -22,7 +22,7 @@ package org.eclipse.apoapsis.ortserver.workers.common.env.config
 import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
@@ -74,7 +74,7 @@ class EnvironmentDefinitionFactory {
      */
     fun createDefinition(
         type: String,
-        service: InfrastructureService,
+        service: ResolvedInfrastructureService,
         properties: Map<String, String>
     ): Result<EnvironmentServiceDefinition> =
         when (type) {
@@ -91,7 +91,7 @@ class EnvironmentDefinitionFactory {
      * Create a definition for the _remotes.json_ configuration file of Conan with the given [service] and [properties].
      */
     private fun createConanDefinition(
-        service: InfrastructureService,
+        service: ResolvedInfrastructureService,
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
         properties.withRequiredProperties("name", "url") {
@@ -109,7 +109,7 @@ class EnvironmentDefinitionFactory {
      * [properties].
      */
     private fun createGradleDefinition(
-        service: InfrastructureService,
+        service: ResolvedInfrastructureService,
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
         properties.withRequiredProperties {
@@ -120,7 +120,7 @@ class EnvironmentDefinitionFactory {
      * Create a definition for Maven's _settings.xml_ file with the given [service] and [properties].
      */
     private fun createMavenDefinition(
-        service: InfrastructureService,
+        service: ResolvedInfrastructureService,
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
         properties.withRequiredProperties("id") {
@@ -136,7 +136,7 @@ class EnvironmentDefinitionFactory {
      * Create a definition for the _.npmrc_ configuration file of NPM with the given [service] and [properties].
      */
     private fun createNpmDefinition(
-        service: InfrastructureService,
+        service: ResolvedInfrastructureService,
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
         properties.withRequiredProperties {
@@ -154,7 +154,7 @@ class EnvironmentDefinitionFactory {
      * Create a definition for the _NuGet.Config_ configuration file of NuGet with the given [service] and [properties].
      */
     private fun createNuGetDefinition(
-        service: InfrastructureService,
+        service: ResolvedInfrastructureService,
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
         properties.withRequiredProperties("sourceName", "sourcePath") {
@@ -172,7 +172,7 @@ class EnvironmentDefinitionFactory {
      * Create a definition for the _.yarnrc.yml_ configuration file of Yarn with the given [service] and [properties].
      */
     private fun createYarnDefinition(
-        service: InfrastructureService,
+        service: ResolvedInfrastructureService,
         properties: DefinitionProperties
     ): Result<EnvironmentServiceDefinition> =
         properties.withRequiredProperties {

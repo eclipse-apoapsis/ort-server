@@ -25,7 +25,7 @@ import io.kotest.matchers.shouldBe
 
 import io.mockk.mockk
 
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 
 class EnvironmentConfigGeneratorTest : StringSpec({
@@ -49,12 +49,16 @@ class EnvironmentConfigGeneratorTest : StringSpec({
 /**
  * A test environment service definition class.
  */
-private class EnvironmentServiceDefinitionA(service: InfrastructureService) : EnvironmentServiceDefinition(service)
+private class EnvironmentServiceDefinitionA(service: ResolvedInfrastructureService) : EnvironmentServiceDefinition(
+    service
+)
 
 /**
  * Another test environment service definition class.
  */
-private class EnvironmentServiceDefinitionB(service: InfrastructureService) : EnvironmentServiceDefinition(service)
+private class EnvironmentServiceDefinitionB(service: ResolvedInfrastructureService) : EnvironmentServiceDefinition(
+    service
+)
 
 /**
  * A test generator implementation that allows inspecting the data passed to its [generate] function.

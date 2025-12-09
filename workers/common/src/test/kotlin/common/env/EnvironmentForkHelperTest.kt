@@ -44,6 +44,7 @@ import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
@@ -253,26 +254,23 @@ private fun createSecret(name: String): Secret =
     )
 
 /**
- * Create a test [InfrastructureService] with the given properties.
+ * Create a test [ResolvedInfrastructureService] with the given properties.
  */
 private fun createService(
     name: String,
     userSecret: Secret,
     passwordSecret: Secret,
     credentialsTypes: Set<CredentialsType> = emptySet()
-): InfrastructureService =
-    InfrastructureService(
+): ResolvedInfrastructureService =
+    ResolvedInfrastructureService(
         name = name,
         url = "https://$name.example.com/service",
         usernameSecret = userSecret,
         passwordSecret = passwordSecret,
-        credentialsTypes = credentialsTypes,
-        organization = null,
-        product = null,
-        repository = null
+        credentialsTypes = credentialsTypes
     )
 
 /**
  * Return the host name of this [InfrastructureService]'s URL.
  */
-private fun InfrastructureService.host(): String = URI.create(url).host
+private fun ResolvedInfrastructureService.host(): String = URI.create(url).host

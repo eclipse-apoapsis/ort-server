@@ -27,9 +27,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.OrtServerAuthenticator
 import org.eclipse.apoapsis.ortserver.workers.common.auth.credentialResolver
@@ -129,9 +129,9 @@ object EnvironmentForkHelper {
         )
 
     /**
-     * Convert this [InfrastructureService] to a serializable [InfrastructureServiceDeclaration]
+     * Convert this [ResolvedInfrastructureService] to a serializable [InfrastructureServiceDeclaration]
      */
-    private fun InfrastructureService.toSerializableInfrastructureService(): InfrastructureServiceDeclaration =
+    private fun ResolvedInfrastructureService.toSerializableInfrastructureService(): InfrastructureServiceDeclaration =
         InfrastructureServiceDeclaration(
             name = name,
             url = url,
@@ -142,20 +142,17 @@ object EnvironmentForkHelper {
         )
 
     /**
-     * Convert this [InfrastructureServiceDeclaration] back to an [InfrastructureService] preserving the properties
-     * required by the authentication process.
+     * Convert this [InfrastructureServiceDeclaration] back to an [ResolvedInfrastructureService] preserving the
+     * properties required by the authentication process.
      */
-    private fun InfrastructureServiceDeclaration.toInfrastructureService(): InfrastructureService =
-        InfrastructureService(
+    private fun InfrastructureServiceDeclaration.toInfrastructureService(): ResolvedInfrastructureService =
+        ResolvedInfrastructureService(
             name = name,
             url = url,
             description = description,
             usernameSecret = createDummySecret(usernameSecret),
             passwordSecret = createDummySecret(passwordSecret),
-            credentialsTypes = credentialsTypes,
-            organization = null,
-            product = null,
-            repository = null
+            credentialsTypes = credentialsTypes
         )
 
     /**
