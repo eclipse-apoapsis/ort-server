@@ -51,6 +51,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -255,16 +256,19 @@ class EnvironmentConfigLoaderTest : StringSpec({
         val userSecret = helper.createSecret("testUser", repository = repository)
         val passSecret = helper.createSecret("testPassword1", repository = repository)
 
+        val repoService = createTestService(4, userSecret, passSecret)
         val prodService = createTestService(2, userSecret, passSecret)
         val orgService = createTestService(3, userSecret, passSecret)
         val shadowedOrgService = createTestService(2, userSecret, passSecret)
             .copy(url = "https://another-repo.example.org/test.git")
-        helper.withProductService(prodService)
+        helper.withRepositoryService(repoService)
+            .withProductService(prodService)
             .withOrganizationService(orgService)
             .withOrganizationService(shadowedOrgService)
 
         val config = parseConfig(".ort.env.definitions-hierarchy-services.yml", helper).resolve(helper)
 
+        config.shouldContainDefinition<MavenDefinition>(repoService) { it.id == "repo4" }
         config.shouldContainDefinition<MavenDefinition>(prodService) { it.id == "repo2" }
         config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
     }
@@ -503,6 +507,9 @@ private class TestHelper(
     /** Stores the secrets referenced by tests. */
     private val secrets = mutableListOf<Secret>()
 
+    /** Stores infrastructure services assigned to the current repository. */
+    private val repositoryServices = mutableListOf<ResolvedInfrastructureService>()
+
     /** Stores infrastructure services assigned to the current product. */
     private val productServices = mutableListOf<ResolvedInfrastructureService>()
 
@@ -539,6 +546,11 @@ private class TestHelper(
             repositoryId = repository?.id
         ).also { secrets.add(it) }
 
+    fun withRepositoryService(service: ResolvedInfrastructureService): TestHelper {
+        repositoryServices += service
+        return this
+    }
+
     /**
      * Add the given [service] to the list of product services. It will be returned by the mock service repository
      * when it is queried for product services.
@@ -571,10 +583,16 @@ private class TestHelper(
     }
 
     /**
-     * Prepare the mock for the [InfrastructureServiceService] to answer queries for the product and organization
-     * services based on the data that has been defined.
+     * Prepare the mock for the [InfrastructureServiceService] to answer queries for the repository, product and
+     * organization services based on the data that has been defined.
      */
     private fun initInfrastructureServiceService() {
+        coEvery { infrastructureServiceService.listForId(RepositoryId(hierarchy.repository.id)) } returns
+                ListQueryResult(
+                    repositoryServices.map(ResolvedInfrastructureService::toInfrastructureService),
+                    ListQueryParameters.DEFAULT,
+                    repositoryServices.size.toLong()
+                )
         coEvery { infrastructureServiceService.listForId(ProductId(hierarchy.product.id)) } returns
                 ListQueryResult(
                     productServices.map(ResolvedInfrastructureService::toInfrastructureService),

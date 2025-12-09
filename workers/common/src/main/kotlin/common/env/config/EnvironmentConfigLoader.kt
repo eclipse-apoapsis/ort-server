@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
+import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
@@ -363,6 +364,15 @@ private class ServiceResolver(
     /** A map for fast access to repository services. */
     private val configuredRepositoryServices by lazy { configServices.associateByName() }
 
+    /** A map with the services defined for the current repository. */
+    private val repositoryServices by lazy {
+        runBlocking {
+            infrastructureServiceService.listForId(
+                id = RepositoryId(hierarchy.repository.id)
+            ).data.map { parseService(it.toRepositoryInfrastructureService(), secrets).getOrThrow() }.associateByName()
+        }
+    }
+
     /** A map with the services defined for the current product. */
     private val productServices by lazy {
         runBlocking {
@@ -390,6 +400,7 @@ private class ServiceResolver(
             ?: throw EnvironmentConfigException("Missing service reference: $properties")
 
         configuredRepositoryServices[serviceName]
+            ?: repositoryServices[serviceName]
             ?: productServices[serviceName]
             ?: organizationServices[serviceName]
             ?: throw EnvironmentConfigException("Unknown service: '$serviceName'.")
