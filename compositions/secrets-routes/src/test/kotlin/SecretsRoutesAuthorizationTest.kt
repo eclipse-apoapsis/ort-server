@@ -67,8 +67,7 @@ class SecretsRoutesAuthorizationTest : AbstractAuthorizationTest({
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
         infrastructureServiceService = InfrastructureServiceService(
-            dbExtension.db,
-            secretService
+            dbExtension.db
         )
     }
 

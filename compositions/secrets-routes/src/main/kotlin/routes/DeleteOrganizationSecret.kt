@@ -67,7 +67,7 @@ internal fun Route.deleteOrganizationSecret(
         return@delete
     }
 
-    val infrastructureServices = infrastructureServiceService.listForSecret(secret.id)
+    val infrastructureServices = infrastructureServiceService.listForSecret(secret.name)
     if (infrastructureServices.isNotEmpty()) {
         call.respondError(
             HttpStatusCode.Conflict,

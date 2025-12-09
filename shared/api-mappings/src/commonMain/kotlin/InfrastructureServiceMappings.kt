@@ -38,8 +38,8 @@ fun InfrastructureService.mapToApi() =
         name = name,
         url = url,
         description = description,
-        usernameSecretRef = usernameSecret.name,
-        passwordSecretRef = passwordSecret.name,
+        usernameSecretRef = usernameSecret,
+        passwordSecretRef = passwordSecret,
         credentialsTypes = credentialsTypes.mapToApi()
     )
 

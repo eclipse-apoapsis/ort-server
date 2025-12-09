@@ -21,13 +21,11 @@ package org.eclipse.apoapsis.ortserver.components.infrastructureservices
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationsRunsTable.infrastructureServiceDeclarationId
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServiceDeclarationsRunsTable.ortRunId
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.blockingQuery
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.findSingle
-import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
@@ -38,11 +36,9 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureServiceDeclaration
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
-import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
-import org.eclipse.apoapsis.ortserver.model.util.asPresent
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
@@ -58,10 +54,7 @@ import org.jetbrains.exposed.sql.selectAll
  */
 class InfrastructureServiceService(
     /** Reference to the database. */
-    private val db: Database,
-
-    /** The service to manage secrets. */
-    private val secretService: SecretService
+    private val db: Database
 ) {
     /**
      * Create an [InfrastructureService] with the given properties for the hierarchy entity [id].
@@ -75,9 +68,6 @@ class InfrastructureServiceService(
         passwordSecretRef: String,
         credentialsTypes: Set<CredentialsType>
     ): InfrastructureService {
-        val usernameSecret = resolveSecret(id, usernameSecretRef)
-        val passwordSecret = resolveSecret(id, passwordSecretRef)
-
         return db.dbQuery {
             if (getDaoForId(id, name) != null) {
                 throw UniqueConstraintException(
@@ -89,8 +79,8 @@ class InfrastructureServiceService(
                 this.name = name
                 this.url = url
                 this.description = description
-                this.usernameSecretId = usernameSecret.id
-                this.passwordSecretId = passwordSecret.id
+                this.usernameSecret = usernameSecretRef
+                this.passwordSecret = passwordSecretRef
                 this.credentialsTypes = credentialsTypes
                 this.organizationId = (id as? OrganizationId)?.value
                 this.productId = (id as? ProductId)?.value
@@ -111,16 +101,13 @@ class InfrastructureServiceService(
         passwordSecretRef: OptionalValue<String>,
         credentialsTypes: OptionalValue<Set<CredentialsType>>
     ): InfrastructureService {
-        val usernameSecret = resolveSecretOptional(id, usernameSecretRef)
-        val passwordSecret = resolveSecretOptional(id, passwordSecretRef)
-
         return db.dbQuery {
             val service = InfrastructureServicesDao.findSingle(selectByIdAndName(id, name))
 
             url.ifPresent { service.url = it }
             description.ifPresent { service.description = it }
-            usernameSecret.ifPresent { service.usernameSecret = SecretDao[it.id] }
-            passwordSecret.ifPresent { service.passwordSecret = SecretDao[it.id] }
+            usernameSecretRef.ifPresent { service.usernameSecret = it }
+            passwordSecretRef.ifPresent { service.passwordSecret = it }
             credentialsTypes.ifPresent { service.credentialsTypes = it }
 
             service.mapToModel()
@@ -228,12 +215,13 @@ class InfrastructureServiceService(
     }
 
     /**
-     * Return a list with the [InfrastructureService]s that are associated with the given [Secret][secretId].
+     * Return a list with the [InfrastructureService]s that are associated with the name of the given
+     * [Secret][secretName].
      */
-    suspend fun listForSecret(secretId: Long): List<InfrastructureService> = db.dbQuery {
+    suspend fun listForSecret(secretName: String): List<InfrastructureService> = db.dbQuery {
         list(ListQueryParameters.DEFAULT) {
-            InfrastructureServicesTable.usernameSecretId eq secretId or
-                    (InfrastructureServicesTable.passwordSecretId eq secretId)
+            InfrastructureServicesTable.usernameSecret eq secretName or
+                    (InfrastructureServicesTable.passwordSecret eq secretName)
         }
     }
 
@@ -244,27 +232,6 @@ class InfrastructureServiceService(
         InfrastructureServicesDao.find(op)
             .apply(InfrastructureServicesTable, parameters)
             .map(InfrastructureServicesDao::mapToModel)
-
-    /**
-     * Resolve a secret reference for the given hierarchy entity [id] and [secretName]. Throw an exception if the
-     * reference cannot be resolved.
-     */
-    private suspend fun resolveSecret(id: HierarchyId, secretName: String): Secret =
-        secretService.getSecret(id, secretName)
-            ?: throw InvalidSecretReferenceException(secretName)
-
-    /**
-     * Resolve a secret reference in an [OptionalValue] for the given hierarchy entity [id]. Note that this cannot be
-     * done through the [OptionalValue.map] function, because the transformation function is not a suspend function.
-     */
-    private suspend fun resolveSecretOptional(
-        id: HierarchyId,
-        secretName: OptionalValue<String>
-    ): OptionalValue<Secret> =
-        when (secretName) {
-            is OptionalValue.Present -> resolveSecret(id, secretName.value).asPresent()
-            else -> OptionalValue.Absent
-        }
 }
 
 /**

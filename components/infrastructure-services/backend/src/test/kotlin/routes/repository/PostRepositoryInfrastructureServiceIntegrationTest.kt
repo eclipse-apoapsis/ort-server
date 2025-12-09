@@ -33,7 +33,6 @@ import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InfrastructureServicesIntegrationTest
-import org.eclipse.apoapsis.ortserver.components.infrastructureservices.InvalidSecretReferenceException
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PostInfrastructureService
 import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -87,36 +86,6 @@ class PostRepositoryInfrastructureServiceIntegrationTest : InfrastructureService
                 )
                 dbService.shouldNotBeNull()
                 dbService.mapToApi() shouldBe expectedService
-            }
-        }
-
-        "handle an invalid secret reference" {
-            infrastructureServicesTestApplication { client ->
-                install(StatusPages) {
-                    // TODO: This should use the same config as in core.
-                    exception<InvalidSecretReferenceException> { call, e ->
-                        call.respondError(
-                            HttpStatusCode.BadRequest,
-                            message = "Secret reference could not be resolved.",
-                            cause = e.message
-                        )
-                    }
-                }
-
-                val createInfrastructureService = PostInfrastructureService(
-                    "testRepository",
-                    "https://repo.example.org/test",
-                    "test description",
-                    "nonExistingSecret1",
-                    "nonExistingSecret2"
-                )
-
-                val response = client.post("/repositories/$repoId/infrastructure-services") {
-                    setBody(createInfrastructureService)
-                }
-
-                response shouldHaveStatus HttpStatusCode.BadRequest
-                response.body<ErrorResponse>().cause shouldContain "nonExistingSecret"
             }
         }
 
