@@ -63,8 +63,7 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "The ORT run configuration should be validated successfully" {
-        val (contextFactory, _) = mockContext()
-        val configManager = mockConfigManager()
+        val (contextFactory, _, configManager) = mockContext()
 
         val resolvedConfig = mockk<JobConfigurations>()
         mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues, validationLabels))
@@ -76,7 +75,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
             worker.testRun() shouldBe RunResult.Success
 
             verify {
@@ -94,8 +93,7 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "A null configuration context should be used if the user has not specified one" {
-        val (contextFactory, _) = mockContext(null)
-        val configManager = mockConfigManager()
+        val (contextFactory, _, configManager) = mockContext(null)
 
         val resolvedConfig = mockk<JobConfigurations>()
         mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
@@ -107,7 +105,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
             worker.testRun() shouldBe RunResult.Success
 
             verify {
@@ -125,8 +123,7 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "A failed validation should be handled" {
-        val (contextFactory, _) = mockContext()
-        val configManager = mockConfigManager()
+        val (contextFactory, _, _) = mockContext()
 
         mockValidator(ConfigValidationResultFailure(validationIssues))
 
@@ -137,7 +134,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
             when (val result = worker.testRun()) {
                 is RunResult.Failed -> result.error should beInstanceOf<IllegalArgumentException>()
                 else -> AssertionErrorBuilder.fail("Unexpected result: $result")
@@ -154,13 +151,15 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "Exceptions during validation should be handled" {
-        val (contextFactory, _) = mockContext()
-
         val configException = ConfigException("Test exception", null)
+        val (contextFactory, _, _) = mockContext(configureConfigManager = {
+            every { getFileAsString(any(), any()) } throws configException
+        })
+
         val configManager = mockConfigManager()
         every { configManager.getFileAsString(any(), any()) } throws configException
 
-        val worker = ConfigWorker(mockk(), mockk(), contextFactory, configManager, mockk())
+        val worker = ConfigWorker(mockk(), mockk(), contextFactory, mockk())
         when (val result = worker.testRun()) {
             is RunResult.Failed -> result.error shouldBe configException
             else -> AssertionErrorBuilder.fail("Unexpected result: $result")
@@ -168,8 +167,7 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "The context passed to the validator should have the correct resolved configuration context" {
-        val (contextFactory, context) = mockContext()
-        val configManager = mockConfigManager()
+        val (contextFactory, context, _) = mockContext()
 
         val resolvedConfig = mockk<JobConfigurations>()
         mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues))
@@ -181,7 +179,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
             worker.testRun() shouldBe RunResult.Success
 
             val slotContext = mutableListOf<WorkerContext>()
@@ -201,8 +199,7 @@ class ConfigWorkerTest : StringSpec({
     }
 
     "A missing validation script should be ignored" {
-        val (contextFactory, context) = mockContext()
-        val configManager = mockConfigManager(validationScriptExists = false)
+        val (contextFactory, context, configManager) = mockContext(validationScriptExists = false)
 
         val resolvedConfig = mockk<JobConfigurations>()
         mockValidator(ConfigValidationResultSuccess(resolvedConfig, validationIssues, validationLabels))
@@ -214,7 +211,7 @@ class ConfigWorkerTest : StringSpec({
         }
 
         mockkTransaction {
-            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, configManager, mockk())
+            val worker = ConfigWorker(mockk(), ortRunRepository, contextFactory, mockk())
             worker.testRun() shouldBe RunResult.Success
 
             val expectedJobConfigs = context.ortRun.jobConfigs
@@ -256,7 +253,11 @@ private val validationLabels = mapOf("validated" to "yes", "test" to "true")
  * Create a mock context factory together with a mock context that is returned by the factory. Prepare the mocks to
  * return typical answers. Use the given [orgConfigContext] for the [OrtRun.jobConfigContext] property.
  */
-private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<WorkerContextFactory, WorkerContext> {
+private fun mockContext(
+    orgConfigContext: String? = ORIGINAL_CONTEXT,
+    validationScriptExists: Boolean = true,
+    configureConfigManager: ConfigManager.() -> Unit = {}
+): Triple<WorkerContextFactory, WorkerContext, ConfigManager> {
     val run = OrtRun(
         id = 1,
         index = 2,
@@ -281,8 +282,11 @@ private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<Work
         traceId = "trace-id"
     )
 
+    val configManager = mockConfigManager(validationScriptExists).apply(configureConfigManager)
+
     val context = mockk<WorkerContext> {
         every { ortRun } returns run
+        every { this@mockk.configManager } returns configManager
     }
 
     val slot = slot<suspend (WorkerContext) -> RunResult>()
@@ -292,7 +296,7 @@ private fun mockContext(orgConfigContext: String? = ORIGINAL_CONTEXT): Pair<Work
         }
     }
 
-    return factory to context
+    return Triple(factory, context, configManager)
 }
 
 /**
