@@ -194,20 +194,7 @@ class EnvironmentConfigLoader(
         config: RepositoryEnvironmentConfig,
         secrets: Map<String, Secret>
     ): List<ResolvedInfrastructureService> =
-        config.infrastructureServices.mapNotNull { service ->
-            secrets[service.usernameSecret]?.let { usernameSecret ->
-                secrets[service.passwordSecret]?.let { passwordSecret ->
-                    ResolvedInfrastructureService(
-                        service.name,
-                        service.url,
-                        service.description,
-                        usernameSecret,
-                        passwordSecret,
-                        service.credentialsTypes
-                    )
-                }
-            }
-        }
+        config.infrastructureServices.mapNotNull { service -> parseService(service, secrets).getOrNull() }
 
     /**
      * Resolve all the secrets referenced from elements in the given [config] in the given [hierarchy] of the current
@@ -404,6 +391,35 @@ private class ServiceResolver(
             ?: throw EnvironmentConfigException("Unknown service: '$serviceName'.")
     }
 }
+
+/**
+ * Parse a single [service] using the given map with [secrets] to resolve references to secrets. Return a [Result]
+ * that contains the parsed service or an exception if parsing failed.
+ */
+private fun parseService(
+    service: RepositoryInfrastructureService,
+    secrets: Map<String, Secret>
+): Result<ResolvedInfrastructureService> =
+    runCatching {
+        secrets[service.usernameSecret]?.let { usernameSecret ->
+            secrets[service.passwordSecret]?.let { passwordSecret ->
+                ResolvedInfrastructureService(
+                    service.name,
+                    service.url,
+                    service.description,
+                    usernameSecret,
+                    passwordSecret,
+                    service.credentialsTypes
+                )
+            } ?: throw EnvironmentConfigException(
+                "The following secret cannot be resolved for " +
+                    "'${service.name}': ${service.passwordSecret}"
+            )
+        } ?: throw EnvironmentConfigException(
+            "The following secret cannot be resolved for " +
+                "'${service.name}': ${service.usernameSecret}"
+        )
+    }
 
 /**
  * Return a [Map] with the [InfrastructureService]s contained in this [Collection] using the service names as keys.
