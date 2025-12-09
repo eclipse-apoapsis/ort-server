@@ -25,9 +25,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationEvent
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
@@ -90,7 +90,7 @@ internal class NetRcManager(
     /**
      * Perform an update of the `.netrc` file after receiving an authentication event for the given [service].
      */
-    private suspend fun updateNetRcServices(service: InfrastructureService) {
+    private suspend fun updateNetRcServices(service: ResolvedInfrastructureService) {
         val serviceUri = URI.create(service.url)
         val serviceHost = serviceUri.host
 

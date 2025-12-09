@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.utils.logging.runBlocking
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.RepositoryEnvironmentVariableDefinition
@@ -192,19 +193,16 @@ class EnvironmentConfigLoader(
     private fun parseServices(
         config: RepositoryEnvironmentConfig,
         secrets: Map<String, Secret>
-    ): List<InfrastructureService> =
+    ): List<ResolvedInfrastructureService> =
         config.infrastructureServices.mapNotNull { service ->
             secrets[service.usernameSecret]?.let { usernameSecret ->
                 secrets[service.passwordSecret]?.let { passwordSecret ->
-                    InfrastructureService(
+                    ResolvedInfrastructureService(
                         service.name,
                         service.url,
                         service.description,
                         usernameSecret,
                         passwordSecret,
-                        null,
-                        null,
-                        null,
                         service.credentialsTypes
                     )
                 }
@@ -252,7 +250,7 @@ class EnvironmentConfigLoader(
     private fun parseEnvironmentDefinitions(
         config: RepositoryEnvironmentConfig,
         hierarchy: Hierarchy,
-        configServices: List<InfrastructureService>
+        configServices: List<ResolvedInfrastructureService>
     ): List<EnvironmentServiceDefinition> {
         val serviceResolver = ServiceResolver(hierarchy, infrastructureServiceService, configServices)
 
@@ -369,7 +367,7 @@ private class ServiceResolver(
     infrastructureServiceService: InfrastructureServiceService,
 
     /** The list of services defined in the repository configuration file. */
-    configServices: List<InfrastructureService>
+    configServices: List<ResolvedInfrastructureService>
 ) {
     /** A map for fast access to repository services. */
     private val repositoryServices by lazy { configServices.associateByName() }
@@ -377,14 +375,18 @@ private class ServiceResolver(
     /** A map with the services defined for the current product. */
     private val productServices by lazy {
         runBlocking {
-            infrastructureServiceService.listForId(ProductId(hierarchy.product.id)).data.associateByName()
+            infrastructureServiceService.listForId(
+                id = ProductId(hierarchy.product.id)
+            ).data.map { it.toResolvedInfrastructureService() }.associateByName()
         }
     }
 
     /** A map with the services defined for the current organization. */
     private val organizationServices by lazy {
         runBlocking {
-            infrastructureServiceService.listForId(OrganizationId(hierarchy.organization.id)).data.associateByName()
+            infrastructureServiceService.listForId(
+                id = OrganizationId(hierarchy.organization.id)
+            ).data.map { it.toResolvedInfrastructureService() }.associateByName()
         }
     }
 
@@ -392,7 +394,7 @@ private class ServiceResolver(
      * Try to resolve the [InfrastructureService] referenced by the environment service definition with the given
      * [properties].
      */
-    fun resolveService(properties: Map<String, String>): Result<InfrastructureService> = runCatching {
+    fun resolveService(properties: Map<String, String>): Result<ResolvedInfrastructureService> = runCatching {
         val serviceName = properties[EnvironmentDefinitionFactory.SERVICE_PROPERTY]
             ?: throw EnvironmentConfigException("Missing service reference: $properties")
 
@@ -407,14 +409,27 @@ private class ServiceResolver(
  * Return a [Map] with the [InfrastructureService]s contained in this [Collection] using the service names as keys.
  * This is useful when resolving the services referenced by environment definitions.
  */
-private fun Collection<InfrastructureService>.associateByName(): Map<String, InfrastructureService> =
-    associateBy(InfrastructureService::name)
+private fun Collection<ResolvedInfrastructureService>.associateByName(): Map<String, ResolvedInfrastructureService> =
+    associateBy(ResolvedInfrastructureService::name)
 
 /**
  * Convert this [InfrastructureServiceDeclaration] to a [RepositoryInfrastructureService].
  */
 private fun InfrastructureServiceDeclaration.toRepositoryService(): RepositoryInfrastructureService =
     RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret, credentialsTypes)
+
+/**
+ * Convert this [InfrastructureService] to a [RepositoryInfrastructureService].
+ */
+private fun InfrastructureService.toResolvedInfrastructureService(): ResolvedInfrastructureService =
+    ResolvedInfrastructureService(
+        name,
+        url,
+        description,
+        usernameSecret,
+        passwordSecret,
+        credentialsTypes
+    )
 
 /**
  * Convert this [EnvironmentVariableDeclaration] to a [RepositoryEnvironmentVariableDefinition].

@@ -32,9 +32,9 @@ import java.io.StringWriter
 import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfig
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
 
@@ -58,7 +58,7 @@ class MockConfigFileBuilder {
         fun testSecretRef(secret: Secret): String = "#{${System.identityHashCode(secret)}}"
 
         /**
-         * Return a test [InfrastructureService] based on the provided parameters.
+         * Return a test [ResolvedInfrastructureService] based on the provided parameters.
          */
         fun createInfrastructureService(
             url: String = REPOSITORY_URL,
@@ -69,15 +69,12 @@ class MockConfigFileBuilder {
                 every { name } returns "some-password-secret-name"
             },
             credentialsTypes: Set<CredentialsType> = EnumSet.of(CredentialsType.NETRC_FILE)
-        ): InfrastructureService =
-            InfrastructureService(
+        ): ResolvedInfrastructureService =
+            ResolvedInfrastructureService(
                 name = url,
                 url = url,
                 usernameSecret = usernameSecret,
                 passwordSecret = passwordSecret,
-                organization = null,
-                product = null,
-                repository = null,
                 credentialsTypes = credentialsTypes
             )
 

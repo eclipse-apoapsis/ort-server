@@ -55,7 +55,6 @@ import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesti
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.dao.test.mockkTransaction
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.OrtRun
@@ -80,6 +79,7 @@ import org.eclipse.apoapsis.ortserver.secrets.Path as SecretPath
 import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
 import org.eclipse.apoapsis.ortserver.secrets.SecretValue
 import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationInfo
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.InfraSecretResolverFun
@@ -609,23 +609,17 @@ class WorkerContextTest : WordSpec({
             secretsProvider.writeSecret(SecretPath(secPass1.path), password1)
             secretsProvider.writeSecret(SecretPath(secPass2.path), password2)
 
-            val service1 = InfrastructureService(
+            val service1 = ResolvedInfrastructureService(
                 name = "service1",
                 url = "https://example.com/service1",
                 usernameSecret = secUser1,
-                passwordSecret = secPass1,
-                organization = null,
-                product = null,
-                repository = null
+                passwordSecret = secPass1
             )
-            val service2 = InfrastructureService(
+            val service2 = ResolvedInfrastructureService(
                 name = "service2",
                 url = "https://example.com/service2",
                 usernameSecret = secUser2,
-                passwordSecret = secPass2,
-                organization = null,
-                product = null,
-                repository = null
+                passwordSecret = secPass2
             )
             val listener = mockk<AuthenticationListener>()
 
@@ -690,14 +684,11 @@ class WorkerContextTest : WordSpec({
             secretsProvider.writeSecret(SecretPath(secUser.path), username)
             secretsProvider.writeSecret(SecretPath(secPass.path), password)
 
-            val service = InfrastructureService(
+            val service = ResolvedInfrastructureService(
                 name = "keycloak/service",
                 url = "https://example.com/service",
                 usernameSecret = secUser,
-                passwordSecret = secPass,
-                organization = null,
-                product = null,
-                repository = null
+                passwordSecret = secPass
             )
             context.setupAuthentication(listOf(service), mockk())
 
@@ -720,14 +711,11 @@ class WorkerContextTest : WordSpec({
             secretsProvider.writeSecret(SecretPath(secUser.path), username)
             secretsProvider.writeSecret(SecretPath(secPass.path), password)
 
-            val service = InfrastructureService(
+            val service = ResolvedInfrastructureService(
                 name = "keycloak/service",
                 url = "https://example.com/service",
                 usernameSecret = secUser,
-                passwordSecret = secPass,
-                organization = null,
-                product = null,
-                repository = null
+                passwordSecret = secPass
             )
             context.setupAuthentication(listOf(service), mockk())
 

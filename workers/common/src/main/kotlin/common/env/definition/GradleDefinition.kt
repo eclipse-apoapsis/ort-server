@@ -20,15 +20,15 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 /**
  * A specific [EnvironmentServiceDefinition] class for generating the Gradle _init.gradle.kts_ file.
  *
- * This class is used to define the Gradle-specific configuration for an [InfrastructureService].
+ * This class is used to define the Gradle-specific configuration for an [ResolvedInfrastructureService].
  */
 class GradleDefinition(
-    service: InfrastructureService,
+    service: ResolvedInfrastructureService,
 
     credentialsTypes: Set<CredentialsType>?,
 ) : EnvironmentServiceDefinition(service, credentialsTypes)

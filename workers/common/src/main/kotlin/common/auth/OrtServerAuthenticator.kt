@@ -25,7 +25,7 @@ import java.net.URL
 import java.util.concurrent.atomic.AtomicReference
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 import org.ossreviewtoolkit.utils.ort.OrtAuthenticator
 import org.ossreviewtoolkit.utils.ort.UserInfoAuthenticator
@@ -117,8 +117,8 @@ internal class OrtServerAuthenticator(
 
         val authenticatedServices = AuthenticatedServices.create(
             info.services.filterNot { CredentialsType.NO_AUTHENTICATION in it.credentialsTypes },
-            InfrastructureService::url,
-            InfrastructureService::name,
+            ResolvedInfrastructureService::url,
+            ResolvedInfrastructureService::name,
             enableFuzzyMatching = true
         )
 
@@ -140,15 +140,15 @@ internal class OrtServerAuthenticator(
  */
 private data class ServiceData(
     /** The object managing the known infrastructure services. */
-    private val authenticatedServices: AuthenticatedServices<InfrastructureService>,
+    private val authenticatedServices: AuthenticatedServices<ResolvedInfrastructureService>,
 
     /** The object with authentication information. */
     val authenticationInfo: AuthenticationInfo
 ) {
     /**
-     * Find the best-matching [InfrastructureService] for the given [host] and optional [url].
+     * Find the best-matching [ResolvedInfrastructureService] for the given [host] and optional [url].
      */
-    fun getAuthenticatedService(host: String, url: URL?): InfrastructureService? =
+    fun getAuthenticatedService(host: String, url: URL?): ResolvedInfrastructureService? =
         authenticatedServices.getAuthenticatedServiceFor(host, url)
 }
 

@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 /**
  * A specific [EnvironmentServiceDefinition] class for generating the Conan _remotes.json_ file with configuration
@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
  * See: https://docs.conan.io/2.0/reference/config_files/remotes.html
  */
 class ConanDefinition(
-    service: InfrastructureService,
+    service: ResolvedInfrastructureService,
 
     credentialsTypes: Set<CredentialsType>?,
 
@@ -40,7 +40,7 @@ class ConanDefinition(
 
     /**
      * Indicates the URL to be used by Conan to search for the recipes/binaries. If not defined, the URL is obtained
-     * from the associated [InfrastructureService].
+     * from the associated [ResolvedInfrastructureService].
      */
     val url: String?,
 
@@ -51,7 +51,7 @@ class ConanDefinition(
 ) : EnvironmentServiceDefinition(service, credentialsTypes) {
     /**
      * The URL of the Conan remote repository defined by this definition. This URL can either be specified directly in
-     * this definition or it is obtained from the associated [InfrastructureService].
+     * this definition or it is obtained from the associated [ResolvedInfrastructureService].
      */
     val remoteUrl: String
         get() = url ?: service.url

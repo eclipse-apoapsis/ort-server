@@ -19,14 +19,14 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.auth
 
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 /**
  * A data class defining an event that is triggered when [OrtServerAuthenticator] successfully authenticates a request.
  */
 data class AuthenticationEvent(
     /** The infrastructure service whose credentials are used for authentication. */
-    val service: InfrastructureService
+    val service: ResolvedInfrastructureService
 )
 
 /**

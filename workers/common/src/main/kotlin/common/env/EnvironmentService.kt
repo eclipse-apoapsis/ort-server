@@ -37,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.services.config.AdminConfigService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
 import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
@@ -90,7 +91,7 @@ class EnvironmentService(
 
         val configServices = config?.let {
             configLoader.resolve(it, context.hierarchy).infrastructureServices
-        }.orEmpty().associateBy(InfrastructureService::url)
+        }.orEmpty().map(ResolvedInfrastructureService::toInfrastructureService).associateBy(InfrastructureService::url)
 
         return (hierarchyServices + configServices).values.toList()
     }
@@ -125,7 +126,7 @@ class EnvironmentService(
     ): ResolvedEnvironmentConfig {
         val environmentServices = config.environmentDefinitions.map { it.service }
         val infraServices = config.infrastructureServices.toMutableSet()
-        infraServices += repositoryServices
+        infraServices += repositoryServices.map(InfrastructureService::toResolvedInfrastructureService)
 
         val unreferencedServices = infraServices.filterNot { it in environmentServices }
         val allEnvironmentDefinitions = config.environmentDefinitions +
@@ -178,7 +179,7 @@ class EnvironmentService(
      * manager-specific configuration files.
      */
     suspend fun setupAuthentication(context: WorkerContext, services: Collection<InfrastructureService>) {
-        val definitions = services.map { EnvironmentServiceDefinition(it) }
+        val definitions = services.map { EnvironmentServiceDefinition(it.toResolvedInfrastructureService()) }
         generateConfigFiles(context, definitions)
     }
 
@@ -229,7 +230,10 @@ class EnvironmentService(
      * Update the database to record that the given [services] have been referenced from the current ORT run as
      * obtained from the given [context].
      */
-    private suspend fun assignServicesToOrtRun(context: WorkerContext, services: Collection<InfrastructureService>) {
+    private suspend fun assignServicesToOrtRun(
+        context: WorkerContext,
+        services: Collection<ResolvedInfrastructureService>
+    ) {
         services.forEach { service ->
             infrastructureServiceService.getOrCreateDeclarationForRun(
                 service.toInfrastructureServiceDeclaration(),
@@ -310,3 +314,16 @@ internal fun EnvironmentConfig.merge(other: EnvironmentConfig?): EnvironmentConf
 
     return EnvironmentConfig(mergedInfrastructureService, mergedEnvironmentDefinitions, mergedEnvironmentVariables)
 }
+
+/**
+ * Convert this [ResolvedInfrastructureService] to an [InfrastructureService].
+ */
+private fun InfrastructureService.toResolvedInfrastructureService(): ResolvedInfrastructureService =
+    ResolvedInfrastructureService(
+        name = name,
+        url = url,
+        description = description,
+        usernameSecret = usernameSecret,
+        passwordSecret = passwordSecret,
+        credentialsTypes = credentialsTypes
+    )

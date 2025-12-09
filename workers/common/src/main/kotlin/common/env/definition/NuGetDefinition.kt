@@ -20,7 +20,7 @@
 package org.eclipse.apoapsis.ortserver.workers.common.env.definition
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 
 /**
  * A specific [EnvironmentServiceDefinition] class for generating the NuGet _NuGet.Config_ file with configuration
@@ -29,7 +29,7 @@ import org.eclipse.apoapsis.ortserver.model.InfrastructureService
  * See https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file
  */
 class NuGetDefinition(
-    service: InfrastructureService,
+    service: ResolvedInfrastructureService,
 
     credentialsTypes: Set<CredentialsType>?,
 

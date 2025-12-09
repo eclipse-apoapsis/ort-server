@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentVariableDefinition
 
@@ -34,8 +34,8 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentV
  * all data needed to create configuration files is available.
  */
 data class ResolvedEnvironmentConfig(
-    /** A list with [InfrastructureService]s required by the repository. */
-    val infrastructureServices: List<InfrastructureService> = emptyList(),
+    /** A list with [ResolvedInfrastructureService]s required by the repository. */
+    val infrastructureServices: List<ResolvedInfrastructureService> = emptyList(),
 
     /** A list with environment definitions needed for this repository. */
     val environmentDefinitions: List<EnvironmentServiceDefinition> = emptyList(),

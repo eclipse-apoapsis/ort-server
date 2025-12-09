@@ -33,7 +33,7 @@ import io.mockk.mockk
 import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.common.env.REGISTRY_URI
 import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_NAME
 import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_URL
@@ -50,7 +50,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnDefiniti
 
 class EnvironmentDefinitionFactoryTest : WordSpec() {
     /** A mock for an infrastructure service to be used by tests. */
-    private val service = mockk<InfrastructureService>()
+    private val service = mockk<ResolvedInfrastructureService>()
 
     /** The factory to be tested. */
     private val factory = EnvironmentDefinitionFactory()

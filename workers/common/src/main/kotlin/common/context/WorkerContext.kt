@@ -24,13 +24,13 @@ import java.io.File
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
-import org.eclipse.apoapsis.ortserver.model.InfrastructureService
 import org.eclipse.apoapsis.ortserver.model.OrtRun
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.ProviderPluginConfiguration
 import org.eclipse.apoapsis.ortserver.model.ResolvablePluginConfig
 import org.eclipse.apoapsis.ortserver.model.ResolvableProviderPluginConfig
 import org.eclipse.apoapsis.ortserver.model.Secret
+import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
 import org.eclipse.apoapsis.ortserver.workers.common.auth.AuthenticationListener
 import org.eclipse.apoapsis.ortserver.workers.common.auth.CredentialResolverFun
 
@@ -122,7 +122,7 @@ interface WorkerContext : AutoCloseable {
      * access the corresponding URLs. Optionally, install the given [listener] for authentication events.
      */
     suspend fun setupAuthentication(
-        services: Collection<InfrastructureService>,
+        services: Collection<ResolvedInfrastructureService>,
         listener: AuthenticationListener? = null
     )
 }
