@@ -56,7 +56,7 @@ abstract class InfrastructureServicesIntegrationTest(
                 SecretStorage(SecretsProviderFactoryForTesting().createProvider())
             )
 
-            infrastructureServiceService = InfrastructureServiceService(dbExtension.db, secretService)
+            infrastructureServiceService = InfrastructureServiceService(dbExtension.db)
 
             orgId = dbExtension.fixtures.organization.id
             prodId = dbExtension.fixtures.product.id

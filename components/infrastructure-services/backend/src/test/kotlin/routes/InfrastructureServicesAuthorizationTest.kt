@@ -33,13 +33,10 @@ import org.eclipse.apoapsis.ortserver.components.infrastructureservices.Infrastr
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PatchInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.PostInfrastructureService
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesRoutes
-import org.eclipse.apoapsis.ortserver.components.secrets.SecretService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
-import org.eclipse.apoapsis.ortserver.secrets.SecretStorage
-import org.eclipse.apoapsis.ortserver.secrets.SecretsProviderFactoryForTesting
 import org.eclipse.apoapsis.ortserver.shared.apimodel.asPresent
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.AbstractAuthorizationTest
 
@@ -68,12 +65,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
         )
 
         infrastructureServiceService = InfrastructureServiceService(
-            dbExtension.db,
-            SecretService(
-                dbExtension.db,
-                dbExtension.fixtures.secretRepository,
-                SecretStorage(SecretsProviderFactoryForTesting().createProvider())
-            )
+            dbExtension.db
         )
     }
 
@@ -140,7 +132,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
                 role = OrganizationRole.WRITER,
-                successStatus = HttpStatusCode.InternalServerError,
+                successStatus = HttpStatusCode.Created,
                 hierarchyId = orgHierarchyId
             ) {
                 post("/organizations/$orgId/infrastructure-services") {
@@ -221,7 +213,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
                 role = ProductRole.WRITER,
-                successStatus = HttpStatusCode.InternalServerError,
+                successStatus = HttpStatusCode.Created,
                 hierarchyId = prodHierarchyId
             ) {
                 post("/products/$prodId/infrastructure-services") {
@@ -302,7 +294,7 @@ class InfrastructureServicesAuthorizationTest : AbstractAuthorizationTest({
             requestShouldRequireRole(
                 routes = { infrastructureServicesRoutes(infrastructureServiceService) },
                 role = RepositoryRole.WRITER,
-                successStatus = HttpStatusCode.InternalServerError,
+                successStatus = HttpStatusCode.Created,
                 hierarchyId = repoHierarchyId
             ) {
                 post("/repositories/$repoId/infrastructure-services") {

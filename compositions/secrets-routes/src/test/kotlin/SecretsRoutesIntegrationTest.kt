@@ -49,7 +49,7 @@ abstract class SecretsRoutesIntegrationTest(
                 dbExtension.fixtures.secretRepository,
                 SecretStorage(SecretsProviderFactoryForTesting().createProvider(secretErrorPath))
             )
-            infrastructureServiceService = InfrastructureServiceService(dbExtension.db, secretService)
+            infrastructureServiceService = InfrastructureServiceService(dbExtension.db)
         }
 
         body()

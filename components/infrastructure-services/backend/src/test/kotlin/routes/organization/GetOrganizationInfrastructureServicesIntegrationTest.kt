@@ -60,8 +60,8 @@ class GetOrganizationInfrastructureServicesIntegrationTest : InfrastructureServi
                         service.name,
                         service.url,
                         service.description,
-                        service.usernameSecret.name,
-                        service.passwordSecret.name,
+                        service.usernameSecret,
+                        service.passwordSecret,
                         if (service.credentialsTypes.isEmpty()) {
                             emptySet()
                         } else {

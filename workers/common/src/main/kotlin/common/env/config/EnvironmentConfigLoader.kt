@@ -180,7 +180,7 @@ class EnvironmentConfigLoader(
     ): ResolvedEnvironmentConfig {
         val secrets = resolveSecrets(config, hierarchy)
         val services = parseServices(config, secrets)
-        val definitions = parseEnvironmentDefinitions(config, hierarchy, services)
+        val definitions = parseEnvironmentDefinitions(config, hierarchy, services, secrets)
         val variables = parseEnvironmentVariables(config, secrets)
 
         return ResolvedEnvironmentConfig(services, definitions, variables)
@@ -237,9 +237,10 @@ class EnvironmentConfigLoader(
     private fun parseEnvironmentDefinitions(
         config: RepositoryEnvironmentConfig,
         hierarchy: Hierarchy,
-        configServices: List<ResolvedInfrastructureService>
+        configServices: List<ResolvedInfrastructureService>,
+        secrets: Map<String, Secret>
     ): List<EnvironmentServiceDefinition> {
-        val serviceResolver = ServiceResolver(hierarchy, infrastructureServiceService, configServices)
+        val serviceResolver = ServiceResolver(hierarchy, infrastructureServiceService, configServices, secrets)
 
         val definitionResults = config.environmentDefinitions.entries.flatMap { entry ->
             entry.value.map { definition ->
@@ -354,7 +355,10 @@ private class ServiceResolver(
     infrastructureServiceService: InfrastructureServiceService,
 
     /** The list of services defined in the repository configuration file. */
-    configServices: List<ResolvedInfrastructureService>
+    configServices: List<ResolvedInfrastructureService>,
+
+    /** The map with secrets for resolving secret references. */
+    secrets: Map<String, Secret>
 ) {
     /** A map for fast access to repository services. */
     private val repositoryServices by lazy { configServices.associateByName() }
@@ -364,7 +368,7 @@ private class ServiceResolver(
         runBlocking {
             infrastructureServiceService.listForId(
                 id = ProductId(hierarchy.product.id)
-            ).data.map { it.toResolvedInfrastructureService() }.associateByName()
+            ).data.map { parseService(it.toRepositoryInfrastructureService(), secrets).getOrThrow() }.associateByName()
         }
     }
 
@@ -373,7 +377,7 @@ private class ServiceResolver(
         runBlocking {
             infrastructureServiceService.listForId(
                 id = OrganizationId(hierarchy.organization.id)
-            ).data.map { it.toResolvedInfrastructureService() }.associateByName()
+            ).data.map { parseService(it.toRepositoryInfrastructureService(), secrets).getOrThrow() }.associateByName()
         }
     }
 
@@ -434,18 +438,8 @@ private fun Collection<ResolvedInfrastructureService>.associateByName(): Map<Str
 private fun InfrastructureServiceDeclaration.toRepositoryService(): RepositoryInfrastructureService =
     RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret, credentialsTypes)
 
-/**
- * Convert this [InfrastructureService] to a [RepositoryInfrastructureService].
- */
-private fun InfrastructureService.toResolvedInfrastructureService(): ResolvedInfrastructureService =
-    ResolvedInfrastructureService(
-        name,
-        url,
-        description,
-        usernameSecret,
-        passwordSecret,
-        credentialsTypes
-    )
+private fun InfrastructureService.toRepositoryInfrastructureService(): RepositoryInfrastructureService =
+    RepositoryInfrastructureService(name, url, description, usernameSecret, passwordSecret, credentialsTypes)
 
 /**
  * Convert this [EnvironmentVariableDeclaration] to a [RepositoryEnvironmentVariableDefinition].

@@ -269,6 +269,26 @@ class EnvironmentConfigLoaderTest : StringSpec({
         config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
     }
 
+    "Services with unknown secrets in the hierarchy cause exceptions in strict mode" {
+        val helper = TestHelper()
+        val unknownUserSecret = createSecret("unknownUser")
+        val userSecret = helper.createSecret("testUser", repository = repository)
+        val passSecret = helper.createSecret("testPassword1", repository = repository)
+        val orgService = createTestService(3, unknownUserSecret, passSecret)
+        val prodService = createTestService(2, userSecret, passSecret)
+
+        helper.withProductService(prodService).withOrganizationService(orgService)
+
+        val exception = shouldThrow<EnvironmentConfigException> {
+            val config = parseConfig(".ort.env.definitions-hierarchy-services.yml", helper)
+                .copy(strict = true)
+                .resolve(helper)
+            config.shouldContainDefinition<MavenDefinition>(orgService) { it.id == "repo3" }
+        }
+
+        exception.message shouldContain unknownUserSecret.name
+    }
+
     "Environment variable definitions with missing secrets cause exceptions" {
         val helper = TestHelper()
         helper.createSecret("testSecret1", repository = repository)
@@ -594,6 +614,20 @@ private fun createTestService(index: Int, userSecret: Secret, passSecret: Secret
         usernameSecret = userSecret,
         passwordSecret = passSecret,
         credentialsTypes = setOf(CredentialsType.entries[index % 2])
+    )
+
+/**
+ * Create a test secret with the given [name].
+ */
+private fun createSecret(name: String): Secret =
+    Secret(
+        id = 0,
+        path = name,
+        name = name,
+        description = null,
+        organizationId = null,
+        productId = null,
+        repositoryId = null
     )
 
 /**

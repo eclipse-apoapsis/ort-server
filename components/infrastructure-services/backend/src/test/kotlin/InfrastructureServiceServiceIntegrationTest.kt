@@ -28,7 +28,6 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldInclude
 
 import java.util.EnumSet
@@ -50,7 +49,6 @@ import org.eclipse.apoapsis.ortserver.model.RepositoryId
 import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
-import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.model.util.asPresent
@@ -91,8 +89,8 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
         name: String = SERVICE_NAME,
         url: String = SERVICE_URL,
         description: String? = SERVICE_DESC,
-        usernameSecret: Secret? = null,
-        passwordSecret: Secret? = null,
+        usernameSecret: String? = null,
+        passwordSecret: String? = null,
         organization: Organization? = null,
         product: Product? = null,
         repository: Repository? = null,
@@ -103,15 +101,15 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
             url,
             description,
             usernameSecret ?: when {
-                organization != null -> orgUserSecret
-                product != null -> prodUserSecret
-                repository != null -> repoUserSecret
+                organization != null -> orgUserSecret.name
+                product != null -> prodUserSecret.name
+                repository != null -> repoUserSecret.name
                 else -> error("At least one of organization, product or repository must be set.")
             },
             passwordSecret ?: when {
-                organization != null -> orgPassSecret
-                product != null -> prodPassSecret
-                repository != null -> repoPassSecret
+                organization != null -> orgPassSecret.name
+                product != null -> prodPassSecret.name
+                repository != null -> repoPassSecret.name
                 else -> error("At least one of organization, product or repository must be set.")
             },
             organization,
@@ -129,8 +127,8 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
             name = infrastructureService.name,
             url = infrastructureService.url,
             description = infrastructureService.description,
-            usernameSecretRef = infrastructureService.usernameSecret.name,
-            passwordSecretRef = infrastructureService.passwordSecret.name,
+            usernameSecretRef = infrastructureService.usernameSecret,
+            passwordSecretRef = infrastructureService.passwordSecret,
             credentialsTypes = infrastructureService.credentialsTypes,
         )
 
@@ -158,7 +156,7 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
             SecretStorage(SecretsProviderFactoryForTesting().createProvider())
         )
 
-        service = InfrastructureServiceService(dbExtension.db, secretService)
+        service = InfrastructureServiceService(dbExtension.db)
 
         fixtures = dbExtension.fixtures
         organization = dbExtension.fixtures.organization
@@ -189,8 +187,8 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
                 SERVICE_NAME,
                 SERVICE_URL,
                 SERVICE_DESC,
-                orgUserSecret,
-                orgPassSecret,
+                orgUserSecret.name,
+                orgPassSecret.name,
                 organization,
                 null,
                 null,
@@ -213,8 +211,8 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
                 SERVICE_NAME,
                 SERVICE_URL,
                 SERVICE_DESC,
-                prodUserSecret,
-                prodPassSecret,
+                prodUserSecret.name,
+                prodPassSecret.name,
                 null,
                 product,
                 null,
@@ -237,29 +235,13 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
                 SERVICE_NAME,
                 SERVICE_URL,
                 SERVICE_DESC,
-                repoUserSecret,
-                repoPassSecret,
+                repoUserSecret.name,
+                repoPassSecret.name,
                 null,
                 null,
                 repository,
                 EnumSet.of(CredentialsType.NETRC_FILE)
             )
-        }
-
-        "throw an exception if a secret reference cannot be resolved" {
-            val exception = shouldThrow<InvalidSecretReferenceException> {
-                service.createForId(
-                    OrganizationId(organization.id),
-                    SERVICE_NAME,
-                    SERVICE_URL,
-                    SERVICE_DESC,
-                    orgUserSecret.name,
-                    "non-existent",
-                    emptySet()
-                )
-            }
-
-            exception.message shouldContain "non-existent"
         }
     }
 
@@ -292,27 +274,13 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
                 SERVICE_NAME,
                 "http://new.example.org",
                 "new description",
-                newUserSecret,
-                newpassSecret,
+                newUserSecret.name,
+                newpassSecret.name,
                 organization,
                 null,
                 null,
                 EnumSet.of(CredentialsType.GIT_CREDENTIALS_FILE)
             )
-        }
-
-        "throw an exception if a secret reference cannot be resolved" {
-            shouldThrow<InvalidSecretReferenceException> {
-                service.updateForId(
-                    OrganizationId(organization.id),
-                    SERVICE_NAME,
-                    OptionalValue.Absent,
-                    SERVICE_DESC.asPresent(),
-                    "someNonExistingSecret".asPresent(),
-                    OptionalValue.Absent,
-                    OptionalValue.Absent
-                )
-            }
         }
     }
 
@@ -406,8 +374,8 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
                     name = "$SERVICE_NAME$idx",
                     url = SERVICE_URL,
                     description = SERVICE_DESC,
-                    usernameSecret = orgUserSecret,
-                    passwordSecret = orgPassSecret,
+                    usernameSecret = orgUserSecret.name,
+                    passwordSecret = orgPassSecret.name,
                     organization = organization,
                     product = null,
                     repository = null,
@@ -421,8 +389,8 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
                     name = it.name,
                     url = it.url,
                     description = it.description,
-                    usernameSecretRef = it.usernameSecret.name,
-                    passwordSecretRef = it.passwordSecret.name,
+                    usernameSecretRef = it.usernameSecret,
+                    passwordSecretRef = it.passwordSecret,
                     credentialsTypes = emptySet()
                 )
             }
@@ -469,22 +437,22 @@ class InfrastructureServiceServiceIntegrationTest : WordSpec({
             val noMatch1 = createInfrastructureService(
                 "non-matching1",
                 organization = otherOrg,
-                usernameSecret = createOrganizationSecret("user", otherOrg.id),
-                passwordSecret = createOrganizationSecret("pass", otherOrg.id)
+                usernameSecret = createOrganizationSecret("user", otherOrg.id).name,
+                passwordSecret = createOrganizationSecret("pass", otherOrg.id).name
             )
             val noMatch2 = createInfrastructureService(
                 "non-matching2",
                 repositoryUrl,
                 product = otherProduct,
-                usernameSecret = createProductSecret("user", otherProduct.id),
-                passwordSecret = createProductSecret("pass", otherProduct.id)
+                usernameSecret = createProductSecret("user", otherProduct.id).name,
+                passwordSecret = createProductSecret("pass", otherProduct.id).name
             )
             val noMatch3 = createInfrastructureService(
                 "non-matching3",
                 repositoryUrl,
                 repository = otherRepository,
-                usernameSecret = createRepositorySecret("user", otherRepository.id),
-                passwordSecret = createRepositorySecret("pass", otherRepository.id)
+                usernameSecret = createRepositorySecret("user", otherRepository.id).name,
+                passwordSecret = createRepositorySecret("pass", otherRepository.id).name
             )
 
             listOf(match1, match2, match3, match4, noMatch1, noMatch2, noMatch3).forEach {

@@ -301,8 +301,19 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "assign the infrastructure services for the repository to the current ORT run" {
-            val repositoryService = createInfrastructureService()
-            val otherService = createInfrastructureService("https://service.example.com/service")
+            val userSecret = mockk<Secret> {
+                every { name } returns "user-secret"
+            }
+            val passwordSecret = mockk<Secret> {
+                every { name } returns "password-secret"
+            }
+            val repositoryService =
+                createInfrastructureService(usernameSecret = userSecret, passwordSecret = passwordSecret)
+            val otherService = createInfrastructureService(
+                url = "https://service.example.com/service",
+                usernameSecret = userSecret,
+                passwordSecret = passwordSecret
+            )
 
             val expectedDynamicServices = listOf(
                 repositoryService,
@@ -316,9 +327,14 @@ class EnvironmentServiceTest : WordSpec({
             val service = mockk<InfrastructureServiceService>()
             val assignedServices = service.expectServiceAssignments()
 
+            val secretService = mockk<SecretService> {
+                coEvery { getSecret(any(), "user-secret") } returns userSecret
+                coEvery { getSecret(any(), "password-secret") } returns passwordSecret
+            }
+
             val environmentService = EnvironmentService(
                 service,
-                mockk(),
+                secretService,
                 emptyList(),
                 configLoader,
                 createMockAdminConfigService()
@@ -404,8 +420,21 @@ class EnvironmentServiceTest : WordSpec({
         }
 
         "remove duplicates before assigning services to the current ORT run" {
-            val repositoryService = createInfrastructureService()
-            val referencedService = createInfrastructureService("https://service.example.com/service")
+            val userSecret = mockk<Secret> {
+                every { name } returns "user-secret"
+            }
+            val passwordSecret = mockk<Secret> {
+                every { name } returns "password-secret"
+            }
+            val repositoryService = createInfrastructureService(
+                usernameSecret = userSecret,
+                passwordSecret = passwordSecret
+            )
+            val referencedService = createInfrastructureService(
+                url = "https://service.example.com/service",
+                usernameSecret = userSecret,
+                passwordSecret = passwordSecret
+            )
             val services = listOf(
                 repositoryService,
                 createInfrastructureService("https://service2.example.com/service2"),
@@ -422,9 +451,14 @@ class EnvironmentServiceTest : WordSpec({
             val service = mockk<InfrastructureServiceService>()
             val assignedServices = service.expectServiceAssignments()
 
+            val secretService = mockk<SecretService> {
+                coEvery { getSecret(any(), "user-secret") } returns userSecret
+                coEvery { getSecret(any(), "password-secret") } returns passwordSecret
+            }
+
             val environmentService = EnvironmentService(
                 service,
-                mockk(),
+                secretService,
                 emptyList(),
                 configLoader,
                 createMockAdminConfigService()
@@ -513,13 +547,31 @@ class EnvironmentServiceTest : WordSpec({
                 coEvery { setupAuthentication(any(), any()) } just runs
             }
 
+            val userSecret = mockk<Secret> {
+                every { name } returns "user-secret"
+            }
+            val passwordSecret = mockk<Secret> {
+                every { name } returns "password-secret"
+            }
             val services = listOf(
-                createInfrastructureService(),
-                createInfrastructureService("https://repo2.example.org/test-orga/test-repo2.git")
+                createInfrastructureService(
+                    usernameSecret = userSecret,
+                    passwordSecret = passwordSecret
+                ),
+                createInfrastructureService(
+                    url = "https://repo2.example.org/test-orga/test-repo2.git",
+                    usernameSecret = userSecret,
+                    passwordSecret = passwordSecret
+                )
             )
 
             val service = mockk<InfrastructureServiceService>()
             service.expectServiceAssignments()
+
+            val secretService = mockk<SecretService> {
+                coEvery { getSecret(any(), "user-secret") } returns userSecret
+                coEvery { getSecret(any(), "password-secret") } returns passwordSecret
+            }
 
             mockkObject(NetRcManager)
             val netRcManager = mockk<NetRcManager>()
@@ -527,7 +579,7 @@ class EnvironmentServiceTest : WordSpec({
 
             val environmentService = EnvironmentService(
                 service,
-                mockk(),
+                secretService,
                 emptyList(),
                 mockk(),
                 createMockAdminConfigService()
@@ -810,6 +862,88 @@ class EnvironmentServiceTest : WordSpec({
 
             result shouldBe mySecretRepositoryLevel
             result?.repositoryId shouldBe REPOSITORY_ID
+        }
+    }
+
+    "resolveInfrastructureServices" should {
+        "return a list with resolved services" {
+            val userSecret = mockk<Secret> {
+                every { name } returns "user-secret-name"
+            }
+            val passwordSecret = mockk<Secret> {
+                every { name } returns "password-secret-name"
+            }
+            val service = createInfrastructureService(
+                usernameSecret = userSecret,
+                passwordSecret = passwordSecret
+            )
+
+            val secretService = mockSecretService {
+                coEvery {
+                    getSecret(any(), "user-secret-name")
+                } returns userSecret
+                coEvery {
+                    getSecret(any(), "password-secret-name")
+                } returns passwordSecret
+            }
+
+            val environmentService = EnvironmentService(
+                mockk(),
+                secretService,
+                emptyList(),
+                mockk(),
+                mockk()
+            )
+
+            val result = environmentService.resolveInfrastructureServices(
+                mockContext(),
+                listOf(service.toInfrastructureService())
+            )
+
+            result shouldBe listOf(service)
+        }
+
+        "return a list with resolved services with overridden secrets from lower levels" {
+            val repoUserSecret = mockk<Secret> {
+                every { name } returns "user-secret-name"
+            }
+            val productUserSecret = mockk<Secret> {
+                every { name } returns "user-secret-name"
+            }
+            val productPasswordSecret = mockk<Secret> {
+                every { name } returns "password-secret-name"
+            }
+            val service = createInfrastructureService(
+                usernameSecret = repoUserSecret,
+                passwordSecret = productPasswordSecret
+            )
+
+            val secretService = mockSecretService {
+                coEvery {
+                    getSecret(RepositoryId(REPOSITORY_ID), "user-secret-name")
+                } returns repoUserSecret
+                coEvery {
+                    getSecret(ProductId(PRODUCT_ID), "user-secret-name")
+                } returns productUserSecret
+                coEvery {
+                    getSecret(ProductId(PRODUCT_ID), "password-secret-name")
+                } returns productPasswordSecret
+            }
+
+            val environmentService = EnvironmentService(
+                mockk(),
+                secretService,
+                emptyList(),
+                mockk(),
+                mockk()
+            )
+
+            val result = environmentService.resolveInfrastructureServices(
+                mockContext(),
+                listOf(service.toInfrastructureService())
+            )
+
+            result shouldBe listOf(service)
         }
     }
 })

@@ -27,8 +27,6 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoryDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretDao
-import org.eclipse.apoapsis.ortserver.dao.repositories.secret.SecretsTable
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableEntityClass
 import org.eclipse.apoapsis.ortserver.dao.utils.SortableTable
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToEntityId
@@ -47,8 +45,8 @@ internal object InfrastructureServicesTable : SortableTable("infrastructure_serv
     val description = text("description").nullable()
     val credentialsType = text("credentials_type").nullable()
 
-    val usernameSecretId = reference("username_secret_id", SecretsTable)
-    val passwordSecretId = reference("password_secret_id", SecretsTable)
+    val usernameSecret = text("username_secret")
+    val passwordSecret = text("password_secret")
 
     val organizationId = reference("organization_id", OrganizationsTable).nullable()
     val productId = reference("product_id", ProductsTable).nullable()
@@ -80,10 +78,8 @@ internal class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
         { fromCredentialsTypeString(it) }
     )
 
-    var usernameSecretId by InfrastructureServicesTable.usernameSecretId.transformToEntityId()
-    var usernameSecret by SecretDao referencedOn InfrastructureServicesTable.usernameSecretId
-    var passwordSecretId by InfrastructureServicesTable.passwordSecretId.transformToEntityId()
-    var passwordSecret by SecretDao referencedOn InfrastructureServicesTable.passwordSecretId
+    var usernameSecret by InfrastructureServicesTable.usernameSecret
+    var passwordSecret by InfrastructureServicesTable.passwordSecret
 
     var organizationId by InfrastructureServicesTable.organizationId.transformToEntityId()
     var organization by OrganizationDao optionalReferencedOn InfrastructureServicesTable.organizationId
@@ -96,8 +92,8 @@ internal class InfrastructureServicesDao(id: EntityID<Long>) : LongEntity(id) {
         name,
         url,
         description,
-        usernameSecret.mapToModel(),
-        passwordSecret.mapToModel(),
+        usernameSecret,
+        passwordSecret,
         organization?.mapToModel(),
         product?.mapToModel(),
         repository?.mapToModel(),

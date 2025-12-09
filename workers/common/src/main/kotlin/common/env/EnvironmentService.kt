@@ -126,7 +126,7 @@ class EnvironmentService(
     ): ResolvedEnvironmentConfig {
         val environmentServices = config.environmentDefinitions.map { it.service }
         val infraServices = config.infrastructureServices.toMutableSet()
-        infraServices += repositoryServices.map(InfrastructureService::toResolvedInfrastructureService)
+        infraServices += resolveInfrastructureServices(context, repositoryServices)
 
         val unreferencedServices = infraServices.filterNot { it in environmentServices }
         val allEnvironmentDefinitions = config.environmentDefinitions +
@@ -179,7 +179,7 @@ class EnvironmentService(
      * manager-specific configuration files.
      */
     suspend fun setupAuthentication(context: WorkerContext, services: Collection<InfrastructureService>) {
-        val definitions = services.map { EnvironmentServiceDefinition(it.toResolvedInfrastructureService()) }
+        val definitions = resolveInfrastructureServices(context, services).map(::EnvironmentServiceDefinition)
         generateConfigFiles(context, definitions)
     }
 
@@ -191,37 +191,8 @@ class EnvironmentService(
      * This function can be used by workers running after the Analyzer, which has initialized the required information.
      */
     suspend fun setupAuthenticationForCurrentRun(context: WorkerContext) {
-        val infrastructureServiceDeclarations = infrastructureServiceService.listDeclarationsForRun(context.ortRun.id)
-
-        val infrastructureServices = withContext(Dispatchers.IO) {
-            infrastructureServiceDeclarations.map { service ->
-                async {
-                    val usernameSecret = resolveSecretByName(
-                        service.usernameSecret,
-                        context.ortRun,
-                        service.name
-                    ) ?: error("Username secret ${service.usernameSecret} not found for service '${service.name}'.")
-
-                    val passwordSecret = resolveSecretByName(
-                        service.passwordSecret,
-                        context.ortRun,
-                        service.name
-                    ) ?: error("Password secret ${service.passwordSecret} not found for service '${service.name}'.")
-
-                    InfrastructureService(
-                        name = service.name,
-                        url = service.url,
-                        description = service.description,
-                        usernameSecret = usernameSecret,
-                        passwordSecret = passwordSecret,
-                        organization = null,
-                        product = null,
-                        repository = null,
-                        credentialsTypes = service.credentialsTypes
-                    )
-                }
-            }.awaitAll()
-        }
+        val infrastructureServices =
+            infrastructureServiceService.listDeclarationsForRun(context.ortRun.id).map { it.toInfrastructureService() }
 
         setupAuthentication(context, infrastructureServices)
     }
@@ -282,6 +253,40 @@ class EnvironmentService(
             }
         }
     }
+
+    /**
+     * Resolve the given [services] into [ResolvedInfrastructureService]s by looking up their associated secrets.
+     */
+    suspend fun resolveInfrastructureServices(
+        context: WorkerContext,
+        services: Collection<InfrastructureService>
+    ): List<ResolvedInfrastructureService> =
+        withContext(Dispatchers.IO) {
+            services.map { service ->
+                async {
+                    val usernameSecret = resolveSecretByName(
+                        service.usernameSecret,
+                        context.ortRun,
+                        service.name
+                    ) ?: error("Username secret ${service.usernameSecret} not found for service '${service.name}'.")
+
+                    val passwordSecret = resolveSecretByName(
+                        service.passwordSecret,
+                        context.ortRun,
+                        service.name
+                    ) ?: error("Password secret ${service.passwordSecret} not found for service '${service.name}'.")
+
+                    ResolvedInfrastructureService(
+                        name = service.name,
+                        url = service.url,
+                        description = service.description,
+                        usernameSecret = usernameSecret,
+                        passwordSecret = passwordSecret,
+                        credentialsTypes = service.credentialsTypes
+                    )
+                }
+            }.awaitAll()
+        }
 }
 
 /**
@@ -316,14 +321,17 @@ internal fun EnvironmentConfig.merge(other: EnvironmentConfig?): EnvironmentConf
 }
 
 /**
- * Convert this [ResolvedInfrastructureService] to an [InfrastructureService].
+ * Convert this [InfrastructureServiceDeclaration] to an [InfrastructureService].
  */
-private fun InfrastructureService.toResolvedInfrastructureService(): ResolvedInfrastructureService =
-    ResolvedInfrastructureService(
+internal fun InfrastructureServiceDeclaration.toInfrastructureService(): InfrastructureService =
+    InfrastructureService(
         name = name,
         url = url,
         description = description,
         usernameSecret = usernameSecret,
         passwordSecret = passwordSecret,
+        organization = null,
+        product = null,
+        repository = null,
         credentialsTypes = credentialsTypes
     )
