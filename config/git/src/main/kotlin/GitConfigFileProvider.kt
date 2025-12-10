@@ -111,8 +111,7 @@ class GitConfigFileProvider internal constructor(
     private fun updateWorkingTree(requestedRevision: String): String {
         synchronized(this) {
             try {
-                // TODO: There might be a better way to do check if the configDir already contains a Git repository.
-                val revision = if (!configDir.resolve(".git").isDirectory) {
+                val revision = if (!git.getWorkingTree(configDir).isValid()) {
                     val initRevision = requestedRevision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
                     val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
 
