@@ -117,6 +117,11 @@ rootProject.children.forEach { child ->
     child.children.singleOrNull { it.name == "spi" }?.name = "${child.name}-spi"
 }
 
+// Prefix all component subprojects names with their parent project name.
+rootProject.children.single { it.name == "components" }.children.forEach { component ->
+    component.children.forEach { it.name = "${component.name}-${it.name}" }
+}
+
 plugins {
     // Gradle cannot access the version catalog from here, so hard-code the dependency.
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
