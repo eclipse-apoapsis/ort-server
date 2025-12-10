@@ -103,10 +103,14 @@ include(":workers:scanner")
 project(":api:v1:client").name = "api-v1-client"
 project(":api:v1:mapping").name = "api-v1-mapping"
 project(":api:v1:model").name = "api-v1-model"
-project(":workers:config").name = "config-worker"
 
 // Append "-service" to all service project names.
 rootProject.children.single { it.name == "services" }.children.forEach { it.name = "${it.name}-service" }
+
+// Append "-worker" to all worker project names.
+rootProject.children.single { it.name == "workers" }.children
+    .filter { it.name != "common" }
+    .forEach { it.name = "${it.name}-worker" }
 
 // Prefix all SPI project names with their parent project name.
 rootProject.children.forEach { child ->
