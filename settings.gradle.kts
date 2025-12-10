@@ -106,14 +106,12 @@ project(":api:v1:model").name = "api-v1-model"
 project(":config:spi").name = "config-spi"
 project(":logaccess:spi").name = "logaccess-spi"
 project(":secrets:spi").name = "secrets-spi"
-project(":services:admin-config").name = "admin-config-service"
-project(":services:content-management").name = "content-management-service"
-project(":services:hierarchy").name = "hierarchy-service"
-project(":services:ort-run").name = "ort-run-service"
-project(":services:report-storage").name = "report-storage-service"
 project(":storage:spi").name = "storage-spi"
 project(":transport:spi").name = "transport-spi"
 project(":workers:config").name = "config-worker"
+
+// Append "-service" to all service project names.
+rootProject.children.single { it.name == "services" }.children.forEach { it.name = "${it.name}-service" }
 
 plugins {
     // Gradle cannot access the version catalog from here, so hard-code the dependency.
