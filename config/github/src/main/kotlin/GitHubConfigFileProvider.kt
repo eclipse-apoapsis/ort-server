@@ -228,7 +228,7 @@ class GitHubConfigFileProvider(
             ?: getRemoteDefaultBranch()
             ?: DEFAULT_REPOSITORY_BRANCH
 
-        val branchName = context.name.takeUnless { it.isEmpty() } ?: defaultBranch
+        val branchName = context.name.ifBlank { defaultBranch }
         val response = sendHttpRequest("/branches/$branchName")
 
         if (!response.isPresent()) {

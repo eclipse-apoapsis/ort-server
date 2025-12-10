@@ -50,6 +50,13 @@ class GitConfigFileProviderTest : WordSpec({
             context.name shouldBe GIT_REVISION_MAIN
         }
 
+        "resolve an blank context successfully to HEAD of default branch" {
+            val provider = GitConfigFileProvider(GIT_URL, tempdir())
+            val context = provider.resolveContext(Context(" "))
+
+            context.name shouldBe GIT_REVISION_MAIN
+        }
+
         "resolve a context successfully to HEAD of the `main` branch" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
             val context = provider.resolveContext(Context(GIT_BRANCH_MAIN))

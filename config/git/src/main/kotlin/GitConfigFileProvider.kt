@@ -112,7 +112,7 @@ class GitConfigFileProvider internal constructor(
         synchronized(this) {
             try {
                 val revision = if (!git.getWorkingTree(configDir).isValid()) {
-                    val initRevision = requestedRevision.takeUnless { it.isEmpty() } ?: git.getDefaultBranchName(gitUrl)
+                    val initRevision = requestedRevision.ifBlank { git.getDefaultBranchName(gitUrl) }
                     val vcsInfo = VcsInfo(VcsType.GIT, gitUrl, initRevision)
 
                     measureTime { git.initWorkingTree(configDir, vcsInfo) }.also {
