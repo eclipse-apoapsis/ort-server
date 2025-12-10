@@ -702,7 +702,7 @@ fun ResolvablePluginConfig.mapToApi() = ApiPluginConfig(
 
 fun ApiPluginConfig.mapToModel() = ResolvablePluginConfig(
     options = options,
-    secrets = secrets.mapValues { ResolvableSecret(it.value, SecretSource.ADMIN) }
+    secrets = secrets.mapValues { ResolvableSecret(it.value, SecretSource.USER) }
 )
 
 fun ResolvableProviderPluginConfig.mapToApi() =
@@ -720,7 +720,7 @@ fun ApiProviderPluginConfiguration.mapToModel() =
         id = id,
         enabled = enabled,
         options = options,
-        secrets = secrets.mapValues { ResolvableSecret(it.value, SecretSource.ADMIN) }
+        secrets = secrets.mapValues { ResolvableSecret(it.value, SecretSource.USER) }
     )
 
 fun SourceCodeOrigin.mapToApi() =
