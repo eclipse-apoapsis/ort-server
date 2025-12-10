@@ -40,7 +40,7 @@ repositories {
 }
 
 dependencies {
-    api(projects.components.pluginManager.apiModel)
+    api(projects.components.pluginManager.pluginManagerApiModel)
     api(projects.model)
 
     implementation(projects.dao)
@@ -56,7 +56,7 @@ dependencies {
     implementation(ortLibs.reporter)
     implementation(ortLibs.scanner)
 
-    routesImplementation(projects.components.authorization.backend)
+    routesImplementation(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.shared.ktorUtils)
 
     routesImplementation(ktorLibs.server.auth)
