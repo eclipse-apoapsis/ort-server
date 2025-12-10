@@ -36,7 +36,7 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.components.infrastructureServices.backend)
+    implementation(projects.components.infrastructureServices.infrastructureServicesBackend)
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.secrets.secretsSpi)
@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.kotlinxCoroutines)
     implementation(libs.kotlinxSerializationJson)
 
-    api(projects.components.secrets.backend)
+    api(projects.components.secrets.secretsBackend)
     api(projects.config.configSpi)
     api(projects.services.ortRunService)
     api(projects.storage.storageSpi)
