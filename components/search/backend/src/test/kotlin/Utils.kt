@@ -36,6 +36,7 @@ fun createRunWithPackage(
         productId = ortRun.productId,
         repositoryId = ortRun.repositoryId,
         ortRunId = ortRun.id,
+        ortRunIndex = ortRun.index,
         revision = ortRun.revision,
         createdAt = ortRun.createdAt,
         packageId = pkgId.toCoordinates()
