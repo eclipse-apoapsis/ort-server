@@ -117,11 +117,7 @@ project(":workers:config").name = "config-worker"
 
 plugins {
     // Gradle cannot access the version catalog from here, so hard-code the dependency.
-    id("com.autonomousapps.build-health").version("3.5.1")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
-
-    // Required for the build-health plugin. Keep the version in sync with the one from the version catalog.
-    id("org.jetbrains.kotlin.jvm").version("2.2.21").apply(false)
 }
 
 dependencyResolutionManagement {
