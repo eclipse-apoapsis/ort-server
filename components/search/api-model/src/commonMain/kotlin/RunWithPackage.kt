@@ -28,6 +28,7 @@ data class RunWithPackage(
     val productId: Long,
     val repositoryId: Long,
     val ortRunId: Long,
+    val ortRunIndex: Long,
     val revision: String?,
     val createdAt: Instant,
     val packageId: String,
