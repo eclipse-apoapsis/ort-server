@@ -103,15 +103,15 @@ include(":workers:scanner")
 project(":api:v1:client").name = "api-v1-client"
 project(":api:v1:mapping").name = "api-v1-mapping"
 project(":api:v1:model").name = "api-v1-model"
-project(":config:spi").name = "config-spi"
-project(":logaccess:spi").name = "logaccess-spi"
-project(":secrets:spi").name = "secrets-spi"
-project(":storage:spi").name = "storage-spi"
-project(":transport:spi").name = "transport-spi"
 project(":workers:config").name = "config-worker"
 
 // Append "-service" to all service project names.
 rootProject.children.single { it.name == "services" }.children.forEach { it.name = "${it.name}-service" }
+
+// Prefix all SPI project names with their parent project name.
+rootProject.children.forEach { child ->
+    child.children.singleOrNull { it.name == "spi" }?.name = "${child.name}-spi"
+}
 
 plugins {
     // Gradle cannot access the version catalog from here, so hard-code the dependency.
