@@ -28,6 +28,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 import org.eclipse.apoapsis.ortserver.config.local.LocalConfigFileProvider.Companion.CONFIG_DIR
@@ -49,7 +50,7 @@ class LocalConfigFileProviderTest : WordSpec({
 
             val provider = LocalConfigFileProvider.create(config)
 
-            provider.contains(Context(""), CONFIG_PATH) shouldBe true
+            provider.contains(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH) shouldBe true
         }
     }
 
@@ -57,7 +58,7 @@ class LocalConfigFileProviderTest : WordSpec({
         "always resolve to an empty context" {
             val provider = LocalConfigFileProvider(tempdir())
 
-            provider.resolveContext(Context("")).name shouldBe ""
+            provider.resolveContext(ConfigManager.EMPTY_CONTEXT).name shouldBe ""
             provider.resolveContext(Context("context")).name shouldBe ""
         }
     }
@@ -69,7 +70,7 @@ class LocalConfigFileProviderTest : WordSpec({
             file.writeText(CONTENT)
             val provider = LocalConfigFileProvider(directory)
 
-            val fileContent = provider.getFile(Context(""), CONFIG_PATH)
+            val fileContent = provider.getFile(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH)
                 .bufferedReader(Charsets.UTF_8).use { it.readText() }
 
             fileContent shouldBe CONTENT
@@ -80,7 +81,7 @@ class LocalConfigFileProviderTest : WordSpec({
             val provider = LocalConfigFileProvider(directory)
 
             shouldThrow<ConfigException> {
-                provider.getFile(Context(""), CONFIG_PATH)
+                provider.getFile(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH)
             }
         }
 
@@ -90,7 +91,7 @@ class LocalConfigFileProviderTest : WordSpec({
             val provider = LocalConfigFileProvider(directory)
 
             shouldThrow<ConfigException> {
-                provider.getFile(Context(""), CONFIG_PATH)
+                provider.getFile(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH)
             }
         }
     }
@@ -101,7 +102,7 @@ class LocalConfigFileProviderTest : WordSpec({
             directory.resolve(CONFIG_PATH.path).createNewFile()
             val provider = LocalConfigFileProvider(directory)
 
-            provider.contains(Context(""), CONFIG_PATH) shouldBe true
+            provider.contains(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH) shouldBe true
         }
 
         "return `false` if the path refers to a directory" {
@@ -109,7 +110,7 @@ class LocalConfigFileProviderTest : WordSpec({
             directory.resolve(CONFIG_PATH.path).mkdir()
             val provider = LocalConfigFileProvider(directory)
 
-            provider.contains(Context(""), CONFIG_PATH) shouldBe false
+            provider.contains(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH) shouldBe false
         }
 
         "return `true` if the path ending on a slash refers to a directory" {
@@ -118,14 +119,14 @@ class LocalConfigFileProviderTest : WordSpec({
             val directoryPath = CONFIG_PATH.path + "/"
             val provider = LocalConfigFileProvider(directory)
 
-            provider.contains(Context(""), Path(directoryPath)) shouldBe true
+            provider.contains(ConfigManager.EMPTY_CONTEXT, Path(directoryPath)) shouldBe true
         }
 
         "return `false` if a the file cannot be found" {
             val directory = tempdir()
             val provider = LocalConfigFileProvider(directory)
 
-            provider.contains(Context(""), CONFIG_PATH) shouldBe false
+            provider.contains(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH) shouldBe false
         }
     }
 
@@ -136,7 +137,7 @@ class LocalConfigFileProviderTest : WordSpec({
             files.forEach { directory.resolve(it).createNewFile() }
             val provider = LocalConfigFileProvider(directory)
 
-            val listFiles = provider.listFiles(Context(""), Path(""))
+            val listFiles = provider.listFiles(ConfigManager.EMPTY_CONTEXT, Path(""))
 
             val expectedFiles = files.map { Path(directory.resolve(it).absolutePath) }
             listFiles shouldContainExactlyInAnyOrder expectedFiles
@@ -150,7 +151,7 @@ class LocalConfigFileProviderTest : WordSpec({
             files.forEach { subDirectory.resolve(it).createNewFile() }
             val provider = LocalConfigFileProvider(directory)
 
-            val listFiles = provider.listFiles(Context(""), Path("sub/"))
+            val listFiles = provider.listFiles(ConfigManager.EMPTY_CONTEXT, Path("sub/"))
 
             val expectedFiles = files.map { Path(subDirectory.resolve(it).absolutePath) }
             listFiles shouldContainExactlyInAnyOrder expectedFiles
@@ -161,7 +162,7 @@ class LocalConfigFileProviderTest : WordSpec({
             val provider = LocalConfigFileProvider(directory)
 
             shouldThrow<ConfigException> {
-                provider.listFiles(Context(""), CONFIG_PATH)
+                provider.listFiles(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH)
             }
         }
 
@@ -171,7 +172,7 @@ class LocalConfigFileProviderTest : WordSpec({
             val provider = LocalConfigFileProvider(directory)
 
             shouldThrow<ConfigException> {
-                provider.listFiles(Context(""), CONFIG_PATH)
+                provider.listFiles(ConfigManager.EMPTY_CONTEXT, CONFIG_PATH)
             }
         }
     }

@@ -30,7 +30,6 @@ import java.io.File
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.ConfigSecretProviderFactoryForTesting
-import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 
 class LocalConfigFileProviderFactoryTest : WordSpec({
@@ -42,7 +41,7 @@ class LocalConfigFileProviderFactoryTest : WordSpec({
             directory.resolve(path.path).writeText(content)
 
             val manager = createConfigManager(directory)
-            manager.getFile(Context(""), path).bufferedReader(Charsets.UTF_8)
+            manager.getFile(ConfigManager.EMPTY_CONTEXT, path).bufferedReader(Charsets.UTF_8)
                 .use { it.readText() } shouldBe content
         }
     }
