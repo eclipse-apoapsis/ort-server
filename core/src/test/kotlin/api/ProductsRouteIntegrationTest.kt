@@ -1193,7 +1193,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                     "rule",
                     null,
                     null,
-                    null,
+                    emptySet(),
                     Severity.ERROR,
                     "message",
                     "how-to-fix"
@@ -1212,7 +1212,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             "rule1",
                             null,
                             null,
-                            null,
+                            emptySet(),
                             Severity.HINT,
                             "message",
                             "how-to-fix"
@@ -1357,7 +1357,7 @@ class ProductsRouteIntegrationTest : AbstractIntegrationTest({
                             "rule2",
                             null,
                             null,
-                            null,
+                            emptySet(),
                             Severity.ERROR,
                             "message",
                             "how-to-fix"
