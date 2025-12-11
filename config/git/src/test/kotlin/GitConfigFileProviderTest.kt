@@ -28,6 +28,7 @@ import io.kotest.matchers.shouldBe
 import java.io.IOException
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 
@@ -45,7 +46,7 @@ class GitConfigFileProviderTest : WordSpec({
     "resolveContext" should {
         "resolve an empty context successfully to HEAD of default branch" {
             val provider = GitConfigFileProvider(GIT_URL, tempdir())
-            val context = provider.resolveContext(Context(""))
+            val context = provider.resolveContext(ConfigManager.EMPTY_CONTEXT)
 
             context.name shouldBe GIT_REVISION_MAIN
         }

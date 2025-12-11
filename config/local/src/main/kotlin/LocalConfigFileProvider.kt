@@ -26,6 +26,7 @@ import java.io.InputStream
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigFileProvider
+import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Context
 import org.eclipse.apoapsis.ortserver.config.Path
 
@@ -56,7 +57,7 @@ class LocalConfigFileProvider(
         }
     }
 
-    override fun resolveContext(context: Context) = Context("")
+    override fun resolveContext(context: Context) = ConfigManager.EMPTY_CONTEXT
 
     override fun getFile(context: Context, path: Path): InputStream =
         runCatching {
