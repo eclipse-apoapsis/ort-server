@@ -35,6 +35,7 @@ import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -92,7 +93,7 @@ class SearchServiceTest : WordSpec({
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(
+                    HierarchyLevel.ORGANIZATION to listOf(
                         CompoundHierarchyId.forOrganization(OrganizationId(run.organizationId))
                     )
                 ),
@@ -124,7 +125,7 @@ class SearchServiceTest : WordSpec({
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.PRODUCT_LEVEL to listOf(
+                    HierarchyLevel.PRODUCT to listOf(
                         CompoundHierarchyId.forProduct(
                             OrganizationId(run.organizationId),
                             ProductId(run.productId)
@@ -157,7 +158,7 @@ class SearchServiceTest : WordSpec({
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                    HierarchyLevel.REPOSITORY to listOf(
                         CompoundHierarchyId.forRepository(
                             OrganizationId(run.organizationId),
                             ProductId(run.productId),
@@ -232,7 +233,7 @@ class SearchServiceTest : WordSpec({
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                    HierarchyLevel.REPOSITORY to listOf(
                         CompoundHierarchyId.forRepository(
                             OrganizationId(run1.organizationId),
                             ProductId(run1.productId),
@@ -396,7 +397,7 @@ class SearchServiceTest : WordSpec({
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(
+                    HierarchyLevel.ORGANIZATION to listOf(
                         CompoundHierarchyId.forOrganization(OrganizationId(run.organizationId))
                     )
                 ),
@@ -442,7 +443,7 @@ class SearchServiceTest : WordSpec({
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.PRODUCT_LEVEL to listOf(
+                    HierarchyLevel.PRODUCT to listOf(
                         CompoundHierarchyId.forProduct(
                             OrganizationId(run.organizationId),
                             ProductId(run.productId)
@@ -487,7 +488,7 @@ class SearchServiceTest : WordSpec({
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                    HierarchyLevel.REPOSITORY to listOf(
                         CompoundHierarchyId.forRepository(
                             OrganizationId(run.organizationId),
                             ProductId(run.productId),
@@ -551,7 +552,7 @@ class SearchServiceTest : WordSpec({
 
             val filter = HierarchyFilter(
                 transitiveIncludes = mapOf(
-                    CompoundHierarchyId.REPOSITORY_LEVEL to listOf(
+                    HierarchyLevel.REPOSITORY to listOf(
                         CompoundHierarchyId.forRepository(
                             OrganizationId(run1.organizationId),
                             ProductId(run1.productId),

@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 
 /**
  * A class that encapsulates a number of permissions to check on hierarchy elements.
@@ -47,7 +48,7 @@ class PermissionChecker(
  * Alias for a [Map] that groups [CompoundHierarchyId]s by their hierarchy level. The keys correspond to constants
  * defined by [CompoundHierarchyId].
  */
-typealias IdsByLevel = Map<Int, List<CompoundHierarchyId>>
+typealias IdsByLevel = Map<HierarchyLevel, List<CompoundHierarchyId>>
 
 /**
  * A class to manage permissions on different levels of the hierarchy.
@@ -80,7 +81,7 @@ interface HierarchyPermissions {
         ): HierarchyPermissions {
             val assignmentsByLevel = roleAssignments.groupBy { it.first.level }
 
-            return assignmentsByLevel[CompoundHierarchyId.WILDCARD_LEVEL]?.singleOrNull()
+            return assignmentsByLevel[HierarchyLevel.WILDCARD]?.singleOrNull()
                 ?.takeIf { it.second == OrganizationRole.ADMIN }?.let { superuserInstance }
                 ?: createStandardInstance(assignmentsByLevel, checker)
         }
@@ -161,7 +162,7 @@ private val superuserInstance = object : HierarchyPermissions {
         CompoundHierarchyId.WILDCARD
 
     override fun includes(): IdsByLevel =
-        mapOf(CompoundHierarchyId.WILDCARD_LEVEL to listOf(CompoundHierarchyId.WILDCARD))
+        mapOf(HierarchyLevel.WILDCARD to listOf(CompoundHierarchyId.WILDCARD))
 
     override fun implicitIncludes(): IdsByLevel = emptyMap()
 
@@ -173,7 +174,7 @@ private val superuserInstance = object : HierarchyPermissions {
  * [assignmentsByLevel] and the [checker] function.
  */
 private fun createStandardInstance(
-    assignmentsByLevel: Map<Int, List<Pair<CompoundHierarchyId, Role>>>,
+    assignmentsByLevel: Map<HierarchyLevel, List<Pair<CompoundHierarchyId, Role>>>,
     checker: PermissionChecker
 ): HierarchyPermissions {
     val assignmentsMap = constructAssignmentsMap(assignmentsByLevel, checker)
@@ -218,10 +219,10 @@ private tailrec fun findAssignment(
  * the given [assignmentsByLevel] and the [checker] function.
  */
 private fun constructAssignmentsMap(
-    assignmentsByLevel: Map<Int, List<Pair<CompoundHierarchyId, Role>>>,
+    assignmentsByLevel: Map<HierarchyLevel, List<Pair<CompoundHierarchyId, Role>>>,
     checker: PermissionChecker
 ): Map<CompoundHierarchyId, Boolean> = buildMap {
-    for (level in CompoundHierarchyId.ORGANIZATION_LEVEL..CompoundHierarchyId.REPOSITORY_LEVEL) {
+    for (level in HierarchyLevel.DEFINED_LEVELS_TOP_DOWN) {
         val levelAssignments = assignmentsByLevel[level].orEmpty()
         levelAssignments.forEach { (id, role) ->
             val isPresent = checker(role)
@@ -244,13 +245,13 @@ private fun constructAssignmentsMap(
  */
 private fun computeImplicitIncludes(
     assignmentsMap: Map<CompoundHierarchyId, Boolean>,
-    assignmentsByLevel: Map<Int, List<Pair<CompoundHierarchyId, Role>>>,
+    assignmentsByLevel: Map<HierarchyLevel, List<Pair<CompoundHierarchyId, Role>>>,
     checker: PermissionChecker
 ): Pair<IdsByLevel, Map<CompoundHierarchyId, CompoundHierarchyId>> {
     val implicitIds = mutableSetOf<CompoundHierarchyId>()
     val causingIds = mutableMapOf<CompoundHierarchyId, CompoundHierarchyId>()
 
-    for (level in CompoundHierarchyId.PRODUCT_LEVEL..CompoundHierarchyId.REPOSITORY_LEVEL) {
+    listOf(HierarchyLevel.PRODUCT, HierarchyLevel.REPOSITORY).forEach { level ->
         assignmentsByLevel[level].orEmpty().filter { (_, role) -> checker(role) }
             .forEach { (id, _) ->
                 val parents = id.parents()

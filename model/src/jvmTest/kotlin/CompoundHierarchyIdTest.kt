@@ -93,23 +93,23 @@ class CompoundHierarchyIdTest : WordSpec({
         "return the correct level for an organization" {
             val compoundId = CompoundHierarchyId.forOrganization(OrganizationId(1))
 
-            compoundId.level shouldBe CompoundHierarchyId.ORGANIZATION_LEVEL
+            compoundId.level shouldBe HierarchyLevel.ORGANIZATION
         }
 
         "return the correct level for a product" {
             val compoundId = CompoundHierarchyId.forProduct(OrganizationId(1), ProductId(2))
 
-            compoundId.level shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+            compoundId.level shouldBe HierarchyLevel.PRODUCT
         }
 
         "return the correct level for a repository" {
             val compoundId = CompoundHierarchyId.forRepository(OrganizationId(1), ProductId(2), RepositoryId(3))
 
-            compoundId.level shouldBe CompoundHierarchyId.REPOSITORY_LEVEL
+            compoundId.level shouldBe HierarchyLevel.REPOSITORY
         }
 
         "return the wildcard level for the wildcard instance" {
-            CompoundHierarchyId.WILDCARD.level shouldBe CompoundHierarchyId.WILDCARD_LEVEL
+            CompoundHierarchyId.WILDCARD.level shouldBe HierarchyLevel.WILDCARD
         }
     }
 
@@ -118,9 +118,9 @@ class CompoundHierarchyIdTest : WordSpec({
             val orgId = OrganizationId(1)
             val compoundId = CompoundHierarchyId.forOrganization(orgId)
 
-            compoundId[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldBe orgId
-            compoundId[CompoundHierarchyId.PRODUCT_LEVEL] shouldBe null
-            compoundId[CompoundHierarchyId.REPOSITORY_LEVEL] shouldBe null
+            compoundId[HierarchyLevel.ORGANIZATION] shouldBe orgId
+            compoundId[HierarchyLevel.PRODUCT] shouldBe null
+            compoundId[HierarchyLevel.REPOSITORY] shouldBe null
         }
 
         "return the correct ID for a product" {
@@ -128,9 +128,9 @@ class CompoundHierarchyIdTest : WordSpec({
             val prodId = ProductId(2)
             val compoundId = CompoundHierarchyId.forProduct(orgId, prodId)
 
-            compoundId[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldBe orgId
-            compoundId[CompoundHierarchyId.PRODUCT_LEVEL] shouldBe prodId
-            compoundId[CompoundHierarchyId.REPOSITORY_LEVEL] shouldBe null
+            compoundId[HierarchyLevel.ORGANIZATION] shouldBe orgId
+            compoundId[HierarchyLevel.PRODUCT] shouldBe prodId
+            compoundId[HierarchyLevel.REPOSITORY] shouldBe null
         }
 
         "return the correct ID for a repository" {
@@ -139,24 +139,16 @@ class CompoundHierarchyIdTest : WordSpec({
             val repoId = RepositoryId(3)
             val compoundId = CompoundHierarchyId.forRepository(orgId, prodId, repoId)
 
-            compoundId[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldBe orgId
-            compoundId[CompoundHierarchyId.PRODUCT_LEVEL] shouldBe prodId
-            compoundId[CompoundHierarchyId.REPOSITORY_LEVEL] shouldBe repoId
+            compoundId[HierarchyLevel.ORGANIZATION] shouldBe orgId
+            compoundId[HierarchyLevel.PRODUCT] shouldBe prodId
+            compoundId[HierarchyLevel.REPOSITORY] shouldBe repoId
         }
 
         "throw for the wildcard level" {
             val compoundId = CompoundHierarchyId.forProduct(OrganizationId(1), ProductId(2))
 
             shouldThrow<IllegalArgumentException> {
-                compoundId[CompoundHierarchyId.WILDCARD_LEVEL]
-            }
-        }
-
-        "throw for an invalid level" {
-            val compoundId = CompoundHierarchyId.forProduct(OrganizationId(1), ProductId(2))
-
-            shouldThrow<IllegalArgumentException> {
-                compoundId[4]
+                compoundId[HierarchyLevel.WILDCARD]
             }
         }
     }

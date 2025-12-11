@@ -26,6 +26,7 @@ import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.Organization
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
@@ -159,7 +160,7 @@ class DaoOrganizationRepositoryTest : StringSpec({
         organizationRepository.create("org3", "description3")
 
         val hierarchyFilter = HierarchyFilter(
-            transitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(org1Id, org2Id)),
+            transitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(org1Id, org2Id)),
             nonTransitiveIncludes = emptyMap(),
         )
         val result = organizationRepository.list(hierarchyFilter = hierarchyFilter)
@@ -179,8 +180,8 @@ class DaoOrganizationRepositoryTest : StringSpec({
         organizationRepository.create("org3", "description3")
 
         val hierarchyFilter = HierarchyFilter(
-            transitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(org1Id)),
-            nonTransitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(org2Id)),
+            transitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(org1Id)),
+            nonTransitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(org2Id)),
         )
         val result = organizationRepository.list(hierarchyFilter = hierarchyFilter)
 
@@ -200,8 +201,8 @@ class DaoOrganizationRepositoryTest : StringSpec({
         )
 
         val hierarchyFilter = HierarchyFilter(
-            transitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(productId)),
-            nonTransitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(orgId))
+            transitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(productId)),
+            nonTransitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(orgId))
         )
         val result = organizationRepository.list(hierarchyFilter = hierarchyFilter)
 

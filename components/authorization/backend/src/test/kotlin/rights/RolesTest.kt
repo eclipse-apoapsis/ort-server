@@ -23,7 +23,7 @@ import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
 
-import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 
 class RolesTest : WordSpec({
     "getRoleByNameAndLevel" should {
@@ -38,31 +38,30 @@ class RolesTest : WordSpec({
         }
 
         "return null for an invalid role name" {
-            Role.getRoleByNameAndLevel(CompoundHierarchyId.ORGANIZATION_LEVEL, "GARDENER") shouldBe null
+            Role.getRoleByNameAndLevel(HierarchyLevel.ORGANIZATION, "GARDENER") shouldBe null
         }
 
         "return null for an invalid level" {
-            Role.getRoleByNameAndLevel(CompoundHierarchyId.WILDCARD_LEVEL, "READER") shouldBe null
-            Role.getRoleByNameAndLevel(1000, "READER") shouldBe null
+            Role.getRoleByNameAndLevel(HierarchyLevel.WILDCARD, "READER") shouldBe null
         }
     }
 
     "level" should {
         "be correct for OrganizationRole" {
             OrganizationRole.entries.forAll { role ->
-                role.level shouldBe CompoundHierarchyId.ORGANIZATION_LEVEL
+                role.level shouldBe HierarchyLevel.ORGANIZATION
             }
         }
 
         "be correct for ProductRole" {
             ProductRole.entries.forAll { role ->
-                role.level shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+                role.level shouldBe HierarchyLevel.PRODUCT
             }
         }
 
         "be correct for RepositoryRole" {
             RepositoryRole.entries.forAll { role ->
-                role.level shouldBe CompoundHierarchyId.REPOSITORY_LEVEL
+                role.level shouldBe HierarchyLevel.REPOSITORY
             }
         }
     }

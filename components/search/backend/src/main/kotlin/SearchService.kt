@@ -50,6 +50,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.sql.CustomFunction
@@ -348,23 +349,23 @@ private fun createEffectivePurlExpression(): CustomFunction<String> {
  * Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids].
  */
 private fun SqlExpressionBuilder.generateHierarchyCondition(
-    level: Int,
+    level: HierarchyLevel,
     ids: List<CompoundHierarchyId>,
     filter: HierarchyFilter
 ): Op<Boolean> =
     when (level) {
-        CompoundHierarchyId.REPOSITORY_LEVEL ->
+        HierarchyLevel.REPOSITORY ->
             OrtRunsTable.repositoryId inList (
-                ids.extractIds(CompoundHierarchyId.REPOSITORY_LEVEL) +
-                    filter.nonTransitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL].orEmpty()
-                        .extractIds(CompoundHierarchyId.REPOSITORY_LEVEL)
+                ids.extractIds(HierarchyLevel.REPOSITORY) +
+                    filter.nonTransitiveIncludes[HierarchyLevel.REPOSITORY].orEmpty()
+                        .extractIds(HierarchyLevel.REPOSITORY)
             )
 
-        CompoundHierarchyId.PRODUCT_LEVEL ->
-            RepositoriesTable.productId inList ids.extractIds(CompoundHierarchyId.PRODUCT_LEVEL)
+        HierarchyLevel.PRODUCT ->
+            RepositoriesTable.productId inList ids.extractIds(HierarchyLevel.PRODUCT)
 
-        CompoundHierarchyId.ORGANIZATION_LEVEL ->
-            ProductsTable.organizationId inList ids.extractIds(CompoundHierarchyId.ORGANIZATION_LEVEL)
+        HierarchyLevel.ORGANIZATION ->
+            ProductsTable.organizationId inList ids.extractIds(HierarchyLevel.ORGANIZATION)
 
-        else -> Op.FALSE
+        HierarchyLevel.WILDCARD -> Op.FALSE
     }

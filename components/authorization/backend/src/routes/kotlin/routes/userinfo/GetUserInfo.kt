@@ -33,6 +33,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerP
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.authorization.service.AuthorizationService
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -107,18 +108,18 @@ private fun extractPermissionNames(effectiveRole: EffectiveRole): Set<String> {
     val permissions = if (effectiveRole.isSuperuser) {
         Role.getRoleByNameAndLevel(level, "ADMIN")?.let { role ->
             when (level) {
-                CompoundHierarchyId.ORGANIZATION_LEVEL -> role.organizationPermissions
-                CompoundHierarchyId.PRODUCT_LEVEL -> role.productPermissions
-                CompoundHierarchyId.REPOSITORY_LEVEL -> role.repositoryPermissions
+                HierarchyLevel.ORGANIZATION -> role.organizationPermissions
+                HierarchyLevel.PRODUCT -> role.productPermissions
+                HierarchyLevel.REPOSITORY -> role.repositoryPermissions
                 else -> emptySet()
             }
         } ?: OrganizationRole.ADMIN.organizationPermissions
     } else {
         when (level) {
-            CompoundHierarchyId.ORGANIZATION_LEVEL -> effectiveRole.getOrganizationPermissions()
-            CompoundHierarchyId.PRODUCT_LEVEL -> effectiveRole.getProductPermissions()
-            CompoundHierarchyId.REPOSITORY_LEVEL -> effectiveRole.getRepositoryPermissions()
-            else -> emptySet()
+            HierarchyLevel.ORGANIZATION -> effectiveRole.getOrganizationPermissions()
+            HierarchyLevel.PRODUCT -> effectiveRole.getProductPermissions()
+            HierarchyLevel.REPOSITORY -> effectiveRole.getRepositoryPermissions()
+            HierarchyLevel.WILDCARD -> emptySet()
         }
     }
 
