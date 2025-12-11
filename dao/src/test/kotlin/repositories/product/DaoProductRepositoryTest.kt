@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.dao.UniqueConstraintException
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.Product
 import org.eclipse.apoapsis.ortserver.model.ProductId
@@ -158,7 +159,7 @@ class DaoProductRepositoryTest : StringSpec({
         fixtures.createProduct("prod3")
 
         val hierarchyFilter = HierarchyFilter(
-            transitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(prod1Id, prod2Id)),
+            transitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prod1Id, prod2Id)),
             nonTransitiveIncludes = emptyMap(),
         )
         val result = productRepository.list(hierarchyFilter = hierarchyFilter)
@@ -185,7 +186,7 @@ class DaoProductRepositoryTest : StringSpec({
         fixtures.createProduct("prod3", organizationId = otherOrg.id)
 
         val hierarchyFilter = HierarchyFilter(
-            transitiveIncludes = mapOf(CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(org1Id, org2Id)),
+            transitiveIncludes = mapOf(HierarchyLevel.ORGANIZATION to listOf(org1Id, org2Id)),
             nonTransitiveIncludes = emptyMap(),
         )
         val result = productRepository.list(hierarchyFilter = hierarchyFilter)
@@ -214,8 +215,8 @@ class DaoProductRepositoryTest : StringSpec({
         fixtures.createProduct("prod3")
 
         val hierarchyFilter = HierarchyFilter(
-            transitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(prod1Id)),
-            nonTransitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(prod2Id)),
+            transitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prod1Id)),
+            nonTransitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prod2Id)),
         )
         val result = productRepository.list(hierarchyFilter = hierarchyFilter)
 
@@ -243,8 +244,8 @@ class DaoProductRepositoryTest : StringSpec({
         )
 
         val hierarchyFilter = HierarchyFilter(
-            transitiveIncludes = mapOf(CompoundHierarchyId.REPOSITORY_LEVEL to listOf(repoId)),
-            nonTransitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(prodId)),
+            transitiveIncludes = mapOf(HierarchyLevel.REPOSITORY to listOf(repoId)),
+            nonTransitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(prodId)),
         )
         val result = productRepository.list(hierarchyFilter = hierarchyFilter)
 

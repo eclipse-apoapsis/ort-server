@@ -29,6 +29,7 @@ import kotlinx.datetime.minus
 import org.eclipse.apoapsis.ortserver.dao.ConditionBuilder
 import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
@@ -88,7 +89,7 @@ fun Instant.toDatabasePrecision() = minus(nanosecondsOfSecond, DateTimeUnit.NANO
 /**
  * Extract the defined IDs on the specified [level] from the [CompoundHierarchyId]s in this collection as long values.
  */
-fun Collection<CompoundHierarchyId>.extractIds(level: Int): List<Long> = mapNotNull { it[level]?.value }
+fun Collection<CompoundHierarchyId>.extractIds(level: HierarchyLevel): List<Long> = mapNotNull { it[level]?.value }
 
 /**
  * Definition of a function type for generating query conditions based on accessible hierarchy elements. The function
@@ -98,7 +99,7 @@ fun Collection<CompoundHierarchyId>.extractIds(level: Int): List<Long> = mapNotN
  * hierarchy levels are then combined using an `OR` operator.
  */
 typealias HierarchyConditionGenerator = SqlExpressionBuilder.(
-    level: Int,
+    level: HierarchyLevel,
     ids: List<CompoundHierarchyId>,
     filter: HierarchyFilter
 ) -> Op<Boolean>
@@ -116,8 +117,7 @@ fun HierarchyFilter.apply(
         otherCondition
     } else {
         // Always iterate over all levels to make sure that conditions for all levels are generated.
-        val hierarchyCondition = (CompoundHierarchyId.ORGANIZATION_LEVEL..CompoundHierarchyId.REPOSITORY_LEVEL)
-            .fold(Op.FALSE as Op<Boolean>) { op, level ->
+        val hierarchyCondition = HierarchyLevel.DEFINED_LEVELS_TOP_DOWN.fold(Op.FALSE as Op<Boolean>) { op, level ->
                 val ids = transitiveIncludes[level].orEmpty()
                 val condition = generator(this, level, ids, this@apply)
                 op or condition

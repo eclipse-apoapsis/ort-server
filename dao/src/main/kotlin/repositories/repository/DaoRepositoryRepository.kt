@@ -28,6 +28,7 @@ import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.RepositoryType
 import org.eclipse.apoapsis.ortserver.model.repositories.RepositoryRepository
 import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
@@ -112,19 +113,19 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
  * Generate a condition defined by a [HierarchyFilter] for the given [level] and [ids].
  */
 private fun SqlExpressionBuilder.generateHierarchyCondition(
-    level: Int,
+    level: HierarchyLevel,
     ids: List<CompoundHierarchyId>
 ): Op<Boolean> =
     when (level) {
-        CompoundHierarchyId.REPOSITORY_LEVEL ->
-            RepositoriesTable.id inList ids.extractIds(CompoundHierarchyId.REPOSITORY_LEVEL)
+        HierarchyLevel.REPOSITORY ->
+            RepositoriesTable.id inList ids.extractIds(HierarchyLevel.REPOSITORY)
 
-        CompoundHierarchyId.PRODUCT_LEVEL ->
-            RepositoriesTable.productId inList ids.extractIds(CompoundHierarchyId.PRODUCT_LEVEL)
+        HierarchyLevel.PRODUCT ->
+            RepositoriesTable.productId inList ids.extractIds(HierarchyLevel.PRODUCT)
 
-        CompoundHierarchyId.ORGANIZATION_LEVEL -> {
+        HierarchyLevel.ORGANIZATION -> {
             val subquery = ProductsTable.select(ProductsTable.id).where {
-                ProductsTable.organizationId inList ids.extractIds(CompoundHierarchyId.ORGANIZATION_LEVEL)
+                ProductsTable.organizationId inList ids.extractIds(HierarchyLevel.ORGANIZATION)
             }
             RepositoriesTable.productId inSubQuery subquery
         }

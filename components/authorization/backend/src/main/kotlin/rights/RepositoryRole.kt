@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
-import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 
 /**
  * This enum contains the available roles for [repositories][org.eclipse.apoapsis.ortserver.model.Repository]. It
@@ -53,5 +53,5 @@ enum class RepositoryRole(
         repositoryPermissions = RepositoryPermission.entries.toSet()
     );
 
-    override val level: Int = CompoundHierarchyId.REPOSITORY_LEVEL
+    override val level = HierarchyLevel.REPOSITORY
 }

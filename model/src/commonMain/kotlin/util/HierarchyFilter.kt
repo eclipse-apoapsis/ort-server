@@ -20,6 +20,7 @@
 package org.eclipse.apoapsis.ortserver.model.util
 
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 
 /**
  * A data class that holds information about elements in the hierarchy the current user has access to. A filter
@@ -39,13 +40,13 @@ data class HierarchyFilter(
      * A [Map] with the IDs of elements that should be included together with their child element, grouped by their
      * hierarchy level.
      */
-    val transitiveIncludes: Map<Int, List<CompoundHierarchyId>>,
+    val transitiveIncludes: Map<HierarchyLevel, List<CompoundHierarchyId>>,
 
     /**
      * A [Map] with the IDs of elements that should be included, but without their child elements, grouped by their
      * hierarchy level.
      */
-    val nonTransitiveIncludes: Map<Int, List<CompoundHierarchyId>>,
+    val nonTransitiveIncludes: Map<HierarchyLevel, List<CompoundHierarchyId>>,
 
     /**
      * A flag whether this filter is a wildcard filter, which means that it matches all elements in the hierarchy.

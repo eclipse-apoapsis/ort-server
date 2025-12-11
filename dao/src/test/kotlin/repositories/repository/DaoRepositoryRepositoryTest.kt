@@ -30,6 +30,7 @@ import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.Repository
@@ -176,7 +177,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         fixtures.createRepository(url = "https://example.com/repo3.git")
 
         val hierarchyFilter = HierarchyFilter(
-            transitiveIncludes = mapOf(CompoundHierarchyId.REPOSITORY_LEVEL to listOf(repo1Id, repo2Id)),
+            transitiveIncludes = mapOf(HierarchyLevel.REPOSITORY to listOf(repo1Id, repo2Id)),
             nonTransitiveIncludes = emptyMap()
         )
         val result = repositoryRepository.list(hierarchyFilter = hierarchyFilter)
@@ -207,7 +208,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
         fixtures.createRepository(url = "https://example.com/repo3.git")
 
         val hierarchyFilter = HierarchyFilter(
-            transitiveIncludes = mapOf(CompoundHierarchyId.PRODUCT_LEVEL to listOf(product1Id, product2Id)),
+            transitiveIncludes = mapOf(HierarchyLevel.PRODUCT to listOf(product1Id, product2Id)),
             nonTransitiveIncludes = emptyMap()
         )
         val result = repositoryRepository.list(hierarchyFilter = hierarchyFilter)
@@ -237,7 +238,7 @@ class DaoRepositoryRepositoryTest : StringSpec({
 
         val hierarchyFilter = HierarchyFilter(
             transitiveIncludes = mapOf(
-                CompoundHierarchyId.ORGANIZATION_LEVEL to listOf(
+                HierarchyLevel.ORGANIZATION to listOf(
                     organization1Id,
                     organization2Id
                 )

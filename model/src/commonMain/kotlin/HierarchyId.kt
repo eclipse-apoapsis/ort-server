@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.model
 
+import java.util.EnumSet
+
 /**
  * A sealed interface for a [value] that describes an ID within a specific hierarchy.
  */
@@ -43,6 +45,35 @@ value class ProductId(override val value: Long) : HierarchyId
  */
 @JvmInline
 value class RepositoryId(override val value: Long) : HierarchyId
+
+/**
+ * Enumeration class that defines the supported levels in the hierarchy. Note that the levels are ordered from highest
+ * to lowest.
+ */
+enum class HierarchyLevel {
+    /**
+     * A special hierarchy level meaning that no specific element ID is available. This is used for instance to
+     * represent superuser permissions that apply to all levels.
+     */
+    WILDCARD,
+
+    /** The level representing an organization. */
+    ORGANIZATION,
+
+    /** The level representing a product. */
+    PRODUCT,
+
+    /** The level representing a repository. */
+    REPOSITORY;
+
+    companion object {
+        /**
+         * An ordered collection of all hierarchy levels that actually match real hierarchy elements. This corresponds
+         * to all levels except [WILDCARD].
+         */
+        val DEFINED_LEVELS_TOP_DOWN: EnumSet<HierarchyLevel> = EnumSet.of(ORGANIZATION, PRODUCT, REPOSITORY)
+    }
+}
 
 /**
  * A class storing all IDs in the hierarchy for a specific element. This is helpful for certain use cases which
@@ -72,21 +103,6 @@ data class CompoundHierarchyId private constructor(
          * A special instance representing a wildcard matching any hierarchy ID.
          */
         val WILDCARD = CompoundHierarchyId(null, null, null)
-
-        /** The level representing an organization. */
-        const val ORGANIZATION_LEVEL = 1
-
-        /** The level representing a product. */
-        const val PRODUCT_LEVEL = 2
-
-        /** The level representing a repository. */
-        const val REPOSITORY_LEVEL = 3
-
-        /**
-         * A special level constant representing the [WILDCARD] instance. This ID does not belong to any hierarchy
-         * level.
-         */
-        const val WILDCARD_LEVEL = 0
 
         /**
          * Create a [CompoundHierarchyId] for an organization.
@@ -121,28 +137,25 @@ data class CompoundHierarchyId private constructor(
             else -> null
         }
 
-    /**
-     * A numeric value representing the level in the hierarchy this ID belongs to. This is one of the _LEVEL_
-     * constants.
-     */
-    val level: Int
+    /** The level in the hierarchy this ID belongs to. */
+    val level: HierarchyLevel
         get() = when {
-            repositoryId != null -> REPOSITORY_LEVEL
-            productId != null -> PRODUCT_LEVEL
-            organizationId != null -> ORGANIZATION_LEVEL
-            else -> WILDCARD_LEVEL
+            repositoryId != null -> HierarchyLevel.REPOSITORY
+            productId != null -> HierarchyLevel.PRODUCT
+            organizationId != null -> HierarchyLevel.ORGANIZATION
+            else -> HierarchyLevel.WILDCARD
         }
 
     /**
      * Return the [HierarchyId] of the specified [level] if it is defined. Throw an [IllegalArgumentException] for
-     * invalid level values.
+     * the [HierarchyLevel.WILDCARD] level.
      */
-    operator fun get(level: Int): HierarchyId? =
+    operator fun get(level: HierarchyLevel): HierarchyId? =
         when (level) {
-            ORGANIZATION_LEVEL -> organizationId
-            PRODUCT_LEVEL -> productId
-            REPOSITORY_LEVEL -> repositoryId
-            else -> throw IllegalArgumentException("Invalid level $level")
+            HierarchyLevel.ORGANIZATION -> organizationId
+            HierarchyLevel.PRODUCT -> productId
+            HierarchyLevel.REPOSITORY -> repositoryId
+            HierarchyLevel.WILDCARD -> throw IllegalArgumentException("Invalid level $level")
         }
 
     /**
@@ -151,7 +164,8 @@ data class CompoundHierarchyId private constructor(
      * all levels above ID2 are either *null* or equal. The [WILDCARD] instance contains all other IDs.
      */
     operator fun contains(other: CompoundHierarchyId): Boolean =
-        level <= other.level && (ORGANIZATION_LEVEL..other.level).all { level ->
+        level <= other.level && (HierarchyLevel.ORGANIZATION.ordinal..other.level.ordinal).all { levelOrd ->
+            val level = HierarchyLevel.entries[levelOrd]
             val thisId = this[level]
             thisId == null || thisId == other[level]
         }
