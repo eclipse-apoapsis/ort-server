@@ -22,6 +22,7 @@ import { AxiosError } from 'axios';
 import {
   BookLock,
   Eye,
+  Search,
   ServerCog,
   Settings,
   ShieldQuestion,
@@ -60,6 +61,16 @@ const Layout = () => {
             ],
           },
           icon: () => <ShieldQuestion className='h-4 w-4' />,
+        },
+      ],
+    },
+    {
+      label: 'Search',
+      items: [
+        {
+          title: 'Packages',
+          to: '/organizations/$orgId/products/$productId/search-package',
+          icon: () => <Search className='h-4 w-4' />,
         },
       ],
     },
