@@ -39,6 +39,7 @@ import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.PackageCurationProviderConfig
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedPackageCurations
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
+import org.eclipse.apoapsis.ortserver.model.runs.LicenseSource
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
 import org.eclipse.apoapsis.ortserver.model.runs.RuleViolationFilters
 import org.eclipse.apoapsis.ortserver.model.runs.repository.PackageCuration
@@ -97,7 +98,7 @@ class RuleViolationServiceTest : WordSpec() {
 
                     rule shouldBe "Rule-1"
                     license shouldBe "License-1"
-                    licenseSource shouldBe "CONCLUDED"
+                    licenseSources shouldBe setOf(LicenseSource.CONCLUDED)
                     severity shouldBe Severity.WARNING
                     message shouldBe "Message-1"
                     howToFix shouldBe "How_to_fix-1"
@@ -113,7 +114,7 @@ class RuleViolationServiceTest : WordSpec() {
                 with(results[1]) {
                     rule shouldBe "Rule-2"
                     license shouldBe "License-2"
-                    licenseSource shouldBe "DETECTED"
+                    licenseSources shouldBe setOf(LicenseSource.DETECTED)
                     severity shouldBe Severity.ERROR
                     message shouldBe "Message-2"
                     howToFix shouldBe "How_to_fix-2"
@@ -129,7 +130,7 @@ class RuleViolationServiceTest : WordSpec() {
                 with(results[2]) {
                     rule shouldBe "Rule-3-no-id"
                     license shouldBe "License-3"
-                    licenseSource shouldBe "DETECTED"
+                    licenseSources shouldBe setOf(LicenseSource.CONCLUDED, LicenseSource.DECLARED)
                     severity shouldBe Severity.HINT
                     message shouldBe "Message-3"
                     howToFix shouldBe "How_to_fix-3"
@@ -210,7 +211,7 @@ class RuleViolationServiceTest : WordSpec() {
                         "Rule-4-project-id",
                         proj.identifier,
                         "License-4",
-                        "DETECTED",
+                        setOf(LicenseSource.DECLARED),
                         Severity.WARNING,
                         "Message-4",
                         "How_to_fix-4"
@@ -270,7 +271,7 @@ class RuleViolationServiceTest : WordSpec() {
                                 "2.14.0"
                             ),
                             "License-1",
-                            "CONCLUDED",
+                            setOf(LicenseSource.CONCLUDED),
                             Severity.WARNING,
                             "Message-1",
                             "How_to_fix-1"
@@ -298,7 +299,7 @@ class RuleViolationServiceTest : WordSpec() {
                                 "2.14.0"
                             ),
                             "License-1",
-                            "CONCLUDED",
+                            setOf(LicenseSource.CONCLUDED),
                             Severity.HINT,
                             "Message-1",
                             "How_to_fix-1"
@@ -317,7 +318,7 @@ class RuleViolationServiceTest : WordSpec() {
                                 "2.14.0"
                             ),
                             "License-1",
-                            "CONCLUDED",
+                            setOf(LicenseSource.CONCLUDED),
                             Severity.WARNING,
                             "Message-1",
                             "How_to_fix-1"
@@ -350,7 +351,7 @@ class RuleViolationServiceTest : WordSpec() {
                                 "2.14.0"
                             ),
                             "License-1",
-                            "CONCLUDED",
+                            setOf(LicenseSource.CONCLUDED),
                             Severity.WARNING,
                             "Message-1",
                             "How_to_fix-1"
@@ -387,7 +388,7 @@ class RuleViolationServiceTest : WordSpec() {
                     "2.14.0"
                 ),
                 "License-1",
-                "CONCLUDED",
+                setOf(LicenseSource.CONCLUDED),
                 Severity.WARNING,
                 "Message-1",
                 "How_to_fix-1"
@@ -401,7 +402,7 @@ class RuleViolationServiceTest : WordSpec() {
                     "2.9.6"
                 ),
                 "License-2",
-                "DETECTED",
+                setOf(LicenseSource.DETECTED),
                 Severity.ERROR,
                 "Message-2",
                 "How_to_fix-2"
@@ -410,7 +411,7 @@ class RuleViolationServiceTest : WordSpec() {
                 "Rule-3-no-id",
                 null,
                 "License-3",
-                "DETECTED",
+                setOf(LicenseSource.CONCLUDED, LicenseSource.DECLARED),
                 Severity.HINT,
                 "Message-3",
                 "How_to_fix-3"
