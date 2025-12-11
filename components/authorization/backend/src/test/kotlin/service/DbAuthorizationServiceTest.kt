@@ -46,6 +46,7 @@ import org.eclipse.apoapsis.ortserver.components.authorization.rights.RoleInfo
 import org.eclipse.apoapsis.ortserver.dao.dbQuery
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -827,7 +828,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
 
                 filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
-                    key shouldBe CompoundHierarchyId.REPOSITORY_LEVEL
+                    key shouldBe HierarchyLevel.REPOSITORY
                     value shouldBe setOf(
                         repositoryCompoundId,
                         otherRepoId,
@@ -862,7 +863,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     requiredRole = OrganizationRole.READER
                 )
 
-                filter.transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                filter.transitiveIncludes[HierarchyLevel.ORGANIZATION] shouldContainExactlyInAnyOrder setOf(
                     organizationId,
                     otherOrgId
                 )
@@ -898,7 +899,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
 
                 filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
-                    key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+                    key shouldBe HierarchyLevel.PRODUCT
                     value shouldBe setOf(otherProductId)
                 }
             }
@@ -937,10 +938,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     repositoryPermissions = setOf(RepositoryPermission.WRITE)
                 )
 
-                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                filter.transitiveIncludes[HierarchyLevel.PRODUCT] shouldContainExactlyInAnyOrder setOf(
                     productId
                 )
-                filter.transitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactlyInAnyOrder setOf(
+                filter.transitiveIncludes[HierarchyLevel.ORGANIZATION] shouldContainExactlyInAnyOrder setOf(
                     otherOrgId
                 )
             }
@@ -973,7 +974,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
 
                 filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
-                    key shouldBe CompoundHierarchyId.ORGANIZATION_LEVEL
+                    key shouldBe HierarchyLevel.ORGANIZATION
                     value shouldBe setOf(organizationId)
                 }
             }
@@ -1039,7 +1040,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     repositoryPermissions = setOf(RepositoryPermission.READ)
                 )
 
-                filter.transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL] shouldContainExactly setOf(
+                filter.transitiveIncludes[HierarchyLevel.REPOSITORY] shouldContainExactly setOf(
                     repositoryCompoundId
                 )
             }
@@ -1074,7 +1075,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     containedIn = repositoryCompoundId.productId
                 )
 
-                filter.transitiveIncludes[CompoundHierarchyId.REPOSITORY_LEVEL] shouldContainExactly setOf(
+                filter.transitiveIncludes[HierarchyLevel.REPOSITORY] shouldContainExactly setOf(
                     repositoryCompoundId
                 )
             }
@@ -1108,7 +1109,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                     containedIn = productId.organizationId
                 )
 
-                filter.transitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(productId)
+                filter.transitiveIncludes[HierarchyLevel.PRODUCT] shouldContainExactly setOf(productId)
             }
 
             "handle a containedIn filter together with a superuser assignment" {
@@ -1129,7 +1130,7 @@ class DbAuthorizationServiceTest : WordSpec() {
 
                 filter.isWildcard shouldBe false
                 filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
-                    key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+                    key shouldBe HierarchyLevel.PRODUCT
                     value shouldBe setOf(repositoryCompoundId.parent)
                 }
             }
@@ -1153,7 +1154,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
 
                 filter.transitiveIncludes.entries.shouldBeSingleton { (key, value) ->
-                    key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+                    key shouldBe HierarchyLevel.PRODUCT
                     value shouldBe setOf(repositoryCompoundId.parent)
                 }
             }
@@ -1173,10 +1174,10 @@ class DbAuthorizationServiceTest : WordSpec() {
                     repositoryPermissions = setOf(RepositoryPermission.READ)
                 )
 
-                filter.nonTransitiveIncludes[CompoundHierarchyId.PRODUCT_LEVEL] shouldContainExactly setOf(
+                filter.nonTransitiveIncludes[HierarchyLevel.PRODUCT] shouldContainExactly setOf(
                     repositoryCompoundId.parent
                 )
-                filter.nonTransitiveIncludes[CompoundHierarchyId.ORGANIZATION_LEVEL] shouldContainExactly setOf(
+                filter.nonTransitiveIncludes[HierarchyLevel.ORGANIZATION] shouldContainExactly setOf(
                     repositoryCompoundId.parent?.parent
                 )
                 filter.nonTransitiveIncludes shouldHaveSize 2
@@ -1213,7 +1214,7 @@ class DbAuthorizationServiceTest : WordSpec() {
                 )
 
                 filter.nonTransitiveIncludes.entries.shouldBeSingleton { (key, value) ->
-                    key shouldBe CompoundHierarchyId.PRODUCT_LEVEL
+                    key shouldBe HierarchyLevel.PRODUCT
                     value shouldBe setOf(repositoryCompoundId.parent)
                 }
             }
