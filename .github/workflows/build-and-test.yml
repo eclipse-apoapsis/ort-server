@@ -77,7 +77,7 @@ jobs:
       run: echo "info=$(./gradlew -q :cli:properties | grep kotlin.plugin.loaded.in.projects)" >> $GITHUB_OUTPUT
 
     - name: Cache the .konan directory
-      uses: actions/cache@a7833574556fa59680c1b7cb190c1735db73ebf0 # v5.0.0
+      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
       with:
         path: ~/.konan
         key: ${{ steps.get-kotlin-plugin-info.outputs.info }}
