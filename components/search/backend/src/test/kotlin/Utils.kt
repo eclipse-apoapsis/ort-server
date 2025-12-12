@@ -39,7 +39,8 @@ fun createRunWithPackage(
         ortRunIndex = ortRun.index,
         revision = ortRun.revision,
         createdAt = ortRun.createdAt,
-        packageId = pkgId.toCoordinates()
+        packageId = pkgId.toCoordinates(),
+        purl = null
     )
 }
 

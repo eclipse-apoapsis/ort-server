@@ -68,7 +68,7 @@ class SearchServiceTest : WordSpec({
             val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId)
             val expectedId = run.packageId
 
-            val result = searchService.findOrtRunsByPackage(expectedId, userId)
+            val result = searchService.findOrtRunsByPackage(identifier = expectedId, userId = userId)
 
             result shouldContainExactly listOf(run)
         }
@@ -192,7 +192,7 @@ class SearchServiceTest : WordSpec({
                 )
             )
 
-            val result = searchService.findOrtRunsByPackage(expectedId, userId)
+            val result = searchService.findOrtRunsByPackage(identifier = expectedId, userId = userId)
 
             result shouldContainExactlyInAnyOrder(listOf(run1, run2, run3))
         }
@@ -240,7 +240,7 @@ class SearchServiceTest : WordSpec({
                 authorizationService.filterHierarchyIds(any(), any(), any(), any(), any())
             } returns filter
 
-            val result = searchService.findOrtRunsByPackage(run1.packageId, userId)
+            val result = searchService.findOrtRunsByPackage(identifier = run1.packageId, userId = userId)
 
             result shouldContainExactly listOf(run1)
         }
