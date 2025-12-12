@@ -31,10 +31,6 @@ import dasniko.testcontainers.keycloak.KeycloakContainer
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.install
 import io.kotest.matchers.collections.beEmpty
-import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainAll
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldStartWith
 
@@ -68,10 +64,10 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
                 val invalidClient = DefaultKeycloakClient.create(incorrectConfig, createJson())
 
                 val exception = shouldThrow<KeycloakClientException> {
-                    invalidClient.getRoles()
+                    invalidClient.getUsers()
                 }
 
-                exception.message shouldStartWith "Failed to load roles"
+                exception.message shouldStartWith "Failed to load users"
             }
 
             "support the client credentials grant type" {
@@ -83,9 +79,9 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
                 val confidentialClient = DefaultKeycloakClient.create(config, createJson())
 
                 // Test an arbitrary API call
-                val groups = confidentialClient.getGroups()
+                val users = confidentialClient.getUsers()
 
-                groups shouldNot beEmpty()
+                users shouldNot beEmpty()
             }
 
             "correctly configure the timeout" {
@@ -129,43 +125,10 @@ class DefaultKeycloakClientTest : AbstractKeycloakClientTest() {
 
                     val client = DefaultKeycloakClient.create(config, json)
                     shouldThrow<KeycloakClientException> {
-                        client.getUser(UserId("u1"))
+                        client.getUser(UserName("user1"))
                     }
                 } finally {
                     server.stop()
-                }
-            }
-        }
-
-        "getGroups" should {
-            "return right number of groups with chunk size smaller than total number of groups" {
-                val config = keycloak.createKeycloakClientConfigurationForTestRealm(
-                    secret = TEST_CLIENT_SECRET,
-                    user = "",
-                    clientId = TEST_CONFIDENTIAL_CLIENT,
-                    dataGetChunkSize = 2
-                )
-                val confidentialClient = DefaultKeycloakClient.create(config, createJson())
-
-                val groups = confidentialClient.getGroups()
-
-                groups shouldHaveSize 3
-                groups.map { it.name.value } shouldContainAll
-                    listOf("Organization-A", "Organization-B", "Organization-C")
-            }
-
-            "return filtered groups list" {
-                val config = keycloak.createKeycloakClientConfigurationForTestRealm(
-                    secret = TEST_CLIENT_SECRET,
-                    user = "",
-                    clientId = TEST_CONFIDENTIAL_CLIENT
-                )
-                val confidentialClient = DefaultKeycloakClient.create(config, createJson())
-
-                val groups = confidentialClient.getGroups(groupNameFilter = "B")
-
-                groups.shouldBeSingleton {
-                    it.name.value shouldBe "Organization-B"
                 }
             }
         }
