@@ -25,7 +25,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 
 import org.eclipse.apoapsis.ortserver.components.adminconfig.adminConfigRoutes
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.SecurityConfigurations
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthenticationProviders
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.authorizationRoutes
 import org.eclipse.apoapsis.ortserver.components.infrastructureservices.infrastructureServicesRoutes
 import org.eclipse.apoapsis.ortserver.components.pluginmanager.pluginManagerRoutes
@@ -50,7 +50,7 @@ fun Application.configureRouting() {
             authentication()
             healthChecks()
             downloads()
-            authenticate(SecurityConfigurations.TOKEN) {
+            authenticate(AuthenticationProviders.TOKEN_PROVIDER) {
                 admin()
                 adminConfigRoutes(get())
                 authorizationRoutes()
