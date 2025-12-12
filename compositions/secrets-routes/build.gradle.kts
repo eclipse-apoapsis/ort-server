@@ -26,14 +26,14 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.compositions"
 
 dependencies {
-    api(projects.components.secrets.backend)
+    api(projects.components.secrets.secretsBackend)
 
     api(ktorLibs.server.core)
 
-    implementation(projects.components.authorization.backend)
-    implementation(projects.components.infrastructureServices.backend)
-    implementation(projects.components.secrets.apiModel)
-    implementation(projects.components.secrets.backend) {
+    implementation(projects.components.authorization.authorizationBackend)
+    implementation(projects.components.infrastructureServices.infrastructureServicesBackend)
+    implementation(projects.components.secrets.secretsApiModel)
+    implementation(projects.components.secrets.secretsBackend) {
         capabilities { requireCapability("$group:routes") }
     }
     implementation(projects.shared.ktorUtils)

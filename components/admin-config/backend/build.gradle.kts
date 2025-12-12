@@ -37,12 +37,12 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.components.adminConfig.apiModel)
+    implementation(projects.components.adminConfig.adminConfigApiModel)
 
     implementation(libs.exposedCore)
     implementation(libs.exposedKotlinDatetime)
 
-    routesImplementation(projects.components.authorization.backend)
+    routesImplementation(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.shared.apiModel)
     routesImplementation(projects.shared.ktorUtils)
 

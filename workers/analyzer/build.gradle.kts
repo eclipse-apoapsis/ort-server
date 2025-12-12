@@ -57,7 +57,7 @@ tasks.withType<JibTask> {
 
 dependencies {
     implementation(projects.api.v1.apiV1Model)
-    implementation(projects.components.pluginManager.backend)
+    implementation(projects.components.pluginManager.pluginManagerBackend)
     implementation(projects.dao)
     implementation(projects.model)
     implementation(projects.services.adminConfigService)
@@ -86,7 +86,7 @@ dependencies {
     runtimeOnly(libs.log4jToSlf4j)
     runtimeOnly(libs.logback)
 
-    testImplementation(projects.components.infrastructureServices.backend)
+    testImplementation(projects.components.infrastructureServices.infrastructureServicesBackend)
     testImplementation(projects.services.adminConfigService)
     testImplementation(projects.shared.ortTestData)
 

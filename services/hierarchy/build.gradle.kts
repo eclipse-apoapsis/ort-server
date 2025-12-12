@@ -30,7 +30,7 @@ dependencies {
 
     api(libs.exposedCore)
 
-    implementation(projects.components.authorization.backend)
+    implementation(projects.components.authorization.authorizationBackend)
     implementation(projects.dao)
     implementation(projects.services.reportStorageService)
 

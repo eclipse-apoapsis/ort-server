@@ -38,12 +38,12 @@ repositories {
 dependencies {
     api(libs.exposedCore)
 
-    implementation(projects.components.authorization.backend)
-    implementation(projects.components.search.apiModel)
+    implementation(projects.components.authorization.authorizationBackend)
+    implementation(projects.components.search.searchApiModel)
     implementation(projects.dao)
     implementation(projects.model)
 
-    routesImplementation(projects.components.authorization.backend)
+    routesImplementation(projects.components.authorization.authorizationBackend)
     routesImplementation(projects.shared.apiModel)
     routesImplementation(projects.shared.ktorUtils)
 

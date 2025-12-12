@@ -37,7 +37,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(projects.components.infrastructureServices.apiModel)
+                api(projects.components.infrastructureServices.infrastructureServicesApiModel)
                 api(projects.shared.apiModel)
 
                 api(libs.kotlinxDatetime)

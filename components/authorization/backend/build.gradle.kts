@@ -25,7 +25,7 @@ plugins {
 group = "org.eclipse.apoapsis.ortserver.components.authorization"
 
 dependencies {
-    api(projects.components.authorization.apiModel)
+    api(projects.components.authorization.authorizationApiModel)
     api(projects.model)
     api(projects.clients.keycloak)
 
