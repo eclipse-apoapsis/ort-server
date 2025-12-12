@@ -29,8 +29,8 @@ import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerP
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.get
 import org.eclipse.apoapsis.ortserver.components.search.apimodel.RunWithPackage
 import org.eclipse.apoapsis.ortserver.components.search.backend.SearchService
+import org.eclipse.apoapsis.ortserver.dao.QueryParametersException
 import org.eclipse.apoapsis.ortserver.shared.ktorutils.jsonBody
-import org.eclipse.apoapsis.ortserver.shared.ktorutils.requireParameter
 
 @Suppress("LongMethod")
 internal fun Route.getRunsWithPackage(searchService: SearchService) =
@@ -40,9 +40,13 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
         tags = listOf("Search")
 
         request {
-            queryParameter<String>("identifier") {
-                description = "The package identifier to search for. Also RegEx supported."
-                required = true
+            queryParameter<String?>("identifier") {
+                description = "The package identifier to search for in ORT format (type:namespace:name:version). " +
+                    "Supports regular expressions. Mutually exclusive with 'purl'."
+            }
+            queryParameter<String?>("purl") {
+                description = "The package URL (PURL) to search for. Any curations for PURLs are taken into account. " +
+                    "Supports regular expressions. Mutually exclusive with 'identifier'."
             }
             queryParameter<Long?>("organizationId") {
                 description = "Optional organization ID to filter the search. " +
@@ -62,7 +66,7 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
             HttpStatusCode.OK to {
                 description = "Success"
                 jsonBody<List<RunWithPackage>> {
-                    example("Package Search Result") {
+                    example("Identifier Search Result") {
                         value = listOf(
                             RunWithPackage(
                                 organizationId = 1L,
@@ -72,34 +76,50 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
                                 ortRunIndex = 42L,
                                 revision = "a1b2c3d4",
                                 createdAt = Clock.System.now(),
-                                packageId = "Maven:foo:bar:1.0.0"
-                            ),
+                                packageId = "Maven:foo:bar:1.0.0",
+                                purl = null
+                            )
+                        )
+                    }
+                    example("PURL Search Result") {
+                        value = listOf(
                             RunWithPackage(
                                 organizationId = 1L,
-                                productId = 3L,
-                                repositoryId = 7L,
-                                ortRunId = 2120L,
-                                ortRunIndex = 120L,
+                                productId = 2L,
+                                repositoryId = 3L,
+                                ortRunId = 1042L,
+                                ortRunIndex = 42L,
                                 revision = "a1b2c3d4",
                                 createdAt = Clock.System.now(),
-                                packageId = "Maven:foo:bar:1.0.0"
+                                packageId = null,
+                                purl = "pkg:maven/foo/bar@1.0.0"
                             )
                         )
                     }
                 }
             }
             HttpStatusCode.BadRequest to {
-                description = "If more than one scope parameter (organizationId, productId, repositoryId) is specified."
+                description = "If more than one scope parameter (organizationId, productId, repositoryId) is " +
+                    "specified, or if neither/both 'identifier' and 'purl' are provided."
             }
         }
     }, requireScopedReadPermission()) {
-        val identifierParam = call.requireParameter("identifier")
+        val identifierParam = call.request.queryParameters["identifier"]
+        val purlParam = call.request.queryParameters["purl"]
+
+        if ((identifierParam != null) == (purlParam != null)) {
+            throw QueryParametersException(
+                "Exactly one of 'identifier' or 'purl' must be provided."
+            )
+        }
+
         // parseScope() throws QueryParametersException if multiple scope parameters are provided
         val scope = call.parseScope()
         val userId = requirePrincipal().username
 
         val ortRuns = searchService.findOrtRunsByPackage(
             identifier = identifierParam,
+            purl = purlParam,
             userId = userId,
             scope = scope
         )

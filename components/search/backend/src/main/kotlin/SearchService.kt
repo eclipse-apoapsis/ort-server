@@ -31,6 +31,11 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunDao
 import org.eclipse.apoapsis.ortserver.dao.repositories.ortrun.OrtRunsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.repository.RepositoriesTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationDataTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.repositoryconfiguration.PackageCurationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedConfigurationsTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
+import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
 import org.eclipse.apoapsis.ortserver.dao.utils.applyRegex
@@ -39,31 +44,41 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
+import org.jetbrains.exposed.sql.CustomFunction
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Expression
 import org.jetbrains.exposed.sql.Join
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.concat
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.stringLiteral
+import org.jetbrains.exposed.sql.wrapAsExpression
 
 class SearchService(
     private val db: Database,
     private val authorizationService: AuthorizationService
 ) {
     /**
-     * Search for Analyzer runs containing the given package identifier, with optional scoping.
+     * Search for Analyzer runs containing the given package identifier or PURL, with optional scoping.
      *
-     * @param identifier The package identifier regex to search for.
+     * @param identifier The package identifier regex to search for (ORT format: type:namespace:name:version).
+     * @param purl The package URL regex to search for. When provided, searches against effective (post-curation) PURLs.
      * @param userId The user ID performing the search.
      * @param scope Optional scope to limit the search. Can be an [OrganizationId], [ProductId], or [RepositoryId].
      *              If null, performs a global search (requires superuser permission).
      */
     suspend fun findOrtRunsByPackage(
-        identifier: String,
+        identifier: String?,
+        purl: String?,
         userId: String,
         scope: HierarchyId? = null
     ): List<RunWithPackage> {
+        require((identifier == null) != (purl == null)) {
+            "Exactly one of 'identifier' or 'purl' must be provided."
+        }
+
         val hierarchyFilter = authorizationService.filterHierarchyIds(
             userId = userId,
             repositoryPermissions = setOf(RepositoryPermission.READ),
@@ -80,7 +95,10 @@ class SearchService(
                 .innerJoin(RepositoriesTable, { OrtRunsTable.repositoryId }, { RepositoriesTable.id })
                 .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
 
-            findByIdentifier(query, identifier, hierarchyFilter)
+            when {
+                identifier != null -> findByIdentifier(query, identifier, hierarchyFilter)
+                else -> findByPurl(query, checkNotNull(purl), hierarchyFilter)
+            }
         }
     }
 }
@@ -126,9 +144,72 @@ private fun findByIdentifier(
             ortRunIndex = ortRun.index,
             revision = ortRun.revision,
             createdAt = ortRun.createdAt,
-            packageId = packageId
+            packageId = packageId,
+            purl = null
         )
     }
+}
+
+/**
+ * Find runs by PURL using curated PURL resolution.
+ */
+private fun findByPurl(
+    query: Join,
+    purl: String,
+    hierarchyFilter: HierarchyFilter
+): List<RunWithPackage> {
+    val effectivePurl = createEffectivePurlExpression()
+    val purlCondition = effectivePurl.applyRegex(purl)
+
+    val whereClause = hierarchyFilter.apply(purlCondition) { level, ids, filter ->
+        generateHierarchyCondition(level, ids, filter)
+    }
+
+    return query.select(OrtRunsTable.columns + effectivePurl).where(whereClause).map { row ->
+        val ortRun = OrtRunDao.wrapRow(row).mapToModel()
+
+        RunWithPackage(
+            organizationId = ortRun.organizationId,
+            productId = ortRun.productId,
+            repositoryId = ortRun.repositoryId,
+            ortRunId = ortRun.id,
+            ortRunIndex = ortRun.index,
+            revision = ortRun.revision,
+            createdAt = ortRun.createdAt,
+            packageId = null,
+            purl = row[effectivePurl]
+        )
+    }
+}
+
+/**
+ * Create an expression for the effective PURL that respects curations. Return `COALESCE(curated_purl, original_purl)`
+ * where the curated PURL is looked up from the resolved configuration for the current ORT run.
+ */
+private fun createEffectivePurlExpression(): CustomFunction<String> {
+    val curatedPurlSubquery = PackageCurationDataTable
+        .innerJoin(PackageCurationsTable)
+        .innerJoin(ResolvedPackageCurationsTable)
+        .innerJoin(ResolvedPackageCurationProvidersTable)
+        .innerJoin(ResolvedConfigurationsTable)
+        .select(PackageCurationDataTable.purl)
+        .where {
+            (ResolvedConfigurationsTable.ortRunId eq OrtRunsTable.id) and
+                    (PackageCurationsTable.identifierId eq IdentifiersTable.id) and
+                    (PackageCurationDataTable.purl.isNotNull())
+        }
+        .orderBy(ResolvedPackageCurationProvidersTable.rank)
+        .orderBy(ResolvedPackageCurationsTable.rank)
+        .limit(1)
+
+    val curatedPurlExpression: Expression<String?> = wrapAsExpression(curatedPurlSubquery)
+
+    return CustomFunction(
+        "COALESCE",
+        PackagesTable.purl.columnType,
+        curatedPurlExpression,
+        PackagesTable.purl
+    )
 }
 
 /**

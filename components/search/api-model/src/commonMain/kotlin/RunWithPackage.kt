@@ -31,5 +31,6 @@ data class RunWithPackage(
     val ortRunIndex: Long,
     val revision: String?,
     val createdAt: Instant,
-    val packageId: String,
+    val packageId: String?,
+    val purl: String?
 )
