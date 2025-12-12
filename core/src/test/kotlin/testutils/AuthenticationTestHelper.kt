@@ -26,7 +26,7 @@ import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.UserPasswordCredential
 import io.ktor.server.auth.basic
 
-import org.eclipse.apoapsis.ortserver.components.authorization.keycloak.SecurityConfigurations
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.AuthenticationProviders
 
 /** Credentials of a test user. */
 const val TEST_USER = "user"
@@ -39,7 +39,7 @@ const val TEST_PASSWORD = "password"
  */
 fun Application.configureTestAuthentication() {
     install(Authentication) {
-        basic(SecurityConfigurations.TOKEN) {
+        basic(AuthenticationProviders.TOKEN_PROVIDER) {
             validate { validateTestCredentials(it) }
         }
     }
