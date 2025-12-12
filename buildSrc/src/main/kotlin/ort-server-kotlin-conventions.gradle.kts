@@ -23,9 +23,6 @@ import org.gradle.accessors.dm.LibrariesForLibs
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-private val Project.libs: LibrariesForLibs
-    get() = extensions.getByType()
-
 private val catalogs = extensions.getByType<VersionCatalogsExtension>()
 private val detektRulesVersion = catalogs.named("ortLibs").findLibrary("detektRules").get().get().version
 

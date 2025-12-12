@@ -24,9 +24,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val javaLanguageVersion: String by project
 
-private val Project.libs: LibrariesForLibs
-    get() = extensions.getByType()
-
 plugins {
     // Apply precompiled plugins.
     id("ort-server-kotlin-conventions")
