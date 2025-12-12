@@ -26,106 +26,9 @@ package org.eclipse.apoapsis.ortserver.clients.keycloak
 @Suppress("TooManyFunctions")
 interface KeycloakClient {
     /**
-     * Return a set of all [groups][Group], which currently exist in the Keycloak realm.
-     * Optionally [groupNameFilter] can be applied to filter the groups by their name.
-     */
-    suspend fun getGroups(groupNameFilter: String? = null): Set<Group>
-
-    /**
-     * Return exactly the [group][Group] with the given [id].
-     */
-    suspend fun getGroup(id: GroupId): Group
-
-    /**
-     * Return the [group][Group] with the given [name].
-     */
-    suspend fun getGroup(name: GroupName): Group
-
-    /**
-     * Get all [groups][Group] that partially match the given [partialName][GroupName].
-     */
-    suspend fun searchGroups(partialName: GroupName): Set<Group>
-
-    /**
-     * Add a new [group][Group] to the Keycloak realm with the given [name].
-     */
-    suspend fun createGroup(name: GroupName)
-
-    /**
-     * Update the [group][Group] with the given [id], with the new [name] in the Keycloak realm.
-     */
-    suspend fun updateGroup(id: GroupId, name: GroupName)
-
-    /**
-     * Delete the [group][Group] within the Keycloak realm with the given [id].
-     */
-    suspend fun deleteGroup(id: GroupId)
-
-    /**
-     * Get all client [roles][Role] for the [group][Group] with the given [id].
-     */
-    suspend fun getGroupClientRoles(id: GroupId): Set<Role>
-
-    /**
-     * Add a [role] to the [group][Group] with the given [id].
-     */
-    suspend fun addGroupClientRole(id: GroupId, role: Role)
-
-    /**
-     * Remove a [role] from the [group][Group] with the given [id].
-     */
-    suspend fun removeGroupClientRole(id: GroupId, role: Role)
-
-    /**
-     * Return a set of all [roles][Role] that are currently defined for the configured client.
-     */
-    suspend fun getRoles(): Set<Role>
-
-    /**
-     * Return exactly the client [role][Role] with the given [name].
-     */
-    suspend fun getRole(name: RoleName): Role
-
-    /**
-     * Add a new [role][Role] to the configured client with the given [name] and [description].
-     */
-    suspend fun createRole(name: RoleName, description: String? = null)
-
-    /**
-     * Update the [role][Role] within the configured client with the new [updatedName] and
-     * [updatedDescription].
-     */
-    suspend fun updateRole(name: RoleName, updatedName: RoleName, updatedDescription: String?)
-
-    /**
-     * Delete the [role][Role] within the configured client with the given [name].
-     */
-    suspend fun deleteRole(name: RoleName)
-
-    /**
-     * Add the role identified by [compositeRoleId] to the composites of the role identified by [name].
-     */
-    suspend fun addCompositeRole(name: RoleName, compositeRoleId: RoleId)
-
-    /**
-     * Get all composite roles of the [role][Role] with the given [name].
-     */
-    suspend fun getCompositeRoles(name: RoleName): List<Role>
-
-    /**
-     * Remove the role identified by [compositeRoleId] from the composites of the role identified by [name].
-     */
-    suspend fun removeCompositeRole(name: RoleName, compositeRoleId: RoleId)
-
-    /**
      * Return a set of all [users][User], which currently exist in the Keycloak realm.
      */
     suspend fun getUsers(): Set<User>
-
-    /**
-     * Return exactly the [user][User] with the given [id].
-     */
-    suspend fun getUser(id: UserId): User
 
     /**
      * Return the [user][User] with the given [username].
@@ -146,11 +49,6 @@ interface KeycloakClient {
     )
 
     /**
-     * Check whether the [user][User] has credentials in the Keycloak realm.
-     */
-    suspend fun getUserHasCredentials(username: UserName): Boolean
-
-    /**
      * Update the [user][User] with the given [id] within the Keycloak realm with the new [username], [firstName],
      * [lastName] and [email].
      */
@@ -166,21 +64,6 @@ interface KeycloakClient {
      * Delete the [user][User] with the given [id] from the Keycloak realm.
      */
     suspend fun deleteUser(id: UserId)
-
-    /**
-     * Get all client [roles][Role] for the [user][User] with the given [id].
-     */
-    suspend fun getUserClientRoles(id: UserId): Set<Role>
-
-    /**
-     * Add a user [username] to the group [groupName].
-     */
-    suspend fun addUserToGroup(username: UserName, groupName: GroupName)
-
-    /**
-     * Remove a user [username] from the group [groupName].
-     */
-    suspend fun removeUserFromGroup(username: UserName, groupName: GroupName)
 
     /**
      * Return a set of all [users][User] of a group [GroupName].
