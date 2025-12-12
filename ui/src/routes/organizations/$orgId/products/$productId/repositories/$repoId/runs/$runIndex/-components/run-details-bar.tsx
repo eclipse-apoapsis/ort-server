@@ -18,7 +18,7 @@
  */
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { getRouteApi, Link } from '@tanstack/react-router';
+import { getRouteApi, Link, useLocation } from '@tanstack/react-router';
 import { ArrowBigLeft, ArrowBigRight, ArrowBigUp, Repeat } from 'lucide-react';
 
 import {
@@ -50,6 +50,7 @@ const routeApi = getRouteApi(
 
 export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
   const params = routeApi.useParams();
+  const location = useLocation();
   const pollInterval = config.pollInterval;
 
   // Because the list of run indexes for a repository can be discontinuous
@@ -99,17 +100,23 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
   const hasPrevious = previousIndex !== null;
   const hasNext = nextIndex !== null;
 
+  // Build a path to another run index while preserving the current sub-route.
+  // E.g., if on .../runs/5/config, navigating to run 4 should go to
+  // .../runs/4/config instead of /runs/4.
+  const buildRunPath = (runIndex: number) => {
+    return location.pathname.replace(
+      `/runs/${params.runIndex}`,
+      `/runs/${runIndex}`
+    );
+  };
+
   return (
     <div
       className={cn('flex flex-col justify-between p-4 md:flex-row', className)}
     >
       <div className='flex items-start'>
         <Link
-          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-          params={{
-            ...params,
-            runIndex: previousIndex?.toString() ?? '1',
-          }}
+          to={hasPrevious ? buildRunPath(previousIndex!) : '#'}
           disabled={!hasPrevious}
         >
           <Button variant='ghost' disabled={!hasPrevious}>
@@ -129,14 +136,7 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
             <div className='text-muted-foreground text-xs'>All</div>
           </Button>
         </Link>
-        <Link
-          to='/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex'
-          params={{
-            ...params,
-            runIndex: nextIndex?.toString() ?? '1',
-          }}
-          disabled={!hasNext}
-        >
+        <Link to={hasNext ? buildRunPath(nextIndex!) : '#'} disabled={!hasNext}>
           <Button variant='ghost' disabled={!hasNext}>
             <div className='text-muted-foreground text-xs'>Next</div>
             <ArrowBigRight className='h-5 w-5' />
