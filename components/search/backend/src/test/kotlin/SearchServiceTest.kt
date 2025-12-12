@@ -21,9 +21,11 @@ package ort.eclipse.apoapsis.ortserver.components.search
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -68,7 +70,7 @@ class SearchServiceTest : WordSpec({
             val run = createRunWithPackage(fixtures = fixtures, repoId = repositoryId)
             val expectedId = run.packageId
 
-            val result = searchService.findOrtRunsByPackage(identifier = expectedId, userId = userId)
+            val result = searchService.findOrtRunsByPackage(identifier = expectedId, purl = null, userId = userId)
 
             result shouldContainExactly listOf(run)
         }
@@ -98,6 +100,7 @@ class SearchServiceTest : WordSpec({
 
             val result = searchService.findOrtRunsByPackage(
                 identifier = expectedId,
+                purl = null,
                 userId = userId,
                 scope = OrganizationId(run.organizationId)
             )
@@ -131,7 +134,8 @@ class SearchServiceTest : WordSpec({
             } returns filter
 
             val result = searchService.findOrtRunsByPackage(
-                expectedId,
+                identifier = expectedId,
+                purl = null,
                 userId = userId,
                 scope = ProductId(run.productId)
             )
@@ -164,7 +168,8 @@ class SearchServiceTest : WordSpec({
             } returns filter
 
             val result = searchService.findOrtRunsByPackage(
-                expectedId,
+                identifier = expectedId,
+                purl = null,
                 userId = userId,
                 scope = RepositoryId(run.repositoryId)
             )
@@ -192,7 +197,7 @@ class SearchServiceTest : WordSpec({
                 )
             )
 
-            val result = searchService.findOrtRunsByPackage(identifier = expectedId, userId = userId)
+            val result = searchService.findOrtRunsByPackage(identifier = expectedId, purl = null, userId = userId)
 
             result shouldContainExactlyInAnyOrder(listOf(run1, run2, run3))
         }
@@ -202,7 +207,8 @@ class SearchServiceTest : WordSpec({
             val expectedId = "maven:nonexistent:package:1.0.0"
 
             val result = searchService.findOrtRunsByPackage(
-                expectedId,
+                identifier = expectedId,
+                purl = null,
                 userId = userId,
                 scope = RepositoryId(run.repositoryId)
             )
@@ -240,9 +246,78 @@ class SearchServiceTest : WordSpec({
                 authorizationService.filterHierarchyIds(any(), any(), any(), any(), any())
             } returns filter
 
-            val result = searchService.findOrtRunsByPackage(identifier = run1.packageId, userId = userId)
+            val result = searchService.findOrtRunsByPackage(identifier = run1.packageId, purl = null, userId = userId)
 
             result shouldContainExactly listOf(run1)
+        }
+
+        "support PURL-based search without curation" {
+            val pkgId = Identifier("maven", "org.example", "library", "1.0.0")
+            val run = createRunWithPackageForPurlSearch(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
+            val expectedPurl = pkgId.toPurl()
+
+            val result = searchService.findOrtRunsByPackage(identifier = null, purl = expectedPurl, userId = userId)
+
+            result shouldContainExactly listOf(run)
+        }
+
+        "support PURL-based search with curation" {
+            val pkgId = Identifier("maven", "org.example", "library", "1.0.0")
+            val curatedPurl = "pkg:maven/org.example/library-corrected@1.0.0"
+            val run = createRunWithCuratedPurl(
+                db = db,
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                curatedPurl = curatedPurl
+            )
+
+            val result = searchService.findOrtRunsByPackage(identifier = null, purl = curatedPurl, userId = userId)
+
+            result shouldContainExactly listOf(run)
+        }
+
+        "not find original PURL when curated PURL exists" {
+            val pkgId = Identifier("maven", "org.example", "library", "1.0.0")
+            val originalPurl = pkgId.toPurl()
+            val curatedPurl = "pkg:maven/org.example/library-corrected@1.0.0"
+            createRunWithCuratedPurl(
+                db = db,
+                fixtures = fixtures,
+                repoId = repositoryId,
+                pkgId = pkgId,
+                curatedPurl = curatedPurl
+            )
+
+            val result = searchService.findOrtRunsByPackage(identifier = null, purl = originalPurl, userId = userId)
+
+            result should beEmpty()
+        }
+
+        "return purl field and null packageId for PURL search" {
+            val pkgId = Identifier("maven", "org.example", "library", "1.0.0")
+            createRunWithPackageForPurlSearch(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
+            val expectedPurl = pkgId.toPurl()
+
+            val result = searchService.findOrtRunsByPackage(identifier = null, purl = expectedPurl, userId = userId)
+
+            result.shouldBeSingleton {
+                it.purl shouldBe expectedPurl
+                it.packageId shouldBe null
+            }
+        }
+
+        "return packageId field and null purl for identifier search" {
+            val pkgId = Identifier("maven", "org.example", "library", "1.0.0")
+            createRunWithPackage(fixtures = fixtures, repoId = repositoryId, pkgId = pkgId)
+            val expectedId = pkgId.toCoordinates()
+
+            val result = searchService.findOrtRunsByPackage(identifier = expectedId, purl = null, userId = userId)
+
+            result.shouldBeSingleton {
+                it.packageId shouldBe expectedId
+                it.purl shouldBe null
+            }
         }
     }
 })
