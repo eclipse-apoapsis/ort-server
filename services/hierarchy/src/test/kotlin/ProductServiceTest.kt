@@ -36,6 +36,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.repository.DaoRepositoryR
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.OrganizationId
 import org.eclipse.apoapsis.ortserver.model.ProductId
 import org.eclipse.apoapsis.ortserver.model.RepositoryId
@@ -117,7 +118,7 @@ class ProductServiceTest : WordSpec({
             )
 
             val filter = HierarchyFilter(
-                transitiveIncludes = mapOf(CompoundHierarchyId.REPOSITORY_LEVEL to listOf(repo1Id, repo2Id)),
+                transitiveIncludes = mapOf(HierarchyLevel.REPOSITORY to listOf(repo1Id, repo2Id)),
                 nonTransitiveIncludes = emptyMap()
             )
             val authService = mockk<AuthorizationService> {

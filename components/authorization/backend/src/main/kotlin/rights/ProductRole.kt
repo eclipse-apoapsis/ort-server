@@ -19,7 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.authorization.rights
 
-import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
+import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 
 /**
  * This enum contains the available roles for [products][org.eclipse.apoapsis.ortserver.model.Product]. It
@@ -62,5 +62,5 @@ enum class ProductRole(
         repositoryPermissions = RepositoryPermission.entries.toSet()
     );
 
-    override val level = CompoundHierarchyId.PRODUCT_LEVEL
+    override val level = HierarchyLevel.PRODUCT
 }

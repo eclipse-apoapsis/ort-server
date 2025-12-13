@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
+ * Copyright (C) 2025 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,19 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.clients.keycloak
+package org.eclipse.apoapsis.ortserver.model
 
-import kotlinx.serialization.Serializable
+import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContainExactly
 
-/**
- * A data class representing a role managed by Keycloak.
- */
-@Serializable
-data class Role(
-    /** The internal ID of the role. */
-    val id: RoleId,
-
-    /** The role name. */
-    val name: RoleName,
-
-    /** The description of the role. */
-    val description: String? = null
-)
+class HierarchyIdTest : WordSpec({
+    "HierarchyLevel.DEFINED_LEVELS" should {
+        "contain the expected levels" {
+            HierarchyLevel.DEFINED_LEVELS.toList() shouldContainExactly listOf(
+                HierarchyLevel.ORGANIZATION,
+                HierarchyLevel.PRODUCT,
+                HierarchyLevel.REPOSITORY
+            )
+        }
+    }
+})
