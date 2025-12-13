@@ -138,9 +138,9 @@ function SearchPackageComponent() {
               repoId: row.original.repositoryId.toString(),
               runIndex: row.original.ortRunIndex.toString(),
             }}
-            search={{ pkgId: row.original.packageId, marked: '0' }}
+            search={{ pkgId: row.original.packageId ?? undefined, marked: '0' }}
           >
-            <BreakableString text={row.original.packageId} />
+            <BreakableString text={row.original.packageId ?? ''} />
           </Link>
         );
       },

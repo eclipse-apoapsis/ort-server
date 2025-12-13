@@ -21,8 +21,11 @@ package ort.eclipse.apoapsis.ortserver.components.search.routes
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -40,8 +43,11 @@ import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import ort.eclipse.apoapsis.ortserver.components.search.SearchIntegrationTest
+import ort.eclipse.apoapsis.ortserver.components.search.createRunWithCuratedPurl
 import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackage
+import ort.eclipse.apoapsis.ortserver.components.search.createRunWithPackageForPurlSearch
 import ort.eclipse.apoapsis.ortserver.components.search.toCoordinates
+import ort.eclipse.apoapsis.ortserver.components.search.toPurl
 
 private const val SEARCH_ROUTE = "/search/package"
 
@@ -346,6 +352,119 @@ class GetRunsWithPackageIntegrationTest : SearchIntegrationTest({
 
                 val body = response.body<List<RunWithPackage>>()
                 body.shouldBeEmpty()
+            }
+        }
+
+        "return BadRequest if both identifier and purl are provided" {
+            searchTestApplication { client ->
+                val response = client.get(SEARCH_ROUTE) {
+                    parameter("identifier", "Maven:foo:bar:1.0.0")
+                    parameter("purl", "pkg:maven/foo/bar@1.0.0")
+                }
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+            }
+        }
+
+        "return BadRequest if neither identifier nor purl is provided" {
+            searchTestApplication { client ->
+                val response = client.get(SEARCH_ROUTE)
+
+                response shouldHaveStatus HttpStatusCode.BadRequest
+            }
+        }
+
+        "return runs globally when searching by purl" {
+            val fixtures = dbExtension.fixtures
+            val packageIdentifier = identifierFor("purl-global")
+            val run = createRunWithPackageForPurlSearch(
+                fixtures = fixtures,
+                repoId = fixtures.repository.id,
+                pkgId = packageIdentifier
+            )
+
+            searchTestApplication { client ->
+                val response = client.get(SEARCH_ROUTE) {
+                    parameter("purl", packageIdentifier.toPurl())
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<List<RunWithPackage>>()
+                body shouldContainExactly listOf(run)
+            }
+        }
+
+        "return curated purl when searching by purl with curation" {
+            val fixtures = dbExtension.fixtures
+            val db = dbExtension.db
+            val packageIdentifier = identifierFor("purl-curated")
+            val curatedPurl = "pkg:maven/corrected-ns/corrected-name@1.0.0"
+            val run = createRunWithCuratedPurl(
+                db = db,
+                fixtures = fixtures,
+                repoId = fixtures.repository.id,
+                pkgId = packageIdentifier,
+                curatedPurl = curatedPurl
+            )
+
+            searchTestApplication { client ->
+                val response = client.get(SEARCH_ROUTE) {
+                    parameter("purl", curatedPurl)
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<List<RunWithPackage>>()
+                body shouldContainExactly listOf(run)
+            }
+        }
+
+        "return packageId as null and purl as non-null for purl search" {
+            val fixtures = dbExtension.fixtures
+            val packageIdentifier = identifierFor("purl-response")
+            createRunWithPackageForPurlSearch(
+                fixtures = fixtures,
+                repoId = fixtures.repository.id,
+                pkgId = packageIdentifier
+            )
+
+            searchTestApplication { client ->
+                val response = client.get(SEARCH_ROUTE) {
+                    parameter("purl", packageIdentifier.toPurl())
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<List<RunWithPackage>>()
+                body.shouldBeSingleton {
+                    it.packageId.shouldBeNull()
+                    it.purl shouldBe packageIdentifier.toPurl()
+                }
+            }
+        }
+
+        "return purl as null and packageId as non-null for identifier search" {
+            val fixtures = dbExtension.fixtures
+            val packageIdentifier = identifierFor("id-response")
+            createRunWithPackage(
+                fixtures = fixtures,
+                repoId = fixtures.repository.id,
+                pkgId = packageIdentifier
+            )
+
+            searchTestApplication { client ->
+                val response = client.get(SEARCH_ROUTE) {
+                    parameter("identifier", packageIdentifier.toCoordinates())
+                }
+
+                response shouldHaveStatus HttpStatusCode.OK
+
+                val body = response.body<List<RunWithPackage>>()
+                body.shouldBeSingleton {
+                    it.purl.shouldBeNull()
+                    it.packageId shouldBe packageIdentifier.toCoordinates()
+                }
             }
         }
     }
