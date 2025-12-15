@@ -26,6 +26,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
 import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder
+import org.eclipse.apoapsis.ortserver.workers.common.env.NPM_REGISTRY_URI
 import org.eclipse.apoapsis.ortserver.workers.common.env.YarnRcGenerator
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnAuthMode
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnDefinition
@@ -42,7 +43,7 @@ class YarnRcGeneratorTest : WordSpec({
     "generate" should {
         "generate the file at the correct location" {
             val definition = YarnDefinition(
-                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI),
+                MockConfigFileBuilder.createInfrastructureService(NPM_REGISTRY_URI),
                 null
             )
 
@@ -57,7 +58,7 @@ class YarnRcGeneratorTest : WordSpec({
             val usernameSecret = MockConfigFileBuilder.createSecret("registryUser")
             val passwordSecret = MockConfigFileBuilder.createSecret("registryPass")
             val definition = YarnDefinition(
-                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret),
+                MockConfigFileBuilder.createInfrastructureService(NPM_REGISTRY_URI, usernameSecret, passwordSecret),
                 credentialsTypes = null,
                 alwaysAuth = true,
                 authMode = YarnAuthMode.AUTH_IDENT
@@ -69,7 +70,7 @@ class YarnRcGeneratorTest : WordSpec({
 
             val expectedLines = """
                 npmRegistries:
-                  "$REGISTRY_URI":
+                  "$NPM_REGISTRY_URI":
                     npmAlwaysAuth: true
                     npmAuthIdent: "${MockConfigFileBuilder.testSecretRef(usernameSecret)}:${MockConfigFileBuilder.testSecretRef(passwordSecret)}"
             """.trimIndent().lines()
@@ -83,14 +84,18 @@ class YarnRcGeneratorTest : WordSpec({
             val passwordSecret2 = MockConfigFileBuilder.createSecret("registryPass2")
             val definitions = listOf(
                 YarnDefinition(
-                    MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret1),
+                    MockConfigFileBuilder.createInfrastructureService(
+                        NPM_REGISTRY_URI,
+                        usernameSecret,
+                        passwordSecret1
+                    ),
                     null,
                     true,
                     YarnAuthMode.AUTH_IDENT
                 ),
                 YarnDefinition(
                     MockConfigFileBuilder.createInfrastructureService(
-                        REGISTRY_URI + "1",
+                        NPM_REGISTRY_URI + "1",
                         usernameSecret,
                         passwordSecret2
                     ),
@@ -106,11 +111,11 @@ class YarnRcGeneratorTest : WordSpec({
 
             val expectedLines = """
                 npmRegistries:
-                  "$REGISTRY_URI":
+                  "$NPM_REGISTRY_URI":
                     npmAlwaysAuth: true
                     npmAuthIdent: "${MockConfigFileBuilder.testSecretRef(usernameSecret)}:${MockConfigFileBuilder.testSecretRef(passwordSecret1)}"
 
-                  "${REGISTRY_URI}1":
+                  "${NPM_REGISTRY_URI}1":
                     npmAlwaysAuth: true
                     npmAuthIdent: "${MockConfigFileBuilder.testSecretRef(usernameSecret)}:${MockConfigFileBuilder.testSecretRef(passwordSecret2)}"
             """.trimIndent().lines()
@@ -123,7 +128,7 @@ class YarnRcGeneratorTest : WordSpec({
             val usernameSecret = MockConfigFileBuilder.createSecret("usernameSecret")
             val passwordSecret = MockConfigFileBuilder.createSecret("registryToken")
             val definition = YarnDefinition(
-                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret),
+                MockConfigFileBuilder.createInfrastructureService(NPM_REGISTRY_URI, usernameSecret, passwordSecret),
                 null,
                 true,
                 YarnAuthMode.AUTH_TOKEN
@@ -135,7 +140,7 @@ class YarnRcGeneratorTest : WordSpec({
 
             val expectedLines = """
                 npmRegistries:
-                  "$REGISTRY_URI":
+                  "$NPM_REGISTRY_URI":
                     npmAlwaysAuth: true
                     npmAuthToken: "${MockConfigFileBuilder.testSecretRef(passwordSecret)}"
             """.trimIndent().lines()
@@ -147,7 +152,7 @@ class YarnRcGeneratorTest : WordSpec({
             val usernameSecret = MockConfigFileBuilder.createSecret("usernameSecret")
             val passwordSecret = MockConfigFileBuilder.createSecret("registryToken")
             val definition = YarnDefinition(
-                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI, usernameSecret, passwordSecret),
+                MockConfigFileBuilder.createInfrastructureService(NPM_REGISTRY_URI, usernameSecret, passwordSecret),
                 null,
                 false,
                 YarnAuthMode.AUTH_TOKEN
@@ -159,7 +164,7 @@ class YarnRcGeneratorTest : WordSpec({
 
             val expectedLines = """
                 npmRegistries:
-                  "$REGISTRY_URI":
+                  "$NPM_REGISTRY_URI":
                     npmAuthToken: "${MockConfigFileBuilder.testSecretRef(passwordSecret)}"
             """.trimIndent().lines()
             val lines = mockBuilder.generatedLines()
@@ -175,7 +180,7 @@ class YarnRcGeneratorTest : WordSpec({
             )
 
             val definition = YarnDefinition(
-                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI),
+                MockConfigFileBuilder.createInfrastructureService(NPM_REGISTRY_URI),
                 null
             )
 
@@ -199,7 +204,7 @@ class YarnRcGeneratorTest : WordSpec({
             )
 
             val definition = YarnDefinition(
-                MockConfigFileBuilder.createInfrastructureService(REGISTRY_URI),
+                MockConfigFileBuilder.createInfrastructureService(NPM_REGISTRY_URI),
                 null
             )
 
@@ -216,5 +221,3 @@ class YarnRcGeneratorTest : WordSpec({
         }
     }
 })
-
-const val REGISTRY_URI = "https://registry.example.org/_packaging/test/npm/registry/"

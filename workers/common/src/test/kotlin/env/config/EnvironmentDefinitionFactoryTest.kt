@@ -34,9 +34,9 @@ import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.common.env.REGISTRY_URI
 import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_NAME
 import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_URL
+import org.eclipse.apoapsis.ortserver.workers.common.env.NPM_REGISTRY_URI
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
@@ -406,8 +406,11 @@ class EnvironmentDefinitionFactoryTest : WordSpec() {
             "fail if there are unsupported properties" {
                 val unsupportedProperty1 = "anotherProperty"
                 val unsupportedProperty2 = "oneMoreUnsupportedProperty"
-                val properties =
-                    mapOf("registryUri" to REGISTRY_URI, unsupportedProperty1 to "bar", unsupportedProperty2 to "baz")
+                val properties = mapOf(
+                    "registryUri" to NPM_REGISTRY_URI,
+                    unsupportedProperty1 to "bar",
+                    unsupportedProperty2 to "baz"
+                )
 
                 val exception = createFailed(EnvironmentDefinitionFactory.YARN_TYPE, properties)
 
