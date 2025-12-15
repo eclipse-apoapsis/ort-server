@@ -458,15 +458,14 @@ const ProductVulnerabilitiesComponent = () => {
           {filtersInUse && matching})
         </CardTitle>
         <CardDescription>
-          These are the vulnerabilities found currently from this product.
-          Please note that the vulnerability status may change over time, as
-          your dependencies change. Therefore, your product repositories should
-          be scanned for vulnerabilities regularly.
+          This is an overview of the vulnerabilities found within this product.
+          It only takes into account the latest runs per repository that have
+          successful advisor results.
         </CardDescription>
         <CardDescription>
-          By clicking on "References" you can see more information about the
-          vulnerability. The overall severity rating is calculated based on the
-          highest severity rating found in the references.
+          Please note that new vulnerabilities may get discovered over time.
+          Therefore, your product's repositories should be scanned for
+          vulnerabilities regularly, even if no code changes occurred.
         </CardDescription>
       </CardHeader>
       <CardContent>
