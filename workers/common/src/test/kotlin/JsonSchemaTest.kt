@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.common
+package org.eclipse.apoapsis.ortserver.workers.common
 
 import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SpecificationVersion

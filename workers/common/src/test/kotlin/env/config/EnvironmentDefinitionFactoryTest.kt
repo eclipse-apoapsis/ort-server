@@ -34,9 +34,9 @@ import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.model.CredentialsType
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_NAME
-import org.eclipse.apoapsis.ortserver.workers.common.common.env.REMOTE_URL
 import org.eclipse.apoapsis.ortserver.workers.common.env.NPM_REGISTRY_URI
+import org.eclipse.apoapsis.ortserver.workers.common.env.REMOTE_NAME
+import org.eclipse.apoapsis.ortserver.workers.common.env.REMOTE_URL
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.GradleDefinition
