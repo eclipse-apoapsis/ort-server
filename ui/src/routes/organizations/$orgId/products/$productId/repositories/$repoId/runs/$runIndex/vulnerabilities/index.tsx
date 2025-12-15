@@ -87,6 +87,7 @@ import { compareVulnerabilityRating } from '@/helpers/sorting-functions';
 import { ACTION_COLUMN_SIZE, ALL_ITEMS } from '@/lib/constants';
 import { toast } from '@/lib/toast';
 import {
+  externalIdSearchParameterSchema,
   ItemResolved,
   itemResolvedSchema,
   itemStatusSearchParameterSchema,
@@ -384,7 +385,16 @@ const VulnerabilitiesComponent = () => {
     columnHelper.accessor('vulnerability.externalId', {
       id: 'externalId',
       header: 'External ID',
-      enableColumnFilter: false,
+      meta: {
+        filter: {
+          filterVariant: 'text',
+          setFilterValue: (value: string | undefined) => {
+            navigate({
+              search: { ...search, page: 1, externalId: value },
+            });
+          },
+        },
+      },
     }),
     columnHelper.accessor('advisor.name', {
       id: 'advisorName',
@@ -431,6 +441,11 @@ const VulnerabilitiesComponent = () => {
     [search.rating]
   );
 
+  const externalId = useMemo(
+    () => (search.externalId ? search.externalId : undefined),
+    [search.externalId]
+  );
+
   const columnId = packageIdType === 'ORT_ID' ? 'identifier' : 'purl';
 
   const columnFilters = useMemo(() => {
@@ -444,8 +459,11 @@ const VulnerabilitiesComponent = () => {
     if (rating) {
       filters.push({ id: 'rating', value: rating });
     }
+    if (externalId) {
+      filters.push({ id: 'externalId', value: externalId });
+    }
     return filters;
-  }, [itemStatus, packageIdentifier, columnId, rating]);
+  }, [itemStatus, packageIdentifier, columnId, rating, externalId]);
 
   const sortBy = useMemo(
     () => (search.sortBy ? search.sortBy : undefined),
@@ -580,6 +598,7 @@ export const Route = createFileRoute(
     ...itemStatusSearchParameterSchema.shape,
     ...packageIdentifierSearchParameterSchema.shape,
     ...vulnerabilityRatingSearchParameterSchema.shape,
+    ...externalIdSearchParameterSchema.shape,
     ...markedSearchParameterSchema.shape,
   }),
   loader: async ({ context: { queryClient }, params }) => {
