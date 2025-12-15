@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.common.env.config
+package org.eclipse.apoapsis.ortserver.workers.common.env.config
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.TestConfiguration
@@ -57,10 +57,6 @@ import org.eclipse.apoapsis.ortserver.model.Secret
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
 import org.eclipse.apoapsis.ortserver.workers.common.ResolvedInfrastructureService
-import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigException
-import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentConfigLoader
-import org.eclipse.apoapsis.ortserver.workers.common.env.config.EnvironmentDefinitionFactory
-import org.eclipse.apoapsis.ortserver.workers.common.env.config.ResolvedEnvironmentConfig
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.EnvironmentServiceDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.MavenDefinition
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.SecretVariableDefinition

@@ -17,14 +17,12 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
-import org.eclipse.apoapsis.ortserver.workers.common.env.ConanGenerator
-import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.ConanDefinition
 
 class ConanGeneratorTest : WordSpec({

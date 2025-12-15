@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-package org.eclipse.apoapsis.ortserver.workers.common.common.env
+package org.eclipse.apoapsis.ortserver.workers.common.env
 
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.extensions.system.OverrideMode
@@ -25,9 +25,6 @@ import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
-import org.eclipse.apoapsis.ortserver.workers.common.env.MockConfigFileBuilder
-import org.eclipse.apoapsis.ortserver.workers.common.env.NPM_REGISTRY_URI
-import org.eclipse.apoapsis.ortserver.workers.common.env.YarnRcGenerator
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnAuthMode
 import org.eclipse.apoapsis.ortserver.workers.common.env.definition.YarnDefinition
 
