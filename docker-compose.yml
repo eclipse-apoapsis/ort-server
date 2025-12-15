@@ -17,7 +17,7 @@
 
 services:
   postgres:
-    image: postgres:18
+    image: postgres:${POSTGRES_VERSION}
     restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
@@ -32,7 +32,7 @@ services:
     # Use port 5433 on the host to avoid a conflict with a running postgres instance on the host.
     - "5433:5432"
     volumes:
-    - db:/var/lib/postgresql
+    - db:/var/lib/postgresql/${POSTGRES_VERSION}/docker
     logging:
       driver: ${LOG_DRIVER:-gelf}
       options:
