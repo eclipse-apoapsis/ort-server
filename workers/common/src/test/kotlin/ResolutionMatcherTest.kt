@@ -29,9 +29,6 @@ import io.kotest.matchers.shouldNotBe
 import java.time.Instant
 
 import org.eclipse.apoapsis.ortserver.model.resolvedconfiguration.ResolvedItemsResult
-import org.eclipse.apoapsis.ortserver.model.runs.Issue
-import org.eclipse.apoapsis.ortserver.model.runs.RuleViolation
-import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolution
 import org.eclipse.apoapsis.ortserver.model.runs.repository.IssueResolutionReason
 import org.eclipse.apoapsis.ortserver.model.runs.repository.RuleViolationResolution
@@ -168,7 +165,7 @@ class ResolutionMatcherTest : WordSpec({
 
             result.issues shouldHaveSize 2
             val issues = result.issues.keys.toList()
-            issues.forEach { (it as? Issue) shouldNotBe null }
+            issues.forEach { it shouldNotBe null }
             val resolutionsForIssue1 = result.issues.values.flatten()
             resolutionsForIssue1 shouldContainExactlyInAnyOrder listOf(
                 expectedIssueResolution1,
@@ -189,7 +186,7 @@ class ResolutionMatcherTest : WordSpec({
 
             result.ruleViolations shouldHaveSize 1
             val ruleViolations = result.ruleViolations.keys.toList()
-            ruleViolations.forEach { (it as? RuleViolation) shouldNotBe null }
+            ruleViolations.forEach { it shouldNotBe null }
             result.ruleViolations.values.flatten() shouldBe listOf(expectedRuleViolationResolution1)
         }
 
@@ -206,7 +203,7 @@ class ResolutionMatcherTest : WordSpec({
 
             result.vulnerabilities shouldHaveSize 1
             val vulnerabilities = result.vulnerabilities.keys.toList()
-            vulnerabilities.forEach { (it as? Vulnerability) shouldNotBe null }
+            vulnerabilities.forEach { it shouldNotBe null }
             vulnerabilities.first().externalId shouldBe "CVE-2023-0001"
             result.vulnerabilities.values.flatten() shouldBe listOf(expectedVulnerabilityResolution1)
         }
