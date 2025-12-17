@@ -40,6 +40,7 @@ import org.eclipse.apoapsis.ortserver.model.HierarchyId
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Join
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.concat
@@ -79,42 +80,54 @@ class SearchService(
                 .innerJoin(RepositoriesTable, { OrtRunsTable.repositoryId }, { RepositoriesTable.id })
                 .innerJoin(ProductsTable, { RepositoriesTable.productId }, { ProductsTable.id })
 
-            val concatenatedIdentifier = concat(
-                IdentifiersTable.type,
-                stringLiteral(":"),
-                IdentifiersTable.namespace,
-                stringLiteral(":"),
-                IdentifiersTable.name,
-                stringLiteral(":"),
-                IdentifiersTable.version
-            )
-
-            val identifierCondition = concatenatedIdentifier.applyRegex(identifier)
-
-            val whereClause = hierarchyFilter.apply(identifierCondition) { level, ids, filter ->
-                generateHierarchyCondition(level, ids, filter)
-            }
-
-            query.select(OrtRunsTable.columns + IdentifiersTable.columns).where(whereClause).map { row ->
-                val ortRun = OrtRunDao.wrapRow(row).mapToModel()
-                val packageId = listOf(
-                    row[IdentifiersTable.type],
-                    row[IdentifiersTable.namespace],
-                    row[IdentifiersTable.name],
-                    row[IdentifiersTable.version]
-                ).joinToString(":")
-                RunWithPackage(
-                    organizationId = ortRun.organizationId,
-                    productId = ortRun.productId,
-                    repositoryId = ortRun.repositoryId,
-                    ortRunId = ortRun.id,
-                    ortRunIndex = ortRun.index,
-                    revision = ortRun.revision,
-                    createdAt = ortRun.createdAt,
-                    packageId = packageId
-                )
-            }
+            findByIdentifier(query, identifier, hierarchyFilter)
         }
+    }
+}
+
+/**
+ * Find runs by ORT package identifier without curation resolution (for performance reasons).
+ */
+private fun findByIdentifier(
+    query: Join,
+    identifier: String,
+    hierarchyFilter: HierarchyFilter
+): List<RunWithPackage> {
+    val concatenatedIdentifier = concat(
+        IdentifiersTable.type,
+        stringLiteral(":"),
+        IdentifiersTable.namespace,
+        stringLiteral(":"),
+        IdentifiersTable.name,
+        stringLiteral(":"),
+        IdentifiersTable.version
+    )
+
+    val identifierCondition = concatenatedIdentifier.applyRegex(identifier)
+
+    val whereClause = hierarchyFilter.apply(identifierCondition) { level, ids, filter ->
+        generateHierarchyCondition(level, ids, filter)
+    }
+
+    return query.select(OrtRunsTable.columns + IdentifiersTable.columns).where(whereClause).map { row ->
+        val ortRun = OrtRunDao.wrapRow(row).mapToModel()
+        val packageId = listOf(
+            row[IdentifiersTable.type],
+            row[IdentifiersTable.namespace],
+            row[IdentifiersTable.name],
+            row[IdentifiersTable.version]
+        ).joinToString(":")
+
+        RunWithPackage(
+            organizationId = ortRun.organizationId,
+            productId = ortRun.productId,
+            repositoryId = ortRun.repositoryId,
+            ortRunId = ortRun.id,
+            ortRunIndex = ortRun.index,
+            revision = ortRun.revision,
+            createdAt = ortRun.createdAt,
+            packageId = packageId
+        )
     }
 }
 
