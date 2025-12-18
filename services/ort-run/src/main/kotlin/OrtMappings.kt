@@ -504,7 +504,7 @@ fun OrtRuleViolation.mapToModel() = RuleViolation(
     message = message,
     howToFix = howToFix,
     license = license?.toString(),
-    licenseSource = licenseSource?.name
+    licenseSource = licenseSources.firstOrNull()?.name
 )
 
 fun OrtRuleViolationResolution.mapToModel() = RuleViolationResolution(

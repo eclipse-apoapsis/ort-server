@@ -615,7 +615,7 @@ object OrtTestData {
                 howToFix = "howToFix",
                 pkg = Identifier("Maven:com.example:package:1.0"),
                 license = SpdxSingleLicenseExpression.parse("LicenseRef-detected1-concluded"),
-                licenseSource = LicenseSource.CONCLUDED
+                licenseSources = setOf(LicenseSource.CONCLUDED)
             )
         ),
     )
