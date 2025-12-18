@@ -19,8 +19,6 @@
 
 import io.gitlab.arturbosch.detekt.Detekt
 
-import org.gradle.accessors.dm.LibrariesForLibs
-
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 private val catalogs = extensions.getByType<VersionCatalogsExtension>()
