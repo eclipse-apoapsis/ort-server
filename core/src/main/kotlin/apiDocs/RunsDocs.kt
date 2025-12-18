@@ -403,6 +403,11 @@ val getRunRuleViolations: RouteConfig.() -> Unit = {
                             sortProperties = listOf(SortProperty("rule", SortDirection.ASCENDING))
                         )
                     )
+                    description = """
+                        A list of all rule violations found in the ORT run.
+                        Note: While ORT may detect multiple license sources for a single rule violation, this endpoint
+                        will always return only one source per rule violation.
+                    """.trimIndent()
                 }
             }
         }

@@ -1027,7 +1027,7 @@ class OrtRunServiceTest : WordSpec({
                         rule = "rule",
                         fixtures.identifier,
                         license = "license",
-                        licenseSource = "license source",
+                        licenseSources = setOf("CONCLUDED", "DECLARED"),
                         severity = Severity.ERROR,
                         message = "the rule is violated",
                         howToFix = "how to fix info"
@@ -1052,7 +1052,7 @@ class OrtRunServiceTest : WordSpec({
                         rule = "rule",
                         fixtures.identifier,
                         license = "license",
-                        licenseSource = "license source",
+                        licenseSources = setOf("CONCLUDED"),
                         severity = Severity.ERROR,
                         message = "the rule is violated",
                         howToFix = howToFix

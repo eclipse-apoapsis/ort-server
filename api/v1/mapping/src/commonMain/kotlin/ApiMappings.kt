@@ -619,7 +619,8 @@ fun RuleViolation.mapToApi() = ApiRuleViolation(
     rule = rule,
     id = id?.mapToApi(),
     license = license,
-    licenseSource = licenseSource,
+    // TODO: Add support for multiple license sources https://github.com/eclipse-apoapsis/ort-server/issues/4185.
+    licenseSource = licenseSources.firstOrNull(),
     severity = severity.mapToApi(),
     message = message,
     howToFix = howToFix,

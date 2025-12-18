@@ -634,7 +634,7 @@ class ReporterRunnerTest : WordSpec({
 
             mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
-            val ruleViolation = RuleViolation("RULE", null, null, null, OrtSeverity.ERROR, "message", "howToFix")
+            val ruleViolation = RuleViolation("RULE", null, null, emptySet(), OrtSeverity.ERROR, "message", "howToFix")
 
             val result = runner.run(
                 ortResult = OrtTestData.result.copy(
@@ -671,7 +671,7 @@ class ReporterRunnerTest : WordSpec({
                         startTime = Clock.System.now().toJavaInstant(),
                         endTime = Clock.System.now().toJavaInstant(),
                         violations = listOf(
-                            RuleViolation("RULE", null, null, null, OrtSeverity.ERROR, "message", "howToFix")
+                            RuleViolation("RULE", null, null, emptySet(), OrtSeverity.ERROR, "message", "howToFix")
                         )
                     )
                 ),

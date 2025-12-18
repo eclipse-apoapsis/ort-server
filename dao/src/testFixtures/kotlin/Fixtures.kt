@@ -239,7 +239,7 @@ class Fixtures(private val db: Database) {
         rule = "rule",
         id = identifier,
         license = "license",
-        licenseSource = "license source",
+        licenseSources = setOf("DETECTED", "DECLARED"),
         message = "message",
         severity = Severity.ERROR,
         howToFix = "how to fix"
