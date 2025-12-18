@@ -35,6 +35,7 @@ import io.mockk.unmockkAll
 import io.mockk.verify
 
 import java.io.File
+import java.util.EnumSet
 
 import org.eclipse.apoapsis.ortserver.config.ConfigException
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -52,6 +53,7 @@ import org.eclipse.apoapsis.ortserver.services.ortrun.mapToOrt
 import org.eclipse.apoapsis.ortserver.shared.orttestdata.OrtTestData
 import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
+import org.ossreviewtoolkit.model.LicenseSource
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity
@@ -102,7 +104,7 @@ class EvaluatorRunnerTest : WordSpec({
                 rule = "TEST_RULE",
                 pkg = null,
                 license = null,
-                licenseSource = null,
+                licenseSources = EnumSet.noneOf(LicenseSource::class.java),
                 severity = Severity.ERROR,
                 message = "This is an example RuleViolation for test cases.",
                 howToFix = ""

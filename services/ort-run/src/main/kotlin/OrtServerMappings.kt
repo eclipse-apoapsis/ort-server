@@ -23,6 +23,7 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 
 import java.net.URI
 import java.time.Instant
+import java.util.EnumSet
 
 import kotlinx.datetime.toJavaInstant
 
@@ -601,7 +602,9 @@ fun RuleViolation.mapToOrt() =
         rule = rule,
         pkg = id?.mapToOrt(),
         license = license?.let { SpdxSingleLicenseExpression.parse(it) },
-        licenseSources = licenseSource?.let { setOf(LicenseSource.valueOf(it)) } ?: emptySet(),
+        licenseSources = licenseSource?.let { EnumSet.of(LicenseSource.valueOf(it)) } ?: EnumSet.noneOf(
+            LicenseSource::class.java
+        ),
         severity = severity.mapToOrt(),
         message = message,
         howToFix = howToFix

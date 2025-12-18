@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.shared.orttestdata
 
 import java.io.File
 import java.net.URI
+import java.util.EnumSet
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
@@ -615,7 +616,7 @@ object OrtTestData {
                 howToFix = "howToFix",
                 pkg = Identifier("Maven:com.example:package:1.0"),
                 license = SpdxSingleLicenseExpression.parse("LicenseRef-detected1-concluded"),
-                licenseSources = setOf(LicenseSource.CONCLUDED)
+                licenseSources = EnumSet.of(LicenseSource.CONCLUDED)
             )
         ),
     )

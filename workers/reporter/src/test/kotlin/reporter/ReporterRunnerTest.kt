@@ -50,6 +50,7 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
+import java.util.EnumSet
 
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.isAccessible
@@ -89,6 +90,7 @@ import org.eclipse.apoapsis.ortserver.workers.common.context.WorkerContext
 
 import org.ossreviewtoolkit.model.EvaluatorRun
 import org.ossreviewtoolkit.model.Issue
+import org.ossreviewtoolkit.model.LicenseSource
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.RuleViolation
 import org.ossreviewtoolkit.model.Severity as OrtSeverity
@@ -634,7 +636,15 @@ class ReporterRunnerTest : WordSpec({
 
             mockReporterFactoryAll(TEST_REPORT_FORMAT to reporter)
 
-            val ruleViolation = RuleViolation("RULE", null, null, null, OrtSeverity.ERROR, "message", "howToFix")
+            val ruleViolation = RuleViolation(
+                "RULE",
+                null,
+                null,
+                EnumSet.noneOf(LicenseSource::class.java),
+                OrtSeverity.ERROR,
+                "message",
+                "howToFix"
+            )
 
             val result = runner.run(
                 ortResult = OrtTestData.result.copy(
@@ -671,7 +681,15 @@ class ReporterRunnerTest : WordSpec({
                         startTime = Clock.System.now().toJavaInstant(),
                         endTime = Clock.System.now().toJavaInstant(),
                         violations = listOf(
-                            RuleViolation("RULE", null, null, null, OrtSeverity.ERROR, "message", "howToFix")
+                            RuleViolation(
+                                "RULE",
+                                null,
+                                null,
+                                EnumSet.noneOf(LicenseSource::class.java),
+                                OrtSeverity.ERROR,
+                                "message",
+                                "howToFix"
+                            )
                         )
                     )
                 ),
