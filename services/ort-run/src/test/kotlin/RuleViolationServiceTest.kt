@@ -97,7 +97,7 @@ class RuleViolationServiceTest : WordSpec() {
 
                     rule shouldBe "Rule-1"
                     license shouldBe "License-1"
-                    licenseSource shouldBe "CONCLUDED"
+                    licenseSources shouldBe setOf("CONCLUDED")
                     severity shouldBe Severity.WARNING
                     message shouldBe "Message-1"
                     howToFix shouldBe "How_to_fix-1"
@@ -113,7 +113,7 @@ class RuleViolationServiceTest : WordSpec() {
                 with(results[1]) {
                     rule shouldBe "Rule-2"
                     license shouldBe "License-2"
-                    licenseSource shouldBe "DETECTED"
+                    licenseSources shouldBe setOf("DETECTED")
                     severity shouldBe Severity.ERROR
                     message shouldBe "Message-2"
                     howToFix shouldBe "How_to_fix-2"
@@ -129,7 +129,7 @@ class RuleViolationServiceTest : WordSpec() {
                 with(results[2]) {
                     rule shouldBe "Rule-3-no-id"
                     license shouldBe "License-3"
-                    licenseSource shouldBe "DETECTED"
+                    licenseSources shouldBe setOf("CONCLUDED", "DECLARED")
                     severity shouldBe Severity.HINT
                     message shouldBe "Message-3"
                     howToFix shouldBe "How_to_fix-3"
@@ -210,7 +210,7 @@ class RuleViolationServiceTest : WordSpec() {
                         "Rule-4-project-id",
                         proj.identifier,
                         "License-4",
-                        "DETECTED",
+                        setOf("DECLARED"),
                         Severity.WARNING,
                         "Message-4",
                         "How_to_fix-4"
@@ -270,7 +270,7 @@ class RuleViolationServiceTest : WordSpec() {
                                 "2.14.0"
                             ),
                             "License-1",
-                            "CONCLUDED",
+                            setOf("CONCLUDED"),
                             Severity.WARNING,
                             "Message-1",
                             "How_to_fix-1"
@@ -298,7 +298,7 @@ class RuleViolationServiceTest : WordSpec() {
                                 "2.14.0"
                             ),
                             "License-1",
-                            "CONCLUDED",
+                            setOf("CONCLUDED"),
                             Severity.HINT,
                             "Message-1",
                             "How_to_fix-1"
@@ -317,7 +317,7 @@ class RuleViolationServiceTest : WordSpec() {
                                 "2.14.0"
                             ),
                             "License-1",
-                            "CONCLUDED",
+                            setOf("CONCLUDED"),
                             Severity.WARNING,
                             "Message-1",
                             "How_to_fix-1"
@@ -350,7 +350,7 @@ class RuleViolationServiceTest : WordSpec() {
                                 "2.14.0"
                             ),
                             "License-1",
-                            "CONCLUDED",
+                            setOf("CONCLUDED"),
                             Severity.WARNING,
                             "Message-1",
                             "How_to_fix-1"
@@ -387,7 +387,7 @@ class RuleViolationServiceTest : WordSpec() {
                     "2.14.0"
                 ),
                 "License-1",
-                "CONCLUDED",
+                setOf("CONCLUDED"),
                 Severity.WARNING,
                 "Message-1",
                 "How_to_fix-1"
@@ -401,7 +401,7 @@ class RuleViolationServiceTest : WordSpec() {
                     "2.9.6"
                 ),
                 "License-2",
-                "DETECTED",
+                setOf("DETECTED"),
                 Severity.ERROR,
                 "Message-2",
                 "How_to_fix-2"
@@ -410,7 +410,7 @@ class RuleViolationServiceTest : WordSpec() {
                 "Rule-3-no-id",
                 null,
                 "License-3",
-                "DETECTED",
+                setOf("CONCLUDED", "DECLARED"),
                 Severity.HINT,
                 "Message-3",
                 "How_to_fix-3"

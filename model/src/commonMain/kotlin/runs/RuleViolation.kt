@@ -29,7 +29,7 @@ data class RuleViolation(
     val rule: String,
     val id: Identifier?,
     val license: String?,
-    val licenseSource: String?,
+    val licenseSources: Set<String>,
     val severity: Severity,
     val message: String,
     val howToFix: String,

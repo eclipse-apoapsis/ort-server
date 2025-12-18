@@ -121,7 +121,7 @@ import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.KnownProvenance as OrtKnownProvenance
 import org.ossreviewtoolkit.model.LicenseFinding as OrtLicenseFinding
-import org.ossreviewtoolkit.model.LicenseSource
+import org.ossreviewtoolkit.model.LicenseSource as OrtLicenseSource
 import org.ossreviewtoolkit.model.OrtResult
 import org.ossreviewtoolkit.model.Package as OrtPackage
 import org.ossreviewtoolkit.model.PackageCuration as OrtPackageCuration
@@ -601,7 +601,7 @@ fun RuleViolation.mapToOrt() =
         rule = rule,
         pkg = id?.mapToOrt(),
         license = license?.let { SpdxSingleLicenseExpression.parse(it) },
-        licenseSource = licenseSource?.let { LicenseSource.valueOf(it) },
+        licenseSources = licenseSources.mapTo(mutableSetOf()) { OrtLicenseSource.valueOf(it) },
         severity = severity.mapToOrt(),
         message = message,
         howToFix = howToFix

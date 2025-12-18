@@ -37,7 +37,7 @@ object RuleViolationsTable : SortableTable("rule_violations") {
     val rule = text("rule").sortable()
     val identifierId = reference("identifier_id", IdentifiersTable).nullable()
     val license = text("license").nullable()
-    val licenseSource = text("license_source").nullable()
+    val licenseSources = text("license_sources").nullable()
     val severity = enumerationByName<Severity>("severity", 128).sortable()
     val message = text("message")
     val howToFix = text("how_to_fix")
@@ -50,7 +50,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
                 rule = ruleViolation.rule
                 identifierId = getIdentifierDaoOrNull(ruleViolation)
                 license = ruleViolation.license
-                licenseSource = ruleViolation.licenseSource
+                licenseSources = ruleViolation.licenseSources.joinToString(",")
                 severity = ruleViolation.severity
                 message = ruleViolation.message
                 howToFix = ruleViolation.howToFix
@@ -63,7 +63,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
                 RuleViolationsTable.rule eq ruleViolation.rule and
                         (RuleViolationsTable.identifierId eq identifierDao?.id) and
                         (RuleViolationsTable.license eq ruleViolation.license) and
-                        (RuleViolationsTable.licenseSource eq ruleViolation.licenseSource) and
+                        (RuleViolationsTable.licenseSources eq ruleViolation.licenseSources.joinToString(",")) and
                         (RuleViolationsTable.severity eq ruleViolation.severity)
             }.find { it.message == ruleViolation.message && it.howToFix == ruleViolation.howToFix }
         }
@@ -80,7 +80,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
     var rule by RuleViolationsTable.rule
     var identifierId by IdentifierDao optionalReferencedOn RuleViolationsTable.identifierId
     var license by RuleViolationsTable.license
-    var licenseSource by RuleViolationsTable.licenseSource
+    var licenseSources by RuleViolationsTable.licenseSources
     var severity by RuleViolationsTable.severity
     var message by RuleViolationsTable.message
     var howToFix by RuleViolationsTable.howToFix
@@ -89,7 +89,7 @@ class RuleViolationDao(id: EntityID<Long>) : LongEntity(id) {
         rule = rule,
         id = identifierId?.mapToModel(),
         license = license,
-        licenseSource = licenseSource,
+        licenseSources = licenseSources?.split(',')?.toSet().orEmpty(),
         severity = severity,
         message = message,
         howToFix = howToFix,

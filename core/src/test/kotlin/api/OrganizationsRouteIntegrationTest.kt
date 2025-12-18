@@ -1595,7 +1595,7 @@ class OrganizationsRouteIntegrationTest : AbstractIntegrationTest({
                             "rule1",
                             null,
                             null,
-                            null,
+                            emptySet(),
                             Severity.HINT,
                             "message",
                             "how-to-fix"
